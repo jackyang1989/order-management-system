@@ -1,0 +1,148 @@
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
+import { IsString, IsNotEmpty, IsOptional, IsNumber, IsEnum } from 'class-validator';
+
+export enum BuyerAccountStatus {
+    PENDING = 0,      // 待审核
+    APPROVED = 1,     // 已通过
+    REJECTED = 2,     // 已拒绝
+    DELETED = 3       // 已删除
+}
+
+export enum BuyerAccountPlatform {
+    TAOBAO = '淘宝',
+    JD = '京东',
+    PDD = '拼多多'
+}
+
+@Entity('buyer_accounts')
+export class BuyerAccount {
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
+
+    @Column()
+    @Index()
+    userId: string;  // 所属用户
+
+    @Column({ type: 'varchar', length: 20, default: BuyerAccountPlatform.TAOBAO })
+    platform: BuyerAccountPlatform;
+
+    @Column({ length: 100 })
+    accountName: string;  // 淘宝账号/旺旺ID
+
+    @Column({ length: 50, nullable: true })
+    province?: string;  // 地址省份
+
+    @Column({ length: 50, nullable: true })
+    city?: string;  // 地址城市
+
+    @Column({ length: 50, nullable: true })
+    district?: string;  // 地址区县
+
+    @Column({ length: 100, nullable: true })
+    receiverName?: string;  // 收货人姓名
+
+    @Column({ length: 20, nullable: true })
+    receiverPhone?: string;  // 收货人手机
+
+    @Column({ type: 'text', nullable: true })
+    fullAddress?: string;  // 完整地址
+
+    @Column({ length: 50, nullable: true })
+    alipayName?: string;  // 支付宝认证姓名
+
+    @Column({ type: 'text', nullable: true })
+    idCardImage?: string;  // 身份证正面截图
+
+    @Column({ type: 'text', nullable: true })
+    alipayImage?: string;  // 支付宝认证截图
+
+    @Column({ type: 'text', nullable: true })
+    archiveImage?: string;  // 旺旺档案截图
+
+    @Column({ type: 'text', nullable: true })
+    ipImage?: string;  // IP地址截图
+
+    @Column({ default: 1 })
+    star: number;  // 星级 (1-5)
+
+    @Column({ type: 'int', default: BuyerAccountStatus.PENDING })
+    status: BuyerAccountStatus;
+
+    @Column({ type: 'text', nullable: true })
+    rejectReason?: string;  // 拒绝原因
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
+}
+
+// DTOs
+export class CreateBuyerAccountDto {
+    @IsEnum(BuyerAccountPlatform)
+    @IsOptional()
+    platform?: BuyerAccountPlatform;
+
+    @IsString()
+    @IsNotEmpty()
+    accountName: string;
+
+    @IsString()
+    @IsOptional()
+    province?: string;
+
+    @IsString()
+    @IsOptional()
+    city?: string;
+
+    @IsString()
+    @IsOptional()
+    district?: string;
+
+    @IsString()
+    @IsOptional()
+    receiverName?: string;
+
+    @IsString()
+    @IsOptional()
+    receiverPhone?: string;
+
+    @IsString()
+    @IsOptional()
+    fullAddress?: string;
+
+    @IsString()
+    @IsOptional()
+    alipayName?: string;
+}
+
+export class UpdateBuyerAccountDto {
+    @IsString()
+    @IsOptional()
+    province?: string;
+
+    @IsString()
+    @IsOptional()
+    city?: string;
+
+    @IsString()
+    @IsOptional()
+    district?: string;
+
+    @IsString()
+    @IsOptional()
+    receiverName?: string;
+
+    @IsString()
+    @IsOptional()
+    receiverPhone?: string;
+
+    @IsString()
+    @IsOptional()
+    fullAddress?: string;
+
+    @IsString()
+    @IsOptional()
+    alipayName?: string;
+}

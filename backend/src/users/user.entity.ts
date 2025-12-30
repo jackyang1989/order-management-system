@@ -1,0 +1,148 @@
+import { IsString, IsNotEmpty, MinLength, IsOptional, IsBoolean, IsNumber } from 'class-validator';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
+
+@Entity('users')
+export class User {
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
+
+    @Column({ unique: true })
+    username: string;
+
+    @Column()
+    password: string; // hashed
+
+    @Column({ unique: true })
+    @Index()
+    phone: string;
+
+    @Column({ nullable: true })
+    qq?: string;
+
+    @Column({ default: false })
+    vip: boolean;
+
+    @Column({ type: 'timestamp', nullable: true })
+    vipExpireAt?: Date;
+
+    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+    balance: number;      // 本金余额
+
+    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+    frozenBalance: number; // 冻结本金
+
+    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+    silver: number;       // 银锭余额
+
+    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+    frozenSilver: number; // 冻结银锭
+
+    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+    reward: number;       // 累计赚取银锭
+
+    @Column({ nullable: true })
+    payPassword?: string; // 支付密码 (hashed)
+
+    @Column({ unique: true })
+    @Index()
+    invitationCode: string; // 自己的邀请码
+
+    @Column({ nullable: true })
+    invitedBy?: string;     // 邀请人的ID
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
+}
+
+
+export class CreateUserDto {
+    @IsString()
+    @IsNotEmpty()
+    @MinLength(3)
+    username: string;
+
+    @IsString()
+    @IsNotEmpty()
+    @MinLength(6)
+    password: string;
+
+    @IsString()
+    @IsNotEmpty()
+    phone: string;
+
+    @IsString()
+    @IsNotEmpty()
+    invitationCode: string;
+
+    @IsString()
+    @IsOptional()
+    qq?: string;
+}
+
+export class LoginDto {
+    @IsString()
+    @IsOptional()
+    username?: string;
+
+    @IsString()
+    @IsOptional()
+    phone?: string;
+
+    @IsString()
+    @IsNotEmpty()
+    password: string;
+}
+
+export class UpdateUserDto {
+    @IsString()
+    @IsOptional()
+    phone?: string;
+
+    @IsString()
+    @IsOptional()
+    qq?: string;
+
+    @IsBoolean()
+    @IsOptional()
+    vip?: boolean;
+
+    @IsOptional()
+    vipExpireAt?: Date;
+}
+
+export class ChangePasswordDto {
+    @IsString()
+    @IsNotEmpty()
+    oldPassword: string;
+
+    @IsString()
+    @IsNotEmpty()
+    @MinLength(6)
+    newPassword: string;
+
+    @IsString()
+    @IsNotEmpty()
+    phone: string;
+
+    @IsString()
+    @IsNotEmpty()
+    verifyCode: string;
+}
+
+export class ChangePayPasswordDto {
+    @IsString()
+    @IsNotEmpty()
+    @MinLength(6)
+    newPayPassword: string;
+
+    @IsString()
+    @IsNotEmpty()
+    phone: string;
+
+    @IsString()
+    @IsNotEmpty()
+    verifyCode: string;
+}
