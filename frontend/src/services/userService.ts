@@ -237,3 +237,52 @@ export const createWithdrawal = async (data: {
         return { success: false, message: '网络错误' };
     }
 };
+
+// ========== 邀请统计 ==========
+
+export interface InviteStats {
+    totalInvited: number;
+    todayInvited: number;
+    totalReward: number;
+    todayReward: number;
+}
+
+export interface InviteRecord {
+    id: string;
+    username: string;
+    registerTime: string;
+    completedTasks: number;
+    reward: number;
+}
+
+// 获取邀请统计
+export const fetchInviteStats = async (): Promise<InviteStats> => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${BASE_URL}/user/invite/stats`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!response.ok) throw new Error('Failed to fetch invite stats');
+        const res = await response.json();
+        return res.data || { totalInvited: 0, todayInvited: 0, totalReward: 0, todayReward: 0 };
+    } catch (error) {
+        console.error('Fetch invite stats error:', error);
+        return { totalInvited: 0, todayInvited: 0, totalReward: 0, todayReward: 0 };
+    }
+};
+
+// 获取邀请记录
+export const fetchInviteRecords = async (): Promise<InviteRecord[]> => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${BASE_URL}/user/invite/records`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!response.ok) throw new Error('Failed to fetch invite records');
+        const res = await response.json();
+        return res.data || [];
+    } catch (error) {
+        console.error('Fetch invite records error:', error);
+        return [];
+    }
+};

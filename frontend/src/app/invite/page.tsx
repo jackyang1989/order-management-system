@@ -3,29 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated, getCurrentUser } from '../../services/authService';
-
-// Mock 邀请统计
-const mockInviteStats = {
-    totalInvited: 12,
-    todayInvited: 2,
-    totalReward: 156,
-    todayReward: 8
-};
-
-// Mock 邀请记录
-const mockInviteRecords = [
-    { id: '1', username: 'user_abc', registerTime: '2024-12-30 08:00:00', completedTasks: 5, reward: 5 },
-    { id: '2', username: 'user_xyz', registerTime: '2024-12-29 15:30:00', completedTasks: 12, reward: 12 },
-    { id: '3', username: 'user_123', registerTime: '2024-12-28 10:00:00', completedTasks: 8, reward: 8 },
-    { id: '4', username: 'user_test', registerTime: '2024-12-25 20:00:00', completedTasks: 20, reward: 20 }
-];
+import { fetchInviteStats, fetchInviteRecords, InviteStats, InviteRecord } from '../../services/userService';
 
 export default function InvitePage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'invite' | 'records'>('invite');
-    const [stats, setStats] = useState(mockInviteStats);
-    const [records, setRecords] = useState(mockInviteRecords);
+    const [stats, setStats] = useState<InviteStats>({ totalInvited: 0, todayInvited: 0, totalReward: 0, todayReward: 0 });
+    const [records, setRecords] = useState<InviteRecord[]>([]);
     const [copied, setCopied] = useState(false);
     const [inviteCode, setInviteCode] = useState('ADMIN'); // Default fallback
 
@@ -34,12 +19,30 @@ export default function InvitePage() {
             router.push('/login');
             return;
         }
-        const user = getCurrentUser();
-        if (user && user.invitationCode) {
-            setInviteCode(user.invitationCode);
-        }
-        setLoading(false);
+        loadData();
     }, [router]);
+
+    const loadData = async () => {
+        setLoading(true);
+        try {
+            const user = getCurrentUser();
+            if (user && user.invitationCode) {
+                setInviteCode(user.invitationCode);
+            }
+
+            // 获取邀请统计和记录
+            const [statsData, recordsData] = await Promise.all([
+                fetchInviteStats(),
+                fetchInviteRecords()
+            ]);
+            setStats(statsData);
+            setRecords(recordsData);
+        } catch (error) {
+            console.error('Load invite data error:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const inviteLink = typeof window !== 'undefined'
         ? `${window.location.origin}/register?invite=${inviteCode}`

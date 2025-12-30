@@ -100,6 +100,60 @@ export class UsersService {
         return true;
     }
 
+    // 获取邀请统计
+    async getInviteStats(userId: string): Promise<{
+        totalInvited: number;
+        todayInvited: number;
+        totalReward: number;
+        todayReward: number;
+    }> {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // 查询被该用户邀请的所有用户
+        const allInvitees = await this.usersRepository.find({
+            where: { invitedBy: userId }
+        });
+
+        // 查询今日邀请的用户
+        const todayInvitees = allInvitees.filter(u =>
+            u.createdAt && new Date(u.createdAt) >= today
+        );
+
+        // 计算奖励（简化：每邀请一人奖励1元，实际应该根据被邀请人完成的任务计算）
+        const totalReward = allInvitees.length * 1;
+        const todayReward = todayInvitees.length * 1;
+
+        return {
+            totalInvited: allInvitees.length,
+            todayInvited: todayInvitees.length,
+            totalReward,
+            todayReward
+        };
+    }
+
+    // 获取邀请记录
+    async getInviteRecords(userId: string): Promise<Array<{
+        id: string;
+        username: string;
+        registerTime: string;
+        completedTasks: number;
+        reward: number;
+    }>> {
+        const invitees = await this.usersRepository.find({
+            where: { invitedBy: userId },
+            order: { createdAt: 'DESC' }
+        });
+
+        return invitees.map(u => ({
+            id: u.id,
+            username: u.username,
+            registerTime: u.createdAt?.toISOString() || '',
+            completedTasks: 0, // TODO: 从订单表查询完成的任务数
+            reward: 1 // 简化奖励计算
+        }));
+    }
+
     // 移除敏感信息
     private sanitizeUser(user: User): User {
         const { password, payPassword, ...sanitized } = user;
