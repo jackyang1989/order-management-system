@@ -37,6 +37,24 @@ import { OrderLogsModule } from './order-logs/order-logs.module';
 import { DayCountsModule } from './day-counts/day-counts.module';
 import { UserCreditsModule } from './user-credits/user-credits.module';
 import { CategoriesModule } from './categories/categories.module';
+// 第四批新增模块
+import { SmsModule } from './sms/sms.module';
+import { PaymentsModule } from './payments/payments.module';
+import { UploadsModule } from './uploads/uploads.module';
+import { SensitiveWordsModule } from './sensitive-words/sensitive-words.module';
+// 第五批新增模块 - 批量操作和Excel导入导出
+import { BatchOperationsModule } from './batch-operations/batch-operations.module';
+import { ExcelModule } from './excel/excel.module';
+// 第六批新增模块 - 核心业务增强
+import { SchedulerModule } from './scheduler/scheduler.module';
+import { QueueModule } from './queue/queue.module';
+import { BackupModule } from './backup/backup.module';
+import { TaskDraftsModule } from './task-drafts/task-drafts.module';
+import { PresaleModule } from './presale/presale.module';
+import { ReferralModule } from './referral/referral.module';
+import { PraiseTemplatesModule } from './praise-templates/praise-templates.module';
+// 第七批新增模块 - 订单侠API集成
+import { DingdanxiaModule } from './dingdanxia/dingdanxia.module';
 
 @Module({
   imports: [
@@ -86,6 +104,24 @@ import { CategoriesModule } from './categories/categories.module';
     DayCountsModule,
     UserCreditsModule,
     CategoriesModule,
+    // 第四批新增模块
+    SmsModule,
+    PaymentsModule,
+    UploadsModule,
+    SensitiveWordsModule,
+    // 第五批新增模块 - 批量操作和Excel导入导出
+    BatchOperationsModule,
+    ExcelModule,
+    // 第六批新增模块 - 核心业务增强
+    SchedulerModule,
+    QueueModule,
+    BackupModule,
+    TaskDraftsModule,
+    PresaleModule,
+    ReferralModule,
+    PraiseTemplatesModule,
+    // 第七批新增模块 - 订单侠API集成
+    DingdanxiaModule,
   ],
   controllers: [AppController],
   providers: [AppService],

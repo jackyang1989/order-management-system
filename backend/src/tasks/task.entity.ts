@@ -6,14 +6,29 @@ export enum TaskStatus {
     ACTIVE = 1,         // 进行中 (已支付/已发布)
     COMPLETED = 2,      // 已完成
     CANCELLED = 3,      // 已取消
-    AUDIT = 4           // 待审核 (如果有)
+    AUDIT = 4,          // 待审核
+    PAUSED = 5,         // 已暂停
 }
 
 export enum TaskType {
     TAOBAO = 1,
     TMALL = 2,
     JD = 3,
-    PDD = 4
+    PDD = 4,
+    DOUYIN = 5,
+    KUAISHOU = 6,
+}
+
+// 任务类型（结算方式）
+export enum TaskTerminal {
+    BENYONG_HUOFAN = 1,   // 本佣货返（买手垫付，商家返本金+佣金）
+    BENLI_YONGHUO = 2,    // 本立佣货（商家预付本金，买手收货后返）
+}
+
+// 任务版本
+export enum TaskVersion {
+    V1 = 1,   // 版本1：单商品
+    V2 = 2,   // 版本2：多商品（使用task_goods表）
 }
 
 @Entity('tasks')
@@ -45,6 +60,9 @@ export class Task {
 
     @Column({ nullable: true })
     taoWord: string; // 淘口令
+
+    @Column({ nullable: true })
+    taobaoId: string; // 淘宝商品ID（用于核对）
 
     @Column({ nullable: true })
     qrCode: string; // 二维码URL
@@ -116,6 +134,81 @@ export class Task {
 
     @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
     totalCommission: number; // 总佣金/银锭
+
+    // --- 任务结算类型 ---
+    @Column({ type: 'int', default: TaskTerminal.BENYONG_HUOFAN })
+    terminal: number; // 结算方式 1本佣货返 2本立佣货
+
+    @Column({ type: 'int', default: TaskVersion.V1 })
+    version: number; // 任务版本 1单商品 2多商品
+
+    // --- 统计计数 ---
+    @Column({ type: 'int', default: 0 })
+    completedCount: number; // 已完成数
+
+    @Column({ type: 'int', default: 0 })
+    incompleteCount: number; // 未完成数（取消/失败）
+
+    // --- 时间限制 ---
+    @Column({ type: 'int', default: 24 })
+    taskTimeLimit: number; // 任务时限（小时）
+
+    @Column({ type: 'int', default: 0 })
+    unionInterval: number; // 接单间隔（分钟）
+
+    @Column({ type: 'int', default: 0 })
+    cycle: number; // 买手周期（天）
+
+    // --- 定时相关费用 ---
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+    timingPayFee: number; // 定时支付费用
+
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+    timingPublishFee: number; // 定时发布费用
+
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+    nextDayFee: number; // 次日返款费用
+
+    // --- 附加费用 ---
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+    phoneFee: number; // 电话费
+
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+    goodsMoreFee: number; // 多商品加价
+
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+    addReward: number; // 加赏金额
+
+    // --- 预售相关 ---
+    @Column({ default: false })
+    isPresale: boolean; // 是否预售任务
+
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+    yfPrice: number; // 预付款
+
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+    wkPrice: number; // 尾款
+
+    // --- 审核相关 ---
+    @Column({ type: 'timestamp', nullable: true })
+    examineTime: Date; // 审核时间
+
+    @Column({ type: 'timestamp', nullable: true })
+    payTime: Date; // 支付时间
+
+    @Column({ type: 'timestamp', nullable: true })
+    receiptTime: Date; // 最后接单时间
+
+    // --- 包邮/备注 ---
+    @Column({ default: true })
+    isFreeShipping: boolean; // 是否包邮
+
+    @Column({ type: 'text', nullable: true })
+    memo: string; // 内部备注
+
+    // --- 关联店铺 ---
+    @Column({ nullable: true })
+    shopId: string; // 店铺ID
 
     // --- 状态与时间 ---
     @Column({ default: false })

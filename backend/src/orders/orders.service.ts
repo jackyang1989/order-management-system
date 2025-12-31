@@ -6,6 +6,7 @@ import { TasksService } from '../tasks/tasks.service';
 import { BuyerAccountsService } from '../buyer-accounts/buyer-accounts.service';
 import { BuyerAccountStatus } from '../buyer-accounts/buyer-account.entity';
 import { FinanceRecordsService } from '../finance-records/finance-records.service';
+import { DingdanxiaService } from '../dingdanxia/dingdanxia.service';
 import { User } from '../users/user.entity';
 import { Merchant } from '../merchants/merchant.entity';
 
@@ -22,6 +23,7 @@ export class OrdersService {
         private tasksService: TasksService,
         private buyerAccountsService: BuyerAccountsService,
         private financeRecordsService: FinanceRecordsService,
+        private dingdanxiaService: DingdanxiaService,
         private dataSource: DataSource
     ) { }
 
@@ -539,6 +541,68 @@ export class OrdersService {
         });
 
         return { data, total, page, limit };
+    }
+
+    // ============ 商品链接验证（订单侠 API）============
+
+    /**
+     * 验证买手提交的商品链接是否匹配任务商品
+     * 在买手提交下单截图时调用
+     */
+    async validateGoodsLink(
+        orderId: string,
+        userId: string,
+        goodsLink: string,
+    ): Promise<{ valid: boolean; error?: string }> {
+        const order = await this.ordersRepository.findOne({ where: { id: orderId, userId } });
+        if (!order) {
+            return { valid: false, error: '订单不存在' };
+        }
+
+        // 获取任务信息
+        const task = await this.tasksService.findOne(order.taskId);
+        if (!task) {
+            return { valid: false, error: '任务不存在' };
+        }
+
+        // 如果任务没有设置 taobaoId，则跳过验证
+        if (!task.taobaoId) {
+            return { valid: true };
+        }
+
+        // 调用订单侠 API 验证
+        const result = await this.dingdanxiaService.validateGoodsLink(
+            goodsLink,
+            task.taobaoId,
+        );
+
+        return result;
+    }
+
+    /**
+     * 带商品验证的步骤提交
+     * 在第一步（下单截图）时验证商品链接
+     */
+    async submitStepWithValidation(
+        orderId: string,
+        userId: string,
+        submitStepDto: SubmitStepDto & { goodsLink?: string },
+    ): Promise<Order> {
+        const order = await this.ordersRepository.findOne({ where: { id: orderId, userId } });
+        if (!order) {
+            throw new NotFoundException('订单不存在');
+        }
+
+        // 第一步时验证商品链接
+        if (submitStepDto.step === 1 && submitStepDto.goodsLink) {
+            const validation = await this.validateGoodsLink(orderId, userId, submitStepDto.goodsLink);
+            if (!validation.valid) {
+                throw new BadRequestException(validation.error || '商品链接验证失败，请确认购买的是正确的商品');
+            }
+        }
+
+        // 调用原有的 submitStep 逻辑
+        return this.submitStep(orderId, userId, submitStepDto);
     }
 }
 

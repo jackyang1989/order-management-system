@@ -50,6 +50,54 @@ export class User {
     @Column({ nullable: true })
     invitedBy?: string;     // 邀请人的ID
 
+    // ============ 推荐奖励相关 ============
+    @Column({ nullable: true })
+    referrerId: string;     // 推荐人ID
+
+    @Column({ type: 'int', default: 0 })
+    referrerType: number;   // 推荐人类型 1买手 2商家
+
+    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+    referralReward: number; // 累计推荐奖励
+
+    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+    referralRewardToday: number; // 今日推荐奖励
+
+    @Column({ type: 'int', default: 0 })
+    referralCount: number;  // 推荐人数
+
+    // ============ 实名认证 ============
+    @Column({ nullable: true })
+    realName: string;       // 真实姓名
+
+    @Column({ nullable: true })
+    idCard: string;         // 身份证号
+
+    @Column({ nullable: true })
+    idCardFront: string;    // 身份证正面
+
+    @Column({ nullable: true })
+    idCardBack: string;     // 身份证背面
+
+    @Column({ type: 'int', default: 0 })
+    verifyStatus: number;   // 实名状态 0未认证 1待审核 2已认证 3已拒绝
+
+    // ============ 账号状态 ============
+    @Column({ default: true })
+    isActive: boolean;      // 是否激活
+
+    @Column({ default: false })
+    isBanned: boolean;      // 是否封禁
+
+    @Column({ type: 'text', nullable: true })
+    banReason: string;      // 封禁原因
+
+    @Column({ type: 'timestamp', nullable: true })
+    lastLoginAt: Date;      // 最后登录时间
+
+    @Column({ nullable: true })
+    lastLoginIp: string;    // 最后登录IP
+
     @CreateDateColumn()
     createdAt: Date;
 
