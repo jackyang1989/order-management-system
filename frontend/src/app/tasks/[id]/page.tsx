@@ -106,7 +106,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                     <div>返款方式：{task.terminal}</div>
                     <div>商品价格：<span style={{ color: '#f56c6c' }}>¥{task.goodsPrice}</span></div>
                     <div>任务佣金：<span style={{ color: '#07c160' }}>¥{task.commission}</span></div>
-                    <div>剩余数量：{task.totalCount - task.claimCount} 单</div>
+                    <div>剩余数量：{task.totalCount - (task.claimCount || 0)} 单</div>
                 </div>
             </div>
 
@@ -144,8 +144,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 >
                     <option value="">请选择买号...</option>
                     {buyerAccounts.map(acc => (
-                        <option key={acc.id} value={acc.account}>
-                            {acc.account} ({acc.platform})
+                        <option key={acc.id} value={acc.accountName}>
+                            {acc.accountName} ({acc.platform})
                         </option>
                     ))}
                 </select>

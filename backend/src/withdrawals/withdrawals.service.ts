@@ -5,6 +5,7 @@ import { Withdrawal, WithdrawalStatus, WithdrawalType, CreateWithdrawalDto, Revi
 import { User } from '../users/user.entity';
 import { BankCardsService } from '../bank-cards/bank-cards.service';
 import { UsersService } from '../users/users.service';
+import { FinanceRecordsService } from '../finance-records/finance-records.service';
 
 @Injectable()
 export class WithdrawalsService {
@@ -13,6 +14,7 @@ export class WithdrawalsService {
         private withdrawalsRepository: Repository<Withdrawal>,
         private bankCardsService: BankCardsService,
         private usersService: UsersService,
+        private financeRecordsService: FinanceRecordsService,
     ) { }
 
     async findAllByUser(userId: string): Promise<Withdrawal[]> {
@@ -125,25 +127,167 @@ export class WithdrawalsService {
 
     // 管理员审核提现
     async review(id: string, reviewDto: ReviewWithdrawalDto, adminId: string): Promise<Withdrawal> {
-        const withdrawal = await this.withdrawalsRepository.findOne({ where: { id } });
-        if (!withdrawal) {
-            throw new NotFoundException('提现记录不存在');
+        return this.withdrawalsRepository.manager.transaction(async transactionalEntityManager => {
+            const withdrawal = await transactionalEntityManager.findOne(Withdrawal, { where: { id } });
+            if (!withdrawal) {
+                throw new NotFoundException('提现记录不存在');
+            }
+
+            if (withdrawal.status !== WithdrawalStatus.PENDING) {
+                throw new BadRequestException('该提现已处理');
+            }
+
+            withdrawal.reviewedAt = new Date();
+            withdrawal.reviewedBy = adminId;
+            withdrawal.remark = reviewDto.remark;
+
+            if (reviewDto.status === WithdrawalStatus.APPROVED || reviewDto.status === WithdrawalStatus.COMPLETED) {
+                // 审核通过：从冻结余额扣除
+                withdrawal.status = WithdrawalStatus.COMPLETED;
+
+                if (withdrawal.type === WithdrawalType.BALANCE) {
+                    // 扣除冻结的本金
+                    await transactionalEntityManager
+                        .createQueryBuilder()
+                        .update(User)
+                        .set({
+                            frozenBalance: () => `"frozenBalance" - ${withdrawal.amount}`
+                        })
+                        .where("id = :userId", { userId: withdrawal.userId })
+                        .execute();
+
+                    // 记录提现流水
+                    await this.financeRecordsService.recordBuyerWithdraw(
+                        withdrawal.userId,
+                        withdrawal.id,
+                        withdrawal.actualAmount,
+                        0  // 余额已为0或更新后的值
+                    );
+                } else {
+                    // 扣除冻结的银锭
+                    await transactionalEntityManager
+                        .createQueryBuilder()
+                        .update(User)
+                        .set({
+                            frozenSilver: () => `"frozenSilver" - ${withdrawal.amount}`
+                        })
+                        .where("id = :userId", { userId: withdrawal.userId })
+                        .execute();
+
+                    // 记录银锭提现流水
+                    await this.financeRecordsService.recordBuyerSilverWithdraw(
+                        withdrawal.userId,
+                        withdrawal.id,
+                        withdrawal.actualAmount,
+                        0
+                    );
+                }
+            } else if (reviewDto.status === WithdrawalStatus.REJECTED) {
+                // 审核拒绝：退还冻结余额到可用余额
+                withdrawal.status = WithdrawalStatus.REJECTED;
+
+                if (withdrawal.type === WithdrawalType.BALANCE) {
+                    await transactionalEntityManager
+                        .createQueryBuilder()
+                        .update(User)
+                        .set({
+                            balance: () => `balance + ${withdrawal.amount}`,
+                            frozenBalance: () => `"frozenBalance" - ${withdrawal.amount}`
+                        })
+                        .where("id = :userId", { userId: withdrawal.userId })
+                        .execute();
+                } else {
+                    await transactionalEntityManager
+                        .createQueryBuilder()
+                        .update(User)
+                        .set({
+                            silver: () => `silver + ${withdrawal.amount}`,
+                            frozenSilver: () => `"frozenSilver" - ${withdrawal.amount}`
+                        })
+                        .where("id = :userId", { userId: withdrawal.userId })
+                        .execute();
+                }
+            }
+
+            return await transactionalEntityManager.save(withdrawal);
+        });
+    }
+
+    // ============ 管理员查询接口 ============
+
+    async findAllPending(page: number = 1, limit: number = 20): Promise<{
+        data: Withdrawal[];
+        total: number;
+        page: number;
+        limit: number;
+    }> {
+        const [data, total] = await this.withdrawalsRepository.findAndCount({
+            where: { status: WithdrawalStatus.PENDING },
+            order: { createdAt: 'ASC' },
+            skip: (page - 1) * limit,
+            take: limit
+        });
+
+        return { data, total, page, limit };
+    }
+
+    async findAll(
+        page: number = 1,
+        limit: number = 20,
+        filters?: { status?: WithdrawalStatus; userId?: string }
+    ): Promise<{
+        data: Withdrawal[];
+        total: number;
+        page: number;
+        limit: number;
+    }> {
+        const where: any = {};
+        if (filters?.status !== undefined) {
+            where.status = filters.status;
+        }
+        if (filters?.userId) {
+            where.userId = filters.userId;
         }
 
-        if (withdrawal.status !== WithdrawalStatus.PENDING) {
-            throw new BadRequestException('该提现已处理');
-        }
+        const [data, total] = await this.withdrawalsRepository.findAndCount({
+            where,
+            order: { createdAt: 'DESC' },
+            skip: (page - 1) * limit,
+            take: limit
+        });
 
-        withdrawal.status = reviewDto.status;
-        withdrawal.remark = reviewDto.remark;
-        withdrawal.reviewedAt = new Date();
-        withdrawal.reviewedBy = adminId;
+        return { data, total, page, limit };
+    }
 
-        // TODO: 如果通过，需要扣除用户余额
-        // if (reviewDto.status === WithdrawalStatus.APPROVED) {
-        //     await this.usersService.deductBalance(withdrawal.userId, withdrawal.amount, withdrawal.type);
-        // }
+    async getAdminStats(): Promise<{
+        pendingCount: number;
+        pendingAmount: number;
+        todayCount: number;
+        todayAmount: number;
+    }> {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-        return this.withdrawalsRepository.save(withdrawal);
+        const pendingStats = await this.withdrawalsRepository
+            .createQueryBuilder('w')
+            .select('COUNT(*)', 'count')
+            .addSelect('SUM(w.amount)', 'amount')
+            .where('w.status = :status', { status: WithdrawalStatus.PENDING })
+            .getRawOne();
+
+        const todayStats = await this.withdrawalsRepository
+            .createQueryBuilder('w')
+            .select('COUNT(*)', 'count')
+            .addSelect('SUM(w.amount)', 'amount')
+            .where('w.status = :status', { status: WithdrawalStatus.COMPLETED })
+            .andWhere('w.reviewedAt >= :today', { today })
+            .getRawOne();
+
+        return {
+            pendingCount: Number(pendingStats?.count || 0),
+            pendingAmount: Number(pendingStats?.amount || 0),
+            todayCount: Number(todayStats?.count || 0),
+            todayAmount: Number(todayStats?.amount || 0)
+        };
     }
 }

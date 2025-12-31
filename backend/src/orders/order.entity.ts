@@ -54,6 +54,61 @@ export class Order {
     @Column({ type: 'decimal', precision: 12, scale: 2 })
     commission: number;
 
+    // ============ 资金相关字段 ============
+    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+    userPrincipal: number; // 买手垫付本金
+
+    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+    sellerPrincipal: number; // 商家返款本金
+
+    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+    prepayAmount: number; // 预付金额（是否垫付场景）
+
+    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+    finalAmount: number; // 尾款金额
+
+    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+    refundAmount: number; // 实际返款金额
+
+    @Column({ default: false })
+    isAdvancePay: boolean; // 是否垫付任务
+
+    // ============ 发货相关字段 ============
+    @Column({ type: 'int', default: 0 })
+    deliveryState: number; // 发货状态 0未发货 1已发货 2已签收
+
+    @Column({ nullable: true })
+    delivery: string; // 快递公司
+
+    @Column({ nullable: true })
+    deliveryNum: string; // 快递单号
+
+    @Column({ nullable: true })
+    deliveryTime: Date; // 发货时间
+
+    @Column({ nullable: true })
+    taobaoOrderNumber: string; // 淘宝订单号
+
+    // ============ 收货地址 ============
+    @Column({ nullable: true })
+    addressName: string; // 收货人
+
+    @Column({ nullable: true })
+    addressPhone: string; // 收货电话
+
+    @Column({ type: 'text', nullable: true })
+    address: string; // 收货地址
+
+    // ============ 审核相关 ============
+    @Column({ type: 'text', nullable: true })
+    remark: string; // 备注
+
+    @Column({ type: 'text', nullable: true })
+    rejectReason: string; // 驳回原因
+
+    @Column({ nullable: true })
+    refundTime: Date; // 返款时间
+
     @Column({ default: 1 })
     currentStep: number;
 

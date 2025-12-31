@@ -86,4 +86,235 @@ export class BuyerAccountsService {
             where: { userId, status: BuyerAccountStatus.APPROVED }
         });
     }
+
+    // ============ 星级限价和月度限额逻辑 ============
+
+    /**
+     * 星级对应的最高商品价格限制
+     * 1星: 100元, 2星: 500元, 3星: 1000元, 4星: 1500元, 5星: 2000元
+     */
+    static readonly STAR_PRICE_LIMITS: Record<number, number> = {
+        1: 100,
+        2: 500,
+        3: 1000,
+        4: 1500,
+        5: 2000
+    };
+
+    /**
+     * 每月最大任务数限制
+     */
+    static readonly MONTHLY_TASK_LIMIT = 220;
+
+    /**
+     * 检查买号是否可以接取指定价格的任务
+     * @param buyerAccountId 买号ID
+     * @param userId 用户ID
+     * @param productPrice 商品价格
+     * @returns 验证结果
+     */
+    async validateTaskEligibility(
+        buyerAccountId: string,
+        userId: string,
+        productPrice: number
+    ): Promise<{ eligible: boolean; reason?: string }> {
+        const account = await this.buyerAccountsRepository.findOne({
+            where: { id: buyerAccountId, userId }
+        });
+
+        if (!account) {
+            return { eligible: false, reason: '买号不存在' };
+        }
+
+        if (account.status !== BuyerAccountStatus.APPROVED) {
+            return { eligible: false, reason: '买号状态异常，无法接单' };
+        }
+
+        // 检查星级限价
+        const priceLimit = BuyerAccountsService.STAR_PRICE_LIMITS[account.star] || 100;
+        if (productPrice > priceLimit) {
+            return {
+                eligible: false,
+                reason: `当前买号星级(${account.star}星)最高可接${priceLimit}元任务，该任务商品价格${productPrice}元超出限制`
+            };
+        }
+
+        // 检查并重置月度计数
+        await this.checkAndResetMonthlyCount(account);
+
+        // 检查月度限额
+        if (account.monthlyTaskCount >= BuyerAccountsService.MONTHLY_TASK_LIMIT) {
+            return {
+                eligible: false,
+                reason: `当前买号本月已完成${account.monthlyTaskCount}个任务，已达到月度上限${BuyerAccountsService.MONTHLY_TASK_LIMIT}个`
+            };
+        }
+
+        return { eligible: true };
+    }
+
+    /**
+     * 检查并重置月度计数（如果跨月了）
+     */
+    private async checkAndResetMonthlyCount(account: BuyerAccount): Promise<void> {
+        const now = new Date();
+        const currentMonth = `${now.getFullYear()}-${now.getMonth() + 1}`;
+
+        if (account.monthlyCountResetDate) {
+            const resetDate = new Date(account.monthlyCountResetDate);
+            const resetMonth = `${resetDate.getFullYear()}-${resetDate.getMonth() + 1}`;
+
+            if (currentMonth !== resetMonth) {
+                // 跨月了，重置计数
+                account.monthlyTaskCount = 0;
+                account.monthlyCountResetDate = now;
+                await this.buyerAccountsRepository.save(account);
+            }
+        } else {
+            // 首次设置重置日期
+            account.monthlyCountResetDate = now;
+            await this.buyerAccountsRepository.save(account);
+        }
+    }
+
+    /**
+     * 增加买号的月度任务计数
+     */
+    async incrementMonthlyTaskCount(buyerAccountId: string): Promise<void> {
+        const account = await this.buyerAccountsRepository.findOne({
+            where: { id: buyerAccountId }
+        });
+
+        if (account) {
+            await this.checkAndResetMonthlyCount(account);
+            account.monthlyTaskCount += 1;
+            await this.buyerAccountsRepository.save(account);
+        }
+    }
+
+    /**
+     * 获取买号的接单能力信息
+     */
+    async getAccountCapability(buyerAccountId: string, userId: string): Promise<{
+        star: number;
+        maxPrice: number;
+        monthlyUsed: number;
+        monthlyLimit: number;
+        remainingTasks: number;
+    } | null> {
+        const account = await this.buyerAccountsRepository.findOne({
+            where: { id: buyerAccountId, userId }
+        });
+
+        if (!account) return null;
+
+        await this.checkAndResetMonthlyCount(account);
+
+        const maxPrice = BuyerAccountsService.STAR_PRICE_LIMITS[account.star] || 100;
+        const remainingTasks = Math.max(0, BuyerAccountsService.MONTHLY_TASK_LIMIT - account.monthlyTaskCount);
+
+        return {
+            star: account.star,
+            maxPrice,
+            monthlyUsed: account.monthlyTaskCount,
+            monthlyLimit: BuyerAccountsService.MONTHLY_TASK_LIMIT,
+            remainingTasks
+        };
+    }
+
+    // ============ 管理员操作 ============
+
+    /**
+     * 管理员设置买号星级
+     */
+    async setAccountStar(buyerAccountId: string, star: number): Promise<BuyerAccount> {
+        if (star < 1 || star > 5) {
+            throw new BadRequestException('星级必须在1-5之间');
+        }
+
+        const account = await this.buyerAccountsRepository.findOne({
+            where: { id: buyerAccountId }
+        });
+
+        if (!account) {
+            throw new NotFoundException('买号不存在');
+        }
+
+        account.star = star;
+        return this.buyerAccountsRepository.save(account);
+    }
+
+    /**
+     * 管理员审核买号
+     */
+    async reviewAccount(
+        buyerAccountId: string,
+        approved: boolean,
+        rejectReason?: string
+    ): Promise<BuyerAccount> {
+        const account = await this.buyerAccountsRepository.findOne({
+            where: { id: buyerAccountId }
+        });
+
+        if (!account) {
+            throw new NotFoundException('买号不存在');
+        }
+
+        if (approved) {
+            account.status = BuyerAccountStatus.APPROVED;
+            account.rejectReason = undefined;
+        } else {
+            account.status = BuyerAccountStatus.REJECTED;
+            account.rejectReason = rejectReason || '审核未通过';
+        }
+
+        return this.buyerAccountsRepository.save(account);
+    }
+
+    /**
+     * 获取待审核买号列表（管理员用）
+     */
+    async getPendingAccounts(page: number = 1, limit: number = 20): Promise<{
+        data: BuyerAccount[];
+        total: number;
+        page: number;
+        limit: number;
+    }> {
+        const [data, total] = await this.buyerAccountsRepository.findAndCount({
+            where: { status: BuyerAccountStatus.PENDING },
+            order: { createdAt: 'DESC' },
+            skip: (page - 1) * limit,
+            take: limit
+        });
+
+        return { data, total, page, limit };
+    }
+
+    /**
+     * 获取所有买号列表（管理员用）
+     */
+    async getAllAccounts(
+        page: number = 1,
+        limit: number = 20,
+        status?: BuyerAccountStatus
+    ): Promise<{
+        data: BuyerAccount[];
+        total: number;
+        page: number;
+        limit: number;
+    }> {
+        const where: any = {};
+        if (status !== undefined) {
+            where.status = status;
+        }
+
+        const [data, total] = await this.buyerAccountsRepository.findAndCount({
+            where,
+            order: { createdAt: 'DESC' },
+            skip: (page - 1) * limit,
+            take: limit
+        });
+
+        return { data, total, page, limit };
+    }
 }

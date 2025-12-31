@@ -41,7 +41,7 @@ export default function TasksPage() {
 
         // Auto-select first account if available and none selected
         if (accountsResult.length > 0 && !buynoId) {
-            setBuynoId(accountsResult[0].account); // Use account name as ID for consistency with OrderService mock for now
+            setBuynoId(accountsResult[0].accountName); // Use account name as ID for consistency with OrderService mock for now
             // Or typically use accountsResult[0].id
         }
         setLoading(false);
@@ -85,8 +85,8 @@ export default function TasksPage() {
                     >
                         <option value="">请选择</option>
                         {buyerAccounts.map(acc => (
-                            <option key={acc.id} value={acc.account}>
-                                {acc.account} ({acc.platform})
+                            <option key={acc.id} value={acc.accountName}>
+                                {acc.accountName} ({acc.platform})
                             </option>
                         ))}
                     </select>

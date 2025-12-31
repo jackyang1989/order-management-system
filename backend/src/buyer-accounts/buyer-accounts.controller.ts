@@ -60,4 +60,36 @@ export class BuyerAccountsController {
             message: '买号删除成功'
         };
     }
+
+    @Get(':id/capability')
+    async getCapability(@Request() req, @Param('id') id: string) {
+        const capability = await this.buyerAccountsService.getAccountCapability(id, req.user.userId);
+        if (!capability) {
+            return {
+                success: false,
+                message: '买号不存在'
+            };
+        }
+        return {
+            success: true,
+            data: capability
+        };
+    }
+
+    @Get(':id/check-eligibility')
+    async checkEligibility(
+        @Request() req,
+        @Param('id') id: string,
+        @Body() body: { productPrice: number }
+    ) {
+        const result = await this.buyerAccountsService.validateTaskEligibility(
+            id,
+            req.user.userId,
+            body.productPrice
+        );
+        return {
+            success: true,
+            data: result
+        };
+    }
 }

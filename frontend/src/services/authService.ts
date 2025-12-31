@@ -1,5 +1,6 @@
 import { BASE_URL } from '../../apiConfig';
 import { mockUsers, MockUser } from '../mocks/userMock';
+export type { MockUser };
 
 const USE_MOCK = false;
 
@@ -28,8 +29,10 @@ export const login = async (phone: string, password: string): Promise<LoginResul
             return {
                 success: true,
                 message: '登录成功',
-                user,
-                token: 'mock-jwt-token-' + user.id
+                data: {
+                    accessToken: 'mock-jwt-token-' + user.id,
+                    user
+                }
             };
         }
         return {

@@ -111,7 +111,7 @@ export default function ProfilePage() {
 
                 <div style={{ color: 'white', fontSize: '13px', lineHeight: '1.8', marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.3)' }}>
                     <div>会员状态：<span style={{ color: user.vip ? '#ffeb3b' : '#ddd' }}>{user.vip ? 'VIP会员' : '不是会员'}</span></div>
-                    <div>到期时间：{user.vip ? user.vipExpireAt.split('T')[0] : '--'}</div>
+                    <div>到期时间：{user.vip && user.vipExpireAt ? new Date(user.vipExpireAt).toLocaleDateString() : '--'}</div>
                     <div>累积赚取银锭：<span style={{ color: '#ffeb3b' }}>{user.reward}银锭</span> 待商家发放银锭：0银锭</div>
                 </div>
             </div>

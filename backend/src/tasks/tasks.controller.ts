@@ -38,12 +38,31 @@ export class TasksController {
 
     @UseGuards(JwtAuthGuard)
     @Post()
-    async create(@Body() createTaskDto: CreateTaskDto) {
-        const task = await this.tasksService.create(createTaskDto);
+    async create(@Body() createTaskDto: CreateTaskDto, @Request() req) {
+        try {
+            // 使用 createAndPay 完成支付闭环
+            const task = await this.tasksService.createAndPay(createTaskDto, req.user.userId);
+            return {
+                success: true,
+                message: '任务发布成功',
+                data: task
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message || '任务发布失败'
+            };
+        }
+    }
+
+    // 获取商户自己的任务列表
+    @UseGuards(JwtAuthGuard)
+    @Get('merchant')
+    async findMerchantTasks(@Query() filter: TaskFilterDto, @Request() req) {
+        const tasks = await this.tasksService.findByMerchant(req.user.userId, filter);
         return {
             success: true,
-            message: '任务创建成功',
-            data: task
+            data: tasks
         };
     }
 

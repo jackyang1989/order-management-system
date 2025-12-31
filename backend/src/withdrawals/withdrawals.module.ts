@@ -5,12 +5,14 @@ import { WithdrawalsController } from './withdrawals.controller';
 import { Withdrawal } from './withdrawal.entity';
 import { BankCardsModule } from '../bank-cards/bank-cards.module';
 import { UsersModule } from '../users/users.module';
+import { FinanceRecordsModule } from '../finance-records/finance-records.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Withdrawal]),
         BankCardsModule,
-        UsersModule
+        UsersModule,
+        FinanceRecordsModule
     ],
     providers: [WithdrawalsService],
     controllers: [WithdrawalsController],

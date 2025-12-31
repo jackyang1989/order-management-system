@@ -65,6 +65,12 @@ export class BuyerAccount {
     @Column({ default: 1 })
     star: number;  // 星级 (1-5)
 
+    @Column({ type: 'int', default: 0 })
+    monthlyTaskCount: number;  // 当月已完成任务数
+
+    @Column({ type: 'date', nullable: true })
+    monthlyCountResetDate: Date;  // 月度计数重置日期
+
     @Column({ type: 'int', default: BuyerAccountStatus.PENDING })
     status: BuyerAccountStatus;
 

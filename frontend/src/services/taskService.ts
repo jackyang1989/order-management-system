@@ -36,7 +36,7 @@ export const fetchTasks = async (filter?: TaskFilter): Promise<{ list: MockTask[
                 '5': [2000, Infinity]
             };
             const [min, max] = ranges[filter.priceRange] || [0, Infinity];
-            filtered = filtered.filter(t => t.goodsPrice >= min && t.goodsPrice < max);
+            filtered = filtered.filter(t => (t.goodsPrice || 0) >= min && (t.goodsPrice || 0) < max);
         }
 
         return { list: filtered, total: filtered.length };

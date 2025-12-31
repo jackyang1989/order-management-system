@@ -13,6 +13,8 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
+import LayoutWrapper from '../components/LayoutWrapper';
+
 export default function RootLayout({
   children,
 }: {
@@ -21,10 +23,11 @@ export default function RootLayout({
   return (
     <html lang="zh">
       <body>
-        <div className="mobile-container">
+        <LayoutWrapper>
           {children}
-        </div>
+        </LayoutWrapper>
       </body>
     </html>
   );
 }
+

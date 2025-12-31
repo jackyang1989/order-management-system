@@ -1,13 +1,17 @@
-import { Injectable, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, OnModuleInit, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
-import { Task, TaskStatus, TaskType, CreateTaskDto, ClaimTaskDto, TaskFilterDto } from './task.entity';
+import { Repository, DataSource } from 'typeorm';
+import { Task, TaskStatus, TaskType, CreateTaskDto, TaskFilterDto } from './task.entity';
+import { MerchantsService } from '../merchants/merchants.service';
 
 @Injectable()
 export class TasksService implements OnModuleInit {
     constructor(
         @InjectRepository(Task)
         private tasksRepository: Repository<Task>,
+        @Inject(forwardRef(() => MerchantsService))
+        private merchantsService: MerchantsService,
+        private dataSource: DataSource,
     ) { }
 
     // 初始化时插入种子数据
@@ -19,65 +23,58 @@ export class TasksService implements OnModuleInit {
     }
 
     private async seedTasks() {
-        const seedTasks = [
+        // Mock data adapted to new schema
+        const seedTasks: Partial<Task>[] = [
             {
                 taskNumber: 'T20241230001',
                 title: '淘宝浏览收藏任务',
-                description: '浏览商品并收藏到购物车',
-                platform: TaskType.TAOBAO,
-                productName: '2024新款夏季连衣裙',
-                productImage: '',
-                productPrice: 128.00,
-                commission: 5.00,
-                requirements: '需要实名认证的淘宝账号，账号等级>=2',
-                steps: [
-                    { step: 1, title: '搜索商品', description: '打开淘宝APP，搜索指定关键词', requireScreenshot: true },
-                    { step: 2, title: '浏览商品', description: '浏览商品详情页至少30秒', requireScreenshot: true },
-                    { step: 3, title: '收藏商品', description: '点击收藏按钮', requireScreenshot: true }
-                ],
-                totalCount: 50,
+                taskType: TaskType.TAOBAO,
+                shopName: '旗舰店A',
+                url: 'https://taobao.com/item/1',
+                mainImage: '',
+                keyword: '夏季连衣裙',
+                goodsPrice: 128.00,
+                baseServiceFee: 5.00,
+                count: 50,
                 claimedCount: 32,
                 status: TaskStatus.ACTIVE,
-                sellerPhone: '13912345678',
+                remark: '需要实名认证的淘宝账号',
+                totalCommission: 5.00,
+                totalDeposit: 128.00 + 10,
             },
             {
                 taskNumber: 'T20241230002',
                 title: '京东下单立返任务',
-                description: '下单购买指定商品，确认收货后返还本金+佣金',
-                platform: TaskType.JD,
-                productName: '家用空气净化器',
-                productImage: '',
-                productPrice: 299.00,
-                commission: 15.00,
-                requirements: '需要京东Plus会员账号，信用分>=650',
-                steps: [
-                    { step: 1, title: '搜索商品', description: '打开京东APP，搜索指定商品', requireScreenshot: true },
-                    { step: 2, title: '下单购买', description: '使用指定收货地址下单', requireScreenshot: true },
-                    { step: 3, title: '确认收货', description: '收到货物后确认收货', requireScreenshot: true }
-                ],
-                totalCount: 30,
+                taskType: TaskType.JD,
+                shopName: '京东自营',
+                url: 'https://jd.com/item/2',
+                mainImage: '',
+                keyword: '空气净化器',
+                goodsPrice: 299.00,
+                baseServiceFee: 15.00,
+                count: 30,
                 claimedCount: 18,
                 status: TaskStatus.ACTIVE,
-                sellerPhone: '13887654321',
+                remark: '需要京东Plus会员',
+                totalCommission: 15.00,
+                totalDeposit: 299 + 10,
             },
             {
                 taskNumber: 'T20241230003',
                 title: '拼多多助力任务',
-                description: '帮助商家店铺增加销量',
-                platform: TaskType.PDD,
-                productName: '新鲜水果礼盒',
-                productImage: '',
-                productPrice: 59.90,
-                commission: 3.00,
-                requirements: '拼多多账号需绑定银行卡',
-                steps: [
-                    { step: 1, title: '进入店铺', description: '通过分享链接进入店铺', requireScreenshot: true },
-                    { step: 2, title: '浏览商品', description: '浏览至少3个商品', requireScreenshot: true }
-                ],
-                totalCount: 100,
-                claimedCount: 67,
+                taskType: TaskType.PDD,
+                shopName: '拼多多店铺',
+                url: 'https://pdd.com/item/3',
+                mainImage: '',
+                keyword: '日用品',
+                goodsPrice: 50.00,
+                baseServiceFee: 3.00,
+                count: 100,
+                claimedCount: 45,
                 status: TaskStatus.ACTIVE,
-                sellerPhone: '13666778899',
+                remark: '需要新用户账号',
+                totalCommission: 3.00,
+                totalDeposit: 60,
             }
         ];
 
@@ -93,61 +90,169 @@ export class TasksService implements OnModuleInit {
             .where('task.status = :status', { status: TaskStatus.ACTIVE });
 
         if (filter) {
-            if (filter.platform) {
-                queryBuilder.andWhere('task.platform = :platform', { platform: filter.platform });
+            if (filter.taskType) {
+                queryBuilder.andWhere('task.taskType = :taskType', { taskType: filter.taskType });
             }
             if (filter.search) {
                 queryBuilder.andWhere(
-                    '(LOWER(task.title) LIKE LOWER(:search) OR LOWER(task.productName) LIKE LOWER(:search))',
+                    '(LOWER(task.title) LIKE LOWER(:search) OR LOWER(task.keyword) LIKE LOWER(:search))',
                     { search: `%${filter.search}%` }
                 );
             }
             if (filter.minCommission !== undefined) {
-                queryBuilder.andWhere('task.commission >= :minCommission', { minCommission: filter.minCommission });
+                queryBuilder.andWhere('task.totalCommission >= :minCommission', { minCommission: filter.minCommission });
             }
             if (filter.maxCommission !== undefined) {
-                queryBuilder.andWhere('task.commission <= :maxCommission', { maxCommission: filter.maxCommission });
+                queryBuilder.andWhere('task.totalCommission <= :maxCommission', { maxCommission: filter.maxCommission });
             }
         }
 
-        return queryBuilder.getMany();
+        return queryBuilder.orderBy('task.createdAt', 'DESC').getMany();
+    }
+
+    async findByMerchant(merchantId: string, filter?: TaskFilterDto): Promise<Task[]> {
+        const queryBuilder = this.tasksRepository.createQueryBuilder('task')
+            .where('task.merchantId = :merchantId', { merchantId });
+
+        if (filter?.status !== undefined) {
+            queryBuilder.andWhere('task.status = :status', { status: filter.status });
+        }
+        if (filter?.taskType) {
+            queryBuilder.andWhere('task.taskType = :taskType', { taskType: filter.taskType });
+        }
+
+        return queryBuilder.orderBy('task.createdAt', 'DESC').getMany();
     }
 
     async findOne(id: string): Promise<Task | null> {
         return this.tasksRepository.findOne({ where: { id } });
     }
 
-    async create(createTaskDto: CreateTaskDto): Promise<Task> {
+    /**
+     * 创建任务并完成支付
+     * 使用事务确保原子性：扣款失败则回滚任务创建
+     */
+    async createAndPay(createTaskDto: CreateTaskDto, merchantId: string): Promise<Task> {
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            // 1. 获取商户信息
+            const merchant = await this.merchantsService.findOne(merchantId);
+            if (!merchant) {
+                throw new BadRequestException('商户不存在');
+            }
+
+            // 2. 计算费用
+            const count = createTaskDto.count || 1;
+            const goodsMoney = (createTaskDto.goodsPrice || 0) * count;
+
+            // 基础服务费
+            const baseServiceFee = 5.0;
+            const praiseFee = createTaskDto.praiseFee || 0;
+            const timingPublishFee = createTaskDto.isTimingPublish ? 1.0 : 0;
+            const timingPayFee = createTaskDto.isTimingPay ? 1.0 : 0;
+            const cycleTimeFee = createTaskDto.isCycleTime ? 1.0 : 0;
+            const addReward = createTaskDto.addReward || 0;
+
+            // 押金 = 商品本金 + 保证金 + 运费
+            const marginUnit = createTaskDto.isFreeShipping === 1 ? 0 : 10;
+            const postageUnit = createTaskDto.isFreeShipping === 1 ? 0 : 10;
+            const totalDeposit = goodsMoney + (marginUnit * count) + (postageUnit * count);
+
+            // 佣金 = 服务费 + 增值费
+            const totalCommission = (baseServiceFee + praiseFee + timingPublishFee + timingPayFee + cycleTimeFee + addReward) * count;
+
+            // 3. 验证余额
+            if (Number(merchant.balance) < totalDeposit) {
+                throw new BadRequestException(`余额不足，需要 ¥${totalDeposit.toFixed(2)}，当前余额 ¥${merchant.balance}`);
+            }
+            if (Number(merchant.silver) < totalCommission) {
+                throw new BadRequestException(`银锭不足，需要 ${totalCommission.toFixed(2)}，当前银锭 ${merchant.silver}`);
+            }
+
+            // 4. 冻结押金
+            await this.merchantsService.freezeBalance(merchantId, totalDeposit);
+
+            // 5. 扣除银锭
+            await this.merchantsService.deductSilver(merchantId, totalCommission, `发布任务佣金`);
+
+            // 6. 创建任务
+            const newTask = this.tasksRepository.create({
+                taskNumber: 'T' + Date.now(),
+                title: createTaskDto.title,
+                taskType: createTaskDto.taskType,
+                shopName: createTaskDto.shopName,
+                url: createTaskDto.url,
+                mainImage: createTaskDto.mainImage || '',
+                keyword: createTaskDto.keyword || '',
+                taoWord: createTaskDto.taoWord,
+                goodsPrice: createTaskDto.goodsPrice,
+                goodsMoney,
+                count,
+                claimedCount: 0,
+                baseServiceFee,
+                praiseFee,
+                isPraise: createTaskDto.isPraise,
+                isTimingPublish: createTaskDto.isTimingPublish,
+                publishTime: createTaskDto.publishTime ? new Date(createTaskDto.publishTime) : undefined,
+                totalDeposit,
+                totalCommission,
+                status: TaskStatus.ACTIVE, // 支付成功，直接发布
+                merchantId,
+            });
+
+            const savedTask = await queryRunner.manager.save(newTask);
+
+            await queryRunner.commitTransaction();
+            return savedTask;
+
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
+    // 简化版创建（不含支付，保留向后兼容）
+    async create(createTaskDto: CreateTaskDto, merchantId?: string): Promise<Task> {
+        const goodsMoney = createTaskDto.goodsPrice * createTaskDto.count;
+        const baseServiceFee = 5.00;
+        const deposit = goodsMoney + (10 * createTaskDto.count);
+
         const newTask = this.tasksRepository.create({
             taskNumber: 'T' + Date.now(),
             ...createTaskDto,
+            goodsMoney,
+            baseServiceFee,
+            totalDeposit: deposit,
+            totalCommission: baseServiceFee,
             claimedCount: 0,
-            status: TaskStatus.ACTIVE,
-            sellerPhone: '13800000000',
+            status: TaskStatus.PENDING_PAY,
+            merchantId: merchantId
         });
         return this.tasksRepository.save(newTask);
     }
 
     async claim(taskId: string, userId: string, buynoId: string): Promise<{ success: boolean; message: string; orderId?: string }> {
-        // 使用原子更新防止超卖 (Race Condition Fix)
         const result = await this.tasksRepository.createQueryBuilder()
             .update(Task)
             .set({ claimedCount: () => "claimedCount + 1" })
             .where("id = :id", { id: taskId })
             .andWhere("status = :status", { status: TaskStatus.ACTIVE })
-            .andWhere("claimedCount < totalCount") // 核心：数据库层原子校验库存
+            .andWhere("claimedCount < count")
             .execute();
 
         if (result.affected === 0) {
-            // 更新失败，可能是库存不足或任务不活跃
             const task = await this.tasksRepository.findOne({ where: { id: taskId } });
             if (!task) throw new NotFoundException('任务不存在');
             if (task.status !== TaskStatus.ACTIVE) throw new BadRequestException('任务已结束');
-            if (task.claimedCount >= task.totalCount) throw new BadRequestException('任务名额已满');
+            if (task.claimedCount >= task.count) throw new BadRequestException('任务名额已满');
             throw new BadRequestException('任务领取失败，请重试');
         }
 
-        // 生成订单ID (实际订单由 Controller 通过 OrdersService 创建)
         const orderId = 'order-' + Date.now();
 
         return {
@@ -160,6 +265,6 @@ export class TasksService implements OnModuleInit {
     async getAvailableCount(taskId: string): Promise<number> {
         const task = await this.tasksRepository.findOne({ where: { id: taskId } });
         if (!task) return 0;
-        return task.totalCount - task.claimedCount;
+        return task.count - task.claimedCount;
     }
 }
