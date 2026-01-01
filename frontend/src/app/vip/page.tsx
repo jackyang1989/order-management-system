@@ -1,67 +1,130 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { isAuthenticated } from '../../services/authService';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { isAuthenticated, getCurrentUser } from '../../services/authService';
+import {
+    fetchVipPackages,
+    fetchVipStatus,
+    fetchVipRecords,
+    purchaseVip,
+    VipPackage,
+    VipStatus,
+    VipPurchase
+} from '../../services/vipService';
 
-// VIP套餐
-const vipPackages = [
-    { id: 1, months: 3, price: 30, originalPrice: 45 },
-    { id: 2, months: 6, price: 50, originalPrice: 90 },
-    { id: 3, months: 9, price: 70, originalPrice: 135 },
-    { id: 4, months: 12, price: 88, originalPrice: 180 }
+// Fallback mock packages
+const mockPackages: VipPackage[] = [
+    { id: '1', name: '月度VIP', days: 30, price: 30, discountPrice: 19.9, description: '适合新手体验', benefits: ['专属任务优先领取', '佣金提升10%', '免费提现次数+2'] },
+    { id: '2', name: '季度VIP', days: 90, price: 90, discountPrice: 49.9, description: '高性价比之选', benefits: ['专属任务优先领取', '佣金提升15%', '免费提现次数+5', '专属客服'] },
+    { id: '3', name: '年度VIP', days: 365, price: 360, discountPrice: 168, description: '资深用户首选', benefits: ['专属任务优先领取', '佣金提升20%', '无限免费提现', '专属客服', '生日礼包'] }
 ];
 
-// 支付方式
-const paymentMethods = [
-    { id: 'alipay', name: '支付宝', icon: '💳' },
-    { id: 'balance', name: '本金支付', icon: '💰' },
-    { id: 'silver', name: '银锭支付', icon: '🥈' }
-];
-
-// Mock 用户VIP信息
-const mockUserVip = {
-    isVip: true,
-    expireTime: '2024-12-31',
-    username: 'test_user'
-};
-
-// Mock 购买记录
-const mockRecords = [
-    { id: '1', date: '2024-12-01 10:00:00', months: 3, price: 30, payMethod: '支付宝', expireDate: '2025-03-01' },
-    { id: '2', date: '2024-09-01 15:30:00', months: 3, price: 30, payMethod: '本金支付', expireDate: '2024-12-01' }
-];
-
-export default function VipPage() {
+function VipContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const initialTab = searchParams.get('tab') as 'recharge' | 'records' | null;
+
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'recharge' | 'records'>('recharge');
-    const [selectedPackage, setSelectedPackage] = useState(vipPackages[0]);
-    const [selectedPayment, setSelectedPayment] = useState(paymentMethods[0]);
-    const [userVip, setUserVip] = useState(mockUserVip);
-    const [records, setRecords] = useState(mockRecords);
+    const [activeTab, setActiveTab] = useState<'recharge' | 'records'>(initialTab || 'recharge');
+    const [packages, setPackages] = useState<VipPackage[]>([]);
+    const [selectedPackage, setSelectedPackage] = useState<VipPackage | null>(null);
+    const [vipStatus, setVipStatus] = useState<VipStatus>({ isVip: false, expireAt: null, daysRemaining: 0 });
+    const [records, setRecords] = useState<VipPurchase[]>([]);
     const [showConfirm, setShowConfirm] = useState(false);
+    const [processing, setProcessing] = useState(false);
+    const [userSilver, setUserSilver] = useState(0);
+    const [username, setUsername] = useState('');
 
     useEffect(() => {
         if (!isAuthenticated()) {
             router.push('/login');
             return;
         }
-        setLoading(false);
+        loadData();
     }, [router]);
 
-    const handlePayment = () => {
-        setShowConfirm(false);
-        // Mock 支付成功
-        alert(`支付成功！已开通${selectedPackage.months}个月VIP会员`);
-        // 更新VIP状态
-        const newExpire = new Date();
-        newExpire.setMonth(newExpire.getMonth() + selectedPackage.months);
-        setUserVip({
-            ...userVip,
-            isVip: true,
-            expireTime: newExpire.toISOString().split('T')[0]
-        });
+    useEffect(() => {
+        if (activeTab === 'records') {
+            loadRecords();
+        }
+    }, [activeTab]);
+
+    const loadData = async () => {
+        setLoading(true);
+        try {
+            const user = getCurrentUser();
+            if (user) {
+                setUsername(user.username || '');
+                setUserSilver(Number(user.silver) || 0);
+            }
+
+            const [pkgs, status] = await Promise.all([
+                fetchVipPackages(),
+                fetchVipStatus()
+            ]);
+
+            if (pkgs.length > 0) {
+                setPackages(pkgs);
+                setSelectedPackage(pkgs[0]);
+            } else {
+                setPackages(mockPackages);
+                setSelectedPackage(mockPackages[0]);
+            }
+
+            setVipStatus(status);
+        } catch (error) {
+            console.error('Load data error:', error);
+            setPackages(mockPackages);
+            setSelectedPackage(mockPackages[0]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const loadRecords = async () => {
+        try {
+            const result = await fetchVipRecords();
+            setRecords(result.list);
+        } catch (error) {
+            console.error('Load records error:', error);
+        }
+    };
+
+    const handlePayment = async () => {
+        if (!selectedPackage) return;
+        if (userSilver < selectedPackage.discountPrice) {
+            alert('银锭余额不足，请先充值');
+            setShowConfirm(false);
+            return;
+        }
+
+        setProcessing(true);
+        try {
+            const result = await purchaseVip(selectedPackage.id);
+            if (result.success) {
+                alert(`购买成功！已开通${selectedPackage.name}`);
+                setShowConfirm(false);
+                // Refresh VIP status
+                const status = await fetchVipStatus();
+                setVipStatus(status);
+                setUserSilver(prev => prev - selectedPackage.discountPrice);
+                // Switch to records tab
+                setActiveTab('records');
+                loadRecords();
+            } else {
+                alert(result.message || '购买失败');
+            }
+        } catch (error) {
+            alert('网络错误，请重试');
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    const formatDate = (dateStr: string | null) => {
+        if (!dateStr) return '-';
+        return new Date(dateStr).toLocaleDateString('zh-CN');
     };
 
     if (loading) {
@@ -94,17 +157,20 @@ export default function VipPage() {
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
                     <div style={{ fontSize: '36px', marginRight: '15px' }}>👑</div>
                     <div>
-                        <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '5px' }}>{userVip.username}</div>
+                        <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '5px' }}>{username}</div>
                         <div style={{ fontSize: '14px', opacity: 0.9 }}>
-                            {userVip.isVip ? 'VIP会员' : '普通会员'}
+                            {vipStatus.isVip ? 'VIP会员' : '普通会员'}
                         </div>
                     </div>
                 </div>
-                {userVip.isVip && (
+                {vipStatus.isVip && (
                     <div style={{ fontSize: '13px', opacity: 0.8 }}>
-                        到期时间：{userVip.expireTime}
+                        到期时间：{formatDate(vipStatus.expireAt)} (剩余{vipStatus.daysRemaining}天)
                     </div>
                 )}
+                <div style={{ fontSize: '12px', marginTop: '10px', opacity: 0.7 }}>
+                    可用银锭：{userSilver}
+                </div>
             </div>
 
             {/* Tab 切换 */}
@@ -117,7 +183,8 @@ export default function VipPage() {
                         padding: '12px 0',
                         fontSize: '14px',
                         color: activeTab === 'recharge' ? '#e6a23c' : '#666',
-                        position: 'relative'
+                        position: 'relative',
+                        cursor: 'pointer'
                     }}
                 >
                     充值会员
@@ -131,7 +198,8 @@ export default function VipPage() {
                         padding: '12px 0',
                         fontSize: '14px',
                         color: activeTab === 'records' ? '#e6a23c' : '#666',
-                        position: 'relative'
+                        position: 'relative',
+                        cursor: 'pointer'
                     }}
                 >
                     充值记录
@@ -145,74 +213,55 @@ export default function VipPage() {
                     {/* 套餐选择 */}
                     <div style={{ padding: '15px', background: '#fff', marginTop: '10px' }}>
                         <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '15px', color: '#333' }}>选择套餐</div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
-                            {vipPackages.map(pkg => (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {packages.map(pkg => (
                                 <div
                                     key={pkg.id}
                                     onClick={() => setSelectedPackage(pkg)}
                                     style={{
-                                        border: selectedPackage.id === pkg.id ? '2px solid #e6a23c' : '1px solid #e5e5e5',
+                                        border: selectedPackage?.id === pkg.id ? '2px solid #e6a23c' : '1px solid #e5e5e5',
                                         borderRadius: '8px',
                                         padding: '15px',
-                                        textAlign: 'center',
                                         cursor: 'pointer',
-                                        background: selectedPackage.id === pkg.id ? '#fffbf0' : '#fff'
+                                        background: selectedPackage?.id === pkg.id ? '#fffbf0' : '#fff'
                                     }}
                                 >
-                                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#333', marginBottom: '5px' }}>{pkg.months}个月</div>
-                                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#e6a23c' }}>¥{pkg.price}</div>
-                                    <div style={{ fontSize: '12px', color: '#999', textDecoration: 'line-through' }}>¥{pkg.originalPrice}</div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                        <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>{pkg.name}</div>
+                                        <div>
+                                            <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#e6a23c' }}>{pkg.discountPrice}</span>
+                                            <span style={{ fontSize: '12px', color: '#999', textDecoration: 'line-through', marginLeft: '5px' }}>¥{pkg.price}</span>
+                                            <span style={{ fontSize: '12px', color: '#999' }}> 银锭</span>
+                                        </div>
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: '#999', marginBottom: '8px' }}>{pkg.description}</div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                                        {pkg.benefits?.map((benefit, idx) => (
+                                            <span key={idx} style={{
+                                                fontSize: '10px',
+                                                padding: '2px 6px',
+                                                background: '#fff8e6',
+                                                color: '#e6a23c',
+                                                borderRadius: '2px'
+                                            }}>{benefit}</span>
+                                        ))}
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     {/* 当前选中 */}
-                    <div style={{ padding: '15px', background: '#fff', marginTop: '10px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '14px', color: '#666' }}>当前选中套餐</span>
-                            <span style={{ fontSize: '14px', color: '#333' }}>
-                                {selectedPackage.months}个月 | <span style={{ color: '#e6a23c', fontWeight: 'bold' }}>¥{selectedPackage.price}</span>
-                            </span>
+                    {selectedPackage && (
+                        <div style={{ padding: '15px', background: '#fff', marginTop: '10px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '14px', color: '#666' }}>当前选中套餐</span>
+                                <span style={{ fontSize: '14px', color: '#333' }}>
+                                    {selectedPackage.name} ({selectedPackage.days}天) | <span style={{ color: '#e6a23c', fontWeight: 'bold' }}>{selectedPackage.discountPrice}银锭</span>
+                                </span>
+                            </div>
                         </div>
-                    </div>
-
-                    {/* 支付方式 */}
-                    <div style={{ padding: '15px', background: '#fff', marginTop: '10px' }}>
-                        <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '15px', color: '#333' }}>支付方式</div>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            {paymentMethods.map(method => (
-                                <div
-                                    key={method.id}
-                                    onClick={() => setSelectedPayment(method)}
-                                    style={{
-                                        flex: 1,
-                                        border: selectedPayment.id === method.id ? '2px solid #e6a23c' : '1px solid #e5e5e5',
-                                        borderRadius: '8px',
-                                        padding: '12px 8px',
-                                        textAlign: 'center',
-                                        cursor: 'pointer',
-                                        background: selectedPayment.id === method.id ? '#fffbf0' : '#fff'
-                                    }}
-                                >
-                                    <div style={{ fontSize: '24px', marginBottom: '5px' }}>{method.icon}</div>
-                                    <div style={{ fontSize: '12px', color: '#666' }}>{method.name}</div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* VIP 权益 */}
-                    <div style={{ padding: '15px', background: '#fff', marginTop: '10px' }}>
-                        <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '15px', color: '#333' }}>VIP专属权益</div>
-                        <div style={{ fontSize: '13px', color: '#666', lineHeight: '2' }}>
-                            <div>✅ 每日可接任务数量翻倍</div>
-                            <div>✅ 优先看到高佣金任务</div>
-                            <div>✅ 提现手续费减免50%</div>
-                            <div>✅ 专属VIP客服通道</div>
-                            <div>✅ 每月额外赠送银锭</div>
-                        </div>
-                    </div>
+                    )}
 
                     {/* 底部支付按钮 */}
                     <div style={{
@@ -228,19 +277,20 @@ export default function VipPage() {
                     }}>
                         <button
                             onClick={() => setShowConfirm(true)}
+                            disabled={!selectedPackage}
                             style={{
                                 width: '100%',
-                                background: 'linear-gradient(135deg, #e6a23c 0%, #f5d98e 100%)',
+                                background: selectedPackage ? 'linear-gradient(135deg, #e6a23c 0%, #f5d98e 100%)' : '#ccc',
                                 border: 'none',
                                 color: '#fff',
                                 padding: '12px',
                                 borderRadius: '4px',
                                 fontSize: '16px',
                                 fontWeight: 'bold',
-                                cursor: 'pointer'
+                                cursor: selectedPackage ? 'pointer' : 'not-allowed'
                             }}
                         >
-                            立即开通 ¥{selectedPackage.price}
+                            立即开通 {selectedPackage?.discountPrice}银锭
                         </button>
                     </div>
                 </div>
@@ -265,16 +315,15 @@ export default function VipPage() {
                             >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                                     <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#333' }}>
-                                        购买{record.months}个月会员
+                                        {record.packageName}
                                     </span>
                                     <span style={{ fontSize: '14px', color: '#e6a23c', fontWeight: 'bold' }}>
-                                        ¥{record.price}
+                                        {record.amount}银锭
                                     </span>
                                 </div>
                                 <div style={{ fontSize: '12px', color: '#999', lineHeight: '1.8' }}>
-                                    <div>支付方式：{record.payMethod}</div>
-                                    <div>购买时间：{record.date}</div>
-                                    <div>到期时间：{record.expireDate}</div>
+                                    <div>购买时间：{formatDate(record.paidAt)}</div>
+                                    <div>有效期：{formatDate(record.vipStartAt)} ~ {formatDate(record.vipEndAt)}</div>
                                 </div>
                             </div>
                         ))
@@ -283,7 +332,7 @@ export default function VipPage() {
             )}
 
             {/* 确认支付弹窗 */}
-            {showConfirm && (
+            {showConfirm && selectedPackage && (
                 <div style={{
                     position: 'fixed',
                     top: 0,
@@ -304,13 +353,25 @@ export default function VipPage() {
                         textAlign: 'center',
                         padding: '20px'
                     }}>
-                        <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '15px' }}>确认支付</div>
-                        <div style={{ fontSize: '14px', color: '#666', marginBottom: '20px' }}>
-                            您将使用 <span style={{ color: '#e6a23c' }}>{selectedPayment.name}</span> 支付 <span style={{ color: '#e6a23c', fontWeight: 'bold' }}>¥{selectedPackage.price}</span> 开通{selectedPackage.months}个月VIP会员
+                        <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '15px' }}>确认购买</div>
+                        <div style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>
+                            您将使用银锭支付
                         </div>
+                        <div style={{ fontSize: '24px', color: '#e6a23c', fontWeight: 'bold', marginBottom: '10px' }}>
+                            {selectedPackage.discountPrice} 银锭
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#999', marginBottom: '20px' }}>
+                            开通 {selectedPackage.name} ({selectedPackage.days}天)
+                        </div>
+                        {userSilver < selectedPackage.discountPrice && (
+                            <div style={{ fontSize: '12px', color: '#f56c6c', marginBottom: '10px' }}>
+                                余额不足，当前银锭：{userSilver}
+                            </div>
+                        )}
                         <div style={{ display: 'flex', gap: '10px' }}>
                             <button
                                 onClick={() => setShowConfirm(false)}
+                                disabled={processing}
                                 style={{
                                     flex: 1,
                                     padding: '10px',
@@ -323,21 +384,30 @@ export default function VipPage() {
                             >取消</button>
                             <button
                                 onClick={handlePayment}
+                                disabled={processing || userSilver < selectedPackage.discountPrice}
                                 style={{
                                     flex: 1,
                                     padding: '10px',
                                     border: 'none',
-                                    background: '#e6a23c',
+                                    background: processing || userSilver < selectedPackage.discountPrice ? '#ccc' : '#e6a23c',
                                     color: '#fff',
                                     borderRadius: '4px',
                                     fontSize: '14px',
-                                    cursor: 'pointer'
+                                    cursor: processing || userSilver < selectedPackage.discountPrice ? 'not-allowed' : 'pointer'
                                 }}
-                            >确认支付</button>
+                            >{processing ? '处理中...' : '确认支付'}</button>
                         </div>
                     </div>
                 </div>
             )}
         </div>
+    );
+}
+
+export default function VipPage() {
+    return (
+        <Suspense fallback={<div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>加载中...</div>}>
+            <VipContent />
+        </Suspense>
     );
 }

@@ -105,9 +105,9 @@ export class SensitiveWordsService implements OnModuleInit {
                 matchedWords,
                 maxLevel,
                 blocked,
-                processedText: blocked ? null : processedText.substring(0, 1000),
+                processedText: blocked ? undefined : processedText.substring(0, 1000),
                 ip,
-            }));
+            } as any));
 
             // 更新命中次数
             for (const wordObj of matchedWordObjects) {

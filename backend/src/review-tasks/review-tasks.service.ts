@@ -1,13 +1,22 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ReviewTask, ReviewTaskStatus, CreateReviewTaskDto, SubmitReviewDto } from './review-task.entity';
+import { UsersService } from '../users/users.service';
+import { MerchantsService } from '../merchants/merchants.service';
+import { FinanceRecordsService } from '../finance-records/finance-records.service';
+import { FundType, FundAction } from '../users/fund-record.entity';
 
 @Injectable()
 export class ReviewTasksService {
     constructor(
         @InjectRepository(ReviewTask)
         private reviewTasksRepository: Repository<ReviewTask>,
+        @Inject(forwardRef(() => UsersService))
+        private usersService: UsersService,
+        @Inject(forwardRef(() => MerchantsService))
+        private merchantsService: MerchantsService,
+        private financeRecordsService: FinanceRecordsService,
     ) { }
 
     /**
@@ -102,7 +111,23 @@ export class ReviewTasksService {
         task.status = ReviewTaskStatus.REJECTED;
         task.rejectReason = reason || '买手拒绝';
 
-        // TODO: 退还商家押金和银锭
+        // 退还商家押金
+        if (task.deposit && task.deposit > 0) {
+            await this.merchantsService.addBalance(
+                task.merchantId,
+                task.deposit,
+                `追评任务被拒绝，退还押金 - 订单${task.orderId}`
+            );
+        }
+
+        // 退还商家佣金（银锭）
+        if (task.commission && task.commission > 0) {
+            await this.merchantsService.addSilver(
+                task.merchantId,
+                task.commission,
+                `追评任务被拒绝，退还佣金 - 订单${task.orderId}`
+            );
+        }
 
         return this.reviewTasksRepository.save(task);
     }
@@ -121,7 +146,39 @@ export class ReviewTasksService {
 
         if (approved) {
             task.status = ReviewTaskStatus.APPROVED;
-            // TODO: 释放佣金给买手
+
+            // 释放佣金给买手
+            if (task.commission && task.commission > 0 && task.userId) {
+                // 获取当前用户信息以计算余额
+                const user = await this.usersService.findOne(task.userId);
+                if (user) {
+                    const newSilver = Number(user.silver || 0) + task.commission;
+
+                    // 记录财务流水 - 追评佣金
+                    await this.financeRecordsService.recordBuyerTaskCommission(
+                        task.userId,
+                        task.commission,
+                        newSilver,
+                        task.orderId,
+                        `追评任务完成 - 订单${task.orderId}`
+                    );
+
+                    // 更新用户银锭
+                    await this.usersService.addFundRecord(
+                        task.userId,
+                        FundType.SILVER,
+                        FundAction.IN,
+                        task.commission,
+                        `追评佣金 - 订单${task.orderId}`,
+                        { orderId: task.orderId }
+                    );
+                }
+            }
+
+            // 释放押金回商家（因为买手完成了任务，押金不需要赔付）
+            if (task.deposit && task.deposit > 0) {
+                await this.merchantsService.unfreezeBalance(task.merchantId, task.deposit);
+            }
         } else {
             task.status = ReviewTaskStatus.PENDING; // 驳回后重新让买手提交
             task.rejectReason = reason || '审核不通过';

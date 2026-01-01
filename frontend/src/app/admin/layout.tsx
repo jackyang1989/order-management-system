@@ -2,7 +2,6 @@
 
 import { useState, useEffect, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { BASE_URL } from '../../../apiConfig';
 
 interface AdminLayoutProps {
     children: ReactNode;
@@ -34,6 +33,7 @@ const menuItems = [
         children: [
             { key: 'merchants-list', label: '商家列表', path: '/admin/merchants' },
             { key: 'merchants-balance', label: '余额记录', path: '/admin/merchants/balance' },
+            { key: 'shops-list', label: '店铺管理', path: '/admin/shops' },
         ]
     },
     {
@@ -77,7 +77,34 @@ const menuItems = [
         path: '/admin/system',
         children: [
             { key: 'system-params', label: '基础参数', path: '/admin/system/params' },
-            { key: 'system-menu', label: '菜单管理', path: '/admin/system/menu' },
+            { key: 'system-commission', label: '费率配置', path: '/admin/system/commission' },
+            { key: 'system-vip', label: 'VIP等级', path: '/admin/system/vip' },
+            { key: 'system-platforms', label: '平台管理', path: '/admin/system/platforms' },
+            { key: 'system-deliveries', label: '快递管理', path: '/admin/system/deliveries' },
+            { key: 'system-sensitive', label: '敏感词管理', path: '/admin/system/sensitive' },
+            { key: 'system-api', label: 'API配置', path: '/admin/system/api' },
+        ]
+    },
+    {
+        key: 'permission',
+        icon: '🔐',
+        label: '权限管理',
+        path: '/admin/permission',
+        children: [
+            { key: 'permission-menu', label: '菜单管理', path: '/admin/permission/menu' },
+            { key: 'permission-role', label: '角色管理', path: '/admin/permission/role' },
+            { key: 'permission-admin', label: '管理员', path: '/admin/permission/admin' },
+        ]
+    },
+    {
+        key: 'tools',
+        icon: '🛠️',
+        label: '系统工具',
+        path: '/admin/tools',
+        children: [
+            { key: 'tools-backup', label: '数据备份', path: '/admin/tools/backup' },
+            { key: 'tools-logs', label: '操作日志', path: '/admin/tools/logs' },
+            { key: 'tools-cache', label: '缓存管理', path: '/admin/tools/cache' },
         ]
     },
 ];
@@ -86,7 +113,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const router = useRouter();
     const pathname = usePathname();
     const [admin, setAdmin] = useState<{ username: string } | null>(null);
-    const [expandedMenus, setExpandedMenus] = useState<string[]>(['users', 'merchants', 'finance']);
+    const [expandedMenus, setExpandedMenus] = useState<string[]>(['users', 'merchants', 'finance', 'system']);
 
     useEffect(() => {
         const token = localStorage.getItem('adminToken') || localStorage.getItem('merchantToken');

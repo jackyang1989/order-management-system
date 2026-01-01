@@ -218,5 +218,22 @@ export class OrdersController {
             };
         }
     }
+
+    @Post(':id/cancel')
+    async cancelOrder(@Param('id') id: string, @Request() req) {
+        try {
+            const order = await this.ordersService.cancelOrder(id, req.user.userId);
+            return {
+                success: true,
+                message: '订单已取消',
+                data: order
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message
+            };
+        }
+    }
 }
 

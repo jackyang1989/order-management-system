@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -45,28 +47,43 @@ import { SensitiveWordsModule } from './sensitive-words/sensitive-words.module';
 // 第五批新增模块 - 批量操作和Excel导入导出
 import { BatchOperationsModule } from './batch-operations/batch-operations.module';
 import { ExcelModule } from './excel/excel.module';
-// 第六批新增模块 - 核心业务增强
-import { SchedulerModule } from './scheduler/scheduler.module';
-import { QueueModule } from './queue/queue.module';
+// 第六批新增模块 - 核心业务增强（暂时禁用有编译问题的模块）
+// import { SchedulerModule } from './scheduler/scheduler.module';
+// import { QueueModule } from './queue/queue.module';
 import { BackupModule } from './backup/backup.module';
-import { TaskDraftsModule } from './task-drafts/task-drafts.module';
-import { PresaleModule } from './presale/presale.module';
-import { ReferralModule } from './referral/referral.module';
-import { PraiseTemplatesModule } from './praise-templates/praise-templates.module';
+// import { TaskDraftsModule } from './task-drafts/task-drafts.module'; // 暂时禁用
+// import { PresaleModule } from './presale/presale.module';
+// import { ReferralModule } from './referral/referral.module';
+// import { PraiseTemplatesModule } from './praise-templates/praise-templates.module';
 // 第七批新增模块 - 订单侠API集成
 import { DingdanxiaModule } from './dingdanxia/dingdanxia.module';
+// 第八批新增模块 - 管理后台配置增强
+// import { AdminConfigModule } from './admin-config/admin-config.module'; // 暂时禁用
+// 第九批新增模块 - 缓存
+import { CacheModule } from './cache/cache.module';
+// 第十批新增模块 - 操作日志
+import { OperationLogsModule } from './operation-logs/operation-logs.module';
+// 第十一批新增模块 - 菜单管理
+import { AdminMenusModule } from './admin-menus/admin-menus.module';
+// 第十二批新增模块 - VIP会员
+import { VipModule } from './vip/vip.module';
 
 @Module({
   imports: [
+    // 速率限制 - 防止暴力攻击
+    ThrottlerModule.forRoot([{
+      ttl: 60000,    // 时间窗口 60 秒
+      limit: 100,    // 每个 IP 每分钟最多 100 次请求
+    }]),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432'),
       username: process.env.DB_USERNAME || '',
       password: process.env.DB_PASSWORD || '',
-      database: 'order_management',
+      database: process.env.DB_DATABASE || 'order_management',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
+      synchronize: process.env.NODE_ENV !== 'production',
       logging: process.env.NODE_ENV !== 'production',
     }),
     AuthModule,
@@ -113,17 +130,34 @@ import { DingdanxiaModule } from './dingdanxia/dingdanxia.module';
     BatchOperationsModule,
     ExcelModule,
     // 第六批新增模块 - 核心业务增强
-    SchedulerModule,
-    QueueModule,
+    // SchedulerModule,
+    // QueueModule,
     BackupModule,
-    TaskDraftsModule,
-    PresaleModule,
-    ReferralModule,
-    PraiseTemplatesModule,
+    // TaskDraftsModule, // 暂时禁用
+    // PresaleModule,
+    // ReferralModule,
+    // PraiseTemplatesModule,
     // 第七批新增模块 - 订单侠API集成
     DingdanxiaModule,
+    // 第八批新增模块 - 管理后台配置增强
+    // AdminConfigModule, // 暂时禁用
+    // 第九批新增模块 - 缓存
+    CacheModule,
+    // 第十批新增模块 - 操作日志
+    OperationLogsModule,
+    // 第十一批新增模块 - 菜单管理
+    AdminMenusModule,
+    // 第十二批新增模块 - VIP会员
+    VipModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // 全局启用速率限制
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule { }

@@ -286,3 +286,79 @@ export const fetchInviteRecords = async (): Promise<InviteRecord[]> => {
         return [];
     }
 };
+
+// ========== 资金记录 ==========
+
+export interface FundRecord {
+    id: string;
+    type: 'principal' | 'silver'; // 本金 或 银锭
+    action: 'in' | 'out'; // 收入 或 支出
+    amount: number;
+    balance: number; // 变动后余额
+    description: string;
+    orderId?: string; // 关联订单ID
+    createdAt: string;
+}
+
+export interface FundRecordQuery {
+    type?: 'principal' | 'silver';
+    action?: 'in' | 'out';
+    page?: number;
+    pageSize?: number;
+}
+
+// 获取资金记录
+export const fetchFundRecords = async (query?: FundRecordQuery): Promise<{ list: FundRecord[]; total: number }> => {
+    try {
+        const token = localStorage.getItem('token');
+        const params = new URLSearchParams();
+        if (query?.type) params.append('type', query.type);
+        if (query?.action) params.append('action', query.action);
+        if (query?.page) params.append('page', query.page.toString());
+        if (query?.pageSize) params.append('pageSize', query.pageSize.toString());
+
+        const response = await fetch(`${BASE_URL}/user/fund-records?${params.toString()}`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!response.ok) throw new Error('Failed to fetch fund records');
+        const res = await response.json();
+        return { list: res.data?.list || [], total: res.data?.total || 0 };
+    } catch (error) {
+        console.error('Fetch fund records error:', error);
+        return { list: [], total: 0 };
+    }
+};
+
+// ========== 用户资料 ==========
+
+export interface UserProfile {
+    id: string;
+    username: string;
+    phone: string;
+    balance: number;        // 本金余额
+    frozenBalance: number;  // 冻结本金
+    silver: number;         // 银锭
+    frozenSilver: number;   // 冻结银锭
+    vip: boolean;
+    vipExpireAt?: string;
+    totalEarned: number;    // 累计赚取
+    pendingReward: number;  // 待发放
+    experience: number;     // 经验值
+    createdAt: string;
+}
+
+// 获取用户资料
+export const fetchUserProfile = async (): Promise<UserProfile | null> => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${BASE_URL}/user/profile`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!response.ok) throw new Error('Failed to fetch user profile');
+        const res = await response.json();
+        return res.data || null;
+    } catch (error) {
+        console.error('Fetch user profile error:', error);
+        return null;
+    }
+};

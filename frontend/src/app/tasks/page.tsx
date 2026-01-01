@@ -8,6 +8,7 @@ import { fetchBuyerAccounts } from '../../services/userService';
 import { MockTask } from '../../mocks/taskMock';
 import { MockBuyerAccount } from '../../mocks/userMock';
 import { isAuthenticated } from '../../services/authService';
+import BottomNav from '../../components/BottomNav';
 
 export default function TasksPage() {
     const router = useRouter();
@@ -17,7 +18,6 @@ export default function TasksPage() {
     const [terminal, setTerminal] = useState('');
     const [buynoId, setBuynoId] = useState('');
     const [buyerAccounts, setBuyerAccounts] = useState<MockBuyerAccount[]>([]);
-    const [activeNav, setActiveNav] = useState<string | null>(null);
 
     useEffect(() => {
         if (!isAuthenticated()) {
@@ -45,10 +45,6 @@ export default function TasksPage() {
             // Or typically use accountsResult[0].id
         }
         setLoading(false);
-    };
-
-    const toggleNav = (nav: string) => {
-        setActiveNav(activeNav === nav ? null : nav);
     };
 
     return (
@@ -185,145 +181,7 @@ export default function TasksPage() {
             </div>
 
             {/* 底部导航 */}
-            <div style={{
-                position: 'fixed',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                maxWidth: '540px',
-                margin: '0 auto',
-                background: '#fff',
-                borderTop: '1px solid #ddd',
-                display: 'flex',
-                height: '60px',
-                zIndex: 1000
-            }}>
-                <div style={{ flex: 1, position: 'relative' }}>
-                    {activeNav === 'account' && (
-                        <div style={{
-                            position: 'absolute',
-                            bottom: '60px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            background: '#fff',
-                            border: '1px solid #ccc',
-                            width: '120px',
-                            textAlign: 'center'
-                        }}>
-                            <Link href="/profile/settings" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666', borderBottom: '1px solid #e5e5e5' }}>基本信息</Link>
-                            <Link href="/profile/payment" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666', borderBottom: '1px solid #e5e5e5' }}>账户管理</Link>
-                            <Link href="/profile/bind" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666', borderBottom: '1px solid #e5e5e5' }}>买号管理</Link>
-                            <Link href="/vip" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666' }}>会员VIP</Link>
-                        </div>
-                    )}
-                    <div onClick={() => toggleNav('account')} style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: '100%',
-                        cursor: 'pointer',
-                        color: activeNav === 'account' ? '#409eff' : '#606266'
-                    }}>
-                        <span style={{ fontSize: '22px' }}>👤</span>
-                        <span style={{ fontSize: '11px', marginTop: '2px' }}>账号信息</span>
-                    </div>
-                </div>
-
-                <div style={{ flex: 1, position: 'relative' }}>
-                    {activeNav === 'tasks' && (
-                        <div style={{
-                            position: 'absolute',
-                            bottom: '60px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            background: '#fff',
-                            border: '1px solid #ccc',
-                            width: '120px',
-                            textAlign: 'center'
-                        }}>
-                            <Link href="/orders" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666', borderBottom: '1px solid #e5e5e5' }}>继续任务</Link>
-                            <Link href="/tasks" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#409eff', borderBottom: '1px solid #e5e5e5' }}>任务领取</Link>
-                            <Link href="/orders" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666' }}>任务管理</Link>
-                        </div>
-                    )}
-                    <div onClick={() => toggleNav('tasks')} style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: '100%',
-                        cursor: 'pointer',
-                        background: '#ff976a',
-                        color: 'white'
-                    }}>
-                        <span style={{ fontSize: '22px' }}>📋</span>
-                        <span style={{ fontSize: '11px', marginTop: '2px' }}>任务大厅</span>
-                    </div>
-                </div>
-
-                <div style={{ flex: 1, position: 'relative' }}>
-                    {activeNav === 'funds' && (
-                        <div style={{
-                            position: 'absolute',
-                            bottom: '60px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            background: '#fff',
-                            border: '1px solid #ccc',
-                            width: '120px',
-                            textAlign: 'center'
-                        }}>
-                            <Link href="/profile/withdraw" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666', borderBottom: '1px solid #e5e5e5' }}>本佣提现</Link>
-                            <Link href="/profile/withdraw" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666', borderBottom: '1px solid #e5e5e5' }}>提现记录</Link>
-                            <Link href="/profile/withdraw" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666', borderBottom: '1px solid #e5e5e5' }}>本金记录</Link>
-                            <Link href="/profile/withdraw" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666' }}>银锭记录</Link>
-                        </div>
-                    )}
-                    <div onClick={() => toggleNav('funds')} style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: '100%',
-                        cursor: 'pointer',
-                        color: activeNav === 'funds' ? '#409eff' : '#606266'
-                    }}>
-                        <span style={{ fontSize: '22px' }}>💰</span>
-                        <span style={{ fontSize: '11px', marginTop: '2px' }}>资金管理</span>
-                    </div>
-                </div>
-
-                <div style={{ flex: 1, position: 'relative' }}>
-                    {activeNav === 'invite' && (
-                        <div style={{
-                            position: 'absolute',
-                            bottom: '60px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            background: '#fff',
-                            border: '1px solid #ccc',
-                            width: '120px',
-                            textAlign: 'center'
-                        }}>
-                            <Link href="/invite" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666', borderBottom: '1px solid #e5e5e5' }}>邀请好友</Link>
-                            <Link href="/invite" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666' }}>邀请记录</Link>
-                        </div>
-                    )}
-                    <div onClick={() => toggleNav('invite')} style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: '100%',
-                        cursor: 'pointer',
-                        color: activeNav === 'invite' ? '#409eff' : '#606266'
-                    }}>
-                        <span style={{ fontSize: '22px' }}>🤝</span>
-                        <span style={{ fontSize: '11px', marginTop: '2px' }}>好友邀请</span>
-                    </div>
-                </div>
-            </div>
+            <BottomNav />
         </div>
     );
 }

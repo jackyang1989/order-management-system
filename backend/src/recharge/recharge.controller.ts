@@ -7,6 +7,7 @@ import {
     RechargeUserType
 } from './recharge.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AdminGuard, RequirePermissions } from '../auth/admin.guard';
 
 @Controller('recharge')
 export class RechargeController {
@@ -71,18 +72,18 @@ export class RechargeController {
 
     // ============ 管理后台 ============
     @Post('admin/recharge')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(AdminGuard)
+    @RequirePermissions('finance:recharge')
     async adminRecharge(@Request() req, @Body() dto: AdminRechargeDto) {
-        // TODO: 验证管理员权限
-        const operatorId = req.user.sub;
+        const operatorId = req.admin.adminId;
         const recharge = await this.rechargeService.adminRecharge(dto, operatorId);
         return { success: true, message: '充值成功', data: recharge };
     }
 
     @Get('admin/records')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(AdminGuard)
+    @RequirePermissions('finance:recharge')
     async getAllRechargeRecords(@Query() filter: RechargeFilterDto) {
-        // TODO: 验证管理员权限
         const result = await this.rechargeService.findAll(filter);
         return { success: true, ...result };
     }

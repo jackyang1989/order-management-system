@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, UseGuards, Request, Query } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UsersService } from './users.service';
 
@@ -40,6 +40,27 @@ export class UsersController {
         return {
             success: true,
             data: records
+        };
+    }
+
+    @Get('fund-records')
+    async getFundRecords(
+        @Request() req,
+        @Query('type') type?: 'principal' | 'silver',
+        @Query('action') action?: 'in' | 'out',
+        @Query('page') page?: string,
+        @Query('pageSize') pageSize?: string
+    ) {
+        const result = await this.usersService.getFundRecords(
+            req.user.userId,
+            type,
+            action,
+            parseInt(page || '1'),
+            parseInt(pageSize || '20')
+        );
+        return {
+            success: true,
+            data: result
         };
     }
 }

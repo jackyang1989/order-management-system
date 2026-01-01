@@ -7,7 +7,7 @@ import {
     CheckTextDto,
     SensitiveWordFilterDto,
 } from './sensitive-word.entity';
-import { Request } from 'express';
+import * as express from 'express';
 
 @Controller('sensitive-words')
 export class SensitiveWordsController {
@@ -19,7 +19,7 @@ export class SensitiveWordsController {
      * 检测文本
      */
     @Post('check')
-    async checkText(@Body() dto: CheckTextDto, @Req() req: Request) {
+    async checkText(@Body() dto: CheckTextDto, @Req() req: express.Request) {
         const ip = req.ip || req.socket.remoteAddress;
         const result = await this.sensitiveWordsService.checkText(dto, ip);
         return { success: true, data: result };

@@ -2,6 +2,8 @@ import { Injectable, BadRequestException, ConflictException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Merchant, CreateMerchantDto, UpdateMerchantDto, MerchantStatus } from './merchant.entity';
+import { FinanceRecordsService } from '../finance-records/finance-records.service';
+import { FinanceUserType, FinanceMoneyType } from '../finance-records/finance-record.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -9,6 +11,7 @@ export class MerchantsService {
     constructor(
         @InjectRepository(Merchant)
         private merchantsRepository: Repository<Merchant>,
+        private financeRecordsService: FinanceRecordsService,
     ) { }
 
     async findAll(): Promise<Merchant[]> {
@@ -81,7 +84,16 @@ export class MerchantsService {
         merchant.balance = Number(merchant.balance) + amount;
         await this.merchantsRepository.save(merchant);
 
-        // TODO: 记录财务流水
+        // 记录财务流水
+        await this.financeRecordsService.recordAdminOperation(
+            id,
+            FinanceUserType.MERCHANT,
+            FinanceMoneyType.BALANCE,
+            amount,
+            Number(merchant.balance),
+            memo,
+            'system'
+        );
         return true;
     }
 
@@ -96,7 +108,16 @@ export class MerchantsService {
         merchant.balance = Number(merchant.balance) - amount;
         await this.merchantsRepository.save(merchant);
 
-        // TODO: 记录财务流水
+        // 记录财务流水
+        await this.financeRecordsService.recordAdminOperation(
+            id,
+            FinanceUserType.MERCHANT,
+            FinanceMoneyType.BALANCE,
+            -amount,
+            Number(merchant.balance),
+            memo,
+            'system'
+        );
         return true;
     }
 
@@ -133,7 +154,16 @@ export class MerchantsService {
         merchant.silver = Number(merchant.silver) + amount;
         await this.merchantsRepository.save(merchant);
 
-        // TODO: 记录财务流水
+        // 记录财务流水
+        await this.financeRecordsService.recordAdminOperation(
+            id,
+            FinanceUserType.MERCHANT,
+            FinanceMoneyType.SILVER,
+            amount,
+            Number(merchant.silver),
+            memo,
+            'system'
+        );
         return true;
     }
 
@@ -148,7 +178,16 @@ export class MerchantsService {
         merchant.silver = Number(merchant.silver) - amount;
         await this.merchantsRepository.save(merchant);
 
-        // TODO: 记录财务流水
+        // 记录财务流水
+        await this.financeRecordsService.recordAdminOperation(
+            id,
+            FinanceUserType.MERCHANT,
+            FinanceMoneyType.SILVER,
+            -amount,
+            Number(merchant.silver),
+            memo,
+            'system'
+        );
         return true;
     }
 
@@ -156,19 +195,20 @@ export class MerchantsService {
     async getStats(id: string): Promise<{
         balance: number;
         frozenBalance: number;
+        silver: number;
         totalTasks: number;
         activeTasks: number;
         completedOrders: number;
     }> {
         const merchant = await this.merchantsRepository.findOne({ where: { id } });
         if (!merchant) {
-            return { balance: 0, frozenBalance: 0, totalTasks: 0, activeTasks: 0, completedOrders: 0 };
+            return { balance: 0, frozenBalance: 0, silver: 0, totalTasks: 0, activeTasks: 0, completedOrders: 0 };
         }
 
-        // TODO: 从 Task 和 Order 表查询实际数据
         return {
             balance: Number(merchant.balance),
             frozenBalance: Number(merchant.frozenBalance),
+            silver: Number(merchant.silver),
             totalTasks: 0,
             activeTasks: 0,
             completedOrders: 0

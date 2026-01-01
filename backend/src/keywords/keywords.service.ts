@@ -53,7 +53,7 @@ export class KeywordsService {
             await this.keywordDetailRepository.save(details);
         }
 
-        return this.findSchemeById(savedScheme.id);
+        return this.findSchemeById(savedScheme.id) as Promise<GoodsKey>;
     }
 
     async updateScheme(id: string, sellerId: string, dto: UpdateGoodsKeyDto): Promise<GoodsKey> {
@@ -67,7 +67,7 @@ export class KeywordsService {
 
         Object.assign(scheme, dto);
         await this.goodsKeyRepository.save(scheme);
-        return this.findSchemeById(id);
+        return this.findSchemeById(id) as Promise<GoodsKey>;
     }
 
     async deleteScheme(id: string, sellerId: string): Promise<boolean> {

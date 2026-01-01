@@ -3,32 +3,63 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { getCurrentUser, logout, isAuthenticated, MockUser } from '../../services/authService';
+import { logout, isAuthenticated } from '../../services/authService';
+import { fetchUserProfile, fetchInviteStats, UserProfile, InviteStats } from '../../services/userService';
+import { getUnreadCount } from '../../services/messageService';
+import BottomNav from '../../components/BottomNav';
 
 export default function ProfilePage() {
     const router = useRouter();
-    const [user, setUser] = useState<MockUser | null>(null);
-    const [unreadCount] = useState(1);
-    const [activeNav, setActiveNav] = useState<string | null>(null);
+    const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [inviteStats, setInviteStats] = useState<InviteStats | null>(null);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!isAuthenticated()) {
             router.push('/login');
             return;
         }
-        setUser(getCurrentUser());
+        loadData();
     }, [router]);
+
+    const loadData = async () => {
+        try {
+            const [profileData, statsData, msgCount] = await Promise.all([
+                fetchUserProfile(),
+                fetchInviteStats(),
+                getUnreadCount()
+            ]);
+            setProfile(profileData);
+            setInviteStats(statsData);
+            setUnreadCount(msgCount);
+        } catch (error) {
+            console.error('Failed to load profile data:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleLogout = () => {
         logout();
         router.push('/login');
     };
 
-    const toggleNav = (nav: string) => {
-        setActiveNav(activeNav === nav ? null : nav);
-    };
+    if (loading) {
+        return (
+            <div style={{ minHeight: '100vh', background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div>加载中...</div>
+            </div>
+        );
+    }
 
-    if (!user) return null;
+    if (!profile) {
+        return (
+            <div style={{ minHeight: '100vh', background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div>加载失败，请刷新重试</div>
+            </div>
+        );
+    }
 
     return (
         <div style={{ minHeight: '100vh', background: '#f5f5f5', paddingBottom: '60px' }}>
@@ -51,7 +82,7 @@ export default function ProfilePage() {
                         fontSize: '12px',
                         cursor: 'pointer'
                     }}>
-                        ✓ 继续任务
+                        继续任务
                     </button>
                     <Link href="/messages" style={{
                         background: '#ff976a',
@@ -64,7 +95,7 @@ export default function ProfilePage() {
                         position: 'relative',
                         textDecoration: 'none'
                     }}>
-                        ✓ 个人通知
+                        个人通知
                         {unreadCount > 0 && (
                             <span style={{
                                 position: 'absolute',
@@ -105,14 +136,14 @@ export default function ProfilePage() {
                 </div>
 
                 <div style={{ color: 'white', fontSize: '13px', lineHeight: '1.8' }}>
-                    <div>用户名：{user.username}</div>
-                    <div>绑定手机号：{user.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')} 经验值：100</div>
+                    <div>用户名：{profile.username}</div>
+                    <div>绑定手机号：{profile.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')} 经验值：{profile.experience || 100}</div>
                 </div>
 
                 <div style={{ color: 'white', fontSize: '13px', lineHeight: '1.8', marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.3)' }}>
-                    <div>会员状态：<span style={{ color: user.vip ? '#ffeb3b' : '#ddd' }}>{user.vip ? 'VIP会员' : '不是会员'}</span></div>
-                    <div>到期时间：{user.vip && user.vipExpireAt ? new Date(user.vipExpireAt).toLocaleDateString() : '--'}</div>
-                    <div>累积赚取银锭：<span style={{ color: '#ffeb3b' }}>{user.reward}银锭</span> 待商家发放银锭：0银锭</div>
+                    <div>会员状态：<span style={{ color: profile.vip ? '#ffeb3b' : '#ddd' }}>{profile.vip ? 'VIP会员' : '不是会员'}</span></div>
+                    <div>到期时间：{profile.vip && profile.vipExpireAt ? new Date(profile.vipExpireAt).toLocaleDateString() : '--'}</div>
+                    <div>累积赚取银锭：<span style={{ color: '#ffeb3b' }}>{profile.totalEarned || profile.silver}银锭</span> 待商家发放银锭：{profile.pendingReward || 0}银锭</div>
                 </div>
             </div>
 
@@ -133,12 +164,12 @@ export default function ProfilePage() {
                 <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px', color: '#333' }}>我的本金</div>
                 <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: '13px', color: '#666', marginBottom: '12px' }}>
                     <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '16px', color: '#409eff', fontWeight: 'bold' }}>0.00元</div>
+                        <div style={{ fontSize: '16px', color: '#409eff', fontWeight: 'bold' }}>{Number(profile.balance || 0).toFixed(2)}元</div>
                         <div style={{ fontSize: '11px', color: '#999', marginTop: '3px' }}>(可提现本金)</div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '16px', color: '#666', fontWeight: 'bold' }}>0.00元</div>
-                        <div style={{ fontSize: '11px', color: '#999', marginTop: '3px' }}>(总计垫付本金)</div>
+                        <div style={{ fontSize: '16px', color: '#666', fontWeight: 'bold' }}>{Number(profile.frozenBalance || 0).toFixed(2)}元</div>
+                        <div style={{ fontSize: '11px', color: '#999', marginTop: '3px' }}>(冻结本金)</div>
                     </div>
                 </div>
                 <button onClick={() => router.push('/profile/withdraw')} style={{
@@ -158,11 +189,11 @@ export default function ProfilePage() {
                 <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px', color: '#333' }}>我的银锭</div>
                 <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: '13px', color: '#666', marginBottom: '12px' }}>
                     <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '16px', color: '#409eff', fontWeight: 'bold' }}>{user.reward}银锭</div>
+                        <div style={{ fontSize: '16px', color: '#409eff', fontWeight: 'bold' }}>{profile.silver || 0}银锭</div>
                         <div style={{ fontSize: '11px', color: '#999', marginTop: '3px' }}>(总银锭)</div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '16px', color: '#666', fontWeight: 'bold' }}>0银锭</div>
+                        <div style={{ fontSize: '16px', color: '#666', fontWeight: 'bold' }}>{profile.frozenSilver || 0}银锭</div>
                         <div style={{ fontSize: '11px', color: '#999', marginTop: '3px' }}>(冻结银锭)</div>
                     </div>
                 </div>
@@ -182,11 +213,11 @@ export default function ProfilePage() {
             <div style={{ background: '#fff', padding: '15px', margin: '10px 0', borderBottom: '1px solid #e5e5e5' }}>
                 <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px', color: '#333' }}>我的邀请</div>
                 <div style={{ fontSize: '13px', color: '#409eff', lineHeight: '1.6' }}>
-                    <div>总计获得奖励：0银锭</div>
-                    <div>总计邀请人数：0人</div>
+                    <div>总计获得奖励：{inviteStats?.totalReward || 0}银锭</div>
+                    <div>总计邀请人数：{inviteStats?.totalInvited || 0}人</div>
                     <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #e5e5e5' }}>
-                        <div>今日获得奖励：0银锭</div>
-                        <div>今日邀请人数：0人</div>
+                        <div>今日获得奖励：{inviteStats?.todayReward || 0}银锭</div>
+                        <div>今日邀请人数：{inviteStats?.todayInvited || 0}人</div>
                     </div>
                 </div>
                 <Link href="/invite" style={{
@@ -212,10 +243,10 @@ export default function ProfilePage() {
                 color: '#666'
             }}>
                 <span>历史记录：</span>
-                <Link href="#" style={{ color: '#409eff', marginLeft: '8px' }}>本金记录</Link>
-                <Link href="#" style={{ color: '#409eff', marginLeft: '8px' }}>银锭记录</Link>
-                <Link href="#" style={{ color: '#409eff', marginLeft: '8px' }}>提现记录</Link>
-                <Link href="#" style={{ color: '#409eff', marginLeft: '8px' }}>会员记录</Link>
+                <Link href="/profile/records?type=principal" style={{ color: '#409eff', marginLeft: '8px' }}>本金记录</Link>
+                <Link href="/profile/records?type=silver" style={{ color: '#409eff', marginLeft: '8px' }}>银锭记录</Link>
+                <Link href="/profile/withdraw?tab=records" style={{ color: '#409eff', marginLeft: '8px' }}>提现记录</Link>
+                <Link href="/vip?tab=records" style={{ color: '#409eff', marginLeft: '8px' }}>会员记录</Link>
             </div>
 
             {/* 退出登录 */}
@@ -235,149 +266,7 @@ export default function ProfilePage() {
             </div>
 
             {/* 底部导航 */}
-            <div style={{
-                position: 'fixed',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                maxWidth: '540px',
-                margin: '0 auto',
-                background: '#fff',
-                borderTop: '1px solid #ddd',
-                display: 'flex',
-                height: '60px',
-                zIndex: 1000
-            }}>
-                {/* 账号信息 */}
-                <div style={{ flex: 1, position: 'relative' }}>
-                    {activeNav === 'account' && (
-                        <div style={{
-                            position: 'absolute',
-                            bottom: '60px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            background: '#fff',
-                            border: '1px solid #ccc',
-                            width: '120px',
-                            textAlign: 'center'
-                        }}>
-                            <Link href="/profile/settings" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666', borderBottom: '1px solid #e5e5e5' }}>基本信息</Link>
-                            <Link href="/profile/bind" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666', borderBottom: '1px solid #e5e5e5' }}>买号管理</Link>
-                            <Link href="/vip" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666', borderBottom: '1px solid #e5e5e5' }}>会员VIP</Link>
-                            <Link href="/help" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666' }}>帮助中心</Link>
-                        </div>
-                    )}
-                    <div onClick={() => toggleNav('account')} style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: '100%',
-                        cursor: 'pointer',
-                        color: activeNav === 'account' ? '#409eff' : '#606266'
-                    }}>
-                        <span style={{ fontSize: '22px' }}>👤</span>
-                        <span style={{ fontSize: '11px', marginTop: '2px' }}>账号信息</span>
-                    </div>
-                </div>
-
-                {/* 任务大厅 */}
-                <div style={{ flex: 1, position: 'relative' }}>
-                    {activeNav === 'tasks' && (
-                        <div style={{
-                            position: 'absolute',
-                            bottom: '60px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            background: '#fff',
-                            border: '1px solid #ccc',
-                            width: '120px',
-                            textAlign: 'center'
-                        }}>
-                            <Link href="/orders" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666', borderBottom: '1px solid #e5e5e5' }}>继续任务</Link>
-                            <Link href="/tasks" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#409eff', borderBottom: '1px solid #e5e5e5' }}>任务领取</Link>
-                            <Link href="/orders" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666' }}>任务管理</Link>
-                        </div>
-                    )}
-                    <div onClick={() => toggleNav('tasks')} style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: '100%',
-                        cursor: 'pointer',
-                        background: '#ff976a',
-                        color: 'white'
-                    }}>
-                        <span style={{ fontSize: '22px' }}>📋</span>
-                        <span style={{ fontSize: '11px', marginTop: '2px' }}>任务大厅</span>
-                    </div>
-                </div>
-
-                {/* 资金管理 */}
-                <div style={{ flex: 1, position: 'relative' }}>
-                    {activeNav === 'funds' && (
-                        <div style={{
-                            position: 'absolute',
-                            bottom: '60px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            background: '#fff',
-                            border: '1px solid #ccc',
-                            width: '120px',
-                            textAlign: 'center'
-                        }}>
-                            <Link href="/profile/withdraw" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666', borderBottom: '1px solid #e5e5e5' }}>本佣提现</Link>
-                            <Link href="/profile/withdraw" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666', borderBottom: '1px solid #e5e5e5' }}>提现记录</Link>
-                            <Link href="/profile/payment" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666', borderBottom: '1px solid #e5e5e5' }}>收款账户</Link>
-                            <Link href="/profile/withdraw" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666' }}>银锭记录</Link>
-                        </div>
-                    )}
-                    <div onClick={() => toggleNav('funds')} style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: '100%',
-                        cursor: 'pointer',
-                        color: activeNav === 'funds' ? '#409eff' : '#606266'
-                    }}>
-                        <span style={{ fontSize: '22px' }}>💰</span>
-                        <span style={{ fontSize: '11px', marginTop: '2px' }}>资金管理</span>
-                    </div>
-                </div>
-
-                {/* 好友邀请 */}
-                <div style={{ flex: 1, position: 'relative' }}>
-                    {activeNav === 'invite' && (
-                        <div style={{
-                            position: 'absolute',
-                            bottom: '60px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            background: '#fff',
-                            border: '1px solid #ccc',
-                            width: '120px',
-                            textAlign: 'center'
-                        }}>
-                            <Link href="/invite" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666', borderBottom: '1px solid #e5e5e5' }}>邀请好友</Link>
-                            <Link href="/invite" style={{ display: 'block', padding: '10px', fontSize: '13px', color: '#666' }}>邀请记录</Link>
-                        </div>
-                    )}
-                    <div onClick={() => toggleNav('invite')} style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: '100%',
-                        cursor: 'pointer',
-                        color: activeNav === 'invite' ? '#409eff' : '#606266'
-                    }}>
-                        <span style={{ fontSize: '22px' }}>🤝</span>
-                        <span style={{ fontSize: '11px', marginTop: '2px' }}>好友邀请</span>
-                    </div>
-                </div>
-            </div>
+            <BottomNav />
         </div>
     );
 }

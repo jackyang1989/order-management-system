@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Delete, Param, Body, Res, UseGuards } from '@nestjs/common';
-import { Response } from 'express';
+import * as express from 'express';
 import { BackupService, BackupInfo } from './backup.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -43,7 +43,7 @@ export class BackupController {
     @Get('download/:filename')
     async downloadBackup(
         @Param('filename') filename: string,
-        @Res() res: Response,
+        @Res() res: express.Response,
     ) {
         const filepath = this.backupService.getBackupPath(filename);
         res.download(filepath, filename);

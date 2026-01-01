@@ -5,14 +5,16 @@ import { Merchant } from './merchant.entity';
 import { MerchantsService } from './merchants.service';
 import { MerchantsController } from './merchants.controller';
 import { AuthModule } from '../auth/auth.module';
+import { FinanceRecordsModule } from '../finance-records/finance-records.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Merchant]),
         JwtModule.register({
-            secret: 'your-secret-key',
+            secret: process.env.JWT_SECRET,
             signOptions: { expiresIn: '7d' },
         }),
+        FinanceRecordsModule,
     ],
     providers: [MerchantsService],
     controllers: [MerchantsController],

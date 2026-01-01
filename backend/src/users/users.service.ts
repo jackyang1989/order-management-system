@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, CreateUserDto, UpdateUserDto } from './user.entity';
+import { FundRecord, FundType, FundAction } from './fund-record.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -9,6 +10,8 @@ export class UsersService {
     constructor(
         @InjectRepository(User)
         private usersRepository: Repository<User>,
+        @InjectRepository(FundRecord)
+        private fundRecordRepository: Repository<FundRecord>,
     ) { }
 
     async findAll(): Promise<User[]> {
@@ -158,5 +161,73 @@ export class UsersService {
     private sanitizeUser(user: User): User {
         const { password, payPassword, ...sanitized } = user;
         return { ...sanitized, password: '', payPassword: '' } as User;
+    }
+
+    // 获取资金记录
+    async getFundRecords(
+        userId: string,
+        type?: 'principal' | 'silver',
+        action?: 'in' | 'out',
+        page: number = 1,
+        pageSize: number = 20
+    ): Promise<{ list: FundRecord[]; total: number }> {
+        const queryBuilder = this.fundRecordRepository
+            .createQueryBuilder('fr')
+            .where('fr.userId = :userId', { userId });
+
+        if (type) {
+            queryBuilder.andWhere('fr.type = :type', { type });
+        }
+
+        if (action) {
+            queryBuilder.andWhere('fr.action = :action', { action });
+        }
+
+        const [list, total] = await queryBuilder
+            .orderBy('fr.createdAt', 'DESC')
+            .skip((page - 1) * pageSize)
+            .take(pageSize)
+            .getManyAndCount();
+
+        return { list, total };
+    }
+
+    // 添加资金记录
+    async addFundRecord(
+        userId: string,
+        type: FundType,
+        action: FundAction,
+        amount: number,
+        description: string,
+        options?: {
+            orderId?: string;
+            withdrawalId?: string;
+            relatedUserId?: string;
+        }
+    ): Promise<FundRecord> {
+        const user = await this.usersRepository.findOne({ where: { id: userId } });
+        if (!user) throw new Error('User not found');
+
+        // 计算变动后余额
+        let balance: number;
+        if (type === FundType.PRINCIPAL) {
+            balance = Number(user.balance) + (action === FundAction.IN ? amount : -amount);
+        } else {
+            balance = Number(user.silver) + (action === FundAction.IN ? amount : -amount);
+        }
+
+        const record = this.fundRecordRepository.create({
+            userId,
+            type,
+            action,
+            amount,
+            balance,
+            description,
+            orderId: options?.orderId,
+            withdrawalId: options?.withdrawalId,
+            relatedUserId: options?.relatedUserId
+        });
+
+        return this.fundRecordRepository.save(record);
     }
 }

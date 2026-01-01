@@ -43,7 +43,7 @@ export class Task {
     @Column({ default: TaskType.TAOBAO })
     taskType: number; // 1:淘宝, 2:天猫, 3:京东/飞猪
 
-    @Column({ length: 500 }) // 商品标题
+    @Column({ length: 500, nullable: true, default: '' }) // 商品标题
     title: string;
 
     @Column({ nullable: true })

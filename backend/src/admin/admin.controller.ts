@@ -1,15 +1,13 @@
 import { Controller, Get, Put, Query, Param, Body, UseGuards, Post } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AdminGuard, RequirePermissions } from '../auth/admin.guard';
 import { MerchantStatus } from '../merchants/merchant.entity';
 import { WithdrawalStatus } from '../withdrawals/withdrawal.entity';
-
-// TODO: 添加 AdminGuard 验证管理员权限
 import { ShopsService } from '../shops/shops.service';
 import { ShopStatus } from '../shops/shop.entity';
 
 @Controller('admin')
-@UseGuards(JwtAuthGuard) // TODO: Add AdminGuard
+@UseGuards(AdminGuard)
 export class AdminController {
     constructor(
         private readonly adminService: AdminService,

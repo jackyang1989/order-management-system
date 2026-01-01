@@ -256,9 +256,10 @@ export class OrdersService {
                 // 记录商家结算流水
                 await this.financeRecordsService.recordMerchantTaskSettle(
                     merchantId,
-                    order.id,
                     principalAmount,
-                    Number(merchant.frozenBalance)
+                    Number(merchant.frozenBalance),
+                    order.id,
+                    '订单结算'
                 );
 
                 // 2. 买手获得本金返还（到余额）
@@ -268,9 +269,12 @@ export class OrdersService {
                 // 记录买手收到本金
                 await this.financeRecordsService.recordBuyerTaskRefund(
                     order.userId,
-                    order.id,
                     principalAmount,
-                    Number(user.balance)
+                    commissionAmount,
+                    Number(user.balance),
+                    Number(user.silver),
+                    order.id,
+                    '任务完成返款'
                 );
 
                 // 3. 买手获得佣金（到银锭）
@@ -280,9 +284,10 @@ export class OrdersService {
                 // 记录买手收到佣金
                 await this.financeRecordsService.recordBuyerTaskCommission(
                     order.userId,
-                    order.id,
                     commissionAmount,
-                    Number(user.silver)
+                    Number(user.silver),
+                    order.id,
+                    '任务佣金'
                 );
 
                 // 更新订单返款金额
@@ -303,9 +308,10 @@ export class OrdersService {
                 // 记录商家退款流水
                 await this.financeRecordsService.recordMerchantTaskRefund(
                     merchantId,
-                    order.id,
                     principalAmount,
-                    Number(merchant.balance)
+                    Number(merchant.balance),
+                    order.id,
+                    '订单驳回退款'
                 );
             }
 
@@ -452,6 +458,66 @@ export class OrdersService {
         return this.ordersRepository.save(order);
     }
 
+    /**
+     * 用户取消订单
+     */
+    async cancelOrder(orderId: string, userId: string): Promise<Order> {
+        const order = await this.ordersRepository.findOne({ where: { id: orderId, userId } });
+        if (!order) {
+            throw new NotFoundException('订单不存在');
+        }
+
+        // 只有待处理或已提交的订单可以取消
+        if (order.status !== OrderStatus.PENDING && order.status !== OrderStatus.SUBMITTED) {
+            throw new BadRequestException('该订单状态不允许取消');
+        }
+
+        // 使用事务处理退款
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const task = await this.tasksService.findOne(order.taskId);
+            if (task) {
+                const merchant = await queryRunner.manager.findOne(Merchant, { where: { id: task.merchantId } });
+                if (merchant) {
+                    // 退还商家冻结的本金
+                    const principalAmount = Number(order.sellerPrincipal) || Number(order.productPrice);
+                    merchant.frozenBalance = Number(merchant.frozenBalance) - principalAmount;
+                    merchant.balance = Number(merchant.balance) + principalAmount;
+                    await queryRunner.manager.save(merchant);
+
+                    // 记录退款流水
+                    await this.financeRecordsService.recordMerchantTaskRefund(
+                        task.merchantId,
+                        principalAmount,
+                        Number(merchant.balance),
+                        order.id,
+                        '用户取消订单退款'
+                    );
+                }
+
+                // 恢复任务领取数量
+                task.claimedCount = Math.max(0, (task.claimedCount || 0) - 1);
+                await queryRunner.manager.save(task);
+            }
+
+            order.status = OrderStatus.CANCELLED;
+            order.completedAt = new Date();
+            order.remark = '用户主动取消';
+            await queryRunner.manager.save(order);
+
+            await queryRunner.commitTransaction();
+            return order;
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
     // ============ 管理员操作 ============
 
     /**
@@ -500,9 +566,10 @@ export class OrdersService {
                     // 记录退款流水
                     await this.financeRecordsService.recordMerchantTaskRefund(
                         task.merchantId,
-                        order.id,
                         principalAmount,
-                        Number(merchant.balance)
+                        Number(merchant.balance),
+                        order.id,
+                        '订单取消退款'
                     );
                 }
             }

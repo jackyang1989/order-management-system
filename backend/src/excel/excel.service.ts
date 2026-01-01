@@ -172,7 +172,7 @@ export class ExcelService {
         deliveryNum: string;
     }>> {
         const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(buffer);
+        await workbook.xlsx.load(buffer as unknown as ArrayBuffer);
 
         const worksheet = workbook.worksheets[0];
         if (!worksheet) {

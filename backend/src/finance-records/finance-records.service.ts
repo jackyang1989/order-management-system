@@ -425,4 +425,50 @@ export class FinanceRecordsService {
             relatedType: 'withdrawal',
         });
     }
+
+    /**
+     * 记录买手任务佣金
+     */
+    async recordBuyerTaskCommission(
+        userId: string,
+        amount: number,
+        silverAfter: number,
+        orderId: string,
+        memo: string
+    ): Promise<FinanceRecord> {
+        return this.create({
+            userId,
+            userType: FinanceUserType.BUYER,
+            moneyType: FinanceMoneyType.SILVER,
+            financeType: FinanceType.BUYER_TASK_COMMISSION,
+            amount,
+            balanceAfter: silverAfter,
+            memo,
+            relatedId: orderId,
+            relatedType: 'order',
+        });
+    }
+
+    /**
+     * 记录商家任务退款（解冻返还）
+     */
+    async recordMerchantTaskRefund(
+        merchantId: string,
+        amount: number,
+        balanceAfter: number,
+        taskId: string,
+        memo: string
+    ): Promise<FinanceRecord> {
+        return this.create({
+            userId: merchantId,
+            userType: FinanceUserType.MERCHANT,
+            moneyType: FinanceMoneyType.BALANCE,
+            financeType: FinanceType.MERCHANT_TASK_REFUND,
+            amount,
+            balanceAfter,
+            memo,
+            relatedId: taskId,
+            relatedType: 'task',
+        });
+    }
 }

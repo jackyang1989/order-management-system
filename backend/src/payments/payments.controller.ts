@@ -6,7 +6,7 @@ import {
     PaymentType,
     PaymentCallbackFilterDto,
 } from './payment.entity';
-import { Request } from 'express';
+import * as express from 'express';
 
 @Controller('payments')
 export class PaymentsController {
@@ -18,7 +18,7 @@ export class PaymentsController {
      * 支付宝回调
      */
     @Post('callback/alipay')
-    async alipayCallback(@Body() body: Record<string, any>, @Req() req: Request) {
+    async alipayCallback(@Body() body: Record<string, any>, @Req() req: express.Request) {
         const ip = req.ip || req.socket.remoteAddress;
         const result = await this.paymentsService.handleCallback(
             PaymentChannel.ALIPAY,
@@ -34,7 +34,7 @@ export class PaymentsController {
      * 微信支付回调
      */
     @Post('callback/wechat')
-    async wechatCallback(@Body() body: Record<string, any>, @Req() req: Request) {
+    async wechatCallback(@Body() body: Record<string, any>, @Req() req: express.Request) {
         const ip = req.ip || req.socket.remoteAddress;
         const result = await this.paymentsService.handleCallback(
             PaymentChannel.WECHAT,

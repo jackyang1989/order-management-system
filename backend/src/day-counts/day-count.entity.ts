@@ -64,7 +64,6 @@ export class PlatformDayStat {
     id: string;
 
     @Column({ type: 'date' })
-    @Index()
     date: string;  // 日期
 
     // 用户统计

@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Query, UseGuards, Req } from '@nestjs/comm
 import { SmsService } from './sms.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SendSmsCodeDto, VerifySmsCodeDto } from './sms.entity';
-import { Request } from 'express';
+import type { Request } from 'express';
 
 @Controller('sms')
 export class SmsController {

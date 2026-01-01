@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Query, Res, Body, UseGuards, UseInterceptors, UploadedFile, Request } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
+import * as express from 'express';
 import { ExcelService } from './excel.service';
 import { BatchOperationsService } from '../batch-operations/batch-operations.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -22,11 +22,11 @@ export class ExcelController {
     @Get('export/orders')
     @UseGuards(JwtAuthGuard)
     async exportOrders(
+        @Res() res: express.Response,
         @Query('status') status?: string,
         @Query('startDate') startDate?: string,
         @Query('endDate') endDate?: string,
         @Query('merchantId') merchantId?: string,
-        @Res() res?: Response
     ) {
         const buffer = await this.excelService.exportOrders({
             status: status as OrderStatus,
@@ -46,11 +46,11 @@ export class ExcelController {
     @Get('export/tasks')
     @UseGuards(JwtAuthGuard)
     async exportTasks(
+        @Res() res: express.Response,
         @Query('status') status?: string,
         @Query('merchantId') merchantId?: string,
         @Query('startDate') startDate?: string,
         @Query('endDate') endDate?: string,
-        @Res() res?: Response
     ) {
         const buffer = await this.excelService.exportTasks({
             status: status ? parseInt(status, 10) as TaskStatus : undefined,
@@ -70,8 +70,8 @@ export class ExcelController {
     @Get('export/delivery-template')
     @UseGuards(JwtAuthGuard)
     async exportDeliveryTemplate(
+        @Res() res: express.Response,
         @Query('orderIds') orderIds?: string,
-        @Res() res?: Response
     ) {
         const ids = orderIds ? orderIds.split(',') : undefined;
         const buffer = await this.excelService.exportDeliveryTemplate(ids);
@@ -91,7 +91,7 @@ export class ExcelController {
     @UseInterceptors(FileInterceptor('file'))
     async importDelivery(
         @UploadedFile() file: Express.Multer.File,
-        @Request() req
+        @Request() req: any
     ) {
         if (!file) {
             return { success: false, message: '请上传Excel文件' };
@@ -117,7 +117,7 @@ export class ExcelController {
                 message: `导入完成：成功${result.success}个，失败${result.failed}个`,
                 data: result
             };
-        } catch (error) {
+        } catch (error: any) {
             return { success: false, message: `导入失败: ${error.message}` };
         }
     }

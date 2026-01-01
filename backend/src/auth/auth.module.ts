@@ -4,6 +4,7 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
+import { AdminGuard } from './admin.guard';
 import { UsersModule } from '../users/users.module';
 
 @Module({
@@ -11,12 +12,12 @@ import { UsersModule } from '../users/users.module';
         UsersModule,
         PassportModule,
         JwtModule.register({
-            secret: process.env.JWT_SECRET || 'order-management-secret-key',
+            secret: process.env.JWT_SECRET,
             signOptions: { expiresIn: '7d' }
         })
     ],
-    providers: [AuthService, JwtStrategy],
+    providers: [AuthService, JwtStrategy, AdminGuard],
     controllers: [AuthController],
-    exports: [AuthService]
+    exports: [AuthService, JwtModule, AdminGuard]
 })
 export class AuthModule { }

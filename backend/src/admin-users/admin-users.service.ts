@@ -59,12 +59,29 @@ export class AdminUsersService {
         // 记录登录日志
         await this.logOperation(admin.id, admin.username, '系统', '登录', `管理员登录 IP: ${ip}`);
 
+        // 获取角色权限
+        let permissions: string[] = [];
+        let isSuperAdmin = false;
+        if (admin.roleId) {
+            const role = await this.adminRoleRepository.findOne({
+                where: { id: admin.roleId }
+            });
+            if (role) {
+                permissions = role.permissions;
+                isSuperAdmin = role.permissions.includes('*');
+            }
+        }
+
         // 生成 token
         const payload = {
             sub: admin.id,
+            adminId: admin.id,
             username: admin.username,
-            type: 'admin',
-            roleId: admin.roleId
+            isAdmin: true,
+            isSuperAdmin,
+            roleId: admin.roleId,
+            roleName: admin.roleName,
+            permissions
         };
         const token = this.jwtService.sign(payload);
 

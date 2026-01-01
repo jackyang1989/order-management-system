@@ -7,6 +7,8 @@ export enum ReviewTaskStatus {
     COMPLETED = 4,      // 已完成
     CANCELLED = 5,      // 已取消（被商家取消）
     BUYER_REJECTED = 6, // 买手已拒绝
+    APPROVED = 7,       // 已批准
+    REJECTED = 8,       // 已拒绝
 }
 
 // 追评类型

@@ -18,6 +18,7 @@ export enum FinanceType {
     BUYER_RECHARGE = 1,         // 充值押金
     BUYER_RECHARGE_SILVER = 2,  // 充值银锭
     BUYER_WITHDRAW = 3,         // 提现
+    BUYER_WITHDRAW_SILVER = 31, // 银锭提现
     BUYER_BALANCE_TO_SILVER = 4, // 本金转银锭
     BUYER_TASK_PREPAY = 5,      // 做单垫付
     BUYER_TASK_REFUND = 6,      // 任务返款
@@ -30,12 +31,18 @@ export enum FinanceType {
     MERCHANT_RECHARGE = 21,         // 商家充值押金
     MERCHANT_RECHARGE_SILVER = 22,  // 商家充值银锭
     MERCHANT_WITHDRAW = 23,         // 商家提现
+    MERCHANT_WITHDRAW_SILVER = 32,  // 商家银锭提现
     MERCHANT_TASK_FREEZE = 24,      // 发布任务冻结
     MERCHANT_TASK_UNFREEZE = 25,    // 任务取消解冻
     MERCHANT_TASK_SETTLE = 26,      // 任务结算（返款给买手）
     MERCHANT_TASK_FEE = 27,         // 任务服务费
+    MERCHANT_TASK_REFUND = 33,      // 商家任务退款
     MERCHANT_ADMIN_ADD = 28,        // 管理员充值
     MERCHANT_ADMIN_DEDUCT = 29,     // 管理员扣除
+
+    // 其他
+    REWARD = 40,                    // 奖励
+    REFUND = 41,                    // 退款
 }
 
 // ============ 财务流水记录表 ============

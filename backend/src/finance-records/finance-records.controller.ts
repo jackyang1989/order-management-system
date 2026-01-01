@@ -2,6 +2,7 @@ import { Controller, Get, Query, UseGuards, Request } from '@nestjs/common';
 import { FinanceRecordsService } from './finance-records.service';
 import { FinanceRecordFilterDto, FinanceUserType, FinanceMoneyType } from './finance-record.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AdminGuard, RequirePermissions } from '../auth/admin.guard';
 
 @Controller('finance-records')
 @UseGuards(JwtAuthGuard)
@@ -40,52 +41,57 @@ export class FinanceRecordsController {
 
     // ============ 管理后台 ============
     @Get('admin/all')
+    @UseGuards(AdminGuard)
+    @RequirePermissions('finance:list')
     async getAllRecords(@Query() filter: FinanceRecordFilterDto) {
-        // TODO: 添加管理员权限验证
         const result = await this.financeRecordsService.findAll(filter);
         return { success: true, ...result };
     }
 
     @Get('admin/user/:userId/balance')
+    @UseGuards(AdminGuard)
+    @RequirePermissions('finance:list')
     async getAdminUserBalanceRecords(
         @Request() req,
         @Query('userId') userId: string,
         @Query() filter: FinanceRecordFilterDto
     ) {
-        // TODO: 添加管理员权限验证
         const result = await this.financeRecordsService.findUserBalanceRecords(userId, filter);
         return { success: true, ...result };
     }
 
     @Get('admin/user/:userId/silver')
+    @UseGuards(AdminGuard)
+    @RequirePermissions('finance:list')
     async getAdminUserSilverRecords(
         @Request() req,
         @Query('userId') userId: string,
         @Query() filter: FinanceRecordFilterDto
     ) {
-        // TODO: 添加管理员权限验证
         const result = await this.financeRecordsService.findUserSilverRecords(userId, filter);
         return { success: true, ...result };
     }
 
     @Get('admin/merchant/:merchantId/balance')
+    @UseGuards(AdminGuard)
+    @RequirePermissions('finance:list')
     async getAdminMerchantBalanceRecords(
         @Request() req,
         @Query('merchantId') merchantId: string,
         @Query() filter: FinanceRecordFilterDto
     ) {
-        // TODO: 添加管理员权限验证
         const result = await this.financeRecordsService.findMerchantBalanceRecords(merchantId, filter);
         return { success: true, ...result };
     }
 
     @Get('admin/merchant/:merchantId/silver')
+    @UseGuards(AdminGuard)
+    @RequirePermissions('finance:list')
     async getAdminMerchantSilverRecords(
         @Request() req,
         @Query('merchantId') merchantId: string,
         @Query() filter: FinanceRecordFilterDto
     ) {
-        // TODO: 添加管理员权限验证
         const result = await this.financeRecordsService.findMerchantSilverRecords(merchantId, filter);
         return { success: true, ...result };
     }

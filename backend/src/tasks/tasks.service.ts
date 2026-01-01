@@ -232,8 +232,9 @@ export class TasksService implements OnModuleInit {
             claimedCount: 0,
             status: TaskStatus.PENDING_PAY,
             merchantId: merchantId
-        });
-        return this.tasksRepository.save(newTask);
+        } as any);
+        const savedTask = await this.tasksRepository.save(newTask);
+        return Array.isArray(savedTask) ? savedTask[0] : savedTask;
     }
 
     async claim(taskId: string, userId: string, buynoId: string): Promise<{ success: boolean; message: string; orderId?: string }> {

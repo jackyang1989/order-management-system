@@ -9,11 +9,13 @@ import { Order } from '../orders/order.entity';
 import { Withdrawal } from '../withdrawals/withdrawal.entity';
 
 import { ShopsModule } from '../shops/shops.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([User, Merchant, Task, Order, Withdrawal]),
-        ShopsModule
+        ShopsModule,
+        AuthModule
     ],
     providers: [AdminService],
     controllers: [AdminController],

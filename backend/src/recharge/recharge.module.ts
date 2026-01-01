@@ -4,6 +4,7 @@ import { Recharge } from './recharge.entity';
 import { RechargeService } from './recharge.service';
 import { RechargeController } from './recharge.controller';
 import { FinanceRecordsModule } from '../finance-records/finance-records.module';
+import { AuthModule } from '../auth/auth.module';
 import { User } from '../users/user.entity';
 import { Merchant } from '../merchants/merchant.entity';
 
@@ -11,6 +12,7 @@ import { Merchant } from '../merchants/merchant.entity';
     imports: [
         TypeOrmModule.forFeature([Recharge, User, Merchant]),
         FinanceRecordsModule,
+        AuthModule,
     ],
     controllers: [RechargeController],
     providers: [RechargeService],
