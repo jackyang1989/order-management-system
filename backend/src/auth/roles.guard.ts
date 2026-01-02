@@ -18,6 +18,18 @@ export class RolesGuard implements CanActivate {
         if (!user) {
             return false;
         }
-        return requiredRoles.some((role) => user.role === role || user.roles?.includes(role));
+
+        // 支持多种角色判断方式
+        return requiredRoles.some((role) => {
+            // 检查 role 字段
+            if (user.role === role) return true;
+            // 检查 roles 数组
+            if (user.roles?.includes(role)) return true;
+            // 检查 isAdmin 标志（用于管理员）
+            if (role === 'admin' && user.isAdmin === true) return true;
+            // 检查 isSuperAdmin 标志
+            if (role === 'superadmin' && user.isSuperAdmin === true) return true;
+            return false;
+        });
     }
 }

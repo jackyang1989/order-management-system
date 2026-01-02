@@ -228,6 +228,14 @@ export class Order {
 
     @Column({ type: 'timestamp', nullable: true })
     completedAt?: Date;
+
+    // ============ 追评相关 ============
+    @Column({ default: false })
+    isZp: boolean;              // 是否已追评 (is_zp): 0=未追评, 1=已追评
+
+    // ============ 升级版本 ============
+    @Column({ type: 'int', default: 2 })
+    isShengji: number;          // 升级版本等级 (is_shengji): 1=旧版, 2=新版
 }
 
 

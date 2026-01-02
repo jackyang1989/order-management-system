@@ -22,10 +22,19 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
     };
 
     const handlePraiseChange = (type: 'text' | 'image' | 'video' | 'none') => {
+        const count = data.count || 1;
         const resetData: Partial<TaskFormData> = {
             isPraise: type !== 'none',
             praiseType: type,
-            praiseList: type === 'text' ? ensurePraiseArrays(data.count) : [],
+            praiseList: (type === 'text' || type === 'image' || type === 'video')
+                ? Array(count).fill('').map((_, i) => data.praiseList[i] || '')
+                : [],
+            praiseImgList: (type === 'image' || type === 'video')
+                ? Array(count).fill([]).map((_, i) => data.praiseImgList?.[i] || [])
+                : [],
+            praiseVideoList: type === 'video'
+                ? Array(count).fill('').map((_, i) => data.praiseVideoList?.[i] || '')
+                : [],
         };
 
         let fee = 0;
@@ -42,6 +51,80 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
         const newList = [...data.praiseList];
         newList[index] = val;
         onChange({ praiseList: newList });
+    };
+
+    const handleImageUpload = async (index: number, files: FileList | null) => {
+        if (!files || files.length === 0) return;
+
+        // 检查图片数量限制（最多5张）
+        const currentImages = data.praiseImgList?.[index] || [];
+        if (currentImages.length >= 5) {
+            alert('每单最多上传5张图片');
+            return;
+        }
+
+        const token = localStorage.getItem('merchantToken');
+        const formData = new FormData();
+        formData.append('file', files[0]);
+
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/upload`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            const json = await res.json();
+            if (json.success && json.data?.url) {
+                const newImgList = [...(data.praiseImgList || [])];
+                if (!newImgList[index]) newImgList[index] = [];
+                newImgList[index] = [...newImgList[index], json.data.url];
+                onChange({ praiseImgList: newImgList });
+            } else {
+                alert('上传失败: ' + (json.message || '未知错误'));
+            }
+        } catch (e) {
+            alert('上传失败');
+        }
+    };
+
+    const handleRemoveImage = (orderIndex: number, imgIndex: number) => {
+        const newImgList = [...(data.praiseImgList || [])];
+        if (newImgList[orderIndex]) {
+            newImgList[orderIndex] = newImgList[orderIndex].filter((_, i) => i !== imgIndex);
+            onChange({ praiseImgList: newImgList });
+        }
+    };
+
+    const handleVideoUpload = async (index: number, files: FileList | null) => {
+        if (!files || files.length === 0) return;
+
+        const token = localStorage.getItem('merchantToken');
+        const formData = new FormData();
+        formData.append('file', files[0]);
+
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/upload`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            const json = await res.json();
+            if (json.success && json.data?.url) {
+                const newVideoList = [...(data.praiseVideoList || [])];
+                newVideoList[index] = json.data.url;
+                onChange({ praiseVideoList: newVideoList });
+            } else {
+                alert('上传失败: ' + (json.message || '未知错误'));
+            }
+        } catch (e) {
+            alert('上传失败');
+        }
+    };
+
+    const handleRemoveVideo = (index: number) => {
+        const newVideoList = [...(data.praiseVideoList || [])];
+        newVideoList[index] = '';
+        onChange({ praiseVideoList: newVideoList });
     };
 
     return (
@@ -105,16 +188,140 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                                     type="text"
                                     value={txt}
                                     onChange={e => handlePraiseContentChange(idx, e.target.value)}
-                                    placeholder={`第 ${idx + 1} 单的好评内容 (20字以上)`}
+                                    placeholder={`第 ${idx + 1} 单的好评内容`}
                                     style={{ flex: 1, padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px' }}
                                 />
                             </div>
                         ))}
                     </div>
                 )}
+                {/* Image Praise Input Area */}
                 {data.praiseType === 'image' && (
-                    <div style={{ background: '#f9fafb', padding: '16px', borderRadius: '8px', border: '1px solid #e5e7eb', color: '#6b7280', fontSize: '13px' }}>
-                        (此处应为图片上传组件，暂以占位符显示。请为 {data.count} 单上传图片)
+                    <div style={{ background: '#f9fafb', padding: '16px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                        <div style={{ fontSize: '13px', color: '#374151', marginBottom: '12px' }}>
+                            请为 <strong>{data.count}</strong> 单上传图片并填写好评内容（每单最多5张图片）：
+                        </div>
+                        {Array.from({ length: data.count || 1 }).map((_, idx) => (
+                            <div key={idx} style={{ marginBottom: '16px', padding: '12px', background: '#fff', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+                                <div style={{ fontSize: '13px', color: '#374151', fontWeight: '500', marginBottom: '8px' }}>
+                                    第 {idx + 1} 单
+                                </div>
+                                {/* 文字输入 */}
+                                <textarea
+                                    value={data.praiseList[idx] || ''}
+                                    onChange={e => handlePraiseContentChange(idx, e.target.value)}
+                                    placeholder={`请输入第 ${idx + 1} 单的好评文字内容`}
+                                    rows={2}
+                                    style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', marginBottom: '8px', resize: 'vertical' }}
+                                />
+                                {/* 图片上传 */}
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                    {(data.praiseImgList?.[idx] || []).map((imgUrl, imgIdx) => (
+                                        <div key={imgIdx} style={{ position: 'relative', width: '60px', height: '60px' }}>
+                                            <img src={imgUrl} alt={`图片${imgIdx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px', border: '1px solid #d1d5db' }} />
+                                            <button
+                                                onClick={() => handleRemoveImage(idx, imgIdx)}
+                                                style={{ position: 'absolute', top: '-6px', right: '-6px', width: '18px', height: '18px', borderRadius: '50%', background: '#ff4d4f', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', lineHeight: '16px' }}
+                                            >×</button>
+                                        </div>
+                                    ))}
+                                    {(data.praiseImgList?.[idx]?.length || 0) < 5 && (
+                                        <label style={{ width: '60px', height: '60px', border: '1px dashed #d1d5db', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#fafafa', color: '#9ca3af', fontSize: '24px' }}>
+                                            +
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={e => handleImageUpload(idx, e.target.files)}
+                                                style={{ display: 'none' }}
+                                            />
+                                        </label>
+                                    )}
+                                    <span style={{ fontSize: '12px', color: '#9ca3af' }}>
+                                        {(data.praiseImgList?.[idx]?.length || 0)}/5张
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Video Praise Input Area */}
+                {data.praiseType === 'video' && (
+                    <div style={{ background: '#f9fafb', padding: '16px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                        <div style={{ fontSize: '13px', color: '#374151', marginBottom: '12px' }}>
+                            请为 <strong>{data.count}</strong> 单上传视频、图片并填写好评内容（每单1个视频 + 最多5张图片）：
+                        </div>
+                        {Array.from({ length: data.count || 1 }).map((_, idx) => (
+                            <div key={idx} style={{ marginBottom: '16px', padding: '12px', background: '#fff', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+                                <div style={{ fontSize: '13px', color: '#374151', fontWeight: '500', marginBottom: '8px' }}>
+                                    第 {idx + 1} 单
+                                </div>
+                                {/* 文字输入 */}
+                                <textarea
+                                    value={data.praiseList[idx] || ''}
+                                    onChange={e => handlePraiseContentChange(idx, e.target.value)}
+                                    placeholder={`请输入第 ${idx + 1} 单的好评文字内容`}
+                                    rows={2}
+                                    style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', marginBottom: '12px', resize: 'vertical' }}
+                                />
+                                {/* 视频上传 */}
+                                <div style={{ marginBottom: '12px' }}>
+                                    <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '6px' }}>视频（必传）：</div>
+                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                        {data.praiseVideoList?.[idx] ? (
+                                            <div style={{ position: 'relative' }}>
+                                                <video src={data.praiseVideoList[idx]} style={{ width: '120px', height: '80px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #d1d5db' }} />
+                                                <button
+                                                    onClick={() => handleRemoveVideo(idx)}
+                                                    style={{ position: 'absolute', top: '-6px', right: '-6px', width: '18px', height: '18px', borderRadius: '50%', background: '#ff4d4f', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', lineHeight: '16px' }}
+                                                >×</button>
+                                            </div>
+                                        ) : (
+                                            <label style={{ width: '120px', height: '80px', border: '1px dashed #d1d5db', borderRadius: '4px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#fafafa', color: '#9ca3af', fontSize: '12px', gap: '4px' }}>
+                                                <span style={{ fontSize: '20px' }}>🎬</span>
+                                                <span>上传视频</span>
+                                                <input
+                                                    type="file"
+                                                    accept="video/*"
+                                                    onChange={e => handleVideoUpload(idx, e.target.files)}
+                                                    style={{ display: 'none' }}
+                                                />
+                                            </label>
+                                        )}
+                                        <span style={{ fontSize: '12px', color: '#9ca3af' }}>支持 mp4、mov 格式</span>
+                                    </div>
+                                </div>
+                                {/* 图片上传 */}
+                                <div>
+                                    <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '6px' }}>图片（选填，最多5张）：</div>
+                                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                        {(data.praiseImgList?.[idx] || []).map((imgUrl, imgIdx) => (
+                                            <div key={imgIdx} style={{ position: 'relative', width: '60px', height: '60px' }}>
+                                                <img src={imgUrl} alt={`图片${imgIdx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px', border: '1px solid #d1d5db' }} />
+                                                <button
+                                                    onClick={() => handleRemoveImage(idx, imgIdx)}
+                                                    style={{ position: 'absolute', top: '-6px', right: '-6px', width: '18px', height: '18px', borderRadius: '50%', background: '#ff4d4f', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', lineHeight: '16px' }}
+                                                >×</button>
+                                            </div>
+                                        ))}
+                                        {(data.praiseImgList?.[idx]?.length || 0) < 5 && (
+                                            <label style={{ width: '60px', height: '60px', border: '1px dashed #d1d5db', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#fafafa', color: '#9ca3af', fontSize: '24px' }}>
+                                                +
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={e => handleImageUpload(idx, e.target.files)}
+                                                    style={{ display: 'none' }}
+                                                />
+                                            </label>
+                                        )}
+                                        <span style={{ fontSize: '12px', color: '#9ca3af' }}>
+                                            {(data.praiseImgList?.[idx]?.length || 0)}/5张
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>

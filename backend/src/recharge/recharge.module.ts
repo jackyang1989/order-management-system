@@ -1,6 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Recharge } from './recharge.entity';
+import { RewardRecharge } from './reward-recharge.entity';
 import { RechargeService } from './recharge.service';
 import { RechargeController } from './recharge.controller';
 import { FinanceRecordsModule } from '../finance-records/finance-records.module';
@@ -10,7 +11,7 @@ import { Merchant } from '../merchants/merchant.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Recharge, User, Merchant]),
+        TypeOrmModule.forFeature([Recharge, RewardRecharge, User, Merchant]),
         FinanceRecordsModule,
         AuthModule,
     ],

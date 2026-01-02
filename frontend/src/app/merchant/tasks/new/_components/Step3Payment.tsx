@@ -12,8 +12,11 @@ interface StepProps {
 
 export default function Step3Payment({ data, merchant, onPrev, onSubmit, loading }: StepProps) {
 
-    // Helper to format currency
-    const f = (n: number) => n.toFixed(2);
+    // Helper to format currency - handles undefined/null/string values
+    const f = (n: number | string | undefined | null): string => {
+        const num = Number(n);
+        return isNaN(num) ? '0.00' : num.toFixed(2);
+    };
 
     const canSubmit = merchant && merchant.balance >= data.totalDeposit && merchant.silver >= 0; // Simplified check
 
@@ -84,8 +87,8 @@ export default function Step3Payment({ data, merchant, onPrev, onSubmit, loading
                         )}
                         {data.cycleTimeFee > 0 && (
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px', color: '#6b7280' }}>
-                                <span>周期延长费 ({data.cycleTimeFee.toFixed(2)} × {data.count})</span>
-                                <span>¥{f(data.cycleTimeFee * data.count)}</span>
+                                <span>周期延长费 ({f(data.cycleTimeFee)} × {data.count})</span>
+                                <span>¥{f(Number(data.cycleTimeFee) * Number(data.count))}</span>
                             </div>
                         )}
 

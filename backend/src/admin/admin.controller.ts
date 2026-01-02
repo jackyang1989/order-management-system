@@ -5,13 +5,16 @@ import { MerchantStatus } from '../merchants/merchant.entity';
 import { WithdrawalStatus } from '../withdrawals/withdrawal.entity';
 import { ShopsService } from '../shops/shops.service';
 import { ShopStatus } from '../shops/shop.entity';
+import { BuyerAccountsService } from '../buyer-accounts/buyer-accounts.service';
+import { BuyerAccountStatus } from '../buyer-accounts/buyer-account.entity';
 
 @Controller('admin')
 @UseGuards(AdminGuard)
 export class AdminController {
     constructor(
         private readonly adminService: AdminService,
-        private readonly shopsService: ShopsService
+        private readonly shopsService: ShopsService,
+        private readonly buyerAccountsService: BuyerAccountsService
     ) { }
 
     // ============ 仪表盘 ============
@@ -149,5 +152,88 @@ export class AdminController {
     @Post('shops/:id/review')
     async reviewShop(@Param('id') id: string, @Body() body: { status: ShopStatus, remark?: string }) {
         return this.shopsService.review(id, body.status, body.remark);
+    }
+
+    // ============ 买号审核 ============
+    @Get('buyer-accounts')
+    async getBuyerAccounts(
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
+        @Query('status') status?: string
+    ) {
+        const statusEnum = status !== undefined ? parseInt(status) as BuyerAccountStatus : undefined;
+        const result = await this.buyerAccountsService.getAllAccounts(
+            parseInt(page || '1'),
+            parseInt(limit || '20'),
+            statusEnum
+        );
+        return { success: true, ...result };
+    }
+
+    @Get('buyer-accounts/pending')
+    async getPendingBuyerAccounts(
+        @Query('page') page?: string,
+        @Query('limit') limit?: string
+    ) {
+        const result = await this.buyerAccountsService.getPendingAccounts(
+            parseInt(page || '1'),
+            parseInt(limit || '20')
+        );
+        return { success: true, ...result };
+    }
+
+    @Put('buyer-accounts/:id/review')
+    async reviewBuyerAccount(
+        @Param('id') id: string,
+        @Body() body: { approved: boolean; rejectReason?: string }
+    ) {
+        const account = await this.buyerAccountsService.reviewAccount(
+            id,
+            body.approved,
+            body.rejectReason
+        );
+        return {
+            success: true,
+            message: body.approved ? '买号审核通过' : '买号已拒绝',
+            data: account
+        };
+    }
+
+    @Put('buyer-accounts/:id/star')
+    async setBuyerAccountStar(
+        @Param('id') id: string,
+        @Body('star') star: number
+    ) {
+        const account = await this.buyerAccountsService.setAccountStar(id, star);
+        return {
+            success: true,
+            message: '星级设置成功',
+            data: account
+        };
+    }
+
+    // ============ 批量审核 ============
+    @Post('withdrawals/batch-approve')
+    async batchApproveWithdrawals(
+        @Body() body: { ids: string[]; approved: boolean; remark?: string }
+    ) {
+        const results = await this.adminService.batchApproveWithdrawals(body.ids, body.approved, body.remark);
+        return {
+            success: true,
+            message: `批量操作完成，成功 ${results.success} 条，失败 ${results.failed} 条`,
+            data: results
+        };
+    }
+
+    @Post('buyer-accounts/batch-review')
+    async batchReviewBuyerAccounts(
+        @Body() body: { ids: string[]; approved: boolean; rejectReason?: string }
+    ) {
+        const results = await this.buyerAccountsService.batchReviewAccounts(body.ids, body.approved, body.rejectReason);
+        return {
+            success: true,
+            message: `批量操作完成，成功 ${results.success} 条，失败 ${results.failed} 条`,
+            data: results
+        };
     }
 }

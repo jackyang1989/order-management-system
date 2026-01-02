@@ -9,7 +9,7 @@ import { AdminUsersController } from './admin-users.controller';
     imports: [
         TypeOrmModule.forFeature([AdminUser, AdminRole, AdminPermission, AdminOperationLog]),
         JwtModule.register({
-            secret: process.env.JWT_SECRET,
+            secret: process.env.JWT_SECRET || 'tfkz-order-management-secret-key-2026',
             signOptions: { expiresIn: '24h' }
         })
     ],

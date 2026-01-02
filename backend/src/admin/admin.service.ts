@@ -214,4 +214,30 @@ export class AdminService {
         if (remark) withdrawal.remark = remark;
         return this.withdrawalsRepository.save(withdrawal);
     }
+
+    // ============ 批量提现审核 ============
+    async batchApproveWithdrawals(ids: string[], approved: boolean, remark?: string): Promise<{ success: number; failed: number }> {
+        let success = 0;
+        let failed = 0;
+
+        for (const id of ids) {
+            try {
+                const withdrawal = await this.withdrawalsRepository.findOne({
+                    where: { id, status: WithdrawalStatus.PENDING }
+                });
+                if (withdrawal) {
+                    withdrawal.status = approved ? WithdrawalStatus.APPROVED : WithdrawalStatus.REJECTED;
+                    if (remark) withdrawal.remark = remark;
+                    await this.withdrawalsRepository.save(withdrawal);
+                    success++;
+                } else {
+                    failed++;
+                }
+            } catch {
+                failed++;
+            }
+        }
+
+        return { success, failed };
+    }
 }

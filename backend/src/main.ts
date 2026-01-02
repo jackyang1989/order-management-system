@@ -1,3 +1,4 @@
+import 'dotenv/config';  // 确保环境变量在最开始加载
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
@@ -22,7 +23,7 @@ async function bootstrap() {
     // CORS 配置
     const allowedOrigins = process.env.CORS_ORIGINS
         ? process.env.CORS_ORIGINS.split(',')
-        : ['http://localhost:3000', 'http://localhost:3001'];
+        : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:6005'];
 
     app.enableCors({
         origin: (origin, callback) => {

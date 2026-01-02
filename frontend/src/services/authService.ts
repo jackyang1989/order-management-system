@@ -47,7 +47,11 @@ export const login = async (phone: string, password: string): Promise<LoginResul
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phone, password })
         });
-        return response.json();
+        const data = await response.json();
+        if (!response.ok) {
+            return { success: false, message: data.message || '登录失败' };
+        }
+        return data;
     } catch (error) {
         return { success: false, message: '网络错误' };
     }

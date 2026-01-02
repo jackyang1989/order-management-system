@@ -32,7 +32,7 @@ export default function AdminMerchantsPage() {
     }, [filter]);
 
     const loadMerchants = async () => {
-        const token = localStorage.getItem('adminToken') || localStorage.getItem('merchantToken');
+        const token = localStorage.getItem('adminToken');
         setLoading(true);
         try {
             const url = filter !== undefined
@@ -53,7 +53,7 @@ export default function AdminMerchantsPage() {
     };
 
     const handleApprove = async (id: string, approved: boolean) => {
-        const token = localStorage.getItem('adminToken') || localStorage.getItem('merchantToken');
+        const token = localStorage.getItem('adminToken');
         setReviewing(id);
         try {
             const res = await fetch(`${BASE_URL}/admin/merchants/${id}/approve`, {

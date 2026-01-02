@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { IsString, IsOptional, IsNotEmpty } from 'class-validator';
 
 // 商家状态
 export enum MerchantStatus {
@@ -79,7 +80,12 @@ export class CreateMerchantDto {
 }
 
 export class MerchantLoginDto {
+    @IsString()
+    @IsNotEmpty()
     username: string;
+
+    @IsString()
+    @IsNotEmpty()
     password: string;
 }
 

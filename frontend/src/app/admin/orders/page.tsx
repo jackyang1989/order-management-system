@@ -8,12 +8,35 @@ interface Order {
     taskId: string;
     taskTitle: string;
     userId: string;
+    buynoId: string;
     buynoAccount: string;
     platform: string;
+    productName: string;
     productPrice: number;
     commission: number;
+    userPrincipal: number;
+    sellerPrincipal: number;
+    finalAmount: number;
+    refundAmount: number;
+    taobaoOrderNumber: string;
+    deliveryState: number;
+    delivery: string;
+    deliveryNum: string;
+    keywordImg: string;
+    chatImg: string;
+    orderDetailImg: string;
+    highPraiseImg: string;
+    receiveImg: string;
+    praiseContent: string;
+    praiseImages: string[];
+    addressName: string;
+    addressPhone: string;
+    address: string;
     status: string;
+    rejectReason: string;
+    cancelRemarks: string;
     createdAt: string;
+    completedAt: string;
 }
 
 const statusLabels: Record<string, { text: string; color: string }> = {
@@ -31,17 +54,19 @@ export default function AdminOrdersPage() {
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [filter, setFilter] = useState<string>('');
+    const [exporting, setExporting] = useState(false);
+    const [detailModal, setDetailModal] = useState<Order | null>(null);
+    const [imageModal, setImageModal] = useState<string | null>(null);
 
     useEffect(() => {
         loadOrders();
     }, [page, filter]);
 
     const loadOrders = async () => {
-        const token = localStorage.getItem('adminToken') || localStorage.getItem('merchantToken');
+        const token = localStorage.getItem('adminToken');
         setLoading(true);
         try {
-            // 使用现有的 orders API (管理员可查看所有)
-            let url = `${BASE_URL}/orders?page=${page}&limit=20`;
+            let url = `${BASE_URL}/orders/admin/list?page=${page}&limit=20`;
             if (filter) url += `&status=${filter}`;
 
             const res = await fetch(url, {
@@ -59,6 +84,53 @@ export default function AdminOrdersPage() {
         }
     };
 
+    const handleExport = async () => {
+        const token = localStorage.getItem('adminToken');
+        setExporting(true);
+        try {
+            let url = `${BASE_URL}/excel/export/orders?`;
+            if (filter) url += `status=${filter}&`;
+
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                const blob = await res.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = `orders_${Date.now()}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(downloadUrl);
+            } else {
+                alert('导出失败');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('导出失败');
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    const renderImageThumbnail = (url: string | undefined, label: string) => {
+        if (!url) return null;
+        return (
+            <div style={{ textAlign: 'center' }}>
+                <img
+                    src={url}
+                    alt={label}
+                    style={{ width: '100px', height: '70px', objectFit: 'cover', borderRadius: '4px', cursor: 'pointer', border: '1px solid #d9d9d9' }}
+                    onClick={() => setImageModal(url)}
+                />
+                <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>{label}</div>
+            </div>
+        );
+    };
+
     return (
         <div>
             {/* 筛选栏 */}
@@ -69,31 +141,52 @@ export default function AdminOrdersPage() {
                 marginBottom: '16px',
                 display: 'flex',
                 gap: '12px',
-                alignItems: 'center'
+                alignItems: 'center',
+                justifyContent: 'space-between'
             }}>
-                <span style={{ color: '#666' }}>状态筛选：</span>
-                {[
-                    { label: '全部', value: '' },
-                    { label: '进行中', value: 'PENDING' },
-                    { label: '待审核', value: 'SUBMITTED' },
-                    { label: '已通过', value: 'APPROVED' },
-                    { label: '已驳回', value: 'REJECTED' },
-                ].map(item => (
-                    <button
-                        key={item.value}
-                        onClick={() => { setFilter(item.value); setPage(1); }}
-                        style={{
-                            padding: '6px 16px',
-                            borderRadius: '4px',
-                            border: filter === item.value ? '1px solid #1890ff' : '1px solid #d9d9d9',
-                            background: filter === item.value ? '#e6f7ff' : '#fff',
-                            color: filter === item.value ? '#1890ff' : '#666',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        {item.label}
-                    </button>
-                ))}
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <span style={{ color: '#666' }}>状态筛选：</span>
+                    {[
+                        { label: '全部', value: '' },
+                        { label: '进行中', value: 'PENDING' },
+                        { label: '待审核', value: 'SUBMITTED' },
+                        { label: '已通过', value: 'APPROVED' },
+                        { label: '已驳回', value: 'REJECTED' },
+                    ].map(item => (
+                        <button
+                            key={item.value}
+                            onClick={() => { setFilter(item.value); setPage(1); }}
+                            style={{
+                                padding: '6px 16px',
+                                borderRadius: '4px',
+                                border: filter === item.value ? '1px solid #1890ff' : '1px solid #d9d9d9',
+                                background: filter === item.value ? '#e6f7ff' : '#fff',
+                                color: filter === item.value ? '#1890ff' : '#666',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            {item.label}
+                        </button>
+                    ))}
+                </div>
+                <button
+                    onClick={handleExport}
+                    disabled={exporting}
+                    style={{
+                        padding: '8px 16px',
+                        borderRadius: '4px',
+                        border: 'none',
+                        background: exporting ? '#95d475' : '#52c41a',
+                        color: '#fff',
+                        cursor: exporting ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '14px'
+                    }}
+                >
+                    {exporting ? '导出中...' : '导出Excel'}
+                </button>
             </div>
 
             {/* 订单表格 */}
@@ -118,7 +211,7 @@ export default function AdminOrdersPage() {
                                     <th style={{ padding: '14px 16px', textAlign: 'right', fontWeight: '500', color: '#000', borderBottom: '1px solid #f0f0f0' }}>金额</th>
                                     <th style={{ padding: '14px 16px', textAlign: 'right', fontWeight: '500', color: '#000', borderBottom: '1px solid #f0f0f0' }}>佣金</th>
                                     <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', color: '#000', borderBottom: '1px solid #f0f0f0' }}>状态</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', color: '#000', borderBottom: '1px solid #f0f0f0' }}>创建时间</th>
+                                    <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', color: '#000', borderBottom: '1px solid #f0f0f0' }}>操作</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -146,8 +239,8 @@ export default function AdminOrdersPage() {
                                                 {statusLabels[order.status]?.text || order.status}
                                             </span>
                                         </td>
-                                        <td style={{ padding: '14px 16px', fontSize: '13px', color: '#999' }}>
-                                            {new Date(order.createdAt).toLocaleString('zh-CN')}
+                                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                                            <button onClick={() => setDetailModal(order)} style={{ padding: '4px 12px', borderRadius: '4px', border: '1px solid #1890ff', background: '#fff', color: '#1890ff', cursor: 'pointer' }}>查看</button>
                                         </td>
                                     </tr>
                                 ))}
@@ -189,6 +282,131 @@ export default function AdminOrdersPage() {
                     </>
                 )}
             </div>
+
+            {/* 订单详情弹窗 */}
+            {detailModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div style={{ background: '#fff', borderRadius: '8px', width: '800px', maxWidth: '95%', maxHeight: '90vh', overflow: 'auto' }}>
+                        <div style={{ padding: '20px 24px', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
+                            <h3 style={{ margin: 0, fontSize: '16px' }}>订单详情</h3>
+                            <button onClick={() => setDetailModal(null)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#999' }}>x</button>
+                        </div>
+                        <div style={{ padding: '24px' }}>
+                            {/* 基本信息 */}
+                            <div style={{ marginBottom: '24px' }}>
+                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>基本信息</h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                    <div><span style={{ color: '#999' }}>订单ID：</span><span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{detailModal.id}</span></div>
+                                    <div><span style={{ color: '#999' }}>任务ID：</span><span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{detailModal.taskId}</span></div>
+                                    <div><span style={{ color: '#999' }}>任务标题：</span>{detailModal.taskTitle}</div>
+                                    <div><span style={{ color: '#999' }}>平台：</span>{detailModal.platform}</div>
+                                    <div><span style={{ color: '#999' }}>买号：</span><span style={{ color: '#1890ff' }}>{detailModal.buynoAccount}</span></div>
+                                    <div><span style={{ color: '#999' }}>淘宝订单号：</span>{detailModal.taobaoOrderNumber || '-'}</div>
+                                    <div><span style={{ color: '#999' }}>状态：</span>
+                                        <span style={{ color: statusLabels[detailModal.status]?.color }}>{statusLabels[detailModal.status]?.text || detailModal.status}</span>
+                                    </div>
+                                    <div><span style={{ color: '#999' }}>创建时间：</span>{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</div>
+                                </div>
+                            </div>
+
+                            {/* 金额信息 */}
+                            <div style={{ marginBottom: '24px' }}>
+                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>金额信息</h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                                    <div><span style={{ color: '#999' }}>商品价格：</span><span style={{ color: '#000', fontWeight: '500' }}>¥{Number(detailModal.productPrice).toFixed(2)}</span></div>
+                                    <div><span style={{ color: '#999' }}>佣金：</span><span style={{ color: '#52c41a', fontWeight: '500' }}>¥{Number(detailModal.commission).toFixed(2)}</span></div>
+                                    <div><span style={{ color: '#999' }}>实付金额：</span><span style={{ color: '#fa8c16', fontWeight: '500' }}>¥{Number(detailModal.finalAmount).toFixed(2)}</span></div>
+                                    <div><span style={{ color: '#999' }}>买手本金：</span>¥{Number(detailModal.userPrincipal).toFixed(2)}</div>
+                                    <div><span style={{ color: '#999' }}>商家本金：</span>¥{Number(detailModal.sellerPrincipal).toFixed(2)}</div>
+                                    <div><span style={{ color: '#999' }}>退款金额：</span>¥{Number(detailModal.refundAmount).toFixed(2)}</div>
+                                </div>
+                            </div>
+
+                            {/* 收货信息 */}
+                            <div style={{ marginBottom: '24px' }}>
+                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>收货信息</h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                    <div><span style={{ color: '#999' }}>收货人：</span>{detailModal.addressName || '-'}</div>
+                                    <div><span style={{ color: '#999' }}>手机号：</span>{detailModal.addressPhone || '-'}</div>
+                                    <div style={{ gridColumn: '1 / -1' }}><span style={{ color: '#999' }}>地址：</span>{detailModal.address || '-'}</div>
+                                </div>
+                            </div>
+
+                            {/* 物流信息 */}
+                            <div style={{ marginBottom: '24px' }}>
+                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>物流信息</h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                    <div><span style={{ color: '#999' }}>物流公司：</span>{detailModal.delivery || '-'}</div>
+                                    <div><span style={{ color: '#999' }}>运单号：</span>{detailModal.deliveryNum || '-'}</div>
+                                </div>
+                            </div>
+
+                            {/* 订单截图 */}
+                            <div style={{ marginBottom: '24px' }}>
+                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>订单截图</h4>
+                                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                                    {renderImageThumbnail(detailModal.keywordImg, '搜索截图')}
+                                    {renderImageThumbnail(detailModal.chatImg, '假聊截图')}
+                                    {renderImageThumbnail(detailModal.orderDetailImg, '订单截图')}
+                                    {renderImageThumbnail(detailModal.highPraiseImg, '好评截图')}
+                                    {renderImageThumbnail(detailModal.receiveImg, '收货截图')}
+                                    {!detailModal.keywordImg && !detailModal.chatImg && !detailModal.orderDetailImg && !detailModal.highPraiseImg && !detailModal.receiveImg && (
+                                        <div style={{ color: '#999', padding: '20px' }}>暂无截图</div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* 评价信息 */}
+                            {detailModal.praiseContent && (
+                                <div style={{ marginBottom: '24px' }}>
+                                    <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>评价信息</h4>
+                                    <div style={{ padding: '12px', background: '#f6ffed', borderRadius: '4px', border: '1px solid #b7eb8f' }}>
+                                        {(() => {
+                                            // 尝试解析JSON数组
+                                            try {
+                                                const parsed = JSON.parse(detailModal.praiseContent);
+                                                if (Array.isArray(parsed)) {
+                                                    return parsed.map((item: string, index: number) => (
+                                                        <div key={index} style={{ padding: '8px 0', borderBottom: index < parsed.length - 1 ? '1px dashed #d9d9d9' : 'none' }}>
+                                                            <span style={{ color: '#52c41a', marginRight: '8px' }}>评价{index + 1}：</span>
+                                                            <span style={{ color: '#333' }}>{item}</span>
+                                                        </div>
+                                                    ));
+                                                }
+                                                return <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: '13px', color: '#333' }}>{detailModal.praiseContent}</pre>;
+                                            } catch {
+                                                // 如果不是JSON，直接显示原文
+                                                return <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: '13px', color: '#333' }}>{detailModal.praiseContent}</pre>;
+                                            }
+                                        })()}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 驳回/取消原因 */}
+                            {detailModal.rejectReason && (
+                                <div style={{ marginBottom: '24px', padding: '12px', background: '#fff2f0', borderRadius: '4px', border: '1px solid #ffccc7' }}>
+                                    <span style={{ color: '#ff4d4f', fontWeight: '500' }}>驳回原因：</span>
+                                    <span style={{ color: '#ff4d4f' }}>{detailModal.rejectReason}</span>
+                                </div>
+                            )}
+                            {detailModal.cancelRemarks && (
+                                <div style={{ marginBottom: '24px', padding: '12px', background: '#f5f5f5', borderRadius: '4px' }}>
+                                    <span style={{ color: '#666', fontWeight: '500' }}>取消原因：</span>
+                                    <span style={{ color: '#666' }}>{detailModal.cancelRemarks}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 图片预览弹窗 */}
+            {imageModal && (
+                <div onClick={() => setImageModal(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, cursor: 'zoom-out' }}>
+                    <img src={imageModal} alt="预览" style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain' }} />
+                </div>
+            )}
         </div>
     );
 }

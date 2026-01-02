@@ -14,47 +14,128 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { UsersAdminService } from './users-admin.service';
 import { User } from './user.entity';
+import { IsOptional, IsString, IsNumber, IsIn } from 'class-validator';
+import { Type } from 'class-transformer';
 
 // ============ DTO 定义 ============
 
 export class UserQueryDto {
+    @IsOptional()
+    @Type(() => Number)
+    @IsNumber()
     page?: number;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsNumber()
     limit?: number;
+
+    @IsOptional()
+    @IsString()
     keyword?: string;  // 搜索关键词（用户名、手机号）
+
+    @IsOptional()
+    @IsIn(['active', 'banned', 'all'])
     status?: 'active' | 'banned' | 'all';
+
+    @IsOptional()
+    @IsIn(['vip', 'normal', 'all'])
     vip?: 'vip' | 'normal' | 'all';
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsNumber()
     verifyStatus?: number;  // 实名状态
+
+    @IsOptional()
+    @IsString()
     startDate?: string;
+
+    @IsOptional()
+    @IsString()
     endDate?: string;
+
+    @IsOptional()
+    @IsString()
     sortBy?: string;
+
+    @IsOptional()
+    @IsIn(['ASC', 'DESC'])
     sortOrder?: 'ASC' | 'DESC';
 }
 
 export class AdjustBalanceDto {
-    type: 'balance' | 'silver';  // 调整类型
-    action: 'add' | 'deduct';    // 操作：充值/扣除
-    amount: number;              // 金额
-    reason: string;              // 原因
-    remark?: string;             // 备注
+    @IsIn(['balance', 'silver'])
+    type: 'balance' | 'silver';
+
+    @IsIn(['add', 'deduct'])
+    action: 'add' | 'deduct';
+
+    @Type(() => Number)
+    @IsNumber()
+    amount: number;
+
+    @IsString()
+    reason: string;
+
+    @IsOptional()
+    @IsString()
+    remark?: string;
 }
 
 export class BatchOperationDto {
+    @IsString({ each: true })
     userIds: string[];
+
+    @IsString()
+    @IsIn(['ban', 'unban', 'activate', 'deactivate', 'setVip', 'removeVip'])
     action: 'ban' | 'unban' | 'activate' | 'deactivate' | 'setVip' | 'removeVip';
+
+    @IsOptional()
+    @IsString()
     reason?: string;
-    vipDays?: number;  // VIP天数（用于setVip）
+
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    vipDays?: number;
 }
 
 export class UserDetailUpdateDto {
+    @IsOptional()
+    @IsString()
     phone?: string;
+
+    @IsOptional()
+    @IsString()
     qq?: string;
+
+    @IsOptional()
+    @IsString()
     realName?: string;
+
+    @IsOptional()
+    @IsString()
     idCard?: string;
+
+    @IsOptional()
+    @IsNumber()
     verifyStatus?: number;
+
+    @IsOptional()
     isActive?: boolean;
+
+    @IsOptional()
     isBanned?: boolean;
+
+    @IsOptional()
+    @IsString()
     banReason?: string;
+
+    @IsOptional()
     vip?: boolean;
+
+    @IsOptional()
     vipExpireAt?: Date;
 }
 

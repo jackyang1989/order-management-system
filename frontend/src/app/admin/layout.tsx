@@ -149,7 +149,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         }}>
             {/* 左侧导航 - 固定宽度 */}
             <aside style={{
-                width: '240px',
+                width: '300px',
                 background: '#001529',
                 color: '#fff',
                 display: 'flex',
@@ -187,7 +187,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                     padding: '12px 24px',
                                     cursor: 'pointer',
                                     background: pathname === item.path ? '#1890ff' : 'transparent',
-                                    transition: 'all 0.2s'
+                                    transition: 'all 0.2s',
+                                    whiteSpace: 'nowrap'
                                 }}
                             >
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -213,7 +214,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                                 cursor: 'pointer',
                                                 background: pathname === child.path ? '#1890ff' : 'transparent',
                                                 color: pathname === child.path ? '#fff' : 'rgba(255,255,255,0.65)',
-                                                fontSize: '13px'
+                                                fontSize: '13px',
+                                                whiteSpace: 'nowrap'
                                             }}
                                         >
                                             {child.label}
@@ -248,7 +250,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 flex: 1,
                 display: 'flex',
                 flexDirection: 'column',
-                marginLeft: '240px',
+                marginLeft: '300px',
                 minWidth: 0
             }}>
                 {/* 顶部栏 */}

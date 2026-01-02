@@ -31,8 +31,8 @@ export interface TaskFormData {
     isPraise: boolean;
     praiseType: 'text' | 'image' | 'video' | 'none';
     praiseList: string[]; // Text content per order
-    praiseImgList: string[][]; // Images per order (mocking as array of strings)
-    praiseVideo?: string; // Single video for all? or per order? Backend implies videoInsert uses goods[0], so maybe single? Or per order. Let's assume single for simplicity or per order if needed. Code says `videoInsert($data['video'], ...)` and data['video'] seems to be single string.
+    praiseImgList: string[][]; // Images per order (max 5 per order)
+    praiseVideoList: string[]; // Video URL per order (for video praise type)
 
     // Extra Services
     isTimingPublish: boolean;
@@ -78,6 +78,7 @@ export const InitialTaskData: TaskFormData = {
     praiseType: 'none',
     praiseList: [],
     praiseImgList: [],
+    praiseVideoList: [],
 
     isTimingPublish: false,
     isTimingPay: false,

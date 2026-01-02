@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { fetchOrderDetail, submitOrderStep } from '../../../services/orderService';
 import { MockOrder } from '../../../mocks/orderMock';
 import { isAuthenticated } from '../../../services/authService';
+import api from '../../../services/api';
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
@@ -12,9 +13,18 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
     const [order, setOrder] = useState<MockOrder | null>(null);
     const [loading, setLoading] = useState(true);
-    const [currentStep, setCurrentStep] = useState(1);
+    const [currentStep, setCurrentStep] = useState(0); // 0 = 验证商品
     const [submitting, setSubmitting] = useState(false);
     const [countdown, setCountdown] = useState<string>('');
+
+    // 商品验证相关状态
+    const [productLink, setProductLink] = useState('');
+    const [validating, setValidating] = useState(false);
+    const [validationResult, setValidationResult] = useState<{
+        valid: boolean;
+        actualId?: string;
+        error?: string;
+    } | null>(null);
 
     // 表单数据
     const [formData, setFormData] = useState({
@@ -62,13 +72,48 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
         const result = await fetchOrderDetail(id);
         if (result) {
             setOrder(result);
-            // Sync step from backend if needed, for now start at 1
-            // setCurrentStep(result.taskStep || 1);
+            // 如果商品已验证过，跳到第一步
+            // 这里假设首次进入需要先验证商品
         } else {
             alert('订单不存在');
             router.back();
         }
         setLoading(false);
+    };
+
+    const handleValidateProduct = async () => {
+        if (!productLink.trim()) {
+            alert('请输入淘口令或商品链接');
+            return;
+        }
+        if (!order?.taobaoId) {
+            alert('订单商品信息缺失，无法验证');
+            return;
+        }
+
+        setValidating(true);
+        setValidationResult(null);
+
+        try {
+            const res = await api.post('/dingdanxia/validate', {
+                link: productLink,
+                expectedTaobaoId: order.taobaoId
+            });
+
+            setValidationResult(res.data);
+
+            if (res.data.valid) {
+                // 验证通过，进入第一步
+                setCurrentStep(1);
+            }
+        } catch (error: any) {
+            setValidationResult({
+                valid: false,
+                error: error.response?.data?.message || '验证失败，请检查链接是否正确'
+            });
+        } finally {
+            setValidating(false);
+        }
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
@@ -122,6 +167,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     if (!order) return null;
 
     const steps = [
+        { step: 0, title: '验证商品', desc: '输入淘口令验证商品正确' },
         { step: 1, title: '货比三家', desc: '搜索关键词，浏览竞品并截图' },
         { step: 2, title: '浏览收藏', desc: '进店浏览主副商品并收藏' },
         { step: 3, title: '提交订单', desc: '核对信息，提交订单号和截图' }
@@ -216,8 +262,94 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             {/* 当前步骤操作 Area */}
             <div style={{ background: '#fff', margin: '10px 0', padding: '15px' }}>
                 <div style={{ fontSize: '15px', fontWeight: 'bold', marginBottom: '15px', color: '#333' }}>
-                    第 {currentStep} 步：{steps[currentStep - 1].title}
+                    {currentStep === 0 ? '商品验证' : `第 ${currentStep} 步：${steps[currentStep].title}`}
                 </div>
+
+                {/* 步骤0: 商品验证 */}
+                {currentStep === 0 && (
+                    <div>
+                        <div style={{ background: '#f0f9ff', padding: '10px', borderRadius: '4px', marginBottom: '15px', color: '#409eff', fontSize: '13px', lineHeight: '1.6' }}>
+                            <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>请先验证商品</p>
+                            <p>1. 打开淘宝APP找到任务商品</p>
+                            <p>2. 点击分享 → 复制链接/淘口令</p>
+                            <p>3. 将淘口令粘贴到下方输入框验证</p>
+                        </div>
+
+                        <div style={{ marginBottom: '15px' }}>
+                            <div style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>淘口令或商品链接：</div>
+                            <textarea
+                                value={productLink}
+                                onChange={(e) => setProductLink(e.target.value)}
+                                placeholder="请粘贴淘口令或商品链接，如：₳Abc123xyz₳ 或 https://item.taobao.com/..."
+                                style={{
+                                    width: '100%',
+                                    padding: '10px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '4px',
+                                    fontSize: '14px',
+                                    minHeight: '80px',
+                                    resize: 'vertical',
+                                    boxSizing: 'border-box'
+                                }}
+                            />
+                        </div>
+
+                        {/* 验证结果显示 */}
+                        {validationResult && (
+                            <div style={{
+                                padding: '12px',
+                                borderRadius: '4px',
+                                marginBottom: '15px',
+                                background: validationResult.valid ? '#f0f9eb' : '#fef0f0',
+                                border: `1px solid ${validationResult.valid ? '#c2e7b0' : '#fbc4c4'}`
+                            }}>
+                                {validationResult.valid ? (
+                                    <div style={{ color: '#67c23a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span style={{ fontSize: '18px' }}>✓</span>
+                                        <span>商品验证通过！请继续完成任务</span>
+                                    </div>
+                                ) : (
+                                    <div style={{ color: '#f56c6c' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                            <span style={{ fontSize: '18px' }}>✗</span>
+                                            <span style={{ fontWeight: 'bold' }}>商品验证失败</span>
+                                        </div>
+                                        <div style={{ fontSize: '12px', marginLeft: '26px' }}>
+                                            {validationResult.error}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <button
+                            onClick={handleValidateProduct}
+                            disabled={validating || !productLink.trim()}
+                            style={{
+                                width: '100%',
+                                padding: '12px',
+                                background: validating || !productLink.trim() ? '#a0cfff' : '#409eff',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                fontSize: '15px',
+                                fontWeight: 'bold',
+                                cursor: validating || !productLink.trim() ? 'not-allowed' : 'pointer'
+                            }}
+                        >
+                            {validating ? '验证中...' : '验证商品'}
+                        </button>
+
+                        <div style={{ marginTop: '15px', padding: '10px', background: '#fffbe6', borderRadius: '4px', border: '1px solid #ffe58f' }}>
+                            <div style={{ color: '#d48806', fontSize: '12px', lineHeight: '1.6' }}>
+                                <p style={{ fontWeight: 'bold', marginBottom: '4px' }}>温馨提示：</p>
+                                <p>• 验证商品是为了确保您找到的是正确的任务商品</p>
+                                <p>• 请确保商品ID与任务商品一致再进行下单</p>
+                                <p>• 如验证失败，请检查是否复制了正确的商品链接</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {currentStep === 1 && (
                     <div>
@@ -327,36 +459,38 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 )}
             </div>
 
-            {/* 底部提交按钮 */}
-            <div style={{
-                position: 'fixed',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                maxWidth: '540px',
-                margin: '0 auto',
-                padding: '10px 15px',
-                background: '#fff',
-                borderTop: '1px solid #ddd'
-            }}>
-                <button
-                    onClick={handleSubmitStep}
-                    disabled={submitting}
-                    style={{
-                        width: '100%',
-                        background: submitting ? '#a0cfff' : '#409eff',
-                        border: 'none',
-                        color: 'white',
-                        padding: '12px',
-                        borderRadius: '4px',
-                        fontSize: '15px',
-                        fontWeight: 'bold',
-                        cursor: submitting ? 'not-allowed' : 'pointer'
-                    }}
-                >
-                    {submitting ? '提交中...' : (currentStep < 3 ? '完成此步骤' : '确认提交任务')}
-                </button>
-            </div>
+            {/* 底部提交按钮 - 只在步骤1-3显示 */}
+            {currentStep > 0 && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    maxWidth: '540px',
+                    margin: '0 auto',
+                    padding: '10px 15px',
+                    background: '#fff',
+                    borderTop: '1px solid #ddd'
+                }}>
+                    <button
+                        onClick={handleSubmitStep}
+                        disabled={submitting}
+                        style={{
+                            width: '100%',
+                            background: submitting ? '#a0cfff' : '#409eff',
+                            border: 'none',
+                            color: 'white',
+                            padding: '12px',
+                            borderRadius: '4px',
+                            fontSize: '15px',
+                            fontWeight: 'bold',
+                            cursor: submitting ? 'not-allowed' : 'pointer'
+                        }}
+                    >
+                        {submitting ? '提交中...' : (currentStep < 3 ? '完成此步骤' : '确认提交任务')}
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

@@ -10,12 +10,14 @@ import { Withdrawal } from '../withdrawals/withdrawal.entity';
 
 import { ShopsModule } from '../shops/shops.module';
 import { AuthModule } from '../auth/auth.module';
+import { BuyerAccountsModule } from '../buyer-accounts/buyer-accounts.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([User, Merchant, Task, Order, Withdrawal]),
         ShopsModule,
-        AuthModule
+        AuthModule,
+        BuyerAccountsModule
     ],
     providers: [AdminService],
     controllers: [AdminController],

@@ -58,7 +58,13 @@ export class AdminGuard implements CanActivate {
                 const userPermissions = payload.permissions || [];
 
                 // 超级管理员拥有所有权限
-                if (payload.roleName === 'super_admin' || payload.isSuperAdmin) {
+                if (payload.roleName === 'super_admin' || payload.roleName === '超级管理员' || payload.isSuperAdmin) {
+                    request.admin = payload;
+                    return true;
+                }
+
+                // 检查通配符权限
+                if (userPermissions.includes('*')) {
                     request.admin = payload;
                     return true;
                 }

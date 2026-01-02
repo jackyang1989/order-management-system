@@ -20,11 +20,14 @@ interface Merchant {
 const menuItems = [
     { key: 'dashboard', icon: '📊', label: '工作台', path: '/merchant/dashboard' },
     { key: 'shops', icon: '🏬', label: '店铺管理', path: '/merchant/shops' },
+    { key: 'goods', icon: '📦', label: '商品管理', path: '/merchant/goods' },
+    { key: 'keywords', icon: '🔑', label: '关键词方案', path: '/merchant/keywords' },
     { key: 'tasks', icon: '📋', label: '任务管理', path: '/merchant/tasks' },
-    { key: 'orders', icon: '📦', label: '订单审核', path: '/merchant/orders' },
+    { key: 'orders', icon: '🛒', label: '订单审核', path: '/merchant/orders' },
     { key: 'reviews', icon: '⭐', label: '追评管理', path: '/merchant/reviews' },
+    { key: 'blacklist', icon: '🚫', label: '黑名单', path: '/merchant/blacklist' },
     { key: 'wallet', icon: '💰', label: '财务中心', path: '/merchant/wallet' },
-    { key: 'settings', icon: '⚙️', label: '账户设置', path: '/merchant/settings' },
+    { key: 'settings', icon: '⚙️', label: '账户设置', path: '/merchant/setting' },
 ];
 
 export default function MerchantLayout({ children }: MerchantLayoutProps) {
@@ -156,7 +159,7 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
                         }}>
                             <span style={{ fontSize: '14px', color: '#6b7280' }}>余额:</span>
                             <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#059669' }}>
-                                ¥{(merchant?.balance || 0).toFixed(2)}
+                                ¥{parseFloat(String(merchant?.balance || 0)).toFixed(2)}
                             </span>
                         </div>
                         <div style={{

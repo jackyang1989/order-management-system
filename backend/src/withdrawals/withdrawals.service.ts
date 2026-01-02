@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { Withdrawal, WithdrawalStatus, WithdrawalType, CreateWithdrawalDto, ReviewWithdrawalDto } from './withdrawal.entity';
 import { User } from '../users/user.entity';
 import { BankCardsService } from '../bank-cards/bank-cards.service';
@@ -32,6 +33,19 @@ export class WithdrawalsService {
         // 使用事务确保资金安全 (Transaction & Atomic Update)
         // 这一步是关键修复：防止高并发下的"双花"攻击
         return this.withdrawalsRepository.manager.transaction(async transactionalEntityManager => {
+            // 0. 验证支付密码（匹配原版逻辑）
+            const user = await this.usersService.findOne(userId);
+            if (!user) {
+                throw new NotFoundException('用户不存在');
+            }
+            if (!user.payPassword) {
+                throw new BadRequestException('请先设置支付密码');
+            }
+            const isPasswordValid = await bcrypt.compare(createDto.payPassword, user.payPassword);
+            if (!isPasswordValid) {
+                throw new ForbiddenException('支付密码错误');
+            }
+
             // 1. 获取银行卡信息
             const bankCard = await this.bankCardsService.findOne(createDto.bankCardId, userId);
             if (!bankCard) {

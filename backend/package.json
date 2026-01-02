@@ -30,6 +30,7 @@
     "@nestjs/schedule": "^5.0.1",
     "@nestjs/throttler": "^6.5.0",
     "@nestjs/typeorm": "^11.0.0",
+    "@types/pg": "^8.16.0",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.66.4",
     "cache-manager": "^6.4.0",

@@ -67,6 +67,8 @@ import { OperationLogsModule } from './operation-logs/operation-logs.module';
 import { AdminMenusModule } from './admin-menus/admin-menus.module';
 // 第十二批新增模块 - VIP会员
 import { VipModule } from './vip/vip.module';
+// 第十三批新增模块 - 商家黑名单
+import { MerchantBlacklistModule } from './merchant-blacklist/merchant-blacklist.module';
 
 @Module({
   imports: [
@@ -149,6 +151,8 @@ import { VipModule } from './vip/vip.module';
     AdminMenusModule,
     // 第十二批新增模块 - VIP会员
     VipModule,
+    // 第十三批新增模块 - 商家黑名单
+    MerchantBlacklistModule,
   ],
   controllers: [AppController],
   providers: [

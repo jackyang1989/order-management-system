@@ -2,11 +2,33 @@ import { Controller, Get, Post, Body, Param, Query, UseGuards, Request } from '@
 import { OrdersService } from './orders.service';
 import { CreateOrderDto, SubmitStepDto, OrderFilterDto } from './order.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
 export class OrdersController {
     constructor(private ordersService: OrdersService) { }
+
+    // ============ 管理员端订单管理 ============
+
+    @Get('admin/list')
+    @UseGuards(RolesGuard)
+    @Roles('admin')
+    async adminFindAll(@Query() query: any) {
+        const page = parseInt(query.page) || 1;
+        const limit = parseInt(query.limit) || 20;
+        const status = query.status;
+
+        const result = await this.ordersService.findAllAdmin({ page, limit, status });
+        return {
+            success: true,
+            data: result.data,
+            total: result.total,
+            page,
+            limit
+        };
+    }
 
     @Get()
     async findAll(@Request() req, @Query() filter: OrderFilterDto) {

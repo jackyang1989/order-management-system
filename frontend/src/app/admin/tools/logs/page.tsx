@@ -50,34 +50,26 @@ export default function LogsPage() {
         setLoading(true);
         try {
             const token = localStorage.getItem('adminToken');
-            const params = new URLSearchParams({
-                page: pagination.page.toString(),
-                limit: pagination.limit.toString(),
-                ...filters
-            });
+            const params = new URLSearchParams();
+            params.append('page', pagination.page.toString());
+            params.append('pageSize', pagination.limit.toString());
+            if (filters.module) params.append('module', filters.module);
+            if (filters.username) params.append('username', filters.username);
+            if (filters.startDate) params.append('startDate', filters.startDate);
+            if (filters.endDate) params.append('endDate', filters.endDate);
+
             const response = await fetch(`${BASE_URL}/admin/operation-logs?${params}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (response.ok) {
-                const data = await response.json();
-                setLogs(data.data || []);
-                setPagination(prev => ({ ...prev, total: data.total || 0 }));
+                const result = await response.json();
+                if (result.success && result.data) {
+                    setLogs(result.data.list || []);
+                    setPagination(prev => ({ ...prev, total: result.data.total || 0 }));
+                }
             }
         } catch (error) {
             console.error('加载失败:', error);
-            // 模拟数据
-            const mockLogs: OperationLog[] = [
-                { id: '1', adminId: '1', adminUsername: 'admin', module: 'auth', action: '登录', content: '管理员登录成功', ip: '192.168.1.1', userAgent: 'Chrome/120', createdAt: new Date().toISOString() },
-                { id: '2', adminId: '1', adminUsername: 'admin', module: 'users', action: '调整余额', content: '为用户 user001 调整余额 +100.00', ip: '192.168.1.1', userAgent: 'Chrome/120', createdAt: new Date(Date.now() - 3600000).toISOString() },
-                { id: '3', adminId: '2', adminUsername: 'operator', module: 'orders', action: '退款', content: '处理订单 ORD202412250001 退款申请', ip: '192.168.1.2', userAgent: 'Firefox/122', createdAt: new Date(Date.now() - 7200000).toISOString() },
-                { id: '4', adminId: '1', adminUsername: 'admin', module: 'merchants', action: '审核', content: '审核通过商家 shop001', ip: '192.168.1.1', userAgent: 'Chrome/120', createdAt: new Date(Date.now() - 86400000).toISOString() },
-                { id: '5', adminId: '3', adminUsername: 'finance', module: 'finance', action: '审核提现', content: '审核通过提现申请 WD202412250001, 金额 ¥500.00', ip: '192.168.1.3', userAgent: 'Safari/17', createdAt: new Date(Date.now() - 172800000).toISOString() },
-                { id: '6', adminId: '1', adminUsername: 'admin', module: 'system', action: '修改配置', content: '修改系统参数: 最小充值金额改为 10.00', ip: '192.168.1.1', userAgent: 'Chrome/120', createdAt: new Date(Date.now() - 259200000).toISOString() },
-                { id: '7', adminId: '2', adminUsername: 'operator', module: 'tasks', action: '关闭任务', content: '关闭任务 TASK202412250001', ip: '192.168.1.2', userAgent: 'Firefox/122', createdAt: new Date(Date.now() - 345600000).toISOString() },
-                { id: '8', adminId: '1', adminUsername: 'admin', module: 'permission', action: '添加管理员', content: '添加管理员 test, 角色: 客服', ip: '192.168.1.1', userAgent: 'Chrome/120', createdAt: new Date(Date.now() - 432000000).toISOString() },
-            ];
-            setLogs(mockLogs);
-            setPagination(prev => ({ ...prev, total: mockLogs.length }));
         } finally {
             setLoading(false);
         }
@@ -86,20 +78,32 @@ export default function LogsPage() {
     const handleExport = async () => {
         try {
             const token = localStorage.getItem('adminToken');
-            const params = new URLSearchParams(filters);
-            const response = await fetch(`${BASE_URL}/admin/operation-logs/export?${params}`, {
-                headers: { Authorization: `Bearer ${token}` },
+            const response = await fetch(`${BASE_URL}/admin/operation-logs/export`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(filters)
             });
             if (response.ok) {
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `operation_logs_${new Date().toISOString().split('T')[0]}.xlsx`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
+                const result = await response.json();
+                if (result.success && result.data) {
+                    // 将数据转换为 CSV 格式下载
+                    const csvContent = convertToCSV(result.data);
+                    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `operation_logs_${new Date().toISOString().split('T')[0]}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    alert(result.message || '导出成功');
+                }
+            } else {
+                alert('导出失败');
             }
         } catch (error) {
             console.error('导出失败:', error);
@@ -107,16 +111,34 @@ export default function LogsPage() {
         }
     };
 
+    const convertToCSV = (data: OperationLog[]) => {
+        const headers = ['操作时间', '操作人', '模块', '操作', '详情', 'IP地址'];
+        const rows = data.map(log => [
+            formatDate(log.createdAt),
+            log.adminUsername,
+            log.module,
+            log.action,
+            log.content,
+            log.ip
+        ]);
+        return [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    };
+
     const handleClearLogs = async () => {
         if (!confirm('确定清空30天前的操作日志？此操作不可恢复！')) return;
         if (!confirm('再次确认：确定要清空旧日志吗？')) return;
         try {
             const token = localStorage.getItem('adminToken');
-            await fetch(`${BASE_URL}/admin/operation-logs/clear`, {
+            const response = await fetch(`${BASE_URL}/admin/operation-logs/cleanup/30`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` },
             });
-            alert('清理完成');
+            if (response.ok) {
+                const result = await response.json();
+                alert(result.message || '清理完成');
+            } else {
+                alert('清理失败');
+            }
             loadLogs();
         } catch (error) {
             console.error('清理失败:', error);

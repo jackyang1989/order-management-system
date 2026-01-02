@@ -33,8 +33,15 @@ export default function ProfilePage() {
             setProfile(profileData);
             setInviteStats(statsData);
             setUnreadCount(msgCount);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to load profile data:', error);
+            // 如果是401错误，清除token并跳转登录
+            if (error?.response?.status === 401 || error?.message?.includes('401')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                router.push('/login');
+                return;
+            }
         } finally {
             setLoading(false);
         }
@@ -54,9 +61,11 @@ export default function ProfilePage() {
     }
 
     if (!profile) {
+        // 未获取到用户数据，跳转登录
+        router.push('/login');
         return (
             <div style={{ minHeight: '100vh', background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div>加载失败，请刷新重试</div>
+                <div>正在跳转登录...</div>
             </div>
         );
     }

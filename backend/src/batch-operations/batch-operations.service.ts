@@ -277,14 +277,14 @@ export class BatchOperationsService {
         for (const id of reviewTaskIds) {
             try {
                 const reviewTask = await this.reviewTaskRepository.findOne({ where: { id } });
-                if (!reviewTask || reviewTask.status !== ReviewTaskStatus.SUBMITTED) {
+                if (!reviewTask || reviewTask.state !== ReviewTaskStatus.PAID) {
                     failed++;
                     continue;
                 }
 
-                reviewTask.status = ReviewTaskStatus.WAITING_REFUND;
-                reviewTask.reviewerId = operatorId;
-                reviewTask.reviewedAt = new Date();
+                reviewTask.state = ReviewTaskStatus.APPROVED;
+                reviewTask.examineTime = new Date();
+                reviewTask.remarks = `批量审核通过 - ${operatorId}`;
                 await this.reviewTaskRepository.save(reviewTask);
 
                 // 发送消息通知买手
@@ -292,7 +292,7 @@ export class BatchOperationsService {
                     reviewTask.userId,
                     MessageUserType.BUYER,
                     '追评审核通过',
-                    '您的追评任务已审核通过，佣金即将发放。'
+                    `您有新的追评任务，任务编号：${reviewTask.taskNumber}，请尽快完成。`
                 );
 
                 success++;
@@ -318,19 +318,19 @@ export class BatchOperationsService {
         for (const id of reviewTaskIds) {
             try {
                 const reviewTask = await this.reviewTaskRepository.findOne({ where: { id } });
-                if (!reviewTask || reviewTask.status !== ReviewTaskStatus.WAITING_REFUND) {
+                if (!reviewTask || reviewTask.state !== ReviewTaskStatus.UPLOADED) {
                     failed++;
                     continue;
                 }
 
-                reviewTask.status = ReviewTaskStatus.COMPLETED;
-                reviewTask.refundTime = new Date();
-                reviewTask.refundAmount = Number(reviewTask.commission);
+                reviewTask.state = ReviewTaskStatus.COMPLETED;
+                reviewTask.confirmTime = new Date();
+                reviewTask.remarks = `管理员批量返款 - ${operatorId}`;
                 await this.reviewTaskRepository.save(reviewTask);
 
                 // TODO: 实际调用财务模块进行返款
 
-                totalAmount += Number(reviewTask.commission);
+                totalAmount += Number(reviewTask.userMoney);
                 success++;
             } catch {
                 failed++;

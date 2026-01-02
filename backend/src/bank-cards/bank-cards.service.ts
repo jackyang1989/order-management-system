@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like, In } from 'typeorm';
 import { BankCard, BankCardStatus, CreateBankCardDto, UpdateBankCardDto } from './bank-card.entity';
 
 @Injectable()
@@ -105,5 +105,61 @@ export class BankCardsService {
         // 软删除
         card.status = BankCardStatus.DELETED;
         await this.bankCardsRepository.save(card);
+    }
+
+    // ============ 管理员接口 ============
+
+    async findAllForAdmin(options: {
+        page?: number;
+        limit?: number;
+        status?: BankCardStatus;
+        keyword?: string;
+    }): Promise<{ data: BankCard[]; total: number }> {
+        const { page = 1, limit = 20, status, keyword } = options;
+
+        const query = this.bankCardsRepository.createQueryBuilder('card');
+
+        // 不显示已删除的
+        query.andWhere('card.status != :deleted', { deleted: BankCardStatus.DELETED });
+
+        if (status !== undefined) {
+            query.andWhere('card.status = :status', { status });
+        }
+
+        if (keyword) {
+            query.andWhere('(card.accountName LIKE :keyword OR card.cardNumber LIKE :keyword)', {
+                keyword: `%${keyword}%`
+            });
+        }
+
+        query.orderBy('card.createdAt', 'DESC');
+        query.skip((page - 1) * limit).take(limit);
+
+        const [data, total] = await query.getManyAndCount();
+        return { data, total };
+    }
+
+    async findOneForAdmin(id: string): Promise<BankCard | null> {
+        return this.bankCardsRepository.findOne({ where: { id } });
+    }
+
+    async approve(id: string): Promise<BankCard> {
+        const card = await this.bankCardsRepository.findOne({ where: { id } });
+        if (!card) {
+            throw new NotFoundException('银行卡不存在');
+        }
+        card.status = BankCardStatus.APPROVED;
+        card.rejectReason = undefined;
+        return this.bankCardsRepository.save(card);
+    }
+
+    async reject(id: string, reason: string): Promise<BankCard> {
+        const card = await this.bankCardsRepository.findOne({ where: { id } });
+        if (!card) {
+            throw new NotFoundException('银行卡不存在');
+        }
+        card.status = BankCardStatus.REJECTED;
+        card.rejectReason = reason;
+        return this.bankCardsRepository.save(card);
     }
 }

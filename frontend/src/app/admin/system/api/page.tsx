@@ -173,10 +173,8 @@ export default function ApiConfigPage() {
         setTestResult(null);
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`${BASE_URL}/dingdanxia/admin/test`, {
-                method: 'POST',
+            const response = await fetch(`${BASE_URL}/admin/api-config/dingdanxia/test`, {
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
                 },
             });

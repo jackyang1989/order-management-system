@@ -317,4 +317,41 @@ export class BuyerAccountsService {
 
         return { data, total, page, limit };
     }
+
+    /**
+     * 批量审核买号（管理员用）
+     */
+    async batchReviewAccounts(
+        ids: string[],
+        approved: boolean,
+        rejectReason?: string
+    ): Promise<{ success: number; failed: number }> {
+        let success = 0;
+        let failed = 0;
+
+        for (const id of ids) {
+            try {
+                const account = await this.buyerAccountsRepository.findOne({
+                    where: { id, status: BuyerAccountStatus.PENDING }
+                });
+                if (account) {
+                    if (approved) {
+                        account.status = BuyerAccountStatus.APPROVED;
+                        account.rejectReason = undefined;
+                    } else {
+                        account.status = BuyerAccountStatus.REJECTED;
+                        account.rejectReason = rejectReason || '审核未通过';
+                    }
+                    await this.buyerAccountsRepository.save(account);
+                    success++;
+                } else {
+                    failed++;
+                }
+            } catch {
+                failed++;
+            }
+        }
+
+        return { success, failed };
+    }
 }

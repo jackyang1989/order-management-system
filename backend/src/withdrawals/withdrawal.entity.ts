@@ -81,6 +81,10 @@ export class CreateWithdrawalDto {
     @IsString()
     @IsNotEmpty()
     bankCardId: string;
+
+    @IsString()
+    @IsNotEmpty()
+    payPassword: string;  // 支付密码（必须验证）
 }
 
 export class ReviewWithdrawalDto {

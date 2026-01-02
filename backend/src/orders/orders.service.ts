@@ -27,6 +27,25 @@ export class OrdersService {
         private dataSource: DataSource
     ) { }
 
+    // ============ 管理员端方法 ============
+
+    async findAllAdmin(filter: { page: number; limit: number; status?: string }): Promise<{ data: Order[]; total: number }> {
+        const queryBuilder = this.ordersRepository.createQueryBuilder('order');
+
+        if (filter.status) {
+            queryBuilder.where('order.status = :status', { status: filter.status });
+        }
+
+        queryBuilder.orderBy('order.createdAt', 'DESC');
+        queryBuilder.skip((filter.page - 1) * filter.limit);
+        queryBuilder.take(filter.limit);
+
+        const [data, total] = await queryBuilder.getManyAndCount();
+        return { data, total };
+    }
+
+    // ============ 用户端方法 ============
+
     async findAll(userId: string, filter?: OrderFilterDto): Promise<Order[]> {
         const queryBuilder = this.ordersRepository.createQueryBuilder('order')
             .where('order.userId = :userId', { userId });

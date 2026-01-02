@@ -29,14 +29,17 @@ export default function AdminWithdrawalsPage() {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<string>('PENDING');
     const [reviewing, setReviewing] = useState<string | null>(null);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [batchLoading, setBatchLoading] = useState(false);
 
     useEffect(() => {
         loadWithdrawals();
     }, [filter]);
 
     const loadWithdrawals = async () => {
-        const token = localStorage.getItem('adminToken') || localStorage.getItem('merchantToken');
+        const token = localStorage.getItem('adminToken');
         setLoading(true);
+        setSelectedIds(new Set());
         try {
             const url = filter ? `${BASE_URL}/admin/withdrawals?status=${filter}` : `${BASE_URL}/admin/withdrawals`;
             const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
@@ -50,7 +53,7 @@ export default function AdminWithdrawalsPage() {
     };
 
     const handleApprove = async (id: string, approved: boolean) => {
-        const token = localStorage.getItem('adminToken') || localStorage.getItem('merchantToken');
+        const token = localStorage.getItem('adminToken');
         const remark = approved ? '' : prompt('请输入拒绝原因：') || '';
         setReviewing(id);
         try {
@@ -68,16 +71,105 @@ export default function AdminWithdrawalsPage() {
         }
     };
 
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            const pendingIds = withdrawals.filter(w => w.status === 'PENDING').map(w => w.id);
+            setSelectedIds(new Set(pendingIds));
+        } else {
+            setSelectedIds(new Set());
+        }
+    };
+
+    const handleSelectOne = (id: string, checked: boolean) => {
+        const newSet = new Set(selectedIds);
+        if (checked) {
+            newSet.add(id);
+        } else {
+            newSet.delete(id);
+        }
+        setSelectedIds(newSet);
+    };
+
+    const handleBatchApprove = async (approved: boolean) => {
+        if (selectedIds.size === 0) {
+            alert('请先选择要操作的记录');
+            return;
+        }
+        const action = approved ? '批量通过' : '批量拒绝';
+        if (!confirm(`确定要${action}选中的 ${selectedIds.size} 条记录吗？`)) return;
+
+        const remark = approved ? '' : prompt('请输入拒绝原因（可选）：') || '';
+        const token = localStorage.getItem('adminToken');
+        setBatchLoading(true);
+        try {
+            const res = await fetch(`${BASE_URL}/admin/withdrawals/batch-approve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ ids: Array.from(selectedIds), approved, remark })
+            });
+            const json = await res.json();
+            if (json.success) {
+                alert(json.message);
+                loadWithdrawals();
+            } else {
+                alert(json.message || '操作失败');
+            }
+        } catch (e) {
+            alert('操作失败');
+        } finally {
+            setBatchLoading(false);
+        }
+    };
+
+    const pendingWithdrawals = withdrawals.filter(w => w.status === 'PENDING');
+    const allPendingSelected = pendingWithdrawals.length > 0 && pendingWithdrawals.every(w => selectedIds.has(w.id));
+
     return (
         <div>
             {/* 筛选栏 */}
-            <div style={{ background: '#fff', padding: '16px 20px', borderRadius: '8px', marginBottom: '16px', display: 'flex', gap: '12px', alignItems: 'center' }}>
-                <span style={{ color: '#666' }}>状态筛选：</span>
-                {Object.entries(statusLabels).map(([key, val]) => (
-                    <button key={key} onClick={() => setFilter(key)} style={{ padding: '6px 16px', borderRadius: '4px', border: filter === key ? '1px solid #1890ff' : '1px solid #d9d9d9', background: filter === key ? '#e6f7ff' : '#fff', color: filter === key ? '#1890ff' : '#666', cursor: 'pointer' }}>
-                        {val.text}
-                    </button>
-                ))}
+            <div style={{ background: '#fff', padding: '16px 20px', borderRadius: '8px', marginBottom: '16px', display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <span style={{ color: '#666' }}>状态筛选：</span>
+                    {Object.entries(statusLabels).map(([key, val]) => (
+                        <button key={key} onClick={() => setFilter(key)} style={{ padding: '6px 16px', borderRadius: '4px', border: filter === key ? '1px solid #1890ff' : '1px solid #d9d9d9', background: filter === key ? '#e6f7ff' : '#fff', color: filter === key ? '#1890ff' : '#666', cursor: 'pointer' }}>
+                            {val.text}
+                        </button>
+                    ))}
+                </div>
+                {filter === 'PENDING' && (
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                            onClick={() => handleBatchApprove(true)}
+                            disabled={batchLoading || selectedIds.size === 0}
+                            style={{
+                                padding: '8px 16px',
+                                borderRadius: '4px',
+                                border: 'none',
+                                background: selectedIds.size === 0 ? '#d9d9d9' : '#52c41a',
+                                color: '#fff',
+                                cursor: selectedIds.size === 0 ? 'not-allowed' : 'pointer',
+                                fontSize: '14px'
+                            }}
+                        >
+                            {batchLoading ? '处理中...' : `批量通过 (${selectedIds.size})`}
+                        </button>
+                        <button
+                            onClick={() => handleBatchApprove(false)}
+                            disabled={batchLoading || selectedIds.size === 0}
+                            style={{
+                                padding: '8px 16px',
+                                borderRadius: '4px',
+                                border: '1px solid #ff4d4f',
+                                background: selectedIds.size === 0 ? '#f5f5f5' : '#fff',
+                                color: selectedIds.size === 0 ? '#999' : '#ff4d4f',
+                                cursor: selectedIds.size === 0 ? 'not-allowed' : 'pointer',
+                                fontSize: '14px'
+                            }}
+                        >
+                            批量拒绝
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* 提现列表 */}
@@ -90,6 +182,16 @@ export default function AdminWithdrawalsPage() {
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr style={{ background: '#fafafa' }}>
+                                {filter === 'PENDING' && (
+                                    <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0', width: '50px' }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={allPendingSelected}
+                                            onChange={(e) => handleSelectAll(e.target.checked)}
+                                            style={{ cursor: 'pointer' }}
+                                        />
+                                    </th>
+                                )}
                                 <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>提现金额</th>
                                 <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>到账金额</th>
                                 <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>银行卡</th>
@@ -102,6 +204,18 @@ export default function AdminWithdrawalsPage() {
                         <tbody>
                             {withdrawals.map(w => (
                                 <tr key={w.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                    {filter === 'PENDING' && (
+                                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                                            {w.status === 'PENDING' && (
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.has(w.id)}
+                                                    onChange={(e) => handleSelectOne(w.id, e.target.checked)}
+                                                    style={{ cursor: 'pointer' }}
+                                                />
+                                            )}
+                                        </td>
+                                    )}
                                     <td style={{ padding: '14px 16px', fontWeight: '500' }}>¥{Number(w.amount).toFixed(2)}</td>
                                     <td style={{ padding: '14px 16px', color: '#52c41a', fontWeight: '500' }}>¥{Number(w.actualAmount).toFixed(2)}</td>
                                     <td style={{ padding: '14px 16px', color: '#000', fontSize: '13px' }}>

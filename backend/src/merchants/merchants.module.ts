@@ -11,7 +11,7 @@ import { FinanceRecordsModule } from '../finance-records/finance-records.module'
     imports: [
         TypeOrmModule.forFeature([Merchant]),
         JwtModule.register({
-            secret: process.env.JWT_SECRET,
+            secret: process.env.JWT_SECRET || 'tfkz-order-management-secret-key-2026',
             signOptions: { expiresIn: '7d' },
         }),
         FinanceRecordsModule,

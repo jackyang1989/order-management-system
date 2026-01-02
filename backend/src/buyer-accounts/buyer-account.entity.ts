@@ -62,8 +62,22 @@ export class BuyerAccount {
     @Column({ type: 'text', nullable: true })
     ipImage?: string;  // IP地址截图
 
+    // 旺旺地址 (用于验证IP一致性)
+    @Column({ length: 100, nullable: true })
+    wangwangProvince?: string;  // 旺旺地址省 (对应原版wwpro)
+
+    @Column({ length: 100, nullable: true })
+    wangwangCity?: string;  // 旺旺地址市 (对应原版wwcity)
+
+    // 收货地址备注
+    @Column({ type: 'text', nullable: true })
+    addressRemark?: string;  // 收货地址信息备注 (对应原版addresstext)
+
     @Column({ default: 1 })
     star: number;  // 星级 (1-5)
+
+    @Column({ type: 'timestamp', nullable: true })
+    frozenTime?: Date;  // 冻结时间 (对应原版frozen_time)
 
     @Column({ type: 'int', default: 0 })
     monthlyTaskCount: number;  // 当月已完成任务数
@@ -121,6 +135,18 @@ export class CreateBuyerAccountDto {
     @IsString()
     @IsOptional()
     alipayName?: string;
+
+    @IsString()
+    @IsOptional()
+    wangwangProvince?: string;  // 旺旺地址省
+
+    @IsString()
+    @IsOptional()
+    wangwangCity?: string;  // 旺旺地址市
+
+    @IsString()
+    @IsOptional()
+    addressRemark?: string;  // 收货地址备注
 }
 
 export class UpdateBuyerAccountDto {
@@ -151,4 +177,16 @@ export class UpdateBuyerAccountDto {
     @IsString()
     @IsOptional()
     alipayName?: string;
+
+    @IsString()
+    @IsOptional()
+    wangwangProvince?: string;
+
+    @IsString()
+    @IsOptional()
+    wangwangCity?: string;
+
+    @IsString()
+    @IsOptional()
+    addressRemark?: string;
 }

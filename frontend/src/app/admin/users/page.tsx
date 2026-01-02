@@ -12,6 +12,7 @@ interface User {
     silver: number;
     frozenBalance?: number;
     frozenSilver?: number;
+    reward?: number;
     vip: boolean;
     vipExpireAt?: string;
     verifyStatus: number;
@@ -20,6 +21,20 @@ interface User {
     banReason?: string;
     createdAt: string;
     lastLoginAt?: string;
+    lastLoginIp?: string;
+    // 实名认证
+    realName?: string;
+    idCard?: string;
+    idCardFront?: string;
+    idCardBack?: string;
+    // 推荐信息
+    invitationCode?: string;
+    invitedBy?: string;
+    referrerId?: string;
+    referrerType?: number;
+    referralReward?: number;
+    referralCount?: number;
+    updatedAt?: string;
 }
 
 interface BalanceModalData {
@@ -45,13 +60,14 @@ export default function AdminUsersPage() {
     const [detailModal, setDetailModal] = useState<User | null>(null);
     const [banModal, setBanModal] = useState<{ userId: string; username: string } | null>(null);
     const [banReason, setBanReason] = useState('');
+    const [imageModal, setImageModal] = useState<string | null>(null);
 
     useEffect(() => {
         loadUsers();
     }, [page, statusFilter, vipFilter]);
 
     const loadUsers = async () => {
-        const token = localStorage.getItem('adminToken') || localStorage.getItem('merchantToken');
+        const token = localStorage.getItem('adminToken');
         setLoading(true);
         try {
             let url = `${BASE_URL}/admin/users?page=${page}&limit=20`;
@@ -444,58 +460,176 @@ export default function AdminUsersPage() {
             {/* 用户详情弹窗 */}
             {detailModal && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: '#fff', borderRadius: '8px', width: '500px', maxHeight: '80vh', overflow: 'auto' }}>
-                        <div style={{ padding: '20px 24px', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h3 style={{ margin: 0, fontSize: '16px' }}>👤 用户详情</h3>
-                            <button onClick={() => setDetailModal(null)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#999' }}>×</button>
+                    <div style={{ background: '#fff', borderRadius: '8px', width: '700px', maxWidth: '95%', maxHeight: '90vh', overflow: 'auto' }}>
+                        <div style={{ padding: '20px 24px', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
+                            <h3 style={{ margin: 0, fontSize: '16px' }}>用户详情</h3>
+                            <button onClick={() => setDetailModal(null)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#999' }}>x</button>
                         </div>
                         <div style={{ padding: '24px' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                <div>
-                                    <div style={{ color: '#999', fontSize: '12px', marginBottom: '4px' }}>用户名</div>
-                                    <div style={{ fontWeight: '500' }}>{detailModal.username}</div>
+                            {/* 基本信息 */}
+                            <div style={{ marginBottom: '24px' }}>
+                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>基本信息</h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                    <div><span style={{ color: '#999' }}>用户ID：</span><span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{detailModal.id}</span></div>
+                                    <div><span style={{ color: '#999' }}>用户名：</span><span style={{ fontWeight: '500' }}>{detailModal.username}</span></div>
+                                    <div><span style={{ color: '#999' }}>手机号：</span>{detailModal.phone}</div>
+                                    <div><span style={{ color: '#999' }}>QQ：</span>{detailModal.qq || '-'}</div>
+                                    <div><span style={{ color: '#999' }}>邀请码：</span><span style={{ fontFamily: 'monospace', color: '#1890ff' }}>{detailModal.invitationCode || '-'}</span></div>
+                                    <div><span style={{ color: '#999' }}>最后登录IP：</span>{detailModal.lastLoginIp || '-'}</div>
                                 </div>
-                                <div>
-                                    <div style={{ color: '#999', fontSize: '12px', marginBottom: '4px' }}>手机号</div>
-                                    <div>{detailModal.phone}</div>
-                                </div>
-                                <div>
-                                    <div style={{ color: '#999', fontSize: '12px', marginBottom: '4px' }}>QQ</div>
-                                    <div>{detailModal.qq || '-'}</div>
-                                </div>
-                                <div>
-                                    <div style={{ color: '#999', fontSize: '12px', marginBottom: '4px' }}>本金余额</div>
-                                    <div style={{ color: '#52c41a', fontWeight: '500' }}>¥{Number(detailModal.balance || 0).toFixed(2)}</div>
-                                </div>
-                                <div>
-                                    <div style={{ color: '#999', fontSize: '12px', marginBottom: '4px' }}>银锭余额</div>
-                                    <div style={{ color: '#1890ff', fontWeight: '500' }}>{Number(detailModal.silver || 0).toFixed(2)}</div>
-                                </div>
-                                <div>
-                                    <div style={{ color: '#999', fontSize: '12px', marginBottom: '4px' }}>VIP状态</div>
-                                    <div>{detailModal.vip ? `VIP (${detailModal.vipExpireAt ? new Date(detailModal.vipExpireAt).toLocaleDateString() : '-'}到期)` : '普通用户'}</div>
-                                </div>
-                                <div>
-                                    <div style={{ color: '#999', fontSize: '12px', marginBottom: '4px' }}>实名状态</div>
-                                    <div style={{ color: getVerifyStatusColor(detailModal.verifyStatus) }}>{getVerifyStatusText(detailModal.verifyStatus)}</div>
-                                </div>
-                                <div>
-                                    <div style={{ color: '#999', fontSize: '12px', marginBottom: '4px' }}>账号状态</div>
-                                    <div style={{ color: detailModal.isBanned ? '#ff4d4f' : '#52c41a' }}>
-                                        {detailModal.isBanned ? `已封禁 (${detailModal.banReason || '无原因'})` : '正常'}
+                            </div>
+
+                            {/* 账户余额 */}
+                            <div style={{ marginBottom: '24px' }}>
+                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>账户余额</h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                                    <div style={{ padding: '16px', background: '#f6ffed', borderRadius: '6px', textAlign: 'center' }}>
+                                        <div style={{ fontSize: '24px', fontWeight: '600', color: '#52c41a' }}>¥{Number(detailModal.balance || 0).toFixed(2)}</div>
+                                        <div style={{ fontSize: '12px', color: '#999' }}>本金余额</div>
+                                        {(detailModal.frozenBalance || 0) > 0 && (
+                                            <div style={{ fontSize: '11px', color: '#faad14', marginTop: '4px' }}>冻结: ¥{Number(detailModal.frozenBalance).toFixed(2)}</div>
+                                        )}
+                                    </div>
+                                    <div style={{ padding: '16px', background: '#e6f7ff', borderRadius: '6px', textAlign: 'center' }}>
+                                        <div style={{ fontSize: '24px', fontWeight: '600', color: '#1890ff' }}>{Number(detailModal.silver || 0).toFixed(2)}</div>
+                                        <div style={{ fontSize: '12px', color: '#999' }}>银锭余额</div>
+                                        {(detailModal.frozenSilver || 0) > 0 && (
+                                            <div style={{ fontSize: '11px', color: '#faad14', marginTop: '4px' }}>冻结: {Number(detailModal.frozenSilver).toFixed(2)}</div>
+                                        )}
+                                    </div>
+                                    <div style={{ padding: '16px', background: '#fff7e6', borderRadius: '6px', textAlign: 'center' }}>
+                                        <div style={{ fontSize: '24px', fontWeight: '600', color: '#fa8c16' }}>{Number(detailModal.reward || 0).toFixed(2)}</div>
+                                        <div style={{ fontSize: '12px', color: '#999' }}>累计赚取银锭</div>
                                     </div>
                                 </div>
-                                <div>
-                                    <div style={{ color: '#999', fontSize: '12px', marginBottom: '4px' }}>注册时间</div>
-                                    <div>{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</div>
+                            </div>
+
+                            {/* 会员状态 */}
+                            <div style={{ marginBottom: '24px' }}>
+                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>会员状态</h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                                    <div><span style={{ color: '#999' }}>VIP状态：</span>
+                                        {detailModal.vip ? (
+                                            <span style={{ padding: '2px 8px', background: '#fff7e6', color: '#d48806', borderRadius: '4px', fontSize: '12px' }}>VIP</span>
+                                        ) : (
+                                            <span style={{ color: '#999' }}>普通用户</span>
+                                        )}
+                                    </div>
+                                    {detailModal.vip && detailModal.vipExpireAt && (
+                                        <div><span style={{ color: '#999' }}>VIP到期：</span>{new Date(detailModal.vipExpireAt).toLocaleDateString('zh-CN')}</div>
+                                    )}
+                                    <div><span style={{ color: '#999' }}>账号状态：</span>
+                                        {detailModal.isBanned ? (
+                                            <span style={{ color: '#ff4d4f' }}>已封禁</span>
+                                        ) : detailModal.isActive ? (
+                                            <span style={{ color: '#52c41a' }}>正常</span>
+                                        ) : (
+                                            <span style={{ color: '#999' }}>未激活</span>
+                                        )}
+                                    </div>
                                 </div>
-                                <div>
-                                    <div style={{ color: '#999', fontSize: '12px', marginBottom: '4px' }}>最后登录</div>
-                                    <div>{detailModal.lastLoginAt ? new Date(detailModal.lastLoginAt).toLocaleString('zh-CN') : '-'}</div>
+                                {detailModal.isBanned && detailModal.banReason && (
+                                    <div style={{ marginTop: '12px', padding: '12px', background: '#fff2f0', borderRadius: '4px', border: '1px solid #ffccc7' }}>
+                                        <span style={{ color: '#ff4d4f', fontWeight: '500' }}>封禁原因：</span>
+                                        <span style={{ color: '#ff4d4f' }}>{detailModal.banReason}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* 实名认证 */}
+                            <div style={{ marginBottom: '24px' }}>
+                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>实名认证</h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                    <div><span style={{ color: '#999' }}>认证状态：</span>
+                                        <span style={{ color: getVerifyStatusColor(detailModal.verifyStatus) }}>{getVerifyStatusText(detailModal.verifyStatus)}</span>
+                                    </div>
+                                    <div><span style={{ color: '#999' }}>真实姓名：</span>{detailModal.realName || '-'}</div>
+                                    <div><span style={{ color: '#999' }}>身份证号：</span>{detailModal.idCard ? detailModal.idCard.replace(/(\d{4})\d{10}(\d{4})/, '$1**********$2') : '-'}</div>
                                 </div>
+                                {(detailModal.idCardFront || detailModal.idCardBack) && (
+                                    <div style={{ display: 'flex', gap: '16px', marginTop: '16px', flexWrap: 'wrap' }}>
+                                        {detailModal.idCardFront && (
+                                            <div style={{ textAlign: 'center' }}>
+                                                <img
+                                                    src={detailModal.idCardFront}
+                                                    alt="身份证正面"
+                                                    style={{ width: '150px', height: '100px', objectFit: 'cover', borderRadius: '4px', cursor: 'pointer', border: '1px solid #d9d9d9' }}
+                                                    onClick={() => setImageModal(detailModal.idCardFront!)}
+                                                />
+                                                <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>身份证正面</div>
+                                            </div>
+                                        )}
+                                        {detailModal.idCardBack && (
+                                            <div style={{ textAlign: 'center' }}>
+                                                <img
+                                                    src={detailModal.idCardBack}
+                                                    alt="身份证背面"
+                                                    style={{ width: '150px', height: '100px', objectFit: 'cover', borderRadius: '4px', cursor: 'pointer', border: '1px solid #d9d9d9' }}
+                                                    onClick={() => setImageModal(detailModal.idCardBack!)}
+                                                />
+                                                <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>身份证背面</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* 推荐信息 */}
+                            <div style={{ marginBottom: '24px' }}>
+                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>推荐信息</h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                                    <div><span style={{ color: '#999' }}>推荐人数：</span><span style={{ color: '#1890ff', fontWeight: '500' }}>{detailModal.referralCount || 0}</span></div>
+                                    <div><span style={{ color: '#999' }}>累计推荐奖励：</span><span style={{ color: '#52c41a', fontWeight: '500' }}>¥{Number(detailModal.referralReward || 0).toFixed(2)}</span></div>
+                                    <div><span style={{ color: '#999' }}>邀请人ID：</span><span style={{ fontFamily: 'monospace', fontSize: '11px' }}>{detailModal.invitedBy || detailModal.referrerId || '-'}</span></div>
+                                </div>
+                            </div>
+
+                            {/* 时间信息 */}
+                            <div style={{ marginBottom: '24px' }}>
+                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>时间记录</h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                    <div><span style={{ color: '#999' }}>注册时间：</span>{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</div>
+                                    <div><span style={{ color: '#999' }}>最后登录：</span>{detailModal.lastLoginAt ? new Date(detailModal.lastLoginAt).toLocaleString('zh-CN') : '-'}</div>
+                                    {detailModal.updatedAt && (
+                                        <div><span style={{ color: '#999' }}>更新时间：</span>{new Date(detailModal.updatedAt).toLocaleString('zh-CN')}</div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* 操作按钮 */}
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #f0f0f0' }}>
+                                <button
+                                    onClick={() => { setBalanceModal({ userId: detailModal.id, username: detailModal.username, type: 'balance', action: 'add' }); setDetailModal(null); }}
+                                    style={{ padding: '10px 20px', background: '#52c41a', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                >充值</button>
+                                {!detailModal.vip && (
+                                    <button
+                                        onClick={() => { handleSetVip(detailModal.id, 30); setDetailModal(null); }}
+                                        style={{ padding: '10px 20px', background: '#722ed1', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                    >设为VIP</button>
+                                )}
+                                {detailModal.isBanned ? (
+                                    <button
+                                        onClick={() => { handleUnban(detailModal.id); setDetailModal(null); }}
+                                        style={{ padding: '10px 20px', background: '#52c41a', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                    >解封</button>
+                                ) : (
+                                    <button
+                                        onClick={() => { setBanModal({ userId: detailModal.id, username: detailModal.username }); setDetailModal(null); }}
+                                        style={{ padding: '10px 20px', background: '#ff4d4f', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                    >封禁</button>
+                                )}
+                                <button onClick={() => setDetailModal(null)} style={{ padding: '10px 24px', background: '#fff', color: '#666', border: '1px solid #d9d9d9', borderRadius: '4px', cursor: 'pointer' }}>关闭</button>
                             </div>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* 图片预览弹窗 */}
+            {imageModal && (
+                <div onClick={() => setImageModal(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, cursor: 'zoom-out' }}>
+                    <img src={imageModal} alt="预览" style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain' }} />
                 </div>
             )}
         </div>

@@ -73,6 +73,54 @@ export default function MerchantWalletPage() {
         deduct: { text: '扣款', color: '#ef4444' },
     };
 
+    const [rechargeModal, setRechargeModal] = useState(false);
+    const [withdrawModal, setWithdrawModal] = useState(false);
+    const [silverModal, setSilverModal] = useState(false);
+    const [step, setStep] = useState<'input' | 'payment'>('input');
+    const [amount, setAmount] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const openRecharge = () => { setRechargeModal(true); setStep('input'); setAmount(''); };
+    const openSilver = () => { setSilverModal(true); setStep('input'); setAmount(''); };
+    const openWithdraw = () => { setWithdrawModal(true); setStep('input'); setAmount(''); };
+
+    const closeModal = () => {
+        setRechargeModal(false);
+        setWithdrawModal(false);
+        setSilverModal(false);
+        setAmount('');
+        setStep('input');
+        setIsLoading(false);
+    };
+
+    const handleRecharge = async () => {
+        setIsLoading(true);
+        setTimeout(() => {
+            alert('充值成功（模拟）');
+            closeModal();
+            loadStats();
+        }, 1500);
+    };
+
+    const handleWithdraw = async () => {
+        if (!amount || Number(amount) <= 0) return alert('请输入有效金额');
+        setIsLoading(true);
+        setTimeout(() => {
+            alert('提现申请已提交（模拟）');
+            closeModal();
+            loadStats();
+        }, 1000);
+    };
+
+    const handleSilverRecharge = async () => {
+        setIsLoading(true);
+        setTimeout(() => {
+            alert('银锭充值成功（模拟）');
+            closeModal();
+            loadStats();
+        }, 1500);
+    };
+
     return (
         <div>
             {/* Balance Cards */}
@@ -89,30 +137,36 @@ export default function MerchantWalletPage() {
                         ¥{Number(stats.balance).toFixed(2)}
                     </div>
                     <div style={{ display: 'flex', gap: '12px' }}>
-                        <button style={{
-                            flex: 1,
-                            padding: '10px',
-                            borderRadius: '8px',
-                            border: 'none',
-                            background: 'rgba(255,255,255,0.2)',
-                            color: '#fff',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                            fontWeight: '500'
-                        }}>
+                        <button
+                            onClick={openRecharge}
+                            style={{
+                                flex: 1,
+                                padding: '10px',
+                                borderRadius: '8px',
+                                border: 'none',
+                                background: 'rgba(255,255,255,0.2)',
+                                color: '#fff',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                fontWeight: '500'
+                            }}
+                        >
                             充值
                         </button>
-                        <button style={{
-                            flex: 1,
-                            padding: '10px',
-                            borderRadius: '8px',
-                            border: '1px solid rgba(255,255,255,0.3)',
-                            background: 'transparent',
-                            color: '#fff',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                            fontWeight: '500'
-                        }}>
+                        <button
+                            onClick={openWithdraw}
+                            style={{
+                                flex: 1,
+                                padding: '10px',
+                                borderRadius: '8px',
+                                border: '1px solid rgba(255,255,255,0.3)',
+                                background: 'transparent',
+                                color: '#fff',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                fontWeight: '500'
+                            }}
+                        >
                             提现
                         </button>
                     </div>
@@ -145,17 +199,20 @@ export default function MerchantWalletPage() {
                     <div style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '16px' }}>
                         {Number(stats.silver).toFixed(2)}
                     </div>
-                    <button style={{
-                        width: '100%',
-                        padding: '10px',
-                        borderRadius: '8px',
-                        border: 'none',
-                        background: 'rgba(255,255,255,0.2)',
-                        color: '#fff',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: '500'
-                    }}>
+                    <button
+                        onClick={openSilver}
+                        style={{
+                            width: '100%',
+                            padding: '10px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: 'rgba(255,255,255,0.2)',
+                            color: '#fff',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: '500'
+                        }}
+                    >
                         充值银锭
                     </button>
                 </div>
@@ -237,6 +294,119 @@ export default function MerchantWalletPage() {
                     </div>
                 )}
             </div>
+
+            {/* Modals */}
+            {(rechargeModal || withdrawModal || silverModal) && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', zIndex: 1000,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                    <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', width: '400px' }}>
+                        <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px' }}>
+                            {rechargeModal ? (step === 'payment' ? '扫码支付' : '账户充值') : withdrawModal ? '余额提现' : (step === 'payment' ? '扫码支付' : '充值银锭')}
+                        </h3>
+
+                        {step === 'input' ? (
+                            <>
+                                <div style={{ marginBottom: '20px' }}>
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#6b7280', fontSize: '14px' }}>
+                                        {silverModal ? '充值数量' : '金额'}
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={amount}
+                                        onChange={e => setAmount(e.target.value)}
+                                        placeholder={silverModal ? '请输入银锭数量' : '请输入金额'}
+                                        disabled={isLoading}
+                                        style={{
+                                            width: '100%', padding: '10px',
+                                            border: '1px solid #d1d5db', borderRadius: '6px',
+                                            boxSizing: 'border-box'
+                                        }}
+                                    />
+                                </div>
+                                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                                    <button
+                                        onClick={closeModal}
+                                        disabled={isLoading}
+                                        style={{
+                                            padding: '8px 20px', borderRadius: '6px',
+                                            border: '1px solid #d1d5db', background: '#fff',
+                                            color: '#374151', cursor: 'pointer'
+                                        }}
+                                    >
+                                        取消
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (!amount || Number(amount) <= 0) {
+                                                alert('请输入有效金额');
+                                                return;
+                                            }
+                                            if (rechargeModal || silverModal) {
+                                                setStep('payment');
+                                            } else {
+                                                handleWithdraw();
+                                            }
+                                        }}
+                                        disabled={isLoading}
+                                        style={{
+                                            padding: '8px 20px', borderRadius: '6px',
+                                            border: 'none', background: '#4f46e5',
+                                            color: '#fff', cursor: isLoading ? 'not-allowed' : 'pointer',
+                                            opacity: isLoading ? 0.7 : 1
+                                        }}
+                                    >
+                                        {isLoading ? '处理中...' : '下一步'}
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <div style={{ textAlign: 'center' }}>
+                                <div style={{ marginBottom: '16px', fontSize: '14px', color: '#6b7280' }}>
+                                    请使用支付宝/微信扫码支付
+                                </div>
+                                <div style={{
+                                    width: '200px', height: '200px', background: '#f3f4f6',
+                                    margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    borderRadius: '8px', border: '1px solid #e5e7eb'
+                                }}>
+                                    <div style={{ fontSize: '24px', color: '#9ca3af' }}>QR CODE</div>
+                                </div>
+                                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#10b981', marginBottom: '24px' }}>
+                                    ¥{parseFloat(amount).toFixed(2)}
+                                </div>
+                                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                                    <button
+                                        onClick={() => setStep('input')}
+                                        disabled={isLoading}
+                                        style={{
+                                            padding: '8px 20px', borderRadius: '6px',
+                                            border: '1px solid #d1d5db', background: '#fff',
+                                            color: '#374151', cursor: isLoading ? 'not-allowed' : 'pointer'
+                                        }}
+                                    >
+                                        返回修改
+                                    </button>
+                                    <button
+                                        onClick={rechargeModal ? handleRecharge : handleSilverRecharge}
+                                        disabled={isLoading}
+                                        style={{
+                                            padding: '8px 20px', borderRadius: '6px',
+                                            border: 'none', background: '#10b981',
+                                            color: '#fff', cursor: isLoading ? 'not-allowed' : 'pointer',
+                                            opacity: isLoading ? 0.8 : 1
+                                        }}
+                                    >
+                                        {isLoading ? '确认支付中...' : '我已支付'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

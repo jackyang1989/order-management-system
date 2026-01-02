@@ -1,170 +1,316 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
+import { IsString, IsNumber, IsOptional, IsArray, IsBoolean, Min } from 'class-validator';
 
+/**
+ * 追评任务状态 (完全对应原版 tfkz_review_task.state)
+ *
+ * 状态流转:
+ * 0(未支付) -> 1(已支付) -> 2(已审核/通知买手) -> 3(已上传) -> 4(已完成)
+ *                |            |
+ *                v            v
+ *              5(已取消)    6(买手拒接) -> 退款给商家
+ *                             7(已拒绝)
+ */
 export enum ReviewTaskStatus {
-    PENDING = 1,        // 待处理（等待买手追评）
-    SUBMITTED = 2,      // 待审核（买手已提交追评）
-    WAITING_REFUND = 3, // 待返款（审核通过）
-    COMPLETED = 4,      // 已完成
-    CANCELLED = 5,      // 已取消（被商家取消）
-    BUYER_REJECTED = 6, // 买手已拒绝
-    APPROVED = 7,       // 已批准
-    REJECTED = 8,       // 已拒绝
+    UNPAID = 0,           // 未支付
+    PAID = 1,             // 已支付 (等待管理员审核)
+    APPROVED = 2,         // 已审核 (通知买手去追评)
+    UPLOADED = 3,         // 已上传 (买手已上传追评截图，等待商家确认)
+    COMPLETED = 4,        // 已完成 (商家确认完成/管理员返款)
+    CANCELLED = 5,        // 已取消 (商家取消)
+    BUYER_REJECTED = 6,   // 买手拒接
+    REJECTED = 7,         // 已拒绝 (管理员拒绝)
 }
 
-// 追评类型
-export enum ReviewType {
+/**
+ * 追评类型 (对应原版 tfkz_review_task_praise.type)
+ */
+export enum ReviewPraiseType {
     TEXT = 1,       // 文字追评
     IMAGE = 2,      // 图片追评
     VIDEO = 3,      // 视频追评
 }
 
+/**
+ * 追评任务表 (对应原版 tfkz_review_task)
+ */
 @Entity('review_tasks')
 export class ReviewTask {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ length: 50, unique: true })
-    reviewNo: string; // 追评任务编号
+    // ============ 关联信息 ============
+    @Column()
+    @Index()
+    merchantId: string;         // 商家ID (seller_id)
 
     @Column()
     @Index()
-    orderId: string;        // 关联原订单
-
-    @Column()
-    @Index()
-    taskId: string;         // 关联原任务
-
-    @Column()
-    @Index()
-    merchantId: string;     // 商家ID
-
-    @Column()
-    @Index()
-    userId: string;         // 买手ID
+    userId: string;             // 买手ID (user_id)
 
     @Column({ nullable: true })
-    buynoId: string;        // 买号ID
+    buynoId: string;            // 买号ID (buy_id)
 
     @Column({ nullable: true })
-    buynoAccount: string;   // 买号
-
-    @Column({ type: 'int', default: ReviewType.TEXT })
-    reviewType: ReviewType; // 追评类型
-
-    @Column({ type: 'text', nullable: true })
-    content: string;        // 追评内容要求
-
-    @Column({ type: 'jsonb', nullable: true })
-    images: string[];       // 追评图片要求
-
-    @Column({ type: 'text', nullable: true })
-    video: string;          // 追评视频要求
-
-    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-    commission: number;     // 追评佣金
-
-    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-    deposit: number;        // 押金
-
-    @Column({ type: 'int', default: ReviewTaskStatus.PENDING })
-    status: ReviewTaskStatus;
-
-    @Column({ type: 'timestamp', nullable: true })
-    deadline: Date;         // 追评截止时间
-
-    // 买手提交的追评凭证
-    @Column({ type: 'text', nullable: true })
-    submittedContent: string;
-
-    @Column({ type: 'jsonb', nullable: true })
-    submittedImages: string[];
-
-    @Column({ type: 'text', nullable: true })
-    submittedVideo: string;
-
-    @Column({ type: 'text', nullable: true })
-    submittedScreenshot: string; // 追评截图凭证
-
-    @Column({ type: 'timestamp', nullable: true })
-    submittedAt: Date;
-
-    // 审核相关
-    @Column({ type: 'text', nullable: true })
-    rejectReason: string;   // 拒绝原因
+    shopId: string;             // 店铺ID (shop_id)
 
     @Column({ nullable: true })
-    reviewerId: string;     // 审核人ID
+    taobaoOrderNumber: string;  // 淘宝订单号 (taobao_number)
+
+    @Column({ length: 100, unique: true })
+    @Index()
+    taskNumber: string;         // 追评任务编号 (task_number) 格式: ZP+时间戳+随机数
+
+    @Column()
+    @Index()
+    userTaskId: string;         // 原买手任务单ID (user_task_id) - 对应orders.id
+
+    @Column({ nullable: true })
+    sellerTaskId: string;       // 商家任务ID (task_id) - 对应tasks.id
+
+    // ============ 金额信息 ============
+    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+    payPrice: number;           // 买手支付金额/原订单金额 (pay_price)
+
+    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+    money: number;              // 商家支付金额 (money) - 追评总费用
+
+    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+    userMoney: number;          // 用户佣金 (user_money) = money * 0.5
+
+    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+    yjprice: number;            // 支付使用押金 (yjprice)
+
+    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+    ydprice: number;            // 支付使用银锭 (ydprice)
+
+    // ============ 状态信息 ============
+    @Column({ type: 'int', default: ReviewTaskStatus.UNPAID })
+    @Index()
+    state: ReviewTaskStatus;    // 状态 (state)
+
+    // ============ 追评截图 ============
+    @Column({ type: 'text', nullable: true })
+    img: string;                // 好评截图 (img) - JSON数组或逗号分隔
+
+    // ============ 时间信息 ============
+    @Column({ type: 'timestamp', nullable: true })
+    uploadTime: Date;           // 上传好评图片时间 (upload_time)
 
     @Column({ type: 'timestamp', nullable: true })
-    reviewedAt: Date;       // 审核时间
+    confirmTime: Date;          // 完成时间 (confirm_time)
 
-    // 返款相关
     @Column({ type: 'timestamp', nullable: true })
-    refundTime: Date;       // 返款时间
+    payTime: Date;              // 支付时间 (pay_time)
 
-    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-    refundAmount: number;   // 实际返款金额
+    @Column({ type: 'timestamp', nullable: true })
+    examineTime: Date;          // 审核时间 (examine_time)
 
-    // 通知状态
-    @Column({ default: false })
-    notified: boolean;      // 是否已通知买手
+    // ============ 审核信息 ============
+    @Column({ type: 'text', nullable: true })
+    remarks: string;            // 审核备注 (remarks)
 
     @CreateDateColumn()
-    createdAt: Date;
+    createdAt: Date;            // 添加时间 (create_time)
 
     @UpdateDateColumn()
     updatedAt: Date;
 }
 
-// 追评内容详情表（多商品场景）
-@Entity('review_task_details')
-export class ReviewTaskDetail {
+/**
+ * 追评任务好评内容表 (对应原版 tfkz_review_task_praise)
+ * 一个追评任务可以有多个商品的好评要求
+ */
+@Entity('review_task_praises')
+export class ReviewTaskPraise {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column()
     @Index()
-    reviewTaskId: string;   // 关联追评任务
+    reviewTaskId: string;       // 追评任务ID (task_id -> review_tasks.id)
 
     @Column({ nullable: true })
-    goodsId: string;        // 商品ID
+    goodsId: string;            // 商品ID (goods_id)
 
-    @Column({ nullable: true })
-    goodsName: string;      // 商品名称
-
-    @Column({ type: 'int', default: ReviewType.TEXT })
-    reviewType: ReviewType;
+    @Column({ type: 'int', default: ReviewPraiseType.TEXT })
+    type: ReviewPraiseType;     // 类型 (type): 1=文字好评, 2=图片好评, 3=视频好评
 
     @Column({ type: 'text', nullable: true })
-    requiredContent: string; // 要求的追评内容
-
-    @Column({ type: 'jsonb', nullable: true })
-    requiredImages: string[];
-
-    @Column({ type: 'text', nullable: true })
-    submittedContent: string; // 提交的追评内容
-
-    @Column({ type: 'jsonb', nullable: true })
-    submittedImages: string[];
-
-    @Column({ default: false })
-    isCompleted: boolean;
+    content: string;            // 内容 (content): 文字/图片URL/视频URL
 
     @CreateDateColumn()
-    createdAt: Date;
+    createdAt: Date;            // 添加时间 (create_time)
 }
 
-// DTOs
+// ============ DTOs ============
+
+/**
+ * 商家获取可追评任务列表的请求
+ */
+export class GetReviewableOrdersDto {
+    @IsOptional()
+    @IsString()
+    shopId?: string;            // 按店铺筛选
+
+    @IsOptional()
+    @IsNumber()
+    page?: number;
+
+    @IsOptional()
+    @IsNumber()
+    limit?: number;
+}
+
+/**
+ * 商品追评设置
+ */
+export class GoodsPraiseSettingDto {
+    @IsString()
+    goodsId: string;
+
+    @IsOptional()
+    @IsBoolean()
+    isPraise?: boolean;         // 是否文字好评
+
+    @IsOptional()
+    @IsString()
+    praiseContent?: string;     // 文字好评内容
+
+    @IsOptional()
+    @IsBoolean()
+    isImgPraise?: boolean;      // 是否图片好评
+
+    @IsOptional()
+    @IsArray()
+    praiseImages?: string[];    // 图片好评URL列表
+
+    @IsOptional()
+    @IsBoolean()
+    isVideoPraise?: boolean;    // 是否视频好评
+
+    @IsOptional()
+    @IsString()
+    praiseVideo?: string;       // 视频好评URL
+}
+
+/**
+ * 创建追评任务请求 (对应原版 addTask)
+ */
 export class CreateReviewTaskDto {
-    orderId: string;
-    content?: string;
-    images?: string[];
-    commission: number;
-    deposit?: number;
-    deadline?: string;      // ISO date string
+    @IsString()
+    userTaskId: string;         // 原买手任务单ID (orders.id)
+
+    @IsArray()
+    goods: GoodsPraiseSettingDto[];  // 商品追评设置列表
 }
 
+/**
+ * 支付追评任务请求 (对应原版 payDo)
+ */
+export class PayReviewTaskDto {
+    @IsString()
+    reviewTaskId: string;       // 追评任务ID
+
+    @IsOptional()
+    @IsBoolean()
+    useReward?: boolean;        // 是否使用银锭抵扣 (is_reward)
+}
+
+/**
+ * 买手提交追评截图请求 (对应原版 take_zhuipin)
+ */
 export class SubmitReviewDto {
-    content: string;
-    images?: string[];
+    @IsString()
+    reviewTaskId: string;
+
+    @IsArray()
+    @IsString({ each: true })
+    images: string[];           // 追评截图URL列表
+}
+
+/**
+ * 买手拒绝追评请求 (对应原版 refuse_zhuipin)
+ */
+export class RejectReviewDto {
+    @IsString()
+    reviewTaskId: string;
+
+    @IsOptional()
+    @IsString()
+    reason?: string;            // 拒绝原因
+}
+
+/**
+ * 商家确认追评完成请求 (对应原版 confirm)
+ */
+export class ConfirmReviewDto {
+    @IsString()
+    reviewTaskId: string;
+}
+
+/**
+ * 商家取消追评任务请求 (对应原版 quxiao)
+ */
+export class CancelReviewDto {
+    @IsString()
+    reviewTaskId: string;
+
+    @IsOptional()
+    @IsString()
+    reason?: string;
+}
+
+/**
+ * 管理员审核追评请求 (对应原版 reviewtaskToExamine)
+ */
+export class AdminReviewExamineDto {
+    @IsString()
+    reviewTaskId: string;
+
+    @IsNumber()
+    state: number;              // 目标状态: 2=通过, 7=拒绝
+
+    @IsOptional()
+    @IsString()
+    remarks?: string;           // 审核备注
+}
+
+/**
+ * 管理员批量返款请求 (对应原版 reviewTaskReturnPays)
+ */
+export class AdminBatchRefundDto {
+    @IsArray()
+    @IsString({ each: true })
+    reviewTaskIds: string[];
+}
+
+/**
+ * 追评任务列表筛选
+ */
+export class ReviewTaskFilterDto {
+    @IsOptional()
+    @IsNumber()
+    state?: ReviewTaskStatus;
+
+    @IsOptional()
+    @IsString()
+    taskNumber?: string;
+
+    @IsOptional()
+    @IsString()
+    startDate?: string;
+
+    @IsOptional()
+    @IsString()
+    endDate?: string;
+
+    @IsOptional()
+    @IsNumber()
+    page?: number;
+
+    @IsOptional()
+    @IsNumber()
+    @Min(1)
+    limit?: number;
 }

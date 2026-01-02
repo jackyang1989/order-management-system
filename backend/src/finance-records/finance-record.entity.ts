@@ -26,6 +26,7 @@ export enum FinanceType {
     BUYER_INVITE_REWARD = 8,    // 邀请奖励
     BUYER_ADMIN_ADD = 9,        // 管理员充值
     BUYER_ADMIN_DEDUCT = 10,    // 管理员扣除
+    BUYER_REGISTER_GIFT = 14,   // 注册赠送
 
     // 商家相关
     MERCHANT_RECHARGE = 21,         // 商家充值押金
@@ -39,6 +40,13 @@ export enum FinanceType {
     MERCHANT_TASK_REFUND = 33,      // 商家任务退款
     MERCHANT_ADMIN_ADD = 28,        // 管理员充值
     MERCHANT_ADMIN_DEDUCT = 29,     // 管理员扣除
+
+    // 追评相关 (对应原版 type 15-19)
+    REVIEW_TASK_PAY_BALANCE = 15,   // 使用押金发布追评任务
+    REVIEW_TASK_PAY_SILVER = 16,    // 使用银锭发布追评任务
+    REVIEW_TASK_CANCEL_REFUND = 17, // 取消追评任务退回
+    REVIEW_TASK_COMMISSION = 18,    // 完成追评任务获得佣金
+    REVIEW_TASK_REJECT_REFUND = 19, // 买手拒绝追评任务退回
 
     // 其他
     REWARD = 40,                    // 奖励
