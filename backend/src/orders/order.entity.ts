@@ -100,6 +100,9 @@ export class Order {
     @Column({ default: false })
     isAdvancePay: boolean; // 是否垫付任务
 
+    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+    silverPrepay: number; // 银锭押金（接单时冻结，完成后返还）
+
     // ============ 发货相关字段 ============
     @Column({ type: 'int', default: 0 })
     deliveryState: number; // 发货状态 0未发货 1已发货 2已签收

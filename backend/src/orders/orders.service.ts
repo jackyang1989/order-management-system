@@ -77,6 +77,26 @@ export class OrdersService {
             throw new NotFoundException('任务不存在');
         }
 
+        // 获取用户信息
+        const user = await this.usersRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            throw new NotFoundException('用户不存在');
+        }
+
+        // VIP验证 (对应原版 vip=1 && vip_time > time())
+        if (!user.vip) {
+            throw new BadRequestException('您还不是VIP，请先充值');
+        }
+        if (user.vipExpireAt && new Date(user.vipExpireAt) < new Date()) {
+            throw new BadRequestException('VIP已过期，请先续费');
+        }
+
+        // 银锭验证 - 接单需要冻结1银锭 (对应原版 reward < 1 check)
+        const SILVER_PREPAY = 1; // 接单押金1银锭
+        if (Number(user.silver) < SILVER_PREPAY) {
+            throw new BadRequestException('银锭不足，接单需要1银锭作为押金');
+        }
+
         // 检查是否已领取过
         const existing = await this.findByUserAndTask(userId, createOrderDto.taskId);
         if (existing) {
@@ -102,8 +122,26 @@ export class OrdersService {
             throw new BadRequestException(eligibility.reason || '该买号无法接取此任务');
         }
 
+        // 2.5 验证每日/每月接单限制 (对应原版)
+        const DAILY_LIMIT_PER_BUYNO = 4;  // 每个买号每天最多4单
+        const MONTHLY_LIMIT_PER_USER = 220;  // 每个用户每月最多220单
+
+        const buynoTodayCount = await this.getBuynoTodayOrderCount(createOrderDto.buynoId);
+        if (buynoTodayCount >= DAILY_LIMIT_PER_BUYNO) {
+            throw new BadRequestException(`该买号今日已接${buynoTodayCount}单，每日最多${DAILY_LIMIT_PER_BUYNO}单`);
+        }
+
+        const userMonthlyCount = await this.getUserMonthlyOrderCount(userId);
+        if (userMonthlyCount >= MONTHLY_LIMIT_PER_USER) {
+            throw new BadRequestException(`您本月已接${userMonthlyCount}单，每月最多${MONTHLY_LIMIT_PER_USER}单`);
+        }
+
         // 3. 扣减库存 (Security Fix: Inventory Race Condition)
         await this.tasksService.claim(createOrderDto.taskId, userId, createOrderDto.buynoId);
+
+        // 4. 扣除银锭押金 (对应原版: 接单冻结1银锭)
+        user.silver = Number(user.silver) - SILVER_PREPAY;
+        await this.usersRepository.save(user);
 
         // 构建默认步骤数据 (简化版：3步流程)
         const defaultSteps: OrderStepData[] = [
@@ -136,9 +174,21 @@ export class OrdersService {
             stepData: defaultSteps,
             status: OrderStatus.PENDING,
             endingTime,
+            silverPrepay: SILVER_PREPAY, // 记录押金金额
         });
 
-        return this.ordersRepository.save(newOrder);
+        const savedOrder = await this.ordersRepository.save(newOrder);
+
+        // 记录银锭押金扣除流水
+        await this.financeRecordsService.recordBuyerTaskSilverPrepay(
+            userId,
+            SILVER_PREPAY,
+            Number(user.silver),
+            savedOrder.id,
+            '接单银锭押金'
+        );
+
+        return savedOrder;
     }
 
 
@@ -191,6 +241,41 @@ export class OrdersService {
         const total = await this.ordersRepository.count({ where: { userId } });
 
         return { pending, submitted, completed, total };
+    }
+
+    /**
+     * 获取买号今日接单数量
+     * 对应原版: 每个买号每天最多接4单
+     */
+    async getBuynoTodayOrderCount(buynoId: string): Promise<number> {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        return this.ordersRepository
+            .createQueryBuilder('order')
+            .where('order.buynoId = :buynoId', { buynoId })
+            .andWhere('order.createdAt >= :today', { today })
+            .andWhere('order.createdAt < :tomorrow', { tomorrow })
+            .getCount();
+    }
+
+    /**
+     * 获取用户本月接单数量
+     * 对应原版: 每个用户每月最多接220单
+     */
+    async getUserMonthlyOrderCount(userId: string): Promise<number> {
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+        return this.ordersRepository
+            .createQueryBuilder('order')
+            .where('order.userId = :userId', { userId })
+            .andWhere('order.createdAt >= :monthStart', { monthStart })
+            .andWhere('order.createdAt < :nextMonth', { nextMonth })
+            .getCount();
     }
 
     // ============ 商家端订单审核 ============
@@ -298,6 +383,12 @@ export class OrdersService {
 
                 // 3. 买手获得佣金（到银锭）
                 user.silver = Number(user.silver) + commissionAmount;
+
+                // 4. 返还银锭押金 (对应原版 type=11)
+                const silverPrepayAmount = Number(order.silverPrepay) || 0;
+                if (silverPrepayAmount > 0) {
+                    user.silver = Number(user.silver) + silverPrepayAmount;
+                }
                 await queryRunner.manager.save(user);
 
                 // 记录买手收到佣金
@@ -308,6 +399,17 @@ export class OrdersService {
                     order.id,
                     '任务佣金'
                 );
+
+                // 记录银锭押金返还
+                if (silverPrepayAmount > 0) {
+                    await this.financeRecordsService.recordBuyerTaskSilverRefund(
+                        order.userId,
+                        silverPrepayAmount,
+                        Number(user.silver),
+                        order.id,
+                        '任务完成返还银锭押金'
+                    );
+                }
 
                 // 更新订单返款金额
                 order.refundAmount = principalAmount + commissionAmount;
@@ -332,6 +434,21 @@ export class OrdersService {
                     order.id,
                     '订单驳回退款'
                 );
+
+                // 驳回时也返还买手银锭押金
+                const silverPrepayAmount = Number(order.silverPrepay) || 0;
+                if (silverPrepayAmount > 0) {
+                    user.silver = Number(user.silver) + silverPrepayAmount;
+                    await queryRunner.manager.save(user);
+
+                    await this.financeRecordsService.recordBuyerTaskSilverRefund(
+                        order.userId,
+                        silverPrepayAmount,
+                        Number(user.silver),
+                        order.id,
+                        '订单驳回返还银锭押金'
+                    );
+                }
             }
 
             order.completedAt = new Date();
@@ -520,6 +637,22 @@ export class OrdersService {
                 // 恢复任务领取数量
                 task.claimedCount = Math.max(0, (task.claimedCount || 0) - 1);
                 await queryRunner.manager.save(task);
+            }
+
+            // 用户取消订单，扣除银锭押金作为惩罚 (对应原版 type=13)
+            const silverPrepayAmount = Number(order.silverPrepay) || 0;
+            if (silverPrepayAmount > 0) {
+                const user = await queryRunner.manager.findOne(User, { where: { id: userId } });
+                if (user) {
+                    // 银锭已经在接单时扣除，取消时不返还（作为惩罚）
+                    await this.financeRecordsService.recordBuyerTaskCancelSilver(
+                        userId,
+                        silverPrepayAmount,
+                        Number(user.silver),
+                        order.id,
+                        '用户取消订单扣除银锭押金'
+                    );
+                }
             }
 
             order.status = OrderStatus.CANCELLED;

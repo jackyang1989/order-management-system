@@ -471,4 +471,102 @@ export class FinanceRecordsService {
             relatedType: 'task',
         });
     }
+
+    // ============ 买手银锭押金相关 (原版 type=11/13) ============
+
+    /**
+     * 记录买手接单扣除银锭押金
+     * 对应原版: 接单时冻结1银锭
+     */
+    async recordBuyerTaskSilverPrepay(
+        userId: string,
+        amount: number,
+        silverAfter: number,
+        orderId: string,
+        memo: string
+    ): Promise<FinanceRecord> {
+        return this.create({
+            userId,
+            userType: FinanceUserType.BUYER,
+            moneyType: FinanceMoneyType.SILVER,
+            financeType: FinanceType.BUYER_TASK_PREPAY, // 使用做单垫付类型
+            amount: -Math.abs(amount),
+            balanceAfter: silverAfter,
+            memo,
+            relatedId: orderId,
+            relatedType: 'order',
+        });
+    }
+
+    /**
+     * 记录买手任务完成返还银锭押金
+     * 对应原版 type=11: 返还做任务押的银锭
+     */
+    async recordBuyerTaskSilverRefund(
+        userId: string,
+        amount: number,
+        silverAfter: number,
+        orderId: string,
+        memo: string
+    ): Promise<FinanceRecord> {
+        return this.create({
+            userId,
+            userType: FinanceUserType.BUYER,
+            moneyType: FinanceMoneyType.SILVER,
+            financeType: FinanceType.BUYER_TASK_SILVER_REFUND,
+            amount: Math.abs(amount),
+            balanceAfter: silverAfter,
+            memo,
+            relatedId: orderId,
+            relatedType: 'order',
+        });
+    }
+
+    /**
+     * 记录取消任务扣除冻结银锭
+     * 对应原版 type=13: 取消任务扣除冻结银锭
+     */
+    async recordBuyerTaskCancelSilver(
+        userId: string,
+        amount: number,
+        silverAfter: number,
+        orderId: string,
+        memo: string
+    ): Promise<FinanceRecord> {
+        return this.create({
+            userId,
+            userType: FinanceUserType.BUYER,
+            moneyType: FinanceMoneyType.SILVER,
+            financeType: FinanceType.BUYER_TASK_CANCEL_SILVER,
+            amount: -Math.abs(amount),
+            balanceAfter: silverAfter,
+            memo,
+            relatedId: orderId,
+            relatedType: 'order',
+        });
+    }
+
+    /**
+     * 记录买手提现拒绝退款
+     * 对应原版 type=12: 拒绝提现退款
+     */
+    async recordBuyerWithdrawReject(
+        userId: string,
+        amount: number,
+        balanceAfter: number,
+        withdrawalId: string,
+        memo: string
+    ): Promise<FinanceRecord> {
+        return this.create({
+            userId,
+            userType: FinanceUserType.BUYER,
+            moneyType: FinanceMoneyType.BALANCE,
+            financeType: FinanceType.BUYER_WITHDRAW_REJECT,
+            amount: Math.abs(amount), // 退回为正数
+            balanceAfter,
+            memo,
+            relatedId: withdrawalId,
+            relatedType: 'withdrawal',
+        });
+    }
 }
