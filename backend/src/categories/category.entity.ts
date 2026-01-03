@@ -60,49 +60,6 @@ export class Category {
     updatedAt: Date;
 }
 
-// 平台配置（淘宝、京东、拼多多等）
-@Entity('platforms')
-export class Platform {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
-
-    @Column({ length: 50 })
-    name: string;  // 平台名称
-
-    @Column({ length: 20, unique: true })
-    code: string;  // 平台代码
-
-    @Column({ length: 255, nullable: true })
-    logo: string;  // Logo
-
-    @Column({ length: 255, nullable: true })
-    url: string;  // 平台链接
-
-    @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
-    commissionRate: number;  // 平台佣金率
-
-    @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
-    serviceFeeRate: number;  // 服务费率
-
-    @Column({ default: 0 })
-    sort: number;
-
-    @Column({ default: true })
-    isActive: boolean;
-
-    @Column({ type: 'text', nullable: true })
-    description: string;
-
-    @Column({ type: 'jsonb', nullable: true })
-    config: Record<string, any>;  // 平台特有配置
-
-    @CreateDateColumn()
-    createdAt: Date;
-
-    @UpdateDateColumn()
-    updatedAt: Date;
-}
-
 // DTOs
 export class CreateCategoryDto {
     @IsEnum(CategoryType)
@@ -149,70 +106,6 @@ export class UpdateCategoryDto {
     @IsString()
     @IsOptional()
     description?: string;
-
-    @IsNumber()
-    @IsOptional()
-    sort?: number;
-
-    @IsBoolean()
-    @IsOptional()
-    isActive?: boolean;
-}
-
-export class CreatePlatformDto {
-    @IsString()
-    @IsNotEmpty()
-    name: string;
-
-    @IsString()
-    @IsNotEmpty()
-    code: string;
-
-    @IsString()
-    @IsOptional()
-    logo?: string;
-
-    @IsString()
-    @IsOptional()
-    url?: string;
-
-    @IsNumber()
-    @IsOptional()
-    commissionRate?: number;
-
-    @IsNumber()
-    @IsOptional()
-    serviceFeeRate?: number;
-
-    @IsNumber()
-    @IsOptional()
-    sort?: number;
-
-    @IsString()
-    @IsOptional()
-    description?: string;
-}
-
-export class UpdatePlatformDto {
-    @IsString()
-    @IsOptional()
-    name?: string;
-
-    @IsString()
-    @IsOptional()
-    logo?: string;
-
-    @IsString()
-    @IsOptional()
-    url?: string;
-
-    @IsNumber()
-    @IsOptional()
-    commissionRate?: number;
-
-    @IsNumber()
-    @IsOptional()
-    serviceFeeRate?: number;
 
     @IsNumber()
     @IsOptional()
