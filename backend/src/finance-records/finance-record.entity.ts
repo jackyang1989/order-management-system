@@ -26,6 +26,9 @@ export enum FinanceType {
     BUYER_INVITE_REWARD = 8,    // 邀请奖励
     BUYER_ADMIN_ADD = 9,        // 管理员充值
     BUYER_ADMIN_DEDUCT = 10,    // 管理员扣除
+    BUYER_TASK_SILVER_REFUND = 11, // 返还做任务押的银锭 (原版type=11)
+    BUYER_WITHDRAW_REJECT = 12, // 拒绝提现退款 (原版type=12)
+    BUYER_TASK_CANCEL_SILVER = 13, // 取消任务扣除冻结银锭 (原版type=13)
     BUYER_REGISTER_GIFT = 14,   // 注册赠送
 
     // 商家相关

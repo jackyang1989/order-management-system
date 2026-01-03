@@ -50,6 +50,9 @@ export class User {
     @Column({ nullable: true })
     invitedBy?: string;     // 邀请人的ID
 
+    @Column({ type: 'int', default: 0 })
+    inviteState: number;    // 邀请状态 0=未验证 1=已验证(对应原版tjuser_state)
+
     // ============ 推荐奖励相关 ============
     @Column({ nullable: true })
     referrerId: string;     // 推荐人ID

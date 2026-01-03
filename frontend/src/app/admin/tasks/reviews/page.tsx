@@ -72,7 +72,7 @@ export default function AdminTasksReviewsPage() {
             });
             const json = await res.json();
             if (json.success && json.data) {
-                setTasks(json.data.data || []);
+                setTasks(json.data.list || json.data.data || []);
                 setTotal(json.data.total || 0);
             }
         } catch (e) {

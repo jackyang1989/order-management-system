@@ -12,7 +12,7 @@ export class BankCardsService {
 
     async findAllByUser(userId: string): Promise<BankCard[]> {
         return this.bankCardsRepository.find({
-            where: { userId, status: BankCardStatus.APPROVED },
+            where: { userId, status: In([BankCardStatus.PENDING, BankCardStatus.APPROVED]) },
             order: { isDefault: 'DESC', createdAt: 'DESC' }
         });
     }
@@ -53,8 +53,10 @@ export class BankCardsService {
             city: createDto.city,
             branchName: createDto.branchName,
             idCard: createDto.idCard,
+            idCardFrontImage: createDto.idCardFrontImage,
+            idCardBackImage: createDto.idCardBackImage,
             isDefault: count === 0,  // 第一张卡设为默认
-            status: BankCardStatus.APPROVED,  // 暂时自动通过
+            status: BankCardStatus.PENDING,  // 提交后待审核
         });
 
         return this.bankCardsRepository.save(bankCard);

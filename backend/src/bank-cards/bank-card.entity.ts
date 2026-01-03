@@ -97,6 +97,14 @@ export class CreateBankCardDto {
     @IsString()
     @IsOptional()
     idCard?: string;
+
+    @IsString()
+    @IsOptional()
+    idCardFrontImage?: string;  // 身份证正面照 (base64或URL)
+
+    @IsString()
+    @IsOptional()
+    idCardBackImage?: string;   // 身份证反面照 (base64或URL)
 }
 
 export class UpdateBankCardDto {

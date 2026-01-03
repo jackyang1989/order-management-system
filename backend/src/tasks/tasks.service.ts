@@ -144,6 +144,14 @@ export class TasksService implements OnModuleInit {
                 throw new BadRequestException('商户不存在');
             }
 
+            // 1.1 VIP验证 (对应原版 vip=1 && vip_time > time())
+            if (!merchant.vip) {
+                throw new BadRequestException('您不是会员，请先充值会员');
+            }
+            if (merchant.vipExpireAt && new Date(merchant.vipExpireAt) < new Date()) {
+                throw new BadRequestException('会员已过期，请先续费会员');
+            }
+
             // 2. 计算费用
             const count = createTaskDto.count || 1;
             const goodsMoney = (createTaskDto.goodsPrice || 0) * count;
