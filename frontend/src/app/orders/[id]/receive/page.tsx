@@ -6,7 +6,7 @@ import { isAuthenticated, getToken } from '../../../../../services/authService';
 import BottomNav from '../../../../../components/BottomNav';
 
 // ========================
-// 对齐旧版 my/shouhuo.html
+
 // 确认收货页面 - 上传好评截图
 // ========================
 

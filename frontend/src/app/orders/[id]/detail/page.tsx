@@ -6,7 +6,7 @@ import { isAuthenticated, getToken } from '../../../../services/authService';
 import BottomNav from '../../../../components/BottomNav';
 
 // ========================
-// 对齐旧版 my/detail.html
+
 // 完整的任务详情页面
 // ========================
 

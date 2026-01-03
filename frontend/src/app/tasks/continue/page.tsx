@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import { isAuthenticated, getToken } from '../../../services/authService';
 import BottomNav from '../../../components/BottomNav';
 
-// 对齐旧版 API 基础路径
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
 // ========================
-// 对齐旧版 task/maketask.html
+
 // 显示用户已接但未完成的任务列表
 // ========================
 
@@ -48,7 +48,7 @@ export default function ContinueTasksPage() {
     }, [router]);
 
     // ========================
-    // 加载待完成任务列表 - 对齐旧版 have_task
+
     // ========================
     const loadTasks = async () => {
         setLoading(true);
@@ -72,7 +72,7 @@ export default function ContinueTasksPage() {
     };
 
     // ========================
-    // 去完成任务 - 对齐旧版 gostep
+
     // ========================
     const gostep = (index: number) => {
         const task = tasks[index];
@@ -80,7 +80,7 @@ export default function ContinueTasksPage() {
         const taskStep = task.task_step;
         const ys = task.is_ys;
 
-        // 对齐旧版逻辑：is_ys==1 && task_step==4 跳转到 wk 页面
+
         if (ys === 1 && taskStep === 4) {
             router.push(`/task/${id}/wk`);
         } else {
@@ -93,7 +93,7 @@ export default function ContinueTasksPage() {
     };
 
     // ========================
-    // 放弃任务 - 对齐旧版 cancelActive
+
     // POST mobile/task/del_task
     // ========================
     const cancelActive = async (index: number) => {
@@ -131,7 +131,7 @@ export default function ContinueTasksPage() {
         }
     };
 
-    // 格式化手机号 - 对齐旧版 filterPhone
+
     const filterPhone = (val: string) => {
         if (!val || val.length < 11) return val;
         return val.substring(0, 3) + '****' + val.substring(7);
@@ -144,7 +144,7 @@ export default function ContinueTasksPage() {
 
     return (
         <div style={{ minHeight: '100vh', background: '#f5f5f5', paddingBottom: '80px' }}>
-            {/* 顶部栏 - 对齐旧版 page-header */}
+
             <div style={{
                 background: 'linear-gradient(135deg, #1d1d1f 0%, #2c2c2e 100%)',
                 padding: '50px 16px 20px',
@@ -162,7 +162,7 @@ export default function ContinueTasksPage() {
                 </div>
             </div>
 
-            {/* 公用tab标签 - 对齐旧版 public-tab-title */}
+
             <div style={{
                 background: '#fff',
                 padding: '14px 16px',
@@ -175,7 +175,7 @@ export default function ContinueTasksPage() {
                 做任务
             </div>
 
-            {/* 任务列表 - 对齐旧版 TaskManagement */}
+
             <div style={{ padding: '12px' }}>
                 {loading ? (
                     <div style={{ textAlign: 'center', padding: '40px', fontSize: '14px', color: '#999' }}>
@@ -216,7 +216,7 @@ export default function ContinueTasksPage() {
                             overflow: 'hidden',
                             boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                         }}>
-                            {/* 任务信息 - 对齐旧版 TaskTop */}
+
                             <div style={{ padding: '16px' }}>
                                 <div style={{
                                     display: 'flex',
@@ -275,7 +275,7 @@ export default function ContinueTasksPage() {
                                 </div>
                             </div>
 
-                            {/* 操作区 - 对齐旧版 TaskBottom */}
+
                             <div style={{
                                 background: 'linear-gradient(135deg, #f8f9ff 0%, #f5f5f7 100%)',
                                 padding: '12px 16px',

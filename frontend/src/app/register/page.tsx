@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-// 对齐旧版 API 基础路径
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
 function RegisterForm() {
@@ -118,7 +118,7 @@ function RegisterForm() {
                     qq: qq,
                     username: username,
                     dxyzm: dxyzm,
-                    type: 2,  // 对齐旧版 type=2
+                    type: 2,
                     invite: invitationCode,
                 }),
             });

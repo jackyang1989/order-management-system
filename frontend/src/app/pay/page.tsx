@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { isAuthenticated, getToken } from '../../services/authService';
 
-// 对齐旧版 API 基础路径
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
 // ========================

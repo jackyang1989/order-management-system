@@ -5,35 +5,35 @@ import { useRouter } from 'next/navigation';
 import { isAuthenticated, getToken, logout } from '../../services/authService';
 import BottomNav from '../../components/BottomNav';
 
-// 对齐旧版 API 基础路径
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
 // ========================
-// 对齐旧版 index.html 数据结构
+
 // ========================
 interface UserProfile {
     // 用户基本信息 - 对齐旧版 $users
     id: string;
-    username: string;          // 对齐旧版 $users.username
-    mobile: string;            // 对齐旧版 $users.mobile
-    balance: number;           // 对齐旧版 $users.balance (可提现本金)
-    vip: number;               // 对齐旧版 $users.vip (1=VIP会员)
-    vip_time: number;          // 对齐旧版 $users.vip_time (VIP到期时间戳)
+    username: string;
+    mobile: string;
+    balance: number;
+    vip: number;
+    vip_time: number;
 
     // 银锭信息 - 对齐旧版 $myself
-    reward: number;            // 对齐旧版 $myself.reward (总银锭)
-    tj_award: number;          // 对齐旧版 $myself.tj_award (累计邀请奖励)
-    tj_award_day: number;      // 对齐旧版 $myself.tj_award_day (今日邀请奖励)
+    reward: number;
+    tj_award: number;
+    tj_award_day: number;
 
     // 统计信息 - 对齐旧版各变量
-    all_num_task: number;          // 对齐旧版 $all_num_task (经验值/累计完成任务数)
-    all_obtain_reward: number;     // 对齐旧版 $all_obtain_reward (累积赚取银锭)
-    wait_shop_issue: number;       // 对齐旧版 $wait_shop_issue (待商家发放银锭)
-    all_user_principal: number;    // 对齐旧版 $all_user_principal (总计垫付本金)
-    freeze_reward: number;         // 对齐旧版 $freeze_reward (冻结银锭)
-    discounting: number;           // 对齐旧版 $discounting (银锭折现金额)
-    all_invite: number;            // 对齐旧版 $all_invite (总计邀请人数)
-    day_invite: number;            // 对齐旧版 $day_invite (今日邀请人数)
+    all_num_task: number;
+    all_obtain_reward: number;
+    wait_shop_issue: number;
+    all_user_principal: number;
+    freeze_reward: number;
+    discounting: number;
+    all_invite: number;
+    day_invite: number;
 
     // 通知相关
     unread_msg_count: number;      // 未读消息数量
@@ -87,7 +87,7 @@ export default function ProfilePage() {
     };
 
     // ========================
-    // 对齐旧版按钮跳转
+
     // ========================
 
     // 继续任务 - 对齐旧版 maketask

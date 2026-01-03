@@ -45,14 +45,6 @@ export class BuyerAccountsService {
             throw new BadRequestException('该买号已存在');
         }
 
-        // TODO: 验证手机验证码 (smsCode)
-        // if (createDto.smsCode) {
-        //     const isValid = await this.smsService.verifySmsCode(createDto.receiverPhone, createDto.smsCode);
-        //     if (!isValid) {
-        //         throw new BadRequestException('验证码错误或已过期');
-        //     }
-        // }
-
         const buyerAccount = this.buyerAccountsRepository.create({
             userId,
             platform: createDto.platform || BuyerAccountPlatform.TAOBAO,

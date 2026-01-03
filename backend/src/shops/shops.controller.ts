@@ -11,19 +11,7 @@ export class ShopsController {
     @Get()
     async getMyShops(@Request() req: any) {
         const user = req.user;
-        // Assuming merchant role check provided by Auth or Guard, or just simple check
-        if (user.role !== 'merchant') {
-            // For simplicity, assuming user object has role or logic handles it
-            // But actually, verify if this user is a merchant.
-            // For now, assume logged in user is making request for themselves.
-        }
-        const shops = await this.shopsService.getMyShops(user.id); // user.id here is actually merchant id?
-        // Wait, Auth logic: is user.id == merchant.id?
-        // In current system, we have User and Merchant entities.
-        // Login returns User? Or Merchant?
-        // Current Auth: Login returns { user: ... }. Users and Merchants are different tables?
-        // Let's verify Auth logic.
-        // Assuming current token represents the merchant entity directly.
+        const shops = await this.shopsService.getMyShops(user.id);
         return { success: true, data: shops };
     }
 

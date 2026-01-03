@@ -6,11 +6,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { isAuthenticated, getToken } from '../../services/authService';
 import BottomNav from '../../components/BottomNav';
 
-// 对齐旧版 API 基础路径
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
 // ========================
-// 对齐旧版 taskmanagement.html 选项
+
 // ========================
 
 // 任务状态 options1 - 对齐旧版 value1

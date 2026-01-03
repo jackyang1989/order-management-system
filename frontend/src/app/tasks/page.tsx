@@ -5,21 +5,21 @@ import { useRouter } from 'next/navigation';
 import { isAuthenticated, getToken } from '../../services/authService';
 import BottomNav from '../../components/BottomNav';
 
-// 对齐旧版 API 基础路径
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
 // ========================
-// 对齐旧版 task/index.html 选项
+
 // ========================
 
-// 平台 options1 - 对齐旧版 value1
+
 const PLATFORM_OPTIONS = [
     { value: 0, label: '全部' },
     { value: 1, label: '天猫' },
     { value: 2, label: '淘宝' },
 ];
 
-// 任务类型 options3 - 对齐旧版 value3 (含通道任务)
+
 const TASK_TYPE_OPTIONS = [
     { value: 0, label: '全部' },
     { value: 1, label: '关键词' },
@@ -29,13 +29,13 @@ const TASK_TYPE_OPTIONS = [
     { value: 5, label: '通道任务' },
 ];
 
-// 返款方式 options4 - 对齐旧版 value4
+
 const TERMINAL_OPTIONS = [
     { value: 1, label: '本佣货返' },
     { value: 2, label: '本立佣货' },
 ];
 
-// 价格区间 options5 - 对齐旧版 value5 (补齐价格筛选)
+
 const PRICE_OPTIONS = [
     { value: '', label: '全部价格' },
     { value: 1, label: '0-200' },
@@ -73,7 +73,7 @@ export default function TasksPage() {
     const [buynos, setBuynos] = useState<BuynoItem[]>([]);
 
     // ========================
-    // 筛选状态 - 完全对齐旧版参数名
+
     // ========================
     const [value1, setValue1] = useState<number | string>('');  // 平台
     const [value2, setValue2] = useState('');  // 买号ID
@@ -82,11 +82,11 @@ export default function TasksPage() {
     const [value5, setValue5] = useState<number | string>('');  // 价格区间 (补齐)
     const [op2count, setOp2count] = useState('');  // 今日可接单数
 
-    // 日期筛选 - 对齐旧版
+
     const [defaultDate, setDefaultDate] = useState('');
     const [defaultDate2, setDefaultDate2] = useState('');
 
-    // 分页 - 对齐旧版
+
     const [currentPage, setCurrentPage] = useState(1);
     const [total, setTotal] = useState(0);
     const pageSize = 10;
@@ -116,7 +116,7 @@ export default function TasksPage() {
     }, [value3, value4, value5, currentPage]);
 
     // ========================
-    // 加载买号列表 - 对齐旧版 options2
+
     // ========================
     const loadBuynos = async () => {
         try {
@@ -139,7 +139,7 @@ export default function TasksPage() {
     };
 
     // ========================
-    // 获取任务列表 - 完全对齐旧版 getData
+
     // POST mobile/task/index
     // 参数: page, datetime1, datetime2, task_type, buyno_id, terminal, getprice
     // ========================
@@ -183,7 +183,7 @@ export default function TasksPage() {
         }
     };
 
-    // 买号选择变化 - 对齐旧版 selectChange
+
     const selectChange = (val: string) => {
         setValue2(val);
         for (let i = 0; i < buynos.length; i++) {
@@ -193,19 +193,19 @@ export default function TasksPage() {
         }
     };
 
-    // 搜索 - 对齐旧版 search
+
     const search = () => {
         setCurrentPage(1);
         getData();
     };
 
-    // 分页事件 - 对齐旧版 pageChange
+
     const pageChange = (val: number) => {
         setCurrentPage(val);
     };
 
     // ========================
-    // 添加任务单 - 对齐旧版 addTask
+
     // POST mobile/task/get_task
     // 参数: task_number, buyno_id, commission, total_price, terminal, user_divided
     // ========================
@@ -263,7 +263,7 @@ export default function TasksPage() {
 
     return (
         <div style={{ minHeight: '100vh', background: '#f5f5f5', paddingBottom: '80px' }}>
-            {/* 顶部栏 - 对齐旧版 page-header */}
+
             <div style={{
                 background: 'linear-gradient(135deg, #1d1d1f 0%, #2c2c2e 100%)',
                 padding: '50px 16px 20px',
@@ -276,7 +276,7 @@ export default function TasksPage() {
                 </div>
             </div>
 
-            {/* 筛选区 - 对齐旧版 task-admin */}
+
             <div style={{
                 background: '#fff',
                 padding: '16px',
@@ -383,7 +383,7 @@ export default function TasksPage() {
                 </div>
             </div>
 
-            {/* 任务列表 - 对齐旧版 public-accept-mask-box */}
+
             <div style={{ padding: '0 12px' }}>
                 {loading ? (
                     <div style={{ textAlign: 'center', padding: '40px', fontSize: '14px', color: '#999' }}>
@@ -409,7 +409,7 @@ export default function TasksPage() {
                             marginBottom: '12px',
                             boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                         }}>
-                            {/* 任务信息 - 对齐旧版 public-accept-mask-show */}
+
                             <div style={{
                                 display: 'flex',
                                 justifyContent: 'space-between',
@@ -455,7 +455,7 @@ export default function TasksPage() {
                 )}
             </div>
 
-            {/* 分页 - 对齐旧版 public-page */}
+
             {!loading && tasks.length > 0 && (
                 <div style={{
                     padding: '20px',
