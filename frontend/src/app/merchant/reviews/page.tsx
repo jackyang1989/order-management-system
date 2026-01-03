@@ -3,44 +3,74 @@
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../apiConfig';
 
+// 追评任务状态枚举（匹配后端）
+enum ReviewTaskStatus {
+    UNPAID = 0,           // 未支付
+    PAID = 1,             // 已支付 (等待管理员审核)
+    APPROVED = 2,         // 已审核 (通知买手去追评)
+    UPLOADED = 3,         // 已上传 (买手已上传追评截图，等待商家确认)
+    COMPLETED = 4,        // 已完成
+    CANCELLED = 5,        // 已取消
+    BUYER_REJECTED = 6,   // 买手拒接
+    REJECTED = 7,         // 已拒绝
+}
+
 interface ReviewTask {
     id: string;
-    orderId: string;
+    merchantId: string;
     userId: string;
-    buynoAccount: string;
-    content: string;
-    commission: number;
-    status: number;
-    deadline: string;
-    submittedContent?: string;
-    submittedImages?: string[];
-    submittedAt?: string;
+    buynoId: string;
+    shopId: string;
+    taobaoOrderNumber: string;
+    taskNumber: string;
+    userTaskId: string;
+    sellerTaskId: string;
+    payPrice: number;
+    money: number;
+    userMoney: number;
+    yjprice: number;
+    ydprice: number;
+    state: ReviewTaskStatus;
+    img: string;
+    uploadTime: string;
+    confirmTime: string;
+    payTime: string;
+    examineTime: string;
+    remarks: string;
     createdAt: string;
+    updatedAt: string;
 }
 
 interface Stats {
-    pending: number;
-    submitted: number;
+    unpaid: number;
+    paid: number;
+    approved: number;
+    uploaded: number;
     completed: number;
+    cancelled: number;
     rejected: number;
 }
 
-const statusLabels: Record<number, { text: string; color: string }> = {
-    1: { text: '待处理', color: '#3b82f6' },
-    2: { text: '待审核', color: '#f59e0b' },
-    3: { text: '已通过', color: '#10b981' },
-    4: { text: '已完成', color: '#6b7280' },
-    5: { text: '已拒绝', color: '#ef4444' },
-    6: { text: '已取消', color: '#9ca3af' },
+const statusLabels: Record<ReviewTaskStatus, { text: string; color: string }> = {
+    [ReviewTaskStatus.UNPAID]: { text: '待支付', color: '#f59e0b' },
+    [ReviewTaskStatus.PAID]: { text: '待审核', color: '#6366f1' },
+    [ReviewTaskStatus.APPROVED]: { text: '待追评', color: '#3b82f6' },
+    [ReviewTaskStatus.UPLOADED]: { text: '待确认', color: '#8b5cf6' },
+    [ReviewTaskStatus.COMPLETED]: { text: '已完成', color: '#10b981' },
+    [ReviewTaskStatus.CANCELLED]: { text: '已取消', color: '#6b7280' },
+    [ReviewTaskStatus.BUYER_REJECTED]: { text: '买手拒接', color: '#ef4444' },
+    [ReviewTaskStatus.REJECTED]: { text: '已拒绝', color: '#dc2626' },
 };
 
 export default function MerchantReviewsPage() {
     const [tasks, setTasks] = useState<ReviewTask[]>([]);
-    const [stats, setStats] = useState<Stats>({ pending: 0, submitted: 0, completed: 0, rejected: 0 });
+    const [stats, setStats] = useState<Stats>({
+        unpaid: 0, paid: 0, approved: 0, uploaded: 0, completed: 0, cancelled: 0, rejected: 0
+    });
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState<number | undefined>(2); // 默认显示待审核
+    const [filter, setFilter] = useState<number | undefined>(ReviewTaskStatus.UPLOADED); // 默认显示待确认
     const [selectedTask, setSelectedTask] = useState<ReviewTask | null>(null);
-    const [reviewing, setReviewing] = useState(false);
+    const [processing, setProcessing] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -52,14 +82,18 @@ export default function MerchantReviewsPage() {
 
         setLoading(true);
         try {
-            // Load tasks
-            const url = filter ? `${BASE_URL}/review-tasks/merchant?status=${filter}` : `${BASE_URL}/review-tasks/merchant`;
+            // Load tasks - 使用正确的API路径
+            const params = new URLSearchParams({ page: '1', limit: '50' });
+            if (filter !== undefined) {
+                params.append('state', filter.toString());
+            }
+            const url = `${BASE_URL}/review-tasks/merchant/list?${params}`;
             const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();
-            if (json.success) {
-                setTasks(json.data);
+            if (json.success && json.data) {
+                setTasks(json.data.list || []);
             }
 
             // Load stats
@@ -77,23 +111,26 @@ export default function MerchantReviewsPage() {
         }
     };
 
-    const handleReview = async (taskId: string, approved: boolean, reason?: string) => {
+    // 商家确认追评完成
+    const handleConfirm = async (taskId: string) => {
         const token = localStorage.getItem('merchantToken');
         if (!token) return;
 
-        setReviewing(true);
+        if (!confirm('确认追评已完成？佣金将发放给买手')) return;
+
+        setProcessing(true);
         try {
-            const res = await fetch(`${BASE_URL}/review-tasks/${taskId}/review`, {
+            const res = await fetch(`${BASE_URL}/review-tasks/merchant/confirm`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ approved, reason })
+                body: JSON.stringify({ reviewTaskId: taskId })
             });
             const json = await res.json();
             if (json.success) {
-                alert(approved ? '追评审核通过' : '已驳回');
+                alert('确认成功，佣金已发放给买手');
                 setSelectedTask(null);
                 loadData();
             } else {
@@ -102,20 +139,65 @@ export default function MerchantReviewsPage() {
         } catch (e) {
             alert('网络错误');
         } finally {
-            setReviewing(false);
+            setProcessing(false);
         }
     };
+
+    // 商家取消追评任务
+    const handleCancel = async (taskId: string) => {
+        const token = localStorage.getItem('merchantToken');
+        if (!token) return;
+
+        const reason = prompt('请输入取消原因（可选）：');
+        if (!confirm('确认取消此追评任务？费用将退还')) return;
+
+        setProcessing(true);
+        try {
+            const res = await fetch(`${BASE_URL}/review-tasks/merchant/cancel`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ reviewTaskId: taskId, reason: reason || undefined })
+            });
+            const json = await res.json();
+            if (json.success) {
+                alert('取消成功，费用已退还');
+                setSelectedTask(null);
+                loadData();
+            } else {
+                alert(json.message || '操作失败');
+            }
+        } catch (e) {
+            alert('网络错误');
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    // 解析已上传的图片
+    const parseImages = (imgStr: string): string[] => {
+        if (!imgStr) return [];
+        try {
+            return JSON.parse(imgStr);
+        } catch {
+            return imgStr.split(',').filter(Boolean);
+        }
+    };
+
+    const statsCards = [
+        { label: '待支付', value: stats.unpaid, color: '#f59e0b', statusFilter: ReviewTaskStatus.UNPAID },
+        { label: '待确认', value: stats.uploaded, color: '#8b5cf6', statusFilter: ReviewTaskStatus.UPLOADED },
+        { label: '已完成', value: stats.completed, color: '#10b981', statusFilter: ReviewTaskStatus.COMPLETED },
+        { label: '已取消', value: stats.cancelled + stats.rejected, color: '#6b7280', statusFilter: undefined },
+    ];
 
     return (
         <div>
             {/* Stats Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-                {[
-                    { label: '待处理', value: stats.pending, color: '#3b82f6', statusFilter: 1 },
-                    { label: '待审核', value: stats.submitted, color: '#f59e0b', statusFilter: 2 },
-                    { label: '已完成', value: stats.completed, color: '#10b981', statusFilter: 4 },
-                    { label: '已拒绝', value: stats.rejected, color: '#ef4444', statusFilter: 5 },
-                ].map((stat, idx) => (
+                {statsCards.map((stat, idx) => (
                     <div
                         key={idx}
                         onClick={() => setFilter(stat.statusFilter)}
@@ -162,10 +244,10 @@ export default function MerchantReviewsPage() {
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: '#6b7280' }}>买号</th>
-                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: '#6b7280' }}>追评内容</th>
-                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: '#6b7280' }}>佣金</th>
-                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: '#6b7280' }}>截止时间</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: '#6b7280' }}>任务编号</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: '#6b7280' }}>费用</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: '#6b7280' }}>买手佣金</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: '#6b7280' }}>创建时间</th>
                                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: '#6b7280' }}>状态</th>
                                 <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', color: '#6b7280' }}>操作</th>
                             </tr>
@@ -173,13 +255,17 @@ export default function MerchantReviewsPage() {
                         <tbody>
                             {tasks.map(task => (
                                 <tr key={task.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                                    <td style={{ padding: '16px', fontSize: '14px', color: '#374151' }}>{task.buynoAccount || '-'}</td>
-                                    <td style={{ padding: '16px', fontSize: '14px', color: '#374151', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        {task.content || '(无指定内容)'}
+                                    <td style={{ padding: '16px', fontSize: '14px', color: '#374151' }}>
+                                        {task.taskNumber}
                                     </td>
-                                    <td style={{ padding: '16px', fontWeight: '500', color: '#10b981' }}>¥{Number(task.commission).toFixed(2)}</td>
+                                    <td style={{ padding: '16px', fontWeight: '500', color: '#ef4444' }}>
+                                        ¥{Number(task.money).toFixed(2)}
+                                    </td>
+                                    <td style={{ padding: '16px', fontWeight: '500', color: '#10b981' }}>
+                                        ¥{Number(task.userMoney).toFixed(2)}
+                                    </td>
                                     <td style={{ padding: '16px', fontSize: '13px', color: '#6b7280' }}>
-                                        {new Date(task.deadline).toLocaleDateString('zh-CN')}
+                                        {new Date(task.createdAt).toLocaleString('zh-CN')}
                                     </td>
                                     <td style={{ padding: '16px' }}>
                                         <span style={{
@@ -188,10 +274,10 @@ export default function MerchantReviewsPage() {
                                             borderRadius: '999px',
                                             fontSize: '12px',
                                             fontWeight: '500',
-                                            background: (statusLabels[task.status]?.color || '#6b7280') + '20',
-                                            color: statusLabels[task.status]?.color || '#6b7280'
+                                            background: (statusLabels[task.state]?.color || '#6b7280') + '20',
+                                            color: statusLabels[task.state]?.color || '#6b7280'
                                         }}>
-                                            {statusLabels[task.status]?.text || '未知'}
+                                            {statusLabels[task.state]?.text || '未知'}
                                         </span>
                                     </td>
                                     <td style={{ padding: '16px', textAlign: 'center' }}>
@@ -200,14 +286,14 @@ export default function MerchantReviewsPage() {
                                             style={{
                                                 padding: '6px 16px',
                                                 borderRadius: '6px',
-                                                border: task.status === 2 ? 'none' : '1px solid #d1d5db',
-                                                background: task.status === 2 ? '#4f46e5' : '#fff',
-                                                color: task.status === 2 ? '#fff' : '#374151',
+                                                border: task.state === ReviewTaskStatus.UPLOADED ? 'none' : '1px solid #d1d5db',
+                                                background: task.state === ReviewTaskStatus.UPLOADED ? '#4f46e5' : '#fff',
+                                                color: task.state === ReviewTaskStatus.UPLOADED ? '#fff' : '#374151',
                                                 cursor: 'pointer',
                                                 fontSize: '13px'
                                             }}
                                         >
-                                            {task.status === 2 ? '审核' : '查看'}
+                                            {task.state === ReviewTaskStatus.UPLOADED ? '审核' : '查看'}
                                         </button>
                                     </td>
                                 </tr>
@@ -237,51 +323,66 @@ export default function MerchantReviewsPage() {
                         padding: '24px'
                     }} onClick={e => e.stopPropagation()}>
                         <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px' }}>
-                            追评详情 - {statusLabels[selectedTask.status]?.text}
+                            追评详情 - {statusLabels[selectedTask.state]?.text}
                         </h2>
 
                         {/* Task Info */}
                         <div style={{ background: '#f9fafb', borderRadius: '8px', padding: '16px', marginBottom: '20px' }}>
                             <div style={{ fontSize: '14px', marginBottom: '8px' }}>
-                                <span style={{ color: '#6b7280' }}>买号：</span>
-                                {selectedTask.buynoAccount || '-'}
+                                <span style={{ color: '#6b7280' }}>任务编号：</span>
+                                {selectedTask.taskNumber}
                             </div>
                             <div style={{ fontSize: '14px', marginBottom: '8px' }}>
-                                <span style={{ color: '#6b7280' }}>佣金：</span>
-                                <span style={{ color: '#10b981', fontWeight: '500' }}>¥{Number(selectedTask.commission).toFixed(2)}</span>
+                                <span style={{ color: '#6b7280' }}>追评费用：</span>
+                                <span style={{ color: '#ef4444', fontWeight: '500' }}>¥{Number(selectedTask.money).toFixed(2)}</span>
                             </div>
-                            <div style={{ fontSize: '14px' }}>
-                                <span style={{ color: '#6b7280' }}>要求内容：</span>
-                                {selectedTask.content || '(无指定)'}
+                            <div style={{ fontSize: '14px', marginBottom: '8px' }}>
+                                <span style={{ color: '#6b7280' }}>买手佣金：</span>
+                                <span style={{ color: '#10b981', fontWeight: '500' }}>¥{Number(selectedTask.userMoney).toFixed(2)}</span>
                             </div>
+                            {selectedTask.taobaoOrderNumber && (
+                                <div style={{ fontSize: '14px' }}>
+                                    <span style={{ color: '#6b7280' }}>淘宝订单号：</span>
+                                    {selectedTask.taobaoOrderNumber}
+                                </div>
+                            )}
                         </div>
 
-                        {/* Submitted Content */}
-                        {selectedTask.submittedContent && (
+                        {/* Submitted Images */}
+                        {selectedTask.img && (
                             <div style={{ marginBottom: '20px' }}>
-                                <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '12px' }}>买手提交的追评</h3>
-                                <div style={{ background: '#fef3c7', borderRadius: '8px', padding: '12px', fontSize: '14px' }}>
-                                    {selectedTask.submittedContent}
+                                <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '12px' }}>买手上传的追评截图</h3>
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                    {parseImages(selectedTask.img).map((img, idx) => (
+                                        <img
+                                            key={idx}
+                                            src={img}
+                                            alt=""
+                                            style={{
+                                                width: '100px',
+                                                height: '100px',
+                                                objectFit: 'cover',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer'
+                                            }}
+                                            onClick={() => window.open(img, '_blank')}
+                                        />
+                                    ))}
                                 </div>
-                                {selectedTask.submittedImages && selectedTask.submittedImages.length > 0 && (
-                                    <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                                        {selectedTask.submittedImages.map((img, idx) => (
-                                            <img key={idx} src={img} alt="" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px' }} />
-                                        ))}
+                                {selectedTask.uploadTime && (
+                                    <div style={{ fontSize: '12px', color: '#999', marginTop: '8px' }}>
+                                        上传时间: {new Date(selectedTask.uploadTime).toLocaleString('zh-CN')}
                                     </div>
                                 )}
                             </div>
                         )}
 
-                        {/* Actions */}
-                        {selectedTask.status === 2 && (
+                        {/* Actions for UPLOADED status */}
+                        {selectedTask.state === ReviewTaskStatus.UPLOADED && (
                             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
                                 <button
-                                    onClick={() => {
-                                        const reason = prompt('请输入驳回原因（可选）：');
-                                        handleReview(selectedTask.id, false, reason || undefined);
-                                    }}
-                                    disabled={reviewing}
+                                    onClick={() => handleCancel(selectedTask.id)}
+                                    disabled={processing}
                                     style={{
                                         padding: '10px 24px',
                                         borderRadius: '8px',
@@ -292,11 +393,11 @@ export default function MerchantReviewsPage() {
                                         fontWeight: '500'
                                     }}
                                 >
-                                    驳回
+                                    取消任务
                                 </button>
                                 <button
-                                    onClick={() => handleReview(selectedTask.id, true)}
-                                    disabled={reviewing}
+                                    onClick={() => handleConfirm(selectedTask.id)}
+                                    disabled={processing}
                                     style={{
                                         padding: '10px 24px',
                                         borderRadius: '8px',
@@ -307,28 +408,68 @@ export default function MerchantReviewsPage() {
                                         fontWeight: '500'
                                     }}
                                 >
-                                    {reviewing ? '处理中...' : '通过'}
+                                    {processing ? '处理中...' : '确认完成'}
                                 </button>
                             </div>
                         )}
 
-                        {selectedTask.status !== 2 && (
-                            <div style={{ textAlign: 'right', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
-                                <button
-                                    onClick={() => setSelectedTask(null)}
-                                    style={{
-                                        padding: '10px 24px',
-                                        borderRadius: '8px',
-                                        border: '1px solid #d1d5db',
-                                        background: '#fff',
-                                        color: '#374151',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    关闭
-                                </button>
-                            </div>
-                        )}
+                        {/* Actions for cancellable statuses */}
+                        {(selectedTask.state === ReviewTaskStatus.UNPAID ||
+                            selectedTask.state === ReviewTaskStatus.PAID ||
+                            selectedTask.state === ReviewTaskStatus.APPROVED) && (
+                                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
+                                    <button
+                                        onClick={() => handleCancel(selectedTask.id)}
+                                        disabled={processing}
+                                        style={{
+                                            padding: '10px 24px',
+                                            borderRadius: '8px',
+                                            border: '1px solid #ef4444',
+                                            background: '#fff',
+                                            color: '#ef4444',
+                                            cursor: 'pointer',
+                                            fontWeight: '500'
+                                        }}
+                                    >
+                                        {processing ? '处理中...' : '取消任务'}
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedTask(null)}
+                                        style={{
+                                            padding: '10px 24px',
+                                            borderRadius: '8px',
+                                            border: '1px solid #d1d5db',
+                                            background: '#fff',
+                                            color: '#374151',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        关闭
+                                    </button>
+                                </div>
+                            )}
+
+                        {/* Close button for other statuses */}
+                        {(selectedTask.state === ReviewTaskStatus.COMPLETED ||
+                            selectedTask.state === ReviewTaskStatus.CANCELLED ||
+                            selectedTask.state === ReviewTaskStatus.BUYER_REJECTED ||
+                            selectedTask.state === ReviewTaskStatus.REJECTED) && (
+                                <div style={{ textAlign: 'right', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
+                                    <button
+                                        onClick={() => setSelectedTask(null)}
+                                        style={{
+                                            padding: '10px 24px',
+                                            borderRadius: '8px',
+                                            border: '1px solid #d1d5db',
+                                            background: '#fff',
+                                            color: '#374151',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        关闭
+                                    </button>
+                                </div>
+                            )}
                     </div>
                 </div>
             )}
