@@ -1,11 +1,15 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
-import { VipPackage, VipPurchase, VipPurchaseStatus, CreateVipPackageDto, PurchaseVipDto } from './vip.entity';
+import { Repository, DataSource, MoreThan } from 'typeorm';
+import { VipPackage, VipPurchase, VipPurchaseStatus, CreateVipPackageDto, PurchaseVipDto, RechargeOrder, RechargeOrderStatus } from './vip.entity';
 import { User } from '../users/user.entity';
+import { FundRecord, FundType, FundAction } from '../users/fund-record.entity';
 
 @Injectable()
 export class VipService {
+    // 订单防重复提交时间（秒）- 原版为6分钟
+    private readonly ORDER_COOLDOWN_SECONDS = 360;
+
     constructor(
         @InjectRepository(VipPackage)
         private vipPackageRepository: Repository<VipPackage>,
@@ -13,6 +17,10 @@ export class VipService {
         private vipPurchaseRepository: Repository<VipPurchase>,
         @InjectRepository(User)
         private userRepository: Repository<User>,
+        @InjectRepository(RechargeOrder)
+        private rechargeOrderRepository: Repository<RechargeOrder>,
+        @InjectRepository(FundRecord)
+        private fundRecordRepository: Repository<FundRecord>,
         private dataSource: DataSource,
     ) { }
 
@@ -56,7 +64,11 @@ export class VipService {
 
     // ========== VIP 购买 ==========
 
-    async purchaseVip(userId: string, dto: PurchaseVipDto): Promise<VipPurchase> {
+    /**
+     * 购买VIP - 支持银锭/本金/支付宝三种支付方式
+     * 对应原版: principal_member(), silver_member(), creat_order()
+     */
+    async purchaseVip(userId: string, dto: PurchaseVipDto): Promise<VipPurchase | { payUrl: string; orderNo: string }> {
         const pkg = await this.vipPackageRepository.findOne({ where: { id: dto.packageId } });
         if (!pkg || !pkg.isActive) {
             throw new NotFoundException('套餐不存在或已下架');
@@ -67,46 +79,237 @@ export class VipService {
             throw new NotFoundException('用户不存在');
         }
 
-        // 检查用户银锭余额
+        const paymentMethod = dto.paymentMethod || 'silver';
+
+        // 根据支付方式处理
+        switch (paymentMethod) {
+            case 'balance':
+                return this.purchaseWithBalance(user, pkg);
+            case 'alipay':
+                return this.createAlipayOrder(user, pkg);
+            case 'silver':
+            default:
+                return this.purchaseWithSilver(user, pkg);
+        }
+    }
+
+    /**
+     * 银锭支付VIP
+     * 对应原版: silver_member()
+     */
+    private async purchaseWithSilver(user: User, pkg: VipPackage): Promise<VipPurchase> {
+        // 检查银锭余额
         if (Number(user.silver) < Number(pkg.discountPrice)) {
-            throw new BadRequestException('银锭余额不足');
+            throw new BadRequestException('银锭余额不足，请先充值');
         }
 
-        // 使用事务
+        return this.processPurchase(user, pkg, 'silver', 'silver');
+    }
+
+    /**
+     * 本金支付VIP
+     * 对应原版: principal_member()
+     */
+    private async purchaseWithBalance(user: User, pkg: VipPackage): Promise<VipPurchase> {
+        // 检查本金余额
+        if (Number(user.balance) < Number(pkg.discountPrice)) {
+            throw new BadRequestException('本金余额不足，请先充值');
+        }
+
+        return this.processPurchase(user, pkg, 'balance', 'balance');
+    }
+
+    /**
+     * 创建支付宝订单
+     * 对应原版: creat_order()
+     */
+    private async createAlipayOrder(user: User, pkg: VipPackage): Promise<{ payUrl: string; orderNo: string }> {
+        const now = Math.floor(Date.now() / 1000);
+
+        // 检查是否有未支付的订单（6分钟内防重复）
+        const pendingOrder = await this.rechargeOrderRepository.findOne({
+            where: {
+                userId: user.id,
+                userType: 2,
+                state: RechargeOrderStatus.PENDING
+            },
+            order: { createTime: 'DESC' }
+        });
+
+        if (pendingOrder && (now - Number(pendingOrder.createTime)) < this.ORDER_COOLDOWN_SECONDS) {
+            const remainingSeconds = this.ORDER_COOLDOWN_SECONDS - (now - Number(pendingOrder.createTime));
+            const remainingMinutes = Math.ceil(remainingSeconds / 60);
+            throw new BadRequestException(`上一单未支付，请等待${remainingMinutes}分钟后再次充值`);
+        }
+
+        // 生成订单号
+        const random = Math.floor(100000 + Math.random() * 900000);
+        const orderNo = `${random}${now}`;
+
+        // 创建订单记录
+        const order = this.rechargeOrderRepository.create({
+            orderNo,
+            userId: user.id,
+            userType: 2,
+            packageId: pkg.id,
+            price: Number(pkg.discountPrice),
+            state: RechargeOrderStatus.PENDING,
+            createTime: now
+        });
+        await this.rechargeOrderRepository.save(order);
+
+        // TODO: 对接真实支付宝接口
+        // 目前返回模拟支付链接
+        const payUrl = `/pay/alipay?orderNo=${orderNo}&amount=${pkg.discountPrice}`;
+
+        return {
+            payUrl,
+            orderNo
+        };
+    }
+
+    /**
+     * 处理实际购买（扣款 + 开通VIP）
+     */
+    private async processPurchase(
+        user: User,
+        pkg: VipPackage,
+        paymentMethod: string,
+        fundType: 'silver' | 'balance'
+    ): Promise<VipPurchase> {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
         try {
-            // 计算VIP时间
             const now = new Date();
+            const amount = Number(pkg.discountPrice);
+
+            // 计算VIP时间（对应原版逻辑：已是VIP则叠加时间）
             let vipStartAt: Date;
             let vipEndAt: Date;
+            const oneMonth = pkg.days * 24 * 60 * 60 * 1000;
 
-            // 如果已是VIP，则续费
             if (user.vip && user.vipExpireAt && user.vipExpireAt > now) {
+                // 已是VIP，在原有基础上延期
                 vipStartAt = user.vipExpireAt;
-                vipEndAt = new Date(user.vipExpireAt.getTime() + pkg.days * 24 * 60 * 60 * 1000);
+                vipEndAt = new Date(user.vipExpireAt.getTime() + oneMonth);
             } else {
+                // 已过期或非VIP，从当前时间开始
                 vipStartAt = now;
-                vipEndAt = new Date(now.getTime() + pkg.days * 24 * 60 * 60 * 1000);
+                vipEndAt = new Date(now.getTime() + oneMonth);
             }
 
-            // 扣除银锭
-            user.silver = Number(user.silver) - Number(pkg.discountPrice);
+            // 扣除余额
+            if (fundType === 'silver') {
+                user.silver = Number(user.silver) - amount;
+            } else {
+                user.balance = Number(user.balance) - amount;
+            }
             user.vip = true;
             user.vipExpireAt = vipEndAt;
             await queryRunner.manager.save(user);
 
             // 创建购买记录
             const purchase = this.vipPurchaseRepository.create({
-                userId,
+                userId: user.id,
+                packageId: pkg.id,
+                packageName: pkg.name,
+                days: pkg.days,
+                amount,
+                status: VipPurchaseStatus.PAID,
+                paymentMethod,
+                paidAt: now,
+                vipStartAt,
+                vipEndAt
+            });
+            await queryRunner.manager.save(purchase);
+
+            // 创建资金记录
+            const fundRecord = this.fundRecordRepository.create({
+                userId: user.id,
+                type: fundType === 'silver' ? FundType.SILVER : FundType.PRINCIPAL,
+                action: FundAction.OUT,
+                amount: amount,
+                balance: fundType === 'silver' ? user.silver : user.balance,
+                description: `购买${pkg.name}会员`
+            });
+            await queryRunner.manager.save(fundRecord);
+
+            await queryRunner.commitTransaction();
+            return purchase;
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
+    /**
+     * 支付宝回调处理（模拟）
+     */
+    async handleAlipayCallback(orderNo: string): Promise<VipPurchase> {
+        const order = await this.rechargeOrderRepository.findOne({
+            where: { orderNo }
+        });
+
+        if (!order) {
+            throw new NotFoundException('订单不存在');
+        }
+
+        if (order.state !== RechargeOrderStatus.PENDING) {
+            throw new BadRequestException('订单状态异常');
+        }
+
+        const user = await this.userRepository.findOne({ where: { id: order.userId } });
+        if (!user) {
+            throw new NotFoundException('用户不存在');
+        }
+
+        const pkg = await this.vipPackageRepository.findOne({ where: { id: order.packageId } });
+        if (!pkg) {
+            throw new NotFoundException('套餐不存在');
+        }
+
+        // 更新订单状态
+        order.state = RechargeOrderStatus.PAID;
+        order.paidTime = Math.floor(Date.now() / 1000);
+        await this.rechargeOrderRepository.save(order);
+
+        // 开通VIP（不扣款，因为是支付宝支付）
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const now = new Date();
+            const oneMonth = pkg.days * 24 * 60 * 60 * 1000;
+
+            let vipStartAt: Date;
+            let vipEndAt: Date;
+
+            if (user.vip && user.vipExpireAt && user.vipExpireAt > now) {
+                vipStartAt = user.vipExpireAt;
+                vipEndAt = new Date(user.vipExpireAt.getTime() + oneMonth);
+            } else {
+                vipStartAt = now;
+                vipEndAt = new Date(now.getTime() + oneMonth);
+            }
+
+            user.vip = true;
+            user.vipExpireAt = vipEndAt;
+            await queryRunner.manager.save(user);
+
+            const purchase = this.vipPurchaseRepository.create({
+                userId: user.id,
                 packageId: pkg.id,
                 packageName: pkg.name,
                 days: pkg.days,
                 amount: Number(pkg.discountPrice),
                 status: VipPurchaseStatus.PAID,
-                paymentMethod: dto.paymentMethod || 'silver',
+                paymentMethod: 'alipay',
+                transactionId: orderNo,
                 paidAt: now,
                 vipStartAt,
                 vipEndAt

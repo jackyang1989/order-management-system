@@ -137,5 +137,55 @@ export class PurchaseVipDto {
 
     @IsString()
     @IsOptional()
-    paymentMethod?: string;
+    paymentMethod?: 'silver' | 'balance' | 'alipay';  // 支付方式: 银锭/本金/支付宝
+}
+
+// ========== 支付宝订单 ==========
+
+export enum RechargeOrderStatus {
+    PENDING = 0,     // 待支付
+    PAID = 1,        // 已支付
+    CANCELLED = 2,   // 已取消
+    EXPIRED = 3      // 已过期
+}
+
+@Entity('recharge_orders')
+export class RechargeOrder {
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
+
+    @Column()
+    orderNo: string;  // 订单号
+
+    @Column()
+    @Index()
+    userId: string;
+
+    @ManyToOne(() => User)
+    @JoinColumn({ name: 'userId' })
+    user: User;
+
+    @Column({ type: 'int', default: 2 })
+    userType: number;  // 1=商家, 2=买手
+
+    @Column()
+    packageId: string;
+
+    @Column({ type: 'decimal', precision: 10, scale: 2 })
+    price: number;
+
+    @Column({ type: 'int', default: 0 })
+    state: RechargeOrderStatus;
+
+    @Column({ nullable: true })
+    payUrl: string;  // 支付链接
+
+    @Column({ type: 'bigint' })
+    createTime: number;  // 创建时间戳
+
+    @Column({ type: 'bigint', nullable: true })
+    paidTime: number;  // 支付时间戳
+
+    @CreateDateColumn()
+    createdAt: Date;
 }

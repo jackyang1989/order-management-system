@@ -49,10 +49,43 @@ export class VipController {
     @UseGuards(JwtAuthGuard)
     async purchaseVip(@Request() req, @Body() dto: PurchaseVipDto) {
         try {
-            const purchase = await this.vipService.purchaseVip(req.user.userId, dto);
+            const result = await this.vipService.purchaseVip(req.user.userId, dto);
+
+            // 判断返回类型：支付宝订单 vs 直接购买成功
+            if ('payUrl' in result) {
+                return {
+                    success: true,
+                    message: '正在跳转到支付宝支付页面',
+                    data: {
+                        payUrl: result.payUrl,
+                        orderNo: result.orderNo
+                    }
+                };
+            }
+
             return {
                 success: true,
                 message: 'VIP购买成功',
+                data: result
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message
+            };
+        }
+    }
+
+    /**
+     * 支付宝回调（模拟）
+     */
+    @Post('alipay/callback')
+    async alipayCallback(@Body() body: { orderNo: string }) {
+        try {
+            const purchase = await this.vipService.handleAlipayCallback(body.orderNo);
+            return {
+                success: true,
+                message: 'VIP开通成功',
                 data: purchase
             };
         } catch (error) {
@@ -61,6 +94,20 @@ export class VipController {
                 message: error.message
             };
         }
+    }
+
+    /**
+     * 获取用户余额信息（用于前端展示）
+     */
+    @Get('balance')
+    @UseGuards(JwtAuthGuard)
+    async getUserBalance(@Request() req) {
+        const status = await this.vipService.getUserVipStatus(req.user.userId);
+        // 这里需要从用户服务获取余额，简化处理
+        return {
+            success: true,
+            data: status
+        };
     }
 
     /**

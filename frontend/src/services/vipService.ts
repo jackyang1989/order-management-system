@@ -24,10 +24,24 @@ export interface VipPurchase {
     days: number;
     amount: number;
     status: string;
+    paymentMethod: string;
     paidAt: string;
     vipStartAt: string;
     vipEndAt: string;
     createdAt: string;
+}
+
+// 支付方式类型
+export type PaymentMethod = 'silver' | 'balance' | 'alipay';
+
+// 购买结果
+export interface PurchaseResult {
+    success: boolean;
+    message: string;
+    data?: VipPurchase | {
+        payUrl: string;
+        orderNo: string;
+    };
 }
 
 // ========== VIP 服务 ==========
@@ -61,8 +75,11 @@ export const fetchVipStatus = async (): Promise<VipStatus> => {
     }
 };
 
-// 购买VIP
-export const purchaseVip = async (packageId: string): Promise<{ success: boolean; message: string; data?: VipPurchase }> => {
+// 购买VIP - 支持三种支付方式
+export const purchaseVip = async (
+    packageId: string,
+    paymentMethod: PaymentMethod = 'silver'
+): Promise<PurchaseResult> => {
     try {
         const token = localStorage.getItem('token');
         const response = await fetch(`${BASE_URL}/vip/purchase`, {
@@ -71,7 +88,7 @@ export const purchaseVip = async (packageId: string): Promise<{ success: boolean
                 'Content-Type': 'application/json',
                 ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             },
-            body: JSON.stringify({ packageId, paymentMethod: 'silver' })
+            body: JSON.stringify({ packageId, paymentMethod })
         });
         const result = await response.json();
         return {
@@ -98,5 +115,27 @@ export const fetchVipRecords = async (page: number = 1, pageSize: number = 20): 
     } catch (error) {
         console.error('Fetch VIP records error:', error);
         return { list: [], total: 0 };
+    }
+};
+
+// 获取用户余额（用于VIP充值页面展示）
+export const fetchUserBalanceForVip = async (): Promise<{
+    balance: number;
+    silver: number;
+}> => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${BASE_URL}/user/profile`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!response.ok) throw new Error('Failed to fetch user balance');
+        const res = await response.json();
+        return {
+            balance: res.data?.balance || 0,
+            silver: res.data?.silver || 0
+        };
+    } catch (error) {
+        console.error('Fetch user balance error:', error);
+        return { balance: 0, silver: 0 };
     }
 };
