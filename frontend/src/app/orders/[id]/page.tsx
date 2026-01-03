@@ -1,496 +1,464 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchOrderDetail, submitOrderStep } from '../../../services/orderService';
-import { MockOrder } from '../../../mocks/orderMock';
-import { isAuthenticated } from '../../../services/authService';
-import api from '../../../services/api';
+import { isAuthenticated, getToken } from '../../../services/authService';
+import BottomNav from '../../../components/BottomNav';
+
+// ========================
+
+// 完整的任务详情页面
+// ========================
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
+
+
+interface TaskData {
+    maiHao: string;           // 买号
+    type: string;             // 任务类型
+    zhongDuan: string;        // 返款方式
+    benJin: string;           // 垫付金额
+    yongJin: string;          // 佣金
+    user_divided: string;     // 银锭分成
+    money: string;            // 返款金额
+    dianPu: string;           // 店铺名称
+    taskNum: string;          // 任务编号
+    time: string;             // 创建时间
+    taskType: string;         // 任务状态
+    delType: string;          // 取消原因
+    goods_price: string;      // 任务金额
+    seller_name: string;      // 商家用户名
+}
+
+
+interface TaskData2 {
+    img: string;              // 关键词截图 keywordimg
+    img2: string;             // 聊天截图 chatimg
+    zhiFu: string;            // 支付状态
+    order: string;            // 订单编号 table_order_id
+    style: string;            // 快递方式 delivery
+    num: string;              // 快递单号 delivery_num
+    type1: string;            // 当前状态 state
+    time: string;             // 更新时间
+    step_two_complete: string;   // 第二步完成时间
+    upload_order_time: string;   // 上传订单时间
+    delivery_time: string;       // 发货时间
+    platform_refund_time: string; // 平台返款时间
+}
+
+
+interface ProductInfo {
+    name: string;
+    text_praise: string;      // 好评内容
+    img_praise: string[];     // 好评图片
+    video_praise: string;     // 好评视频
+}
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const { id } = use(params);
 
-    const [order, setOrder] = useState<MockOrder | null>(null);
     const [loading, setLoading] = useState(true);
-    const [currentStep, setCurrentStep] = useState(0); // 0 = 验证商品
-    const [submitting, setSubmitting] = useState(false);
-    const [countdown, setCountdown] = useState<string>('');
+    const [taskData, setTaskData] = useState<TaskData | null>(null);
+    const [taskData2, setTaskData2] = useState<TaskData2 | null>(null);
+    const [products, setProducts] = useState<ProductInfo[]>([]);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-    // 商品验证相关状态
-    const [productLink, setProductLink] = useState('');
-    const [validating, setValidating] = useState(false);
-    const [validationResult, setValidationResult] = useState<{
-        valid: boolean;
-        actualId?: string;
-        error?: string;
-    } | null>(null);
+    const alertError = useCallback((msg: string) => {
+        alert(msg);
+    }, []);
 
-    // 表单数据
-    const [formData, setFormData] = useState({
-        compareScreenshot: null as File | null,
-        collectScreenshot: null as File | null,
-        orderNumber: '',
-        paymentAmount: '',
-        orderDetailScreenshot: null as File | null
-    });
+    // ========================
+
+    // ========================
+    const loadDetail = useCallback(async () => {
+        setLoading(true);
+        try {
+            const token = getToken();
+            const response = await fetch(`${BASE_URL}/mobile/my/detail`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ id }),
+            });
+            const res = await response.json();
+
+            if (res.code === 1) {
+                const data = res.data;
+                const list = data.list || {};
+
+
+                setTaskData({
+                    maiHao: list.wwid || '',
+                    type: list.task_type || '',
+                    zhongDuan: list.terminal === 1 ? '本佣货返' : list.terminal === 2 ? '本立佣货' : list.terminal || '',
+                    benJin: list.seller_principal || '',
+                    yongJin: list.commission || '',
+                    user_divided: list.user_divided || '',
+                    money: list.seller_principal || '',
+                    dianPu: list.shop_name || '',
+                    taskNum: list.task_number || '',
+                    time: list.create_time || '',
+                    taskType: list.state || '',
+                    delType: list.deltask_type || '',
+                    goods_price: list.goods_price || '',
+                    seller_name: list.seller_name || '',
+                });
+
+
+                setTaskData2({
+                    img: list.keywordimg || '',
+                    img2: list.chatimg || '',
+                    zhiFu: list.table_order_id ? '已上传订单' : '待上传',
+                    order: list.table_order_id || '',
+                    style: list.delivery || '',
+                    num: list.delivery_num || '',
+                    type1: list.state || '',
+                    time: list.update_time || '',
+                    step_two_complete: list.step_two_complete || '',
+                    upload_order_time: list.upload_order_time || '',
+                    delivery_time: list.delivery_time || '',
+                    platform_refund_time: list.platform_refund_time || '',
+                });
+
+
+                if (data.product && Array.isArray(data.product)) {
+                    setProducts(data.product.map((item: any) => ({
+                        name: item.name || '',
+                        text_praise: item.text_praise || '',
+                        img_praise: item.img_praise || [],
+                        video_praise: item.video_praise || '',
+                    })));
+                }
+            } else {
+                alertError(res.msg || '获取详情失败');
+                router.back();
+            }
+        } catch (error) {
+            console.error('Load detail error:', error);
+            alertError('网络错误');
+        } finally {
+            setLoading(false);
+        }
+    }, [id, alertError, router]);
 
     useEffect(() => {
         if (!isAuthenticated()) {
             router.push('/login');
             return;
         }
-        loadOrder();
-    }, [id, router]);
+        loadDetail();
+    }, [router, loadDetail]);
 
-    // 倒计时逻辑
-    useEffect(() => {
-        if (!order?.endingTime) return;
 
-        const updateCountdown = () => {
-            const now = new Date().getTime();
-            const endTime = new Date(order.endingTime).getTime();
-            const diff = endTime - now;
-
-            if (diff <= 0) {
-                setCountdown('已超时');
-                return;
-            }
-
-            const minutes = Math.floor(diff / 60000);
-            const seconds = Math.floor((diff % 60000) / 1000);
-            setCountdown(`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
-        };
-
-        updateCountdown();
-        const timer = setInterval(updateCountdown, 1000);
-        return () => clearInterval(timer);
-    }, [order?.endingTime]);
-
-    const loadOrder = async () => {
-        setLoading(true);
-        const result = await fetchOrderDetail(id);
-        if (result) {
-            setOrder(result);
-            // 如果商品已验证过，跳到第一步
-            // 这里假设首次进入需要先验证商品
+    const showImage = (img: string) => {
+        if (img && img.length > 0) {
+            setPreviewImage(img);
         } else {
-            alert('订单不存在');
-            router.back();
-        }
-        setLoading(false);
-    };
-
-    const handleValidateProduct = async () => {
-        if (!productLink.trim()) {
-            alert('请输入淘口令或商品链接');
-            return;
-        }
-        if (!order?.taobaoId) {
-            alert('订单商品信息缺失，无法验证');
-            return;
-        }
-
-        setValidating(true);
-        setValidationResult(null);
-
-        try {
-            const res = await api.post('/dingdanxia/validate', {
-                link: productLink,
-                expectedTaobaoId: order.taobaoId
-            });
-
-            setValidationResult(res.data);
-
-            if (res.data.valid) {
-                // 验证通过，进入第一步
-                setCurrentStep(1);
-            }
-        } catch (error: any) {
-            setValidationResult({
-                valid: false,
-                error: error.response?.data?.message || '验证失败，请检查链接是否正确'
-            });
-        } finally {
-            setValidating(false);
+            alertError('当前没有图片');
         }
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
-        if (e.target.files && e.target.files[0]) {
-            setFormData({ ...formData, [field]: e.target.files[0] });
-        }
-    };
+    if (loading) {
+        return (
+            <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5' }}>
+                <div style={{ color: '#999', fontSize: '14px' }}>加载中...</div>
+            </div>
+        );
+    }
 
-    const handleSubmitStep = async () => {
-        if (currentStep === 1 && !formData.compareScreenshot) {
-            alert('请上传货比截图');
-            return;
-        }
-        if (currentStep === 2 && !formData.collectScreenshot) {
-            alert('请上传收藏截图');
-            return;
-        }
-        if (currentStep === 3) {
-            if (!formData.orderNumber) {
-                alert('请输入订单编号');
-                return;
-            }
-            if (!formData.paymentAmount) {
-                alert('请输入实际付款金额');
-                return;
-            }
-            if (!formData.orderDetailScreenshot) {
-                alert('请上传订单详情截图');
-                return;
-            }
-        }
-
-        setSubmitting(true);
-        const result = await submitOrderStep(id, currentStep, formData);
-        setSubmitting(false);
-
-        if (result.success) {
-            alert(`第 ${currentStep} 步提交成功`);
-            if (currentStep < 3) {
-                setCurrentStep(currentStep + 1);
-            } else {
-                alert('任务已完成，等待审核！');
-                router.push('/orders');
-            }
-        } else {
-            alert(result.message || '提交失败');
-        }
-    };
-
-    if (loading) return <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>加载中...</div>;
-    if (!order) return null;
-
-    const steps = [
-        { step: 0, title: '验证商品', desc: '输入淘口令验证商品正确' },
-        { step: 1, title: '货比三家', desc: '搜索关键词，浏览竞品并截图' },
-        { step: 2, title: '浏览收藏', desc: '进店浏览主副商品并收藏' },
-        { step: 3, title: '提交订单', desc: '核对信息，提交订单号和截图' }
-    ];
+    if (!taskData) return null;
 
     return (
         <div style={{ minHeight: '100vh', background: '#f5f5f5', paddingBottom: '80px' }}>
-            {/* 顶部栏 */}
+            <div style={{
+                background: 'linear-gradient(135deg, #1d1d1f 0%, #2c2c2e 100%)',
+                padding: '50px 16px 20px',
+                color: '#fff'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div onClick={() => router.back()} style={{ fontSize: '24px', cursor: 'pointer' }}>‹</div>
+                    <div style={{ fontSize: '18px', fontWeight: '600' }}>任务详情</div>
+                    <div style={{ width: '24px' }}></div>
+                </div>
+            </div>
+
             <div style={{
                 background: '#fff',
-                padding: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderBottom: '1px solid #e5e5e5'
+                padding: '14px 16px',
+                borderBottom: '1px solid #e5e5e5',
+                textAlign: 'center',
+                fontSize: '15px',
+                fontWeight: '600',
+                color: '#409eff'
             }}>
-                <div onClick={() => router.back()} style={{ fontSize: '20px', cursor: 'pointer', width: '30px' }}>‹</div>
-                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>订单详情</div>
-                <div style={{ width: '30px' }}></div>
+                任务详情
             </div>
 
-            {/* 倒计时显示 */}
-            {countdown && (
+            <div style={{ padding: '12px' }}>
                 <div style={{
-                    position: 'sticky',
-                    top: 0,
-                    background: countdown === '已超时' ? '#f56c6c' : '#409eff',
-                    color: 'white',
-                    padding: '8px 15px',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    textAlign: 'center',
-                    zIndex: 100
-                }}>
-                    ⏱ 剩余时间：{countdown}
-                </div>
-            )}
-
-            {/* 订单基本信息 */}
-            <div style={{ background: '#fff', margin: '10px 0', padding: '15px', borderBottom: '1px solid #e5e5e5' }}>
-                <div style={{ fontSize: '15px', fontWeight: 'bold', marginBottom: '10px', color: '#333' }}>
-                    订单信息
-                </div>
-                <div style={{ fontSize: '13px', color: '#666', lineHeight: '2' }}>
-                    <div>任务单号：{order.taskNumber}</div>
-                    <div>店铺名称：{order.shopName}</div>
-                    <div>接手买号：<span style={{ color: '#333', fontWeight: 'bold' }}>{order.buyerAccount}</span></div>
-                    <div>垫付本金：<span style={{ color: '#409eff' }}>¥{order.principal}</span></div>
-                    <div>任务佣金：<span style={{ color: '#07c160' }}>¥{(order.commission + order.userDivided).toFixed(2)}</span></div>
-                    <div>状态：<span style={{ color: order.status === 'PENDING' ? '#e6a23c' : '#67c23a' }}>{order.statusLabel}</span></div>
-                </div>
-            </div>
-
-            {/* 步骤进度 */}
-            <div style={{ background: '#fff', margin: '10px 0', padding: '15px' }}>
-                <div style={{ fontSize: '15px', fontWeight: 'bold', marginBottom: '15px', color: '#333' }}>
-                    任务进度
-                </div>
-                {steps.map((s, idx) => (
-                    <div key={s.step} style={{
-                        display: 'flex',
-                        marginBottom: idx < steps.length - 1 ? '15px' : '0',
-                        opacity: s.step > currentStep ? 0.4 : 1
-                    }}>
-                        <div style={{
-                            width: '30px',
-                            height: '30px',
-                            borderRadius: '50%',
-                            background: s.step < currentStep ? '#67c23a' : (s.step === currentStep ? '#409eff' : '#ddd'),
-                            color: 'white',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '14px',
-                            fontWeight: 'bold',
-                            flexShrink: 0
-                        }}>
-                            {s.step < currentStep ? '✓' : s.step}
-                        </div>
-                        <div style={{ marginLeft: '12px', flex: 1 }}>
-                            <div style={{ fontSize: '14px', fontWeight: s.step === currentStep ? 'bold' : 'normal', color: '#333' }}>
-                                {s.title}
-                            </div>
-                            <div style={{ fontSize: '12px', color: '#999', marginTop: '2px' }}>
-                                {s.desc}
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* 当前步骤操作 Area */}
-            <div style={{ background: '#fff', margin: '10px 0', padding: '15px' }}>
-                <div style={{ fontSize: '15px', fontWeight: 'bold', marginBottom: '15px', color: '#333' }}>
-                    {currentStep === 0 ? '商品验证' : `第 ${currentStep} 步：${steps[currentStep].title}`}
-                </div>
-
-                {/* 步骤0: 商品验证 */}
-                {currentStep === 0 && (
-                    <div>
-                        <div style={{ background: '#f0f9ff', padding: '10px', borderRadius: '4px', marginBottom: '15px', color: '#409eff', fontSize: '13px', lineHeight: '1.6' }}>
-                            <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>请先验证商品</p>
-                            <p>1. 打开淘宝APP找到任务商品</p>
-                            <p>2. 点击分享 → 复制链接/淘口令</p>
-                            <p>3. 将淘口令粘贴到下方输入框验证</p>
-                        </div>
-
-                        <div style={{ marginBottom: '15px' }}>
-                            <div style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>淘口令或商品链接：</div>
-                            <textarea
-                                value={productLink}
-                                onChange={(e) => setProductLink(e.target.value)}
-                                placeholder="请粘贴淘口令或商品链接，如：₳Abc123xyz₳ 或 https://item.taobao.com/..."
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '4px',
-                                    fontSize: '14px',
-                                    minHeight: '80px',
-                                    resize: 'vertical',
-                                    boxSizing: 'border-box'
-                                }}
-                            />
-                        </div>
-
-                        {/* 验证结果显示 */}
-                        {validationResult && (
-                            <div style={{
-                                padding: '12px',
-                                borderRadius: '4px',
-                                marginBottom: '15px',
-                                background: validationResult.valid ? '#f0f9eb' : '#fef0f0',
-                                border: `1px solid ${validationResult.valid ? '#c2e7b0' : '#fbc4c4'}`
-                            }}>
-                                {validationResult.valid ? (
-                                    <div style={{ color: '#67c23a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <span style={{ fontSize: '18px' }}>✓</span>
-                                        <span>商品验证通过！请继续完成任务</span>
-                                    </div>
-                                ) : (
-                                    <div style={{ color: '#f56c6c' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                                            <span style={{ fontSize: '18px' }}>✗</span>
-                                            <span style={{ fontWeight: 'bold' }}>商品验证失败</span>
-                                        </div>
-                                        <div style={{ fontSize: '12px', marginLeft: '26px' }}>
-                                            {validationResult.error}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        <button
-                            onClick={handleValidateProduct}
-                            disabled={validating || !productLink.trim()}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                background: validating || !productLink.trim() ? '#a0cfff' : '#409eff',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                fontSize: '15px',
-                                fontWeight: 'bold',
-                                cursor: validating || !productLink.trim() ? 'not-allowed' : 'pointer'
-                            }}
-                        >
-                            {validating ? '验证中...' : '验证商品'}
-                        </button>
-
-                        <div style={{ marginTop: '15px', padding: '10px', background: '#fffbe6', borderRadius: '4px', border: '1px solid #ffe58f' }}>
-                            <div style={{ color: '#d48806', fontSize: '12px', lineHeight: '1.6' }}>
-                                <p style={{ fontWeight: 'bold', marginBottom: '4px' }}>温馨提示：</p>
-                                <p>• 验证商品是为了确保您找到的是正确的任务商品</p>
-                                <p>• 请确保商品ID与任务商品一致再进行下单</p>
-                                <p>• 如验证失败，请检查是否复制了正确的商品链接</p>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {currentStep === 1 && (
-                    <div>
-                        <div style={{ background: '#fdf6ec', padding: '10px', borderRadius: '4px', marginBottom: '15px', color: '#e6a23c', fontSize: '13px', lineHeight: '1.6' }}>
-                            <p>1. 打开淘宝APP首页</p>
-                            <p>2. 搜索关键词：<span style={{ color: '#f56c6c', fontWeight: 'bold', userSelect: 'none' }}>{order.keyword}</span></p>
-                            <p>3. 浏览3-5家同类商品（竞品），每家停留2分钟以上</p>
-                        </div>
-
-                        <div style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>上传货比截图：</div>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleFileChange(e, 'compareScreenshot')}
-                            style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
-                        />
-                        {formData.compareScreenshot && (
-                            <div style={{ marginTop: '8px', fontSize: '12px', color: '#67c23a' }}>
-                                已选择：{formData.compareScreenshot.name}
-                            </div>
-                        )}
-                        <div style={{ fontSize: '12px', color: '#999', marginTop: '8px' }}>
-                            请上传包含搜索词和浏览记录的截图
-                        </div>
-                    </div>
-                )}
-
-                {currentStep === 2 && (
-                    <div style={{ fontSize: '13px', color: '#666', lineHeight: '1.8' }}>
-                        <div style={{ background: '#f0f9ff', padding: '10px', borderRadius: '4px', marginBottom: '15px', color: '#409eff' }}>
-                            <p>1. 根据搜索结果找到目标商品进店</p>
-                            <p>2. 浏览主商品8分钟，副商品5分钟</p>
-                            <p>3. 收藏主商品和店铺</p>
-                            <p>4. 将商品加入购物车（请选择正确规格）</p>
-                        </div>
-
-                        <div style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>上传收藏/加购截图：</div>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleFileChange(e, 'collectScreenshot')}
-                            style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
-                        />
-                        {formData.collectScreenshot && (
-                            <div style={{ marginTop: '8px', fontSize: '12px', color: '#67c23a' }}>
-                                已选择：{formData.collectScreenshot.name}
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {currentStep === 3 && (
-                    <div>
-                        <div style={{ background: '#fef0f0', padding: '10px', borderRadius: '4px', marginBottom: '15px', color: '#f56c6c', fontSize: '13px' }}>
-                            <p>注意：请务必核对实际付款金额，禁止使用淘客/返利/红包下单！</p>
-                        </div>
-
-                        <div style={{ marginBottom: '15px' }}>
-                            <div style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>淘宝订单号：</div>
-                            <input
-                                type="text"
-                                value={formData.orderNumber}
-                                onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
-                                placeholder="请输入淘宝订单号"
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '4px',
-                                    fontSize: '14px'
-                                }}
-                            />
-                        </div>
-
-                        <div style={{ marginBottom: '15px' }}>
-                            <div style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>实际付款金额：</div>
-                            <input
-                                type="number"
-                                value={formData.paymentAmount}
-                                onChange={(e) => setFormData({ ...formData, paymentAmount: e.target.value })}
-                                placeholder="请输入实际付款金额"
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '4px',
-                                    fontSize: '14px'
-                                }}
-                            />
-                        </div>
-
-                        <div>
-                            <div style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>订单详情截图：</div>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => handleFileChange(e, 'orderDetailScreenshot')}
-                                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
-                            />
-                            {formData.orderDetailScreenshot && (
-                                <div style={{ marginTop: '8px', fontSize: '12px', color: '#67c23a' }}>
-                                    已选择：{formData.orderDetailScreenshot.name}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* 底部提交按钮 - 只在步骤1-3显示 */}
-            {currentStep > 0 && (
-                <div style={{
-                    position: 'fixed',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    maxWidth: '540px',
-                    margin: '0 auto',
-                    padding: '10px 15px',
                     background: '#fff',
-                    borderTop: '1px solid #ddd'
+                    borderRadius: '12px',
+                    marginBottom: '12px',
+                    overflow: 'hidden',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                 }}>
-                    <button
-                        onClick={handleSubmitStep}
-                        disabled={submitting}
-                        style={{
-                            width: '100%',
-                            background: submitting ? '#a0cfff' : '#409eff',
-                            border: 'none',
-                            color: 'white',
-                            padding: '12px',
-                            borderRadius: '4px',
-                            fontSize: '15px',
-                            fontWeight: 'bold',
-                            cursor: submitting ? 'not-allowed' : 'pointer'
-                        }}
-                    >
-                        {submitting ? '提交中...' : (currentStep < 3 ? '完成此步骤' : '确认提交任务')}
-                    </button>
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '14px 16px',
+                        borderBottom: '1px solid #f5f5f5'
+                    }}>
+                        <div style={{ color: '#f56c6c', fontWeight: '600', fontSize: '15px' }}>任务信息</div>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <a
+                                onClick={() => router.push('/profile/records?type=silver')}
+                                style={{ color: '#409eff', fontSize: '13px', cursor: 'pointer' }}
+                            >
+                                银锭记录
+                            </a>
+                            <a
+                                onClick={() => router.push('/profile/records?type=principal')}
+                                style={{ color: '#409eff', fontSize: '13px', cursor: 'pointer' }}
+                            >
+                                本金记录
+                            </a>
+                        </div>
+                    </div>
+
+                    <div style={{ padding: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+                            <span style={{ color: '#666' }}>买号：</span>
+                            <span style={{ color: '#333' }}>{taskData.maiHao}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+                            <span style={{ color: '#666' }}>任务类型：</span>
+                            <span style={{ color: '#333' }}>{taskData.type}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+                            <span style={{ color: '#666' }}>返款方式：</span>
+                            <span style={{ color: '#333' }}>{taskData.zhongDuan}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+                            <span style={{ color: '#666' }}>佣金：</span>
+                            <span style={{ color: '#1677ff', fontWeight: '600' }}>
+                                {taskData.yongJin}<span style={{ color: '#ffd700' }}>+{taskData.user_divided}银锭</span>
+                            </span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+                            <span style={{ color: '#666' }}>任务金额：</span>
+                            <span style={{ color: '#333' }}>{taskData.goods_price}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+                            <span style={{ color: '#666' }}>垫付金额：</span>
+                            <span style={{ color: '#409eff', fontWeight: '600' }}>{taskData.benJin}元</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+                            <span style={{ color: '#666' }}>返款金额：</span>
+                            <span style={{ color: '#333' }}>{taskData.money}元</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+                            <span style={{ color: '#666' }}>任务编号：</span>
+                            <span style={{ color: '#333' }}>{taskData.taskNum}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+                            <span style={{ color: '#666' }}>店铺：</span>
+                            <span style={{ color: '#333' }}>{taskData.dianPu?.substring(0, 3)}...</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+                            <span style={{ color: '#666' }}>创建时间：</span>
+                            <span style={{ color: '#333' }}>{taskData.time}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                            <span style={{ color: '#666' }}>任务状态：</span>
+                            <span style={{ color: '#333' }}>
+                                {taskData.taskType}
+                                {taskData.taskType === '已取消' && taskData.delType && (
+                                    <span style={{ marginLeft: '10px', color: '#f56c6c' }}>{taskData.delType}</span>
+                                )}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {taskData2 && (
+                    <div style={{
+                        background: '#fff',
+                        borderRadius: '12px',
+                        marginBottom: '12px',
+                        overflow: 'hidden',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                    }}>
+                        {/* 标题栏 */}
+                        <div style={{
+                            padding: '14px 16px',
+                            borderBottom: '1px solid #f5f5f5'
+                        }}>
+                            <div style={{ color: '#f56c6c', fontWeight: '600', fontSize: '15px' }}>任务进度</div>
+                        </div>
+
+                        <div style={{ padding: '16px', overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', minWidth: '500px' }}>
+                                <thead>
+                                    <tr style={{ background: '#f5f5f7' }}>
+                                        <th style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'left' }}>服务项目</th>
+                                        <th style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>完成状态</th>
+                                        <th style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>完成时间</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {/* 浏览店铺及在线客服聊天 */}
+                                    <tr>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>浏览店铺及在线客服聊天</td>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>
+                                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                                                <a
+                                                    onClick={() => showImage(taskData2.img)}
+                                                    style={{ color: '#409eff', cursor: 'pointer' }}
+                                                >
+                                                    点击查看
+                                                </a>
+                                                <a
+                                                    onClick={() => showImage(taskData2.img2)}
+                                                    style={{ color: '#409eff', cursor: 'pointer' }}
+                                                >
+                                                    点击查看
+                                                </a>
+                                            </div>
+                                        </td>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.step_two_complete}</td>
+                                    </tr>
+                                    {/* 下单/支付 */}
+                                    <tr>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>下单/支付</td>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.zhiFu}</td>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.upload_order_time}</td>
+                                    </tr>
+                                    {/* 订单编号 */}
+                                    <tr>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>订单编号</td>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.order}</td>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.upload_order_time}</td>
+                                    </tr>
+                                    {/* 商家发货 */}
+                                    <tr>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>商家发货</td>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>
+                                            <div>
+                                                <p style={{ margin: '0 0 4px' }}>快递方式：<span>{taskData2.style || '-'}</span></p>
+                                                <p style={{ margin: 0 }}>快递单号：<span>{taskData2.num || '-'}</span></p>
+                                            </div>
+                                        </td>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.delivery_time}</td>
+                                    </tr>
+                                    {/* 平台返款 */}
+                                    <tr>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>平台返款</td>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>
+                                            {taskData2.type1 === '待确认返款' || taskData2.type1 === '已完成' ? (
+                                                <span style={{ color: '#07c160' }}>已返款</span>
+                                            ) : (
+                                                <span style={{ color: '#ff9500' }}>待返款</span>
+                                            )}
+                                        </td>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.platform_refund_time}</td>
+                                    </tr>
+                                    {/* 任务状态 */}
+                                    <tr>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>任务状态</td>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.type1}</td>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.time}</td>
+                                    </tr>
+                                    {products.map((vo, index) => (
+                                        <tr key={index}>
+                                            <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>好评内容</td>
+                                            <td style={{ padding: '10px', border: '1px solid #e5e5e5', color: '#f56c6c' }}>{vo.text_praise || '暂无内容'}</td>
+                                            <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>暂无内容</td>
+                                        </tr>
+                                    ))}
+                                    {/* 好评图片 */}
+                                    <tr>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>图片</td>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>
+                                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                                {products.flatMap(p => p.img_praise || []).map((img, idx) => (
+                                                    <img
+                                                        key={idx}
+                                                        src={`https://b--d.oss-cn-guangzhou.aliyuncs.com${img}`}
+                                                        alt="好评图片"
+                                                        style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px', cursor: 'pointer' }}
+                                                        onClick={() => setPreviewImage(`https://b--d.oss-cn-guangzhou.aliyuncs.com${img}`)}
+                                                    />
+                                                ))}
+                                                {products.flatMap(p => p.img_praise || []).length === 0 && (
+                                                    <span style={{ color: '#999' }}>暂无图片</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>暂无内容</td>
+                                    </tr>
+                                    {/* 好评视频 */}
+                                    <tr>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>视频</td>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>
+                                            {products.some(p => p.video_praise) ? (
+                                                <video
+                                                    src={`https://b--d.oss-cn-guangzhou.aliyuncs.com${products.find(p => p.video_praise)?.video_praise}`}
+                                                    controls
+                                                    style={{ width: '120px', height: '80px', borderRadius: '4px' }}
+                                                />
+                                            ) : (
+                                                <span style={{ color: '#999' }}>暂无视频</span>
+                                            )}
+                                        </td>
+                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>
+                                            {products.some(p => p.video_praise) && (
+                                                <a
+                                                    href={`https://b--d.oss-cn-guangzhou.aliyuncs.com${products.find(p => p.video_praise)?.video_praise}`}
+                                                    download="视频"
+                                                    style={{ color: '#409eff' }}
+                                                >
+                                                    下载
+                                                </a>
+                                            )}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* 图片预览弹层 */}
+            {previewImage && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'rgba(0,0,0,0.8)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1000,
+                    }}
+                    onClick={() => setPreviewImage(null)}
+                >
+                    <img
+                        src={previewImage}
+                        alt="预览"
+                        style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain' }}
+                    />
                 </div>
             )}
+
+            <BottomNav />
         </div>
     );
 }

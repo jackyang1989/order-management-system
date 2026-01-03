@@ -337,9 +337,9 @@ function OrdersPageContent() {
     const chooseTiao = (id: string) => {
         const val = value1;
         if (val === '4') {
-            router.push(`/orders/${id}?action=shoukuan`);
+            router.push(`/orders/${id}`); // 确认返款在详情页处理
         } else if (val === '2') {
-            router.push(`/orders/${id}?action=shouhuo`);
+            router.push(`/orders/${id}/receive`);
         } else {
             router.push(`/orders/${id}`);
         }
@@ -404,9 +404,9 @@ function OrdersPageContent() {
 
     const defaultBtnClick = (index_state: string, id: string) => {
         if (!index_state || index_state === '4') {
-            router.push(`/orders/${id}?action=shoukuan`);
+            router.push(`/orders/${id}`);
         } else if (index_state === '2') {
-            router.push(`/orders/${id}?action=shouhuo`);
+            router.push(`/orders/${id}/receive`);
         } else {
             router.push(`/orders/${id}`);
         }
