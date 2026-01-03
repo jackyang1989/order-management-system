@@ -240,4 +240,137 @@ export class AdminService {
 
         return { success, failed };
     }
+
+    // ============ 用户/商家余额管理 ============
+
+    /**
+     * 管理员调整用户余额
+     * 对应原版: 手动修改 balance/reward
+     */
+    async adjustUserBalance(
+        userId: string,
+        type: 'balance' | 'silver',
+        amount: number,
+        reason: string,
+        operatorId: string
+    ): Promise<{ success: boolean; newBalance: number; error?: string }> {
+        const user = await this.usersRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            return { success: false, newBalance: 0, error: '用户不存在' };
+        }
+
+        const currentValue = type === 'balance' ? Number(user.balance) : Number(user.silver);
+        const newValue = currentValue + amount;
+
+        if (newValue < 0) {
+            return { success: false, newBalance: currentValue, error: '余额不能为负数' };
+        }
+
+        if (type === 'balance') {
+            user.balance = newValue;
+        } else {
+            user.silver = newValue;
+        }
+
+        await this.usersRepository.save(user);
+
+        return { success: true, newBalance: newValue };
+    }
+
+    /**
+     * 管理员调整商家余额
+     * 对应原版: 手动修改商家 balance/reward
+     */
+    async adjustMerchantBalance(
+        merchantId: string,
+        type: 'balance' | 'silver',
+        amount: number,
+        reason: string,
+        operatorId: string
+    ): Promise<{ success: boolean; newBalance: number; error?: string }> {
+        const merchant = await this.merchantsRepository.findOne({ where: { id: merchantId } });
+        if (!merchant) {
+            return { success: false, newBalance: 0, error: '商家不存在' };
+        }
+
+        const currentValue = type === 'balance' ? Number(merchant.balance) : Number(merchant.silver);
+        const newValue = currentValue + amount;
+
+        if (newValue < 0) {
+            return { success: false, newBalance: currentValue, error: '余额不能为负数' };
+        }
+
+        if (type === 'balance') {
+            merchant.balance = newValue;
+        } else {
+            merchant.silver = newValue;
+        }
+
+        await this.merchantsRepository.save(merchant);
+
+        return { success: true, newBalance: newValue };
+    }
+
+    /**
+     * 获取用户详细信息（包含余额）
+     */
+    async getUserDetail(userId: string): Promise<User | null> {
+        return this.usersRepository.findOne({ where: { id: userId } });
+    }
+
+    /**
+     * 获取商家详细信息（包含余额）
+     */
+    async getMerchantDetail(merchantId: string): Promise<Merchant | null> {
+        return this.merchantsRepository.findOne({ where: { id: merchantId } });
+    }
+
+    /**
+     * 设置用户VIP状态
+     * 对应原版: 手动设置 vip=1, vip_time
+     */
+    async setUserVip(
+        userId: string,
+        vip: boolean,
+        expireAt?: Date
+    ): Promise<{ success: boolean; error?: string }> {
+        const user = await this.usersRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            return { success: false, error: '用户不存在' };
+        }
+
+        user.vip = vip;
+        if (vip && expireAt) {
+            user.vipExpireAt = expireAt;
+        } else if (!vip) {
+            user.vipExpireAt = undefined;
+        }
+
+        await this.usersRepository.save(user);
+        return { success: true };
+    }
+
+    /**
+     * 设置商家VIP状态
+     */
+    async setMerchantVip(
+        merchantId: string,
+        vip: boolean,
+        expireAt?: Date
+    ): Promise<{ success: boolean; error?: string }> {
+        const merchant = await this.merchantsRepository.findOne({ where: { id: merchantId } });
+        if (!merchant) {
+            return { success: false, error: '商家不存在' };
+        }
+
+        merchant.vip = vip;
+        if (vip && expireAt) {
+            merchant.vipExpireAt = expireAt;
+        } else if (!vip) {
+            merchant.vipExpireAt = undefined as any;
+        }
+
+        await this.merchantsRepository.save(merchant);
+        return { success: true };
+    }
 }

@@ -236,4 +236,103 @@ export class AdminController {
             data: results
         };
     }
+
+    // ============ 用户/商家余额管理 ============
+
+    @Get('users/:id/detail')
+    async getUserDetail(@Param('id') id: string) {
+        const user = await this.adminService.getUserDetail(id);
+        if (!user) {
+            return { success: false, message: '用户不存在' };
+        }
+        return { success: true, data: user };
+    }
+
+    @Get('merchants/:id/detail')
+    async getMerchantDetail(@Param('id') id: string) {
+        const merchant = await this.adminService.getMerchantDetail(id);
+        if (!merchant) {
+            return { success: false, message: '商家不存在' };
+        }
+        return { success: true, data: merchant };
+    }
+
+    @Post('users/:id/adjust-balance')
+    async adjustUserBalance(
+        @Param('id') id: string,
+        @Body() body: { type: 'balance' | 'silver'; amount: number; reason: string }
+    ) {
+        // TODO: 从请求中获取管理员ID
+        const operatorId = 'admin';
+        const result = await this.adminService.adjustUserBalance(
+            id,
+            body.type,
+            body.amount,
+            body.reason,
+            operatorId
+        );
+        if (!result.success) {
+            return { success: false, message: result.error };
+        }
+        return {
+            success: true,
+            message: `${body.type === 'balance' ? '余额' : '银锭'}调整成功`,
+            data: { newBalance: result.newBalance }
+        };
+    }
+
+    @Post('merchants/:id/adjust-balance')
+    async adjustMerchantBalance(
+        @Param('id') id: string,
+        @Body() body: { type: 'balance' | 'silver'; amount: number; reason: string }
+    ) {
+        const operatorId = 'admin';
+        const result = await this.adminService.adjustMerchantBalance(
+            id,
+            body.type,
+            body.amount,
+            body.reason,
+            operatorId
+        );
+        if (!result.success) {
+            return { success: false, message: result.error };
+        }
+        return {
+            success: true,
+            message: `${body.type === 'balance' ? '余额' : '银锭'}调整成功`,
+            data: { newBalance: result.newBalance }
+        };
+    }
+
+    @Post('users/:id/set-vip')
+    async setUserVip(
+        @Param('id') id: string,
+        @Body() body: { vip: boolean; expireAt?: string }
+    ) {
+        const expireAt = body.expireAt ? new Date(body.expireAt) : undefined;
+        const result = await this.adminService.setUserVip(id, body.vip, expireAt);
+        if (!result.success) {
+            return { success: false, message: result.error };
+        }
+        return {
+            success: true,
+            message: body.vip ? 'VIP已开通' : 'VIP已关闭'
+        };
+    }
+
+    @Post('merchants/:id/set-vip')
+    async setMerchantVip(
+        @Param('id') id: string,
+        @Body() body: { vip: boolean; expireAt?: string }
+    ) {
+        const expireAt = body.expireAt ? new Date(body.expireAt) : undefined;
+        const result = await this.adminService.setMerchantVip(id, body.vip, expireAt);
+        if (!result.success) {
+            return { success: false, message: result.error };
+        }
+        return {
+            success: true,
+            message: body.vip ? 'VIP已开通' : 'VIP已关闭'
+        };
+    }
 }

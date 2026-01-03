@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus, CreateOrderDto, SubmitStepDto, OrderStepData, OrderFilterDto } from './order.entity';
 import { TasksService } from '../tasks/tasks.service';
+import { Task } from '../tasks/task.entity';
 import { BuyerAccountsService } from '../buyer-accounts/buyer-accounts.service';
 import { BuyerAccountStatus } from '../buyer-accounts/buyer-account.entity';
 import { FinanceRecordsService } from '../finance-records/finance-records.service';
@@ -143,12 +144,8 @@ export class OrdersService {
         user.silver = Number(user.silver) - SILVER_PREPAY;
         await this.usersRepository.save(user);
 
-        // 构建默认步骤数据 (简化版：3步流程)
-        const defaultSteps: OrderStepData[] = [
-            { step: 1, title: '下单截图', description: '请上传订单截图', submitted: false },
-            { step: 2, title: '物流截图', description: '请上传物流截图', submitted: false },
-            { step: 3, title: '好评截图', description: '请上传好评截图', submitted: false },
-        ];
+        // 构建步骤数据 (根据任务配置动态生成，对应原版详细流程)
+        const steps: OrderStepData[] = this.generateTaskSteps(task);
 
         // 设置订单超时时间 (1小时后)
         const endingTime = new Date();
@@ -170,8 +167,8 @@ export class OrdersService {
             productPrice: Number(task.goodsPrice),
             commission: Number(task.baseServiceFee),
             currentStep: 1,
-            totalSteps: defaultSteps.length,
-            stepData: defaultSteps,
+            totalSteps: steps.length,
+            stepData: steps,
             status: OrderStatus.PENDING,
             endingTime,
             silverPrepay: SILVER_PREPAY, // 记录押金金额
@@ -822,6 +819,132 @@ export class OrdersService {
 
         // 调用原有的 submitStep 逻辑
         return this.submitStep(orderId, userId, submitStepDto);
+    }
+
+    // ============ 任务步骤模板生成 (对应原版详细流程) ============
+
+    /**
+     * 根据任务配置生成详细的步骤列表
+     * 对应原版 taskstep.html 的完整流程
+     */
+    private generateTaskSteps(task: Task): OrderStepData[] {
+        const steps: OrderStepData[] = [];
+        let stepNumber = 1;
+
+        // 第一步：搜索和浏览 (固定步骤)
+        steps.push({
+            step: stepNumber++,
+            title: '搜索商品',
+            description: this.generateSearchDescription(task),
+            submitted: false,
+        });
+
+        // 货比步骤 (如果任务需要)
+        if (task.needHuobi) {
+            steps.push({
+                step: stepNumber++,
+                title: '货比加购',
+                description: `搜索货比关键词"${task.huobiKeyword || task.keyword}"，浏览5家同类商品每家2分钟，将其中3个商家的货比商品加入购物车并截图`,
+                submitted: false,
+            });
+        }
+
+        // 收藏步骤
+        if (task.needShoucang) {
+            steps.push({
+                step: stepNumber++,
+                title: '收藏商品',
+                description: '收藏商品并截图',
+                submitted: false,
+            });
+        }
+
+        // 关注店铺步骤
+        if (task.needGuanzhu) {
+            steps.push({
+                step: stepNumber++,
+                title: '关注店铺',
+                description: '关注店铺并截图',
+                submitted: false,
+            });
+        }
+
+        // 假聊步骤
+        if (task.needJialiao) {
+            steps.push({
+                step: stepNumber++,
+                title: '假聊截图',
+                description: '与店家客服聊天并截图（按商家要求内容聊天）',
+                submitted: false,
+            });
+        }
+
+        // 加购物车步骤
+        if (task.needJiagou) {
+            steps.push({
+                step: stepNumber++,
+                title: '加入购物车',
+                description: '将商品加入购物车并截图',
+                submitted: false,
+            });
+        }
+
+        // 下单截图 (固定步骤)
+        steps.push({
+            step: stepNumber++,
+            title: '下单截图',
+            description: `付款并上传订单截图（浏览时间需满${task.totalBrowseMinutes || 15}分钟）`,
+            submitted: false,
+        });
+
+        // 物流截图 (根据是否需要物流)
+        steps.push({
+            step: stepNumber++,
+            title: '物流截图',
+            description: task.isFreeShipping ? '等待发货，上传物流截图' : '确认收货并上传物流截图',
+            submitted: false,
+        });
+
+        // 好评截图 (如果任务需要好评)
+        if (task.isPraise || task.isImgPraise || task.isVideoPraise) {
+            let praiseDesc = '提交好评并截图';
+            if (task.isVideoPraise) {
+                praiseDesc = '提交视频好评并截图';
+            } else if (task.isImgPraise) {
+                praiseDesc = '提交图片好评并截图';
+            }
+            steps.push({
+                step: stepNumber++,
+                title: '好评截图',
+                description: praiseDesc,
+                submitted: false,
+            });
+        }
+
+        return steps;
+    }
+
+    /**
+     * 生成搜索步骤的详细描述
+     */
+    private generateSearchDescription(task: Task): string {
+        let desc = '';
+
+        // 根据任务类型生成不同的搜索说明
+        if (task.qrCode) {
+            desc = '打开淘宝APP，扫描二维码进入商品页面';
+        } else if (task.taoWord) {
+            desc = `复制淘口令"${task.taoWord}"，打开淘宝APP`;
+        } else if (task.keyword) {
+            desc = `在淘宝APP搜索框手动输入关键词"${task.keyword}"，找到指定商品`;
+        } else {
+            desc = '按照商家指定方式进入商品页面';
+        }
+
+        // 添加浏览时间要求
+        desc += `\n浏览主商品${task.mainBrowseMinutes || 8}分钟以上，随机浏览店铺其他2个商品各${task.subBrowseMinutes || 2}分钟`;
+
+        return desc;
     }
 }
 
