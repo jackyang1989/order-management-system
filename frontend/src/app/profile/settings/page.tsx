@@ -73,6 +73,10 @@ export default function ProfileSettingsPage() {
     const loadUserInfo = async () => {
         try {
             const data = await fetchUserProfile();
+            if (!data) {
+                console.error('Failed to fetch user profile');
+                return;
+            }
             setUserInfo({
                 username: data.username || '',
                 mobile: data.phone || '',

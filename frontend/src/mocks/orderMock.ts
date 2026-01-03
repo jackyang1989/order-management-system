@@ -1,4 +1,19 @@
 // 订单 Mock 数据 (用户接的任务)
+// 任务状态 - 对应原版8个主状态 + 4个审核状态
+export type OrderStatus =
+    | 'PENDING'           // 进行中
+    | 'PAID'              // 已付款
+    | 'SHIPPED'           // 已发货
+    | 'RECEIVED'          // 已签收
+    | 'WAITING_RECEIVE'   // 待收货
+    | 'WAITING_REVIEW_REFUND' // 待审核返款
+    | 'REFUNDED'          // 已退款/已返款
+    | 'COMPLETED'         // 已完成
+    | 'CANCELLED'         // 已取消
+    | 'SUBMITTED'         // 已提交
+    | 'APPROVED'          // 已审核通过
+    | 'REJECTED';         // 已驳回
+
 export interface MockOrder {
     id: string;
     taskNumber: string;
@@ -10,7 +25,7 @@ export interface MockOrder {
     buyerAccount: string; // 买号账号（支持多平台）
     keyword: string; // 搜索关键词
     goodsPrice: number; // 商品价格
-    status: 'PENDING' | 'PAID' | 'SHIPPED' | 'RECEIVED' | 'REFUNDED' | 'COMPLETED' | 'CANCELLED';
+    status: OrderStatus;
     statusLabel: string;
     taskStep: number;
     createdAt: string;

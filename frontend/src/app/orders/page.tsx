@@ -477,7 +477,7 @@ export default function OrdersPage() {
                                     alignItems: 'center'
                                 }}>
                                     <div style={{ fontSize: '12px', color: '#999' }}>
-                                        {order.createTime}
+                                        {order.createdAt}
                                     </div>
                                     <div style={{ display: 'flex', gap: '8px' }}>
                                         <Link href={`/orders/${order.id}`}>
