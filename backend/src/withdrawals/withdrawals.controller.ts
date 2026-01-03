@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { WithdrawalsService } from './withdrawals.service';
-import { CreateWithdrawalDto } from './withdrawal.entity';
+import { CreateWithdrawalDto, WithdrawalType } from './withdrawal.entity';
 
 @Controller('withdrawals')
 @UseGuards(JwtAuthGuard)
@@ -23,6 +23,31 @@ export class WithdrawalsController {
         return {
             success: true,
             data: stats
+        };
+    }
+
+    // 获取提现配置（供前端显示手续费规则）
+    @Get('config')
+    async getConfig() {
+        const config = await this.withdrawalsService.getWithdrawalConfig();
+        return {
+            success: true,
+            data: config
+        };
+    }
+
+    // 计算手续费（用于前端预览）
+    @Get('calculate-fee')
+    async calculateFee(
+        @Query('amount') amount: string,
+        @Query('type') type: string
+    ) {
+        const amountNum = parseFloat(amount) || 0;
+        const withdrawalType = type === 'SILVER' ? WithdrawalType.SILVER : WithdrawalType.BALANCE;
+        const result = await this.withdrawalsService.calculateWithdrawalFee(amountNum, withdrawalType);
+        return {
+            success: true,
+            data: result
         };
     }
 

@@ -380,4 +380,134 @@ export class UsersService {
             totalAssets: balance + silver
         };
     }
+
+    // ============ 用户安全设置 (对应原版个人信息修改) ============
+
+    /**
+     * 修改登录密码
+     * 需要验证原密码
+     */
+    async changePassword(
+        userId: string,
+        oldPassword: string,
+        newPassword: string
+    ): Promise<{ success: boolean; message: string }> {
+        const user = await this.usersRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            return { success: false, message: '用户不存在' };
+        }
+
+        // 验证原密码
+        const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
+        if (!isOldPasswordValid) {
+            return { success: false, message: '原密码错误' };
+        }
+
+        // 加密新密码
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedNewPassword;
+        await this.usersRepository.save(user);
+
+        return { success: true, message: '密码修改成功' };
+    }
+
+    /**
+     * 修改支付密码
+     * 需要验证手机验证码（此处简化处理，实际应对接短信服务）
+     */
+    async changePayPassword(
+        userId: string,
+        newPayPassword: string,
+        phone: string,
+        smsCode: string
+    ): Promise<{ success: boolean; message: string }> {
+        const user = await this.usersRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            return { success: false, message: '用户不存在' };
+        }
+
+        // 验证手机号
+        if (user.phone !== phone) {
+            return { success: false, message: '手机号不匹配' };
+        }
+
+        // TODO: 验证短信验证码（需对接短信服务）
+        // 暂时跳过验证码验证
+
+        // 验证支付密码格式（6位数字）
+        if (!/^\d{6}$/.test(newPayPassword)) {
+            return { success: false, message: '支付密码必须为6位数字' };
+        }
+
+        // 加密新支付密码
+        const hashedPayPassword = await bcrypt.hash(newPayPassword, 10);
+        user.payPassword = hashedPayPassword;
+        await this.usersRepository.save(user);
+
+        return { success: true, message: '支付密码修改成功' };
+    }
+
+    /**
+     * 修改手机号
+     * 需要验证支付密码和新手机验证码
+     */
+    async changePhone(
+        userId: string,
+        oldPhone: string,
+        payPassword: string,
+        newPhone: string,
+        smsCode: string
+    ): Promise<{ success: boolean; message: string }> {
+        const user = await this.usersRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            return { success: false, message: '用户不存在' };
+        }
+
+        // 验证原手机号
+        if (user.phone !== oldPhone) {
+            return { success: false, message: '原手机号不正确' };
+        }
+
+        // 验证支付密码
+        if (!user.payPassword) {
+            return { success: false, message: '请先设置支付密码' };
+        }
+        const isPayPasswordValid = await bcrypt.compare(payPassword, user.payPassword);
+        if (!isPayPasswordValid) {
+            return { success: false, message: '支付密码错误' };
+        }
+
+        // 检查新手机号是否已被使用
+        const existingUser = await this.usersRepository.findOne({ where: { phone: newPhone } });
+        if (existingUser && existingUser.id !== userId) {
+            return { success: false, message: '该手机号已被其他用户使用' };
+        }
+
+        // TODO: 验证短信验证码（需对接短信服务）
+
+        // 更新手机号
+        user.phone = newPhone;
+        await this.usersRepository.save(user);
+
+        return { success: true, message: '手机号修改成功' };
+    }
+
+    /**
+     * 发送短信验证码（Mock实现）
+     */
+    async sendSmsCode(phone: string, type: 'change_phone' | 'change_password' | 'change_pay_password'): Promise<{
+        success: boolean;
+        message: string;
+    }> {
+        // 验证手机号格式
+        if (!/^1[3-9]\d{9}$/.test(phone)) {
+            return { success: false, message: '手机号格式不正确' };
+        }
+
+        // TODO: 对接真实短信服务
+        // 此处为Mock实现，直接返回成功
+        console.log(`[SMS] Sending ${type} verification code to ${phone}`);
+
+        return { success: true, message: '验证码发送成功' };
+    }
 }

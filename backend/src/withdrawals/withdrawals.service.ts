@@ -7,6 +7,7 @@ import { User } from '../users/user.entity';
 import { BankCardsService } from '../bank-cards/bank-cards.service';
 import { UsersService } from '../users/users.service';
 import { FinanceRecordsService } from '../finance-records/finance-records.service';
+import { SystemConfigService } from '../system-config/system-config.service';
 
 @Injectable()
 export class WithdrawalsService {
@@ -16,7 +17,68 @@ export class WithdrawalsService {
         private bankCardsService: BankCardsService,
         private usersService: UsersService,
         private financeRecordsService: FinanceRecordsService,
+        private systemConfigService: SystemConfigService,
     ) { }
+
+    /**
+     * 计算提现手续费（对应原版逻辑）
+     * 原版规则:
+     * - 本金提现: 金额 <= userFeeMaxPrice 时收取 userCashFree 元手续费
+     * - 银锭提现: 按 rewardPrice 单价折算取整
+     */
+    async calculateWithdrawalFee(amount: number, type: WithdrawalType): Promise<{
+        fee: number;
+        actualAmount: number;
+        rewardPrice?: number;
+    }> {
+        if (type === WithdrawalType.BALANCE) {
+            // 本金提现手续费
+            const userFeeMaxPrice = await this.systemConfigService.getNumberValue('userFeeMaxPrice', 100);
+            const userCashFree = await this.systemConfigService.getNumberValue('userCashFree', 2);
+
+            let fee = 0;
+            if (amount <= userFeeMaxPrice) {
+                fee = userCashFree;
+            }
+            // 超过阈值免手续费
+
+            const actualAmount = Math.max(0, amount - fee);
+            return { fee, actualAmount };
+        } else {
+            // 银锭提现: 按单价折算
+            const rewardPrice = await this.systemConfigService.getNumberValue('rewardPrice', 1);
+            // 银锭转换为人民币金额，取整
+            const actualAmount = Math.floor(amount * rewardPrice);
+            const fee = 0; // 银锭提现不收手续费，只是按单价折算
+
+            return { fee, actualAmount, rewardPrice };
+        }
+    }
+
+    /**
+     * 获取提现配置（供前端显示）
+     */
+    async getWithdrawalConfig(): Promise<{
+        userMinMoney: number;
+        userMinReward: number;
+        userFeeMaxPrice: number;
+        userCashFree: number;
+        rewardPrice: number;
+    }> {
+        const userMinMoney = await this.systemConfigService.getNumberValue('userMinMoney', 10);
+        const userMinReward = await this.systemConfigService.getNumberValue('userMinReward', 10);
+        const userFeeMaxPrice = await this.systemConfigService.getNumberValue('userFeeMaxPrice', 100);
+        const userCashFree = await this.systemConfigService.getNumberValue('userCashFree', 2);
+        const rewardPrice = await this.systemConfigService.getNumberValue('rewardPrice', 1);
+
+        return {
+            userMinMoney,
+            userMinReward,
+            userFeeMaxPrice,
+            userCashFree,
+            rewardPrice
+        };
+    }
 
     async findAllByUser(userId: string): Promise<Withdrawal[]> {
         return this.withdrawalsRepository.find({
@@ -52,15 +114,29 @@ export class WithdrawalsService {
                 throw new NotFoundException('银行卡不存在');
             }
 
-            if (createDto.amount < 10) {
-                throw new BadRequestException('最低提现金额为10元');
+            const withdrawalType = createDto.type || WithdrawalType.BALANCE;
+
+            // 2. 获取系统配置的最低提现金额
+            const config = await this.getWithdrawalConfig();
+            const minAmount = withdrawalType === WithdrawalType.BALANCE
+                ? config.userMinMoney
+                : config.userMinReward;
+
+            if (createDto.amount < minAmount) {
+                throw new BadRequestException(
+                    withdrawalType === WithdrawalType.BALANCE
+                        ? `本金最低提现金额为${minAmount}元`
+                        : `银锭最低提现数量为${minAmount}`
+                );
             }
 
-            const withdrawalType = createDto.type || WithdrawalType.BALANCE;
-            const fee = 0;
-            const actualAmount = createDto.amount - fee;
+            // 3. 计算手续费（使用原版逻辑）
+            const { fee, actualAmount, rewardPrice } = await this.calculateWithdrawalFee(
+                createDto.amount,
+                withdrawalType
+            );
 
-            // 2. 原子扣减余额 + 冻结余额
+            // 4. 原子扣减余额 + 冻结余额
             // UPDATE user SET balance = balance - :amount, frozenBalance = frozenBalance + :amount
             // WHERE id = :userId AND balance >= :amount
             let updateResult;

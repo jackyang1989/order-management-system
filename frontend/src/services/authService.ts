@@ -117,3 +117,9 @@ export const isAuthenticated = (): boolean => {
     if (typeof window === 'undefined') return false;
     return !!localStorage.getItem('token');
 };
+
+// 获取Token
+export const getToken = (): string | null => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('token');
+};

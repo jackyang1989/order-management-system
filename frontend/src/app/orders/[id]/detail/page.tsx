@@ -2,10 +2,10 @@
 
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchOrderDetail } from '../../../services/orderService';
-import { MockOrder } from '../../../mocks/orderMock';
-import { isAuthenticated } from '../../../services/authService';
-import BottomNav from '../../../components/BottomNav';
+import { fetchOrderDetail } from '../../../../services/orderService';
+import { MockOrder } from '../../../../mocks/orderMock';
+import { isAuthenticated } from '../../../../services/authService';
+import BottomNav from '../../../../components/BottomNav';
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();

@@ -2,25 +2,32 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated } from '../../../services/authService';
+import { isAuthenticated, getToken } from '../../../services/authService';
+import { fetchUserProfile } from '../../../services/userService';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6001';
 
 export default function ProfileSettingsPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
 
-    // 用户信息（Mock）
+    // 用户信息
     const [userInfo, setUserInfo] = useState({
-        username: 'test_user',
-        mobile: '138****8888',
-        qq: '123456789',
-        vip: true,
-        vipExpireTime: '2024-12-31'
+        username: '',
+        mobile: '',
+        qq: '',
+        realName: '',
+        vip: false,
+        vipExpireTime: ''
     });
 
     // 弹窗状态
     const [showPhoneModal, setShowPhoneModal] = useState(false);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [showPayPwdModal, setShowPayPwdModal] = useState(false);
+
+    // 操作状态
+    const [submitting, setSubmitting] = useState(false);
 
     // 修改手机表单
     const [phoneForm, setPhoneForm] = useState({
@@ -34,9 +41,7 @@ export default function ProfileSettingsPage() {
     const [passwordForm, setPasswordForm] = useState({
         oldPassword: '',
         newPassword: '',
-        confirmPassword: '',
-        phone: '',
-        verifyCode: ''
+        confirmPassword: ''
     });
 
     // 修改支付密码表单
@@ -55,7 +60,7 @@ export default function ProfileSettingsPage() {
             router.push('/login');
             return;
         }
-        setLoading(false);
+        loadUserInfo();
     }, [router]);
 
     useEffect(() => {
@@ -65,28 +70,93 @@ export default function ProfileSettingsPage() {
         }
     }, [countdown]);
 
-    const sendVerifyCode = (phone: string) => {
+    const loadUserInfo = async () => {
+        try {
+            const data = await fetchUserProfile();
+            setUserInfo({
+                username: data.username || '',
+                mobile: data.phone || '',
+                qq: data.qq || '',
+                realName: data.realName || '',
+                vip: data.vip || false,
+                vipExpireTime: data.vipExpireAt ? new Date(data.vipExpireAt).toLocaleDateString() : ''
+            });
+            // 预填手机号
+            setPayPwdForm(prev => ({ ...prev, phone: data.phone || '' }));
+            setPhoneForm(prev => ({ ...prev, oldPhone: data.phone || '' }));
+        } catch (error) {
+            console.error('Failed to load user info:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const sendVerifyCode = async (phone: string, type: string) => {
         if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
             alert('请输入正确的手机号码');
             return;
         }
-        // Mock 发送验证码
-        alert('验证码已发送');
-        setCountdown(60);
+
+        try {
+            const token = getToken();
+            const res = await fetch(`${API_BASE}/user/send-sms`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ phone, type })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('验证码已发送');
+                setCountdown(60);
+            } else {
+                alert(data.message || '发送失败');
+            }
+        } catch (error) {
+            alert('网络错误，请重试');
+        }
     };
 
-    const handleChangePhone = () => {
+    const handleChangePhone = async () => {
         if (!phoneForm.oldPhone || !phoneForm.payPassword || !phoneForm.newPhone || !phoneForm.verifyCode) {
             alert('请填写完整信息');
             return;
         }
-        // Mock 修改手机号
-        alert('手机号修改成功');
-        setShowPhoneModal(false);
-        setPhoneForm({ oldPhone: '', payPassword: '', newPhone: '', verifyCode: '' });
+        setSubmitting(true);
+        try {
+            const token = getToken();
+            const res = await fetch(`${API_BASE}/user/change-phone`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    oldPhone: phoneForm.oldPhone,
+                    payPassword: phoneForm.payPassword,
+                    newPhone: phoneForm.newPhone,
+                    smsCode: phoneForm.verifyCode
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('手机号修改成功');
+                setShowPhoneModal(false);
+                setPhoneForm({ oldPhone: '', payPassword: '', newPhone: '', verifyCode: '' });
+                loadUserInfo();
+            } else {
+                alert(data.message || '修改失败');
+            }
+        } catch (error) {
+            alert('网络错误，请重试');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
-    const handleChangePassword = () => {
+    const handleChangePassword = async () => {
         if (!passwordForm.oldPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
             alert('请填写完整信息');
             return;
@@ -95,13 +165,40 @@ export default function ProfileSettingsPage() {
             alert('两次输入的密码不一致');
             return;
         }
-        // Mock 修改密码
-        alert('登录密码修改成功');
-        setShowPasswordModal(false);
-        setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '', phone: '', verifyCode: '' });
+        if (passwordForm.newPassword.length < 6) {
+            alert('密码长度不能少于6位');
+            return;
+        }
+        setSubmitting(true);
+        try {
+            const token = getToken();
+            const res = await fetch(`${API_BASE}/user/change-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    oldPassword: passwordForm.oldPassword,
+                    newPassword: passwordForm.newPassword
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('登录密码修改成功');
+                setShowPasswordModal(false);
+                setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+            } else {
+                alert(data.message || '修改失败');
+            }
+        } catch (error) {
+            alert('网络错误，请重试');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
-    const handleChangePayPwd = () => {
+    const handleChangePayPwd = async () => {
         if (!payPwdForm.newPayPassword || !payPwdForm.confirmPayPassword || !payPwdForm.verifyCode) {
             alert('请填写完整信息');
             return;
@@ -114,10 +211,34 @@ export default function ProfileSettingsPage() {
             alert('支付密码必须为6位数字');
             return;
         }
-        // Mock 修改支付密码
-        alert('支付密码修改成功');
-        setShowPayPwdModal(false);
-        setPayPwdForm({ newPayPassword: '', confirmPayPassword: '', phone: '', verifyCode: '' });
+        setSubmitting(true);
+        try {
+            const token = getToken();
+            const res = await fetch(`${API_BASE}/user/change-pay-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    newPayPassword: payPwdForm.newPayPassword,
+                    phone: payPwdForm.phone,
+                    smsCode: payPwdForm.verifyCode
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('支付密码修改成功');
+                setShowPayPwdModal(false);
+                setPayPwdForm({ newPayPassword: '', confirmPayPassword: '', phone: userInfo.mobile, verifyCode: '' });
+            } else {
+                alert(data.message || '修改失败');
+            }
+        } catch (error) {
+            alert('网络错误，请重试');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     if (loading) {
@@ -212,6 +333,9 @@ export default function ProfileSettingsPage() {
         cursor: 'pointer'
     };
 
+    // 手机号脱敏显示
+    const maskedPhone = userInfo.mobile ? userInfo.mobile.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '未绑定';
+
     return (
         <div style={{ minHeight: '100vh', background: '#f8f8f8', paddingBottom: '60px' }}>
             {/* 顶部栏 */}
@@ -244,6 +368,9 @@ export default function ProfileSettingsPage() {
                     fontSize: '36px'
                 }}>👤</div>
                 <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>{userInfo.username}</div>
+                {userInfo.realName && (
+                    <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>实名: {userInfo.realName}</div>
+                )}
             </div>
 
             {/* 基本信息 */}
@@ -253,13 +380,15 @@ export default function ProfileSettingsPage() {
                     <div style={labelStyle}>用户名</div>
                     <div style={valueStyle}>{userInfo.username}</div>
                 </div>
-                <div style={cellStyle}>
-                    <div style={labelStyle}>QQ账号</div>
-                    <div style={valueStyle}>{userInfo.qq}</div>
-                </div>
+                {userInfo.qq && (
+                    <div style={cellStyle}>
+                        <div style={labelStyle}>QQ账号</div>
+                        <div style={valueStyle}>{userInfo.qq}</div>
+                    </div>
+                )}
                 <div style={cellStyle}>
                     <div style={labelStyle}>手机号码</div>
-                    <div style={valueStyle}>{userInfo.mobile}</div>
+                    <div style={valueStyle}>{maskedPhone}</div>
                     <button style={editBtnStyle} onClick={() => setShowPhoneModal(true)}>修改</button>
                 </div>
             </div>
@@ -277,7 +406,7 @@ export default function ProfileSettingsPage() {
                         )}
                     </div>
                 </div>
-                {userInfo.vip && (
+                {userInfo.vip && userInfo.vipExpireTime && (
                     <div style={cellStyle}>
                         <div style={labelStyle}>到期时间</div>
                         <div style={valueStyle}>{userInfo.vipExpireTime}</div>
@@ -349,7 +478,7 @@ export default function ProfileSettingsPage() {
                                         style={{ ...inputStyle, flex: 1, marginTop: 0 }}
                                     />
                                     <button
-                                        onClick={() => sendVerifyCode(phoneForm.newPhone)}
+                                        onClick={() => sendVerifyCode(phoneForm.newPhone, 'change_phone')}
                                         disabled={countdown > 0}
                                         style={{
                                             padding: '10px 15px',
@@ -369,7 +498,9 @@ export default function ProfileSettingsPage() {
                         </div>
                         <div style={modalFooterStyle}>
                             <button onClick={() => setShowPhoneModal(false)} style={{ ...modalBtnStyle, background: '#f5f5f5', color: '#666' }}>取消</button>
-                            <button onClick={handleChangePhone} style={{ ...modalBtnStyle, background: '#409eff', color: '#fff' }}>确认</button>
+                            <button onClick={handleChangePhone} disabled={submitting} style={{ ...modalBtnStyle, background: submitting ? '#ccc' : '#409eff', color: '#fff' }}>
+                                {submitting ? '提交中...' : '确认'}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -395,7 +526,7 @@ export default function ProfileSettingsPage() {
                                 <label style={{ fontSize: '13px', color: '#666' }}>新登录密码 <span style={{ color: 'red' }}>*</span></label>
                                 <input
                                     type="password"
-                                    placeholder="请输入新登录密码"
+                                    placeholder="请输入新登录密码（至少6位）"
                                     value={passwordForm.newPassword}
                                     onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                                     style={inputStyle}
@@ -411,49 +542,12 @@ export default function ProfileSettingsPage() {
                                     style={inputStyle}
                                 />
                             </div>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ fontSize: '13px', color: '#666' }}>手机号码 <span style={{ color: 'red' }}>*</span></label>
-                                <input
-                                    type="text"
-                                    placeholder="请输入手机号码"
-                                    value={passwordForm.phone}
-                                    onChange={e => setPasswordForm({ ...passwordForm, phone: e.target.value })}
-                                    style={inputStyle}
-                                />
-                            </div>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ fontSize: '13px', color: '#666' }}>验证码 <span style={{ color: 'red' }}>*</span></label>
-                                <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
-                                    <input
-                                        type="text"
-                                        placeholder="请输入验证码"
-                                        maxLength={6}
-                                        value={passwordForm.verifyCode}
-                                        onChange={e => setPasswordForm({ ...passwordForm, verifyCode: e.target.value })}
-                                        style={{ ...inputStyle, flex: 1, marginTop: 0 }}
-                                    />
-                                    <button
-                                        onClick={() => sendVerifyCode(passwordForm.phone)}
-                                        disabled={countdown > 0}
-                                        style={{
-                                            padding: '10px 15px',
-                                            background: countdown > 0 ? '#ccc' : '#409eff',
-                                            color: '#fff',
-                                            border: 'none',
-                                            borderRadius: '4px',
-                                            fontSize: '12px',
-                                            whiteSpace: 'nowrap',
-                                            cursor: countdown > 0 ? 'not-allowed' : 'pointer'
-                                        }}
-                                    >
-                                        {countdown > 0 ? `${countdown}秒` : '发送验证码'}
-                                    </button>
-                                </div>
-                            </div>
                         </div>
                         <div style={modalFooterStyle}>
                             <button onClick={() => setShowPasswordModal(false)} style={{ ...modalBtnStyle, background: '#f5f5f5', color: '#666' }}>取消</button>
-                            <button onClick={handleChangePassword} style={{ ...modalBtnStyle, background: '#409eff', color: '#fff' }}>确认</button>
+                            <button onClick={handleChangePassword} disabled={submitting} style={{ ...modalBtnStyle, background: submitting ? '#ccc' : '#409eff', color: '#fff' }}>
+                                {submitting ? '提交中...' : '确认'}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -509,7 +603,7 @@ export default function ProfileSettingsPage() {
                                         style={{ ...inputStyle, flex: 1, marginTop: 0 }}
                                     />
                                     <button
-                                        onClick={() => sendVerifyCode(payPwdForm.phone)}
+                                        onClick={() => sendVerifyCode(payPwdForm.phone, 'change_pay_password')}
                                         disabled={countdown > 0}
                                         style={{
                                             padding: '10px 15px',
@@ -529,7 +623,9 @@ export default function ProfileSettingsPage() {
                         </div>
                         <div style={modalFooterStyle}>
                             <button onClick={() => setShowPayPwdModal(false)} style={{ ...modalBtnStyle, background: '#f5f5f5', color: '#666' }}>取消</button>
-                            <button onClick={handleChangePayPwd} style={{ ...modalBtnStyle, background: '#409eff', color: '#fff' }}>确认</button>
+                            <button onClick={handleChangePayPwd} disabled={submitting} style={{ ...modalBtnStyle, background: submitting ? '#ccc' : '#409eff', color: '#fff' }}>
+                                {submitting ? '提交中...' : '确认'}
+                            </button>
                         </div>
                     </div>
                 </div>
