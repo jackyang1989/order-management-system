@@ -8,6 +8,7 @@ import { BuyerAccountsService } from '../buyer-accounts/buyer-accounts.service';
 import { BuyerAccountStatus } from '../buyer-accounts/buyer-account.entity';
 import { FinanceRecordsService } from '../finance-records/finance-records.service';
 import { DingdanxiaService } from '../dingdanxia/dingdanxia.service';
+import { MerchantBlacklistService } from '../merchant-blacklist/merchant-blacklist.service';
 import { User } from '../users/user.entity';
 import { Merchant } from '../merchants/merchant.entity';
 
@@ -25,6 +26,7 @@ export class OrdersService {
         private buyerAccountsService: BuyerAccountsService,
         private financeRecordsService: FinanceRecordsService,
         private dingdanxiaService: DingdanxiaService,
+        private merchantBlacklistService: MerchantBlacklistService,
         private dataSource: DataSource
     ) { }
 
@@ -123,6 +125,45 @@ export class OrdersService {
             throw new BadRequestException(eligibility.reason || '该买号无法接取此任务');
         }
 
+        // 2.3 黑名单校验 (对应原版 seller_limit 表)
+        const isBlacklisted = await this.merchantBlacklistService.isBlacklisted(
+            task.merchantId,
+            buyerAccount.accountName
+        );
+        if (isBlacklisted) {
+            throw new BadRequestException('当前买号已被商家拉黑，无法接取此任务');
+        }
+
+        // 2.4 购物周期校验 (对应原版 cycle_time 检查)
+        // 检查该买号是否在商家设置的周期内接过此店铺的任务
+        if (task.cycle > 0 && task.shopId) {
+            const cycleMonths = task.cycle * 30; // cycle存储的是费用，对应的天数
+            const cycleCheckDate = new Date();
+            cycleCheckDate.setDate(cycleCheckDate.getDate() - cycleMonths);
+
+            const recentOrder = await this.ordersRepository
+                .createQueryBuilder('order')
+                .innerJoin('tasks', 'task', 'order.taskId = task.id')
+                .where('order.buynoId = :buynoId', { buynoId: createOrderDto.buynoId })
+                .andWhere('task.shopId = :shopId', { shopId: task.shopId })
+                .andWhere('order.createdAt > :cycleCheckDate', { cycleCheckDate })
+                .getOne();
+
+            if (recentOrder) {
+                throw new BadRequestException(`该商家设置买家购物周期为${cycleMonths}天，您在周期内已接过此店铺任务`);
+            }
+        }
+
+        // 2.45 接单间隔时间校验 (对应原版 union_interval_time)
+        if (task.unionInterval > 0 && task.receiptTime) {
+            const intervalMs = task.unionInterval * 60 * 1000; // 分钟转毫秒
+            const nextAllowedTime = new Date(task.receiptTime.getTime() + intervalMs);
+            if (new Date() < nextAllowedTime) {
+                const remainingMinutes = Math.ceil((nextAllowedTime.getTime() - Date.now()) / 60000);
+                throw new BadRequestException(`未达到商家设定的接单间隔时间，请${remainingMinutes}分钟后再试`);
+            }
+        }
+
         // 2.5 验证每日/每月接单限制 (对应原版)
         const DAILY_LIMIT_PER_BUYNO = 4;  // 每个买号每天最多4单
         const MONTHLY_LIMIT_PER_USER = 220;  // 每个用户每月最多220单
@@ -175,6 +216,9 @@ export class OrdersService {
         });
 
         const savedOrder = await this.ordersRepository.save(newOrder);
+
+        // 更新任务的最后接单时间 (用于接单间隔校验)
+        await this.tasksService.updateReceiptTime(task.id);
 
         // 记录银锭押金扣除流水
         await this.financeRecordsService.recordBuyerTaskSilverPrepay(
@@ -636,19 +680,35 @@ export class OrdersService {
                 await queryRunner.manager.save(task);
             }
 
-            // 用户取消订单，扣除银锭押金作为惩罚 (对应原版 type=13)
+            // 检查是否符合免罚条件 (对应原版)
+            const shouldPunish = await this.shouldPunishForCancel(userId, order.id);
+
+            // 用户取消订单，根据规则决定是否扣除银锭押金 (对应原版 type=13)
             const silverPrepayAmount = Number(order.silverPrepay) || 0;
             if (silverPrepayAmount > 0) {
                 const user = await queryRunner.manager.findOne(User, { where: { id: userId } });
                 if (user) {
-                    // 银锭已经在接单时扣除，取消时不返还（作为惩罚）
-                    await this.financeRecordsService.recordBuyerTaskCancelSilver(
-                        userId,
-                        silverPrepayAmount,
-                        Number(user.silver),
-                        order.id,
-                        '用户取消订单扣除银锭押金'
-                    );
+                    if (shouldPunish) {
+                        // 银锭已经在接单时扣除，取消时不返还（作为惩罚）
+                        await this.financeRecordsService.recordBuyerTaskCancelSilver(
+                            userId,
+                            silverPrepayAmount,
+                            Number(user.silver),
+                            order.id,
+                            '用户取消订单扣除银锭押金'
+                        );
+                    } else {
+                        // 免罚：返还银锭押金
+                        user.silver = Number(user.silver) + silverPrepayAmount;
+                        await queryRunner.manager.save(user);
+                        await this.financeRecordsService.recordBuyerTaskSilverRefund(
+                            userId,
+                            silverPrepayAmount,
+                            Number(user.silver),
+                            order.id,
+                            '取消订单免罚返还银锭押金'
+                        );
+                    }
                 }
             }
 
@@ -945,6 +1005,64 @@ export class OrdersService {
         desc += `\n浏览主商品${task.mainBrowseMinutes || 8}分钟以上，随机浏览店铺其他2个商品各${task.subBrowseMinutes || 2}分钟`;
 
         return desc;
+    }
+
+    // ============ 免罚逻辑 (对应原版) ============
+
+    /**
+     * 判断取消订单是否应该扣罚
+     * 对应原版规则：
+     * 1. 每天前2单取消不扣银锭
+     * 2. 晚上11点到第二天9点取消免罚
+     */
+    private async shouldPunishForCancel(userId: string, currentOrderId: string): Promise<boolean> {
+        const now = new Date();
+        const hour = now.getHours();
+
+        // 夜间免罚: 晚上11点到第二天9点
+        if (hour >= 23 || hour < 9) {
+            return false;
+        }
+
+        // 今日取消次数检查: 每天前2单取消免罚
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const todayCancelCount = await this.ordersRepository
+            .createQueryBuilder('order')
+            .where('order.userId = :userId', { userId })
+            .andWhere('order.status = :status', { status: OrderStatus.CANCELLED })
+            .andWhere('order.completedAt >= :today', { today })
+            .andWhere('order.completedAt < :tomorrow', { tomorrow })
+            .andWhere('order.id != :currentOrderId', { currentOrderId })
+            .getCount();
+
+        if (todayCancelCount < 2) {
+            return false;
+        }
+
+        // 超过免罚限额，需要扣罚
+        return true;
+    }
+
+    /**
+     * 获取用户今日取消次数
+     */
+    async getUserTodayCancelCount(userId: string): Promise<number> {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        return this.ordersRepository
+            .createQueryBuilder('order')
+            .where('order.userId = :userId', { userId })
+            .andWhere('order.status = :status', { status: OrderStatus.CANCELLED })
+            .andWhere('order.completedAt >= :today', { today })
+            .andWhere('order.completedAt < :tomorrow', { tomorrow })
+            .getCount();
     }
 }
 

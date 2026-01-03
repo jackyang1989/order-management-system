@@ -6,6 +6,7 @@ import { TasksModule } from '../tasks/tasks.module';
 import { BuyerAccountsModule } from '../buyer-accounts/buyer-accounts.module';
 import { FinanceRecordsModule } from '../finance-records/finance-records.module';
 import { DingdanxiaModule } from '../dingdanxia/dingdanxia.module';
+import { MerchantBlacklistModule } from '../merchant-blacklist/merchant-blacklist.module';
 import { Order } from './order.entity';
 import { User } from '../users/user.entity';
 import { Merchant } from '../merchants/merchant.entity';
@@ -17,6 +18,7 @@ import { Merchant } from '../merchants/merchant.entity';
         BuyerAccountsModule,
         FinanceRecordsModule,
         DingdanxiaModule,
+        MerchantBlacklistModule,
     ],
     providers: [OrdersService],
     controllers: [OrdersController],

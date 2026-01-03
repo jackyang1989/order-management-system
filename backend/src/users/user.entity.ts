@@ -69,6 +69,12 @@ export class User {
     @Column({ type: 'int', default: 0 })
     referralCount: number;  // 推荐人数
 
+    @Column({ type: 'int', default: 0 })
+    monthlyTaskCount: number;  // 本月完成任务数 (对应原版 mc_task_num)
+
+    @Column({ type: 'date', nullable: true })
+    monthlyTaskCountResetDate: Date;  // 月度计数重置日期
+
     // ============ 实名认证 ============
     @Column({ nullable: true })
     realName: string;       // 真实姓名

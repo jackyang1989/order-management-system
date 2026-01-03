@@ -206,7 +206,13 @@ export class BuyerAccountsService {
     }
 
     /**
-     * 增加买号的月度任务计数
+     * 增加买号的月度任务计数，并检查是否需要自动升级星级
+     * 对应原版星级自动升级逻辑：
+     * - 完成 < 30 单: 1星
+     * - 完成 30-59 单: 2星
+     * - 完成 60-99 单: 3星
+     * - 完成 100-149 单: 4星
+     * - 完成 >= 150 单: 5星
      */
     async incrementMonthlyTaskCount(buyerAccountId: string): Promise<void> {
         const account = await this.buyerAccountsRepository.findOne({
@@ -216,6 +222,31 @@ export class BuyerAccountsService {
         if (account) {
             await this.checkAndResetMonthlyCount(account);
             account.monthlyTaskCount += 1;
+
+            // 累计总任务数（用于星级升级判断）
+            account.totalTaskCount = (account.totalTaskCount || 0) + 1;
+
+            // 自动升级星级 (对应原版逻辑)
+            const totalTasks = account.totalTaskCount;
+            let newStar = account.star;
+
+            if (totalTasks >= 150) {
+                newStar = 5;
+            } else if (totalTasks >= 100) {
+                newStar = 4;
+            } else if (totalTasks >= 60) {
+                newStar = 3;
+            } else if (totalTasks >= 30) {
+                newStar = 2;
+            } else {
+                newStar = 1;
+            }
+
+            // 只升级不降级
+            if (newStar > account.star) {
+                account.star = newStar;
+            }
+
             await this.buyerAccountsRepository.save(account);
         }
     }

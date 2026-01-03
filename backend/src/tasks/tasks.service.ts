@@ -207,6 +207,7 @@ export class TasksService implements OnModuleInit {
                 isPraise: createTaskDto.isPraise,
                 isTimingPublish: createTaskDto.isTimingPublish,
                 publishTime: createTaskDto.publishTime ? new Date(createTaskDto.publishTime) : undefined,
+                cycle: cycleTimeFee, // 购物周期费用(银锭/单)
                 totalDeposit,
                 totalCommission,
                 status: TaskStatus.ACTIVE, // 支付成功，直接发布
@@ -277,5 +278,15 @@ export class TasksService implements OnModuleInit {
         const task = await this.tasksRepository.findOne({ where: { id: taskId } });
         if (!task) return 0;
         return task.count - task.claimedCount;
+    }
+
+    /**
+     * 更新任务的最后接单时间 (用于接单间隔校验)
+     * 对应原版 receipt_time 字段
+     */
+    async updateReceiptTime(taskId: string): Promise<void> {
+        await this.tasksRepository.update(taskId, {
+            receiptTime: new Date()
+        });
     }
 }

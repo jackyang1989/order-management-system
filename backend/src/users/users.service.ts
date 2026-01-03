@@ -510,4 +510,56 @@ export class UsersService {
 
         return { success: true, message: '验证码发送成功' };
     }
+
+    // ============ 月度任务计数 (对应原版 mc_task_num) ============
+
+    /**
+     * 检查并重置月度任务计数（如果跨月了）
+     */
+    private async checkAndResetMonthlyTaskCount(user: User): Promise<void> {
+        const now = new Date();
+        const currentMonth = `${now.getFullYear()}-${now.getMonth() + 1}`;
+
+        if (user.monthlyTaskCountResetDate) {
+            const resetDate = new Date(user.monthlyTaskCountResetDate);
+            const resetMonth = `${resetDate.getFullYear()}-${resetDate.getMonth() + 1}`;
+
+            if (currentMonth !== resetMonth) {
+                // 跨月了，重置计数
+                user.monthlyTaskCount = 0;
+                user.monthlyTaskCountResetDate = now;
+                await this.usersRepository.save(user);
+            }
+        } else {
+            // 首次设置重置日期
+            user.monthlyTaskCountResetDate = now;
+            await this.usersRepository.save(user);
+        }
+    }
+
+    /**
+     * 增加用户月度任务计数并返回新计数
+     * 用于里程碑奖励判断
+     */
+    async incrementMonthlyTaskCount(userId: string): Promise<number> {
+        const user = await this.usersRepository.findOne({ where: { id: userId } });
+        if (!user) return 0;
+
+        await this.checkAndResetMonthlyTaskCount(user);
+        user.monthlyTaskCount = (user.monthlyTaskCount || 0) + 1;
+        await this.usersRepository.save(user);
+
+        return user.monthlyTaskCount;
+    }
+
+    /**
+     * 获取用户月度任务计数
+     */
+    async getMonthlyTaskCount(userId: string): Promise<number> {
+        const user = await this.usersRepository.findOne({ where: { id: userId } });
+        if (!user) return 0;
+
+        await this.checkAndResetMonthlyTaskCount(user);
+        return user.monthlyTaskCount || 0;
+    }
 }

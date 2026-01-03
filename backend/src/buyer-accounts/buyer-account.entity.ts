@@ -85,6 +85,9 @@ export class BuyerAccount {
     @Column({ type: 'int', default: 0 })
     monthlyTaskCount: number;  // 当月已完成任务数
 
+    @Column({ type: 'int', default: 0 })
+    totalTaskCount: number;  // 累计完成任务数（用于星级升级）
+
     @Column({ type: 'date', nullable: true })
     monthlyCountResetDate: Date;  // 月度计数重置日期
 

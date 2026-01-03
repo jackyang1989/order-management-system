@@ -10,6 +10,23 @@ import { FinanceRecord, FinanceType } from '../finance-records/finance-record.en
 export class ReferralService {
     private readonly logger = new Logger(ReferralService.name);
 
+    // 里程碑奖励配置 (对应原版 $arr 和 $arrt)
+    static readonly MILESTONE_REWARDS: Record<number, number> = {
+        50: 10,   // 完成50单奖励10银锭
+        100: 25,  // 完成100单奖励25银锭
+        150: 45,  // 完成150单奖励45银锭
+        200: 70,  // 完成200单奖励70银锭
+    };
+
+    // 累计奖励上限 (对应原版 $prices >= 1000 限制)
+    static readonly MAX_REWARD_PER_REFERRAL = 1000;
+
+    // 首单奖励金额 (对应原版首单5银锭)
+    static readonly FIRST_ORDER_REWARD = 5;
+
+    // 普通订单奖励金额 (对应原版0.5银锭)
+    static readonly NORMAL_ORDER_REWARD = 0.5;
+
     constructor(
         @InjectRepository(ReferralReward)
         private rewardRepository: Repository<ReferralReward>,
@@ -64,22 +81,52 @@ export class ReferralService {
 
     /**
      * 处理订单完成推荐奖励（买手完成订单后给推荐人奖励）
+     * 对应原版逻辑：
+     * - 首单奖励 5 银锭，后续每单 0.5 银锭
+     * - 累计上限 1000 银锭
+     * - 里程碑奖励：50单/100单/150单/200单
      */
     async handleOrderCompletion(
         buyerId: string,
         orderId: string,
         orderAmount: number,
+        monthlyTaskCount?: number, // 用户本月完成任务数
     ): Promise<void> {
         const buyer = await this.userRepository.findOne({ where: { id: buyerId } });
         if (!buyer || !buyer.referrerId) return;
 
-        // 获取订单完成奖励比例
-        const rewardRate = await this.getConfig('order_referral_rate', 0.01); // 1%
-        const rewardAmount = orderAmount * rewardRate;
+        // 检查累计上限
+        const existingRewards = await this.rewardRepository
+            .createQueryBuilder('reward')
+            .where('reward.userId = :referrerId', { referrerId: buyer.referrerId })
+            .andWhere('reward.referredUserId = :buyerId', { buyerId })
+            .andWhere('reward.type = :type', { type: ReferralRewardType.BUYER_ORDER })
+            .andWhere('reward.status IN (:...statuses)', { statuses: [ReferralRewardStatus.PENDING, ReferralRewardStatus.PAID] })
+            .select('SUM(reward.amount)', 'total')
+            .getRawOne();
+
+        const totalRewardFromThisUser = Number(existingRewards?.total || 0);
+        if (totalRewardFromThisUser >= ReferralService.MAX_REWARD_PER_REFERRAL) {
+            this.logger.log(`用户 ${buyerId} 已为推荐人 ${buyer.referrerId} 贡献 ${totalRewardFromThisUser} 银锭，已达上限`);
+            return;
+        }
+
+        // 判断是否首单 (对应原版 $prices == 0 判断)
+        const isFirstOrder = totalRewardFromThisUser === 0;
+        let rewardAmount = isFirstOrder
+            ? ReferralService.FIRST_ORDER_REWARD
+            : ReferralService.NORMAL_ORDER_REWARD;
+
+        const rewardType = isFirstOrder ? '首单' : '';
+
+        // 确保不超过上限
+        if (totalRewardFromThisUser + rewardAmount > ReferralService.MAX_REWARD_PER_REFERRAL) {
+            rewardAmount = ReferralService.MAX_REWARD_PER_REFERRAL - totalRewardFromThisUser;
+        }
 
         if (rewardAmount <= 0) return;
 
-        // 一级推荐奖励
+        // 创建订单完成奖励
         const reward = this.rewardRepository.create({
             userId: buyer.referrerId,
             referredUserId: buyerId,
@@ -87,29 +134,45 @@ export class ReferralService {
             amount: rewardAmount,
             status: ReferralRewardStatus.PENDING,
             relatedOrderId: orderId,
-            remark: `推荐买手完成订单奖励`,
+            remark: `推广买家(${buyer.username})任务完成,${rewardType}奖励${rewardAmount}银锭`,
         });
         await this.rewardRepository.save(reward);
 
-        // 二级推荐奖励
-        const referrer = await this.userRepository.findOne({ where: { id: buyer.referrerId } });
-        if (referrer && referrer.referrerId) {
-            const secondaryRate = await this.getConfig('secondary_referral_rate', 0.005); // 0.5%
-            const secondaryAmount = orderAmount * secondaryRate;
+        this.logger.log(`用户 ${buyer.referrerId} 推荐的买手 ${buyerId} 完成任务，${rewardType}奖励 ${rewardAmount} 银锭`);
 
-            if (secondaryAmount > 0) {
-                const secondaryReward = this.rewardRepository.create({
-                    userId: referrer.referrerId,
-                    referredUserId: buyerId,
-                    type: ReferralRewardType.SECONDARY,
-                    amount: secondaryAmount,
-                    status: ReferralRewardStatus.PENDING,
-                    relatedOrderId: orderId,
-                    remark: `二级推荐奖励`,
-                });
-                await this.rewardRepository.save(secondaryReward);
-            }
+        // 检查里程碑奖励 (对应原版 mcTaskNum 到达 50/100/150/200 时)
+        if (monthlyTaskCount !== undefined) {
+            await this.checkAndGrantMilestoneReward(buyer, monthlyTaskCount, orderId);
         }
+    }
+
+    /**
+     * 检查并发放里程碑奖励
+     * 对应原版: 本月完成 50/100/150/200 单时给推荐人发放额外奖励
+     */
+    private async checkAndGrantMilestoneReward(
+        buyer: User,
+        monthlyTaskCount: number,
+        orderId: string,
+    ): Promise<void> {
+        if (!buyer.referrerId) return;
+
+        const milestoneReward = ReferralService.MILESTONE_REWARDS[monthlyTaskCount];
+        if (!milestoneReward) return; // 不是里程碑数字
+
+        // 创建里程碑奖励记录
+        const reward = this.rewardRepository.create({
+            userId: buyer.referrerId,
+            referredUserId: buyer.id,
+            type: ReferralRewardType.MILESTONE,
+            amount: milestoneReward,
+            status: ReferralRewardStatus.PENDING,
+            relatedOrderId: orderId,
+            remark: `推荐的买手${buyer.username}本月完成${monthlyTaskCount}单,额外奖励${milestoneReward}银锭`,
+        });
+        await this.rewardRepository.save(reward);
+
+        this.logger.log(`里程碑奖励: 用户 ${buyer.referrerId} 推荐的买手 ${buyer.id} 本月完成 ${monthlyTaskCount} 单，奖励 ${milestoneReward} 银锭`);
     }
 
     /**
