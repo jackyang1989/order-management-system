@@ -15,9 +15,7 @@ import { DeliveryWarehouseController } from './delivery-warehouse.controller';
 import { VipLevel } from './vip-level.entity';
 import { VipLevelService } from './vip-level.service';
 import { VipLevelController, VipPublicController } from './vip-level.controller';
-import { AdminMenu, AdminRole } from './rbac.entity';
-import { RbacService } from './rbac.service';
-import { MenuController, RoleController } from './rbac.controller';
+// rbac.entity.ts 已删除 - AdminMenu 和 AdminRole 现在由 admin-users 和 admin-menus 模块管理
 
 @Global()  // 全局模块，便于其他模块注入使用
 @Module({
@@ -28,8 +26,6 @@ import { MenuController, RoleController } from './rbac.controller';
             Platform,
             DeliveryWarehouse,
             VipLevel,
-            AdminMenu,
-            AdminRole,
         ]),
     ],
     controllers: [
@@ -39,8 +35,6 @@ import { MenuController, RoleController } from './rbac.controller';
         DeliveryWarehouseController,
         VipLevelController,
         VipPublicController,
-        MenuController,
-        RoleController,
     ],
     providers: [
         AdminConfigService,
@@ -48,7 +42,6 @@ import { MenuController, RoleController } from './rbac.controller';
         PlatformService,
         DeliveryWarehouseService,
         VipLevelService,
-        RbacService,
     ],
     exports: [
         AdminConfigService,
@@ -56,7 +49,6 @@ import { MenuController, RoleController } from './rbac.controller';
         PlatformService,
         DeliveryWarehouseService,
         VipLevelService,
-        RbacService,
     ],
 })
 export class AdminConfigModule { }

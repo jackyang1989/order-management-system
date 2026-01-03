@@ -1,23 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, TreeRepository, IsNull } from 'typeorm';
+import { TreeRepository, IsNull } from 'typeorm';
 import {
     Category,
-    Platform,
     CategoryType,
     CreateCategoryDto,
     UpdateCategoryDto,
-    CreatePlatformDto,
-    UpdatePlatformDto,
 } from './category.entity';
+
+// Platform 管理已迁移到 admin-config/platform.service.ts
 
 @Injectable()
 export class CategoriesService {
     constructor(
         @InjectRepository(Category)
         private categoryRepository: TreeRepository<Category>,
-        @InjectRepository(Platform)
-        private platformRepository: Repository<Platform>,
     ) { }
 
     // ============ 分类管理 ============
@@ -155,85 +152,6 @@ export class CategoriesService {
         }
 
         return this.categoryRepository.save(category);
-    }
-
-    // ============ 平台管理 ============
-
-    /**
-     * 创建平台
-     */
-    async createPlatform(dto: CreatePlatformDto): Promise<Platform> {
-        const platform = this.platformRepository.create(dto);
-        return this.platformRepository.save(platform);
-    }
-
-    /**
-     * 获取所有平台
-     */
-    async getAllPlatforms(onlyActive: boolean = true): Promise<Platform[]> {
-        const where = onlyActive ? { isActive: true } : {};
-        return this.platformRepository.find({
-            where,
-            order: { sort: 'ASC' }
-        });
-    }
-
-    /**
-     * 根据代码获取平台
-     */
-    async getPlatformByCode(code: string): Promise<Platform | null> {
-        return this.platformRepository.findOne({ where: { code } });
-    }
-
-    /**
-     * 获取平台详情
-     */
-    async getPlatformById(id: string): Promise<Platform | null> {
-        return this.platformRepository.findOne({ where: { id } });
-    }
-
-    /**
-     * 更新平台
-     */
-    async updatePlatform(id: string, dto: UpdatePlatformDto): Promise<Platform | null> {
-        const platform = await this.getPlatformById(id);
-        if (!platform) {
-            return null;
-        }
-
-        Object.assign(platform, dto);
-        return this.platformRepository.save(platform);
-    }
-
-    /**
-     * 删除平台
-     */
-    async deletePlatform(id: string): Promise<boolean> {
-        const result = await this.platformRepository.update(id, { isActive: false });
-        return (result.affected || 0) > 0;
-    }
-
-    /**
-     * 初始化默认平台
-     */
-    async initDefaultPlatforms(): Promise<void> {
-        const platforms = [
-            { name: '淘宝', code: 'taobao', commissionRate: 0.02, serviceFeeRate: 0.01, sort: 1 },
-            { name: '天猫', code: 'tmall', commissionRate: 0.025, serviceFeeRate: 0.01, sort: 2 },
-            { name: '京东', code: 'jd', commissionRate: 0.02, serviceFeeRate: 0.01, sort: 3 },
-            { name: '拼多多', code: 'pdd', commissionRate: 0.015, serviceFeeRate: 0.008, sort: 4 },
-            { name: '抖音', code: 'douyin', commissionRate: 0.025, serviceFeeRate: 0.012, sort: 5 },
-            { name: '快手', code: 'kuaishou', commissionRate: 0.02, serviceFeeRate: 0.01, sort: 6 },
-            { name: '小红书', code: 'xiaohongshu', commissionRate: 0.03, serviceFeeRate: 0.015, sort: 7 },
-            { name: '1688', code: '1688', commissionRate: 0.015, serviceFeeRate: 0.008, sort: 8 },
-        ];
-
-        for (const p of platforms) {
-            const exists = await this.platformRepository.findOne({ where: { code: p.code } });
-            if (!exists) {
-                await this.platformRepository.save(this.platformRepository.create(p));
-            }
-        }
     }
 
     /**
