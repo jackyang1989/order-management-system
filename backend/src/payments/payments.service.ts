@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan } from 'typeorm';
+import * as crypto from 'crypto';
 import {
     PaymentCallback,
     PaymentOrder,
@@ -10,6 +11,7 @@ import {
     CreatePaymentOrderDto,
     PaymentCallbackFilterDto,
 } from './payment.entity';
+import { PaymentGatewayService } from './payment-gateway.service';
 
 @Injectable()
 export class PaymentsService {
@@ -18,6 +20,7 @@ export class PaymentsService {
         private callbackRepository: Repository<PaymentCallback>,
         @InjectRepository(PaymentOrder)
         private orderRepository: Repository<PaymentOrder>,
+        private paymentGatewayService: PaymentGatewayService,
     ) { }
 
     // ============ 支付订单管理 ============
@@ -54,18 +57,31 @@ export class PaymentsService {
     }
 
     /**
-     * 获取支付链接（模拟）
+     * 获取支付链接（使用支付网关服务）
      */
     private async getPayUrl(order: PaymentOrder): Promise<string> {
-        // 实际项目中对接支付宝、微信等支付接口
-        switch (order.channel) {
-            case PaymentChannel.ALIPAY:
-                return `https://alipay.com/pay?order=${order.orderNo}&amount=${order.amount}`;
-            case PaymentChannel.WECHAT:
-                return `https://wx.qq.com/pay?order=${order.orderNo}&amount=${order.amount}`;
-            default:
-                return '';
+        // 使用支付网关服务创建支付
+        const payTypeMap: Record<PaymentChannel, 'alipay' | 'wechat' | 'qqpay' | 'unionpay'> = {
+            [PaymentChannel.ALIPAY]: 'alipay',
+            [PaymentChannel.WECHAT]: 'wechat',
+            [PaymentChannel.UNION_PAY]: 'unionpay',
+            [PaymentChannel.BANK_TRANSFER]: 'alipay',
+            [PaymentChannel.MANUAL]: 'alipay',
+        };
+
+        const response = await this.paymentGatewayService.createPayment({
+            orderNo: order.orderNo,
+            amount: Number(order.amount),
+            payType: payTypeMap[order.channel] || 'alipay',
+            subject: `订单支付 ${order.orderNo}`,
+        });
+
+        if (response.success) {
+            return response.payUrl || response.qrCode || '';
         }
+
+        // 降级返回本地支付页面
+        return `/pay/${order.channel}?order=${order.orderNo}&amount=${order.amount}`;
     }
 
     /**
@@ -240,12 +256,54 @@ export class PaymentsService {
     }
 
     /**
-     * 验证签名（模拟）
+     * 验证签名（使用支付网关服务）
      */
     private async verifySignature(channel: PaymentChannel, rawData: Record<string, any>, signature: string): Promise<boolean> {
-        // 实际项目中根据渠道使用对应的签名验证方式
-        // 这里模拟返回true
-        return true;
+        // 使用支付网关服务进行签名验证
+        switch (channel) {
+            case PaymentChannel.ALIPAY:
+                // 支付宝免签回调验证
+                return this.paymentGatewayService.verifyAlipayNotify({
+                    tradeNo: rawData.trade_no || rawData.tradeNo,
+                    money: String(rawData.total_amount || rawData.amount || rawData.Money),
+                    title: rawData.out_trade_no || rawData.orderNo || rawData.title,
+                    memo: rawData.memo || '',
+                    sign: signature,
+                });
+
+            case PaymentChannel.WECHAT:
+                // 微信支付签名验证（使用云端支付回调格式）
+                return this.paymentGatewayService.verifyCallback({
+                    orderNo: rawData.out_trade_no || rawData.name,
+                    tradeNo: rawData.transaction_id || rawData.ddh,
+                    amount: rawData.total_fee ? rawData.total_fee / 100 : parseFloat(rawData.money),
+                    payType: 3,
+                    payTime: rawData.time_end || rawData.paytime,
+                    sign: signature,
+                });
+
+            default:
+                // 云端支付（优云宝）回调验证
+                if (rawData.ddh && rawData.name && rawData.money) {
+                    return this.paymentGatewayService.verifyCallback({
+                        orderNo: rawData.name,
+                        tradeNo: rawData.ddh,
+                        amount: parseFloat(rawData.money),
+                        payType: rawData.lb || 1,
+                        payTime: rawData.paytime,
+                        sign: signature,
+                    });
+                }
+                // 如果没有匹配的验证规则，使用通用MD5验证
+                const appKey = process.env.PAYMENT_APP_KEY || '6e48af9cfe058e33e346941a4f83beef';
+                const signData = Object.keys(rawData)
+                    .filter(k => k !== 'sign' && rawData[k] !== undefined && rawData[k] !== '')
+                    .sort()
+                    .map(k => `${k}=${rawData[k]}`)
+                    .join('&') + `&key=${appKey}`;
+                const expectedSign = crypto.createHash('md5').update(signData).digest('hex');
+                return signature.toLowerCase() === expectedSign.toLowerCase();
+        }
     }
 
     /**

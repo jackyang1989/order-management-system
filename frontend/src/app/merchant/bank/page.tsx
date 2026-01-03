@@ -34,7 +34,7 @@ export default function MerchantBankPage() {
         if (!token) return;
 
         try {
-            const res = await fetch(`${BASE_URL}/merchant/bank-cards`, {
+            const res = await fetch(`${BASE_URL}/merchant-bank-cards`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();
@@ -57,7 +57,7 @@ export default function MerchantBankPage() {
         setSubmitting(true);
         const token = localStorage.getItem('merchantToken');
         try {
-            const res = await fetch(`${BASE_URL}/merchant/bank-cards`, {
+            const res = await fetch(`${BASE_URL}/merchant-bank-cards`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -86,7 +86,7 @@ export default function MerchantBankPage() {
 
         const token = localStorage.getItem('merchantToken');
         try {
-            const res = await fetch(`${BASE_URL}/merchant/bank-cards/${id}`, {
+            const res = await fetch(`${BASE_URL}/merchant-bank-cards/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -105,8 +105,8 @@ export default function MerchantBankPage() {
     const handleSetDefault = async (id: string) => {
         const token = localStorage.getItem('merchantToken');
         try {
-            const res = await fetch(`${BASE_URL}/merchant/bank-cards/${id}/default`, {
-                method: 'PUT',
+            const res = await fetch(`${BASE_URL}/merchant-bank-cards/${id}/set-default`, {
+                method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();

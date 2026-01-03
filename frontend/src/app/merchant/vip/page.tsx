@@ -400,6 +400,115 @@ export default function MerchantVipPage() {
                     ))}
                 </div>
             </div>
+
+            {/* Payment Modal */}
+            {showPaymentModal && selectedPackage && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', zIndex: 1000,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                    <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', width: '420px' }}>
+                        <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px' }}>
+                            购买 {selectedPackage.name}
+                        </h3>
+
+                        <div style={{ marginBottom: '20px', padding: '16px', background: '#f9fafb', borderRadius: '8px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                <span style={{ color: '#6b7280' }}>套餐时长</span>
+                                <span style={{ fontWeight: '500' }}>{selectedPackage.duration}天</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span style={{ color: '#6b7280' }}>应付金额</span>
+                                <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#ef4444' }}>¥{selectedPackage.price}</span>
+                            </div>
+                        </div>
+
+                        <div style={{ marginBottom: '20px' }}>
+                            <label style={{ display: 'block', marginBottom: '12px', color: '#374151', fontSize: '14px', fontWeight: '500' }}>
+                                选择支付方式
+                            </label>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                <button
+                                    onClick={() => setPaymentMethod('alipay')}
+                                    style={{
+                                        padding: '14px 16px', borderRadius: '8px', textAlign: 'left',
+                                        border: paymentMethod === 'alipay' ? '2px solid #4f46e5' : '1px solid #d1d5db',
+                                        background: paymentMethod === 'alipay' ? '#eef2ff' : '#fff',
+                                        cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                    }}
+                                >
+                                    <span>支付宝支付</span>
+                                    {paymentMethod === 'alipay' && <span style={{ color: '#4f46e5' }}>✓</span>}
+                                </button>
+                                <button
+                                    onClick={() => setPaymentMethod('balance')}
+                                    style={{
+                                        padding: '14px 16px', borderRadius: '8px', textAlign: 'left',
+                                        border: paymentMethod === 'balance' ? '2px solid #4f46e5' : '1px solid #d1d5db',
+                                        background: paymentMethod === 'balance' ? '#eef2ff' : '#fff',
+                                        cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                    }}
+                                >
+                                    <span>余额支付 (¥{Number(vipInfo?.balance || 0).toFixed(2)})</span>
+                                    {paymentMethod === 'balance' && <span style={{ color: '#4f46e5' }}>✓</span>}
+                                </button>
+                                <button
+                                    onClick={() => setPaymentMethod('silver')}
+                                    style={{
+                                        padding: '14px 16px', borderRadius: '8px', textAlign: 'left',
+                                        border: paymentMethod === 'silver' ? '2px solid #4f46e5' : '1px solid #d1d5db',
+                                        background: paymentMethod === 'silver' ? '#eef2ff' : '#fff',
+                                        cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                    }}
+                                >
+                                    <span>银锭支付 ({Number(vipInfo?.silver || 0).toFixed(0)})</span>
+                                    {paymentMethod === 'silver' && <span style={{ color: '#4f46e5' }}>✓</span>}
+                                </button>
+                            </div>
+                            {paymentMethod === 'balance' && (vipInfo?.balance || 0) < selectedPackage.price && (
+                                <div style={{ marginTop: '8px', fontSize: '12px', color: '#dc2626' }}>
+                                    余额不足，请先充值
+                                </div>
+                            )}
+                            {paymentMethod === 'silver' && (vipInfo?.silver || 0) < selectedPackage.price && (
+                                <div style={{ marginTop: '8px', fontSize: '12px', color: '#dc2626' }}>
+                                    银锭不足，请先充值
+                                </div>
+                            )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button
+                                onClick={() => { setShowPaymentModal(false); setSelectedPackage(null); }}
+                                disabled={purchasing}
+                                style={{
+                                    flex: 1, padding: '12px', borderRadius: '8px',
+                                    border: '1px solid #d1d5db', background: '#fff',
+                                    color: '#374151', cursor: 'pointer', fontWeight: '500'
+                                }}
+                            >
+                                取消
+                            </button>
+                            <button
+                                onClick={handlePurchase}
+                                disabled={purchasing ||
+                                    (paymentMethod === 'balance' && (vipInfo?.balance || 0) < selectedPackage.price) ||
+                                    (paymentMethod === 'silver' && (vipInfo?.silver || 0) < selectedPackage.price)
+                                }
+                                style={{
+                                    flex: 1, padding: '12px', borderRadius: '8px',
+                                    border: 'none', background: '#4f46e5',
+                                    color: '#fff', cursor: purchasing ? 'not-allowed' : 'pointer',
+                                    fontWeight: '500', opacity: purchasing ? 0.7 : 1
+                                }}
+                            >
+                                {purchasing ? '购买中...' : '确认购买'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
