@@ -81,7 +81,7 @@ import { BuyerAccount } from './buyer-accounts/buyer-account.entity';
 // categories
 import { Category } from './categories/category.entity';
 // day-counts
-import { DayCount } from './day-counts/day-count.entity';
+import { UserDayCount, PlatformDayStat } from './day-counts/day-count.entity';
 // deliveries
 import { Delivery } from './deliveries/delivery.entity';
 // finance-records
@@ -109,7 +109,7 @@ import { OrderLog } from './order-logs/order-log.entity';
 // orders
 import { Order } from './orders/order.entity';
 // payments
-import { Payment } from './payments/payment.entity';
+import { PaymentCallback, PaymentOrder } from './payments/payment.entity';
 // recharge
 import { Recharge } from './recharge/recharge.entity';
 import { RewardRecharge } from './recharge/reward-recharge.entity';
@@ -122,13 +122,13 @@ import { Shop } from './shops/shop.entity';
 // sms
 import { SmsLog } from './sms/sms.entity';
 // system-config
-import { SystemConfiguration } from './system-config/system-config.entity';
+import { SystemConfig as SystemConfigEntity, SystemGlobalConfig } from './system-config/system-config.entity';
 // task-goods
 import { TaskGoods, TaskKeyword } from './task-goods/task-goods.entity';
 // tasks
 import { Task } from './tasks/task.entity';
 // uploads
-import { Upload } from './uploads/upload.entity';
+import { UploadedFile, FileGroup } from './uploads/upload.entity';
 // user-addresses
 import { UserAddress } from './user-addresses/user-address.entity';
 // user-credits
@@ -162,7 +162,7 @@ const ENTITIES = [
   // categories
   Category,
   // day-counts
-  DayCount,
+  UserDayCount, PlatformDayStat,
   // deliveries
   Delivery,
   // finance-records
@@ -190,7 +190,7 @@ const ENTITIES = [
   // orders
   Order,
   // payments
-  Payment,
+  PaymentCallback, PaymentOrder,
   // recharge
   Recharge, RewardRecharge,
   // review-tasks
@@ -202,13 +202,13 @@ const ENTITIES = [
   // sms
   SmsLog,
   // system-config
-  SystemConfiguration,
+  SystemConfigEntity, SystemGlobalConfig,
   // task-goods
   TaskGoods, TaskKeyword,
   // tasks
   Task,
   // uploads
-  Upload,
+  UploadedFile, FileGroup,
   // user-addresses
   UserAddress,
   // user-credits

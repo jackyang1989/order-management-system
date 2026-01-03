@@ -5,9 +5,9 @@ import {
     CategoryType,
     CreateCategoryDto,
     UpdateCategoryDto,
-    CreatePlatformDto,
-    UpdatePlatformDto,
 } from './category.entity';
+
+// 注意：Platform 相关接口已迁移到 admin-config 模块的 PlatformController
 
 @Controller()
 export class CategoriesController {
@@ -99,85 +99,13 @@ export class CategoriesController {
         return { success: true, message: '分类移动成功', data: category };
     }
 
-    // ============ 平台接口 ============
-
     /**
-     * 获取所有平台
+     * 初始化默认商品分类
      */
-    @Get('platforms')
-    async getPlatforms() {
-        const platforms = await this.categoriesService.getAllPlatforms();
-        return { success: true, data: platforms };
-    }
-
-    /**
-     * 根据代码获取平台
-     */
-    @Get('platforms/code/:code')
-    async getPlatformByCode(@Param('code') code: string) {
-        const platform = await this.categoriesService.getPlatformByCode(code);
-        if (!platform) {
-            return { success: false, message: '平台不存在' };
-        }
-        return { success: true, data: platform };
-    }
-
-    /**
-     * 获取平台详情
-     */
-    @Get('platforms/:id')
-    async getPlatformById(@Param('id') id: string) {
-        const platform = await this.categoriesService.getPlatformById(id);
-        if (!platform) {
-            return { success: false, message: '平台不存在' };
-        }
-        return { success: true, data: platform };
-    }
-
-    /**
-     * 创建平台
-     */
-    @Post('admin/platforms')
-    @UseGuards(JwtAuthGuard)
-    async createPlatform(@Body() dto: CreatePlatformDto) {
-        const platform = await this.categoriesService.createPlatform(dto);
-        return { success: true, message: '平台创建成功', data: platform };
-    }
-
-    /**
-     * 更新平台
-     */
-    @Put('admin/platforms/:id')
-    @UseGuards(JwtAuthGuard)
-    async updatePlatform(@Param('id') id: string, @Body() dto: UpdatePlatformDto) {
-        const platform = await this.categoriesService.updatePlatform(id, dto);
-        if (!platform) {
-            return { success: false, message: '平台不存在' };
-        }
-        return { success: true, message: '平台更新成功', data: platform };
-    }
-
-    /**
-     * 删除平台
-     */
-    @Delete('admin/platforms/:id')
-    @UseGuards(JwtAuthGuard)
-    async deletePlatform(@Param('id') id: string) {
-        const result = await this.categoriesService.deletePlatform(id);
-        if (!result) {
-            return { success: false, message: '删除失败' };
-        }
-        return { success: true, message: '平台已删除' };
-    }
-
-    /**
-     * 初始化默认数据
-     */
-    @Post('admin/init-defaults')
+    @Post('admin/categories/init-defaults')
     @UseGuards(JwtAuthGuard)
     async initDefaults() {
-        await this.categoriesService.initDefaultPlatforms();
         await this.categoriesService.initDefaultGoodsCategories();
-        return { success: true, message: '默认数据初始化成功' };
+        return { success: true, message: '默认分类初始化成功' };
     }
 }
