@@ -10,9 +10,18 @@ export class BuyerAccountsService {
         private buyerAccountsRepository: Repository<BuyerAccount>,
     ) { }
 
-    async findAllByUser(userId: string): Promise<BuyerAccount[]> {
+    async findAllByUser(userId: string, includeAll: boolean = false): Promise<BuyerAccount[]> {
+        const where: any = { userId };
+        if (!includeAll) {
+            // 默认不包含已删除的
+            where.status = BuyerAccountStatus.APPROVED;
+        }
         return this.buyerAccountsRepository.find({
-            where: { userId, status: BuyerAccountStatus.APPROVED },
+            where: includeAll ? [
+                { userId, status: BuyerAccountStatus.PENDING },
+                { userId, status: BuyerAccountStatus.APPROVED },
+                { userId, status: BuyerAccountStatus.REJECTED }
+            ] : where,
             order: { createdAt: 'DESC' }
         });
     }
@@ -36,6 +45,14 @@ export class BuyerAccountsService {
             throw new BadRequestException('该买号已存在');
         }
 
+        // TODO: 验证手机验证码 (smsCode)
+        // if (createDto.smsCode) {
+        //     const isValid = await this.smsService.verifySmsCode(createDto.receiverPhone, createDto.smsCode);
+        //     if (!isValid) {
+        //         throw new BadRequestException('验证码错误或已过期');
+        //     }
+        // }
+
         const buyerAccount = this.buyerAccountsRepository.create({
             userId,
             platform: createDto.platform || BuyerAccountPlatform.TAOBAO,
@@ -47,8 +64,19 @@ export class BuyerAccountsService {
             receiverPhone: createDto.receiverPhone,
             fullAddress: createDto.fullAddress,
             alipayName: createDto.alipayName,
-            status: BuyerAccountStatus.APPROVED,  // 暂时自动通过
-            star: 2,
+            // 旺旺登陆地
+            wangwangProvince: createDto.wangwangProvince,
+            wangwangCity: createDto.wangwangCity,
+            // 收货地址备注
+            addressRemark: createDto.addressRemark,
+            // 图片字段
+            idCardImage: createDto.idCardImage,
+            alipayImage: createDto.alipayImage,
+            archiveImage: createDto.archiveImage,
+            ipImage: createDto.ipImage,
+            zhimaImage: createDto.zhimaImage,
+            status: BuyerAccountStatus.PENDING,  // 改为待审核，需管理员审核
+            star: 1,  // 初始1星
         });
 
         return this.buyerAccountsRepository.save(buyerAccount);

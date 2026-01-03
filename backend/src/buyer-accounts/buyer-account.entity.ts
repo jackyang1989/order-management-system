@@ -60,7 +60,10 @@ export class BuyerAccount {
     archiveImage?: string;  // 旺旺档案截图
 
     @Column({ type: 'text', nullable: true })
-    ipImage?: string;  // IP地址截图
+    ipImage?: string;  // IP地址截图/淘气值截图 (对应原版ipimg)
+
+    @Column({ type: 'text', nullable: true })
+    zhimaImage?: string;  // 芝麻信用截图 (对应原版idcardimg位置，但实际是芝麻信用)
 
     // 旺旺地址 (用于验证IP一致性)
     @Column({ length: 100, nullable: true })
@@ -147,6 +150,30 @@ export class CreateBuyerAccountDto {
     @IsString()
     @IsOptional()
     addressRemark?: string;  // 收货地址备注
+
+    @IsString()
+    @IsOptional()
+    idCardImage?: string;  // 身份证截图
+
+    @IsString()
+    @IsOptional()
+    alipayImage?: string;  // 支付宝认证截图
+
+    @IsString()
+    @IsOptional()
+    archiveImage?: string;  // 旺旺档案截图
+
+    @IsString()
+    @IsOptional()
+    ipImage?: string;  // 淘气值截图
+
+    @IsString()
+    @IsOptional()
+    zhimaImage?: string;  // 芝麻信用截图
+
+    @IsString()
+    @IsOptional()
+    smsCode?: string;  // 手机验证码
 }
 
 export class UpdateBuyerAccountDto {
@@ -189,4 +216,28 @@ export class UpdateBuyerAccountDto {
     @IsString()
     @IsOptional()
     addressRemark?: string;
+
+    @IsString()
+    @IsOptional()
+    idCardImage?: string;
+
+    @IsString()
+    @IsOptional()
+    alipayImage?: string;
+
+    @IsString()
+    @IsOptional()
+    archiveImage?: string;
+
+    @IsString()
+    @IsOptional()
+    ipImage?: string;
+
+    @IsString()
+    @IsOptional()
+    zhimaImage?: string;
+
+    @IsString()
+    @IsOptional()
+    smsCode?: string;  // 修改时也需要验证码
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { BuyerAccountsService } from './buyer-accounts.service';
 import { CreateBuyerAccountDto, UpdateBuyerAccountDto } from './buyer-account.entity';
@@ -9,8 +9,10 @@ export class BuyerAccountsController {
     constructor(private buyerAccountsService: BuyerAccountsService) { }
 
     @Get()
-    async findAll(@Request() req) {
-        const accounts = await this.buyerAccountsService.findAllByUser(req.user.userId);
+    async findAll(@Request() req, @Query('all') all: string) {
+        // all=1 时返回所有状态的买号（包含待审核、已拒绝）
+        const includeAll = all === '1' || all === 'true';
+        const accounts = await this.buyerAccountsService.findAllByUser(req.user.userId, includeAll);
         return {
             success: true,
             data: accounts
@@ -37,7 +39,7 @@ export class BuyerAccountsController {
         const account = await this.buyerAccountsService.create(req.user.userId, createDto);
         return {
             success: true,
-            message: '买号添加成功',
+            message: '买号提交成功，请等待审核',
             data: account
         };
     }
