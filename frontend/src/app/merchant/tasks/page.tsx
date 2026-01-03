@@ -274,6 +274,7 @@ export default function MerchantTasksPage() {
                                     </td>
                                     <td style={tdStyle}>
                                         <button
+                                            onClick={() => router.push(`/merchant/tasks/${task.id}`)}
                                             style={{
                                                 background: 'transparent',
                                                 border: '1px solid #e5e7eb',

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { BASE_URL } from '../../../../apiConfig';
 
@@ -21,6 +22,7 @@ interface KeywordDetail {
 }
 
 export default function KeywordsPage() {
+    const router = useRouter();
     const [schemes, setSchemes] = useState<KeywordScheme[]>([]);
     const [selectedScheme, setSelectedScheme] = useState<KeywordScheme | null>(null);
     const [keywords, setKeywords] = useState<KeywordDetail[]>([]);
@@ -217,6 +219,12 @@ export default function KeywordsPage() {
                                 <div style={{ fontSize: '12px', color: '#999' }}>{scheme.description || '无描述'}</div>
                             </div>
                             <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); router.push(`/merchant/keywords/${scheme.id}`); }}
+                                    style={{ color: '#52c41a', border: 'none', background: 'none', cursor: 'pointer', fontSize: '12px' }}
+                                >
+                                    详情
+                                </button>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); setSchemeForm(scheme); setIsSchemeModalOpen(true); }}
                                     style={{ color: '#1890ff', border: 'none', background: 'none', cursor: 'pointer', fontSize: '12px' }}

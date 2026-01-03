@@ -20,9 +20,29 @@ export default function NewShopPage() {
         detailAddress: ''
     });
 
+    const [mobileError, setMobileError] = useState('');
+
+    const validateMobile = (mobile: string) => {
+        const mobileRegex = /^1[3-9]\d{9}$/;
+        if (!mobile) {
+            setMobileError('');
+            return true;
+        }
+        if (!mobileRegex.test(mobile)) {
+            setMobileError('请输入有效的11位手机号');
+            return false;
+        }
+        setMobileError('');
+        return true;
+    };
+
     const handleSubmit = async () => {
         if (!formData.shopName || !formData.accountName || !formData.contactName || !formData.mobile) {
             alert('请完善店铺基本信息');
+            return;
+        }
+        if (!validateMobile(formData.mobile)) {
+            alert('请输入有效的11位手机号');
             return;
         }
         setSubmitting(true);
@@ -98,9 +118,24 @@ export default function NewShopPage() {
                                 type="text"
                                 placeholder="请输入手机号"
                                 value={formData.mobile}
-                                onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                                style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #d9d9d9' }}
+                                onChange={(e) => {
+                                    setFormData({ ...formData, mobile: e.target.value });
+                                    validateMobile(e.target.value);
+                                }}
+                                onBlur={(e) => validateMobile(e.target.value)}
+                                style={{
+                                    width: '100%',
+                                    padding: '10px',
+                                    borderRadius: '4px',
+                                    border: mobileError ? '1px solid #ff4d4f' : '1px solid #d9d9d9'
+                                }}
+                                maxLength={11}
                             />
+                            {mobileError && (
+                                <div style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '4px' }}>
+                                    {mobileError}
+                                </div>
+                            )}
                         </div>
                     </div>
 
