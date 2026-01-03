@@ -1,53 +1,54 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchUserProfile } from '../../services/userService';
-import { isAuthenticated, logout } from '../../services/authService';
+import { isAuthenticated, getToken, logout } from '../../services/authService';
 import BottomNav from '../../components/BottomNav';
 
-interface UserStats {
-    totalPaidPrincipal: number;      // 累计垫付本金
-    monthlyRemainingTasks: number;   // 本月剩余任务数
-    totalCompletedTasks: number;     // 累计完成任务数
-    totalEarnedSilver: number;       // 累计赚取银锭
-    pendingMerchantSilver: number;   // 待商家发放银锭
-    frozenSilver: number;            // 冻结的银锭
-    silverToYuan: number;            // 银锭折现金额
-    todayInvited: number;            // 今日邀请人数
-    totalInvited: number;            // 总邀请人数
-    pendingOrders: number;           // 进行中订单数
-    submittedOrders: number;         // 待审核订单数
-}
+// 对齐旧版 API 基础路径
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
-interface BalanceOverview {
-    balance: number;
-    frozenBalance: number;
-    silver: number;
-    frozenSilver: number;
-    totalAssets: number;
-}
-
+// ========================
+// 对齐旧版 index.html 数据结构
+// ========================
 interface UserProfile {
+    // 用户基本信息 - 对齐旧版 $users
     id: string;
-    username: string;
-    phone: string;
-    balance: number;
-    frozenBalance: number;
-    silver: number;
-    frozenSilver: number;
-    vip: boolean;
-    vipExpireAt?: string;
-    realName?: string;
-    qq?: string;
-    stats?: UserStats;
-    balanceOverview?: BalanceOverview;
+    username: string;          // 对齐旧版 $users.username
+    mobile: string;            // 对齐旧版 $users.mobile
+    balance: number;           // 对齐旧版 $users.balance (可提现本金)
+    vip: number;               // 对齐旧版 $users.vip (1=VIP会员)
+    vip_time: number;          // 对齐旧版 $users.vip_time (VIP到期时间戳)
+
+    // 银锭信息 - 对齐旧版 $myself
+    reward: number;            // 对齐旧版 $myself.reward (总银锭)
+    tj_award: number;          // 对齐旧版 $myself.tj_award (累计邀请奖励)
+    tj_award_day: number;      // 对齐旧版 $myself.tj_award_day (今日邀请奖励)
+
+    // 统计信息 - 对齐旧版各变量
+    all_num_task: number;          // 对齐旧版 $all_num_task (经验值/累计完成任务数)
+    all_obtain_reward: number;     // 对齐旧版 $all_obtain_reward (累积赚取银锭)
+    wait_shop_issue: number;       // 对齐旧版 $wait_shop_issue (待商家发放银锭)
+    all_user_principal: number;    // 对齐旧版 $all_user_principal (总计垫付本金)
+    freeze_reward: number;         // 对齐旧版 $freeze_reward (冻结银锭)
+    discounting: number;           // 对齐旧版 $discounting (银锭折现金额)
+    all_invite: number;            // 对齐旧版 $all_invite (总计邀请人数)
+    day_invite: number;            // 对齐旧版 $day_invite (今日邀请人数)
+
+    // 通知相关
+    unread_msg_count: number;      // 未读消息数量
 }
 
 export default function ProfilePage() {
     const router = useRouter();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
+    const [tagShow, setTagShow] = useState(false);
+    const [tagNum, setTagNum] = useState(0);
+
+    const alertError = useCallback((msg: string) => {
+        alert(msg);
+    }, []);
 
     useEffect(() => {
         if (!isAuthenticated()) {
@@ -57,15 +58,66 @@ export default function ProfilePage() {
         loadProfile();
     }, [router]);
 
+    // ========================
+    // 加载用户资料 - 对齐旧版 mobile/my/index
+    // ========================
     const loadProfile = async () => {
         try {
-            const data = await fetchUserProfile();
-            setProfile(data);
+            const token = getToken();
+            const response = await fetch(`${BASE_URL}/mobile/my/index`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+
+            if (data.code === 1) {
+                setProfile(data.data);
+                // 处理未读消息
+                if (data.data.unread_msg_count > 0) {
+                    setTagShow(true);
+                    setTagNum(data.data.unread_msg_count);
+                }
+            } else {
+                alertError(data.msg || '获取用户信息失败');
+            }
         } catch (error) {
             console.error('Failed to load profile:', error);
         } finally {
             setLoading(false);
         }
+    };
+
+    // ========================
+    // 对齐旧版按钮跳转
+    // ========================
+
+    // 继续任务 - 对齐旧版 maketask
+    const maketask = () => {
+        router.push('/tasks/continue');
+    };
+
+    // 个人通知 - 对齐旧版 personmessage
+    const personmessage = () => {
+        router.push('/profile/messages');
+    };
+
+    // 本金提现 - 对齐旧版 tixiana
+    const tixiana = () => {
+        router.push('/profile/withdraw');
+    };
+
+    // 银锭充值 - 对齐旧版 gochongzhi
+    const gochongzhi = () => {
+        router.push('/profile/silver/recharge');
+    };
+
+    // 银锭提现 - 对齐旧版 tixianb
+    const tixianb = () => {
+        router.push('/profile/withdraw?ydtx=1');
+    };
+
+    // 邀请好友 - 对齐旧版 goyaoqing
+    const goyaoqing = () => {
+        router.push('/invite');
     };
 
     const handleLogout = () => {
@@ -83,249 +135,382 @@ export default function ProfilePage() {
         );
     }
 
-    const stats = profile?.stats;
-    const balanceOverview = profile?.balanceOverview;
-
-    // 统计磁贴配置（对应原版个人中心）
-    const statTiles = [
-        { label: '累计垫付本金', value: `¥${(stats?.totalPaidPrincipal || 0).toFixed(2)}`, color: '#007aff' },
-        { label: '本月剩余任务', value: `${stats?.monthlyRemainingTasks || 220}`, subLabel: '/220', color: '#34c759' },
-        { label: '累计完成任务', value: `${stats?.totalCompletedTasks || 0}`, color: '#5856d6' },
-        { label: '累计赚取银锭', value: `${(stats?.totalEarnedSilver || 0).toFixed(2)}`, color: '#ffd700' },
-        { label: '待商家发放', value: `${(stats?.pendingMerchantSilver || 0).toFixed(2)}`, color: '#ff9500' },
-        { label: '冻结银锭', value: `${(stats?.frozenSilver || 0).toFixed(2)}`, color: '#ff3b30' },
-    ];
-
-    const menuItems = [
-        { icon: '💳', label: '买号管理', path: '/profile/buyno' },
-        { icon: '🏦', label: '银行卡管理', path: '/profile/payment' },
-        { icon: '📊', label: '资金记录', path: '/profile/records' },
-        { icon: '💰', label: '提现中心', path: '/profile/withdraw' },
-        { icon: '👥', label: '邀请好友', path: '/invite' },
-        { icon: '⚙️', label: '账户设置', path: '/profile/settings' },
-    ];
+    // 格式化VIP到期时间
+    const formatVipTime = (timestamp: number) => {
+        if (!timestamp) return '-';
+        const date = new Date(timestamp * 1000);
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    };
 
     return (
         <div style={{
             minHeight: '100vh',
-            background: 'linear-gradient(180deg, #1d1d1f 0%, #2c2c2e 100%)',
+            background: '#f5f5f5',
             paddingBottom: '100px'
         }}>
-            {/* 黑金身份卡 */}
-            <div style={{ padding: '60px 20px 30px' }}>
-                <div style={{
-                    background: 'linear-gradient(135deg, #2c2c2e 0%, #1d1d1f 100%)',
-                    borderRadius: '24px',
-                    padding: '28px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
-                }}>
-                    {/* 用户信息 */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-                        <div style={{
-                            width: '64px',
-                            height: '64px',
-                            background: 'linear-gradient(135deg, #ffd700 0%, #ffaa00 100%)',
-                            borderRadius: '20px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '28px'
-                        }}>
-                            👤
-                        </div>
-                        <div>
-                            <div style={{ fontSize: '22px', fontWeight: '700', color: '#fff', marginBottom: '4px' }}>
-                                {profile?.username || '用户'}
-                            </div>
-                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.5)' }}>
-                                {profile?.phone ? profile.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '未绑定手机'}
-                            </div>
-                            {profile?.realName && (
-                                <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.4)', marginTop: '2px' }}>
-                                    实名: {profile.realName}
-                                </div>
-                            )}
-                        </div>
-                        {profile?.vip && (
-                            <div style={{
-                                marginLeft: 'auto',
-                                background: 'linear-gradient(135deg, #ffd700 0%, #ffaa00 100%)',
-                                padding: '6px 14px',
-                                borderRadius: '12px',
-                                fontSize: '12px',
-                                fontWeight: '700',
-                                color: '#1d1d1f'
-                            }}>
-                                VIP
-                            </div>
-                        )}
-                    </div>
+            {/* 顶部操作栏 - 对齐旧版 public-header */}
+            <div style={{
+                background: 'linear-gradient(135deg, #1d1d1f 0%, #2c2c2e 100%)',
+                padding: '50px 16px 20px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+            }}>
+                {/* 继续任务按钮 - 对齐旧版 maketask */}
+                <button
+                    onClick={maketask}
+                    style={{
+                        background: '#ff9500',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '20px',
+                        padding: '8px 16px',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                    }}
+                >
+                    ✓ 继续任务
+                </button>
 
-                    {/* 资产磁贴 */}
+                {/* 个人通知按钮 - 对齐旧版 personmessage */}
+                <button
+                    onClick={personmessage}
+                    style={{
+                        background: '#ff9500',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '20px',
+                        padding: '8px 16px',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        position: 'relative'
+                    }}
+                >
+                    ✓ 个人通知
+                    {/* 红点展示 - 对齐旧版 tagShow */}
+                    {tagShow && (
+                        <span style={{
+                            position: 'absolute',
+                            top: '-5px',
+                            right: '-5px',
+                            background: '#f56c6c',
+                            color: '#fff',
+                            fontSize: '10px',
+                            padding: '2px 6px',
+                            borderRadius: '10px',
+                            minWidth: '16px',
+                            textAlign: 'center'
+                        }}>
+                            {tagNum}
+                        </span>
+                    )}
+                </button>
+            </div>
+
+            {/* 用户信息卡 - 对齐旧版 index-box */}
+            <div style={{
+                margin: '16px',
+                background: '#fff',
+                borderRadius: '16px',
+                padding: '20px',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+            }}>
+                {/* 头像和基本信息 - 对齐旧版 touxiang-box + content-one */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
                     <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(2, 1fr)',
-                        gap: '12px'
+                        width: '60px',
+                        height: '60px',
+                        background: 'linear-gradient(135deg, #ffd700 0%, #ffaa00 100%)',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '28px'
                     }}>
-                        <div style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            borderRadius: '16px',
-                            padding: '16px'
-                        }}>
-                            <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', marginBottom: '8px' }}>可用本金</div>
-                            <div style={{ fontSize: '24px', fontWeight: '700', color: '#fff' }}>
-                                ¥{Number(balanceOverview?.balance || profile?.balance || 0).toFixed(2)}
-                            </div>
+                        👤
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '16px', fontWeight: '600', color: '#333', marginBottom: '4px' }}>
+                            用户名：<span style={{ color: '#409eff' }}>{profile?.username || '-'}</span>
                         </div>
-                        <div style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            borderRadius: '16px',
-                            padding: '16px'
-                        }}>
-                            <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', marginBottom: '8px' }}>可用银锭</div>
-                            <div style={{ fontSize: '24px', fontWeight: '700', color: '#ffd700' }}>
-                                {Number(balanceOverview?.silver || profile?.silver || 0).toFixed(2)}
-                            </div>
+                        <div style={{ fontSize: '13px', color: '#666', marginBottom: '4px' }}>
+                            绑定手机号：<span>{profile?.mobile || '-'}</span>
                         </div>
-                        <div style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            borderRadius: '16px',
-                            padding: '16px'
-                        }}>
-                            <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', marginBottom: '8px' }}>冻结本金</div>
-                            <div style={{ fontSize: '18px', fontWeight: '600', color: 'rgba(255, 255, 255, 0.6)' }}>
-                                ¥{Number(balanceOverview?.frozenBalance || profile?.frozenBalance || 0).toFixed(2)}
-                            </div>
+                        <div style={{ fontSize: '13px', color: '#666' }}>
+                            经验值：<span style={{ color: '#ff9500', fontWeight: '600' }}>{profile?.all_num_task || 0}</span>
                         </div>
-                        <div style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            borderRadius: '16px',
-                            padding: '16px'
-                        }}>
-                            <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', marginBottom: '8px' }}>总资产</div>
-                            <div style={{ fontSize: '18px', fontWeight: '600', color: '#34c759' }}>
-                                ¥{Number(balanceOverview?.totalAssets || 0).toFixed(2)}
-                            </div>
-                        </div>
+                    </div>
+                </div>
+
+                {/* 会员信息 - 对齐旧版 content-two */}
+                <div style={{
+                    padding: '12px',
+                    background: profile?.vip === 1 ? 'linear-gradient(135deg, #fff5e6 0%, #ffe4c4 100%)' : '#f8f8f8',
+                    borderRadius: '12px',
+                    marginBottom: '12px'
+                }}>
+                    <div style={{ fontSize: '14px', color: '#333', marginBottom: '6px' }}>
+                        会员状态：<span style={{ color: profile?.vip === 1 ? '#ff9500' : '#999', fontWeight: '600' }}>
+                            {profile?.vip === 1 ? 'VIP会员' : '不是会员'}
+                        </span>
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#666', marginBottom: '6px' }}>
+                        到期时间：<span>{formatVipTime(profile?.vip_time || 0)}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#666' }}>
+                        <span>累积赚取银锭：<span style={{ color: '#ffd700', fontWeight: '600' }}>{profile?.all_obtain_reward || 0}</span> 银锭</span>
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#666', marginTop: '4px' }}>
+                        待商家发放银锭：<span style={{ color: '#ff9500', fontWeight: '600' }}>{profile?.wait_shop_issue || 0}</span> 银锭
                     </div>
                 </div>
             </div>
 
-            {/* 数据统计区域（对应原版个人中心） */}
-            <div style={{ padding: '0 20px 20px' }}>
+            {/* 提现入口 - 对齐旧版 index-chongzhi */}
+            <div style={{ margin: '16px' }}>
+                <div style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#333',
+                    marginBottom: '12px',
+                    padding: '0 4px'
+                }}>
+                    提现入口
+                </div>
+
+                {/* 我的本金 - 对齐旧版 my-benjin */}
                 <div style={{
                     background: '#fff',
-                    borderRadius: '20px',
-                    padding: '20px',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)'
+                    borderRadius: '16px',
+                    padding: '16px',
+                    marginBottom: '12px',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
                 }}>
-                    <div style={{
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        color: '#1d1d1f',
-                        marginBottom: '16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                    }}>
-                        <span>📈</span>
-                        <span>数据统计</span>
+                    <div style={{ fontSize: '15px', fontWeight: '600', color: '#333', marginBottom: '12px' }}>我的本金</div>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '24px', marginRight: '8px' }}>💰</span>
+                        <span style={{ fontSize: '20px', fontWeight: '700', color: '#409eff' }}>
+                            {profile?.balance || 0}元
+                        </span>
+                        <span style={{ fontSize: '12px', color: '#999', marginLeft: '8px' }}>(可提现本金)</span>
                     </div>
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(3, 1fr)',
-                        gap: '12px'
-                    }}>
-                        {statTiles.map((tile, index) => (
-                            <div
-                                key={index}
-                                style={{
-                                    background: '#f8f9ff',
-                                    borderRadius: '12px',
-                                    padding: '12px',
-                                    textAlign: 'center'
-                                }}
-                            >
-                                <div style={{
-                                    fontSize: '18px',
-                                    fontWeight: '700',
-                                    color: tile.color,
-                                    marginBottom: '4px'
-                                }}>
-                                    {tile.value}
-                                    {tile.subLabel && (
-                                        <span style={{ fontSize: '12px', color: '#86868b' }}>{tile.subLabel}</span>
-                                    )}
-                                </div>
-                                <div style={{ fontSize: '11px', color: '#86868b' }}>{tile.label}</div>
-                            </div>
-                        ))}
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
+                        <span style={{ fontSize: '24px', marginRight: '8px' }}>💰</span>
+                        <span style={{ fontSize: '16px', fontWeight: '600', color: '#666' }}>
+                            {profile?.all_user_principal || 0}元
+                        </span>
+                        <span style={{ fontSize: '12px', color: '#999', marginLeft: '8px' }}>(总计垫付本金)</span>
                     </div>
+                    <button
+                        onClick={tixiana}
+                        style={{
+                            width: '100%',
+                            padding: '12px',
+                            background: '#409eff',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        提现
+                    </button>
+                </div>
 
-                    {/* 邀请统计 */}
-                    <div style={{
-                        marginTop: '16px',
-                        padding: '12px',
-                        background: 'linear-gradient(135deg, #fff5e6 0%, #ffe4c4 100%)',
-                        borderRadius: '12px',
-                        display: 'flex',
-                        justifyContent: 'space-around',
-                        alignItems: 'center'
-                    }}>
-                        <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '20px', fontWeight: '700', color: '#ff9500' }}>
-                                {stats?.todayInvited || 0}
-                            </div>
-                            <div style={{ fontSize: '11px', color: '#86868b' }}>今日邀请</div>
-                        </div>
-                        <div style={{ width: '1px', height: '30px', background: 'rgba(0,0,0,0.1)' }} />
-                        <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '20px', fontWeight: '700', color: '#ff9500' }}>
-                                {stats?.totalInvited || 0}
-                            </div>
-                            <div style={{ fontSize: '11px', color: '#86868b' }}>总邀请</div>
-                        </div>
-                        <div style={{ width: '1px', height: '30px', background: 'rgba(0,0,0,0.1)' }} />
-                        <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '20px', fontWeight: '700', color: '#007aff' }}>
-                                {stats?.pendingOrders || 0}
-                            </div>
-                            <div style={{ fontSize: '11px', color: '#86868b' }}>进行中</div>
-                        </div>
-                        <div style={{ width: '1px', height: '30px', background: 'rgba(0,0,0,0.1)' }} />
-                        <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '20px', fontWeight: '700', color: '#5856d6' }}>
-                                {stats?.submittedOrders || 0}
-                            </div>
-                            <div style={{ fontSize: '11px', color: '#86868b' }}>待审核</div>
-                        </div>
+                {/* 我的银锭 - 对齐旧版 my-yinding */}
+                <div style={{
+                    background: '#fff',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    marginBottom: '12px',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+                }}>
+                    <div style={{ fontSize: '15px', fontWeight: '600', color: '#333', marginBottom: '12px' }}>我的银锭</div>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '24px', marginRight: '8px' }}>🥇</span>
+                        <span style={{ fontSize: '18px', fontWeight: '700', color: '#ffd700' }}>
+                            {profile?.reward || 0}银锭 = {profile?.discounting || 0}元
+                        </span>
+                        <span style={{ fontSize: '12px', color: '#999', marginLeft: '8px' }}>(总银锭)</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
+                        <span style={{ fontSize: '24px', marginRight: '8px' }}>🥇</span>
+                        <span style={{ fontSize: '16px', fontWeight: '600', color: '#ff9500' }}>
+                            {profile?.freeze_reward || 0}银锭
+                        </span>
+                        <span style={{ fontSize: '12px', color: '#999', marginLeft: '8px' }}>(冻结银锭)</span>
+                    </div>
+                    <button
+                        onClick={tixianb}
+                        style={{
+                            width: '100%',
+                            padding: '12px',
+                            background: '#1989fa',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        提现
+                    </button>
+                </div>
+
+                {/* 我的邀请 - 对齐旧版 my-invite */}
+                <div style={{
+                    background: '#fff',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    marginBottom: '12px',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+                }}>
+                    <div style={{ fontSize: '15px', fontWeight: '600', color: '#333', marginBottom: '12px' }}>我的邀请</div>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '24px', marginRight: '8px' }}>🏅</span>
+                        <span style={{ fontSize: '14px', color: '#333' }}>
+                            总计获得奖励：<span style={{ color: '#ffd700', fontWeight: '600' }}>{profile?.tj_award || 0}银锭</span>
+                        </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '24px', marginRight: '8px' }}>👥</span>
+                        <span style={{ fontSize: '14px', color: '#333' }}>
+                            总计邀请人数：<span style={{ color: '#409eff', fontWeight: '600' }}>{profile?.all_invite || 0}人</span>
+                        </span>
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#666', marginBottom: '4px' }}>
+                        今日获得奖励：<span style={{ color: '#ff9500' }}>{profile?.tj_award_day || 0}银锭</span>
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#666', marginBottom: '12px' }}>
+                        今日邀请人数：<span style={{ color: '#409eff' }}>{profile?.day_invite || 0}人</span>
+                    </div>
+                    <button
+                        onClick={goyaoqing}
+                        style={{
+                            width: '100%',
+                            padding: '12px',
+                            background: '#409eff',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        邀请
+                    </button>
+                </div>
+
+                {/* 历史记录 - 对齐旧版 history */}
+                <div style={{
+                    background: '#fff',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+                }}>
+                    <div style={{ fontSize: '15px', fontWeight: '600', color: '#333', marginBottom: '12px' }}>历史记录</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                        <button
+                            onClick={() => router.push('/profile/records?type=principal')}
+                            style={{
+                                padding: '8px 16px',
+                                background: '#f5f5f5',
+                                border: 'none',
+                                borderRadius: '6px',
+                                fontSize: '13px',
+                                color: '#409eff',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            本金记录
+                        </button>
+                        <button
+                            onClick={() => router.push('/profile/records?type=silver')}
+                            style={{
+                                padding: '8px 16px',
+                                background: '#f5f5f5',
+                                border: 'none',
+                                borderRadius: '6px',
+                                fontSize: '13px',
+                                color: '#409eff',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            银锭记录
+                        </button>
+                        <button
+                            onClick={() => router.push('/profile/records?type=withdraw')}
+                            style={{
+                                padding: '8px 16px',
+                                background: '#f5f5f5',
+                                border: 'none',
+                                borderRadius: '6px',
+                                fontSize: '13px',
+                                color: '#409eff',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            提现记录
+                        </button>
+                        <button
+                            onClick={() => router.push('/profile/vip-record')}
+                            style={{
+                                padding: '8px 16px',
+                                background: '#f5f5f5',
+                                border: 'none',
+                                borderRadius: '6px',
+                                fontSize: '13px',
+                                color: '#409eff',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            会员记录
+                        </button>
                     </div>
                 </div>
             </div>
 
             {/* 功能菜单 */}
-            <div style={{ padding: '0 20px' }}>
+            <div style={{ margin: '16px' }}>
                 <div style={{
                     background: '#fff',
-                    borderRadius: '20px',
+                    borderRadius: '16px',
                     overflow: 'hidden',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)'
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
                 }}>
-                    {menuItems.map((item, index) => (
+                    {[
+                        { icon: '💳', label: '买号管理', path: '/profile/buyno' },
+                        { icon: '🏦', label: '银行卡管理', path: '/profile/payment' },
+                        { icon: '📊', label: '资金记录', path: '/profile/records' },
+                        { icon: '💰', label: '提现中心', path: '/profile/withdraw' },
+                        { icon: '👥', label: '邀请好友', path: '/invite' },
+                        { icon: '⚙️', label: '账户设置', path: '/profile/settings' },
+                    ].map((item, index) => (
                         <div
                             key={item.path}
                             onClick={() => router.push(item.path)}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                padding: '18px 20px',
+                                padding: '16px 20px',
                                 cursor: 'pointer',
-                                borderBottom: index < menuItems.length - 1 ? '1px solid #f5f5f7' : 'none'
+                                borderBottom: index < 5 ? '1px solid #f5f5f5' : 'none'
                             }}
                         >
                             <span style={{ fontSize: '22px', marginRight: '16px' }}>{item.icon}</span>
-                            <span style={{ flex: 1, fontSize: '15px', fontWeight: '500', color: '#1d1d1f' }}>{item.label}</span>
+                            <span style={{ flex: 1, fontSize: '15px', fontWeight: '500', color: '#333' }}>{item.label}</span>
                             <span style={{ color: '#c7c7cc', fontSize: '18px' }}>›</span>
                         </div>
                     ))}
@@ -345,7 +530,7 @@ export default function ProfilePage() {
                         fontWeight: '500',
                         color: '#ff3b30',
                         cursor: 'pointer',
-                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)'
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
                     }}
                 >
                     退出登录

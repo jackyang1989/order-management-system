@@ -85,7 +85,7 @@ import { MerchantBlacklistModule } from './merchant-blacklist/merchant-blacklist
       password: process.env.DB_PASSWORD || '',
       database: process.env.DB_DATABASE || 'order_management',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: process.env.NODE_ENV !== 'production',
+      synchronize: false, // process.env.NODE_ENV !== 'production',
       logging: process.env.NODE_ENV !== 'production',
     }),
     AuthModule,
