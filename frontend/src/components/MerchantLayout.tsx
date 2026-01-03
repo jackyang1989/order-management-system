@@ -27,7 +27,11 @@ const menuItems = [
     { key: 'reviews', icon: '⭐', label: '追评管理', path: '/merchant/reviews' },
     { key: 'blacklist', icon: '🚫', label: '黑名单', path: '/merchant/blacklist' },
     { key: 'wallet', icon: '💰', label: '财务中心', path: '/merchant/wallet' },
+    { key: 'bank', icon: '💳', label: '银行卡', path: '/merchant/bank' },
+    { key: 'vip', icon: '👑', label: 'VIP会员', path: '/merchant/vip' },
+    { key: 'recommend', icon: '🎁', label: '推荐奖励', path: '/merchant/recommend' },
     { key: 'settings', icon: '⚙️', label: '账户设置', path: '/merchant/setting' },
+    { key: 'help', icon: '❓', label: '帮助中心', path: '/merchant/help' },
 ];
 
 export default function MerchantLayout({ children }: MerchantLayoutProps) {
