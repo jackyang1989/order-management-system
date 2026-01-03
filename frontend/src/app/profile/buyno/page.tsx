@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated } from '../../../services/authService';
+import { isAuthenticated, getToken } from '../../../services/authService';
+
+// 对齐旧版 API 基础路径
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
 // 中国省市区数据（简化版）
 const PROVINCES = [
@@ -37,24 +40,24 @@ interface BuyerAccount {
 }
 
 interface FormData {
-    // 旺旺信息
-    wangwangProvince: string;
-    wangwangCity: string;
-    wangwangId: string;
-    archiveImage: string | null;  // 旺旺档案截图
-    ipImage: string | null;       // 淘气值截图
+    // 旺旺信息 - 对齐旧版 addbuyno.html
+    wangwangProvince: string;  // 对应旧版 provinceValue2
+    wangwangCity: string;      // 对应旧版 cityValue2
+    wangwangId: string;        // 对应旧版 wangwangIdValue
+    img1: string | null;       // 旺旺档案截图 - 对应旧版 img1
+    img2: string | null;       // 淘气值截图 - 对应旧版 img2
     // 基本信息
-    receiverName: string;
-    addressProvince: string;
-    addressCity: string;
-    addressDistrict: string;
-    addressDetail: string;
-    receiverPhone: string;
-    smsCode: string;
-    alipayName: string;
+    receiverName: string;      // 对应旧版 renZhengValue (支付宝认证姓名)
+    addressProvince: string;   // 对应旧版 provinceValue
+    addressCity: string;       // 对应旧版 cityValue
+    addressDistrict: string;   // 对应旧版 districtValue
+    addressDetail: string;     // 对应旧版 addressValue
+    receiverPhone: string;     // 对应旧版 phoneNumValue
+    smsCode: string;           // 对应旧版 yzmNumValue
+    alipayName: string;        // 对应旧版 renZhengValue
     // 支付宝信息
-    alipayImage: string | null;   // 支付宝实名认证截图
-    zhimaImage: string | null;    // 芝麻信用截图
+    img3: string | null;       // 支付宝实名认证截图 - 对应旧版 img3
+    img4: string | null;       // 芝麻信用截图 - 对应旧版 img4
 }
 
 export default function BuynoPage() {
@@ -65,6 +68,22 @@ export default function BuynoPage() {
     const [submitting, setSubmitting] = useState(false);
     const [countdown, setCountdown] = useState(0);
 
+    // 验证码状态 - 对齐旧版
+    const [yzmDisabled, setYzmDisabled] = useState(false);
+    const [yzmMsg, setYzmMsg] = useState('发送验证码');
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+    // 正则表达式 - 对齐旧版
+    const phoneReg = /^1[3-9]\d{9}$/;
+
+    const alertSuccess = useCallback((msg: string) => {
+        alert(msg);
+    }, []);
+
+    const alertError = useCallback((msg: string) => {
+        alert(msg);
+    }, []);
+
     // 地区选择器显示状态
     const [showWangwangArea, setShowWangwangArea] = useState(false);
     const [showAddressArea, setShowAddressArea] = useState(false);
@@ -73,8 +92,8 @@ export default function BuynoPage() {
         wangwangProvince: '',
         wangwangCity: '',
         wangwangId: '',
-        archiveImage: null,
-        ipImage: null,
+        img1: null,
+        img2: null,
         receiverName: '',
         addressProvince: '',
         addressCity: '',
@@ -83,8 +102,8 @@ export default function BuynoPage() {
         receiverPhone: '',
         smsCode: '',
         alipayName: '',
-        alipayImage: null,
-        zhimaImage: null,
+        img3: null,
+        img4: null,
     });
 
     // 示例图URL
@@ -101,6 +120,9 @@ export default function BuynoPage() {
             return;
         }
         loadAccounts();
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
     }, [router]);
 
     useEffect(() => {
@@ -112,12 +134,12 @@ export default function BuynoPage() {
 
     const loadAccounts = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch('/api/buyer-accounts?all=1', {
+            const token = getToken();
+            const res = await fetch(`${BASE_URL}/mobile/my/buynolist`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
-            if (data.success) {
+            if (data.code === 1) {
                 setAccounts(data.data || []);
             }
         } catch (error) {
@@ -127,14 +149,44 @@ export default function BuynoPage() {
         }
     };
 
+    // ========================
+    // 发送验证码 - 对齐旧版 mobile/way/send_code
+    // ========================
     const sendSmsCode = async () => {
-        if (!form.receiverPhone || !/^1[3-9]\d{9}$/.test(form.receiverPhone)) {
-            alert('请输入正确的手机号码');
-            return;
+        if (!form.receiverPhone) {
+            return alertError('手机号码不能为空');
         }
-        // TODO: 调用发送验证码API
-        alert('验证码已发送');
-        setCountdown(60);
+        if (!phoneReg.test(form.receiverPhone)) {
+            return alertError('手机号码格式不规范,请检查后重新输入');
+        }
+
+        try {
+            await fetch(`${BASE_URL}/mobile/way/send_code`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    mobile: form.receiverPhone,
+                }),
+            });
+        } catch (error) {
+            // 忽略错误，继续倒计时（对齐旧版行为）
+        }
+
+        let num = 60;
+        setYzmDisabled(true);
+        setYzmMsg(`还剩 ${num} 秒`);
+
+        timerRef.current = setInterval(() => {
+            num--;
+            setYzmMsg(`还剩 ${num} 秒`);
+            if (num <= 0) {
+                clearInterval(timerRef.current!);
+                setYzmMsg('重新发送');
+                setYzmDisabled(false);
+            } else if (num === 59) {
+                alertSuccess('验证码发送成功');
+            }
+        }, 1000);
     };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: keyof FormData) => {
@@ -152,84 +204,92 @@ export default function BuynoPage() {
     const validateForm = (): string | null => {
         if (!form.wangwangProvince || !form.wangwangCity) return '请选择旺旺常用登陆地';
         if (!form.wangwangId) return '旺旺ID不能为空';
-        if (!form.archiveImage) return '旺旺档案截图不能为空';
-        if (!form.ipImage) return '淘气值截图不能为空';
+        if (!form.img1) return '旺旺档案截图不能为空';
+        if (!form.img2) return '淘气值截图不能为空';
         if (!form.receiverName) return '收货人姓名不能为空';
         if (!form.addressProvince || !form.addressCity) return '收货地址不能为空';
         if (!form.addressDetail) return '收货地址详细信息不能为空';
         if (!form.receiverPhone) return '收货人手机号码不能为空';
-        if (!/^1[3-9]\d{9}$/.test(form.receiverPhone)) return '手机号码格式不规范';
+        if (!phoneReg.test(form.receiverPhone)) return '手机号码格式不规范';
         if (!form.smsCode) return '请输入手机验证码';
         if (!form.alipayName) return '支付宝认证姓名不能为空';
-        if (!form.alipayImage) return '支付宝实名认证截图不能为空';
-        if (!form.zhimaImage) return '芝麻信用截图不能为空';
+        if (!form.img3) return '支付宝实名认证截图不能为空';
+        if (!form.img4) return '芝麻信用截图不能为空';
         return null;
     };
 
+    // ========================
+    // 添加买号 - 对齐旧版 mobile/my/addbuyno
+    // 参数: wangwangId, provinceValue2, cityValue2, renZhengValue, provinceValue, cityValue, districtValue, addressValue, phoneNumValue, yzmNumValue, img1, img2, img3, img4
+    // ========================
     const handleSubmit = async () => {
         const error = validateForm();
         if (error) {
-            alert(error);
+            alertError(error);
             return;
         }
 
         setSubmitting(true);
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch('/api/buyer-accounts', {
+            const token = getToken();
+            const response = await fetch(`${BASE_URL}/mobile/my/addbuyno`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    platform: '淘宝',
-                    accountName: form.wangwangId,
-                    wangwangProvince: form.wangwangProvince,
-                    wangwangCity: form.wangwangCity,
-                    receiverName: form.receiverName,
-                    province: form.addressProvince,
-                    city: form.addressCity,
-                    district: form.addressDistrict,
-                    fullAddress: `${form.addressProvince}${form.addressCity}${form.addressDistrict}${form.addressDetail}`,
-                    addressRemark: form.addressDetail,
-                    receiverPhone: form.receiverPhone,
-                    alipayName: form.alipayName,
-                    archiveImage: form.archiveImage,
-                    ipImage: form.ipImage,
-                    alipayImage: form.alipayImage,
-                    zhimaImage: form.zhimaImage,
-                    smsCode: form.smsCode,
-                })
+                    wangwangId: form.wangwangId,
+                    provinceValue2: form.wangwangProvince,
+                    cityValue2: form.wangwangCity,
+                    renZhengValue: form.alipayName,
+                    provinceValue: form.addressProvince,
+                    cityValue: form.addressCity,
+                    districtValue: form.addressDistrict,
+                    addressValue: form.addressDetail,
+                    phoneNumValue: form.receiverPhone,
+                    yzmNumValue: form.smsCode,
+                    img1: form.img1,
+                    img2: form.img2,
+                    img3: form.img3,
+                    img4: form.img4,
+                }),
             });
-            const data = await res.json();
-            if (data.success) {
-                alert(data.message || '买号提交成功，请等待审核');
-                await loadAccounts();
-                setActiveTab('list');
-                // 重置表单
-                setForm({
-                    wangwangProvince: '',
-                    wangwangCity: '',
-                    wangwangId: '',
-                    archiveImage: null,
-                    ipImage: null,
-                    receiverName: '',
-                    addressProvince: '',
-                    addressCity: '',
-                    addressDistrict: '',
-                    addressDetail: '',
-                    receiverPhone: '',
-                    smsCode: '',
-                    alipayName: '',
-                    alipayImage: null,
-                    zhimaImage: null,
-                });
+            const data = await response.json();
+
+            if (data.code === 1) {
+                alertSuccess(data.msg || '买号提交成功，请等待审核');
+                setTimeout(() => {
+                    if (data.url) {
+                        router.push(data.url);
+                    } else {
+                        loadAccounts();
+                        setActiveTab('list');
+                        // 重置表单
+                        setForm({
+                            wangwangProvince: '',
+                            wangwangCity: '',
+                            wangwangId: '',
+                            img1: null,
+                            img2: null,
+                            receiverName: '',
+                            addressProvince: '',
+                            addressCity: '',
+                            addressDistrict: '',
+                            addressDetail: '',
+                            receiverPhone: '',
+                            smsCode: '',
+                            alipayName: '',
+                            img3: null,
+                            img4: null,
+                        });
+                    }
+                }, 3000);
             } else {
-                alert(data.message || '提交失败');
+                alertError(data.msg || '提交失败');
             }
         } catch (error) {
-            alert('网络错误，请重试');
+            alertError('网络错误，请重试');
         } finally {
             setSubmitting(false);
         }
@@ -484,15 +544,15 @@ export default function BuynoPage() {
                             </div>
                             <div style={{ display: 'flex', gap: '15px' }}>
                                 <div style={{ position: 'relative' }}>
-                                    {form.archiveImage ? (
-                                        <img src={form.archiveImage} alt="已上传" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
+                                    {form.img1 ? (
+                                        <img src={form.img1} alt="已上传" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
                                     ) : (
                                         <div style={{ width: '80px', height: '80px', border: '1px dashed #ddd', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '24px' }}>+</div>
                                     )}
                                     <input
                                         type="file"
                                         accept="image/*"
-                                        onChange={e => handleFileUpload(e, 'archiveImage')}
+                                        onChange={e => handleFileUpload(e, 'img1')}
                                         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
                                     />
                                 </div>
@@ -512,15 +572,15 @@ export default function BuynoPage() {
                             </div>
                             <div style={{ display: 'flex', gap: '15px' }}>
                                 <div style={{ position: 'relative' }}>
-                                    {form.ipImage ? (
-                                        <img src={form.ipImage} alt="已上传" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
+                                    {form.img2 ? (
+                                        <img src={form.img2} alt="已上传" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
                                     ) : (
                                         <div style={{ width: '80px', height: '80px', border: '1px dashed #ddd', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '24px' }}>+</div>
                                     )}
                                     <input
                                         type="file"
                                         accept="image/*"
-                                        onChange={e => handleFileUpload(e, 'ipImage')}
+                                        onChange={e => handleFileUpload(e, 'img2')}
                                         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
                                     />
                                 </div>
@@ -624,19 +684,19 @@ export default function BuynoPage() {
                                 />
                                 <button
                                     onClick={sendSmsCode}
-                                    disabled={countdown > 0}
+                                    disabled={yzmDisabled}
                                     style={{
                                         padding: '6px 12px',
-                                        background: countdown > 0 ? '#ccc' : '#1989fa',
+                                        background: yzmDisabled ? '#a0cfff' : '#1989fa',
                                         color: '#fff',
                                         border: 'none',
                                         borderRadius: '4px',
                                         fontSize: '12px',
                                         whiteSpace: 'nowrap',
-                                        cursor: countdown > 0 ? 'not-allowed' : 'pointer'
+                                        cursor: yzmDisabled ? 'not-allowed' : 'pointer'
                                     }}
                                 >
-                                    {countdown > 0 ? `${countdown}秒` : '发送验证码'}
+                                    {yzmMsg}
                                 </button>
                             </div>
                         </div>
@@ -668,15 +728,15 @@ export default function BuynoPage() {
                             </div>
                             <div style={{ display: 'flex', gap: '15px' }}>
                                 <div style={{ position: 'relative' }}>
-                                    {form.alipayImage ? (
-                                        <img src={form.alipayImage} alt="已上传" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
+                                    {form.img3 ? (
+                                        <img src={form.img3} alt="已上传" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
                                     ) : (
                                         <div style={{ width: '80px', height: '80px', border: '1px dashed #ddd', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '24px' }}>+</div>
                                     )}
                                     <input
                                         type="file"
                                         accept="image/*"
-                                        onChange={e => handleFileUpload(e, 'alipayImage')}
+                                        onChange={e => handleFileUpload(e, 'img3')}
                                         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
                                     />
                                 </div>
@@ -696,15 +756,15 @@ export default function BuynoPage() {
                             </div>
                             <div style={{ display: 'flex', gap: '15px' }}>
                                 <div style={{ position: 'relative' }}>
-                                    {form.zhimaImage ? (
-                                        <img src={form.zhimaImage} alt="已上传" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
+                                    {form.img4 ? (
+                                        <img src={form.img4} alt="已上传" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
                                     ) : (
                                         <div style={{ width: '80px', height: '80px', border: '1px dashed #ddd', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '24px' }}>+</div>
                                     )}
                                     <input
                                         type="file"
                                         accept="image/*"
-                                        onChange={e => handleFileUpload(e, 'zhimaImage')}
+                                        onChange={e => handleFileUpload(e, 'img4')}
                                         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
                                     />
                                 </div>
