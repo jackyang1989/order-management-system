@@ -49,14 +49,15 @@ export const fetchOrderDetail = async (id: string): Promise<MockOrder | null> =>
 };
 
 // 创建订单（领取任务）
-export const createOrder = async (taskId: string, buyerAccount: string): Promise<boolean> => {
+export const createOrder = async (taskId: string, buyerAccount: string): Promise<{ success: boolean; orderId?: string }> => {
     if (USE_MOCK) {
         console.log('[OrderService] Mock create order:', taskId, buyerAccount);
         await new Promise(resolve => setTimeout(resolve, 800));
 
+        const newOrderId = `new_order_${Date.now()}`;
         // Push a new mock order to the list
         mockOrders.unshift({
-            id: `new_order_${Date.now()}`,
+            id: newOrderId,
             taskNumber: `T${Date.now()}`,
             shopName: '新接店铺',
             status: 'PENDING',
@@ -73,7 +74,7 @@ export const createOrder = async (taskId: string, buyerAccount: string): Promise
             createdAt: new Date().toISOString()
         });
 
-        return true;
+        return { success: true, orderId: newOrderId };
     }
 
     try {
@@ -85,9 +86,14 @@ export const createOrder = async (taskId: string, buyerAccount: string): Promise
             },
             body: JSON.stringify({ taskId, buyerAccount })
         });
-        return response.ok;
+        const res = await response.json();
+        if (response.ok && res.code === 1) {
+             // 假设后端返回 data.id 或 data.orderId
+             return { success: true, orderId: res.data?.id || res.data?.orderId };
+        }
+        return { success: false };
     } catch (error) {
-        return false;
+        return { success: false };
     }
 }
 

@@ -63,8 +63,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
         try {
             const success = await createOrder(task.id, buyerAccount);
             if (success) {
-                alert('领取成功！请前往订单列表查看');
-                router.push('/orders');
+                alert('领取成功！立即开始任务');
+                router.push(`/task/${task.id}/step`); // 修复：直接跳转到任务执行页
             } else {
                 alert('领取失败，请稍后重试');
             }
