@@ -161,7 +161,9 @@ export class TasksService implements OnModuleInit {
             const praiseFee = createTaskDto.praiseFee || 0;
             const timingPublishFee = createTaskDto.isTimingPublish ? 1.0 : 0;
             const timingPayFee = createTaskDto.isTimingPay ? 1.0 : 0;
-            const cycleTimeFee = createTaskDto.isCycleTime ? 1.0 : 0;
+            // 购物周期费用: 天数/30 银锭/单 (对应原版 cycle = cycle_time / 30)
+            const cycleTime = createTaskDto.cycleTime || 0;
+            const cycleTimeFee = createTaskDto.isCycleTime && cycleTime > 0 ? (cycleTime / 30) : 0;
             const addReward = createTaskDto.addReward || 0;
 
             // 押金 = 商品本金 + 保证金 + 运费
