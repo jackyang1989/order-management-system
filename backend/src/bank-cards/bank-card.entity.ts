@@ -8,14 +8,33 @@ export enum BankCardStatus {
     DELETED = 3       // 已删除
 }
 
+export enum BankCardOwnerType {
+    BUYER = 'buyer',       // 买手
+    MERCHANT = 'merchant'  // 商家
+}
+
+export enum BankCardType {
+    PERSONAL = 1,   // 个人账户
+    COMPANY = 2     // 企业对公账户
+}
+
 @Entity('bank_cards')
 export class BankCard {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
+    @Column({ type: 'varchar', length: 20, default: BankCardOwnerType.BUYER })
+    @Index()
+    ownerType: BankCardOwnerType;  // 所有者类型：买手或商家
+
     @Column()
     @Index()
-    userId: string;  // 所属用户
+    ownerId: string;  // 所有者ID（买手ID或商家ID）
+
+    // 保留 userId 字段用于向后兼容（买手银行卡）
+    @Column({ nullable: true })
+    @Index()
+    userId?: string;  // 用户ID（兼容旧数据，新数据使用ownerId）
 
     @Column({ length: 50 })
     bankName: string;  // 银行名称
@@ -26,6 +45,9 @@ export class BankCard {
     @Column({ length: 30 })
     @Index()
     cardNumber: string;  // 银行卡号
+
+    @Column({ type: 'int', default: BankCardType.PERSONAL, nullable: true })
+    cardType?: BankCardType;  // 卡类型（商家可选：个人/企业）
 
     @Column({ length: 20, nullable: true })
     phone?: string;  // 预留手机号
@@ -47,6 +69,13 @@ export class BankCard {
 
     @Column({ type: 'text', nullable: true })
     idCardBackImage?: string;  // 身份证反面照
+
+    // 商家特有字段
+    @Column({ length: 50, nullable: true })
+    taxNumber?: string;  // 税号（企业）
+
+    @Column({ type: 'text', nullable: true })
+    licenseImage?: string;  // 营业执照截图（企业）
 
     @Column({ default: false })
     isDefault: boolean;  // 是否默认卡
@@ -78,6 +107,10 @@ export class CreateBankCardDto {
     @IsNotEmpty()
     cardNumber: string;
 
+    @IsEnum(BankCardType)
+    @IsOptional()
+    cardType?: BankCardType;
+
     @IsString()
     @IsOptional()
     phone?: string;
@@ -105,6 +138,19 @@ export class CreateBankCardDto {
     @IsString()
     @IsOptional()
     idCardBackImage?: string;   // 身份证反面照 (base64或URL)
+
+    // 商家特有字段
+    @IsString()
+    @IsOptional()
+    taxNumber?: string;  // 税号（企业）
+
+    @IsString()
+    @IsOptional()
+    licenseImage?: string;  // 营业执照截图（企业）
+
+    @IsEnum(BankCardOwnerType)
+    @IsOptional()
+    ownerType?: BankCardOwnerType;  // 所有者类型（用于统一接口）
 }
 
 export class UpdateBankCardDto {
@@ -123,4 +169,12 @@ export class UpdateBankCardDto {
     @IsString()
     @IsOptional()
     branchName?: string;
+
+    @IsString()
+    @IsOptional()
+    taxNumber?: string;
+
+    @IsString()
+    @IsOptional()
+    licenseImage?: string;
 }

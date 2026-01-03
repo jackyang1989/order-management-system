@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { WithdrawalsService } from './withdrawals.service';
 import { WithdrawalsController } from './withdrawals.controller';
 import { Withdrawal } from './withdrawal.entity';
+import { Merchant } from '../merchants/merchant.entity';
 import { BankCardsModule } from '../bank-cards/bank-cards.module';
 import { UsersModule } from '../users/users.module';
 import { FinanceRecordsModule } from '../finance-records/finance-records.module';
@@ -10,7 +11,7 @@ import { SystemConfigModule } from '../system-config/system-config.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Withdrawal]),
+        TypeOrmModule.forFeature([Withdrawal, Merchant]),
         BankCardsModule,
         UsersModule,
         FinanceRecordsModule,

@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, Inject, Optional, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { Withdrawal, WithdrawalStatus, WithdrawalType, CreateWithdrawalDto, ReviewWithdrawalDto } from './withdrawal.entity';
+import { Withdrawal, WithdrawalStatus, WithdrawalType, WithdrawalOwnerType, CreateWithdrawalDto, ReviewWithdrawalDto } from './withdrawal.entity';
 import { User } from '../users/user.entity';
+import { Merchant } from '../merchants/merchant.entity';
 import { BankCardsService } from '../bank-cards/bank-cards.service';
 import { UsersService } from '../users/users.service';
 import { FinanceRecordsService } from '../finance-records/finance-records.service';
@@ -14,6 +15,9 @@ export class WithdrawalsService {
     constructor(
         @InjectRepository(Withdrawal)
         private withdrawalsRepository: Repository<Withdrawal>,
+        @InjectRepository(Merchant)
+        @Optional()
+        private merchantRepository: Repository<Merchant>,
         private bankCardsService: BankCardsService,
         private usersService: UsersService,
         private financeRecordsService: FinanceRecordsService,
@@ -82,7 +86,30 @@ export class WithdrawalsService {
 
     async findAllByUser(userId: string): Promise<Withdrawal[]> {
         return this.withdrawalsRepository.find({
-            where: { userId },
+            where: [
+                { userId },
+                { ownerId: userId, ownerType: WithdrawalOwnerType.BUYER }
+            ],
+            order: { createdAt: 'DESC' }
+        });
+    }
+
+    /**
+     * 按商家ID查询提现记录
+     */
+    async findAllByMerchant(merchantId: string): Promise<Withdrawal[]> {
+        return this.withdrawalsRepository.find({
+            where: { ownerId: merchantId, ownerType: WithdrawalOwnerType.MERCHANT },
+            order: { createdAt: 'DESC' }
+        });
+    }
+
+    /**
+     * 统一查询方法：按所有者类型和ID查询
+     */
+    async findAllByOwner(ownerId: string, ownerType: WithdrawalOwnerType): Promise<Withdrawal[]> {
+        return this.withdrawalsRepository.find({
+            where: { ownerId, ownerType },
             order: { createdAt: 'DESC' }
         });
     }
@@ -103,9 +130,13 @@ export class WithdrawalsService {
             if (!user.payPassword) {
                 throw new BadRequestException('请先设置支付密码');
             }
-            const isPasswordValid = await bcrypt.compare(createDto.payPassword, user.payPassword);
-            if (!isPasswordValid) {
-                throw new ForbiddenException('支付密码错误');
+            if (createDto.payPassword) {
+                const isPasswordValid = await bcrypt.compare(createDto.payPassword, user.payPassword);
+                if (!isPasswordValid) {
+                    throw new ForbiddenException('支付密码错误');
+                }
+            } else {
+                throw new BadRequestException('请输入支付密码');
             }
 
             // 1. 获取银行卡信息
@@ -131,7 +162,7 @@ export class WithdrawalsService {
             }
 
             // 3. 计算手续费（使用原版逻辑）
-            const { fee, actualAmount, rewardPrice } = await this.calculateWithdrawalFee(
+            const { fee, actualAmount } = await this.calculateWithdrawalFee(
                 createDto.amount,
                 withdrawalType
             );
@@ -170,9 +201,11 @@ export class WithdrawalsService {
                 throw new BadRequestException('余额不足');
             }
 
-            // 3. 创建提现记录
+            // 5. 创建提现记录（使用统一的ownerType和ownerId）
             const withdrawal = transactionalEntityManager.create(Withdrawal, {
-                userId,
+                ownerType: WithdrawalOwnerType.BUYER,
+                ownerId: userId,
+                userId,  // 保留向后兼容
                 amount: createDto.amount,
                 fee,
                 actualAmount,
@@ -183,6 +216,90 @@ export class WithdrawalsService {
                 accountName: bankCard.accountName,
                 cardNumber: bankCard.cardNumber,
                 phone: bankCard.phone,
+            });
+
+            return await transactionalEntityManager.save(withdrawal);
+        });
+    }
+
+    /**
+     * 商家提现（统一到Withdrawal表）
+     */
+    async createForMerchant(merchantId: string, createDto: CreateWithdrawalDto): Promise<Withdrawal> {
+        return this.withdrawalsRepository.manager.transaction(async transactionalEntityManager => {
+            // 获取商家信息
+            const merchant = await transactionalEntityManager.findOne(Merchant, { where: { id: merchantId } });
+            if (!merchant) {
+                throw new NotFoundException('商家不存在');
+            }
+
+            // 商家提现不强制验证支付密码，但如果设置了需要验证
+            if (merchant.payPassword && createDto.payPassword) {
+                const isPasswordValid = await bcrypt.compare(createDto.payPassword, merchant.payPassword);
+                if (!isPasswordValid) {
+                    throw new ForbiddenException('支付密码错误');
+                }
+            }
+
+            const withdrawalType = createDto.type || WithdrawalType.BALANCE;
+
+            // 获取系统配置的最低提现金额（商家最低100元）
+            const minAmount = withdrawalType === WithdrawalType.BALANCE ? 100 : 100;
+
+            if (createDto.amount < minAmount) {
+                throw new BadRequestException(`最低提现金额为${minAmount}元`);
+            }
+
+            // 计算手续费
+            const { fee, actualAmount } = await this.calculateWithdrawalFee(
+                createDto.amount,
+                withdrawalType
+            );
+
+            // 原子扣减商家余额
+            let updateResult;
+            if (withdrawalType === WithdrawalType.BALANCE) {
+                updateResult = await transactionalEntityManager
+                    .createQueryBuilder()
+                    .update(Merchant)
+                    .set({
+                        balance: () => `balance - ${createDto.amount}`,
+                        frozenBalance: () => `"frozenBalance" + ${createDto.amount}`
+                    })
+                    .where("id = :merchantId", { merchantId })
+                    .andWhere("balance >= :amount", { amount: createDto.amount })
+                    .execute();
+            } else {
+                updateResult = await transactionalEntityManager
+                    .createQueryBuilder()
+                    .update(Merchant)
+                    .set({
+                        silver: () => `silver - ${createDto.amount}`,
+                        frozenSilver: () => `"frozenSilver" + ${createDto.amount}`
+                    })
+                    .where("id = :merchantId", { merchantId })
+                    .andWhere("silver >= :amount", { amount: createDto.amount })
+                    .execute();
+            }
+
+            if (updateResult.affected === 0) {
+                throw new BadRequestException('余额不足');
+            }
+
+            // 获取银行卡信息（需要从merchant-bank-cards获取，这里简化处理）
+            // TODO: 待银行卡模块合并后统一处理
+            const withdrawal = transactionalEntityManager.create(Withdrawal, {
+                ownerType: WithdrawalOwnerType.MERCHANT,
+                ownerId: merchantId,
+                amount: createDto.amount,
+                fee,
+                actualAmount,
+                type: withdrawalType,
+                status: WithdrawalStatus.PENDING,
+                bankCardId: createDto.bankCardId,
+                bankName: '待获取',
+                accountName: merchant.username,
+                cardNumber: '待获取',
             });
 
             return await transactionalEntityManager.save(withdrawal);
@@ -248,7 +365,7 @@ export class WithdrawalsService {
 
                     // 记录提现流水
                     await this.financeRecordsService.recordBuyerWithdraw(
-                        withdrawal.userId,
+                        withdrawal.ownerId,
                         withdrawal.id,
                         withdrawal.actualAmount,
                         0  // 余额已为0或更新后的值
@@ -266,7 +383,7 @@ export class WithdrawalsService {
 
                     // 记录银锭提现流水
                     await this.financeRecordsService.recordBuyerSilverWithdraw(
-                        withdrawal.userId,
+                        withdrawal.ownerId,
                         withdrawal.id,
                         withdrawal.actualAmount,
                         0

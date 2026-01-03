@@ -92,44 +92,6 @@ export class VipLevelController {
 }
 
 /**
- * 公共VIP接口（用户查看VIP信息）
+ * VipPublicController 已合并到 vip/vip.controller.ts
+ * 原路由 @Controller('vip') 已统一到 VipController
  */
-@Controller('vip')
-export class VipPublicController {
-    constructor(private readonly vipService: VipLevelService) { }
-
-    /**
-     * 获取买手VIP等级列表
-     */
-    @Get('buyer/levels')
-    async getBuyerLevels(): Promise<{ success: boolean; data: VipLevel[] }> {
-        const data = await this.vipService.findAll('buyer');
-        return { success: true, data };
-    }
-
-    /**
-     * 获取商家VIP等级列表
-     */
-    @Get('merchant/levels')
-    async getMerchantLevels(): Promise<{ success: boolean; data: VipLevel[] }> {
-        const data = await this.vipService.findAll('merchant');
-        return { success: true, data };
-    }
-
-    /**
-     * 获取升级价格
-     */
-    @Get('upgrade-price')
-    async getUpgradePrice(
-        @Query('type') type: 'buyer' | 'merchant',
-        @Query('currentLevel') currentLevel: string,
-        @Query('targetLevel') targetLevel: string,
-    ): Promise<{ success: boolean; price: number }> {
-        const price = await this.vipService.getUpgradePrice(
-            type,
-            parseInt(currentLevel, 10) || 0,
-            parseInt(targetLevel, 10) || 1,
-        );
-        return { success: true, price };
-    }
-}

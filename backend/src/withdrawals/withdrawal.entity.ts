@@ -13,14 +13,28 @@ export enum WithdrawalType {
     SILVER = 2        // 银锭提现
 }
 
+export enum WithdrawalOwnerType {
+    BUYER = 'buyer',       // 买手
+    MERCHANT = 'merchant'  // 商家
+}
+
 @Entity('withdrawals')
 export class Withdrawal {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
+    @Column({ type: 'varchar', length: 20, default: WithdrawalOwnerType.BUYER })
+    @Index()
+    ownerType: WithdrawalOwnerType;  // 所有者类型：买手或商家
+
     @Column()
     @Index()
-    userId: string;  // 用户ID
+    ownerId: string;  // 所有者ID（买手ID或商家ID）
+
+    // 保留 userId 字段用于向后兼容（买手提现）
+    @Column({ nullable: true })
+    @Index()
+    userId?: string;  // 用户ID（兼容旧数据，新数据使用ownerId）
 
     @Column({ type: 'decimal', precision: 12, scale: 2 })
     amount: number;  // 提现金额
@@ -83,8 +97,12 @@ export class CreateWithdrawalDto {
     bankCardId: string;
 
     @IsString()
-    @IsNotEmpty()
-    payPassword: string;  // 支付密码（必须验证）
+    @IsOptional()
+    payPassword?: string;  // 支付密码（买手必须验证，商家可选）
+
+    @IsEnum(WithdrawalOwnerType)
+    @IsOptional()
+    ownerType?: WithdrawalOwnerType;  // 所有者类型（用于统一接口）
 }
 
 export class ReviewWithdrawalDto {

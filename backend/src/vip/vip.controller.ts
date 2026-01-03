@@ -1,11 +1,15 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Request, Inject, Optional } from '@nestjs/common';
 import { VipService } from './vip.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateVipPackageDto, PurchaseVipDto } from './vip.entity';
+import { VipLevelService } from '../admin-config/vip-level.service';
 
 @Controller('vip')
 export class VipController {
-    constructor(private vipService: VipService) { }
+    constructor(
+        private vipService: VipService,
+        @Optional() @Inject(VipLevelService) private vipLevelService?: VipLevelService,
+    ) { }
 
     // ========== 公开接口 ==========
 
@@ -174,5 +178,51 @@ export class VipController {
     async initPackages() {
         await this.vipService.initDefaultPackages();
         return { success: true, message: '默认套餐初始化成功' };
+    }
+
+    // ========== VIP等级公开接口（从VipPublicController合并） ==========
+
+    /**
+     * 获取买手VIP等级列表
+     */
+    @Get('buyer/levels')
+    async getBuyerLevels() {
+        if (!this.vipLevelService) {
+            return { success: false, message: 'VipLevelService not available' };
+        }
+        const data = await this.vipLevelService.findAll('buyer');
+        return { success: true, data };
+    }
+
+    /**
+     * 获取商家VIP等级列表
+     */
+    @Get('merchant/levels')
+    async getMerchantLevels() {
+        if (!this.vipLevelService) {
+            return { success: false, message: 'VipLevelService not available' };
+        }
+        const data = await this.vipLevelService.findAll('merchant');
+        return { success: true, data };
+    }
+
+    /**
+     * 获取升级价格
+     */
+    @Get('upgrade-price')
+    async getUpgradePrice(
+        @Query('type') type: 'buyer' | 'merchant',
+        @Query('currentLevel') currentLevel: string,
+        @Query('targetLevel') targetLevel: string,
+    ) {
+        if (!this.vipLevelService) {
+            return { success: false, message: 'VipLevelService not available' };
+        }
+        const price = await this.vipLevelService.getUpgradePrice(
+            type,
+            parseInt(currentLevel, 10) || 0,
+            parseInt(targetLevel, 10) || 1,
+        );
+        return { success: true, price };
     }
 }

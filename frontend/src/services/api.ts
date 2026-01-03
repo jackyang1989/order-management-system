@@ -1,14 +1,62 @@
 import { BASE_URL } from '../../apiConfig';
 
-interface ApiResponse<T = any> {
+// 重新导出 BASE_URL 供其他模块使用
+export { BASE_URL };
+
+export interface ApiResponse<T = unknown> {
     data: T;
     status: number;
+    success?: boolean;
+    message?: string;
 }
 
-const getToken = (): string | null => {
+/**
+ * 获取认证Token
+ * 优先使用商家token，其次用户token
+ */
+export const getToken = (): string | null => {
     if (typeof window === 'undefined') return null;
-    // 优先使用商家token，其次用户token
     return localStorage.getItem('merchantToken') || localStorage.getItem('token') || null;
+};
+
+/**
+ * 获取商家Token
+ */
+export const getMerchantToken = (): string | null => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('merchantToken') || null;
+};
+
+/**
+ * 获取买手Token
+ */
+export const getUserToken = (): string | null => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('token') || null;
+};
+
+/**
+ * 设置Token
+ */
+export const setToken = (token: string, type: 'user' | 'merchant' = 'user'): void => {
+    if (typeof window === 'undefined') return;
+    const key = type === 'merchant' ? 'merchantToken' : 'token';
+    localStorage.setItem(key, token);
+};
+
+/**
+ * 清除Token
+ */
+export const clearToken = (type?: 'user' | 'merchant'): void => {
+    if (typeof window === 'undefined') return;
+    if (type === 'merchant') {
+        localStorage.removeItem('merchantToken');
+    } else if (type === 'user') {
+        localStorage.removeItem('token');
+    } else {
+        localStorage.removeItem('token');
+        localStorage.removeItem('merchantToken');
+    }
 };
 
 const api = {

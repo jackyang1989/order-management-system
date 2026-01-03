@@ -14,7 +14,7 @@ import { DeliveryWarehouseService } from './delivery-warehouse.service';
 import { DeliveryWarehouseController } from './delivery-warehouse.controller';
 import { VipLevel } from './vip-level.entity';
 import { VipLevelService } from './vip-level.service';
-import { VipLevelController, VipPublicController } from './vip-level.controller';
+import { VipLevelController } from './vip-level.controller';
 // rbac.entity.ts 已删除 - AdminMenu 和 AdminRole 现在由 admin-users 和 admin-menus 模块管理
 
 @Global()  // 全局模块，便于其他模块注入使用
@@ -34,7 +34,7 @@ import { VipLevelController, VipPublicController } from './vip-level.controller'
         PlatformController,
         DeliveryWarehouseController,
         VipLevelController,
-        VipPublicController,
+        // VipPublicController 已合并到 VipController (vip模块)
     ],
     providers: [
         AdminConfigService,

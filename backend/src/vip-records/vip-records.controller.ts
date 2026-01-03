@@ -9,7 +9,7 @@ import {
     VipRecordFilterDto,
 } from './vip-record.entity';
 
-@Controller('vip')
+@Controller('vip-records')
 export class VipRecordsController {
     constructor(private vipService: VipRecordsService) { }
 
