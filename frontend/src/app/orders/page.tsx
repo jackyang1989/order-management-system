@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { fetchMyOrders } from '../../services/orderService';
@@ -47,7 +47,8 @@ const REFUND_TYPE_OPTIONS = [
     { value: 'benyonghuo', label: '本佣货返' },
 ];
 
-export default function OrdersPage() {
+// 内部组件，使用 useSearchParams
+function OrdersPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [orders, setOrders] = useState<MockOrder[]>([]);
@@ -531,5 +532,24 @@ export default function OrdersPage() {
 
             <BottomNav />
         </div>
+    );
+}
+
+// 导出的主组件，使用 Suspense 包装
+export default function OrdersPage() {
+    return (
+        <Suspense fallback={
+            <div style={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: '#f5f5f7'
+            }}>
+                <div style={{ color: '#86868b', fontSize: '14px' }}>加载中...</div>
+            </div>
+        }>
+            <OrdersPageContent />
+        </Suspense>
     );
 }
