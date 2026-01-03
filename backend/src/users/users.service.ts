@@ -1,17 +1,38 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, MoreThanOrEqual, Between } from 'typeorm';
 import { User, CreateUserDto, UpdateUserDto } from './user.entity';
 import { FundRecord, FundType, FundAction } from './fund-record.entity';
+import { Order, OrderStatus } from '../orders/order.entity';
 import * as bcrypt from 'bcrypt';
+
+// 用户统计数据接口（对应原版个人中心展示）
+export interface UserProfileStats {
+    totalPaidPrincipal: number;      // 累计垫付本金
+    monthlyRemainingTasks: number;   // 本月剩余任务数 (220 - 已完成)
+    totalCompletedTasks: number;     // 累计完成任务数
+    totalEarnedSilver: number;       // 累计赚取银锭
+    pendingMerchantSilver: number;   // 待商家发放银锭
+    frozenSilver: number;            // 冻结的银锭
+    silverToYuan: number;            // 银锭折现金额 (按1:1)
+    todayInvited: number;            // 今日邀请人数
+    totalInvited: number;            // 总邀请人数
+    pendingOrders: number;           // 进行中订单数
+    submittedOrders: number;         // 待审核订单数
+}
 
 @Injectable()
 export class UsersService {
+    // 每月最大任务限额
+    private readonly MONTHLY_TASK_LIMIT = 220;
+
     constructor(
         @InjectRepository(User)
         private usersRepository: Repository<User>,
         @InjectRepository(FundRecord)
         private fundRecordRepository: Repository<FundRecord>,
+        @InjectRepository(Order)
+        private ordersRepository: Repository<Order>,
     ) { }
 
     async findAll(): Promise<User[]> {
@@ -229,5 +250,134 @@ export class UsersService {
         });
 
         return this.fundRecordRepository.save(record);
+    }
+
+    // ============ 用户统计数据 (对应原版个人中心) ============
+
+    /**
+     * 获取用户个人中心完整统计数据
+     * 对应原版: 累计垫付本金、本月剩余任务数、累计完成任务数等
+     */
+    async getProfileStats(userId: string): Promise<UserProfileStats> {
+        const user = await this.usersRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        // 计算本月起止时间
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+        // 计算今日起止时间
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // 1. 累计垫付本金 - 所有已完成订单的商品价格总和
+        const completedOrders = await this.ordersRepository.find({
+            where: {
+                userId,
+                status: OrderStatus.COMPLETED
+            }
+        });
+        const totalPaidPrincipal = completedOrders.reduce(
+            (sum, order) => sum + Number(order.productPrice || 0),
+            0
+        );
+
+        // 2. 累计完成任务数
+        const totalCompletedTasks = completedOrders.length;
+
+        // 3. 本月完成任务数
+        const monthlyCompletedOrders = await this.ordersRepository.count({
+            where: {
+                userId,
+                status: OrderStatus.COMPLETED,
+                completedAt: Between(monthStart, monthEnd)
+            }
+        });
+
+        // 4. 本月剩余任务数 (220 - 本月已完成)
+        const monthlyRemainingTasks = Math.max(0, this.MONTHLY_TASK_LIMIT - monthlyCompletedOrders);
+
+        // 5. 累计赚取银锭 - 从用户的 reward 字段获取
+        const totalEarnedSilver = Number(user.reward) || 0;
+
+        // 6. 待商家发放银锭 - 状态为待审核/已审核但未返款的订单佣金总和
+        const pendingOrders = await this.ordersRepository.find({
+            where: [
+                { userId, status: OrderStatus.SUBMITTED },
+                { userId, status: OrderStatus.APPROVED }
+            ]
+        });
+        const pendingMerchantSilver = pendingOrders.reduce(
+            (sum, order) => sum + Number(order.commission || 0),
+            0
+        );
+
+        // 7. 冻结的银锭
+        const frozenSilver = Number(user.frozenSilver) || 0;
+
+        // 8. 银锭折现金额 (按1:1)
+        const silverToYuan = Number(user.silver) || 0;
+
+        // 9. 邀请统计
+        const allInvitees = await this.usersRepository.find({
+            where: { invitedBy: userId }
+        });
+        const todayInvitees = allInvitees.filter(u =>
+            u.createdAt && new Date(u.createdAt) >= today
+        );
+
+        // 10. 订单状态统计
+        const pendingOrdersCount = await this.ordersRepository.count({
+            where: { userId, status: OrderStatus.PENDING }
+        });
+        const submittedOrdersCount = await this.ordersRepository.count({
+            where: { userId, status: OrderStatus.SUBMITTED }
+        });
+
+        return {
+            totalPaidPrincipal,
+            monthlyRemainingTasks,
+            totalCompletedTasks,
+            totalEarnedSilver,
+            pendingMerchantSilver,
+            frozenSilver,
+            silverToYuan,
+            todayInvited: todayInvitees.length,
+            totalInvited: allInvitees.length,
+            pendingOrders: pendingOrdersCount,
+            submittedOrders: submittedOrdersCount
+        };
+    }
+
+    /**
+     * 获取用户资金概览（用于个人中心顶部显示）
+     */
+    async getBalanceOverview(userId: string): Promise<{
+        balance: number;          // 本金余额
+        frozenBalance: number;    // 冻结本金
+        silver: number;           // 银锭余额
+        frozenSilver: number;     // 冻结银锭
+        totalAssets: number;      // 总资产 (本金 + 银锭)
+    }> {
+        const user = await this.usersRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        const balance = Number(user.balance) || 0;
+        const frozenBalance = Number(user.frozenBalance) || 0;
+        const silver = Number(user.silver) || 0;
+        const frozenSilver = Number(user.frozenSilver) || 0;
+
+        return {
+            balance,
+            frozenBalance,
+            silver,
+            frozenSilver,
+            totalAssets: balance + silver
+        };
     }
 }

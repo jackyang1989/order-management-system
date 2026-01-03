@@ -19,9 +19,37 @@ export class UsersController {
     @Get('profile')
     async getProfile(@Request() req) {
         const user = await this.usersService.findOne(req.user.userId);
+        // 同时获取统计数据
+        const stats = await this.usersService.getProfileStats(req.user.userId);
+        const balanceOverview = await this.usersService.getBalanceOverview(req.user.userId);
+
         return {
             success: true,
-            data: user
+            data: {
+                ...user,
+                stats,
+                balanceOverview
+            }
+        };
+    }
+
+    // 单独的统计数据端点（用于首页展示）
+    @Get('stats')
+    async getStats(@Request() req) {
+        const stats = await this.usersService.getProfileStats(req.user.userId);
+        return {
+            success: true,
+            data: stats
+        };
+    }
+
+    // 资金概览端点
+    @Get('balance')
+    async getBalance(@Request() req) {
+        const balance = await this.usersService.getBalanceOverview(req.user.userId);
+        return {
+            success: true,
+            data: balance
         };
     }
 
