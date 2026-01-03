@@ -8,9 +8,11 @@ interface VipInfo {
     vipLevel: number;
     vipExpireAt: string | null;
     vipDaysLeft: number;
+    balance?: number;
+    silver?: number;
 }
 
-interface VipPlan {
+interface VipPackage {
     id: string;
     name: string;
     duration: number; // days
@@ -18,44 +20,21 @@ interface VipPlan {
     originalPrice: number;
     benefits: string[];
     recommended?: boolean;
+    isActive?: boolean;
 }
-
-const vipPlans: VipPlan[] = [
-    {
-        id: 'monthly',
-        name: '月度会员',
-        duration: 30,
-        price: 99,
-        originalPrice: 129,
-        benefits: ['服务费8折', '优先审核', '专属客服']
-    },
-    {
-        id: 'quarterly',
-        name: '季度会员',
-        duration: 90,
-        price: 269,
-        originalPrice: 387,
-        benefits: ['服务费7折', '优先审核', '专属客服', '数据报表'],
-        recommended: true
-    },
-    {
-        id: 'yearly',
-        name: '年度会员',
-        duration: 365,
-        price: 899,
-        originalPrice: 1548,
-        benefits: ['服务费6折', '优先审核', '专属客服', '数据报表', '专属活动', '免费培训']
-    }
-];
 
 export default function MerchantVipPage() {
     const [vipInfo, setVipInfo] = useState<VipInfo | null>(null);
+    const [packages, setPackages] = useState<VipPackage[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedPlan, setSelectedPlan] = useState<VipPlan | null>(null);
+    const [selectedPackage, setSelectedPackage] = useState<VipPackage | null>(null);
     const [purchasing, setPurchasing] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState<'alipay' | 'balance' | 'silver'>('alipay');
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
 
     useEffect(() => {
         loadVipInfo();
+        loadPackages();
     }, []);
 
     const loadVipInfo = async () => {
@@ -63,14 +42,27 @@ export default function MerchantVipPage() {
         if (!token) return;
 
         try {
-            const res = await fetch(`${BASE_URL}/merchant/vip-info`, {
+            // 获取商家信息（包含VIP状态和余额）
+            const res = await fetch(`${BASE_URL}/merchant/profile`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();
             if (json.success) {
-                setVipInfo(json.data);
+                const data = json.data;
+                const vipExpireAt = data.vipExpireTime ? new Date(data.vipExpireTime) : null;
+                const now = new Date();
+                const isVip = data.vip === 1 && vipExpireAt && vipExpireAt > now;
+                const vipDaysLeft = vipExpireAt ? Math.max(0, Math.ceil((vipExpireAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))) : 0;
+
+                setVipInfo({
+                    isVip: isVip || false,
+                    vipLevel: data.vipLevel || 1,
+                    vipExpireAt: data.vipExpireTime,
+                    vipDaysLeft,
+                    balance: data.balance || 0,
+                    silver: data.silver || 0
+                });
             } else {
-                // Mock data if API not available
                 setVipInfo({
                     isVip: false,
                     vipLevel: 0,
@@ -79,7 +71,7 @@ export default function MerchantVipPage() {
                 });
             }
         } catch (e) {
-            // Mock data
+            console.error('Failed to load VIP info:', e);
             setVipInfo({
                 isVip: false,
                 vipLevel: 0,
@@ -91,17 +83,152 @@ export default function MerchantVipPage() {
         }
     };
 
-    const handlePurchase = async (plan: VipPlan) => {
-        setSelectedPlan(plan);
-        setPurchasing(true);
+    const loadPackages = async () => {
+        try {
+            const res = await fetch(`${BASE_URL}/vip/packages`);
+            const json = await res.json();
+            if (json.success && json.data && json.data.length > 0) {
+                const pkgs = json.data.filter((p: VipPackage) => p.isActive !== false).map((p: VipPackage) => ({
+                    ...p,
+                    benefits: p.benefits || ['VIP专属特权'],
+                    recommended: p.duration === 90
+                }));
+                setPackages(pkgs);
+            } else {
+                // 使用默认套餐
+                setPackages([
+                    {
+                        id: 'monthly',
+                        name: '月度会员',
+                        duration: 30,
+                        price: 99,
+                        originalPrice: 129,
+                        benefits: ['服务费8折', '优先审核', '专属客服']
+                    },
+                    {
+                        id: 'quarterly',
+                        name: '季度会员',
+                        duration: 90,
+                        price: 269,
+                        originalPrice: 387,
+                        benefits: ['服务费7折', '优先审核', '专属客服', '数据报表'],
+                        recommended: true
+                    },
+                    {
+                        id: 'yearly',
+                        name: '年度会员',
+                        duration: 365,
+                        price: 899,
+                        originalPrice: 1548,
+                        benefits: ['服务费6折', '优先审核', '专属客服', '数据报表', '专属活动', '免费培训']
+                    }
+                ]);
+            }
+        } catch (e) {
+            console.error('Failed to load packages:', e);
+            // 使用默认套餐
+            setPackages([
+                {
+                    id: 'monthly',
+                    name: '月度会员',
+                    duration: 30,
+                    price: 99,
+                    originalPrice: 129,
+                    benefits: ['服务费8折', '优先审核', '专属客服']
+                },
+                {
+                    id: 'quarterly',
+                    name: '季度会员',
+                    duration: 90,
+                    price: 269,
+                    originalPrice: 387,
+                    benefits: ['服务费7折', '优先审核', '专属客服', '数据报表'],
+                    recommended: true
+                },
+                {
+                    id: 'yearly',
+                    name: '年度会员',
+                    duration: 365,
+                    price: 899,
+                    originalPrice: 1548,
+                    benefits: ['服务费6折', '优先审核', '专属客服', '数据报表', '专属活动', '免费培训']
+                }
+            ]);
+        }
+    };
 
-        // Simulate payment
-        setTimeout(() => {
-            alert(`VIP购买成功！${plan.name}已开通，有效期${plan.duration}天`);
+    const openPaymentModal = (pkg: VipPackage) => {
+        setSelectedPackage(pkg);
+        setPaymentMethod('alipay');
+        setShowPaymentModal(true);
+    };
+
+    const handlePurchase = async () => {
+        if (!selectedPackage) return;
+
+        const token = localStorage.getItem('merchantToken');
+        if (!token) {
+            alert('请先登录');
+            return;
+        }
+
+        // 验证余额是否足够
+        if (paymentMethod === 'balance' && (vipInfo?.balance || 0) < selectedPackage.price) {
+            alert('余额不足，请先充值');
+            return;
+        }
+        if (paymentMethod === 'silver' && (vipInfo?.silver || 0) < selectedPackage.price) {
+            alert('银锭不足，请先充值');
+            return;
+        }
+
+        setPurchasing(true);
+        try {
+            const res = await fetch(`${BASE_URL}/vip/purchase`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    packageId: selectedPackage.id,
+                    paymentMethod: paymentMethod === 'alipay' ? 1 : paymentMethod === 'balance' ? 2 : 3
+                })
+            });
+            const json = await res.json();
+
+            if (json.success) {
+                if (json.data?.payUrl) {
+                    // 支付宝支付 - 需要跳转
+                    alert('正在跳转到支付页面...');
+                    // 实际项目中这里会打开支付链接
+                    // window.location.href = json.data.payUrl;
+
+                    // 模拟支付成功回调
+                    const callbackRes = await fetch(`${BASE_URL}/vip/alipay/callback`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orderNo: json.data.orderNo })
+                    });
+                    const callbackJson = await callbackRes.json();
+                    if (callbackJson.success) {
+                        alert(`VIP购买成功！${selectedPackage.name}已开通`);
+                    }
+                } else {
+                    alert(`VIP购买成功！${selectedPackage.name}已开通`);
+                }
+                setShowPaymentModal(false);
+                setSelectedPackage(null);
+                loadVipInfo();
+            } else {
+                alert(json.message || 'VIP购买失败');
+            }
+        } catch (e) {
+            console.error('Purchase failed:', e);
+            alert('网络错误，请重试');
+        } finally {
             setPurchasing(false);
-            setSelectedPlan(null);
-            loadVipInfo();
-        }, 2000);
+        }
     };
 
     if (loading) {
@@ -179,7 +306,7 @@ export default function MerchantVipPage() {
                     {vipInfo?.isVip ? '续费套餐' : '开通套餐'}
                 </h2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-                    {vipPlans.map(plan => (
+                    {packages.map(plan => (
                         <div
                             key={plan.id}
                             style={{
@@ -236,8 +363,8 @@ export default function MerchantVipPage() {
                             </div>
 
                             <button
-                                onClick={() => handlePurchase(plan)}
-                                disabled={purchasing && selectedPlan?.id === plan.id}
+                                onClick={() => openPaymentModal(plan)}
+                                disabled={purchasing}
                                 style={{
                                     width: '100%',
                                     padding: '12px',
@@ -245,12 +372,12 @@ export default function MerchantVipPage() {
                                     border: 'none',
                                     background: plan.recommended ? '#f59e0b' : '#4f46e5',
                                     color: '#fff',
-                                    cursor: purchasing && selectedPlan?.id === plan.id ? 'not-allowed' : 'pointer',
+                                    cursor: purchasing ? 'not-allowed' : 'pointer',
                                     fontWeight: '500',
                                     fontSize: '14px'
                                 }}
                             >
-                                {purchasing && selectedPlan?.id === plan.id ? '购买中...' : (vipInfo?.isVip ? '立即续费' : '立即开通')}
+                                {vipInfo?.isVip ? '立即续费' : '立即开通'}
                             </button>
                         </div>
                     ))}

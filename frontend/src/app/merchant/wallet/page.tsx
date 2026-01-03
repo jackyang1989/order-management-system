@@ -18,23 +18,27 @@ interface WalletStats {
     silver: number;
 }
 
-// Mock transaction data
-const mockTransactions: TransactionRecord[] = [
-    { id: '1', type: 'deposit', amount: 5000, balanceType: 'balance', memo: '支付宝充值', createdAt: '2024-12-30T10:30:00' },
-    { id: '2', type: 'freeze', amount: -1280, balanceType: 'balance', memo: '发布任务冻结 [T202412300001]', createdAt: '2024-12-30T11:15:00' },
-    { id: '3', type: 'deduct', amount: -50, balanceType: 'silver', memo: '发布任务佣金 [T202412300001]', createdAt: '2024-12-30T11:15:00' },
-    { id: '4', type: 'deposit', amount: 1000, balanceType: 'silver', memo: '银锭充值', createdAt: '2024-12-29T15:00:00' },
-    { id: '5', type: 'unfreeze', amount: 128, balanceType: 'balance', memo: '订单完成返还 [O202412300032]', createdAt: '2024-12-30T14:00:00' },
-];
+interface BankCard {
+    id: string;
+    bankName: string;
+    cardNumber: string;
+    accountName: string;
+    isDefault: boolean;
+    status: number; // 0: pending, 1: approved, 2: rejected
+}
 
 export default function MerchantWalletPage() {
     const [stats, setStats] = useState<WalletStats>({ balance: 0, frozenBalance: 0, silver: 0 });
-    const [transactions] = useState<TransactionRecord[]>(mockTransactions);
+    const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
     const [activeTab, setActiveTab] = useState<'all' | 'balance' | 'silver'>('all');
     const [loading, setLoading] = useState(true);
+    const [bankCards, setBankCards] = useState<BankCard[]>([]);
+    const [selectedBankCardId, setSelectedBankCardId] = useState<string>('');
 
     useEffect(() => {
         loadStats();
+        loadTransactions();
+        loadBankCards();
     }, []);
 
     const loadStats = async () => {
@@ -60,6 +64,57 @@ export default function MerchantWalletPage() {
         }
     };
 
+    const loadTransactions = async () => {
+        const token = localStorage.getItem('merchantToken');
+        if (!token) return;
+
+        try {
+            const res = await fetch(`${BASE_URL}/finance-records/merchant`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (json.success && json.data) {
+                const records = json.data.map((r: any) => ({
+                    id: r.id,
+                    type: r.amount > 0 ? 'deposit' : (r.type === 3 ? 'withdraw' : 'deduct'),
+                    amount: r.amount,
+                    balanceType: r.moneyType === 1 ? 'balance' : 'silver',
+                    memo: r.memo || '财务记录',
+                    createdAt: r.createdAt
+                }));
+                setTransactions(records);
+            }
+        } catch (e) {
+            console.error('Failed to load transactions:', e);
+        }
+    };
+
+    const loadBankCards = async () => {
+        const token = localStorage.getItem('merchantToken');
+        if (!token) return;
+
+        try {
+            const res = await fetch(`${BASE_URL}/merchant-bank-cards`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (json.success && json.data) {
+                setBankCards(json.data);
+                const defaultCard = json.data.find((c: BankCard) => c.isDefault && c.status === 1);
+                if (defaultCard) {
+                    setSelectedBankCardId(defaultCard.id);
+                } else if (json.data.length > 0) {
+                    const approvedCard = json.data.find((c: BankCard) => c.status === 1);
+                    if (approvedCard) {
+                        setSelectedBankCardId(approvedCard.id);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Failed to load bank cards:', e);
+        }
+    };
+
     const filteredTransactions = transactions.filter(t => {
         if (activeTab === 'all') return true;
         return t.balanceType === activeTab;
@@ -79,9 +134,12 @@ export default function MerchantWalletPage() {
     const [step, setStep] = useState<'input' | 'payment'>('input');
     const [amount, setAmount] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [paymentType, setPaymentType] = useState<'alipay' | 'balance'>('alipay');
+    const [qrCodeUrl, setQrCodeUrl] = useState('');
+    const [orderNumber, setOrderNumber] = useState('');
 
-    const openRecharge = () => { setRechargeModal(true); setStep('input'); setAmount(''); };
-    const openSilver = () => { setSilverModal(true); setStep('input'); setAmount(''); };
+    const openRecharge = () => { setRechargeModal(true); setStep('input'); setAmount(''); setPaymentType('alipay'); };
+    const openSilver = () => { setSilverModal(true); setStep('input'); setAmount(''); setPaymentType('alipay'); };
     const openWithdraw = () => { setWithdrawModal(true); setStep('input'); setAmount(''); };
 
     const closeModal = () => {
@@ -91,34 +149,203 @@ export default function MerchantWalletPage() {
         setAmount('');
         setStep('input');
         setIsLoading(false);
+        setQrCodeUrl('');
+        setOrderNumber('');
     };
 
+    // 创建充值订单
     const handleRecharge = async () => {
-        setIsLoading(true);
-        setTimeout(() => {
-            alert('充值成功（模拟）');
-            closeModal();
-            loadStats();
-        }, 1500);
-    };
-
-    const handleWithdraw = async () => {
+        const token = localStorage.getItem('merchantToken');
+        if (!token) return alert('请先登录');
         if (!amount || Number(amount) <= 0) return alert('请输入有效金额');
+
         setIsLoading(true);
-        setTimeout(() => {
-            alert('提现申请已提交（模拟）');
-            closeModal();
-            loadStats();
-        }, 1000);
+        try {
+            const res = await fetch(`${BASE_URL}/recharge/merchant/create`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    amount: Number(amount),
+                    rechargeType: 1, // 1: 押金/余额
+                    paymentMethod: 1 // 1: 支付宝
+                })
+            });
+            const json = await res.json();
+            if (json.success) {
+                setOrderNumber(json.data.orderNumber);
+                // 生成支付二维码URL（实际项目中应该从后端返回真实的支付链接）
+                setQrCodeUrl(json.payUrl || `/pay/alipay?orderNumber=${json.data.orderNumber}&amount=${amount}`);
+                setStep('payment');
+            } else {
+                alert(json.message || '创建充值订单失败');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('网络错误，请重试');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const handleSilverRecharge = async () => {
+    // 确认支付完成（模拟回调）
+    const confirmPayment = async () => {
+        const token = localStorage.getItem('merchantToken');
+        if (!token || !orderNumber) return;
+
         setIsLoading(true);
-        setTimeout(() => {
-            alert('银锭充值成功（模拟）');
-            closeModal();
-            loadStats();
-        }, 1500);
+        try {
+            // 调用支付回调接口（模拟支付成功）
+            const res = await fetch(`${BASE_URL}/recharge/callback/alipay`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderNumber,
+                    tradeNo: `TRADE_${Date.now()}`,
+                    success: true
+                })
+            });
+            const json = await res.json();
+            if (json.success) {
+                alert('充值成功！');
+                closeModal();
+                loadStats();
+                loadTransactions();
+            } else {
+                alert(json.message || '支付确认失败');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('网络错误，请重试');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // 提现申请
+    const handleWithdraw = async () => {
+        const token = localStorage.getItem('merchantToken');
+        if (!token) return alert('请先登录');
+        if (!amount || Number(amount) <= 0) return alert('请输入有效金额');
+        if (Number(amount) < 100) return alert('最低提现金额为100元');
+        if (Number(amount) > stats.balance) return alert('余额不足');
+
+        const approvedCards = bankCards.filter(c => c.status === 1);
+        if (approvedCards.length === 0) {
+            return alert('请先添加并等待银行卡审核通过');
+        }
+        if (!selectedBankCardId) {
+            return alert('请选择提现银行卡');
+        }
+
+        setIsLoading(true);
+        try {
+            const res = await fetch(`${BASE_URL}/merchant-withdrawals`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    amount: Number(amount),
+                    bankCardId: selectedBankCardId,
+                    type: 1 // 1: 余额提现
+                })
+            });
+            const json = await res.json();
+            if (json.success) {
+                alert('提现申请已提交，请等待审核');
+                closeModal();
+                loadStats();
+                loadTransactions();
+            } else {
+                alert(json.message || '提现申请失败');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('网络错误，请重试');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // 银锭充值
+    const handleSilverRecharge = async () => {
+        const token = localStorage.getItem('merchantToken');
+        if (!token) return alert('请先登录');
+        if (!amount || Number(amount) <= 0) return alert('请输入有效金额');
+
+        setIsLoading(true);
+        try {
+            if (paymentType === 'balance') {
+                // 使用余额充值银锭
+                if (Number(amount) > stats.balance) {
+                    alert('余额不足');
+                    setIsLoading(false);
+                    return;
+                }
+                const res = await fetch(`${BASE_URL}/recharge/merchant/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        amount: Number(amount),
+                        rechargeType: 2, // 2: 银锭
+                        paymentMethod: 2 // 2: 余额支付
+                    })
+                });
+                const json = await res.json();
+                if (json.success) {
+                    // 立即模拟回调
+                    await fetch(`${BASE_URL}/recharge/callback/alipay`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            orderNumber: json.data.orderNumber,
+                            tradeNo: `BALANCE_${Date.now()}`,
+                            success: true
+                        })
+                    });
+                    alert('银锭充值成功！');
+                    closeModal();
+                    loadStats();
+                    loadTransactions();
+                } else {
+                    alert(json.message || '银锭充值失败');
+                }
+            } else {
+                // 支付宝充值银锭
+                const res = await fetch(`${BASE_URL}/recharge/merchant/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        amount: Number(amount),
+                        rechargeType: 2, // 2: 银锭
+                        paymentMethod: 1 // 1: 支付宝
+                    })
+                });
+                const json = await res.json();
+                if (json.success) {
+                    setOrderNumber(json.data.orderNumber);
+                    setQrCodeUrl(json.payUrl || `/pay/alipay?orderNumber=${json.data.orderNumber}&amount=${amount}`);
+                    setStep('payment');
+                } else {
+                    alert(json.message || '创建充值订单失败');
+                }
+            }
+        } catch (e) {
+            console.error(e);
+            alert('网络错误，请重试');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -302,7 +529,7 @@ export default function MerchantWalletPage() {
                     background: 'rgba(0,0,0,0.5)', zIndex: 1000,
                     display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}>
-                    <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', width: '400px' }}>
+                    <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', width: '420px', maxHeight: '90vh', overflow: 'auto' }}>
                         <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px' }}>
                             {rechargeModal ? (step === 'payment' ? '扫码支付' : '账户充值') : withdrawModal ? '余额提现' : (step === 'payment' ? '扫码支付' : '充值银锭')}
                         </h3>
@@ -311,13 +538,13 @@ export default function MerchantWalletPage() {
                             <>
                                 <div style={{ marginBottom: '20px' }}>
                                     <label style={{ display: 'block', marginBottom: '8px', color: '#6b7280', fontSize: '14px' }}>
-                                        {silverModal ? '充值数量' : '金额'}
+                                        {silverModal ? '充值数量' : withdrawModal ? '提现金额' : '充值金额'}
                                     </label>
                                     <input
                                         type="number"
                                         value={amount}
                                         onChange={e => setAmount(e.target.value)}
-                                        placeholder={silverModal ? '请输入银锭数量' : '请输入金额'}
+                                        placeholder={silverModal ? '请输入银锭数量' : withdrawModal ? '最低100元' : '请输入金额'}
                                         disabled={isLoading}
                                         style={{
                                             width: '100%', padding: '10px',
@@ -325,7 +552,84 @@ export default function MerchantWalletPage() {
                                             boxSizing: 'border-box'
                                         }}
                                     />
+                                    {withdrawModal && (
+                                        <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
+                                            可用余额: ¥{Number(stats.balance).toFixed(2)}
+                                        </div>
+                                    )}
                                 </div>
+
+                                {/* 银锭充值：选择支付方式 */}
+                                {silverModal && (
+                                    <div style={{ marginBottom: '20px' }}>
+                                        <label style={{ display: 'block', marginBottom: '8px', color: '#6b7280', fontSize: '14px' }}>
+                                            支付方式
+                                        </label>
+                                        <div style={{ display: 'flex', gap: '12px' }}>
+                                            <button
+                                                onClick={() => setPaymentType('alipay')}
+                                                style={{
+                                                    flex: 1, padding: '12px', borderRadius: '8px',
+                                                    border: paymentType === 'alipay' ? '2px solid #4f46e5' : '1px solid #d1d5db',
+                                                    background: paymentType === 'alipay' ? '#eef2ff' : '#fff',
+                                                    cursor: 'pointer', fontSize: '14px'
+                                                }}
+                                            >
+                                                支付宝支付
+                                            </button>
+                                            <button
+                                                onClick={() => setPaymentType('balance')}
+                                                style={{
+                                                    flex: 1, padding: '12px', borderRadius: '8px',
+                                                    border: paymentType === 'balance' ? '2px solid #4f46e5' : '1px solid #d1d5db',
+                                                    background: paymentType === 'balance' ? '#eef2ff' : '#fff',
+                                                    cursor: 'pointer', fontSize: '14px'
+                                                }}
+                                            >
+                                                余额支付
+                                            </button>
+                                        </div>
+                                        {paymentType === 'balance' && (
+                                            <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
+                                                可用余额: ¥{Number(stats.balance).toFixed(2)}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* 提现：选择银行卡 */}
+                                {withdrawModal && (
+                                    <div style={{ marginBottom: '20px' }}>
+                                        <label style={{ display: 'block', marginBottom: '8px', color: '#6b7280', fontSize: '14px' }}>
+                                            提现到银行卡
+                                        </label>
+                                        {bankCards.filter(c => c.status === 1).length === 0 ? (
+                                            <div style={{
+                                                padding: '16px', background: '#fef2f2', borderRadius: '8px',
+                                                color: '#dc2626', fontSize: '14px', textAlign: 'center'
+                                            }}>
+                                                暂无可用银行卡，请先添加银行卡并等待审核通过
+                                            </div>
+                                        ) : (
+                                            <select
+                                                value={selectedBankCardId}
+                                                onChange={e => setSelectedBankCardId(e.target.value)}
+                                                style={{
+                                                    width: '100%', padding: '10px',
+                                                    border: '1px solid #d1d5db', borderRadius: '6px',
+                                                    boxSizing: 'border-box', background: '#fff'
+                                                }}
+                                            >
+                                                {bankCards.filter(c => c.status === 1).map(card => (
+                                                    <option key={card.id} value={card.id}>
+                                                        {card.bankName} - {card.cardNumber.slice(-4)} ({card.accountName})
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        )}
+                                    </div>
+                                )}
+
                                 <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                                     <button
                                         onClick={closeModal}
@@ -344,13 +648,19 @@ export default function MerchantWalletPage() {
                                                 alert('请输入有效金额');
                                                 return;
                                             }
-                                            if (rechargeModal || silverModal) {
-                                                setStep('payment');
-                                            } else {
+                                            if (withdrawModal) {
                                                 handleWithdraw();
+                                            } else if (rechargeModal) {
+                                                handleRecharge();
+                                            } else if (silverModal) {
+                                                if (paymentType === 'balance') {
+                                                    handleSilverRecharge();
+                                                } else {
+                                                    handleSilverRecharge();
+                                                }
                                             }
                                         }}
-                                        disabled={isLoading}
+                                        disabled={isLoading || (withdrawModal && bankCards.filter(c => c.status === 1).length === 0)}
                                         style={{
                                             padding: '8px 20px', borderRadius: '6px',
                                             border: 'none', background: '#4f46e5',
@@ -358,28 +668,32 @@ export default function MerchantWalletPage() {
                                             opacity: isLoading ? 0.7 : 1
                                         }}
                                     >
-                                        {isLoading ? '处理中...' : '下一步'}
+                                        {isLoading ? '处理中...' : (withdrawModal ? '提交申请' : (silverModal && paymentType === 'balance' ? '确认充值' : '下一步'))}
                                     </button>
                                 </div>
                             </>
                         ) : (
                             <div style={{ textAlign: 'center' }}>
                                 <div style={{ marginBottom: '16px', fontSize: '14px', color: '#6b7280' }}>
-                                    请使用支付宝/微信扫码支付
+                                    请使用支付宝扫码支付
                                 </div>
                                 <div style={{
                                     width: '200px', height: '200px', background: '#f3f4f6',
-                                    margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    borderRadius: '8px', border: '1px solid #e5e7eb'
+                                    margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    borderRadius: '8px', border: '1px solid #e5e7eb', flexDirection: 'column'
                                 }}>
-                                    <div style={{ fontSize: '24px', color: '#9ca3af' }}>QR CODE</div>
+                                    <div style={{ fontSize: '48px', marginBottom: '8px' }}>📱</div>
+                                    <div style={{ fontSize: '12px', color: '#9ca3af' }}>扫码支付</div>
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>
+                                    订单号: {orderNumber}
                                 </div>
                                 <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#10b981', marginBottom: '24px' }}>
-                                    ¥{parseFloat(amount).toFixed(2)}
+                                    ¥{parseFloat(amount || '0').toFixed(2)}
                                 </div>
                                 <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                                     <button
-                                        onClick={() => setStep('input')}
+                                        onClick={closeModal}
                                         disabled={isLoading}
                                         style={{
                                             padding: '8px 20px', borderRadius: '6px',
@@ -387,10 +701,10 @@ export default function MerchantWalletPage() {
                                             color: '#374151', cursor: isLoading ? 'not-allowed' : 'pointer'
                                         }}
                                     >
-                                        返回修改
+                                        取消支付
                                     </button>
                                     <button
-                                        onClick={rechargeModal ? handleRecharge : handleSilverRecharge}
+                                        onClick={confirmPayment}
                                         disabled={isLoading}
                                         style={{
                                             padding: '8px 20px', borderRadius: '6px',
@@ -399,7 +713,7 @@ export default function MerchantWalletPage() {
                                             opacity: isLoading ? 0.8 : 1
                                         }}
                                     >
-                                        {isLoading ? '确认支付中...' : '我已支付'}
+                                        {isLoading ? '确认中...' : '我已支付'}
                                     </button>
                                 </div>
                             </div>
