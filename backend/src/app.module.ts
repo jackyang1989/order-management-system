@@ -16,7 +16,6 @@ import { ReviewTasksModule } from './review-tasks/review-tasks.module';
 import { AdminModule } from './admin/admin.module';
 import { SystemConfigModule } from './system-config/system-config.module';
 import { ShopsModule } from './shops/shops.module';
-// 新增模块
 import { GoodsModule } from './goods/goods.module';
 import { KeywordsModule } from './keywords/keywords.module';
 import { TaskGoodsModule } from './task-goods/task-goods.module';
@@ -24,7 +23,6 @@ import { FinanceRecordsModule } from './finance-records/finance-records.module';
 import { RechargeModule } from './recharge/recharge.module';
 import { AdminUsersModule } from './admin-users/admin-users.module';
 import { NoticesModule } from './notices/notices.module';
-// 第二批新增模块
 import { MerchantBankCardsModule } from './merchant-bank-cards/merchant-bank-cards.module';
 import { MerchantWithdrawalsModule } from './merchant-withdrawals/merchant-withdrawals.module';
 import { UserAddressesModule } from './user-addresses/user-addresses.module';
@@ -33,32 +31,22 @@ import { DeliveriesModule } from './deliveries/deliveries.module';
 import { MessagesModule } from './messages/messages.module';
 import { UserInvitesModule } from './user-invites/user-invites.module';
 import { VipRecordsModule } from './vip-records/vip-records.module';
-// 第三批新增模块
 import { OrderLogsModule } from './order-logs/order-logs.module';
 import { DayCountsModule } from './day-counts/day-counts.module';
 import { UserCreditsModule } from './user-credits/user-credits.module';
 import { CategoriesModule } from './categories/categories.module';
-// 第四批新增模块
 import { SmsModule } from './sms/sms.module';
 import { PaymentsModule } from './payments/payments.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { SensitiveWordsModule } from './sensitive-words/sensitive-words.module';
-// 第五批新增模块 - 批量操作和Excel导入导出
 import { BatchOperationsModule } from './batch-operations/batch-operations.module';
 import { ExcelModule } from './excel/excel.module';
-// 第六批新增模块 - 核心业务增强
 import { BackupModule } from './backup/backup.module';
-// 第七批新增模块 - 订单侠API集成
 import { DingdanxiaModule } from './dingdanxia/dingdanxia.module';
-// 第九批新增模块 - 缓存
 import { CacheModule } from './cache/cache.module';
-// 第十批新增模块 - 操作日志
 import { OperationLogsModule } from './operation-logs/operation-logs.module';
-// 第十一批新增模块 - 菜单管理
 import { AdminMenusModule } from './admin-menus/admin-menus.module';
-// 第十二批新增模块 - VIP会员
 import { VipModule } from './vip/vip.module';
-// 第十三批新增模块 - 商家黑名单
 import { MerchantBlacklistModule } from './merchant-blacklist/merchant-blacklist.module';
 
 // ============ 显式实体引入（禁止使用通配符加载）============
@@ -241,7 +229,7 @@ const ENTITIES = [
       database: process.env.DB_DATABASE || 'order_management',
       // 【重要】显式实体列表 - 禁止使用通配符以防止重复实体加载导致的列膨胀
       entities: ENTITIES,
-      synchronize: true, // 临时开启以重建表结构
+      synchronize: false, // 生产环境必须为 false
       logging: process.env.NODE_ENV !== 'production',
     }),
     AuthModule,
@@ -256,7 +244,6 @@ const ENTITIES = [
     AdminModule,
     SystemConfigModule,
     ShopsModule,
-    // 新增模块
     GoodsModule,
     KeywordsModule,
     TaskGoodsModule,
@@ -264,7 +251,6 @@ const ENTITIES = [
     RechargeModule,
     AdminUsersModule,
     NoticesModule,
-    // 第二批新增模块
     MerchantBankCardsModule,
     MerchantWithdrawalsModule,
     UserAddressesModule,
@@ -273,32 +259,22 @@ const ENTITIES = [
     MessagesModule,
     UserInvitesModule,
     VipRecordsModule,
-    // 第三批新增模块
     OrderLogsModule,
     DayCountsModule,
     UserCreditsModule,
     CategoriesModule,
-    // 第四批新增模块
     SmsModule,
     PaymentsModule,
     UploadsModule,
     SensitiveWordsModule,
-    // 第五批新增模块 - 批量操作和Excel导入导出
     BatchOperationsModule,
     ExcelModule,
-    // 第六批新增模块 - 核心业务增强
     BackupModule,
-    // 第七批新增模块 - 订单侠API集成
     DingdanxiaModule,
-    // 第九批新增模块 - 缓存
     CacheModule,
-    // 第十批新增模块 - 操作日志
     OperationLogsModule,
-    // 第十一批新增模块 - 菜单管理
     AdminMenusModule,
-    // 第十二批新增模块 - VIP会员
     VipModule,
-    // 第十三批新增模块 - 商家黑名单
     MerchantBlacklistModule,
   ],
   controllers: [AppController],
