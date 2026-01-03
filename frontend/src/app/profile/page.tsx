@@ -1,18 +1,28 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { logout, isAuthenticated } from '../../services/authService';
-import { fetchUserProfile, fetchInviteStats, UserProfile, InviteStats } from '../../services/userService';
-import { getUnreadCount } from '../../services/messageService';
+import { fetchUserProfile } from '../../services/userService';
+import { isAuthenticated, logout } from '../../services/authService';
 import BottomNav from '../../components/BottomNav';
+
+interface UserProfile {
+    id: string;
+    username: string;
+    phone: string;
+    balance: number;
+    frozenBalance: number;
+    silver: number;
+    frozenSilver: number;
+    vip: boolean;
+    vipExpireAt?: string;
+    totalEarned: number;
+    pendingReward: number;
+}
 
 export default function ProfilePage() {
     const router = useRouter();
     const [profile, setProfile] = useState<UserProfile | null>(null);
-    const [inviteStats, setInviteStats] = useState<InviteStats | null>(null);
-    const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -20,261 +30,194 @@ export default function ProfilePage() {
             router.push('/login');
             return;
         }
-        loadData();
+        loadProfile();
     }, [router]);
 
-    const loadData = async () => {
+    const loadProfile = async () => {
         try {
-            const [profileData, statsData, msgCount] = await Promise.all([
-                fetchUserProfile(),
-                fetchInviteStats(),
-                getUnreadCount()
-            ]);
-            setProfile(profileData);
-            setInviteStats(statsData);
-            setUnreadCount(msgCount);
-        } catch (error: any) {
-            console.error('Failed to load profile data:', error);
-            // 如果是401错误，清除token并跳转登录
-            if (error?.response?.status === 401 || error?.message?.includes('401')) {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                router.push('/login');
-                return;
-            }
+            const data = await fetchUserProfile();
+            setProfile(data);
+        } catch (error) {
+            console.error('Failed to load profile:', error);
         } finally {
             setLoading(false);
         }
     };
 
     const handleLogout = () => {
-        logout();
-        router.push('/login');
+        if (confirm('确定要退出登录吗？')) {
+            logout();
+            router.push('/login');
+        }
     };
 
     if (loading) {
         return (
-            <div style={{ minHeight: '100vh', background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div>加载中...</div>
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f9ff' }}>
+                <div style={{ color: '#86868b' }}>加载中...</div>
             </div>
         );
     }
 
-    if (!profile) {
-        // 未获取到用户数据，跳转登录
-        router.push('/login');
-        return (
-            <div style={{ minHeight: '100vh', background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div>正在跳转登录...</div>
-            </div>
-        );
-    }
+    const menuItems = [
+        { icon: '💳', label: '买号管理', path: '/profile/buyno' },
+        { icon: '🏦', label: '银行卡管理', path: '/profile/payment' },
+        { icon: '📊', label: '资金记录', path: '/profile/records' },
+        { icon: '💰', label: '提现中心', path: '/profile/withdraw' },
+        { icon: '👥', label: '邀请好友', path: '/invite' },
+        { icon: '⚙️', label: '账户设置', path: '/profile/settings' },
+    ];
 
     return (
-        <div style={{ minHeight: '100vh', background: '#f5f5f5', paddingBottom: '60px' }}>
-            {/* 顶部栏 */}
-            <div style={{
-                background: '#fff',
-                padding: '10px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                borderBottom: '1px solid #e5e5e5'
-            }}>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => router.push('/orders')} style={{
-                        background: '#ff976a',
-                        border: 'none',
-                        borderRadius: '3px',
-                        padding: '5px 10px',
-                        color: 'white',
-                        fontSize: '12px',
-                        cursor: 'pointer'
-                    }}>
-                        继续任务
-                    </button>
-                    <Link href="/messages" style={{
-                        background: '#ff976a',
-                        border: 'none',
-                        borderRadius: '3px',
-                        padding: '5px 10px',
-                        color: 'white',
-                        fontSize: '12px',
-                        cursor: 'pointer',
-                        position: 'relative',
-                        textDecoration: 'none'
-                    }}>
-                        个人通知
-                        {unreadCount > 0 && (
-                            <span style={{
-                                position: 'absolute',
-                                top: '-5px',
-                                right: '-5px',
-                                background: 'red',
-                                color: 'white',
-                                fontSize: '10px',
-                                padding: '2px 5px',
-                                borderRadius: '10px'
-                            }}>{unreadCount}</span>
-                        )}
-                    </Link>
-                </div>
-                <div style={{ width: '30px', height: '30px', background: '#ddd', borderRadius: '50%' }}></div>
-                <div style={{ fontSize: '18px', cursor: 'pointer' }} onClick={() => router.push('/profile/settings')}>☰</div>
-            </div>
-
-            {/* 用户信息区 - 蓝色背景 */}
-            <div style={{
-                background: '#5b9bd5',
-                padding: '40px 15px 20px',
-                position: 'relative'
-            }}>
+        <div style={{
+            minHeight: '100vh',
+            background: 'linear-gradient(180deg, #1d1d1f 0%, #2c2c2e 100%)',
+            paddingBottom: '100px'
+        }}>
+            {/* 黑金身份卡 */}
+            <div style={{ padding: '60px 20px 30px' }}>
                 <div style={{
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '50%',
-                    background: '#fff',
-                    margin: '0 auto 15px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '40px',
-                    border: '3px solid rgba(255,255,255,0.5)'
+                    background: 'linear-gradient(135deg, #2c2c2e 0%, #1d1d1f 100%)',
+                    borderRadius: '24px',
+                    padding: '28px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
                 }}>
-                    👤
-                </div>
-
-                <div style={{ color: 'white', fontSize: '13px', lineHeight: '1.8' }}>
-                    <div>用户名：{profile.username}</div>
-                    <div>绑定手机号：{profile.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')} 经验值：{profile.experience || 100}</div>
-                </div>
-
-                <div style={{ color: 'white', fontSize: '13px', lineHeight: '1.8', marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.3)' }}>
-                    <div>会员状态：<span style={{ color: profile.vip ? '#ffeb3b' : '#ddd' }}>{profile.vip ? 'VIP会员' : '不是会员'}</span></div>
-                    <div>到期时间：{profile.vip && profile.vipExpireAt ? new Date(profile.vipExpireAt).toLocaleDateString() : '--'}</div>
-                    <div>累积赚取银锭：<span style={{ color: '#ffeb3b' }}>{profile.totalEarned || profile.silver}银锭</span> 待商家发放银锭：{profile.pendingReward || 0}银锭</div>
-                </div>
-            </div>
-
-            {/* 提现入口标题 */}
-            <div style={{
-                background: '#fff',
-                padding: '10px 15px',
-                borderBottom: '2px solid #409eff',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                color: '#409eff'
-            }}>
-                提现入口
-            </div>
-
-            {/* 我的本金 */}
-            <div style={{ background: '#fff', padding: '15px', margin: '10px 0', borderBottom: '1px solid #e5e5e5' }}>
-                <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px', color: '#333' }}>我的本金</div>
-                <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: '13px', color: '#666', marginBottom: '12px' }}>
-                    <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '16px', color: '#409eff', fontWeight: 'bold' }}>{Number(profile.balance || 0).toFixed(2)}元</div>
-                        <div style={{ fontSize: '11px', color: '#999', marginTop: '3px' }}>(可提现本金)</div>
+                    {/* 用户信息 */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                        <div style={{
+                            width: '64px',
+                            height: '64px',
+                            background: 'linear-gradient(135deg, #ffd700 0%, #ffaa00 100%)',
+                            borderRadius: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '28px'
+                        }}>
+                            👤
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '22px', fontWeight: '700', color: '#fff', marginBottom: '4px' }}>
+                                {profile?.username || '用户'}
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.5)' }}>
+                                {profile?.phone ? profile.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '未绑定手机'}
+                            </div>
+                        </div>
+                        {profile?.vip && (
+                            <div style={{
+                                marginLeft: 'auto',
+                                background: 'linear-gradient(135deg, #ffd700 0%, #ffaa00 100%)',
+                                padding: '6px 14px',
+                                borderRadius: '12px',
+                                fontSize: '12px',
+                                fontWeight: '700',
+                                color: '#1d1d1f'
+                            }}>
+                                VIP
+                            </div>
+                        )}
                     </div>
-                    <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '16px', color: '#666', fontWeight: 'bold' }}>{Number(profile.frozenBalance || 0).toFixed(2)}元</div>
-                        <div style={{ fontSize: '11px', color: '#999', marginTop: '3px' }}>(冻结本金)</div>
-                    </div>
-                </div>
-                <button onClick={() => router.push('/profile/withdraw')} style={{
-                    width: '100%',
-                    background: '#409eff',
-                    border: 'none',
-                    borderRadius: '3px',
-                    padding: '8px',
-                    color: 'white',
-                    fontSize: '13px',
-                    cursor: 'pointer'
-                }}>提现</button>
-            </div>
 
-            {/* 我的银锭 */}
-            <div style={{ background: '#fff', padding: '15px', margin: '10px 0', borderBottom: '1px solid #e5e5e5' }}>
-                <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px', color: '#333' }}>我的银锭</div>
-                <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: '13px', color: '#666', marginBottom: '12px' }}>
-                    <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '16px', color: '#409eff', fontWeight: 'bold' }}>{profile.silver || 0}银锭</div>
-                        <div style={{ fontSize: '11px', color: '#999', marginTop: '3px' }}>(总银锭)</div>
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '16px', color: '#666', fontWeight: 'bold' }}>{profile.frozenSilver || 0}银锭</div>
-                        <div style={{ fontSize: '11px', color: '#999', marginTop: '3px' }}>(冻结银锭)</div>
-                    </div>
-                </div>
-                <button onClick={() => router.push('/profile/withdraw')} style={{
-                    width: '100%',
-                    background: '#07c160',
-                    border: 'none',
-                    borderRadius: '3px',
-                    padding: '8px',
-                    color: 'white',
-                    fontSize: '13px',
-                    cursor: 'pointer'
-                }}>提现</button>
-            </div>
-
-            {/* 我的邀请 */}
-            <div style={{ background: '#fff', padding: '15px', margin: '10px 0', borderBottom: '1px solid #e5e5e5' }}>
-                <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px', color: '#333' }}>我的邀请</div>
-                <div style={{ fontSize: '13px', color: '#409eff', lineHeight: '1.6' }}>
-                    <div>总计获得奖励：{inviteStats?.totalReward || 0}银锭</div>
-                    <div>总计邀请人数：{inviteStats?.totalInvited || 0}人</div>
-                    <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #e5e5e5' }}>
-                        <div>今日获得奖励：{inviteStats?.todayReward || 0}银锭</div>
-                        <div>今日邀请人数：{inviteStats?.todayInvited || 0}人</div>
+                    {/* 资产磁贴 */}
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(2, 1fr)',
+                        gap: '12px'
+                    }}>
+                        <div style={{
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            borderRadius: '16px',
+                            padding: '16px'
+                        }}>
+                            <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', marginBottom: '8px' }}>可用本金</div>
+                            <div style={{ fontSize: '24px', fontWeight: '700', color: '#fff' }}>
+                                ¥{Number(profile?.balance || 0).toFixed(2)}
+                            </div>
+                        </div>
+                        <div style={{
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            borderRadius: '16px',
+                            padding: '16px'
+                        }}>
+                            <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', marginBottom: '8px' }}>可用银锭</div>
+                            <div style={{ fontSize: '24px', fontWeight: '700', color: '#ffd700' }}>
+                                {Number(profile?.silver || 0).toFixed(2)}
+                            </div>
+                        </div>
+                        <div style={{
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            borderRadius: '16px',
+                            padding: '16px'
+                        }}>
+                            <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', marginBottom: '8px' }}>冻结本金</div>
+                            <div style={{ fontSize: '18px', fontWeight: '600', color: 'rgba(255, 255, 255, 0.6)' }}>
+                                ¥{Number(profile?.frozenBalance || 0).toFixed(2)}
+                            </div>
+                        </div>
+                        <div style={{
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            borderRadius: '16px',
+                            padding: '16px'
+                        }}>
+                            <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', marginBottom: '8px' }}>累计收益</div>
+                            <div style={{ fontSize: '18px', fontWeight: '600', color: '#34c759' }}>
+                                ¥{Number(profile?.totalEarned || 0).toFixed(2)}
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <Link href="/invite" style={{
-                    display: 'block',
-                    textAlign: 'center',
-                    width: '100%',
-                    background: '#409eff',
-                    border: 'none',
-                    borderRadius: '3px',
-                    padding: '8px',
-                    color: 'white',
-                    fontSize: '13px',
-                    textDecoration: 'none',
-                    marginTop: '12px'
-                }}>邀请</Link>
             </div>
 
-            {/* 历史记录 */}
-            <div style={{
-                background: '#fff',
-                padding: '12px 15px',
-                fontSize: '13px',
-                color: '#666'
-            }}>
-                <span>历史记录：</span>
-                <Link href="/profile/records?type=principal" style={{ color: '#409eff', marginLeft: '8px' }}>本金记录</Link>
-                <Link href="/profile/records?type=silver" style={{ color: '#409eff', marginLeft: '8px' }}>银锭记录</Link>
-                <Link href="/profile/withdraw?tab=records" style={{ color: '#409eff', marginLeft: '8px' }}>提现记录</Link>
-                <Link href="/vip?tab=records" style={{ color: '#409eff', marginLeft: '8px' }}>会员记录</Link>
-            </div>
-
-            {/* 退出登录 */}
-            <div style={{ padding: '15px' }}>
-                <button onClick={handleLogout} style={{
-                    width: '100%',
+            {/* 功能菜单 */}
+            <div style={{ padding: '0 20px' }}>
+                <div style={{
                     background: '#fff',
-                    border: '1px solid #ddd',
-                    borderRadius: '3px',
-                    padding: '10px',
-                    color: '#e74c3c',
-                    fontSize: '14px',
-                    cursor: 'pointer'
+                    borderRadius: '20px',
+                    overflow: 'hidden',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)'
                 }}>
+                    {menuItems.map((item, index) => (
+                        <div
+                            key={item.path}
+                            onClick={() => router.push(item.path)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '18px 20px',
+                                cursor: 'pointer',
+                                borderBottom: index < menuItems.length - 1 ? '1px solid #f5f5f7' : 'none'
+                            }}
+                        >
+                            <span style={{ fontSize: '22px', marginRight: '16px' }}>{item.icon}</span>
+                            <span style={{ flex: 1, fontSize: '15px', fontWeight: '500', color: '#1d1d1f' }}>{item.label}</span>
+                            <span style={{ color: '#c7c7cc', fontSize: '18px' }}>›</span>
+                        </div>
+                    ))}
+                </div>
+
+                {/* 退出登录 */}
+                <button
+                    onClick={handleLogout}
+                    style={{
+                        width: '100%',
+                        marginTop: '20px',
+                        padding: '16px',
+                        background: '#fff',
+                        border: 'none',
+                        borderRadius: '16px',
+                        fontSize: '15px',
+                        fontWeight: '500',
+                        color: '#ff3b30',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)'
+                    }}
+                >
                     退出登录
                 </button>
             </div>
 
-            {/* 底部导航 */}
             <BottomNav />
         </div>
     );
