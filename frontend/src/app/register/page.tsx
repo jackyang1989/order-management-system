@@ -12,7 +12,7 @@ function RegisterForm() {
     const searchParams = useSearchParams();
 
     // ========================
-    // 注册表单 - 对齐旧版 register.html
+
     // 旧版参数: mobile, login_pwd, login_pwd2, qq, username, dxyzm, type, invite
     // ========================
     const [username, setUsername] = useState('');
@@ -24,12 +24,12 @@ function RegisterForm() {
     const [invitationCode, setInvitationCode] = useState(''); // 对应旧版 invite
     const [loading, setLoading] = useState(false);
 
-    // 验证码状态 - 对齐旧版 yzmMsg
+
     const [yzmDisabled, setYzmDisabled] = useState(false);
     const [yzmMsg, setYzmMsg] = useState('发送验证码');
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-    // 正则表达式 - 对齐旧版
+
     const phoneReg = /^1[3-9]\d{9}$/;
     const passWordReg = /^[a-zA-Z0-9_-]{6,16}$/;
 
@@ -52,7 +52,7 @@ function RegisterForm() {
     }, [searchParams]);
 
     // ========================
-    // 发送验证码 - 对齐旧版 mobile/way/send_code
+
     // ========================
     const sendYzm = async () => {
         if (!phone) {
@@ -71,7 +71,7 @@ function RegisterForm() {
                 }),
             });
         } catch (error) {
-            // 忽略错误，继续倒计时（对齐旧版行为）
+
         }
 
         let num = 60;
@@ -92,7 +92,7 @@ function RegisterForm() {
     };
 
     // ========================
-    // 注册 - 对齐旧版 mobile/login/check_register
+
     // 参数: mobile, login_pwd, login_pwd2, qq, username, dxyzm, type, invite
     // ========================
     const handleRegister = async () => {
@@ -193,7 +193,6 @@ function RegisterForm() {
                 />
             </div>
 
-            {/* 短信验证码 - 对齐旧版 */}
             <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', borderBottom: '1px solid #eee' }}>
                 <input
                     type="text"
@@ -228,7 +227,6 @@ function RegisterForm() {
                 </button>
             </div>
 
-            {/* QQ号 - 对齐旧版 */}
             <div style={{ marginBottom: '20px' }}>
                 <input
                     type="text"

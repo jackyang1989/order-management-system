@@ -12,7 +12,7 @@ import BottomNav from '../../../../components/BottomNav';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
-// 任务信息 - 对齐旧版 taskData
+
 interface TaskData {
     maiHao: string;           // 买号
     type: string;             // 任务类型
@@ -30,7 +30,7 @@ interface TaskData {
     seller_name: string;      // 商家用户名
 }
 
-// 任务进度 - 对齐旧版 taskData2
+
 interface TaskData2 {
     img: string;              // 关键词截图 keywordimg
     img2: string;             // 聊天截图 chatimg
@@ -46,7 +46,7 @@ interface TaskData2 {
     platform_refund_time: string; // 平台返款时间
 }
 
-// 商品信息 - 对齐旧版 product
+
 interface ProductInfo {
     name: string;
     text_praise: string;      // 好评内容
@@ -69,7 +69,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     }, []);
 
     // ========================
-    // 加载任务详情 - 对齐旧版 API
+
     // ========================
     const loadDetail = useCallback(async () => {
         setLoading(true);
@@ -89,7 +89,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 const data = res.data;
                 const list = data.list || {};
 
-                // 构建 taskData - 对齐旧版
+
                 setTaskData({
                     maiHao: list.wwid || '',
                     type: list.task_type || '',
@@ -107,7 +107,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                     seller_name: list.seller_name || '',
                 });
 
-                // 构建 taskData2 - 对齐旧版
+
                 setTaskData2({
                     img: list.keywordimg || '',
                     img2: list.chatimg || '',
@@ -123,7 +123,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                     platform_refund_time: list.platform_refund_time || '',
                 });
 
-                // 构建 products - 对齐旧版 {volist name="product" id="vo"}
+
                 if (data.product && Array.isArray(data.product)) {
                     setProducts(data.product.map((item: any) => ({
                         name: item.name || '',
@@ -152,7 +152,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
         loadDetail();
     }, [router, loadDetail]);
 
-    // 图片预览 - 对齐旧版 shouImg1/shouImg2
+
     const showImage = (img: string) => {
         if (img && img.length > 0) {
             setPreviewImage(img);
@@ -173,7 +173,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
     return (
         <div style={{ minHeight: '100vh', background: '#f5f5f5', paddingBottom: '80px' }}>
-            {/* 顶部栏 - 对齐旧版 page-header */}
             <div style={{
                 background: 'linear-gradient(135deg, #1d1d1f 0%, #2c2c2e 100%)',
                 padding: '50px 16px 20px',
@@ -186,7 +185,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
             </div>
 
-            {/* 公用tab标签 - 对齐旧版 public-tab-title */}
             <div style={{
                 background: '#fff',
                 padding: '14px 16px',
@@ -200,9 +198,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             </div>
 
             <div style={{ padding: '12px' }}>
-                {/* ========================
-                    任务信息卡片 - 对齐旧版 public-card
-                ======================== */}
                 <div style={{
                     background: '#fff',
                     borderRadius: '12px',
@@ -210,7 +205,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                     overflow: 'hidden',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                 }}>
-                    {/* 标题栏 - 对齐旧版 public-card-title */}
                     <div style={{
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -235,7 +229,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                         </div>
                     </div>
 
-                    {/* 任务详情 - 对齐旧版 task-detail-card */}
                     <div style={{ padding: '16px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
                             <span style={{ color: '#666' }}>买号：</span>
@@ -291,9 +284,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                     </div>
                 </div>
 
-                {/* ========================
-                    任务进度卡片 - 对齐旧版 task-progress
-                ======================== */}
                 {taskData2 && (
                     <div style={{
                         background: '#fff',
@@ -310,7 +300,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                             <div style={{ color: '#f56c6c', fontWeight: '600', fontSize: '15px' }}>任务进度</div>
                         </div>
 
-                        {/* 进度表格 - 对齐旧版 public-table */}
                         <div style={{ padding: '16px', overflowX: 'auto' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', minWidth: '500px' }}>
                                 <thead>
@@ -383,7 +372,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                         <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.type1}</td>
                                         <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.time}</td>
                                     </tr>
-                                    {/* 好评内容 - 对齐旧版 {volist name="product" id="vo"} */}
                                     {products.map((vo, index) => (
                                         <tr key={index}>
                                             <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>好评内容</td>

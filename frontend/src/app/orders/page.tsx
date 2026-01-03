@@ -13,7 +13,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
 // ========================
 
-// 任务状态 options1 - 对齐旧版 value1
+
 const STATUS_OPTIONS = [
     { value: '', label: '全部状态' },
     { value: '1', label: '已打印快递单，待发货' },
@@ -26,7 +26,7 @@ const STATUS_OPTIONS = [
     { value: '8', label: '自动放弃' },
 ];
 
-// 任务类型 options3 - 对齐旧版 value3 (含通道任务)
+
 const TASK_TYPE_OPTIONS = [
     { value: 0, label: '全部' },
     { value: 1, label: '关键词' },
@@ -36,7 +36,7 @@ const TASK_TYPE_OPTIONS = [
     { value: 5, label: '通道任务' },  // 补齐通道任务
 ];
 
-// 返款方式 options4 - 对齐旧版 value4
+
 const REFUND_TYPE_OPTIONS = [
     { value: '', label: '全部' },
     { value: '3', label: '全部' },
@@ -44,7 +44,7 @@ const REFUND_TYPE_OPTIONS = [
     { value: '1', label: '本佣货返' },
 ];
 
-// 追评任务状态 options5 - 对齐旧版 value5
+
 const REVIEW_STATUS_OPTIONS = [
     { value: '', label: '全部追评' },
     { value: '1', label: '待处理追评任务' },
@@ -90,7 +90,7 @@ function OrdersPageContent() {
     const [buynos, setBuynos] = useState<BuynoItem[]>([]);
 
     // ========================
-    // 筛选状态 - 完全对齐旧版参数名
+
     // ========================
     const [value1, setValue1] = useState(searchParams.get('status') || ''); // 任务状态 choose_a
     const [value2, setValue2] = useState(''); // 买号 buyno
@@ -100,20 +100,20 @@ function OrdersPageContent() {
     const [indexorder, setIndexorder] = useState(''); // 搜索任务编号
     const [showFilters, setShowFilters] = useState(false);
 
-    // 日期筛选 - 对齐旧版 datetime1, datetime2
+
     const [datetime1, setDatetime1] = useState('');
     const [datetime2, setDatetime2] = useState('');
 
-    // 分页 - 对齐旧版真实分页
+
     const [currentPage, setCurrentPage] = useState(1);
     const [total, setTotal] = useState(0);
     const pageSize = 10;
 
-    // 批量选择 - 对齐旧版 arrchecedk
+
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [selectAll, setSelectAll] = useState(false);
 
-    // 按钮文字 - 对齐旧版 buttonvalue
+
     const [buttonvalue, setButtonvalue] = useState('查看详情');
     const [buttonvalue2] = useState('去追评');
 
@@ -135,7 +135,7 @@ function OrdersPageContent() {
     }, []);
 
     // ========================
-    // 加载买号列表 - 对齐旧版 options2
+
     // ========================
     const loadBuynos = async () => {
         try {
@@ -153,7 +153,7 @@ function OrdersPageContent() {
     };
 
     // ========================
-    // 获取数据 - 完全对齐旧版 getData
+
     // POST mobile/my/taskmanagement
     // 参数: page, datetime1, datetime2, choose_a, buyno, task_type, terminal, zhuipin, indexorder
     // ========================
@@ -199,13 +199,13 @@ function OrdersPageContent() {
         }
     };
 
-    // 搜索 - 对齐旧版 searchOrder
+
     const searchOrder = () => {
         setCurrentPage(1);
         getData();
     };
 
-    // 任务状态变化 - 对齐旧版 getChooseValue
+
     const getChooseValue = (value: string) => {
         setValue5(''); // 清除追评筛选
         setValue1(value);
@@ -221,7 +221,7 @@ function OrdersPageContent() {
         }
     };
 
-    // 追评任务变化 - 对齐旧版 getZhuiPingValue
+
     const getZhuiPingValue = (value: string) => {
         setValue1(''); // 清除状态筛选
         setValue5(value);
@@ -234,7 +234,7 @@ function OrdersPageContent() {
         }
     };
 
-    // 分页事件 - 对齐旧版 pageChange
+
     const pageChange = (val: number) => {
         setCurrentPage(val);
     };
@@ -246,7 +246,7 @@ function OrdersPageContent() {
         }
     }, [value1, value2, value3, value4, value5, currentPage]);
 
-    // 全选 - 对齐旧版 setCheckedAll
+
     const handleSelectAll = () => {
         const newSelectAll = !selectAll;
         setSelectAll(newSelectAll);
@@ -260,7 +260,7 @@ function OrdersPageContent() {
         }
     };
 
-    // 单选 - 对齐旧版 setCheckedItem
+
     const handleSelectOrder = (orderId: string) => {
         const newOrders = orders.map(o => {
             if (o.id === orderId) {
@@ -276,7 +276,7 @@ function OrdersPageContent() {
     };
 
     // ========================
-    // 批量确认返款 - 对齐旧版 allfankuan
+
     // ========================
     const handleBatchConfirmRefund = async () => {
         if (selectedIds.length === 0) {
@@ -332,7 +332,7 @@ function OrdersPageContent() {
     };
 
     // ========================
-    // 查看详情/去收货/确认返款 - 对齐旧版 chooseTiao
+
     // ========================
     const chooseTiao = (id: string) => {
         const val = value1;
@@ -346,7 +346,7 @@ function OrdersPageContent() {
     };
 
     // ========================
-    // 去追评 - 对齐旧版 chooseTiao2 和 goZhuiPin
+
     // ========================
     const chooseTiao2 = async (review_task_id: string) => {
         if (value5 === '1') {
@@ -390,7 +390,7 @@ function OrdersPageContent() {
         router.push(`/orders/zhuipin/${review_task_id}`);
     };
 
-    // 默认按钮文字 - 对齐旧版 defaultBtn
+
     const defaultBtn = (index_state: string) => {
         if (index_state === '4') {
             return '确认返款';
@@ -401,7 +401,7 @@ function OrdersPageContent() {
         }
     };
 
-    // 默认按钮点击 - 对齐旧版 defaultBtnClick
+
     const defaultBtnClick = (index_state: string, id: string) => {
         if (!index_state || index_state === '4') {
             router.push(`/orders/${id}?action=shoukuan`);
@@ -442,7 +442,6 @@ function OrdersPageContent() {
                     </div>
                 </div>
 
-                {/* 搜索框 - 对齐旧版 indexorder */}
                 <div style={{
                     marginTop: '16px',
                     display: 'flex',
@@ -481,7 +480,6 @@ function OrdersPageContent() {
                 </div>
             </div>
 
-            {/* 筛选面板 - 完全对齐旧版所有筛选项 */}
             {showFilters && (
                 <div style={{
                     background: '#fff',
@@ -589,7 +587,6 @@ function OrdersPageContent() {
                         </select>
                     </div>
 
-                    {/* 日期范围筛选 - 对齐旧版 datetime1, datetime2 */}
                     <div>
                         <div style={{ fontSize: '12px', color: '#86868b', marginBottom: '8px' }}>任务起止时间</div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -664,7 +661,6 @@ function OrdersPageContent() {
                 ))}
             </div>
 
-            {/* 批量操作栏 - 对齐旧版 value1==4 时显示 */}
             {value1 === '4' && (
                 <div style={{
                     background: '#fff',
@@ -702,7 +698,6 @@ function OrdersPageContent() {
                 </div>
             )}
 
-            {/* 订单列表 - 对齐旧版 taskHezi 结构 */}
             <div style={{ padding: '0 12px' }}>
                 {loading ? (
                     <div style={{ textAlign: 'center', padding: '40px', fontSize: '14px', color: '#999' }}>
@@ -721,7 +716,6 @@ function OrdersPageContent() {
                             overflow: 'hidden',
                             boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                         }}>
-                            {/* 卡片头部 - 对齐旧版 task-line */}
                             <div style={{
                                 padding: '12px 16px',
                                 borderBottom: '1px solid #f5f5f5',
@@ -779,7 +773,6 @@ function OrdersPageContent() {
                                 </div>
                             </div>
 
-                            {/* 卡片内容 - 对齐旧版 task-center 和 task-bottom */}
                             <div style={{ padding: '12px 16px' }}>
                                 <div style={{ fontSize: '12px', color: '#999', marginBottom: '8px' }}>
                                     任务编号：{order.task_number}
@@ -806,7 +799,6 @@ function OrdersPageContent() {
                                 </div>
                             </div>
 
-                            {/* 卡片底部操作 - 对齐旧版按钮逻辑 */}
                             <div style={{
                                 padding: '12px 16px',
                                 borderTop: '1px solid #f5f5f5',
@@ -877,7 +869,6 @@ function OrdersPageContent() {
                 )}
             </div>
 
-            {/* 分页 - 对齐旧版真实分页 */}
             {!loading && orders.length > 0 && (
                 <div style={{
                     padding: '20px',

@@ -2,8 +2,8 @@
 
 import { useEffect, useState, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated, getToken } from '../../../../../services/authService';
-import BottomNav from '../../../../../components/BottomNav';
+import { isAuthenticated, getToken } from '../../../../services/authService';
+import BottomNav from '../../../../components/BottomNav';
 
 // ========================
 
@@ -46,7 +46,7 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
     }, []);
 
     // ========================
-    // 加载任务详情 - 对齐旧版 shouhuo
+
     // ========================
     const loadData = useCallback(async () => {
         setLoading(true);
@@ -67,7 +67,7 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                 const list = data.list || {};
                 setTaskId(list.id || id);
 
-                // 构建 testData - 对齐旧版 {volist name="product" id="vo"}
+
                 if (data.product && Array.isArray(data.product)) {
                     setTestData(data.product.map((vo: any) => ({
                         taskBianHao: list.task_number || '',
@@ -121,12 +121,12 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
         }
     };
 
-    // 删除图片 - 对齐旧版 handleRemove
+
     const handleRemove = () => {
         setLocalFile(null);
     };
 
-    // 复制文字 - 对齐旧版 copyText
+
     const copyText = async (text: string) => {
         try {
             await navigator.clipboard.writeText(text);
@@ -144,7 +144,7 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
     };
 
     // ========================
-    // 确认收货 - 对齐旧版 mobile/my/take_delivery
+
     // ========================
     const dialogConfirm = async () => {
         if (!localFile) {
@@ -194,7 +194,6 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
 
     return (
         <div style={{ minHeight: '100vh', background: '#f5f5f5', paddingBottom: '80px' }}>
-            {/* 顶部栏 - 对齐旧版 page-header */}
             <div style={{
                 background: 'linear-gradient(135deg, #1d1d1f 0%, #2c2c2e 100%)',
                 padding: '50px 16px 20px',
@@ -207,7 +206,6 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                 </div>
             </div>
 
-            {/* 公用tab标签 - 对齐旧版 public-tab-title */}
             <div style={{
                 background: '#fff',
                 padding: '14px 16px',
@@ -221,7 +219,6 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
             </div>
 
             <div style={{ padding: '12px' }}>
-                {/* 确认收货按钮 - 对齐旧版 zhuipin-btn */}
                 <div style={{ marginBottom: '12px', textAlign: 'right' }}>
                     <button
                         onClick={() => setDialogVisible(true)}
@@ -240,7 +237,6 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                     </button>
                 </div>
 
-                {/* 追评任务内容 - 对齐旧版 zhuipin-task-content */}
                 {testData.map((item, index) => (
                     <div key={index} style={{
                         background: '#fff',
@@ -266,7 +262,6 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                             <span style={{ color: '#333' }}>{item.title}</span>
                         </div>
 
-                        {/* 文字好评 - 对齐旧版 zhuipin-task-text */}
                         {item.content && (
                             <div style={{
                                 background: '#f9f9f9',
@@ -299,7 +294,6 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                             </div>
                         )}
 
-                        {/* 照片好评 - 对齐旧版 */}
                         {item.img && item.img.length > 0 && (
                             <div style={{ marginBottom: '12px' }}>
                                 <span style={{ fontWeight: '600', color: '#333', fontSize: '13px', marginRight: '8px' }}>照片好评：</span>
@@ -316,7 +310,6 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                             </div>
                         )}
 
-                        {/* 视频好评 - 对齐旧版 */}
                         {item.video && (
                             <div style={{ marginBottom: '12px' }}>
                                 <span style={{ fontWeight: '600', color: '#333', fontSize: '13px', marginRight: '8px' }}>视频好评：</span>
@@ -344,7 +337,6 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                     </div>
                 ))}
 
-                {/* 提示信息 - 对齐旧版 task_row2 */}
                 <div style={{
                     background: '#fff3cd',
                     borderRadius: '12px',
@@ -369,7 +361,6 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                 </div>
             </div>
 
-            {/* 上传图片弹框 - 对齐旧版 van-dialog */}
             {dialogVisible && (
                 <div style={{
                     position: 'fixed',

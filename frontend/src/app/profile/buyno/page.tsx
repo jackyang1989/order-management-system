@@ -40,7 +40,7 @@ interface BuyerAccount {
 }
 
 interface FormData {
-    // 旺旺信息 - 对齐旧版 addbuyno.html
+
     wangwangProvince: string;  // 对应旧版 provinceValue2
     wangwangCity: string;      // 对应旧版 cityValue2
     wangwangId: string;        // 对应旧版 wangwangIdValue
@@ -68,12 +68,12 @@ export default function BuynoPage() {
     const [submitting, setSubmitting] = useState(false);
     const [countdown, setCountdown] = useState(0);
 
-    // 验证码状态 - 对齐旧版
+
     const [yzmDisabled, setYzmDisabled] = useState(false);
     const [yzmMsg, setYzmMsg] = useState('发送验证码');
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-    // 正则表达式 - 对齐旧版
+
     const phoneReg = /^1[3-9]\d{9}$/;
 
     const alertSuccess = useCallback((msg: string) => {
@@ -150,7 +150,7 @@ export default function BuynoPage() {
     };
 
     // ========================
-    // 发送验证码 - 对齐旧版 mobile/way/send_code
+
     // ========================
     const sendSmsCode = async () => {
         if (!form.receiverPhone) {
@@ -169,7 +169,7 @@ export default function BuynoPage() {
                 }),
             });
         } catch (error) {
-            // 忽略错误，继续倒计时（对齐旧版行为）
+
         }
 
         let num = 60;
@@ -219,7 +219,7 @@ export default function BuynoPage() {
     };
 
     // ========================
-    // 添加买号 - 对齐旧版 mobile/my/addbuyno
+
     // 参数: wangwangId, provinceValue2, cityValue2, renZhengValue, provinceValue, cityValue, districtValue, addressValue, phoneNumValue, yzmNumValue, img1, img2, img3, img4
     // ========================
     const handleSubmit = async () => {

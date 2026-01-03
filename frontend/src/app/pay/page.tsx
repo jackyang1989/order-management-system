@@ -8,14 +8,14 @@ import { isAuthenticated, getToken } from '../../services/authService';
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
 // ========================
-// 支付中间页 - 对齐旧版 money/pay.html
+
 // ========================
 
 function PayContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    // 支付类型 - 对齐旧版 paytype
+
     // 1=VIP充值, 2=本金充值, 3=订单支付
     const payType = searchParams.get('type') || '1';
     const orderId = searchParams.get('order_id') || '';
@@ -52,7 +52,7 @@ function PayContent() {
     };
 
     // ========================
-    // 发起支付 - 对齐旧版 mobile/money/pay
+
     // ========================
     const handlePay = async () => {
         if (!payAmount || parseFloat(payAmount) <= 0) {

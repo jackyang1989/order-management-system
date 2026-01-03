@@ -31,7 +31,7 @@ export default function ProfileSettingsPage() {
     const [submitting, setSubmitting] = useState(false);
 
     // ========================
-    // 修改手机号表单 - 对齐旧版 information.html phoneNumObj
+
     // 旧版参数: oldphone, pay_pwd, mobile, dxyzm
     // ========================
     const [phoneForm, setPhoneForm] = useState({
@@ -42,7 +42,7 @@ export default function ProfileSettingsPage() {
     });
 
     // ========================
-    // 修改登录密码表单 - 对齐旧版 information.html passWordObj
+
     // 旧版参数: oldloginpwd, login_pwd, login_pwd2, mobile, dxyzm
     // ========================
     const [passwordForm, setPasswordForm] = useState({
@@ -54,7 +54,7 @@ export default function ProfileSettingsPage() {
     });
 
     // ========================
-    // 修改支付密码表单 - 对齐旧版 information.html zhifuPassWordObj
+
     // 旧版参数: pay_pwd, pay_pwd2, mobile, dxyzm
     // ========================
     const [payPwdForm, setPayPwdForm] = useState({
@@ -76,7 +76,7 @@ export default function ProfileSettingsPage() {
     const timerRef2 = useRef<NodeJS.Timeout | null>(null);
     const timerRef3 = useRef<NodeJS.Timeout | null>(null);
 
-    // 正则表达式 - 对齐旧版
+
     const phoneReg = /^1[3-9]\d{9}$/;
     const zhifuReg = /^\d{6}$/;
 
@@ -128,7 +128,7 @@ export default function ProfileSettingsPage() {
     };
 
     // ========================
-    // 发送验证码 - 对齐旧版 mobile/way/send_code
+
     // ========================
     const sendYzm = async () => {
         if (!phoneForm.newPhoneNum) {
@@ -148,7 +148,7 @@ export default function ProfileSettingsPage() {
                 }),
             });
         } catch (error) {
-            // 忽略错误，继续倒计时（对齐旧版行为）
+
         }
 
         let num = 60;
@@ -245,7 +245,7 @@ export default function ProfileSettingsPage() {
     };
 
     // ========================
-    // 修改手机号 - 对齐旧版 mobile/my/editphone
+
     // 参数: oldphone, pay_pwd, mobile, dxyzm
     // ========================
     const phoneBtnActive = async () => {
@@ -292,7 +292,7 @@ export default function ProfileSettingsPage() {
     };
 
     // ========================
-    // 修改登录密码 - 对齐旧版 mobile/my/edit_login_pwd
+
     // 参数: oldloginpwd, login_pwd, login_pwd2, mobile, dxyzm
     // ========================
     const editBtnActive = async () => {
@@ -343,7 +343,7 @@ export default function ProfileSettingsPage() {
     };
 
     // ========================
-    // 修改支付密码 - 对齐旧版 mobile/my/edit_pay_pwd
+
     // 参数: pay_pwd, pay_pwd2, mobile, dxyzm
     // ========================
     const zhiFuBtnActive = async () => {
@@ -588,7 +588,6 @@ export default function ProfileSettingsPage() {
                 </div>
             </div>
 
-            {/* 修改手机号弹窗 - 对齐旧版 information.html */}
             {showPhoneModal && (
                 <div style={modalOverlayStyle}>
                     <div style={modalStyle}>
@@ -667,7 +666,6 @@ export default function ProfileSettingsPage() {
                 </div>
             )}
 
-            {/* 修改登录密码弹窗 - 对齐旧版 information.html */}
             {showPasswordModal && (
                 <div style={modalOverlayStyle}>
                     <div style={modalStyle}>
@@ -757,7 +755,6 @@ export default function ProfileSettingsPage() {
                 </div>
             )}
 
-            {/* 修改支付密码弹窗 - 对齐旧版 information.html */}
             {showPayPwdModal && (
                 <div style={modalOverlayStyle}>
                     <div style={modalStyle}>

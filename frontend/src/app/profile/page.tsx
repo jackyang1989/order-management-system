@@ -12,7 +12,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
 // ========================
 interface UserProfile {
-    // 用户基本信息 - 对齐旧版 $users
+
     id: string;
     username: string;
     mobile: string;
@@ -20,12 +20,12 @@ interface UserProfile {
     vip: number;
     vip_time: number;
 
-    // 银锭信息 - 对齐旧版 $myself
+
     reward: number;
     tj_award: number;
     tj_award_day: number;
 
-    // 统计信息 - 对齐旧版各变量
+
     all_num_task: number;
     all_obtain_reward: number;
     wait_shop_issue: number;
@@ -59,7 +59,7 @@ export default function ProfilePage() {
     }, [router]);
 
     // ========================
-    // 加载用户资料 - 对齐旧版 mobile/my/index
+
     // ========================
     const loadProfile = async () => {
         try {
@@ -90,32 +90,32 @@ export default function ProfilePage() {
 
     // ========================
 
-    // 继续任务 - 对齐旧版 maketask
+
     const maketask = () => {
         router.push('/tasks/continue');
     };
 
-    // 个人通知 - 对齐旧版 personmessage
+
     const personmessage = () => {
         router.push('/profile/messages');
     };
 
-    // 本金提现 - 对齐旧版 tixiana
+
     const tixiana = () => {
         router.push('/profile/withdraw');
     };
 
-    // 银锭充值 - 对齐旧版 gochongzhi
+
     const gochongzhi = () => {
         router.push('/profile/silver/recharge');
     };
 
-    // 银锭提现 - 对齐旧版 tixianb
+
     const tixianb = () => {
         router.push('/profile/withdraw?ydtx=1');
     };
 
-    // 邀请好友 - 对齐旧版 goyaoqing
+
     const goyaoqing = () => {
         router.push('/invite');
     };
@@ -148,7 +148,6 @@ export default function ProfilePage() {
             background: '#f5f5f5',
             paddingBottom: '100px'
         }}>
-            {/* 顶部操作栏 - 对齐旧版 public-header */}
             <div style={{
                 background: 'linear-gradient(135deg, #1d1d1f 0%, #2c2c2e 100%)',
                 padding: '50px 16px 20px',
@@ -156,7 +155,6 @@ export default function ProfilePage() {
                 justifyContent: 'space-between',
                 alignItems: 'center'
             }}>
-                {/* 继续任务按钮 - 对齐旧版 maketask */}
                 <button
                     onClick={maketask}
                     style={{
@@ -176,7 +174,6 @@ export default function ProfilePage() {
                     ✓ 继续任务
                 </button>
 
-                {/* 个人通知按钮 - 对齐旧版 personmessage */}
                 <button
                     onClick={personmessage}
                     style={{
@@ -195,7 +192,6 @@ export default function ProfilePage() {
                     }}
                 >
                     ✓ 个人通知
-                    {/* 红点展示 - 对齐旧版 tagShow */}
                     {tagShow && (
                         <span style={{
                             position: 'absolute',
@@ -215,7 +211,6 @@ export default function ProfilePage() {
                 </button>
             </div>
 
-            {/* 用户信息卡 - 对齐旧版 index-box */}
             <div style={{
                 margin: '16px',
                 background: '#fff',
@@ -223,7 +218,6 @@ export default function ProfilePage() {
                 padding: '20px',
                 boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
             }}>
-                {/* 头像和基本信息 - 对齐旧版 touxiang-box + content-one */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
                     <div style={{
                         width: '60px',
@@ -250,7 +244,6 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
-                {/* 会员信息 - 对齐旧版 content-two */}
                 <div style={{
                     padding: '12px',
                     background: profile?.vip === 1 ? 'linear-gradient(135deg, #fff5e6 0%, #ffe4c4 100%)' : '#f8f8f8',
@@ -274,7 +267,6 @@ export default function ProfilePage() {
                 </div>
             </div>
 
-            {/* 提现入口 - 对齐旧版 index-chongzhi */}
             <div style={{ margin: '16px' }}>
                 <div style={{
                     fontSize: '16px',
@@ -286,7 +278,6 @@ export default function ProfilePage() {
                     提现入口
                 </div>
 
-                {/* 我的本金 - 对齐旧版 my-benjin */}
                 <div style={{
                     background: '#fff',
                     borderRadius: '16px',
@@ -327,7 +318,6 @@ export default function ProfilePage() {
                     </button>
                 </div>
 
-                {/* 我的银锭 - 对齐旧版 my-yinding */}
                 <div style={{
                     background: '#fff',
                     borderRadius: '16px',
@@ -368,7 +358,6 @@ export default function ProfilePage() {
                     </button>
                 </div>
 
-                {/* 我的邀请 - 对齐旧版 my-invite */}
                 <div style={{
                     background: '#fff',
                     borderRadius: '16px',
@@ -413,7 +402,6 @@ export default function ProfilePage() {
                     </button>
                 </div>
 
-                {/* 历史记录 - 对齐旧版 history */}
                 <div style={{
                     background: '#fff',
                     borderRadius: '16px',

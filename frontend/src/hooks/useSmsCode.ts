@@ -27,7 +27,6 @@ interface UseSmsCodeReturn {
 
 /**
  * 通用短信验证码 Hook
- * 对齐旧版 mobile/way/send_code API
  *
  * @example
  * const { isDisabled, buttonText, sendCode } = useSmsCode();
@@ -43,7 +42,7 @@ export function useSmsCode(options: UseSmsCodeOptions = {}): UseSmsCodeReturn {
     const [buttonText, setButtonText] = useState('发送验证码');
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-    // 正则表达式 - 对齐旧版
+
     const phoneReg = /^1[3-9]\d{9}$/;
 
     const alertSuccess = useCallback((msg: string) => {
@@ -89,7 +88,7 @@ export function useSmsCode(options: UseSmsCodeOptions = {}): UseSmsCodeReturn {
                 body: JSON.stringify({ mobile }),
             });
         } catch (error) {
-            // 忽略错误，继续倒计时（对齐旧版行为）
+
         }
 
         // 开始倒计时

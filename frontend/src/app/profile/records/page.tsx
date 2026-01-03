@@ -8,7 +8,7 @@ import { isAuthenticated, getToken } from '../../../services/authService';
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
 // ========================
-// 记录类型定义 - 对齐旧版
+
 // ========================
 
 // 本金记录
@@ -118,7 +118,7 @@ function RecordsContent() {
     };
 
     // ========================
-    // 本金记录 - 对齐旧版 mobile/money/benjinlist
+
     // ========================
     const loadPrincipalRecords = async () => {
         try {
@@ -142,7 +142,7 @@ function RecordsContent() {
     };
 
     // ========================
-    // 银锭记录 - 对齐旧版 mobile/money/yindinglist
+
     // ========================
     const loadSilverRecords = async () => {
         try {
@@ -166,7 +166,7 @@ function RecordsContent() {
     };
 
     // ========================
-    // 提现记录 - 对齐旧版 mobile/money/tixianlist
+
     // ========================
     const loadWithdrawRecords = async () => {
         try {
@@ -206,7 +206,6 @@ function RecordsContent() {
 
     return (
         <div style={{ minHeight: '100vh', background: '#f5f5f5', paddingBottom: '20px' }}>
-            {/* Header - 对齐旧版 page-header */}
             <div style={{
                 background: 'linear-gradient(135deg, #1d1d1f 0%, #2c2c2e 100%)',
                 padding: '50px 16px 20px',
