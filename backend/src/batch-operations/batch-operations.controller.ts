@@ -1,10 +1,14 @@
 import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { BatchOperationsService } from './batch-operations.service';
+import { GoodsService } from '../goods/goods.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('batch')
 export class BatchOperationsController {
-    constructor(private batchService: BatchOperationsService) { }
+    constructor(
+        private batchService: BatchOperationsService,
+        private goodsService: GoodsService
+    ) { }
 
     /**
      * 批量发货
@@ -328,6 +332,42 @@ export class BatchOperationsController {
             body.orderId,
             body.keyword,
             req.user.userId,
+            req.user.username || '管理员'
+        );
+        return {
+            success: result.success,
+            message: result.message,
+            data: result
+        };
+    }
+
+    /**
+     * 后台修改商品
+     * 对应原版接口: Task::goodsEditDo
+     * 业务语义: 后台管理员修改商品信息
+     * 前置条件: 无状态限制
+     */
+    @Post('goods-edit')
+    @UseGuards(JwtAuthGuard)
+    async goodsEditDo(
+        @Body() body: {
+            goodsId: string;
+            name?: string;
+            link?: string;
+            verifyCode?: string;
+            pcImg?: string;
+            specName?: string;
+            specValue?: string;
+            price?: number;
+            showPrice?: number;
+            num?: number;
+            goodsKeyId?: string;
+        },
+        @Request() req
+    ) {
+        const result = await this.goodsService.adminUpdate(
+            body.goodsId,
+            body,
             req.user.username || '管理员'
         );
         return {

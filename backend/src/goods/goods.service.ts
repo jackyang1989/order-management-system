@@ -129,4 +129,74 @@ export class GoodsService {
         if (ids.length === 0) return [];
         return this.goodsRepository.findByIds(ids);
     }
+
+    // ============ 后台管理接口 ============
+
+    /**
+     * 后台修改商品 (管理员权限)
+     * 对应原版接口: Task::goodsEditDo
+     * 业务语义: 后台管理员修改商品信息
+     * 前置条件: 无状态限制
+     *
+     * @param goodsId 商品ID
+     * @param dto 更新数据
+     * @param operatorName 操作员姓名
+     */
+    async adminUpdate(
+        goodsId: string,
+        dto: UpdateGoodsDto & { link?: string },
+        operatorName: string
+    ): Promise<{ success: boolean; message: string }> {
+        try {
+            // 1. 参数验证
+            if (!goodsId) {
+                return { success: false, message: '参数错误' };
+            }
+
+            // 2. 查询商品
+            const goods = await this.goodsRepository.findOne({
+                where: { id: goodsId, state: GoodsStatus.ACTIVE }
+            });
+
+            if (!goods) {
+                return { success: false, message: '商品不存在' };
+            }
+
+            // 3. 如果提供了链接，提取淘宝ID
+            if (dto.link) {
+                try {
+                    const url = new URL(dto.link);
+                    const taobaoId = url.searchParams.get('id');
+                    if (!taobaoId) {
+                        return { success: false, message: '商品链接不正确' };
+                    }
+                    goods.taobaoId = taobaoId;
+                    goods.link = dto.link;
+                } catch {
+                    return { success: false, message: '商品链接不正确' };
+                }
+            }
+
+            // 4. 更新其他字段
+            if (dto.name !== undefined) goods.name = dto.name;
+            if (dto.verifyCode !== undefined) goods.verifyCode = dto.verifyCode;
+            if (dto.pcImg !== undefined) goods.pcImg = dto.pcImg;
+            if (dto.specName !== undefined) goods.specName = dto.specName;
+            if (dto.specValue !== undefined) goods.specValue = dto.specValue;
+            if (dto.price !== undefined) goods.price = dto.price;
+            if (dto.showPrice !== undefined) goods.showPrice = dto.showPrice;
+            if (dto.num !== undefined) goods.num = dto.num;
+            if (dto.goodsKeyId !== undefined) goods.goodsKeyId = dto.goodsKeyId;
+
+            await this.goodsRepository.save(goods);
+
+            // 5. 记录日志
+            console.log(`[AdminLog] 修改商品 - 管理员${operatorName}操作: 修改商品id为:${goodsId}, 名称为:${goods.name}`);
+
+            return { success: true, message: '修改成功' };
+
+        } catch (error) {
+            return { success: false, message: error.message || '修改失败' };
+        }
+    }
 }
