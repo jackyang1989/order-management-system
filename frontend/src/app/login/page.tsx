@@ -1,63 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Form, Input, Button, Toast, NavBar, Image } from 'antd-mobile';
+import { Form, Input, Button, Toast, NavBar } from 'antd-mobile';
 import { EyeInvisibleOutline, EyeOutline } from 'antd-mobile-icons';
 import { login } from '../../services/authService';
-import { BASE_URL } from '../../../apiConfig';
 
 export default function LoginPage() {
     const router = useRouter();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [passwordVisible, setPasswordVisible] = useState(false);
-    const [captchaId, setCaptchaId] = useState('');
-    const [captchaSvg, setCaptchaSvg] = useState('');
 
-    useEffect(() => {
-        loadCaptcha();
-    }, []);
-
-    const loadCaptcha = async () => {
-        try {
-            const res = await fetch(`${BASE_URL}/captcha/generate`);
-            const data = await res.json();
-            if (data.captchaId && data.svg) {
-                setCaptchaId(data.captchaId);
-                setCaptchaSvg(data.svg);
-            }
-        } catch (e) {
-            console.error('加载验证码失败', e);
-        }
-    };
-
-    const handleLogin = async (values: { phone: string; password: string; captcha: string }) => {
+    const handleLogin = async (values: { phone: string; password: string }) => {
         if (!values.phone || !values.password) {
             Toast.show({ content: '请输入手机号和密码', icon: 'fail' });
-            return;
-        }
-        if (!values.captcha) {
-            Toast.show({ content: '请输入验证码', icon: 'fail' });
-            return;
-        }
-
-        // Verify captcha first
-        try {
-            const captchaRes = await fetch(`${BASE_URL}/captcha/verify`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ captchaId, code: values.captcha }),
-            });
-            const captchaData = await captchaRes.json();
-            if (!captchaData.valid) {
-                Toast.show({ content: '验证码错误', icon: 'fail' });
-                loadCaptcha();
-                return;
-            }
-        } catch (e) {
-            Toast.show({ content: '验证码校验失败', icon: 'fail' });
-            loadCaptcha();
             return;
         }
 
@@ -78,7 +35,6 @@ export default function LoginPage() {
             }
         } else {
             Toast.show({ content: result.message || '登录失败', icon: 'fail' });
-            loadCaptcha();
         }
     };
 
@@ -111,8 +67,8 @@ export default function LoginPage() {
                         </Button>
                     }
                 >
-                    <Form.Item name="phone" label="手机号" rules={[{ required: true, message: '请输入手机号' }]}>
-                        <Input placeholder="请输入手机号" clearable style={{ '--font-size': '16px' }} />
+                    <Form.Item name="phone" label="手机号/用户名" rules={[{ required: true, message: '请输入手机号或用户名' }]}>
+                        <Input placeholder="请输入手机号或用户名" clearable style={{ '--font-size': '16px' }} />
                     </Form.Item>
 
                     <Form.Item name="password" label="密码" rules={[{ required: true, message: '请输入密码' }]}>
@@ -128,27 +84,6 @@ export default function LoginPage() {
                             >
                                 {passwordVisible ? <EyeOutline fontSize={20} /> : <EyeInvisibleOutline fontSize={20} />}
                             </div>
-                        </div>
-                    </Form.Item>
-
-                    <Form.Item name="captcha" label="验证码" rules={[{ required: true, message: '请输入验证码' }]}>
-                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                            <Input placeholder="请输入验证码" style={{ flex: 1, '--font-size': '16px' }} />
-                            <div
-                                onClick={loadCaptcha}
-                                style={{
-                                    width: 120,
-                                    height: 40,
-                                    background: '#f5f5f5',
-                                    borderRadius: 8,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: 'pointer',
-                                    overflow: 'hidden',
-                                }}
-                                dangerouslySetInnerHTML={{ __html: captchaSvg || '<span style="color:#999">点击加载</span>' }}
-                            />
                         </div>
                     </Form.Item>
                 </Form>
