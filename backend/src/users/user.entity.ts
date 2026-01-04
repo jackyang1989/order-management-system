@@ -121,6 +121,10 @@ export class User {
   @Column({ nullable: true })
   lastLoginIp: string; // 最后登录IP
 
+  // ============ 推荐活跃熔断相关 ============
+  @Column({ type: 'timestamp', nullable: true })
+  lastTaskAt: Date; // 最后完成任务时间（用于30天活跃熔断判定）
+
   @CreateDateColumn()
   createdAt: Date;
 

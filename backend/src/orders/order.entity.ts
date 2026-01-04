@@ -94,6 +94,10 @@ export class Order {
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   commission: number;
 
+  // ============ 佣金分成字段 ============
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  userDivided: number; // 买手分成佣金（从商家服务费中扣取分给买手的部分）
+
   // ============ 资金相关字段 ============
   @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
   userPrincipal: number; // 买手垫付本金

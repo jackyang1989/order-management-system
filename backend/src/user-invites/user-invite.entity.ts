@@ -24,6 +24,12 @@ export enum InviteStatus {
   EXPIRED = 3, // 已过期
 }
 
+// 推荐关系熔断状态
+export enum ReferralBondStatus {
+  ACTIVE = 'ACTIVE', // 活跃：双方30天内均有任务完成
+  BROKEN = 'BROKEN', // 熔断：任一方超过30天未完成任务
+}
+
 // 邀请类型
 export enum InviteType {
   BUYER = 1, // 邀请买手
@@ -73,6 +79,19 @@ export class UserInvite {
 
   @Column({ type: 'text', nullable: true })
   remark: string; // 备注
+
+  // ============ 推荐奖励熔断相关 ============
+  @Column({ type: 'int', default: 0 })
+  earnedCount: number; // 已发放奖励次数
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  earnedAmount: number; // 已发放奖励总额
+
+  @Column({ type: 'varchar', length: 20, default: ReferralBondStatus.ACTIVE })
+  bondStatus: ReferralBondStatus; // 推荐关系熔断状态
+
+  @Column({ type: 'timestamp', nullable: true })
+  bondBrokenAt: Date; // 熔断时间
 
   @CreateDateColumn()
   createdAt: Date;

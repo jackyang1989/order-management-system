@@ -346,6 +346,47 @@ export const DEFAULT_CONFIGS = [
     label: '推荐商家注册奖励',
     valueType: 'number',
   },
+  // 推荐奖励熔断配置
+  {
+    key: 'referral_reward_per_order',
+    value: '1',
+    group: 'commission',
+    label: '推荐人每单奖励金额',
+    valueType: 'number',
+    description: '被推荐人完成任务时，推荐人获得的奖励（银锭）',
+  },
+  {
+    key: 'referral_max_count',
+    value: '5',
+    group: 'commission',
+    label: '单个被推荐人每日奖励上限次数',
+    valueType: 'number',
+    description: '同一被推荐人每天最多给推荐人发放的奖励次数',
+  },
+  {
+    key: 'referral_max_amount',
+    value: '5',
+    group: 'commission',
+    label: '单个被推荐人每日奖励上限金额',
+    valueType: 'number',
+    description: '同一被推荐人每天最多给推荐人发放的奖励金额（银锭）',
+  },
+  {
+    key: 'referral_active_days',
+    value: '30',
+    group: 'commission',
+    label: '推荐关系活跃期限（天）',
+    valueType: 'number',
+    description: '双方任一方超过此天数未完成任务则熔断推荐关系',
+  },
+  {
+    key: 'referral_lifetime_max_amount',
+    value: '1000',
+    group: 'commission',
+    label: '单个被推荐人终身奖励上限',
+    valueType: 'number',
+    description: '同一被推荐人终身最多给推荐人发放的奖励总额（银锭）',
+  },
 
   // 短信设置
   {
