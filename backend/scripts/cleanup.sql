@@ -1,168 +1,92 @@
 -- ============================================================
--- DATABASE CLEANUP SCRIPT
+-- DATABASE CLEANUP SCRIPT (Final Version v2)
 -- Order Management System
 -- Generated: 2026-01-04
 -- ============================================================
--- 
--- PURPOSE: Clean test data and reset sequences
--- WARNING: Review carefully before executing!
--- 
--- RUN WITH: psql -d order_management -f cleanup.sql
--- ============================================================
 
--- Start transaction (can rollback if needed)
 BEGIN;
 
--- ============================================================
--- 1. AUDIT SUMMARY
--- ============================================================
--- 
--- Orphan Tables: 0 (all tables match NestJS entities)
--- Legacy Columns: 0 (no tfkz_, shang_, etc. prefixes found)
--- Orphan Orders: 0
--- Orphan Tasks: 0  
--- Orphan Shops: 0
--- Orphan Withdrawals: 0
---
--- Test Data Found:
---   - 16 test users (pattern: test_u_*)
---   - 18 test merchants (pattern: test_*)
---
--- ============================================================
+-- Get test user IDs as text (for varchar columns)
+CREATE TEMP TABLE test_user_ids AS
+SELECT id::text as id_text FROM users WHERE username LIKE 'test_%';
+
+-- Get test merchant IDs as text and uuid
+CREATE TEMP TABLE test_merchant_ids AS
+SELECT id, id::text as id_text FROM merchants WHERE username LIKE 'test_%';
 
 -- ============================================================
--- 2. DELETE TEST DATA (CAREFUL!)
+-- DELETE USER-RELATED TEST DATA
 -- ============================================================
 
--- Step 2.1: Delete related records first (foreign key dependencies)
--- Delete orders for test users
-DELETE FROM orders WHERE "userId" IN (
-    SELECT id::text FROM users WHERE username LIKE 'test_%'
-);
+DELETE FROM orders WHERE "userId" IN (SELECT id_text FROM test_user_ids);
+DELETE FROM buyer_accounts WHERE "userId" IN (SELECT id_text FROM test_user_ids);
+DELETE FROM bank_cards WHERE "userId" IN (SELECT id_text FROM test_user_ids);
+DELETE FROM withdrawals WHERE "userId" IN (SELECT id_text FROM test_user_ids);
+DELETE FROM fund_records WHERE "userId"::text IN (SELECT id_text FROM test_user_ids);
+DELETE FROM user_addresses WHERE "userId" IN (SELECT id_text FROM test_user_ids);
+DELETE FROM user_credits WHERE "userId" IN (SELECT id_text FROM test_user_ids);
+DELETE FROM user_day_counts WHERE "userId" IN (SELECT id_text FROM test_user_ids);
+DELETE FROM user_invites WHERE "inviterId" IN (SELECT id_text FROM test_user_ids);
+DELETE FROM user_invites WHERE "inviteeId" IN (SELECT id_text FROM test_user_ids);
+DELETE FROM vip_records WHERE "userId" IN (SELECT id_text FROM test_user_ids);
+DELETE FROM vip_purchases WHERE "userId"::text IN (SELECT id_text FROM test_user_ids);
+DELETE FROM finance_records WHERE "userId" IN (SELECT id_text FROM test_user_ids);
+DELETE FROM user_vip_status WHERE "userId" IN (SELECT id_text FROM test_user_ids);
+DELETE FROM invite_codes WHERE "userId" IN (SELECT id_text FROM test_user_ids);
+DELETE FROM notice_reads WHERE "userId" IN (SELECT id_text FROM test_user_ids);
+DELETE FROM review_tasks WHERE "userId" IN (SELECT id_text FROM test_user_ids);
+DELETE FROM sensitive_word_logs WHERE "userId" IN (SELECT id_text FROM test_user_ids);
+DELETE FROM payment_orders WHERE "userId" IN (SELECT id_text FROM test_user_ids);
+DELETE FROM recharge_orders WHERE "userId"::text IN (SELECT id_text FROM test_user_ids);
+DELETE FROM credit_logs WHERE "userId" IN (SELECT id_text FROM test_user_ids);
+DELETE FROM file_groups WHERE "userId" IN (SELECT id_text FROM test_user_ids);
 
--- Delete buyer_accounts for test users
-DELETE FROM buyer_accounts WHERE "userId" IN (
-    SELECT id::text FROM users WHERE username LIKE 'test_%'
-);
-
--- Delete bank_cards for test users
-DELETE FROM bank_cards WHERE "userId" IN (
-    SELECT id::text FROM users WHERE username LIKE 'test_%'
-);
-
--- Delete withdrawals for test users
-DELETE FROM withdrawals WHERE "userId" IN (
-    SELECT id::text FROM users WHERE username LIKE 'test_%'
-);
-
--- Delete fund_records for test users
-DELETE FROM fund_records WHERE "userId" IN (
-    SELECT id::text FROM users WHERE username LIKE 'test_%'
-);
-
--- Delete user_addresses for test users
-DELETE FROM user_addresses WHERE "userId" IN (
-    SELECT id::text FROM users WHERE username LIKE 'test_%'
-);
-
--- Delete user_credits for test users
-DELETE FROM user_credits WHERE "userId" IN (
-    SELECT id::text FROM users WHERE username LIKE 'test_%'
-);
-
--- Delete user_day_counts for test users
-DELETE FROM user_day_counts WHERE "userId" IN (
-    SELECT id::text FROM users WHERE username LIKE 'test_%'
-);
-
--- Delete user_invites for test users
-DELETE FROM user_invites WHERE "userId" IN (
-    SELECT id::text FROM users WHERE username LIKE 'test_%'
-);
-
--- Delete vip_records for test users
-DELETE FROM vip_records WHERE "userId" IN (
-    SELECT id::text FROM users WHERE username LIKE 'test_%'
-);
-
--- Delete vip_purchases for test users
-DELETE FROM vip_purchases WHERE "userId" IN (
-    SELECT id::text FROM users WHERE username LIKE 'test_%'
-);
-
--- Step 2.2: Delete test users
-DELETE FROM users WHERE username LIKE 'test_%';
-
--- Step 2.3: Delete merchant-related test data
--- Delete tasks for test merchants
-DELETE FROM tasks WHERE "merchantId" IN (
-    SELECT id::text FROM merchants WHERE username LIKE 'test_%'
-);
-
--- Delete shops for test merchants
-DELETE FROM shops WHERE "merchantId" IN (
-    SELECT id::text FROM merchants WHERE username LIKE 'test_%'
-);
-
--- Delete goods for test merchants
-DELETE FROM goods WHERE "merchantId" IN (
-    SELECT id::text FROM merchants WHERE username LIKE 'test_%'
-);
-
--- Delete merchant_bank_cards for test merchants
-DELETE FROM merchant_bank_cards WHERE "merchantId" IN (
-    SELECT id::text FROM merchants WHERE username LIKE 'test_%'
-);
-
--- Delete merchant_withdrawals for test merchants
-DELETE FROM merchant_withdrawals WHERE "merchantId" IN (
-    SELECT id::text FROM merchants WHERE username LIKE 'test_%'
-);
-
--- Delete recharges for test merchants
-DELETE FROM recharges WHERE "userId" IN (
-    SELECT id::text FROM merchants WHERE username LIKE 'test_%'
-);
-
--- Step 2.4: Delete test merchants
-DELETE FROM merchants WHERE username LIKE 'test_%';
+-- Delete test users
+DELETE FROM users WHERE id::text IN (SELECT id_text FROM test_user_ids);
 
 -- ============================================================
--- 3. RESET SEQUENCES (if using auto-increment integer IDs)
--- ============================================================
--- Note: This system uses UUIDs, so no sequence reset needed
--- UUIDs are generated by uuid_generate_v4() which doesn't need reset
-
--- ============================================================
--- 4. VACUUM AND ANALYZE (optional, for performance)
--- ============================================================
--- Run after commit:
--- VACUUM ANALYZE users;
--- VACUUM ANALYZE merchants;
--- VACUUM ANALYZE orders;
--- VACUUM ANALYZE tasks;
-
--- ============================================================
--- 5. VERIFICATION QUERIES
+-- DELETE MERCHANT-RELATED TEST DATA
 -- ============================================================
 
--- Check remaining counts after cleanup
+-- tasks.merchantId is UUID
+DELETE FROM tasks WHERE "merchantId" IN (SELECT id FROM test_merchant_ids);
+
+-- shops uses sellerId (UUID)
+DELETE FROM shops WHERE "sellerId" IN (SELECT id FROM test_merchant_ids);
+
+-- goods uses sellerId (UUID)
+DELETE FROM goods WHERE "sellerId" IN (SELECT id FROM test_merchant_ids);
+
+-- merchant_bank_cards.merchantId is VARCHAR
+DELETE FROM merchant_bank_cards WHERE "merchantId" IN (SELECT id_text FROM test_merchant_ids);
+
+-- merchant_withdrawals.merchantId is VARCHAR
+DELETE FROM merchant_withdrawals WHERE "merchantId" IN (SELECT id_text FROM test_merchant_ids);
+
+-- recharges.userId is VARCHAR (referring to merchant)
+DELETE FROM recharges WHERE "userId" IN (SELECT id_text FROM test_merchant_ids);
+
+-- review_tasks.merchantId is VARCHAR
+DELETE FROM review_tasks WHERE "merchantId" IN (SELECT id_text FROM test_merchant_ids);
+
+-- Delete test merchants
+DELETE FROM merchants WHERE id IN (SELECT id FROM test_merchant_ids);
+
+-- Cleanup temp tables
+DROP TABLE test_user_ids;
+DROP TABLE test_merchant_ids;
+
+-- ============================================================
+-- VERIFICATION
+-- ============================================================
+
 SELECT 'Remaining Users' as metric, COUNT(*) as count FROM users
 UNION ALL SELECT 'Remaining Merchants', COUNT(*) FROM merchants
 UNION ALL SELECT 'Remaining Orders', COUNT(*) FROM orders
-UNION ALL SELECT 'Remaining Tasks', COUNT(*) FROM tasks;
+UNION ALL SELECT 'Remaining Tasks', COUNT(*) FROM tasks
+UNION ALL SELECT 'Remaining Shops', COUNT(*) FROM shops
+UNION ALL SELECT 'Remaining Goods', COUNT(*) FROM goods
+UNION ALL SELECT 'Test Users Left', (SELECT COUNT(*) FROM users WHERE username LIKE 'test_%')
+UNION ALL SELECT 'Test Merchants Left', (SELECT COUNT(*) FROM merchants WHERE username LIKE 'test_%');
 
 COMMIT;
-
--- ============================================================
--- POST-CLEANUP NOTES
--- ============================================================
---
--- After running this script:
--- 1. Run VACUUM ANALYZE on affected tables
--- 2. Verify application still works correctly
--- 3. Check no important data was accidentally deleted
---
--- To rollback if run in a transaction:
--- ROLLBACK;
--- ============================================================
