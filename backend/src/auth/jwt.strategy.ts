@@ -21,6 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: any) {
     // P1-1: VIP过期自动降级检查
+    // INVARIANT: 所有受保护接口必须经过 VIP 过期检查
     if (payload.sub && !payload.isAdmin && !payload.merchantId) {
       await this.checkAndDowngradeVip(payload.sub);
     }

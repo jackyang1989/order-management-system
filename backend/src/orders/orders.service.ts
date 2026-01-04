@@ -276,6 +276,11 @@ export class OrdersService {
     user.silver = Number(user.silver) - SILVER_PREPAY;
     await this.usersRepository.save(user);
 
+    // INVARIANT: 银锭余额不可为负（防止未来回退）
+    if (user.silver < 0) {
+      throw new Error('[INVARIANT] silver < 0 after takeTask');
+    }
+
     // 构建步骤数据 (根据任务配置动态生成，
     const steps: OrderStepData[] = this.generateTaskSteps(task);
 
