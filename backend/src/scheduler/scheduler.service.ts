@@ -20,27 +20,25 @@ export class SchedulerService {
     ) { }
 
     /**
-     * 每分钟检查订单超时
-     * 订单提交后24小时未审核自动取消
-     */
+   * 每分钟检查订单超时
+   * P0 Fix: 使用订单的endingTime字段，而不是硬编码24小时
+   */
     @Cron(CronExpression.EVERY_MINUTE)
     async handleOrderTimeout() {
         this.logger.debug('检查订单超时...');
 
-        const timeoutHours = 24;
-        const timeoutDate = new Date();
-        timeoutDate.setHours(timeoutDate.getHours() - timeoutHours);
+        const now = new Date();
 
-        // 找出超时未审核的订单
+        // 找出已超过endingTime的订单 (PENDING/SUBMITTED状态)
         const timeoutOrders = await this.orderRepository.find({
             where: {
-                status: OrderStatus.SUBMITTED,
-                createdAt: LessThan(timeoutDate),
+                status: In([OrderStatus.PENDING, OrderStatus.SUBMITTED]),
+                endingTime: LessThan(now),
             },
         });
 
         for (const order of timeoutOrders) {
-            await this.cancelOrderWithRefund(order, '订单超时未审核，系统自动取消');
+            await this.cancelOrderWithRefund(order, '订单超时未完成，系统自动取消');
         }
 
         if (timeoutOrders.length > 0) {
