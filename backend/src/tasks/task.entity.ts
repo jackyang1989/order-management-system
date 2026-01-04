@@ -218,36 +218,8 @@ export class Task {
     @Column({ type: 'timestamp', nullable: true })
     publishTime: Date; // 发布时间
 
-    // --- 任务步骤配置 (对应原版的详细任务流程) ---
-    @Column({ default: false })
-    needHuobi: boolean; // 是否需要货比 (浏览5家同类商品，加购3个)
-
-    @Column({ default: false })
-    needShoucang: boolean; // 是否需要收藏
-
-    @Column({ default: false })
-    needJiagou: boolean; // 是否需要加购物车
-
-    @Column({ default: false })
-    needJialiao: boolean; // 是否需要假聊（与店家聊天）
-
-    @Column({ default: false })
-    needGuanzhu: boolean; // 是否需要关注店铺
-
-    @Column({ default: false })
-    needLiulan: boolean; // 是否需要浏览店铺其他商品
-
-    @Column({ type: 'int', default: 8 })
-    mainBrowseMinutes: number; // 主商品浏览时间(分钟)
-
-    @Column({ type: 'int', default: 2 })
-    subBrowseMinutes: number; // 副商品浏览时间(分钟)
-
-    @Column({ type: 'int', default: 15 })
-    totalBrowseMinutes: number; // 总浏览时间要求(分钟)
-
-    @Column({ type: 'text', nullable: true })
-    huobiKeyword: string; // 货比关键词
+    @Column({ type: 'timestamp', nullable: true })
+    publishTime: Date; // 发布时间
 
     @Column({ type: 'text', nullable: true })
     channelImages: string; // 通道图片（JSON数组，对应原版 channel_img）
@@ -258,21 +230,7 @@ export class Task {
     @Column({ type: 'text', nullable: true })
     verifyCode: string; // 商品核对码
 
-    // --- 限制条件 (New / Mapped) ---
-    @Column({ nullable: true })
-    gender: string; // 性别要求
 
-    @Column({ name: 'age_min', type: 'int', default: 0 })
-    ageMin: number;
-
-    @Column({ name: 'age_max', type: 'int', default: 0 })
-    ageMax: number;
-
-    @Column({ name: 'buy_limit', type: 'int', default: 0 })
-    buyLimit: number; // 购买限制天数
-
-    @Column({ name: 'shang_repurc', type: 'int', default: 1 })
-    repurchaseLimit: number; // 复购限制
 
     @CreateDateColumn()
     createdAt: Date;
