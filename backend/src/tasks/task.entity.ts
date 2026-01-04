@@ -177,8 +177,8 @@ export class Task {
     @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
     goodsMoreFee: number; // 多商品加价
 
-    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-    addReward: number; // 加赏金额
+    @Column({ name: 'add_reward', type: 'decimal', precision: 10, scale: 2, default: 0 })
+    extraCommission: number; // 加赏金额
 
     // --- 预售相关 ---
     @Column({ default: false })
@@ -201,7 +201,7 @@ export class Task {
     receiptTime: Date; // 最后接单时间
 
     // --- 包邮/备注 ---
-    @Column({ default: true })
+    @Column({ name: 'is_free_shiping', default: true })
     isFreeShipping: boolean; // 是否包邮
 
     @Column({ type: 'text', nullable: true })
@@ -257,6 +257,22 @@ export class Task {
 
     @Column({ type: 'text', nullable: true })
     verifyCode: string; // 商品核对码
+
+    // --- 限制条件 (New / Mapped) ---
+    @Column({ nullable: true })
+    gender: string; // 性别要求
+
+    @Column({ name: 'age_min', type: 'int', default: 0 })
+    ageMin: number;
+
+    @Column({ name: 'age_max', type: 'int', default: 0 })
+    ageMax: number;
+
+    @Column({ name: 'buy_limit', type: 'int', default: 0 })
+    buyLimit: number; // 购买限制天数
+
+    @Column({ name: 'shang_repurc', type: 'int', default: 1 })
+    repurchaseLimit: number; // 复购限制
 
     @CreateDateColumn()
     createdAt: Date;

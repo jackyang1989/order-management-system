@@ -30,11 +30,17 @@ export const fetchShops = async (): Promise<Shop[]> => {
     return json.success ? json.data : [];
 };
 
-export const createShop = async (data: Partial<Shop>): Promise<{ success: boolean; message: string }> => {
+export const createShop = async (data: Partial<Shop> | FormData): Promise<{ success: boolean; message: string }> => {
+    const isFormData = data instanceof FormData;
+    const headers = getHeaders();
+    if (isFormData) {
+        delete (headers as any)['Content-Type']; // Let browser set Content-Type for FormData
+    }
+
     const res = await fetch(`${BASE_URL}/shops`, {
         method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify(data)
+        headers,
+        body: isFormData ? data : JSON.stringify(data)
     });
     return res.json();
 };

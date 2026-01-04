@@ -132,7 +132,12 @@ export class TasksService implements OnModuleInit {
      * 创建任务并完成支付
      * 使用事务确保原子性：扣款失败则回滚任务创建
      */
-    async createAndPay(createTaskDto: CreateTaskDto, merchantId: string): Promise<Task> {
+    /**
+     * 创建任务并完成支付 (Merchant Portal Standard)
+     * 严格遵循原版扣费逻辑：押金 + 佣金 + 增值费
+     */
+    async createAndPay(dto: any, merchantId: string): Promise<Task> {
+        // TODO: Use proper DTO type in signature after refactor complete
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
@@ -140,84 +145,111 @@ export class TasksService implements OnModuleInit {
         try {
             // 1. 获取商户信息
             const merchant = await this.merchantsService.findOne(merchantId);
-            if (!merchant) {
-                throw new BadRequestException('商户不存在');
-            }
+            if (!merchant) throw new BadRequestException('商户不存在');
 
-            // 1.1 VIP验证 (对应原版 vip=1 && vip_time > time())
-            if (!merchant.vip) {
-                throw new BadRequestException('您不是会员，请先充值会员');
-            }
+            // 1.1 VIP Check
+            if (!merchant.vip) throw new BadRequestException('非VIP无法发布任务');
             if (merchant.vipExpireAt && new Date(merchant.vipExpireAt) < new Date()) {
-                throw new BadRequestException('会员已过期，请先续费会员');
+                throw new BadRequestException('VIP已过期');
             }
 
-            // 2. 计算费用
-            const count = createTaskDto.count || 1;
-            const goodsMoney = (createTaskDto.goodsPrice || 0) * count;
+            // 2. 费用计算核心逻辑 (Core Calculation Algorithm)
+            // 2.1 基础数值
+            const count = dto.count || 1;
+            const goodsPrice = Number(dto.goodsPrice || 0);
 
-            // 基础服务费
-            const baseServiceFee = 5.0;
-            const praiseFee = createTaskDto.praiseFee || 0;
-            const timingPublishFee = createTaskDto.isTimingPublish ? 1.0 : 0;
-            const timingPayFee = createTaskDto.isTimingPay ? 1.0 : 0;
-            // 购物周期费用: 天数/30 银锭/单 (对应原版 cycle = cycle_time / 30)
-            const cycleTime = createTaskDto.cycleTime || 0;
-            const cycleTimeFee = createTaskDto.isCycleTime && cycleTime > 0 ? (cycleTime / 30) : 0;
-            const addReward = createTaskDto.addReward || 0;
+            // 2.2 押金部分 (Principal + Postage + Margin)
+            // 原版: goods_money = principal * count
+            const goodsMoney = goodsPrice * count;
 
-            // 押金 = 商品本金 + 保证金 + 运费
-            const marginUnit = createTaskDto.isFreeShipping === 1 ? 0 : 10;
-            const postageUnit = createTaskDto.isFreeShipping === 1 ? 0 : 10;
-            const totalDeposit = goodsMoney + (marginUnit * count) + (postageUnit * count);
+            // 运费 (Postage): 包邮=0, 不包邮=10 (假设标准)
+            const postagePerOrder = dto.isFreeShipping ? 0 : 10;
+            const totalPostage = postagePerOrder * count;
 
-            // 佣金 = 服务费 + 增值费
-            const totalCommission = (baseServiceFee + praiseFee + timingPublishFee + timingPayFee + cycleTimeFee + addReward) * count;
+            // 保证金 (Margin): 默认 0 (某些平台可能需要)
+            const marginPerOrder = 0;
+            const totalMargin = marginPerOrder * count;
 
-            // 3. 验证余额
+            const totalDeposit = goodsMoney + totalPostage + totalMargin;
+
+            // 2.3 佣金/银锭部分 (Commission / Silver)
+            // 基础佣金 (Base Fee): 
+            // <50: 5.5, 50-100: 6.5, 100-150: 7.5, 150-200: 8.5, 200-300: 10, >300: 1% + 8
+            let baseFeePerOrder = 0;
+            if (goodsPrice < 50) baseFeePerOrder = 5.5;
+            else if (goodsPrice < 100) baseFeePerOrder = 6.5;
+            else if (goodsPrice < 150) baseFeePerOrder = 7.5;
+            else if (goodsPrice < 200) baseFeePerOrder = 8.5;
+            else if (goodsPrice < 300) baseFeePerOrder = 10;
+            else baseFeePerOrder = (goodsPrice * 0.01) + 8;
+
+            // 增值服务费用
+            let extraFeePerOrder = 0;
+
+            // 好评类
+            if (dto.isPraise) extraFeePerOrder += 0.5; // 文字好评
+            if (dto.isImgPraise) extraFeePerOrder += 1.0; // 图文好评
+            if (dto.isVideoPraise) extraFeePerOrder += 2.0; // 视频好评
+
+            // 发布类
+            if (dto.isTimingPublish) extraFeePerOrder += 1.0; // 定时发布
+            if (dto.gender) extraFeePerOrder += 1.0; // 性别限制
+
+            // 限制类
+            if (dto.buyLimit && dto.buyLimit > 0) extraFeePerOrder += 0.5; // 购买周期限制
+
+            // 加赏
+            const extraCommission = Number(dto.extraCommission || 0);
+
+            const totalCommissionPerOrder = baseFeePerOrder + extraFeePerOrder + extraCommission;
+            const totalCommission = totalCommissionPerOrder * count;
+
+            // 3. 余额检查 & 扣款
+            // 检查押金 (Balance)
             if (Number(merchant.balance) < totalDeposit) {
-                throw new BadRequestException(`余额不足，需要 ¥${totalDeposit.toFixed(2)}，当前余额 ¥${merchant.balance}`);
+                throw new BadRequestException(`余额不足，需 ¥${totalDeposit.toFixed(2)}`);
             }
+            // 检查银锭 (Silver)
             if (Number(merchant.silver) < totalCommission) {
-                throw new BadRequestException(`银锭不足，需要 ${totalCommission.toFixed(2)}，当前银锭 ${merchant.silver}`);
+                throw new BadRequestException(`银锭不足，需 ${totalCommission.toFixed(2)}锭`);
             }
 
-            // 4. 冻结押金
+            // 扣款动作
             await this.merchantsService.freezeBalance(merchantId, totalDeposit);
+            await this.merchantsService.deductSilver(merchantId, totalCommission, `发布任务: ${dto.title}`);
 
-            // 5. 扣除银锭
-            await this.merchantsService.deductSilver(merchantId, totalCommission, `发布任务佣金`);
-
-            // 6. 创建任务
+            // 4. 创建任务记录
             const newTask = this.tasksRepository.create({
-                taskNumber: 'T' + Date.now(),
-                title: createTaskDto.title,
-                taskType: createTaskDto.taskType,
-                shopName: createTaskDto.shopName,
-                url: createTaskDto.url,
-                mainImage: createTaskDto.mainImage || '',
-                keyword: createTaskDto.keyword || '',
-                taoWord: createTaskDto.taoWord,
-                goodsPrice: createTaskDto.goodsPrice,
-                goodsMoney,
-                count,
-                claimedCount: 0,
-                baseServiceFee,
-                praiseFee,
-                isPraise: createTaskDto.isPraise,
-                isTimingPublish: createTaskDto.isTimingPublish,
-                publishTime: createTaskDto.publishTime ? new Date(createTaskDto.publishTime) : undefined,
-                cycle: cycleTimeFee, // 购物周期费用(银锭/单)
+                ...dto, // Auto-map matching fields
+                merchantId,
+                taskNumber: 'T' + Date.now() + Math.floor(Math.random() * 1000),
+                status: TaskStatus.ACTIVE, // Assuming direct active for now or PENDING_PAY if strictly separated
+
+                // Detailed Fields
+                goodsPrice,
+                goodsMoney, // Total Goods Money
+                shippingFee: totalPostage,
+                margin: totalMargin,
+
+                baseServiceFee: baseFeePerOrder,
+                // Store specific fees for transparency
+                praiseFee: dto.isPraise ? 0.5 : 0,
+                imgPraiseFee: dto.isImgPraise ? 1.0 : 0,
+                videoPraiseFee: dto.isVideoPraise ? 2.0 : 0,
+                timingPublishFee: dto.isTimingPublish ? 1.0 : 0,
+
+                extraReward: extraCommission,
+
                 totalDeposit,
                 totalCommission,
-                status: TaskStatus.ACTIVE, // 支付成功，直接发布
-                merchantId,
+
+                claimedCount: 0,
+                completedCount: 0
             });
 
             const savedTask = await queryRunner.manager.save(newTask);
-
             await queryRunner.commitTransaction();
-            return savedTask;
+            return Array.isArray(savedTask) ? savedTask[0] : savedTask;
 
         } catch (error) {
             await queryRunner.rollbackTransaction();

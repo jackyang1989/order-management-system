@@ -73,6 +73,10 @@ export default function NewTaskPage() {
         const cycleTimeFeeUnit = data.isCycleTime ? 1.0 : 0; // Mock 1.0/month
         const addRewardUnit = data.addReward || 0;
 
+        // New Fees
+        const genderFeeUnit = (data.gender === 'male' || data.gender === 'female') ? 1.0 : 0;
+        const buyLimitFeeUnit = (data.buyLimit && data.buyLimit > 0) ? 0.5 : 0;
+
         // 3. Totals
         const totalBaseService = baseFeePerOrder * count;
         const totalPraise = praiseFeeUnit * count;
@@ -80,6 +84,8 @@ export default function NewTaskPage() {
         const totalTimingPay = timingPayFeeUnit * count;
         const totalCycle = cycleTimeFeeUnit * count;
         const totalAddReward = addRewardUnit * count;
+        const totalGender = genderFeeUnit * count;
+        const totalBuyLimit = buyLimitFeeUnit * count;
 
         const totalCommission =
             totalBaseService +
@@ -87,7 +93,9 @@ export default function NewTaskPage() {
             totalTimingPublish +
             totalTimingPay +
             totalCycle +
-            totalAddReward;
+            totalAddReward +
+            totalGender +
+            totalBuyLimit;
 
         // 4. Deposit
         const goodsMoney = (data.goodsPrice || 0) * count;
@@ -132,6 +140,8 @@ export default function NewTaskPage() {
                 timingPayFee: timingPayFeeUnit,
                 cycleTimeFee: cycleTimeFeeUnit,
                 addRewardFee: addRewardUnit,
+                genderFee: genderFeeUnit,
+                buyLimitFee: buyLimitFeeUnit,
                 postageMoney: totalPostage,
                 marginMoney: totalMargin
             }));
@@ -157,13 +167,37 @@ export default function NewTaskPage() {
                 }
             }
 
+            // Strict DTO Mapping
+            const payload = {
+                ...data,
+                // Ensure number types
+                goodsPrice: Number(data.goodsPrice),
+                count: Number(data.count),
+                addReward: Number(data.addReward),
+                extraCommission: Number(data.addReward), // Map addReward to extraCommission (MerchantTaskDto field)
+
+                // Detailed fields
+                gender: data.gender,
+                ageMin: Number(data.ageMin || 0),
+                ageMax: Number(data.ageMax || 0),
+                buyLimit: Number(data.buyLimit || 0),
+                repurchaseLimit: Number(data.repurchaseLimit || 1),
+
+                // Steps
+                needHuobi: data.needHuobi,
+                needShoucang: data.needShoucang,
+                needJiagou: data.needJiagou,
+                needJialiao: data.needJialiao,
+                needGuanzhu: data.needGuanzhu,
+            };
+
             const res = await fetch(`${BASE_URL}/tasks`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify(payload)
             });
             const json = await res.json();
             if (json.success) {

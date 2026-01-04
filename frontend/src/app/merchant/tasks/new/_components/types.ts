@@ -46,6 +46,20 @@ export interface TaskFormData {
 
     addReward: number; // Extra money per order
 
+    // Restrictions
+    gender: string; // 'all', 'male', 'female'
+    ageMin?: number;
+    ageMax?: number;
+    buyLimit?: number; // Days
+    repurchaseLimit?: number; // 0 or 1
+
+    // Task Steps Requirements
+    needHuobi: boolean;
+    needShoucang: boolean;
+    needJiagou: boolean;
+    needJialiao: boolean;
+    needGuanzhu: boolean;
+
     // Fee Calculation (Computed)
     baseServiceFee: number;
     praiseFee: number;
@@ -53,6 +67,10 @@ export interface TaskFormData {
     timingPayFee: number;
     cycleTimeFee: number;
     addRewardFee: number;
+
+    // New Fee Components
+    genderFee: number;
+    buyLimitFee: number;
 
     postageMoney: number;
     marginMoney: number;
@@ -85,12 +103,27 @@ export const InitialTaskData: TaskFormData = {
     isCycleTime: false,
     addReward: 0,
 
+    // Defaults for new fields
+    gender: 'all',
+    ageMin: 0,
+    ageMax: 0,
+    buyLimit: 0,
+    repurchaseLimit: 1,
+
+    needHuobi: false,
+    needShoucang: false,
+    needJiagou: false,
+    needJialiao: false,
+    needGuanzhu: false,
+
     baseServiceFee: 0,
     praiseFee: 0,
     timingPublishFee: 0,
     timingPayFee: 0,
     cycleTimeFee: 0,
     addRewardFee: 0,
+    genderFee: 0,
+    buyLimitFee: 0,
 
     postageMoney: 0,
     marginMoney: 0,

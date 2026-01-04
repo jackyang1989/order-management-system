@@ -165,9 +165,59 @@ export default function NewShopPage() {
                         />
                     </div>
 
+                    <div style={{ marginTop: '24px' }}>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>店铺后台截图 (验证用)</label>
+                        <div style={{ border: '1px dashed #d9d9d9', padding: '20px', borderRadius: '4px', textAlign: 'center', cursor: 'pointer', background: '#fafafa' }} onClick={() => document.getElementById('screenshot-upload')?.click()}>
+                            {(formData as any).screenshot ? (
+                                <div style={{ fontSize: '14px', color: '#10b981' }}>已选择: {(formData as any).screenshot.name}</div>
+                            ) : (
+                                <>
+                                    <div style={{ fontSize: '24px', color: '#999', marginBottom: '8px' }}>📷</div>
+                                    <div style={{ fontSize: '14px', color: '#666' }}>点击上传店铺后台截图</div>
+                                </>
+                            )}
+                            <input
+                                id="screenshot-upload"
+                                type="file"
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                onChange={(e) => {
+                                    if (e.target.files && e.target.files[0]) {
+                                        setFormData({ ...formData, screenshot: e.target.files[0] } as any);
+                                    }
+                                }}
+                            />
+                        </div>
+                    </div>
+
                     <div style={{ marginTop: '24px', display: 'flex', gap: '16px' }}>
                         <button
-                            onClick={handleSubmit}
+                            onClick={async () => {
+                                if (!formData.shopName || !formData.accountName || !formData.contactName || !formData.mobile) {
+                                    alert('请完善店铺基本信息');
+                                    return;
+                                }
+                                if (!validateMobile(formData.mobile)) {
+                                    alert('请输入有效的11位手机号');
+                                    return;
+                                }
+
+                                setSubmitting(true);
+                                const data = new FormData();
+                                Object.keys(formData).forEach(key => {
+                                    data.append(key, (formData as any)[key]);
+                                });
+
+                                const res = await createShop(data);
+                                setSubmitting(false);
+
+                                if (res.success) {
+                                    alert('绑定申请已提交，请等待审核');
+                                    router.push('/merchant/shops');
+                                } else {
+                                    alert(res.message);
+                                }
+                            }}
                             disabled={submitting}
                             style={{
                                 padding: '12px 32px',
