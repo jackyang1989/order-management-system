@@ -1,98 +1,109 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { IsString, IsOptional, IsNotEmpty } from 'class-validator';
 
 // 商家状态
 export enum MerchantStatus {
-    PENDING = 0,    // 待审核
-    APPROVED = 1,   // 已通过
-    REJECTED = 2,   // 已拒绝
-    DISABLED = 3    // 已禁用
+  PENDING = 0, // 待审核
+  APPROVED = 1, // 已通过
+  REJECTED = 2, // 已拒绝
+  DISABLED = 3, // 已禁用
 }
 
 @Entity('merchants')
 export class Merchant {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column({ unique: true })
-    username: string;
+  @Column({ unique: true })
+  username: string;
 
-    @Column()
-    password: string;
+  @Column()
+  password: string;
 
-    @Column({ unique: true })
-    phone: string;
+  @Column({ unique: true })
+  phone: string;
 
-    @Column({ nullable: true })
-    qq: string;
+  @Column({ nullable: true })
+  qq: string;
 
-    // 企业信息
-    @Column({ name: 'company_name', nullable: true })
-    companyName: string;
+  // 企业信息
+  @Column({ name: 'company_name', nullable: true })
+  companyName: string;
 
-    @Column({ name: 'business_license', nullable: true })
-    businessLicense: string;
+  @Column({ name: 'business_license', nullable: true })
+  businessLicense: string;
 
-    @Column({ name: 'contact_name', nullable: true })
-    contactName: string;
+  @Column({ name: 'contact_name', nullable: true })
+  contactName: string;
 
-    // 账户余额
-    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-    balance: number;
+  // 账户余额
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  balance: number;
 
-    @Column({ name: 'frozen_balance', type: 'decimal', precision: 10, scale: 2, default: 0 })
-    frozenBalance: number; // 冻结余额（任务预扣）
+  @Column({
+    name: 'frozen_balance',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
+  frozenBalance: number; // 冻结余额（任务预扣）
 
-    // 银锭（奖励积分）
-    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-    silver: number;
+  // 银锭（奖励积分）
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  silver: number;
 
-    // VIP
-    @Column({ default: false })
-    vip: boolean;
+  // VIP
+  @Column({ default: false })
+  vip: boolean;
 
-    @Column({ name: 'vip_expire_at', nullable: true })
-    vipExpireAt: Date;
+  @Column({ name: 'vip_expire_at', nullable: true })
+  vipExpireAt: Date;
 
-    // 状态
-    @Column({ default: MerchantStatus.PENDING })
-    status: MerchantStatus;
+  // 状态
+  @Column({ default: MerchantStatus.PENDING })
+  status: MerchantStatus;
 
-    // 支付密码
-    @Column({ name: 'pay_password', nullable: true })
-    payPassword: string;
+  // 支付密码
+  @Column({ name: 'pay_password', nullable: true })
+  payPassword: string;
 
-    @CreateDateColumn({ name: 'created_at' })
-    createdAt: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date;
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 }
-
 
 // DTOs
 export class CreateMerchantDto {
-    username: string;
-    password: string;
-    phone: string;
-    qq?: string;
-    companyName?: string;
+  username: string;
+  password: string;
+  phone: string;
+  qq?: string;
+  companyName?: string;
 }
 
 export class MerchantLoginDto {
-    @IsString()
-    @IsNotEmpty()
-    username: string;
+  @IsString()
+  @IsNotEmpty()
+  username: string;
 
-    @IsString()
-    @IsNotEmpty()
-    password: string;
+  @IsString()
+  @IsNotEmpty()
+  password: string;
 }
 
 export class UpdateMerchantDto {
-    phone?: string;
-    qq?: string;
-    companyName?: string;
-    businessLicense?: string;
-    contactName?: string;
+  phone?: string;
+  qq?: string;
+  companyName?: string;
+  businessLicense?: string;
+  contactName?: string;
 }

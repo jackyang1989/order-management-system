@@ -5,9 +5,9 @@ import { SmsService } from './sms.service';
 import { SmsController } from './sms.controller';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([SmsCode, SmsLog])],
-    controllers: [SmsController],
-    providers: [SmsService],
-    exports: [SmsService]
+  imports: [TypeOrmModule.forFeature([SmsCode, SmsLog])],
+  controllers: [SmsController],
+  providers: [SmsService],
+  exports: [SmsService],
 })
-export class SmsModule { }
+export class SmsModule {}

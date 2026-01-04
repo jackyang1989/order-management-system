@@ -6,12 +6,9 @@ import { BankCard } from './bank-card.entity';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([BankCard]),
-        AuthModule
-    ],
-    providers: [BankCardsService],
-    controllers: [BankCardsController],
-    exports: [BankCardsService]
+  imports: [TypeOrmModule.forFeature([BankCard]), AuthModule],
+  providers: [BankCardsService],
+  controllers: [BankCardsController],
+  exports: [BankCardsService],
 })
-export class BankCardsModule { }
+export class BankCardsModule {}

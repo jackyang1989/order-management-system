@@ -15,61 +15,67 @@ import { Column, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
  * - 此类使用 TypeORM 的实体继承特性
  */
 export abstract class BaseUserEntity {
-    // ============ 认证信息 ============
+  // ============ 认证信息 ============
 
-    @Column({ unique: true })
-    username: string;
+  @Column({ unique: true })
+  username: string;
 
-    @Column()
-    password: string; // hashed
+  @Column()
+  password: string; // hashed
 
-    @Column({ unique: true })
-    @Index()
-    phone: string;
+  @Column({ unique: true })
+  @Index()
+  phone: string;
 
-    @Column({ nullable: true })
-    qq?: string;
+  @Column({ nullable: true })
+  qq?: string;
 
-    // ============ 账户余额 ============
+  // ============ 账户余额 ============
 
-    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
-    balance: number;      // 本金/押金余额
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  balance: number; // 本金/押金余额
 
-    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
-    frozenBalance: number; // 冻结本金
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  frozenBalance: number; // 冻结本金
 
-    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
-    silver: number;       // 银锭余额
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  silver: number; // 银锭余额
 
-    @Column({ type: 'decimal', precision: 12, scale: 2, default: 0, nullable: true })
-    frozenSilver?: number; // 冻结银锭
+  @Column({
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+    nullable: true,
+  })
+  frozenSilver?: number; // 冻结银锭
 
-    // ============ VIP信息 ============
+  // ============ VIP信息 ============
 
-    @Column({ default: false })
-    vip: boolean;
+  @Column({ default: false })
+  vip: boolean;
 
-    @Column({ type: 'timestamp', nullable: true })
-    vipExpireAt?: Date;
+  @Column({ type: 'timestamp', nullable: true })
+  vipExpireAt?: Date;
 
-    // ============ 支付密码 ============
+  // ============ 支付密码 ============
 
-    @Column({ nullable: true })
-    payPassword?: string; // 支付密码 (hashed)
+  @Column({ nullable: true })
+  payPassword?: string; // 支付密码 (hashed)
 
-    // ============ 时间戳 ============
+  // ============ 时间戳 ============
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
 
 /**
  * 账户类型枚举
  */
 export enum AccountType {
-    BUYER = 'buyer',
-    MERCHANT = 'merchant'
+  BUYER = 'buyer',
+  MERCHANT = 'merchant',
 }

@@ -5,9 +5,9 @@ import { MerchantBankCardsService } from './merchant-bank-cards.service';
 import { MerchantBankCardsController } from './merchant-bank-cards.controller';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([MerchantBankCard])],
-    controllers: [MerchantBankCardsController],
-    providers: [MerchantBankCardsService],
-    exports: [MerchantBankCardsService]
+  imports: [TypeOrmModule.forFeature([MerchantBankCard])],
+  controllers: [MerchantBankCardsController],
+  providers: [MerchantBankCardsService],
+  exports: [MerchantBankCardsService],
 })
-export class MerchantBankCardsModule { }
+export class MerchantBankCardsModule {}

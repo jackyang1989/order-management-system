@@ -12,16 +12,16 @@ import { User } from '../users/user.entity';
 import { Merchant } from '../merchants/merchant.entity';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([Order, User, Merchant]),
-        forwardRef(() => TasksModule),
-        BuyerAccountsModule,
-        FinanceRecordsModule,
-        DingdanxiaModule,
-        MerchantBlacklistModule,
-    ],
-    providers: [OrdersService],
-    controllers: [OrdersController],
-    exports: [OrdersService]
+  imports: [
+    TypeOrmModule.forFeature([Order, User, Merchant]),
+    forwardRef(() => TasksModule),
+    BuyerAccountsModule,
+    FinanceRecordsModule,
+    DingdanxiaModule,
+    MerchantBlacklistModule,
+  ],
+  providers: [OrdersService],
+  controllers: [OrdersController],
+  exports: [OrdersService],
 })
-export class OrdersModule { }
+export class OrdersModule {}

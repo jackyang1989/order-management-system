@@ -7,12 +7,9 @@ import { SystemConfig } from '../system-config/system-config.entity';
 import { SystemConfigModule } from '../system-config/system-config.module';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([SystemConfig]),
-        SystemConfigModule,
-    ],
-    controllers: [DingdanxiaController, ApiConfigController],
-    providers: [DingdanxiaService],
-    exports: [DingdanxiaService],
+  imports: [TypeOrmModule.forFeature([SystemConfig]), SystemConfigModule],
+  controllers: [DingdanxiaController, ApiConfigController],
+  providers: [DingdanxiaService],
+  exports: [DingdanxiaService],
 })
-export class DingdanxiaModule { }
+export class DingdanxiaModule {}

@@ -326,71 +326,8 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                 )}
             </div>
 
-            {/* Task Steps Requirements (New) */}
-            <div style={{ marginBottom: '32px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '16px', color: '#374151' }}>任务要求</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px' }}>
-                    {[
-                        { key: 'needHuobi', label: '货比三家' },
-                        { key: 'needShoucang', label: '收藏商品' },
-                        { key: 'needJiagou', label: '加购物车' },
-                        { key: 'needJialiao', label: '假聊咨询' },
-                        { key: 'needGuanzhu', label: '关注店铺' },
-                    ].map((item) => (
-                        <label key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', cursor: 'pointer', background: (data as any)[item.key] ? '#eef2ff' : '#fff', borderColor: (data as any)[item.key] ? '#4f46e5' : '#e5e7eb' }}>
-                            <input type="checkbox" checked={!!(data as any)[item.key]} onChange={e => onChange({ [item.key]: e.target.checked })} />
-                            <span style={{ fontSize: '13px', fontWeight: '500' }}>{item.label}</span>
-                        </label>
-                    ))}
-                </div>
-            </div>
-
-            {/* Crowd Restrictions (New) */}
-            <div style={{ marginBottom: '32px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '16px', color: '#374151' }}>人群限制</h3>
-
-                {/* Gender */}
-                <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '24px' }}>
-                    <span style={{ fontSize: '14px', color: '#6b7280', width: '80px' }}>性别限制:</span>
-                    <div style={{ display: 'flex', gap: '16px' }}>
-                        {[
-                            { val: 'all', label: '不限' },
-                            { val: 'male', label: '仅限男号', fee: 1.0 },
-                            { val: 'female', label: '仅限女号', fee: 1.0 },
-                        ].map(opt => (
-                            <label key={opt.val} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                                <input type="radio" checked={data.gender === opt.val} onChange={() => onChange({ gender: opt.val })} />
-                                <span style={{ fontSize: '14px' }}>{opt.label}</span>
-                                {opt.fee && <span style={{ fontSize: '12px', color: '#dc2626' }}>+{opt.fee}元</span>}
-                            </label>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Age (Simple Range) */}
-                <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '24px' }}>
-                    <span style={{ fontSize: '14px', color: '#6b7280', width: '80px' }}>年龄限制:</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <input type="number" placeholder="0" value={data.ageMin || ''} onChange={e => onChange({ ageMin: parseInt(e.target.value) || 0 })} style={{ width: '60px', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px' }} />
-                        <span>-</span>
-                        <input type="number" placeholder="0" value={data.ageMax || ''} onChange={e => onChange({ ageMax: parseInt(e.target.value) || 0 })} style={{ width: '60px', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px' }} />
-                        <span style={{ fontSize: '12px', color: '#9ca3af' }}>岁 (0表示不限)</span>
-                    </div>
-                </div>
-
-                {/* Buy Limit */}
-                <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '24px' }}>
-                    <span style={{ fontSize: '14px', color: '#6b7280', width: '80px' }}>购买限制:</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <input type="number" value={data.buyLimit || ''} onChange={e => onChange({ buyLimit: parseInt(e.target.value) || 0 })} style={{ width: '60px', padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px' }} />
-                        <span style={{ fontSize: '14px' }}>天内不可重购</span>
-                        <span style={{ fontSize: '12px', color: '#dc2626' }}>{data.buyLimit && data.buyLimit > 0 ? '+0.5元' : ''}</span>
-                    </div>
-                </div>
-            </div>
-
             {/* Extra Services Grid */}
-            <div style={{ marginBottom: '32px' }}>
+            < div style={{ marginBottom: '32px' }}>
                 <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '16px', color: '#374151' }}>其它增值服务</h3>
 
                 {/* 1. Timing Publish */}
@@ -456,10 +393,10 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                     </div>
                 </div>
 
-            </div>
+            </div >
 
             {/* Footer Action */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e5e7eb', paddingTop: '24px' }}>
+            < div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e5e7eb', paddingTop: '24px' }}>
                 <button
                     onClick={onPrev}
                     style={{
@@ -490,7 +427,7 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                 >
                     下一步
                 </button>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

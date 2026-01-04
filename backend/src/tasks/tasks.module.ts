@@ -9,13 +9,13 @@ import { Task } from './task.entity';
 import { TaskGoods, TaskKeyword } from '../task-goods/task-goods.entity';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([Task, TaskGoods, TaskKeyword]),
-        forwardRef(() => OrdersModule),
-        forwardRef(() => MerchantsModule)
-    ],
-    providers: [TasksService],
-    controllers: [TasksController],
-    exports: [TasksService]
+  imports: [
+    TypeOrmModule.forFeature([Task, TaskGoods, TaskKeyword]),
+    forwardRef(() => OrdersModule),
+    forwardRef(() => MerchantsModule),
+  ],
+  providers: [TasksService],
+  controllers: [TasksController],
+  exports: [TasksService],
 })
-export class TasksModule { }
+export class TasksModule {}

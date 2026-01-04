@@ -5,9 +5,9 @@ import { BuyerAccountsController } from './buyer-accounts.controller';
 import { BuyerAccount } from './buyer-account.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([BuyerAccount])],
-    providers: [BuyerAccountsService],
-    controllers: [BuyerAccountsController],
-    exports: [BuyerAccountsService]
+  imports: [TypeOrmModule.forFeature([BuyerAccount])],
+  providers: [BuyerAccountsService],
+  controllers: [BuyerAccountsController],
+  exports: [BuyerAccountsService],
 })
-export class BuyerAccountsModule { }
+export class BuyerAccountsModule {}

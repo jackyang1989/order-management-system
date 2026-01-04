@@ -17,17 +17,17 @@ import { AuthModule } from '../auth/auth.module';
  * 这是一个临时兼容层，用于在前端迁移完成前保持系统可用
  */
 @Module({
-    imports: [
-        UsersModule,
-        OrdersModule,
-        TasksModule,
-        WithdrawalsModule,
-        FinanceRecordsModule,
-        BuyerAccountsModule,
-        BankCardsModule,
-        SmsModule,
-        AuthModule,
-    ],
-    controllers: [MobileCompatController],
+  imports: [
+    UsersModule,
+    OrdersModule,
+    TasksModule,
+    WithdrawalsModule,
+    FinanceRecordsModule,
+    BuyerAccountsModule,
+    BankCardsModule,
+    SmsModule,
+    AuthModule,
+  ],
+  controllers: [MobileCompatController],
 })
 export class MobileCompatModule {}

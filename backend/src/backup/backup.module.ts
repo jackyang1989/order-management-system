@@ -3,8 +3,8 @@ import { BackupService } from './backup.service';
 import { BackupController } from './backup.controller';
 
 @Module({
-    controllers: [BackupController],
-    providers: [BackupService],
-    exports: [BackupService],
+  controllers: [BackupController],
+  providers: [BackupService],
+  exports: [BackupService],
 })
-export class BackupModule { }
+export class BackupModule {}

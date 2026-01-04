@@ -8,16 +8,16 @@ import { AdminGuard } from './admin.guard';
 import { UsersModule } from '../users/users.module';
 
 @Module({
-    imports: [
-        UsersModule,
-        PassportModule,
-        JwtModule.register({
-            secret: process.env.JWT_SECRET || 'tfkz-order-management-secret-key-2026',
-            signOptions: { expiresIn: '7d' }
-        })
-    ],
-    providers: [AuthService, JwtStrategy, AdminGuard],
-    controllers: [AuthController],
-    exports: [AuthService, JwtModule, AdminGuard]
+  imports: [
+    UsersModule,
+    PassportModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'tfkz-order-management-secret-key-2026',
+      signOptions: { expiresIn: '7d' },
+    }),
+  ],
+  providers: [AuthService, JwtStrategy, AdminGuard],
+  controllers: [AuthController],
+  exports: [AuthService, JwtModule, AdminGuard],
 })
-export class AuthModule { }
+export class AuthModule {}

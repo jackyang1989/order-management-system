@@ -67,25 +67,30 @@ export default function NewTaskPage() {
             if (data.praiseType === 'image') praiseFeeUnit = 4.0;
             if (data.praiseType === 'video') praiseFeeUnit = 10.0;
         }
-
         const timingPublishFeeUnit = data.isTimingPublish ? 1.0 : 0;
         const timingPayFeeUnit = data.isTimingPay ? 1.0 : 0;
-        const cycleTimeFeeUnit = data.isCycleTime ? 1.0 : 0; // Mock 1.0/month
-        const addRewardUnit = data.addReward || 0;
+        const cycleTimeUnit = (data.isCycleTime && data.cycleTime && data.cycleTime > 0) ? (data.cycleTime * 1) : 0; // Assumption
+        const addRewardUnit = Number(data.addReward || 0);
 
-        // New Fees
-        const genderFeeUnit = (data.gender === 'male' || data.gender === 'female') ? 1.0 : 0;
-        const buyLimitFeeUnit = (data.buyLimit && data.buyLimit > 0) ? 0.5 : 0;
+        const totalGoodsMoney = (data.goodsPrice || 0) * count;
+        // Postage Logic: Free Shipping = 0 margin, else 10 margin. 
+        // Postage Fee: Free=0, NotFree=10.
+        // Postage Fee: Free=0 (1), NotFree=10 (2 or undefined).
+        const isFreeShipping = data.isFreeShipping === 1; // Default true (1)
+        const postagePerOrder = isFreeShipping ? 0 : 10;
+        const marginPerOrder = isFreeShipping ? 0 : 10;
 
-        // 3. Totals
+        const totalPostage = postagePerOrder * count;
+        const totalMargin = marginPerOrder * count;
+
+        const totalDeposit = totalGoodsMoney + totalPostage + totalMargin;
+
         const totalBaseService = baseFeePerOrder * count;
         const totalPraise = praiseFeeUnit * count;
         const totalTimingPublish = timingPublishFeeUnit * count;
         const totalTimingPay = timingPayFeeUnit * count;
-        const totalCycle = cycleTimeFeeUnit * count;
+        const totalCycle = cycleTimeUnit * count;
         const totalAddReward = addRewardUnit * count;
-        const totalGender = genderFeeUnit * count;
-        const totalBuyLimit = buyLimitFeeUnit * count;
 
         const totalCommission =
             totalBaseService +
@@ -93,37 +98,7 @@ export default function NewTaskPage() {
             totalTimingPublish +
             totalTimingPay +
             totalCycle +
-            totalAddReward +
-            totalGender +
-            totalBuyLimit;
-
-        // 4. Deposit
-        const goodsMoney = (data.goodsPrice || 0) * count;
-
-        // Margin rule: Free shipping ? 0 : 10 (But wait, Task.php logic: if logistics!=1 => margin=0. if logistics==1 => if free_shipping==1 => margin=0 else margin=10)
-        // Let's assume logistics=1 means "Seller ships".
-        // Our UI has "isFreeShipping": 1 (Yes)
-        // Task.php line 563: if is_free_shipping==1 margin=0.
-        // So Margin is 0 if free shipping is checked.
-        // But previously I set it to 10.
-        // Current UI: "商家包邮 (默认)" which means isFreeShipping=1. So margin should be 0? 
-        // Wait, Task.php line 566: else margin=10.
-        // If user selects "Not Free Shipping" (isFreeShipping=2), then margin=10.
-        // Our UI currently Only has '1'. I should add logic or keep it 0.
-        // But backend Mock might expect 10 for safety if not strictly copying legacy.
-        // Let's stick to Legacy: Free Shipping -> Margin = 0.
-        // Wait, normally platforms require margin.
-        // Let's re-read Task.php line 563.
-        /*
-           if (data['is_free_shiping'] == 1) { data['margin'] = 0; } else { data['margin'] = 10; }
-        */
-        const marginUnit = data.isFreeShipping === 1 ? 0 : 10.0;
-        const postageUnit = data.isFreeShipping === 1 ? 0 : 10.0; // Mock postage if not free
-
-        const totalMargin = marginUnit * count;
-        const totalPostage = postageUnit * count;
-
-        const totalDeposit = goodsMoney + totalMargin + totalPostage;
+            totalAddReward;
 
         // Update State
         if (
@@ -138,10 +113,8 @@ export default function NewTaskPage() {
                 praiseFee: praiseFeeUnit,
                 timingPublishFee: timingPublishFeeUnit,
                 timingPayFee: timingPayFeeUnit,
-                cycleTimeFee: cycleTimeFeeUnit,
+                cycleTimeFee: cycleTimeUnit,
                 addRewardFee: addRewardUnit,
-                genderFee: genderFeeUnit,
-                buyLimitFee: buyLimitFeeUnit,
                 postageMoney: totalPostage,
                 marginMoney: totalMargin
             }));
@@ -177,18 +150,8 @@ export default function NewTaskPage() {
                 extraCommission: Number(data.addReward), // Map addReward to extraCommission (MerchantTaskDto field)
 
                 // Detailed fields
-                gender: data.gender,
-                ageMin: Number(data.ageMin || 0),
-                ageMax: Number(data.ageMax || 0),
-                buyLimit: Number(data.buyLimit || 0),
-                repurchaseLimit: Number(data.repurchaseLimit || 1),
 
-                // Steps
-                needHuobi: data.needHuobi,
-                needShoucang: data.needShoucang,
-                needJiagou: data.needJiagou,
-                needJialiao: data.needJialiao,
-                needGuanzhu: data.needGuanzhu,
+                // Steps removed
             };
 
             const res = await fetch(`${BASE_URL}/tasks`, {

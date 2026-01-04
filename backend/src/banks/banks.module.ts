@@ -5,15 +5,15 @@ import { BanksService } from './banks.service';
 import { BanksController } from './banks.controller';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Bank])],
-    controllers: [BanksController],
-    providers: [BanksService],
-    exports: [BanksService]
+  imports: [TypeOrmModule.forFeature([Bank])],
+  controllers: [BanksController],
+  providers: [BanksService],
+  exports: [BanksService],
 })
 export class BanksModule implements OnModuleInit {
-    constructor(private banksService: BanksService) { }
+  constructor(private banksService: BanksService) {}
 
-    async onModuleInit() {
-        await this.banksService.initDefaultBanks();
-    }
+  async onModuleInit() {
+    await this.banksService.initDefaultBanks();
+  }
 }

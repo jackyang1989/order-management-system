@@ -4,8 +4,8 @@ import { CacheController } from './cache.controller';
 
 @Global()
 @Module({
-    controllers: [CacheController],
-    providers: [CacheService],
-    exports: [CacheService],
+  controllers: [CacheController],
+  providers: [CacheService],
+  exports: [CacheService],
 })
-export class CacheModule { }
+export class CacheModule {}

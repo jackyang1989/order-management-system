@@ -6,12 +6,9 @@ import { MerchantBlacklist } from './merchant-blacklist.entity';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([MerchantBlacklist]),
-        AuthModule
-    ],
-    providers: [MerchantBlacklistService],
-    controllers: [MerchantBlacklistController],
-    exports: [MerchantBlacklistService]
+  imports: [TypeOrmModule.forFeature([MerchantBlacklist]), AuthModule],
+  providers: [MerchantBlacklistService],
+  controllers: [MerchantBlacklistController],
+  exports: [MerchantBlacklistService],
 })
-export class MerchantBlacklistModule { }
+export class MerchantBlacklistModule {}

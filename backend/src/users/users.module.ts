@@ -9,9 +9,9 @@ import { FundRecord } from './fund-record.entity';
 import { Order } from '../orders/order.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User, FundRecord, Order])],
-    providers: [UsersService, UsersAdminService],
-    controllers: [UsersController, UsersAdminController],
-    exports: [UsersService, UsersAdminService]
+  imports: [TypeOrmModule.forFeature([User, FundRecord, Order])],
+  providers: [UsersService, UsersAdminService],
+  controllers: [UsersController, UsersAdminController],
+  exports: [UsersService, UsersAdminService],
 })
-export class UsersModule { }
+export class UsersModule {}

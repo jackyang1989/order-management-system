@@ -13,14 +13,14 @@ import { AuthModule } from '../auth/auth.module';
 import { BuyerAccountsModule } from '../buyer-accounts/buyer-accounts.module';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([User, Merchant, Task, Order, Withdrawal]),
-        ShopsModule,
-        AuthModule,
-        BuyerAccountsModule
-    ],
-    providers: [AdminService],
-    controllers: [AdminController],
-    exports: [AdminService]
+  imports: [
+    TypeOrmModule.forFeature([User, Merchant, Task, Order, Withdrawal]),
+    ShopsModule,
+    AuthModule,
+    BuyerAccountsModule,
+  ],
+  providers: [AdminService],
+  controllers: [AdminController],
+  exports: [AdminService],
 })
-export class AdminModule { }
+export class AdminModule {}

@@ -10,13 +10,13 @@ import { User } from '../users/user.entity';
 import { Merchant } from '../merchants/merchant.entity';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([Recharge, RewardRecharge, User, Merchant]),
-        FinanceRecordsModule,
-        AuthModule,
-    ],
-    controllers: [RechargeController],
-    providers: [RechargeService],
-    exports: [RechargeService],
+  imports: [
+    TypeOrmModule.forFeature([Recharge, RewardRecharge, User, Merchant]),
+    FinanceRecordsModule,
+    AuthModule,
+  ],
+  controllers: [RechargeController],
+  providers: [RechargeService],
+  exports: [RechargeService],
 })
-export class RechargeModule { }
+export class RechargeModule {}

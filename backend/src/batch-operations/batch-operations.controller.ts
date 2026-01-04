@@ -7,601 +7,622 @@ import { KeywordPlatform, KeywordTerminal } from '../keywords/keyword.entity';
 
 @Controller('batch')
 export class BatchOperationsController {
-    constructor(
-        private batchService: BatchOperationsService,
-        private goodsService: GoodsService,
-        private keywordsService: KeywordsService
-    ) { }
+  constructor(
+    private batchService: BatchOperationsService,
+    private goodsService: GoodsService,
+    private keywordsService: KeywordsService,
+  ) {}
 
-    /**
-     * 批量发货
-     */
-    @Post('ship')
-    @UseGuards(JwtAuthGuard)
-    async batchShip(
-        @Body() body: {
-            orders: Array<{
-                orderId: string;
-                delivery: string;
-                deliveryNum: string;
-            }>;
-        },
-        @Request() req
-    ) {
-        const orderIds = body.orders.map(o => o.orderId);
-        const deliveryData = body.orders.map(o => ({
-            delivery: o.delivery,
-            deliveryNum: o.deliveryNum
-        }));
+  /**
+   * 批量发货
+   */
+  @Post('ship')
+  @UseGuards(JwtAuthGuard)
+  async batchShip(
+    @Body()
+    body: {
+      orders: Array<{
+        orderId: string;
+        delivery: string;
+        deliveryNum: string;
+      }>;
+    },
+    @Request() req,
+  ) {
+    const orderIds = body.orders.map((o) => o.orderId);
+    const deliveryData = body.orders.map((o) => ({
+      delivery: o.delivery,
+      deliveryNum: o.deliveryNum,
+    }));
 
-        const result = await this.batchService.batchShip(
-            orderIds,
-            deliveryData,
-            req.user.userId,
-            req.user.username || '管理员'
-        );
+    const result = await this.batchService.batchShip(
+      orderIds,
+      deliveryData,
+      req.user.userId,
+      req.user.username || '管理员',
+    );
 
-        return {
-            success: true,
-            message: `成功${result.success}个，失败${result.failed}个`,
-            data: result
-        };
-    }
+    return {
+      success: true,
+      message: `成功${result.success}个，失败${result.failed}个`,
+      data: result,
+    };
+  }
 
-    /**
-     * Excel导入发货 (双模式导入)
-     * 对应原版接口: Task::import (按ID) 和 Task::import1 (按任务编号)
-     * 业务语义: 支持通过订单ID或任务编号两种方式匹配订单并发货
-     * 前置条件: user_task.state = 3 (待发货)
-     */
-    @Post('ship/import')
-    @UseGuards(JwtAuthGuard)
-    async batchShipFromExcel(
-        @Body() body: {
-            data: Array<{
-                orderId?: string;       // 模式1: 按订单ID匹配
-                taskNumber?: string;    // 模式2: 按任务编号匹配
-                orderNo?: string;       // 兼容: 按订单号匹配
-                taobaoOrderNo?: string; // 兼容: 按淘宝单号匹配
-                delivery: string;
-                deliveryNum: string;
-            }>;
-        },
-        @Request() req
-    ) {
-        const result = await this.batchService.batchShipFromExcel(
-            body.data,
-            req.user.userId,
-            req.user.username || '管理员'
-        );
+  /**
+   * Excel导入发货 (双模式导入)
+   * 对应原版接口: Task::import (按ID) 和 Task::import1 (按任务编号)
+   * 业务语义: 支持通过订单ID或任务编号两种方式匹配订单并发货
+   * 前置条件: user_task.state = 3 (待发货)
+   */
+  @Post('ship/import')
+  @UseGuards(JwtAuthGuard)
+  async batchShipFromExcel(
+    @Body()
+    body: {
+      data: Array<{
+        orderId?: string; // 模式1: 按订单ID匹配
+        taskNumber?: string; // 模式2: 按任务编号匹配
+        orderNo?: string; // 兼容: 按订单号匹配
+        taobaoOrderNo?: string; // 兼容: 按淘宝单号匹配
+        delivery: string;
+        deliveryNum: string;
+      }>;
+    },
+    @Request() req,
+  ) {
+    const result = await this.batchService.batchShipFromExcel(
+      body.data,
+      req.user.userId,
+      req.user.username || '管理员',
+    );
 
-        return {
-            success: true,
-            message: `成功${result.success}个，失败${result.failed}个`,
-            data: result
-        };
-    }
+    return {
+      success: true,
+      message: `成功${result.success}个，失败${result.failed}个`,
+      data: result,
+    };
+  }
 
-    /**
-     * 批量审核任务
-     */
-    @Post('approve-tasks')
-    @UseGuards(JwtAuthGuard)
-    async batchApproveTasks(@Body() body: { taskIds: string[] }, @Request() req) {
-        const result = await this.batchService.batchApproveTasks(body.taskIds, req.user.userId);
-        return {
-            success: true,
-            message: `成功${result.success}个，失败${result.failed}个`,
-            data: result
-        };
-    }
+  /**
+   * 批量审核任务
+   */
+  @Post('approve-tasks')
+  @UseGuards(JwtAuthGuard)
+  async batchApproveTasks(@Body() body: { taskIds: string[] }, @Request() req) {
+    const result = await this.batchService.batchApproveTasks(
+      body.taskIds,
+      req.user.userId,
+    );
+    return {
+      success: true,
+      message: `成功${result.success}个，失败${result.failed}个`,
+      data: result,
+    };
+  }
 
-    /**
-     * 批量拒绝任务
-     * 对应原版接口: Task::examineRefuse
-     * 业务语义: 后台拒绝商家任务，退还押金和银锭
-     * 前置条件: seller_task.status = 2 (待审核)
-     * 后置状态: seller_task.status = 4 (已拒绝)
-     * 副作用: 更新 remarks, examine_time, 退还押金/银锭
-     */
-    @Post('reject-tasks')
-    @UseGuards(JwtAuthGuard)
-    async batchRejectTasks(
-        @Body() body: { taskIds: string[]; reason: string },
-        @Request() req
-    ) {
-        const result = await this.batchService.batchRejectTasks(
-            body.taskIds,
-            body.reason,
-            req.user.userId,
-            req.user.username || '管理员'
-        );
-        return {
-            success: true,
-            message: `成功${result.success}个，失败${result.failed}个`,
-            data: result
-        };
-    }
+  /**
+   * 批量拒绝任务
+   * 对应原版接口: Task::examineRefuse
+   * 业务语义: 后台拒绝商家任务，退还押金和银锭
+   * 前置条件: seller_task.status = 2 (待审核)
+   * 后置状态: seller_task.status = 4 (已拒绝)
+   * 副作用: 更新 remarks, examine_time, 退还押金/银锭
+   */
+  @Post('reject-tasks')
+  @UseGuards(JwtAuthGuard)
+  async batchRejectTasks(
+    @Body() body: { taskIds: string[]; reason: string },
+    @Request() req,
+  ) {
+    const result = await this.batchService.batchRejectTasks(
+      body.taskIds,
+      body.reason,
+      req.user.userId,
+      req.user.username || '管理员',
+    );
+    return {
+      success: true,
+      message: `成功${result.success}个，失败${result.failed}个`,
+      data: result,
+    };
+  }
 
-    /**
-     * 批量审核订单
-     */
-    @Post('approve-orders')
-    @UseGuards(JwtAuthGuard)
-    async batchApproveOrders(@Body() body: { orderIds: string[] }, @Request() req) {
-        const result = await this.batchService.batchApproveOrders(
-            body.orderIds,
-            req.user.userId,
-            req.user.username || '管理员'
-        );
-        return {
-            success: true,
-            message: `成功${result.success}个，失败${result.failed}个`,
-            data: result
-        };
-    }
+  /**
+   * 批量审核订单
+   */
+  @Post('approve-orders')
+  @UseGuards(JwtAuthGuard)
+  async batchApproveOrders(
+    @Body() body: { orderIds: string[] },
+    @Request() req,
+  ) {
+    const result = await this.batchService.batchApproveOrders(
+      body.orderIds,
+      req.user.userId,
+      req.user.username || '管理员',
+    );
+    return {
+      success: true,
+      message: `成功${result.success}个，失败${result.failed}个`,
+      data: result,
+    };
+  }
 
-    /**
-     * 批量返款
-     */
-    @Post('refund')
-    @UseGuards(JwtAuthGuard)
-    async batchRefund(@Body() body: { orderIds: string[] }, @Request() req) {
-        const result = await this.batchService.batchRefund(
-            body.orderIds,
-            req.user.userId,
-            req.user.username || '管理员'
-        );
-        return {
-            success: true,
-            message: `成功${result.success}个，失败${result.failed}个，总金额${result.totalAmount}元`,
-            data: result
-        };
-    }
+  /**
+   * 批量返款
+   */
+  @Post('refund')
+  @UseGuards(JwtAuthGuard)
+  async batchRefund(@Body() body: { orderIds: string[] }, @Request() req) {
+    const result = await this.batchService.batchRefund(
+      body.orderIds,
+      req.user.userId,
+      req.user.username || '管理员',
+    );
+    return {
+      success: true,
+      message: `成功${result.success}个，失败${result.failed}个，总金额${result.totalAmount}元`,
+      data: result,
+    };
+  }
 
-    /**
-     * 批量审核追评
-     */
-    @Post('approve-reviews')
-    @UseGuards(JwtAuthGuard)
-    async batchApproveReviews(@Body() body: { reviewTaskIds: string[] }, @Request() req) {
-        const result = await this.batchService.batchApproveReviewTasks(
-            body.reviewTaskIds,
-            req.user.userId
-        );
-        return {
-            success: true,
-            message: `成功${result.success}个，失败${result.failed}个`,
-            data: result
-        };
-    }
+  /**
+   * 批量审核追评
+   */
+  @Post('approve-reviews')
+  @UseGuards(JwtAuthGuard)
+  async batchApproveReviews(
+    @Body() body: { reviewTaskIds: string[] },
+    @Request() req,
+  ) {
+    const result = await this.batchService.batchApproveReviewTasks(
+      body.reviewTaskIds,
+      req.user.userId,
+    );
+    return {
+      success: true,
+      message: `成功${result.success}个，失败${result.failed}个`,
+      data: result,
+    };
+  }
 
-    /**
-     * 批量返款追评
-     */
-    @Post('refund-reviews')
-    @UseGuards(JwtAuthGuard)
-    async batchRefundReviews(@Body() body: { reviewTaskIds: string[] }, @Request() req) {
-        const result = await this.batchService.batchRefundReviewTasks(
-            body.reviewTaskIds,
-            req.user.userId
-        );
-        return {
-            success: true,
-            message: `成功${result.success}个，失败${result.failed}个，总金额${result.totalAmount}元`,
-            data: result
-        };
-    }
+  /**
+   * 批量返款追评
+   */
+  @Post('refund-reviews')
+  @UseGuards(JwtAuthGuard)
+  async batchRefundReviews(
+    @Body() body: { reviewTaskIds: string[] },
+    @Request() req,
+  ) {
+    const result = await this.batchService.batchRefundReviewTasks(
+      body.reviewTaskIds,
+      req.user.userId,
+    );
+    return {
+      success: true,
+      message: `成功${result.success}个，失败${result.failed}个，总金额${result.totalAmount}元`,
+      data: result,
+    };
+  }
 
-    /**
-     * 批量取消订单
-     */
-    @Post('cancel-orders')
-    @UseGuards(JwtAuthGuard)
-    async batchCancelOrders(
-        @Body() body: { orderIds: string[]; reason: string },
-        @Request() req
-    ) {
-        const result = await this.batchService.batchCancelOrders(
-            body.orderIds,
-            body.reason,
-            req.user.userId,
-            req.user.username || '管理员'
-        );
-        return {
-            success: true,
-            message: `成功${result.success}个，失败${result.failed}个`,
-            data: result
-        };
-    }
+  /**
+   * 批量取消订单
+   */
+  @Post('cancel-orders')
+  @UseGuards(JwtAuthGuard)
+  async batchCancelOrders(
+    @Body() body: { orderIds: string[]; reason: string },
+    @Request() req,
+  ) {
+    const result = await this.batchService.batchCancelOrders(
+      body.orderIds,
+      body.reason,
+      req.user.userId,
+      req.user.username || '管理员',
+    );
+    return {
+      success: true,
+      message: `成功${result.success}个，失败${result.failed}个`,
+      data: result,
+    };
+  }
 
-    /**
-     * 预售返款（预付款/尾款）
-     * 对应原版接口: Task::returnys
-     * 业务语义: 对预售订单(is_ys=1)进行预付款或尾款返款操作
-     * 前置条件: user_task.state = 5 (待返款), is_ys = 1
-     * 后置状态: user_task.state = 6 (待确认返款)
-     */
-    @Post('presale-refund')
-    @UseGuards(JwtAuthGuard)
-    async presaleRefund(
-        @Body() body: { orderId: string; type: 1 | 2 },
-        @Request() req
-    ) {
-        const result = await this.batchService.presaleRefund(
-            body.orderId,
-            body.type,
-            req.user.userId,
-            req.user.username || '管理员'
-        );
-        return {
-            success: result.success,
-            message: result.message,
-            data: result
-        };
-    }
+  /**
+   * 预售返款（预付款/尾款）
+   * 对应原版接口: Task::returnys
+   * 业务语义: 对预售订单(is_ys=1)进行预付款或尾款返款操作
+   * 前置条件: user_task.state = 5 (待返款), is_ys = 1
+   * 后置状态: user_task.state = 6 (待确认返款)
+   */
+  @Post('presale-refund')
+  @UseGuards(JwtAuthGuard)
+  async presaleRefund(
+    @Body() body: { orderId: string; type: 1 | 2 },
+    @Request() req,
+  ) {
+    const result = await this.batchService.presaleRefund(
+      body.orderId,
+      body.type,
+      req.user.userId,
+      req.user.username || '管理员',
+    );
+    return {
+      success: result.success,
+      message: result.message,
+      data: result,
+    };
+  }
 
-    /**
-     * 修改预付金额
-     * 对应原版接口: Task::return_price1
-     * 业务语义: 后台修改预售订单的预付款金额(yf_price)
-     * 前置条件: user_task.state = 5 (待返款)
-     * 限制: 浮动不能超过 ±500元
-     */
-    @Post('update-yf-price')
-    @UseGuards(JwtAuthGuard)
-    async updateYfPrice(
-        @Body() body: { orderId: string; price: number },
-        @Request() req
-    ) {
-        const result = await this.batchService.updateYfPrice(
-            body.orderId,
-            body.price,
-            req.user.userId,
-            req.user.username || '管理员'
-        );
-        return {
-            success: result.success,
-            message: result.message,
-            data: result
-        };
-    }
+  /**
+   * 修改预付金额
+   * 对应原版接口: Task::return_price1
+   * 业务语义: 后台修改预售订单的预付款金额(yf_price)
+   * 前置条件: user_task.state = 5 (待返款)
+   * 限制: 浮动不能超过 ±500元
+   */
+  @Post('update-yf-price')
+  @UseGuards(JwtAuthGuard)
+  async updateYfPrice(
+    @Body() body: { orderId: string; price: number },
+    @Request() req,
+  ) {
+    const result = await this.batchService.updateYfPrice(
+      body.orderId,
+      body.price,
+      req.user.userId,
+      req.user.username || '管理员',
+    );
+    return {
+      success: result.success,
+      message: result.message,
+      data: result,
+    };
+  }
 
-    /**
-     * 修改尾款金额
-     * 对应原版接口: Task::return_price2
-     * 业务语义: 后台修改预售订单的尾款金额(wk_price)
-     * 前置条件: user_task.state = 5 (待返款)
-     * 限制: 浮动不能超过 ±100元
-     */
-    @Post('update-wk-price')
-    @UseGuards(JwtAuthGuard)
-    async updateWkPrice(
-        @Body() body: { orderId: string; price: number },
-        @Request() req
-    ) {
-        const result = await this.batchService.updateWkPrice(
-            body.orderId,
-            body.price,
-            req.user.userId,
-            req.user.username || '管理员'
-        );
-        return {
-            success: result.success,
-            message: result.message,
-            data: result
-        };
-    }
+  /**
+   * 修改尾款金额
+   * 对应原版接口: Task::return_price2
+   * 业务语义: 后台修改预售订单的尾款金额(wk_price)
+   * 前置条件: user_task.state = 5 (待返款)
+   * 限制: 浮动不能超过 ±100元
+   */
+  @Post('update-wk-price')
+  @UseGuards(JwtAuthGuard)
+  async updateWkPrice(
+    @Body() body: { orderId: string; price: number },
+    @Request() req,
+  ) {
+    const result = await this.batchService.updateWkPrice(
+      body.orderId,
+      body.price,
+      req.user.userId,
+      req.user.username || '管理员',
+    );
+    return {
+      success: result.success,
+      message: result.message,
+      data: result,
+    };
+  }
 
-    /**
-     * 修改剩余单数
-     * 对应原版接口: Task::incomplete_num
-     * 业务语义: 后台修改商家任务的剩余单数(incomplete_num)
-     * 前置条件: seller_task.status = 3(已通过), 4(已拒绝), 5(已取消)
-     * 禁止状态: status = 1(未支付), 2(待审核), 6(已完成)
-     */
-    @Post('update-incomplete-num')
-    @UseGuards(JwtAuthGuard)
-    async updateIncompleteNum(
-        @Body() body: { taskId: string; incompleteNum: number },
-        @Request() req
-    ) {
-        const result = await this.batchService.updateIncompleteNum(
-            body.taskId,
-            body.incompleteNum,
-            req.user.userId,
-            req.user.username || '管理员'
-        );
-        return {
-            success: result.success,
-            message: result.message,
-            data: result
-        };
-    }
+  /**
+   * 修改剩余单数
+   * 对应原版接口: Task::incomplete_num
+   * 业务语义: 后台修改商家任务的剩余单数(incomplete_num)
+   * 前置条件: seller_task.status = 3(已通过), 4(已拒绝), 5(已取消)
+   * 禁止状态: status = 1(未支付), 2(待审核), 6(已完成)
+   */
+  @Post('update-incomplete-num')
+  @UseGuards(JwtAuthGuard)
+  async updateIncompleteNum(
+    @Body() body: { taskId: string; incompleteNum: number },
+    @Request() req,
+  ) {
+    const result = await this.batchService.updateIncompleteNum(
+      body.taskId,
+      body.incompleteNum,
+      req.user.userId,
+      req.user.username || '管理员',
+    );
+    return {
+      success: result.success,
+      message: result.message,
+      data: result,
+    };
+  }
 
-    /**
-     * 任务回退重发货
-     * 对应原版接口: Task::regression_examine
-     * 业务语义: 将待返款(state=5)的订单回退到待收货(state=4)，重新发货
-     * 前置条件: user_task.state = 5 (待返款)
-     * 后置状态: user_task.state = 4 (待收货)
-     */
-    @Post('regression-examine')
-    @UseGuards(JwtAuthGuard)
-    async regressionExamine(
-        @Body() body: { orderId: string; delivery: string; deliveryNum: string },
-        @Request() req
-    ) {
-        const result = await this.batchService.regressionExamine(
-            body.orderId,
-            body.delivery,
-            body.deliveryNum,
-            req.user.userId,
-            req.user.username || '管理员'
-        );
-        return {
-            success: result.success,
-            message: result.message,
-            data: result
-        };
-    }
+  /**
+   * 任务回退重发货
+   * 对应原版接口: Task::regression_examine
+   * 业务语义: 将待返款(state=5)的订单回退到待收货(state=4)，重新发货
+   * 前置条件: user_task.state = 5 (待返款)
+   * 后置状态: user_task.state = 4 (待收货)
+   */
+  @Post('regression-examine')
+  @UseGuards(JwtAuthGuard)
+  async regressionExamine(
+    @Body() body: { orderId: string; delivery: string; deliveryNum: string },
+    @Request() req,
+  ) {
+    const result = await this.batchService.regressionExamine(
+      body.orderId,
+      body.delivery,
+      body.deliveryNum,
+      req.user.userId,
+      req.user.username || '管理员',
+    );
+    return {
+      success: result.success,
+      message: result.message,
+      data: result,
+    };
+  }
 
-    /**
-     * 修改订单关键词
-     * 对应原版接口: Task::edit_key
-     * 业务语义: 后台修改订单的搜索关键词(key)
-     * 前置条件: 无状态限制
-     */
-    @Post('edit-keyword')
-    @UseGuards(JwtAuthGuard)
-    async editKeyword(
-        @Body() body: { orderId: string; keyword: string },
-        @Request() req
-    ) {
-        const result = await this.batchService.editKeyword(
-            body.orderId,
-            body.keyword,
-            req.user.userId,
-            req.user.username || '管理员'
-        );
-        return {
-            success: result.success,
-            message: result.message,
-            data: result
-        };
-    }
+  /**
+   * 修改订单关键词
+   * 对应原版接口: Task::edit_key
+   * 业务语义: 后台修改订单的搜索关键词(key)
+   * 前置条件: 无状态限制
+   */
+  @Post('edit-keyword')
+  @UseGuards(JwtAuthGuard)
+  async editKeyword(
+    @Body() body: { orderId: string; keyword: string },
+    @Request() req,
+  ) {
+    const result = await this.batchService.editKeyword(
+      body.orderId,
+      body.keyword,
+      req.user.userId,
+      req.user.username || '管理员',
+    );
+    return {
+      success: result.success,
+      message: result.message,
+      data: result,
+    };
+  }
 
-    /**
-     * 后台修改商品
-     * 对应原版接口: Task::goodsEditDo
-     * 业务语义: 后台管理员修改商品信息
-     * 前置条件: 无状态限制
-     */
-    @Post('goods-edit')
-    @UseGuards(JwtAuthGuard)
-    async goodsEditDo(
-        @Body() body: {
-            goodsId: string;
-            name?: string;
-            link?: string;
-            verifyCode?: string;
-            pcImg?: string;
-            specName?: string;
-            specValue?: string;
-            price?: number;
-            showPrice?: number;
-            num?: number;
-            goodsKeyId?: string;
-        },
-        @Request() req
-    ) {
-        const result = await this.goodsService.adminUpdate(
-            body.goodsId,
-            body,
-            req.user.username || '管理员'
-        );
-        return {
-            success: result.success,
-            message: result.message,
-            data: result
-        };
-    }
+  /**
+   * 后台修改商品
+   * 对应原版接口: Task::goodsEditDo
+   * 业务语义: 后台管理员修改商品信息
+   * 前置条件: 无状态限制
+   */
+  @Post('goods-edit')
+  @UseGuards(JwtAuthGuard)
+  async goodsEditDo(
+    @Body()
+    body: {
+      goodsId: string;
+      name?: string;
+      link?: string;
+      verifyCode?: string;
+      pcImg?: string;
+      specName?: string;
+      specValue?: string;
+      price?: number;
+      showPrice?: number;
+      num?: number;
+      goodsKeyId?: string;
+    },
+    @Request() req,
+  ) {
+    const result = await this.goodsService.adminUpdate(
+      body.goodsId,
+      body,
+      req.user.username || '管理员',
+    );
+    return {
+      success: result.success,
+      message: result.message,
+      data: result,
+    };
+  }
 
-    /**
-     * 后台添加关键词方案
-     * 对应原版接口: Task::goodsKeyAdd
-     * 业务语义: 后台管理员添加关键词方案
-     */
-    @Post('keyword-scheme-add')
-    @UseGuards(JwtAuthGuard)
-    async goodsKeyAdd(
-        @Body() body: {
-            sellerId: string;
-            name: string;
-            platform?: KeywordPlatform;
-            details: Array<{
-                keyword: string;
-                terminal?: KeywordTerminal;
-                discount?: string;
-                filter?: string;
-                sort?: string;
-                maxPrice?: number;
-                minPrice?: number;
-                province?: string;
-            }>;
-        },
-        @Request() req
-    ) {
-        const result = await this.keywordsService.adminCreateScheme(
-            body.sellerId,
-            { name: body.name, platform: body.platform, details: body.details },
-            req.user.username || '管理员'
-        );
-        return {
-            success: result.success,
-            message: result.message,
-            data: result.data
-        };
-    }
+  /**
+   * 后台添加关键词方案
+   * 对应原版接口: Task::goodsKeyAdd
+   * 业务语义: 后台管理员添加关键词方案
+   */
+  @Post('keyword-scheme-add')
+  @UseGuards(JwtAuthGuard)
+  async goodsKeyAdd(
+    @Body()
+    body: {
+      sellerId: string;
+      name: string;
+      platform?: KeywordPlatform;
+      details: Array<{
+        keyword: string;
+        terminal?: KeywordTerminal;
+        discount?: string;
+        filter?: string;
+        sort?: string;
+        maxPrice?: number;
+        minPrice?: number;
+        province?: string;
+      }>;
+    },
+    @Request() req,
+  ) {
+    const result = await this.keywordsService.adminCreateScheme(
+      body.sellerId,
+      { name: body.name, platform: body.platform, details: body.details },
+      req.user.username || '管理员',
+    );
+    return {
+      success: result.success,
+      message: result.message,
+      data: result.data,
+    };
+  }
 
-    /**
-     * 后台修改关键词方案
-     * 对应原版接口: Task::goodsKeyEdit
-     * 业务语义: 后台管理员修改关键词方案（删除旧关键词，添加新关键词）
-     */
-    @Post('keyword-scheme-edit')
-    @UseGuards(JwtAuthGuard)
-    async goodsKeyEdit(
-        @Body() body: {
-            schemeId: string;
-            name: string;
-            platform?: KeywordPlatform;
-            details: Array<{
-                keyword: string;
-                terminal?: KeywordTerminal;
-                discount?: string;
-                filter?: string;
-                sort?: string;
-                maxPrice?: number;
-                minPrice?: number;
-                province?: string;
-            }>;
-        },
-        @Request() req
-    ) {
-        const result = await this.keywordsService.adminUpdateScheme(
-            body.schemeId,
-            { name: body.name, platform: body.platform, details: body.details },
-            req.user.username || '管理员'
-        );
-        return {
-            success: result.success,
-            message: result.message,
-            data: result.data
-        };
-    }
+  /**
+   * 后台修改关键词方案
+   * 对应原版接口: Task::goodsKeyEdit
+   * 业务语义: 后台管理员修改关键词方案（删除旧关键词，添加新关键词）
+   */
+  @Post('keyword-scheme-edit')
+  @UseGuards(JwtAuthGuard)
+  async goodsKeyEdit(
+    @Body()
+    body: {
+      schemeId: string;
+      name: string;
+      platform?: KeywordPlatform;
+      details: Array<{
+        keyword: string;
+        terminal?: KeywordTerminal;
+        discount?: string;
+        filter?: string;
+        sort?: string;
+        maxPrice?: number;
+        minPrice?: number;
+        province?: string;
+      }>;
+    },
+    @Request() req,
+  ) {
+    const result = await this.keywordsService.adminUpdateScheme(
+      body.schemeId,
+      { name: body.name, platform: body.platform, details: body.details },
+      req.user.username || '管理员',
+    );
+    return {
+      success: result.success,
+      message: result.message,
+      data: result.data,
+    };
+  }
 
-    // ============ 批量提现审核 (P0-10) ============
+  // ============ 批量提现审核 (P0-10) ============
 
-    /**
-     * 批量审核买手提现申请
-     * 对应原版接口: Finance::allCheck (user_cash)
-     * 业务语义: 批量审核买手提现申请 (通过/拒绝)
-     * 前置条件: state = 0 (已申请)
-     * 后置状态: state = 1 (已同意) 或 state = 2 (已拒绝)
-     */
-    @Post('review-buyer-withdrawals')
-    @UseGuards(JwtAuthGuard)
-    async batchReviewBuyerWithdrawals(
-        @Body() body: {
-            withdrawalIds: string[];
-            action: 'approve' | 'reject';
-            reason?: string;
-        },
-        @Request() req
-    ) {
-        const result = await this.batchService.batchReviewBuyerWithdrawals(
-            body.withdrawalIds,
-            body.action,
-            body.reason,
-            req.user.userId,
-            req.user.username || '管理员'
-        );
-        return {
-            success: true,
-            message: `成功${result.success}个，失败${result.failed}个`,
-            data: result
-        };
-    }
+  /**
+   * 批量审核买手提现申请
+   * 对应原版接口: Finance::allCheck (user_cash)
+   * 业务语义: 批量审核买手提现申请 (通过/拒绝)
+   * 前置条件: state = 0 (已申请)
+   * 后置状态: state = 1 (已同意) 或 state = 2 (已拒绝)
+   */
+  @Post('review-buyer-withdrawals')
+  @UseGuards(JwtAuthGuard)
+  async batchReviewBuyerWithdrawals(
+    @Body()
+    body: {
+      withdrawalIds: string[];
+      action: 'approve' | 'reject';
+      reason?: string;
+    },
+    @Request() req,
+  ) {
+    const result = await this.batchService.batchReviewBuyerWithdrawals(
+      body.withdrawalIds,
+      body.action,
+      body.reason,
+      req.user.userId,
+      req.user.username || '管理员',
+    );
+    return {
+      success: true,
+      message: `成功${result.success}个，失败${result.failed}个`,
+      data: result,
+    };
+  }
 
-    /**
-     * 批量审核商家提现申请
-     * 对应原版接口: Finance::allCheck (seller_cash)
-     * 业务语义: 批量审核商家提现申请 (通过/拒绝)
-     * 前置条件: state = 0 (已申请)
-     * 后置状态: state = 1 (已同意) 或 state = 2 (已拒绝)
-     */
-    @Post('review-merchant-withdrawals')
-    @UseGuards(JwtAuthGuard)
-    async batchReviewMerchantWithdrawals(
-        @Body() body: {
-            withdrawalIds: string[];
-            action: 'approve' | 'reject';
-            reason?: string;
-        },
-        @Request() req
-    ) {
-        const result = await this.batchService.batchReviewMerchantWithdrawals(
-            body.withdrawalIds,
-            body.action,
-            body.reason,
-            req.user.userId,
-            req.user.username || '管理员'
-        );
-        return {
-            success: true,
-            message: `成功${result.success}个，失败${result.failed}个`,
-            data: result
-        };
-    }
+  /**
+   * 批量审核商家提现申请
+   * 对应原版接口: Finance::allCheck (seller_cash)
+   * 业务语义: 批量审核商家提现申请 (通过/拒绝)
+   * 前置条件: state = 0 (已申请)
+   * 后置状态: state = 1 (已同意) 或 state = 2 (已拒绝)
+   */
+  @Post('review-merchant-withdrawals')
+  @UseGuards(JwtAuthGuard)
+  async batchReviewMerchantWithdrawals(
+    @Body()
+    body: {
+      withdrawalIds: string[];
+      action: 'approve' | 'reject';
+      reason?: string;
+    },
+    @Request() req,
+  ) {
+    const result = await this.batchService.batchReviewMerchantWithdrawals(
+      body.withdrawalIds,
+      body.action,
+      body.reason,
+      req.user.userId,
+      req.user.username || '管理员',
+    );
+    return {
+      success: true,
+      message: `成功${result.success}个，失败${result.failed}个`,
+      data: result,
+    };
+  }
 
-    // ============ 批量确认打款 (P0-11) ============
+  // ============ 批量确认打款 (P0-11) ============
 
-    /**
-     * 批量确认买手提现打款
-     * 对应原版接口: Finance::confirmPaymentAll (user_cash)
-     * 业务语义: 批量确认买手提现已打款完成
-     * 前置条件: state = 1 (已同意)
-     * 后置状态: state = 3 (已返款)
-     */
-    @Post('confirm-buyer-payment')
-    @UseGuards(JwtAuthGuard)
-    async batchConfirmBuyerPayment(
-        @Body() body: {
-            withdrawalIds: string[];
-            paymentNo?: string;
-        },
-        @Request() req
-    ) {
-        const result = await this.batchService.batchConfirmBuyerPayment(
-            body.withdrawalIds,
-            body.paymentNo,
-            req.user.userId,
-            req.user.username || '管理员'
-        );
-        return {
-            success: true,
-            message: `成功${result.success}个，失败${result.failed}个，总金额${result.totalAmount}元`,
-            data: result
-        };
-    }
+  /**
+   * 批量确认买手提现打款
+   * 对应原版接口: Finance::confirmPaymentAll (user_cash)
+   * 业务语义: 批量确认买手提现已打款完成
+   * 前置条件: state = 1 (已同意)
+   * 后置状态: state = 3 (已返款)
+   */
+  @Post('confirm-buyer-payment')
+  @UseGuards(JwtAuthGuard)
+  async batchConfirmBuyerPayment(
+    @Body()
+    body: {
+      withdrawalIds: string[];
+      paymentNo?: string;
+    },
+    @Request() req,
+  ) {
+    const result = await this.batchService.batchConfirmBuyerPayment(
+      body.withdrawalIds,
+      body.paymentNo,
+      req.user.userId,
+      req.user.username || '管理员',
+    );
+    return {
+      success: true,
+      message: `成功${result.success}个，失败${result.failed}个，总金额${result.totalAmount}元`,
+      data: result,
+    };
+  }
 
-    /**
-     * 批量确认商家提现打款
-     * 对应原版接口: Finance::confirmPaymentAll (seller_cash)
-     * 业务语义: 批量确认商家提现已打款完成
-     * 前置条件: state = 1 (已同意)
-     * 后置状态: state = 3 (已返款)
-     */
-    @Post('confirm-merchant-payment')
-    @UseGuards(JwtAuthGuard)
-    async batchConfirmMerchantPayment(
-        @Body() body: {
-            withdrawalIds: string[];
-            paymentNo?: string;
-        },
-        @Request() req
-    ) {
-        const result = await this.batchService.batchConfirmMerchantPayment(
-            body.withdrawalIds,
-            body.paymentNo,
-            req.user.userId,
-            req.user.username || '管理员'
-        );
-        return {
-            success: true,
-            message: `成功${result.success}个，失败${result.failed}个，总金额${result.totalAmount}元`,
-            data: result
-        };
-    }
+  /**
+   * 批量确认商家提现打款
+   * 对应原版接口: Finance::confirmPaymentAll (seller_cash)
+   * 业务语义: 批量确认商家提现已打款完成
+   * 前置条件: state = 1 (已同意)
+   * 后置状态: state = 3 (已返款)
+   */
+  @Post('confirm-merchant-payment')
+  @UseGuards(JwtAuthGuard)
+  async batchConfirmMerchantPayment(
+    @Body()
+    body: {
+      withdrawalIds: string[];
+      paymentNo?: string;
+    },
+    @Request() req,
+  ) {
+    const result = await this.batchService.batchConfirmMerchantPayment(
+      body.withdrawalIds,
+      body.paymentNo,
+      req.user.userId,
+      req.user.username || '管理员',
+    );
+    return {
+      success: true,
+      message: `成功${result.success}个，失败${result.failed}个，总金额${result.totalAmount}元`,
+      data: result,
+    };
+  }
 }

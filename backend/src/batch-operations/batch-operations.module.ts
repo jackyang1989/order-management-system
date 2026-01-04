@@ -18,14 +18,25 @@ import { GoodsService } from '../goods/goods.service';
 import { KeywordsService } from '../keywords/keywords.service';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([Order, Task, ReviewTask, Goods, GoodsKey, KeywordDetail, Withdrawal, MerchantWithdrawal, User, Merchant]),
-        OrderLogsModule,
-        MessagesModule,
-        FinanceRecordsModule,
-    ],
-    controllers: [BatchOperationsController],
-    providers: [BatchOperationsService, GoodsService, KeywordsService],
-    exports: [BatchOperationsService]
+  imports: [
+    TypeOrmModule.forFeature([
+      Order,
+      Task,
+      ReviewTask,
+      Goods,
+      GoodsKey,
+      KeywordDetail,
+      Withdrawal,
+      MerchantWithdrawal,
+      User,
+      Merchant,
+    ]),
+    OrderLogsModule,
+    MessagesModule,
+    FinanceRecordsModule,
+  ],
+  controllers: [BatchOperationsController],
+  providers: [BatchOperationsService, GoodsService, KeywordsService],
+  exports: [BatchOperationsService],
 })
-export class BatchOperationsModule { }
+export class BatchOperationsModule {}

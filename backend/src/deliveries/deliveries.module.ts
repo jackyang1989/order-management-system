@@ -5,9 +5,9 @@ import { DeliveriesService } from './deliveries.service';
 import { DeliveriesController } from './deliveries.controller';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Delivery])],
-    controllers: [DeliveriesController],
-    providers: [DeliveriesService],
-    exports: [DeliveriesService]
+  imports: [TypeOrmModule.forFeature([Delivery])],
+  controllers: [DeliveriesController],
+  providers: [DeliveriesService],
+  exports: [DeliveriesService],
 })
-export class DeliveriesModule { }
+export class DeliveriesModule {}

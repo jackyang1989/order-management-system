@@ -39,15 +39,6 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
     const pathname = usePathname();
     const [merchant, setMerchant] = useState<Merchant | null>(null);
 
-    useEffect(() => {
-        const token = localStorage.getItem('merchantToken');
-        if (!token) {
-            router.push('/merchant/login');
-            return;
-        }
-        loadProfile();
-    }, [router]);
-
     const loadProfile = async () => {
         try {
             const token = localStorage.getItem('merchantToken');
@@ -62,6 +53,15 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
             console.error('Load profile error:', error);
         }
     };
+
+    useEffect(() => {
+        const token = localStorage.getItem('merchantToken');
+        if (!token) {
+            router.push('/merchant/login');
+            return;
+        }
+        loadProfile();
+    }, [router]);
 
     const handleLogout = () => {
         localStorage.removeItem('merchantToken');

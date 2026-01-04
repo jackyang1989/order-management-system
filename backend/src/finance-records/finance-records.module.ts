@@ -6,12 +6,9 @@ import { FinanceRecordsController } from './finance-records.controller';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([FinanceRecord]),
-        AuthModule
-    ],
-    controllers: [FinanceRecordsController],
-    providers: [FinanceRecordsService],
-    exports: [FinanceRecordsService],
+  imports: [TypeOrmModule.forFeature([FinanceRecord]), AuthModule],
+  controllers: [FinanceRecordsController],
+  providers: [FinanceRecordsService],
+  exports: [FinanceRecordsService],
 })
-export class FinanceRecordsModule { }
+export class FinanceRecordsModule {}

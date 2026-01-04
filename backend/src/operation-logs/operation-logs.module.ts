@@ -6,9 +6,9 @@ import { OperationLogsController } from './operation-logs.controller';
 
 @Global()
 @Module({
-    imports: [TypeOrmModule.forFeature([OperationLog])],
-    controllers: [OperationLogsController],
-    providers: [OperationLogsService],
-    exports: [OperationLogsService],
+  imports: [TypeOrmModule.forFeature([OperationLog])],
+  controllers: [OperationLogsController],
+  providers: [OperationLogsService],
+  exports: [OperationLogsService],
 })
 export class OperationLogsModule {}

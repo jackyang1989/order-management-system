@@ -5,9 +5,9 @@ import { SensitiveWordsService } from './sensitive-words.service';
 import { SensitiveWordsController } from './sensitive-words.controller';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([SensitiveWord, SensitiveWordLog])],
-    controllers: [SensitiveWordsController],
-    providers: [SensitiveWordsService],
-    exports: [SensitiveWordsService]
+  imports: [TypeOrmModule.forFeature([SensitiveWord, SensitiveWordLog])],
+  controllers: [SensitiveWordsController],
+  providers: [SensitiveWordsService],
+  exports: [SensitiveWordsService],
 })
-export class SensitiveWordsModule { }
+export class SensitiveWordsModule {}

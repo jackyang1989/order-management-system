@@ -7,12 +7,9 @@ import { ExcelController } from './excel.controller';
 import { BatchOperationsModule } from '../batch-operations/batch-operations.module';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([Order, Task]),
-        BatchOperationsModule,
-    ],
-    controllers: [ExcelController],
-    providers: [ExcelService],
-    exports: [ExcelService]
+  imports: [TypeOrmModule.forFeature([Order, Task]), BatchOperationsModule],
+  controllers: [ExcelController],
+  providers: [ExcelService],
+  exports: [ExcelService],
 })
-export class ExcelModule { }
+export class ExcelModule {}

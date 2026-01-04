@@ -4,8 +4,8 @@ import { TaskGoods, TaskKeyword } from './task-goods.entity';
 import { TaskGoodsService } from './task-goods.service';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([TaskGoods, TaskKeyword])],
-    providers: [TaskGoodsService],
-    exports: [TaskGoodsService],
+  imports: [TypeOrmModule.forFeature([TaskGoods, TaskKeyword])],
+  providers: [TaskGoodsService],
+  exports: [TaskGoodsService],
 })
-export class TaskGoodsModule { }
+export class TaskGoodsModule {}

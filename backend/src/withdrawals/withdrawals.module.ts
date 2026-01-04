@@ -10,15 +10,15 @@ import { FinanceRecordsModule } from '../finance-records/finance-records.module'
 import { SystemConfigModule } from '../system-config/system-config.module';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([Withdrawal, Merchant]),
-        BankCardsModule,
-        UsersModule,
-        FinanceRecordsModule,
-        SystemConfigModule
-    ],
-    providers: [WithdrawalsService],
-    controllers: [WithdrawalsController],
-    exports: [WithdrawalsService]
+  imports: [
+    TypeOrmModule.forFeature([Withdrawal, Merchant]),
+    BankCardsModule,
+    UsersModule,
+    FinanceRecordsModule,
+    SystemConfigModule,
+  ],
+  providers: [WithdrawalsService],
+  controllers: [WithdrawalsController],
+  exports: [WithdrawalsService],
 })
-export class WithdrawalsModule { }
+export class WithdrawalsModule {}

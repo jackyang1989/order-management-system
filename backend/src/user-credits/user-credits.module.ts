@@ -5,9 +5,11 @@ import { UserCreditsService } from './user-credits.service';
 import { UserCreditsController } from './user-credits.controller';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([UserCredit, CreditLog, CreditLevelConfig])],
-    controllers: [UserCreditsController],
-    providers: [UserCreditsService],
-    exports: [UserCreditsService]
+  imports: [
+    TypeOrmModule.forFeature([UserCredit, CreditLog, CreditLevelConfig]),
+  ],
+  controllers: [UserCreditsController],
+  providers: [UserCreditsService],
+  exports: [UserCreditsService],
 })
-export class UserCreditsModule { }
+export class UserCreditsModule {}

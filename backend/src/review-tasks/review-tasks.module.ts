@@ -10,15 +10,15 @@ import { FinanceRecordsModule } from '../finance-records/finance-records.module'
 import { MessagesModule } from '../messages/messages.module';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([ReviewTask, ReviewTaskPraise, Order]),
-        forwardRef(() => UsersModule),
-        forwardRef(() => MerchantsModule),
-        forwardRef(() => MessagesModule),
-        FinanceRecordsModule,
-    ],
-    providers: [ReviewTasksService],
-    controllers: [ReviewTasksController],
-    exports: [ReviewTasksService]
+  imports: [
+    TypeOrmModule.forFeature([ReviewTask, ReviewTaskPraise, Order]),
+    forwardRef(() => UsersModule),
+    forwardRef(() => MerchantsModule),
+    forwardRef(() => MessagesModule),
+    FinanceRecordsModule,
+  ],
+  providers: [ReviewTasksService],
+  controllers: [ReviewTasksController],
+  exports: [ReviewTasksService],
 })
-export class ReviewTasksModule { }
+export class ReviewTasksModule {}

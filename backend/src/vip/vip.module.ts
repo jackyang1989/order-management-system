@@ -9,9 +9,18 @@ import { User } from '../users/user.entity';
 import { FundRecord } from '../users/fund-record.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([VipPackage, VipPurchase, VipRecord, RechargeOrder, User, FundRecord])],
-    controllers: [VipController],
-    providers: [VipService],
-    exports: [VipService]
+  imports: [
+    TypeOrmModule.forFeature([
+      VipPackage,
+      VipPurchase,
+      VipRecord,
+      RechargeOrder,
+      User,
+      FundRecord,
+    ]),
+  ],
+  controllers: [VipController],
+  providers: [VipService],
+  exports: [VipService],
 })
-export class VipModule { }
+export class VipModule {}

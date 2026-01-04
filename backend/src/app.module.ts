@@ -60,7 +60,12 @@ import { VipLevel } from './admin-config/vip-level.entity';
 // admin-menus
 import { AdminMenu } from './admin-menus/admin-menu.entity';
 // admin-users
-import { AdminUser, AdminRole, AdminPermission, AdminOperationLog } from './admin-users/admin-user.entity';
+import {
+  AdminUser,
+  AdminRole,
+  AdminPermission,
+  AdminOperationLog,
+} from './admin-users/admin-user.entity';
 // bank-cards
 import { BankCard } from './bank-cards/bank-card.entity';
 // banks
@@ -111,7 +116,10 @@ import { Shop } from './shops/shop.entity';
 // sms
 import { SmsLog } from './sms/sms.entity';
 // system-config
-import { SystemConfig as SystemConfigEntity, SystemGlobalConfig } from './system-config/system-config.entity';
+import {
+  SystemConfig as SystemConfigEntity,
+  SystemGlobalConfig,
+} from './system-config/system-config.entity';
 // task-goods
 import { TaskGoods, TaskKeyword } from './task-goods/task-goods.entity';
 // tasks
@@ -128,7 +136,11 @@ import { UserInvite } from './user-invites/user-invite.entity';
 import { User } from './users/user.entity';
 import { FundRecord } from './users/fund-record.entity';
 // vip-records
-import { VipRecord, VipLevelConfig, UserVipStatus } from './vip-records/vip-record.entity';
+import {
+  VipRecord,
+  VipLevelConfig,
+  UserVipStatus,
+} from './vip-records/vip-record.entity';
 // vip
 import { VipPackage, VipPurchase, RechargeOrder } from './vip/vip.entity';
 // withdrawals
@@ -137,11 +149,18 @@ import { Withdrawal } from './withdrawals/withdrawal.entity';
 // 所有实体的显式列表
 const ENTITIES = [
   // admin-config
-  CommissionRate, SystemConfig, DeliveryWarehouse, Platform, VipLevel,
+  CommissionRate,
+  SystemConfig,
+  DeliveryWarehouse,
+  Platform,
+  VipLevel,
   // admin-menus
   AdminMenu,
   // admin-users
-  AdminUser, AdminRole, AdminPermission, AdminOperationLog,
+  AdminUser,
+  AdminRole,
+  AdminPermission,
+  AdminOperationLog,
   // bank-cards
   BankCard,
   // banks
@@ -151,7 +170,8 @@ const ENTITIES = [
   // categories
   Category,
   // day-counts
-  UserDayCount, PlatformDayStat,
+  UserDayCount,
+  PlatformDayStat,
   // deliveries
   Delivery,
   // finance-records
@@ -159,7 +179,8 @@ const ENTITIES = [
   // goods
   Goods,
   // keywords
-  GoodsKey, KeywordDetail,
+  GoodsKey,
+  KeywordDetail,
   // merchant-bank-cards
   MerchantBankCard,
   // merchant-blacklist
@@ -179,9 +200,11 @@ const ENTITIES = [
   // orders
   Order,
   // payments
-  PaymentCallback, PaymentOrder,
+  PaymentCallback,
+  PaymentOrder,
   // recharge
-  Recharge, RewardRecharge,
+  Recharge,
+  RewardRecharge,
   // review-tasks
   ReviewTask,
   // sensitive-words
@@ -191,13 +214,16 @@ const ENTITIES = [
   // sms
   SmsLog,
   // system-config
-  SystemConfigEntity, SystemGlobalConfig,
+  SystemConfigEntity,
+  SystemGlobalConfig,
   // task-goods
-  TaskGoods, TaskKeyword,
+  TaskGoods,
+  TaskKeyword,
   // tasks
   Task,
   // uploads
-  UploadedFile, FileGroup,
+  UploadedFile,
+  FileGroup,
   // user-addresses
   UserAddress,
   // user-credits
@@ -205,11 +231,16 @@ const ENTITIES = [
   // user-invites
   UserInvite,
   // users
-  User, FundRecord,
+  User,
+  FundRecord,
   // vip-records
-  VipRecord, VipLevelConfig, UserVipStatus,
+  VipRecord,
+  VipLevelConfig,
+  UserVipStatus,
   // vip
-  VipPackage, VipPurchase, RechargeOrder,
+  VipPackage,
+  VipPurchase,
+  RechargeOrder,
   // withdrawals
   Withdrawal,
 ];
@@ -217,10 +248,12 @@ const ENTITIES = [
 @Module({
   imports: [
     // 速率限制 - 防止暴力攻击
-    ThrottlerModule.forRoot([{
-      ttl: 60000,    // 时间窗口 60 秒
-      limit: 100,    // 每个 IP 每分钟最多 100 次请求
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 时间窗口 60 秒
+        limit: 100, // 每个 IP 每分钟最多 100 次请求
+      },
+    ]),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST || 'localhost',
@@ -289,4 +322,4 @@ const ENTITIES = [
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}
