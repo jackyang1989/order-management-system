@@ -5,6 +5,7 @@ import { User, CreateUserDto, UpdateUserDto } from './user.entity';
 import { FundRecord, FundType, FundAction } from './fund-record.entity';
 import { Order, OrderStatus } from '../orders/order.entity';
 import * as bcrypt from 'bcrypt';
+import { SYSTEM_CONFIG_FALLBACK } from '../system-config/system-config.fallback';
 
 // 用户统计数据接口
 export interface UserProfileStats {
@@ -87,21 +88,40 @@ export class UsersService {
       }
     }
 
+    // ============ P0-1 Fix: 注册赠送VIP + 银锭 ============
+    // 计算VIP到期时间
+    const vipExpireDate = new Date();
+    vipExpireDate.setDate(
+      vipExpireDate.getDate() + SYSTEM_CONFIG_FALLBACK.REGISTER_VIP_DAYS,
+    );
+
     const newUser = this.usersRepository.create({
       username: createUserDto.username,
       password: hashedPassword,
       phone: createUserDto.phone,
       qq: createUserDto.qq || '',
-      vip: false,
+      vip: true, // P0-1: 注册即赠送VIP
+      vipExpireAt: vipExpireDate, // P0-1: VIP到期时间
       balance: 0,
-      silver: 0,
+      silver: SYSTEM_CONFIG_FALLBACK.REGISTER_SILVER, // P0-1: 注册赠送银锭
       frozenSilver: 0,
-      reward: 0,
+      reward: SYSTEM_CONFIG_FALLBACK.REGISTER_SILVER, // P0-1: 累计赚取银锭
       invitationCode: newInvitationCode,
       invitedBy: invitedBy,
     });
 
     const savedUser = await this.usersRepository.save(newUser);
+
+    // P0-1: 记录注册赠送银锭的财务记录
+    await this.fundRecordRepository.save({
+      userId: savedUser.id,
+      type: FundType.SILVER,
+      action: FundAction.IN,
+      amount: SYSTEM_CONFIG_FALLBACK.REGISTER_SILVER,
+      balance: SYSTEM_CONFIG_FALLBACK.REGISTER_SILVER,
+      description: '首次注册赠送银锭',
+    });
+
     return this.sanitizeUser(savedUser);
   }
 

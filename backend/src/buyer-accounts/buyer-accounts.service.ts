@@ -168,8 +168,25 @@ export class BuyerAccountsService {
       return { eligible: false, reason: '买号不存在' };
     }
 
+    // P0-3: 验证买号所属权
+    if (account.userId !== userId) {
+      return { eligible: false, reason: '买号不属于当前用户' };
+    }
+
     if (account.status !== BuyerAccountStatus.APPROVED) {
       return { eligible: false, reason: '买号状态异常，无法接单' };
+    }
+
+    // P0-3: 检查冻结时间（旧版逻辑: Task.php Line 269-273）
+    if (account.frozenTime) {
+      const now = new Date();
+      if (new Date(account.frozenTime) > now) {
+        const frozenDate = new Date(account.frozenTime);
+        return {
+          eligible: false,
+          reason: `买号已被冻结，解冻时间: ${frozenDate.toLocaleString('zh-CN')}`,
+        };
+      }
     }
 
     // 检查星级限价
