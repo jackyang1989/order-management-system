@@ -30,7 +30,7 @@ import { BanksModule } from './banks/banks.module';
 import { DeliveriesModule } from './deliveries/deliveries.module';
 import { MessagesModule } from './messages/messages.module';
 import { UserInvitesModule } from './user-invites/user-invites.module';
-import { VipRecordsModule } from './vip-records/vip-records.module';
+// vip-records import removed
 import { OrderLogsModule } from './order-logs/order-logs.module';
 import { DayCountsModule } from './day-counts/day-counts.module';
 import { UserCreditsModule } from './user-credits/user-credits.module';
@@ -136,11 +136,11 @@ import { UserInvite } from './user-invites/user-invite.entity';
 import { User } from './users/user.entity';
 import { FundRecord } from './users/fund-record.entity';
 // vip-records
-import {
-  VipRecord,
-  VipLevelConfig,
-  UserVipStatus,
-} from './vip-records/vip-record.entity';
+// import {
+//   VipRecord,
+//   VipLevelConfig,
+//   UserVipStatus,
+// } from './vip-records/vip-record.entity';
 // vip
 import { VipPackage, VipPurchase, RechargeOrder } from './vip/vip.entity';
 // withdrawals
@@ -234,9 +234,9 @@ const ENTITIES = [
   User,
   FundRecord,
   // vip-records
-  VipRecord,
-  VipLevelConfig,
-  UserVipStatus,
+  // VipRecord,
+  // VipLevelConfig,
+  // UserVipStatus,
   // vip
   VipPackage,
   VipPurchase,
@@ -292,7 +292,6 @@ const ENTITIES = [
     DeliveriesModule,
     MessagesModule,
     UserInvitesModule,
-    VipRecordsModule,
     OrderLogsModule,
     DayCountsModule,
     UserCreditsModule,
@@ -322,4 +321,4 @@ const ENTITIES = [
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

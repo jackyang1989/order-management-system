@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { Merchant } from './merchant.entity';
 import { MerchantsService } from './merchants.service';
 import { MerchantsController } from './merchants.controller';
+import { MerchantsAdminController } from './merchants-admin.controller';
 import { AuthModule } from '../auth/auth.module';
 import { FinanceRecordsModule } from '../finance-records/finance-records.module';
 
@@ -17,7 +18,7 @@ import { FinanceRecordsModule } from '../finance-records/finance-records.module'
     FinanceRecordsModule,
   ],
   providers: [MerchantsService],
-  controllers: [MerchantsController],
+  controllers: [MerchantsController, MerchantsAdminController],
   exports: [MerchantsService],
 })
-export class MerchantsModule {}
+export class MerchantsModule { }

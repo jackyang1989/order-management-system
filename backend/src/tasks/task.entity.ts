@@ -232,9 +232,6 @@ export class Task {
   @Column({ type: 'timestamp', nullable: true })
   publishTime: Date; // 发布时间
 
-  @Column({ type: 'timestamp', nullable: true })
-  publishTime: Date; // 发布时间
-
   @Column({ type: 'text', nullable: true })
   channelImages: string; // 通道图片（JSON数组，对应原版 channel_img）
 
@@ -243,6 +240,35 @@ export class Task {
 
   @Column({ type: 'text', nullable: true })
   verifyCode: string; // 商品核对码
+
+  // --- Missing Fields for OrdersService ---
+
+  @Column({ default: false })
+  needHuobi: boolean; // 货比
+
+  @Column({ nullable: true })
+  huobiKeyword: string; // 货比关键词
+
+  @Column({ default: false })
+  needShoucang: boolean; // 收藏
+
+  @Column({ default: false })
+  needGuanzhu: boolean; // 关注
+
+  @Column({ default: false })
+  needJialiao: boolean; // 假聊
+
+  @Column({ default: false })
+  needJiagou: boolean; // 加购
+
+  @Column({ type: 'int', default: 15 })
+  totalBrowseMinutes: number; // 总浏览时长
+
+  @Column({ type: 'int', default: 8 })
+  mainBrowseMinutes: number; // 主商品浏览时长
+
+  @Column({ type: 'int', default: 2 })
+  subBrowseMinutes: number; // 副商品浏览时长
 
   @CreateDateColumn()
   createdAt: Date;

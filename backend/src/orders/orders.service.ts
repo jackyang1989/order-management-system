@@ -41,7 +41,7 @@ export class OrdersService {
     private dingdanxiaService: DingdanxiaService,
     private merchantBlacklistService: MerchantBlacklistService,
     private dataSource: DataSource,
-  ) {}
+  ) { }
 
   // ============ 管理员端方法 ============
 
@@ -49,11 +49,19 @@ export class OrdersService {
     page: number;
     limit: number;
     status?: string;
+    keyword?: string;
   }): Promise<{ data: Order[]; total: number }> {
     const queryBuilder = this.ordersRepository.createQueryBuilder('order');
 
     if (filter.status) {
-      queryBuilder.where('order.status = :status', { status: filter.status });
+      queryBuilder.andWhere('order.status = :status', { status: filter.status });
+    }
+
+    if (filter.keyword) {
+      queryBuilder.andWhere(
+        '(order.id LIKE :keyword OR order.taskTitle LIKE :keyword OR order.taobaoOrderNumber LIKE :keyword)',
+        { keyword: `%${filter.keyword}%` },
+      );
     }
 
     queryBuilder.orderBy('order.createdAt', 'DESC');

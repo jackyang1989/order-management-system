@@ -9,25 +9,22 @@ export class ApiConfigController {
   constructor(
     private configService: SystemConfigService,
     private dingdanxiaService: DingdanxiaService,
-  ) {}
+  ) { }
 
   /**
    * 获取所有第三方 API 配置
    */
   @Get()
   async getApiConfigs() {
-    const dingdanxiaKey =
-      await this.configService.getValue('dingdanxia_api_key');
-    const dingdanxiaEnabled =
-      await this.configService.getValue('dingdanxia_enabled');
+    const config = await this.configService.getGlobalConfig();
 
     return {
       success: true,
       data: {
         dingdanxia: {
-          apiKey: dingdanxiaKey ? this.maskApiKey(dingdanxiaKey) : null,
-          enabled: dingdanxiaEnabled === 'true',
-          hasKey: !!dingdanxiaKey,
+          apiKey: config.dingdanxiaApiKey ? this.maskApiKey(config.dingdanxiaApiKey) : null,
+          enabled: !!config.dingdanxiaEnabled,
+          hasKey: !!config.dingdanxiaApiKey,
         },
       },
     };
@@ -40,26 +37,18 @@ export class ApiConfigController {
   async updateDingdanxiaConfig(
     @Body() data: { apiKey?: string; enabled?: boolean },
   ) {
-    const updates: { key: string; value: string; group: string }[] = [];
+    const updates: any = {};
 
     if (data.apiKey !== undefined) {
-      updates.push({
-        key: 'dingdanxia_api_key',
-        value: data.apiKey,
-        group: 'api',
-      });
+      updates.dingdanxiaApiKey = data.apiKey;
     }
 
     if (data.enabled !== undefined) {
-      updates.push({
-        key: 'dingdanxia_enabled',
-        value: data.enabled ? 'true' : 'false',
-        group: 'api',
-      });
+      updates.dingdanxiaEnabled = data.enabled;
     }
 
-    if (updates.length > 0) {
-      await this.configService.updateMany(updates);
+    if (Object.keys(updates).length > 0) {
+      await this.configService.updateGlobalConfig(updates);
     }
 
     return {

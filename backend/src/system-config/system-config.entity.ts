@@ -144,6 +144,13 @@ export class SystemGlobalConfig {
   @Column({ type: 'int', default: 0 })
   invitationNum: number; // 买手邀请链接要求数量
 
+  // ============ 第三方 API 配置 ============
+  @Column({ length: 128, nullable: true })
+  dingdanxiaApiKey: string; // 订单侠API Key
+
+  @Column({ default: false })
+  dingdanxiaEnabled: boolean; // 订单侠启用状态
+
   @UpdateDateColumn()
   updatedAt: Date;
 }
@@ -281,4 +288,11 @@ export class UpdateSystemGlobalConfigDto {
   @IsOptional()
   @IsNumber()
   invitationNum?: number;
+
+  @IsOptional()
+  @IsString()
+  dingdanxiaApiKey?: string;
+
+  @IsOptional()
+  dingdanxiaEnabled?: boolean;
 }

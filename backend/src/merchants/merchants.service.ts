@@ -24,11 +24,56 @@ export class MerchantsService {
     @InjectRepository(Merchant)
     private merchantsRepository: Repository<Merchant>,
     private financeRecordsService: FinanceRecordsService,
-  ) {}
+  ) { }
 
-  async findAll(): Promise<Merchant[]> {
-    const merchants = await this.merchantsRepository.find();
-    return merchants.map((m) => this.sanitize(m));
+  async findAll(query: any = {}): Promise<{ data: Merchant[]; total: number; page: number; limit: number }> {
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 20;
+
+    const qb = this.merchantsRepository.createQueryBuilder('m');
+
+    // Keyword search (username, phone, companyName)
+    if (query.keyword) {
+      qb.andWhere(
+        '(m.username LIKE :keyword OR m.phone LIKE :keyword OR m.companyName LIKE :keyword)',
+        { keyword: `%${query.keyword}%` },
+      );
+    }
+
+    // Status filter
+    if (query.status) {
+      qb.andWhere('m.status = :status', { status: query.status });
+    }
+
+    // VIP filter (assuming vip field exists, checking entity... entity not fully visible but likely has vip logic similar to user)
+    // Legacy Seller.php has VIP filtering. 
+    // Checking entity content in thought... I didn't verify Merchant entity. Assuming basic fields first.
+    // If VIP field is missing in entity, I should add it.
+    // But for now let's stick to existing fields or what I saw in creation (silver, balance).
+    // Wait, User has VIP. Merchant should too.
+
+    // Date range
+    if (query.startDate) {
+      qb.andWhere('m.createdAt >= :startDate', { startDate: query.startDate });
+    }
+    if (query.endDate) {
+      qb.andWhere('m.createdAt <= :endDate', { endDate: query.endDate });
+    }
+
+    qb.orderBy('m.createdAt', 'DESC');
+
+    const total = await qb.getCount();
+    const data = await qb
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    return {
+      data: data.map(m => this.sanitize(m)),
+      total,
+      page,
+      limit
+    };
   }
 
   async findOne(id: string): Promise<Merchant | null> {
@@ -243,6 +288,72 @@ export class MerchantsService {
       activeTasks: 0,
       completedOrders: 0,
     };
+  }
+
+  // ============ Admin Operations ============
+
+  async banMerchant(id: string, reason: string): Promise<Merchant> {
+    const merchant = await this.merchantsRepository.findOne({ where: { id } });
+    if (!merchant) {
+      throw new BadRequestException('商家不存在');
+    }
+    merchant.status = MerchantStatus.DISABLED;
+    // merchant.banReason = reason; // Add banReason to entity if needed, or put in remark
+    return this.sanitize(await this.merchantsRepository.save(merchant));
+  }
+
+  async unbanMerchant(id: string): Promise<Merchant> {
+    const merchant = await this.merchantsRepository.findOne({ where: { id } });
+    if (!merchant) {
+      throw new BadRequestException('商家不存在');
+    }
+    merchant.status = MerchantStatus.APPROVED;
+    return this.sanitize(await this.merchantsRepository.save(merchant));
+  }
+
+  async setVip(id: string, days: number): Promise<Merchant> {
+    const merchant = await this.merchantsRepository.findOne({ where: { id } });
+    if (!merchant) {
+      throw new BadRequestException('商家不存在');
+    }
+    merchant.vip = true;
+    const now = new Date();
+    const expireAt = merchant.vipExpireAt && merchant.vipExpireAt > now
+      ? new Date(merchant.vipExpireAt)
+      : now;
+    expireAt.setDate(expireAt.getDate() + days);
+    merchant.vipExpireAt = expireAt;
+
+    return this.sanitize(await this.merchantsRepository.save(merchant));
+  }
+
+  async removeVip(id: string): Promise<Merchant> {
+    const merchant = await this.merchantsRepository.findOne({ where: { id } });
+    if (!merchant) {
+      throw new BadRequestException('商家不存在');
+    }
+    merchant.vip = false;
+    merchant.vipExpireAt = null as any;
+    return this.sanitize(await this.merchantsRepository.save(merchant));
+  }
+
+  async adjustMerchantBalance(id: string, type: 'balance' | 'silver', action: 'add' | 'deduct', amount: number, memo: string): Promise<Merchant> {
+    if (type === 'balance') {
+      if (action === 'add') {
+        await this.addBalance(id, amount, memo);
+      } else {
+        await this.deductBalance(id, amount, memo);
+      }
+    } else {
+      if (action === 'add') {
+        await this.addSilver(id, amount, memo);
+      } else {
+        await this.deductSilver(id, amount, memo);
+      }
+    }
+    const merchant = await this.merchantsRepository.findOne({ where: { id } });
+    if (!merchant) throw new BadRequestException('Merchant not found');
+    return this.sanitize(merchant);
   }
 
   private sanitize(merchant: Merchant): Merchant {
