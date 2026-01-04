@@ -30,38 +30,29 @@ export default function ProfileSettingsPage() {
     // 操作状态
     const [submitting, setSubmitting] = useState(false);
 
-    // ========================
-
-    // 旧版参数: oldphone, pay_pwd, mobile, dxyzm
-    // ========================
+    // Phone form state
     const [phoneForm, setPhoneForm] = useState({
-        oldPhoneNum: '',      // 对应旧版 oldPhoneNum -> oldphone
-        zhifuPassWord: '',    // 对应旧版 zhifuPassWord -> pay_pwd
-        newPhoneNum: '',      // 对应旧版 newPhoneNum -> mobile
-        newYzmNum: ''         // 对应旧版 newYzmNum -> dxyzm
+        oldPhoneNum: '',
+        zhifuPassWord: '',
+        newPhoneNum: '',
+        newYzmNum: ''
     });
 
-    // ========================
-
-    // 旧版参数: oldloginpwd, login_pwd, login_pwd2, mobile, dxyzm
-    // ========================
+    // Password form state
     const [passwordForm, setPasswordForm] = useState({
-        oldPassWord: '',      // 对应旧版 oldPassWord -> oldloginpwd
-        newPassWord: '',      // 对应旧版 newPassWord -> login_pwd
-        queRenPassWord: '',   // 对应旧版 queRenPassWord -> login_pwd2
-        phoneNum: '',         // 对应旧版 phoneNum -> mobile
-        newYzmNum: ''         // 对应旧版 newYzmNum -> dxyzm
+        oldPassWord: '',
+        newPassWord: '',
+        queRenPassWord: '',
+        phoneNum: '',
+        newYzmNum: ''
     });
 
-    // ========================
-
-    // 旧版参数: pay_pwd, pay_pwd2, mobile, dxyzm
-    // ========================
+    // Payment password form state
     const [payPwdForm, setPayPwdForm] = useState({
-        newZhiFuPassWord: '',      // 对应旧版 newZhiFuPassWord -> pay_pwd
-        queRenZhiFuPassWord: '',   // 对应旧版 queRenZhiFuPassWord -> pay_pwd2
-        phoneNum: '',              // 对应旧版 phoneNum -> mobile
-        yzmNum: ''                 // 对应旧版 yzmNum -> dxyzm
+        newZhiFuPassWord: '',
+        queRenZhiFuPassWord: '',
+        phoneNum: '',
+        yzmNum: ''
     });
 
     // 验证码状态 - 三个独立倒计时对应旧版 yzmMsg/yzmMsg2/yzmMsg3
@@ -244,10 +235,7 @@ export default function ProfileSettingsPage() {
         }, 1000);
     };
 
-    // ========================
-
-    // 参数: oldphone, pay_pwd, mobile, dxyzm
-    // ========================
+    // Submit phone change
     const phoneBtnActive = async () => {
         if (!phoneForm.oldPhoneNum) { return alertError('原手机号码不能为空'); }
         if (!phoneForm.zhifuPassWord) { return alertError('支付密码不能为空'); }
@@ -291,10 +279,7 @@ export default function ProfileSettingsPage() {
         }
     };
 
-    // ========================
-
-    // 参数: oldloginpwd, login_pwd, login_pwd2, mobile, dxyzm
-    // ========================
+    // Submit password change
     const editBtnActive = async () => {
         if (!passwordForm.oldPassWord) { return alertError('原登录密码不能为空'); }
         if (!passwordForm.newPassWord) { return alertError('新登录密码不能为空'); }
@@ -342,10 +327,7 @@ export default function ProfileSettingsPage() {
         }
     };
 
-    // ========================
-
-    // 参数: pay_pwd, pay_pwd2, mobile, dxyzm
-    // ========================
+    // Submit payment password change
     const zhiFuBtnActive = async () => {
         if (!payPwdForm.newZhiFuPassWord) { return alertError('新支付密码不能为空'); }
         if (!payPwdForm.queRenZhiFuPassWord) { return alertError('确认新密码不能为空'); }
