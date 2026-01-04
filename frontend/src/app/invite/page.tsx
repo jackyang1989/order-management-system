@@ -5,12 +5,24 @@ import { useRouter } from 'next/navigation';
 import { isAuthenticated, getCurrentUser } from '../../services/authService';
 import { fetchInviteStats, fetchInviteRecords, InviteStats, InviteRecord } from '../../services/userService';
 
+// 推荐任务类型
+interface RecommendedTask {
+    id: string;
+    orderId: string;
+    taskTitle: string;
+    username: string;
+    completedAt: string;
+    commissionAmount: number;
+    month: string;
+}
+
 export default function InvitePage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'invite' | 'records'>('invite');
+    const [activeTab, setActiveTab] = useState<'invite' | 'records' | 'tasks'>('invite');
     const [stats, setStats] = useState<InviteStats>({ totalInvited: 0, todayInvited: 0, totalReward: 0, todayReward: 0 });
     const [records, setRecords] = useState<InviteRecord[]>([]);
+    const [recommendedTasks, setRecommendedTasks] = useState<RecommendedTask[]>([]);
     const [copied, setCopied] = useState(false);
     const [inviteCode, setInviteCode] = useState('ADMIN'); // Default fallback
 
@@ -37,6 +49,24 @@ export default function InvitePage() {
             ]);
             setStats(statsData);
             setRecords(recordsData);
+
+            // 获取推荐任务
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/invite/tasks', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data && result.data.list) {
+                        setRecommendedTasks(result.data.list);
+                    }
+                }
+            } catch (e) {
+                console.error('Load recommended tasks error:', e);
+            }
         } catch (error) {
             console.error('Load invite data error:', error);
         } finally {
@@ -142,6 +172,20 @@ export default function InvitePage() {
                 >
                     邀请记录
                     {activeTab === 'records' && <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '30px', height: '2px', background: '#409eff' }}></div>}
+                </div>
+                <div
+                    onClick={() => setActiveTab('tasks')}
+                    style={{
+                        flex: 1,
+                        textAlign: 'center',
+                        padding: '12px 0',
+                        fontSize: '14px',
+                        color: activeTab === 'tasks' ? '#409eff' : '#666',
+                        position: 'relative'
+                    }}
+                >
+                    推荐任务
+                    {activeTab === 'tasks' && <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '30px', height: '2px', background: '#409eff' }}></div>}
                 </div>
             </div>
 
@@ -269,6 +313,55 @@ export default function InvitePage() {
                                 <div style={{ fontSize: '12px', color: '#999', marginLeft: '46px' }}>
                                     <div>注册时间：{record.registerTime}</div>
                                     <div>已完成任务：{record.completedTasks} 单</div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            )}
+
+            {/* 推荐任务 */}
+            {activeTab === 'tasks' && (
+                <div style={{ background: '#fff', marginTop: '10px' }}>
+                    {recommendedTasks.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '60px 0', color: '#999', fontSize: '13px' }}>
+                            <div style={{ fontSize: '40px', marginBottom: '10px' }}>📋</div>
+                            暂无推荐任务记录
+                        </div>
+                    ) : (
+                        recommendedTasks.map((task, index) => (
+                            <div
+                                key={task.id}
+                                style={{
+                                    padding: '15px',
+                                    borderBottom: index < recommendedTasks.length - 1 ? '1px solid #f5f5f5' : 'none'
+                                }}
+                            >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <div style={{
+                                            width: '36px',
+                                            height: '36px',
+                                            borderRadius: '50%',
+                                            background: '#e6f7ff',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            marginRight: '10px',
+                                            fontSize: '16px'
+                                        }}>✅</div>
+                                        <div>
+                                            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#333' }}>{task.username}</div>
+                                            <div style={{ fontSize: '12px', color: '#999', marginTop: '2px' }}>{task.taskTitle}</div>
+                                        </div>
+                                    </div>
+                                    <span style={{ fontSize: '14px', color: '#67c23a', fontWeight: 'bold' }}>
+                                        +{task.commissionAmount} 银锭
+                                    </span>
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#999', marginLeft: '46px' }}>
+                                    <div>完成时间：{task.completedAt ? new Date(task.completedAt).toLocaleString('zh-CN') : '-'}</div>
+                                    <div>所属月份：{task.month}</div>
                                 </div>
                             </div>
                         ))

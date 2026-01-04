@@ -50,6 +50,8 @@ import { VipModule } from './vip/vip.module';
 import { MerchantBlacklistModule } from './merchant-blacklist/merchant-blacklist.module';
 import { MobileCompatModule } from './mobile-compat/mobile-compat.module';
 import { CaptchaModule } from './captcha/captcha.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { InviteModule } from './invite/invite.module';
 
 // ============ 显式实体引入（禁止使用通配符加载）============
 // admin-config
@@ -321,6 +323,8 @@ const ENTITIES = [
     MerchantBlacklistModule,
     MobileCompatModule,
     CaptchaModule,
+    ReviewsModule,
+    InviteModule,
   ],
   controllers: [AppController],
   providers: [
