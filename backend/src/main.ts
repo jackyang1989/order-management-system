@@ -1,57 +1,121 @@
-import 'dotenv/config'; // 确保环境变量在最开始加载
+import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import helmet from 'helmet';
+import * as compression from 'compression';
 import { AppModule } from './app.module';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: process.env.NODE_ENV === 'production'
+      ? ['error', 'warn', 'log']
+      : ['error', 'warn', 'log', 'debug', 'verbose'],
+  });
 
-  // 安全中间件 - HTTP 安全头
-  app.use(helmet());
+  const isProduction = process.env.NODE_ENV === 'production';
+  const logger = new Logger('Bootstrap');
 
-  // 全局验证管道
+  // ============================================================
+  // 1. COMPRESSION - Gzip for reduced bandwidth
+  // ============================================================
+  app.use(compression({
+    threshold: 1024, // Only compress responses > 1KB
+    level: 6, // Compression level (1-9, 6 is balanced)
+  }));
+
+  // ============================================================
+  // 2. HELMET - HTTP Security Headers with CSP
+  // ============================================================
+  app.use(helmet({
+    contentSecurityPolicy: isProduction ? {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles for Ant Design
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
+        connectSrc: ["'self'", ...(process.env.ALLOWED_API_ORIGINS?.split(',') || [])],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        frameSrc: ["'none'"],
+        objectSrc: ["'none'"],
+      },
+    } : false, // Disable CSP in development
+    crossOriginEmbedderPolicy: false, // Required for external images
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  }));
+
+  // ============================================================
+  // 3. GLOBAL EXCEPTION FILTER - Hide internal errors in production
+  // ============================================================
+  app.useGlobalFilters(new GlobalExceptionFilter());
+
+  // ============================================================
+  // 4. VALIDATION PIPE - Request validation
+  // ============================================================
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // 自动剥离非白名单属性
-      forbidNonWhitelisted: true, // 非白名单属性报错
-      transform: true, // 自动转换类型
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
       transformOptions: {
-        enableImplicitConversion: true, // 允许隐式类型转换
+        enableImplicitConversion: true,
       },
+      // Disable detailed errors in production
+      disableErrorMessages: isProduction,
     }),
   );
 
-  // CORS 配置
-  const allowedOrigins = process.env.CORS_ORIGINS
-    ? process.env.CORS_ORIGINS.split(',')
-    : [
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://localhost:6005',
-      ];
+  // ============================================================
+  // 5. CORS - Strict origin control for production
+  // ============================================================
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+    : process.env.CORS_ORIGINS
+      ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+      : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:6005'];
 
   app.enableCors({
     origin: (origin, callback) => {
-      // 允许无 origin 的请求（如 Postman、移动端）
-      if (!origin) return callback(null, true);
+      // Allow requests with no origin (mobile apps, Postman) in development only
+      if (!origin) {
+        if (isProduction) {
+          callback(new Error('Origin required in production'), false);
+        } else {
+          callback(null, true);
+        }
+        return;
+      }
 
-      if (
-        allowedOrigins.includes(origin) ||
-        process.env.NODE_ENV === 'development'
-      ) {
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else if (!isProduction) {
+        // Allow all origins in development
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        logger.warn(`CORS blocked origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'), false);
       }
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    maxAge: 86400, // Cache preflight for 24 hours
   });
+
+  // ============================================================
+  // 6. GRACEFUL SHUTDOWN
+  // ============================================================
+  app.enableShutdownHooks();
 
   const port = process.env.PORT ?? 6006;
   await app.listen(port);
-  console.log(`🚀 Server running on http://localhost:${port}`);
+
+  logger.log(`🚀 Server running on http://localhost:${port}`);
+  logger.log(`📦 Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.log(`🔒 CORS: ${allowedOrigins.join(', ')}`);
+  if (isProduction) {
+    logger.log('🛡️  Production mode: Security hardening ENABLED');
+  }
 }
+
 bootstrap();
