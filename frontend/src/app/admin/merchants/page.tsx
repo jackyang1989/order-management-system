@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { adminService, AdminMerchant } from '../../../../services/adminService';
+import { adminService, AdminMerchant } from '../../../services/adminService';
 
 const statusLabels: Record<number, { text: string; color: string }> = {
     0: { text: '待审核', color: '#faad14' },

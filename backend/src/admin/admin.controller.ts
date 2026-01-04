@@ -7,7 +7,7 @@ import {
   Body,
   UseGuards,
   Post,
-  Request,
+  Req,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AdminGuard, RequirePermissions } from '../auth/admin.guard';
@@ -145,13 +145,13 @@ export class AdminController {
   async approveWithdrawal(
     @Param('id') id: string,
     @Body() body: { approved: boolean; remark?: string },
-    @Request() req,
+    @Req() req,
   ) {
     const withdrawal = await this.adminService.approveWithdrawal(
       id,
       body.approved,
       body.remark,
-      req.user.adminId,
+      req.admin.adminId, // Changed from req.user to req.admin
     );
     if (!withdrawal) {
       return { success: false, message: '提现记录不存在' };

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { adminService, SystemConfigDto } from '../../../../../services/adminService';
+import { adminService, SystemConfigDto } from '../../../../services/adminService';
 
 const GROUP_LABELS: Record<string, string> = {
     'basic': '基本设置',
@@ -75,7 +75,7 @@ export default function AdminSystemParamsPage() {
     };
 
     const handleChange = (key: keyof SystemConfigDto, value: any) => {
-        setConfig(prev => ({ ...prev, [key]: value }));
+        setConfig((prev: SystemConfigDto) => ({ ...prev, [key]: value }));
     };
 
     const groups = ['basic', 'finance', 'vip', 'service', 'praise'];
@@ -118,7 +118,7 @@ export default function AdminSystemParamsPage() {
                     ) : (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
                             {currentItems.map(item => (
-                                <div key={item.key} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <div key={String(item.key)} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                     <label style={{ fontWeight: 500 }}>{item.label} <small style={{ color: '#999' }}>({String(item.key)})</small></label>
 
                                     {item.type === 'checkbox' ? (

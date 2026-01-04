@@ -6,6 +6,7 @@ import { Merchant, MerchantStatus } from '../merchants/merchant.entity';
 import { Task, TaskStatus } from '../tasks/task.entity';
 import { Order, OrderStatus } from '../orders/order.entity';
 import { Withdrawal, WithdrawalStatus } from '../withdrawals/withdrawal.entity';
+import { WithdrawalsService } from '../withdrawals/withdrawals.service';
 
 @Injectable()
 export class AdminService {
@@ -20,7 +21,8 @@ export class AdminService {
     private ordersRepository: Repository<Order>,
     @InjectRepository(Withdrawal)
     private withdrawalsRepository: Repository<Withdrawal>,
-  ) {}
+    private withdrawalsService: WithdrawalsService,
+  ) { }
 
   // ============ 平台统计 ============
   async getStats(): Promise<{
@@ -247,16 +249,12 @@ export class AdminService {
     id: string,
     approved: boolean,
     remark?: string,
+    adminId?: string,
   ): Promise<Withdrawal | null> {
-    const withdrawal = await this.withdrawalsRepository.findOne({
-      where: { id },
-    });
-    if (!withdrawal) return null;
-    withdrawal.status = approved
+    const status = approved
       ? WithdrawalStatus.APPROVED
       : WithdrawalStatus.REJECTED;
-    if (remark) withdrawal.remark = remark;
-    return this.withdrawalsRepository.save(withdrawal);
+    return this.withdrawalsService.review(id, { status, remark }, adminId || 'admin');
   }
 
   // ============ 批量提现审核 ============
