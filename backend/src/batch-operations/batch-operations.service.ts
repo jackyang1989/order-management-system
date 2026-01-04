@@ -858,4 +858,412 @@ export class BatchOperationsService {
             return { success: false, message: error.message || '修改失败！' };
         }
     }
+
+    // ============ 批量提现审核 ============
+
+    /**
+     * 批量审核买手提现申请
+     * 对应原版接口: Finance::allCheck (user_cash)
+     * 业务语义: 批量审核买手提现申请 (通过/拒绝)
+     * 前置条件: state = 0 (已申请)
+     * 后置状态: state = 1 (已同意) 或 state = 2 (已拒绝)
+     *
+     * @param withdrawalIds 提现ID数组
+     * @param action 操作: 'approve' | 'reject'
+     * @param reason 拒绝原因 (拒绝时必填)
+     * @param operatorId 操作员ID
+     * @param operatorName 操作员姓名
+     */
+    async batchReviewBuyerWithdrawals(
+        withdrawalIds: string[],
+        action: 'approve' | 'reject',
+        reason: string | undefined,
+        operatorId: string,
+        operatorName: string
+    ): Promise<{ success: number; failed: number; errors: string[] }> {
+        let success = 0;
+        let failed = 0;
+        const errors: string[] = [];
+
+        for (const id of withdrawalIds) {
+            try {
+                const result = await this.withdrawalRepository.manager.transaction(async transactionalEntityManager => {
+                    // 1. 查询提现记录
+                    const withdrawal = await transactionalEntityManager.findOne(Withdrawal, { where: { id } });
+
+                    if (!withdrawal) {
+                        return { success: false, message: `提现记录 ${id} 不存在` };
+                    }
+
+                    // 2. 验证状态: 必须为 PENDING (0)
+                    if (withdrawal.status !== WithdrawalStatus.PENDING) {
+                        return { success: false, message: `提现记录 ${id} 已处理` };
+                    }
+
+                    // 3. 更新审核信息
+                    withdrawal.reviewedAt = new Date();
+                    withdrawal.reviewedBy = operatorId;
+
+                    if (action === 'approve') {
+                        // 审核通过: state = 0 -> state = 1
+                        withdrawal.status = WithdrawalStatus.APPROVED;
+                    } else {
+                        // 审核拒绝: state = 0 -> state = 2
+                        withdrawal.status = WithdrawalStatus.REJECTED;
+                        withdrawal.remark = reason || '后台拒绝';
+
+                        // 退还冻结余额到可用余额
+                        const ownerId = withdrawal.ownerId || withdrawal.userId;
+                        if (withdrawal.type === WithdrawalType.BALANCE) {
+                            await transactionalEntityManager
+                                .createQueryBuilder()
+                                .update(User)
+                                .set({
+                                    balance: () => `balance + ${withdrawal.amount}`,
+                                    frozenBalance: () => `"frozenBalance" - ${withdrawal.amount}`
+                                })
+                                .where("id = :userId", { userId: ownerId })
+                                .execute();
+                        } else {
+                            await transactionalEntityManager
+                                .createQueryBuilder()
+                                .update(User)
+                                .set({
+                                    silver: () => `silver + ${withdrawal.amount}`,
+                                    frozenSilver: () => `"frozenSilver" - ${withdrawal.amount}`
+                                })
+                                .where("id = :userId", { userId: ownerId })
+                                .execute();
+                        }
+                    }
+
+                    await transactionalEntityManager.save(withdrawal);
+                    return { success: true, message: '成功' };
+                });
+
+                if (result.success) {
+                    success++;
+                } else {
+                    failed++;
+                    errors.push(result.message);
+                }
+            } catch (error) {
+                failed++;
+                errors.push(`提现 ${id} 处理失败: ${error.message}`);
+            }
+        }
+
+        // 记录日志
+        console.log(`[AdminLog] 批量审核买手提现 - 管理员${operatorName}操作: ${action}, 成功${success}个，失败${failed}个`);
+
+        return { success, failed, errors };
+    }
+
+    /**
+     * 批量审核商家提现申请
+     * 对应原版接口: Finance::allCheck (seller_cash)
+     * 业务语义: 批量审核商家提现申请 (通过/拒绝)
+     * 前置条件: state = 0 (已申请)
+     * 后置状态: state = 1 (已同意) 或 state = 2 (已拒绝)
+     *
+     * @param withdrawalIds 提现ID数组
+     * @param action 操作: 'approve' | 'reject'
+     * @param reason 拒绝原因 (拒绝时必填)
+     * @param operatorId 操作员ID
+     * @param operatorName 操作员姓名
+     */
+    async batchReviewMerchantWithdrawals(
+        withdrawalIds: string[],
+        action: 'approve' | 'reject',
+        reason: string | undefined,
+        operatorId: string,
+        operatorName: string
+    ): Promise<{ success: number; failed: number; errors: string[] }> {
+        let success = 0;
+        let failed = 0;
+        const errors: string[] = [];
+
+        for (const id of withdrawalIds) {
+            try {
+                const result = await this.merchantWithdrawalRepository.manager.transaction(async transactionalEntityManager => {
+                    // 1. 查询提现记录
+                    const withdrawal = await transactionalEntityManager.findOne(MerchantWithdrawal, { where: { id } });
+
+                    if (!withdrawal) {
+                        return { success: false, message: `提现记录 ${id} 不存在` };
+                    }
+
+                    // 2. 验证状态: 必须为 PENDING (0)
+                    if (withdrawal.status !== MerchantWithdrawalStatus.PENDING) {
+                        return { success: false, message: `提现记录 ${id} 已处理` };
+                    }
+
+                    // 3. 更新审核信息
+                    withdrawal.reviewedAt = new Date();
+                    withdrawal.reviewedBy = operatorId;
+
+                    if (action === 'approve') {
+                        // 审核通过: state = 0 -> state = 1
+                        withdrawal.status = MerchantWithdrawalStatus.APPROVED;
+                    } else {
+                        // 审核拒绝: state = 0 -> state = 2
+                        withdrawal.status = MerchantWithdrawalStatus.REJECTED;
+                        withdrawal.remark = reason || '后台拒绝';
+
+                        // 退还冻结余额到可用余额
+                        if (withdrawal.type === MerchantWithdrawalType.BALANCE) {
+                            await transactionalEntityManager
+                                .createQueryBuilder()
+                                .update(Merchant)
+                                .set({
+                                    balance: () => `balance + ${withdrawal.amount}`,
+                                    frozenBalance: () => `"frozenBalance" - ${withdrawal.amount}`
+                                })
+                                .where("id = :merchantId", { merchantId: withdrawal.merchantId })
+                                .execute();
+                        } else {
+                            await transactionalEntityManager
+                                .createQueryBuilder()
+                                .update(Merchant)
+                                .set({
+                                    silver: () => `silver + ${withdrawal.amount}`,
+                                    frozenSilver: () => `"frozenSilver" - ${withdrawal.amount}`
+                                })
+                                .where("id = :merchantId", { merchantId: withdrawal.merchantId })
+                                .execute();
+                        }
+                    }
+
+                    await transactionalEntityManager.save(withdrawal);
+                    return { success: true, message: '成功' };
+                });
+
+                if (result.success) {
+                    success++;
+                } else {
+                    failed++;
+                    errors.push(result.message);
+                }
+            } catch (error) {
+                failed++;
+                errors.push(`提现 ${id} 处理失败: ${error.message}`);
+            }
+        }
+
+        // 记录日志
+        console.log(`[AdminLog] 批量审核商家提现 - 管理员${operatorName}操作: ${action}, 成功${success}个，失败${failed}个`);
+
+        return { success, failed, errors };
+    }
+
+    // ============ 批量确认打款 ============
+
+    /**
+     * 批量确认买手提现打款
+     * 对应原版接口: Finance::confirmPaymentAll (user_cash)
+     * 业务语义: 批量确认买手提现已打款完成
+     * 前置条件: state = 1 (已同意)
+     * 后置状态: state = 3 (已返款)
+     *
+     * @param withdrawalIds 提现ID数组
+     * @param paymentNo 打款单号 (可选)
+     * @param operatorId 操作员ID
+     * @param operatorName 操作员姓名
+     */
+    async batchConfirmBuyerPayment(
+        withdrawalIds: string[],
+        paymentNo: string | undefined,
+        operatorId: string,
+        operatorName: string
+    ): Promise<{ success: number; failed: number; totalAmount: number; errors: string[] }> {
+        let success = 0;
+        let failed = 0;
+        let totalAmount = 0;
+        const errors: string[] = [];
+
+        for (const id of withdrawalIds) {
+            try {
+                const result = await this.withdrawalRepository.manager.transaction(async transactionalEntityManager => {
+                    // 1. 查询提现记录
+                    const withdrawal = await transactionalEntityManager.findOne(Withdrawal, { where: { id } });
+
+                    if (!withdrawal) {
+                        return { success: false, message: `提现记录 ${id} 不存在`, amount: 0 };
+                    }
+
+                    // 2. 验证状态: 必须为 APPROVED (1)
+                    if (withdrawal.status !== WithdrawalStatus.APPROVED) {
+                        return { success: false, message: `提现记录 ${id} 状态不正确`, amount: 0 };
+                    }
+
+                    // 3. 更新为已完成: state = 1 -> state = 3
+                    withdrawal.status = WithdrawalStatus.COMPLETED;
+                    if (paymentNo) {
+                        withdrawal.remark = (withdrawal.remark || '') + ` 打款单号: ${paymentNo}`;
+                    }
+
+                    // 4. 扣除冻结余额
+                    const ownerId = withdrawal.ownerId || withdrawal.userId;
+                    if (withdrawal.type === WithdrawalType.BALANCE) {
+                        await transactionalEntityManager
+                            .createQueryBuilder()
+                            .update(User)
+                            .set({
+                                frozenBalance: () => `"frozenBalance" - ${withdrawal.amount}`
+                            })
+                            .where("id = :userId", { userId: ownerId })
+                            .execute();
+
+                        // 记录提现流水
+                        await this.financeRecordsService.recordBuyerWithdraw(
+                            ownerId!,
+                            withdrawal.id,
+                            withdrawal.actualAmount,
+                            0
+                        );
+                    } else {
+                        await transactionalEntityManager
+                            .createQueryBuilder()
+                            .update(User)
+                            .set({
+                                frozenSilver: () => `"frozenSilver" - ${withdrawal.amount}`
+                            })
+                            .where("id = :userId", { userId: ownerId })
+                            .execute();
+
+                        // 记录银锭提现流水
+                        await this.financeRecordsService.recordBuyerSilverWithdraw(
+                            ownerId!,
+                            withdrawal.id,
+                            withdrawal.actualAmount,
+                            0
+                        );
+                    }
+
+                    await transactionalEntityManager.save(withdrawal);
+                    return { success: true, message: '成功', amount: Number(withdrawal.actualAmount) };
+                });
+
+                if (result.success) {
+                    success++;
+                    totalAmount += result.amount;
+                } else {
+                    failed++;
+                    errors.push(result.message);
+                }
+            } catch (error) {
+                failed++;
+                errors.push(`提现 ${id} 处理失败: ${error.message}`);
+            }
+        }
+
+        // 记录日志
+        console.log(`[AdminLog] 批量确认买手打款 - 管理员${operatorName}操作: 成功${success}个，失败${failed}个，总金额${totalAmount}元`);
+
+        return { success, failed, totalAmount, errors };
+    }
+
+    /**
+     * 批量确认商家提现打款
+     * 对应原版接口: Finance::confirmPaymentAll (seller_cash)
+     * 业务语义: 批量确认商家提现已打款完成
+     * 前置条件: state = 1 (已同意)
+     * 后置状态: state = 3 (已返款)
+     *
+     * @param withdrawalIds 提现ID数组
+     * @param paymentNo 打款单号 (可选)
+     * @param operatorId 操作员ID
+     * @param operatorName 操作员姓名
+     */
+    async batchConfirmMerchantPayment(
+        withdrawalIds: string[],
+        paymentNo: string | undefined,
+        operatorId: string,
+        operatorName: string
+    ): Promise<{ success: number; failed: number; totalAmount: number; errors: string[] }> {
+        let success = 0;
+        let failed = 0;
+        let totalAmount = 0;
+        const errors: string[] = [];
+
+        for (const id of withdrawalIds) {
+            try {
+                const result = await this.merchantWithdrawalRepository.manager.transaction(async transactionalEntityManager => {
+                    // 1. 查询提现记录
+                    const withdrawal = await transactionalEntityManager.findOne(MerchantWithdrawal, { where: { id } });
+
+                    if (!withdrawal) {
+                        return { success: false, message: `提现记录 ${id} 不存在`, amount: 0 };
+                    }
+
+                    // 2. 验证状态: 必须为 APPROVED (1)
+                    if (withdrawal.status !== MerchantWithdrawalStatus.APPROVED) {
+                        return { success: false, message: `提现记录 ${id} 状态不正确`, amount: 0 };
+                    }
+
+                    // 3. 更新为已完成: state = 1 -> state = 3
+                    withdrawal.status = MerchantWithdrawalStatus.COMPLETED;
+                    if (paymentNo) {
+                        withdrawal.remark = (withdrawal.remark || '') + ` 打款单号: ${paymentNo}`;
+                    }
+
+                    // 4. 扣除冻结余额
+                    if (withdrawal.type === MerchantWithdrawalType.BALANCE) {
+                        await transactionalEntityManager
+                            .createQueryBuilder()
+                            .update(Merchant)
+                            .set({
+                                frozenBalance: () => `"frozenBalance" - ${withdrawal.amount}`
+                            })
+                            .where("id = :merchantId", { merchantId: withdrawal.merchantId })
+                            .execute();
+
+                        // 记录提现流水
+                        await this.financeRecordsService.recordMerchantWithdraw(
+                            withdrawal.merchantId,
+                            withdrawal.id,
+                            withdrawal.actualAmount,
+                            0
+                        );
+                    } else {
+                        await transactionalEntityManager
+                            .createQueryBuilder()
+                            .update(Merchant)
+                            .set({
+                                frozenSilver: () => `"frozenSilver" - ${withdrawal.amount}`
+                            })
+                            .where("id = :merchantId", { merchantId: withdrawal.merchantId })
+                            .execute();
+
+                        // 记录银锭提现流水
+                        await this.financeRecordsService.recordMerchantSilverWithdraw(
+                            withdrawal.merchantId,
+                            withdrawal.id,
+                            withdrawal.actualAmount,
+                            0
+                        );
+                    }
+
+                    await transactionalEntityManager.save(withdrawal);
+                    return { success: true, message: '成功', amount: Number(withdrawal.actualAmount) };
+                });
+
+                if (result.success) {
+                    success++;
+                    totalAmount += result.amount;
+                } else {
+                    failed++;
+                    errors.push(result.message);
+                }
+            } catch (error) {
+                failed++;
+                errors.push(`提现 ${id} 处理失败: ${error.message}`);
+            }
+        }
+
+        // 记录日志
+        console.log(`[AdminLog] 批量确认商家打款 - 管理员${operatorName}操作: 成功${success}个，失败${failed}个，总金额${totalAmount}元`);
+
+        return { success, failed, totalAmount, errors };
+    }
 }

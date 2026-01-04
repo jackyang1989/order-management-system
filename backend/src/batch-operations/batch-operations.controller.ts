@@ -453,4 +453,128 @@ export class BatchOperationsController {
             data: result.data
         };
     }
+
+    // ============ 批量提现审核 (P0-10) ============
+
+    /**
+     * 批量审核买手提现申请
+     * 对应原版接口: Finance::allCheck (user_cash)
+     * 业务语义: 批量审核买手提现申请 (通过/拒绝)
+     * 前置条件: state = 0 (已申请)
+     * 后置状态: state = 1 (已同意) 或 state = 2 (已拒绝)
+     */
+    @Post('review-buyer-withdrawals')
+    @UseGuards(JwtAuthGuard)
+    async batchReviewBuyerWithdrawals(
+        @Body() body: {
+            withdrawalIds: string[];
+            action: 'approve' | 'reject';
+            reason?: string;
+        },
+        @Request() req
+    ) {
+        const result = await this.batchService.batchReviewBuyerWithdrawals(
+            body.withdrawalIds,
+            body.action,
+            body.reason,
+            req.user.userId,
+            req.user.username || '管理员'
+        );
+        return {
+            success: true,
+            message: `成功${result.success}个，失败${result.failed}个`,
+            data: result
+        };
+    }
+
+    /**
+     * 批量审核商家提现申请
+     * 对应原版接口: Finance::allCheck (seller_cash)
+     * 业务语义: 批量审核商家提现申请 (通过/拒绝)
+     * 前置条件: state = 0 (已申请)
+     * 后置状态: state = 1 (已同意) 或 state = 2 (已拒绝)
+     */
+    @Post('review-merchant-withdrawals')
+    @UseGuards(JwtAuthGuard)
+    async batchReviewMerchantWithdrawals(
+        @Body() body: {
+            withdrawalIds: string[];
+            action: 'approve' | 'reject';
+            reason?: string;
+        },
+        @Request() req
+    ) {
+        const result = await this.batchService.batchReviewMerchantWithdrawals(
+            body.withdrawalIds,
+            body.action,
+            body.reason,
+            req.user.userId,
+            req.user.username || '管理员'
+        );
+        return {
+            success: true,
+            message: `成功${result.success}个，失败${result.failed}个`,
+            data: result
+        };
+    }
+
+    // ============ 批量确认打款 (P0-11) ============
+
+    /**
+     * 批量确认买手提现打款
+     * 对应原版接口: Finance::confirmPaymentAll (user_cash)
+     * 业务语义: 批量确认买手提现已打款完成
+     * 前置条件: state = 1 (已同意)
+     * 后置状态: state = 3 (已返款)
+     */
+    @Post('confirm-buyer-payment')
+    @UseGuards(JwtAuthGuard)
+    async batchConfirmBuyerPayment(
+        @Body() body: {
+            withdrawalIds: string[];
+            paymentNo?: string;
+        },
+        @Request() req
+    ) {
+        const result = await this.batchService.batchConfirmBuyerPayment(
+            body.withdrawalIds,
+            body.paymentNo,
+            req.user.userId,
+            req.user.username || '管理员'
+        );
+        return {
+            success: true,
+            message: `成功${result.success}个，失败${result.failed}个，总金额${result.totalAmount}元`,
+            data: result
+        };
+    }
+
+    /**
+     * 批量确认商家提现打款
+     * 对应原版接口: Finance::confirmPaymentAll (seller_cash)
+     * 业务语义: 批量确认商家提现已打款完成
+     * 前置条件: state = 1 (已同意)
+     * 后置状态: state = 3 (已返款)
+     */
+    @Post('confirm-merchant-payment')
+    @UseGuards(JwtAuthGuard)
+    async batchConfirmMerchantPayment(
+        @Body() body: {
+            withdrawalIds: string[];
+            paymentNo?: string;
+        },
+        @Request() req
+    ) {
+        const result = await this.batchService.batchConfirmMerchantPayment(
+            body.withdrawalIds,
+            body.paymentNo,
+            req.user.userId,
+            req.user.username || '管理员'
+        );
+        return {
+            success: true,
+            message: `成功${result.success}个，失败${result.failed}个，总金额${result.totalAmount}元`,
+            data: result
+        };
+    }
 }
