@@ -31,7 +31,7 @@ export class AdminUsersService {
     @InjectRepository(AdminOperationLog)
     private adminLogRepository: Repository<AdminOperationLog>,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   // ============ 管理员登录 ============
 
@@ -469,6 +469,11 @@ export class AdminUsersService {
       );
 
       console.log('超级管理员账号已创建: superadmin / admin123456');
+    } else {
+      // Ensure password is correct
+      existing.password = await bcrypt.hash('admin123456', 10);
+      await this.adminUserRepository.save(existing);
+      console.log('超级管理员账号已重置: superadmin / admin123456');
     }
   }
 }

@@ -7,6 +7,7 @@ import {
   Body,
   UseGuards,
   Post,
+  Request,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AdminGuard, RequirePermissions } from '../auth/admin.guard';
@@ -24,7 +25,7 @@ export class AdminController {
     private readonly adminService: AdminService,
     private readonly shopsService: ShopsService,
     private readonly buyerAccountsService: BuyerAccountsService,
-  ) {}
+  ) { }
 
   // ============ 仪表盘 ============
   @Get('stats')
@@ -130,7 +131,7 @@ export class AdminController {
   ) {
     const statusEnum =
       status !== undefined
-        ? (status as unknown as WithdrawalStatus)
+        ? (parseInt(status) as WithdrawalStatus)
         : undefined;
     const result = await this.adminService.getWithdrawals(
       parseInt(page || '1'),
@@ -144,11 +145,13 @@ export class AdminController {
   async approveWithdrawal(
     @Param('id') id: string,
     @Body() body: { approved: boolean; remark?: string },
+    @Request() req,
   ) {
     const withdrawal = await this.adminService.approveWithdrawal(
       id,
       body.approved,
       body.remark,
+      req.user.adminId,
     );
     if (!withdrawal) {
       return { success: false, message: '提现记录不存在' };

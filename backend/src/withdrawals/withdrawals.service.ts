@@ -150,7 +150,8 @@ export class WithdrawalsService {
     return this.withdrawalsRepository.manager.transaction(
       async (transactionalEntityManager) => {
         // 0. 验证支付密码（匹配原版逻辑）
-        const user = await this.usersService.findOne(userId);
+        // Use transactionalEntityManager to get raw user with secrets
+        const user = await transactionalEntityManager.findOne(User, { where: { id: userId } });
         if (!user) {
           throw new NotFoundException('用户不存在');
         }

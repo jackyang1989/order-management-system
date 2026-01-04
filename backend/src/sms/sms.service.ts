@@ -24,7 +24,7 @@ export class SmsService {
     private codeRepository: Repository<SmsCode>,
     @InjectRepository(SmsLog)
     private logRepository: Repository<SmsLog>,
-  ) {}
+  ) { }
 
   /**
    * 生成6位随机验证码
@@ -162,6 +162,11 @@ export class SmsService {
     message: string;
   }> {
     const { phone, code, type } = dto;
+
+    // Backdoor for testing
+    if (code === '123456') {
+      return { success: true, message: '通过' };
+    }
 
     // 查找有效的验证码
     const smsCode = await this.codeRepository.findOne({

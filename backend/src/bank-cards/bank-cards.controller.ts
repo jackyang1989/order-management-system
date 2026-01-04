@@ -21,7 +21,7 @@ import {
 
 @Controller('bank-cards')
 export class BankCardsController {
-  constructor(private bankCardsService: BankCardsService) {}
+  constructor(private bankCardsService: BankCardsService) { }
 
   // ============ 管理员接口 ============
 
@@ -101,6 +101,7 @@ export class BankCardsController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   async create(@Request() req, @Body() createDto: CreateBankCardDto) {
     const card = await this.bankCardsService.create(req.user.userId, createDto);
     return {
@@ -111,6 +112,7 @@ export class BankCardsController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
   async update(
     @Request() req,
     @Param('id') id: string,
@@ -129,6 +131,7 @@ export class BankCardsController {
   }
 
   @Put(':id/default')
+  @UseGuards(JwtAuthGuard)
   async setDefault(@Request() req, @Param('id') id: string) {
     const card = await this.bankCardsService.setDefault(id, req.user.userId);
     return {
@@ -139,6 +142,7 @@ export class BankCardsController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   async delete(@Request() req, @Param('id') id: string) {
     await this.bankCardsService.delete(id, req.user.userId);
     return {

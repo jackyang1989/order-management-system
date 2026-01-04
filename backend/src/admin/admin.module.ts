@@ -11,6 +11,7 @@ import { Withdrawal } from '../withdrawals/withdrawal.entity';
 import { ShopsModule } from '../shops/shops.module';
 import { AuthModule } from '../auth/auth.module';
 import { BuyerAccountsModule } from '../buyer-accounts/buyer-accounts.module';
+import { WithdrawalsModule } from '../withdrawals/withdrawals.module';
 
 @Module({
   imports: [
@@ -18,9 +19,10 @@ import { BuyerAccountsModule } from '../buyer-accounts/buyer-accounts.module';
     ShopsModule,
     AuthModule,
     BuyerAccountsModule,
+    WithdrawalsModule,
   ],
   providers: [AdminService],
   controllers: [AdminController],
   exports: [AdminService],
 })
-export class AdminModule {}
+export class AdminModule { }

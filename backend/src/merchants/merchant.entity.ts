@@ -83,10 +83,24 @@ export class Merchant {
 
 // DTOs
 export class CreateMerchantDto {
+  @IsString()
+  @IsNotEmpty()
   username: string;
+
+  @IsString()
+  @IsNotEmpty()
   password: string;
+
+  @IsString()
+  @IsNotEmpty()
   phone: string;
+
+  @IsString()
+  @IsOptional()
   qq?: string;
+
+  @IsString()
+  @IsOptional()
   companyName?: string;
 }
 
@@ -101,9 +115,23 @@ export class MerchantLoginDto {
 }
 
 export class UpdateMerchantDto {
+  @IsString()
+  @IsOptional()
   phone?: string;
+
+  @IsString()
+  @IsOptional()
   qq?: string;
+
+  @IsString()
+  @IsOptional()
   companyName?: string;
+
+  @IsString()
+  @IsOptional()
   businessLicense?: string;
+
+  @IsString()
+  @IsOptional()
   contactName?: string;
 }

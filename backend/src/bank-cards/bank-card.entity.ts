@@ -34,7 +34,7 @@ export class BankCard {
   @Index()
   ownerType: BankCardOwnerType; // 所有者类型：买手或商家
 
-  @Column()
+  @Column({ nullable: true })
   @Index()
   ownerId: string; // 所有者ID（买手ID或商家ID）
 
