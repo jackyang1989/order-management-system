@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Table, Card, Input, Select, Button, Tag, Space, Modal, Form, InputNumber, message, Avatar, Badge, Descriptions, Image, Tooltip } from 'antd';
+import { SearchOutlined, ReloadOutlined, UserOutlined, DollarOutlined, CrownOutlined, StopOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import type { ColumnsType } from 'antd/es/table';
 import { BASE_URL } from '../../../../apiConfig';
 
 interface User {
@@ -22,19 +25,16 @@ interface User {
     createdAt: string;
     lastLoginAt?: string;
     lastLoginIp?: string;
-    // 实名认证
     realName?: string;
     idCard?: string;
     idCardFront?: string;
     idCardBack?: string;
-    // 推荐信息
     invitationCode?: string;
     invitedBy?: string;
     referrerId?: string;
     referrerType?: number;
     referralReward?: number;
     referralCount?: number;
-    updatedAt?: string;
 }
 
 interface BalanceModalData {
@@ -53,14 +53,10 @@ export default function AdminUsersPage() {
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [vipFilter, setVipFilter] = useState<string>('all');
 
-    // 弹窗状态
     const [balanceModal, setBalanceModal] = useState<BalanceModalData | null>(null);
-    const [balanceAmount, setBalanceAmount] = useState('');
-    const [balanceReason, setBalanceReason] = useState('');
     const [detailModal, setDetailModal] = useState<User | null>(null);
     const [banModal, setBanModal] = useState<{ userId: string; username: string } | null>(null);
-    const [banReason, setBanReason] = useState('');
-    const [imageModal, setImageModal] = useState<string | null>(null);
+    const [form] = Form.useForm();
 
     useEffect(() => {
         loadUsers();
@@ -95,11 +91,8 @@ export default function AdminUsersPage() {
         loadUsers();
     };
 
-    const handleAdjustBalance = async () => {
-        if (!balanceModal || !balanceAmount || !balanceReason) {
-            alert('请填写完整信息');
-            return;
-        }
+    const handleAdjustBalance = async (values: { amount: number; reason: string }) => {
+        if (!balanceModal) return;
         const token = localStorage.getItem('adminToken');
         try {
             const res = await fetch(`${BASE_URL}/admin/users/${balanceModal.userId}/balance`, {
@@ -111,26 +104,25 @@ export default function AdminUsersPage() {
                 body: JSON.stringify({
                     type: balanceModal.type,
                     action: balanceModal.action,
-                    amount: parseFloat(balanceAmount),
-                    reason: balanceReason
+                    amount: values.amount,
+                    reason: values.reason
                 })
             });
             const json = await res.json();
             if (json.success) {
-                alert('操作成功');
+                message.success('操作成功');
                 setBalanceModal(null);
-                setBalanceAmount('');
-                setBalanceReason('');
+                form.resetFields();
                 loadUsers();
             } else {
-                alert(json.message || '操作失败');
+                message.error(json.message || '操作失败');
             }
         } catch (e) {
-            alert('操作失败');
+            message.error('操作失败');
         }
     };
 
-    const handleBan = async () => {
+    const handleBan = async (reason: string) => {
         if (!banModal) return;
         const token = localStorage.getItem('adminToken');
         try {
@@ -140,28 +132,27 @@ export default function AdminUsersPage() {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ reason: banReason })
+                body: JSON.stringify({ reason })
             });
-            alert('用户已封禁');
+            message.success('用户已封禁');
             setBanModal(null);
-            setBanReason('');
             loadUsers();
         } catch (e) {
-            alert('操作失败');
+            message.error('操作失败');
         }
     };
 
     const handleUnban = async (userId: string) => {
-        if (!confirm('确定解封该用户？')) return;
         const token = localStorage.getItem('adminToken');
         try {
             await fetch(`${BASE_URL}/admin/users/${userId}/unban`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            message.success('已解封');
             loadUsers();
         } catch (e) {
-            alert('操作失败');
+            message.error('操作失败');
         }
     };
 
@@ -176,462 +167,287 @@ export default function AdminUsersPage() {
                 },
                 body: JSON.stringify({ days })
             });
-            alert('VIP已设置');
+            message.success('VIP已设置');
             loadUsers();
         } catch (e) {
-            alert('操作失败');
+            message.error('操作失败');
         }
     };
 
-    const getVerifyStatusText = (status: number) => {
-        const texts = ['未认证', '待审核', '已认证', '已拒绝'];
-        return texts[status] || '未知';
+    const getVerifyStatusTag = (status: number) => {
+        const configs = [
+            { text: '未认证', color: 'default' },
+            { text: '待审核', color: 'warning' },
+            { text: '已认证', color: 'success' },
+            { text: '已拒绝', color: 'error' },
+        ];
+        const config = configs[status] || configs[0];
+        return <Tag color={config.color}>{config.text}</Tag>;
     };
 
-    const getVerifyStatusColor = (status: number) => {
-        const colors = ['#999', '#faad14', '#52c41a', '#ff4d4f'];
-        return colors[status] || '#999';
-    };
+    const columns: ColumnsType<User> = [
+        {
+            title: '用户信息',
+            key: 'info',
+            width: 200,
+            render: (_, record) => (
+                <Space>
+                    <Avatar icon={<UserOutlined />} />
+                    <div>
+                        <div style={{ fontWeight: 500 }}>{record.username}</div>
+                        <div style={{ fontSize: 12, color: '#999' }}>{record.phone}</div>
+                    </div>
+                </Space>
+            ),
+        },
+        {
+            title: '本金余额',
+            key: 'balance',
+            align: 'right',
+            width: 120,
+            render: (_, record) => (
+                <div>
+                    <div style={{ color: '#52c41a', fontWeight: 500 }}>¥{Number(record.balance || 0).toFixed(2)}</div>
+                    {(record.frozenBalance || 0) > 0 && (
+                        <div style={{ fontSize: 12, color: '#faad14' }}>冻结: ¥{Number(record.frozenBalance).toFixed(2)}</div>
+                    )}
+                </div>
+            ),
+        },
+        {
+            title: '银锭余额',
+            key: 'silver',
+            align: 'right',
+            width: 120,
+            render: (_, record) => (
+                <div>
+                    <div style={{ color: '#1890ff', fontWeight: 500 }}>{Number(record.silver || 0).toFixed(2)}</div>
+                    {(record.frozenSilver || 0) > 0 && (
+                        <div style={{ fontSize: 12, color: '#faad14' }}>冻结: {Number(record.frozenSilver).toFixed(2)}</div>
+                    )}
+                </div>
+            ),
+        },
+        {
+            title: '会员',
+            key: 'vip',
+            align: 'center',
+            width: 80,
+            render: (_, record) => record.vip ? <Tag color="gold">VIP</Tag> : <Tag>普通</Tag>,
+        },
+        {
+            title: '实名',
+            key: 'verify',
+            align: 'center',
+            width: 80,
+            render: (_, record) => getVerifyStatusTag(record.verifyStatus),
+        },
+        {
+            title: '状态',
+            key: 'status',
+            align: 'center',
+            width: 80,
+            render: (_, record) => {
+                if (record.isBanned) return <Tag color="error">已封禁</Tag>;
+                if (record.isActive) return <Tag color="success">正常</Tag>;
+                return <Tag>未激活</Tag>;
+            },
+        },
+        {
+            title: '操作',
+            key: 'actions',
+            width: 280,
+            render: (_, record) => (
+                <Space size="small" wrap>
+                    <Button size="small" onClick={() => setDetailModal(record)}>详情</Button>
+                    <Button size="small" type="primary" ghost onClick={() => setBalanceModal({ userId: record.id, username: record.username, type: 'balance', action: 'add' })}>
+                        充值
+                    </Button>
+                    <Button size="small" style={{ color: '#faad14', borderColor: '#faad14' }} onClick={() => setBalanceModal({ userId: record.id, username: record.username, type: 'balance', action: 'deduct' })}>
+                        扣款
+                    </Button>
+                    {!record.vip && (
+                        <Tooltip title="设置30天VIP">
+                            <Button size="small" icon={<CrownOutlined />} onClick={() => handleSetVip(record.id, 30)}>VIP</Button>
+                        </Tooltip>
+                    )}
+                    {record.isBanned ? (
+                        <Button size="small" type="primary" onClick={() => handleUnban(record.id)}>解封</Button>
+                    ) : (
+                        <Button size="small" danger onClick={() => setBanModal({ userId: record.id, username: record.username })}>封禁</Button>
+                    )}
+                </Space>
+            ),
+        },
+    ];
 
     return (
         <div>
             {/* 搜索栏 */}
-            <div style={{
-                background: '#fff',
-                padding: '16px 20px',
-                borderRadius: '8px',
-                marginBottom: '16px',
-            }}>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <input
-                        type="text"
-                        placeholder="搜索用户名/手机号/真实姓名..."
+            <Card style={{ marginBottom: 16 }}>
+                <Space wrap>
+                    <Input
+                        placeholder="搜索用户名/手机号/姓名..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                        style={{
-                            width: '280px',
-                            padding: '8px 12px',
-                            border: '1px solid #d9d9d9',
-                            borderRadius: '4px',
-                            fontSize: '14px'
-                        }}
+                        onPressEnter={handleSearch}
+                        style={{ width: 280 }}
+                        prefix={<SearchOutlined />}
                     />
-                    <select
+                    <Select
                         value={statusFilter}
-                        onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
-                        style={{ padding: '8px 12px', border: '1px solid #d9d9d9', borderRadius: '4px' }}
-                    >
-                        <option value="all">全部状态</option>
-                        <option value="active">正常</option>
-                        <option value="banned">已封禁</option>
-                    </select>
-                    <select
+                        onChange={v => { setStatusFilter(v); setPage(1); }}
+                        style={{ width: 120 }}
+                        options={[
+                            { value: 'all', label: '全部状态' },
+                            { value: 'active', label: '正常' },
+                            { value: 'banned', label: '已封禁' },
+                        ]}
+                    />
+                    <Select
                         value={vipFilter}
-                        onChange={e => { setVipFilter(e.target.value); setPage(1); }}
-                        style={{ padding: '8px 12px', border: '1px solid #d9d9d9', borderRadius: '4px' }}
-                    >
-                        <option value="all">全部会员</option>
-                        <option value="vip">VIP用户</option>
-                        <option value="normal">普通用户</option>
-                    </select>
-                    <button
-                        onClick={handleSearch}
-                        style={{
-                            padding: '8px 20px',
-                            background: '#1890ff',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        搜索
-                    </button>
-                    <div style={{ flex: 1 }} />
-                    <span style={{ color: '#666' }}>共 {total} 条记录</span>
-                </div>
-            </div>
+                        onChange={v => { setVipFilter(v); setPage(1); }}
+                        style={{ width: 120 }}
+                        options={[
+                            { value: 'all', label: '全部会员' },
+                            { value: 'vip', label: 'VIP用户' },
+                            { value: 'normal', label: '普通用户' },
+                        ]}
+                    />
+                    <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>搜索</Button>
+                    <Button icon={<ReloadOutlined />} onClick={loadUsers}>刷新</Button>
+                </Space>
+            </Card>
 
             {/* 用户列表 */}
-            <div style={{ background: '#fff', borderRadius: '8px', overflow: 'hidden' }}>
-                {loading ? (
-                    <div style={{ padding: '48px', textAlign: 'center', color: '#999' }}>加载中...</div>
-                ) : users.length === 0 ? (
-                    <div style={{ padding: '48px', textAlign: 'center', color: '#999' }}>暂无用户</div>
-                ) : (
-                    <>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                            <thead>
-                                <tr style={{ background: '#fafafa' }}>
-                                    <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>用户信息</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'right', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>本金余额</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'right', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>银锭余额</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>会员</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>实名</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>状态</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0', minWidth: '280px' }}>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {users.map(user => (
-                                    <tr key={user.id} style={{ borderBottom: '1px solid #f0f0f0', opacity: user.isBanned ? 0.6 : 1 }}>
-                                        <td style={{ padding: '14px 16px' }}>
-                                            <div style={{ fontWeight: '500' }}>{user.username}</div>
-                                            <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>{user.phone}</div>
-                                        </td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                                            <div style={{ color: '#52c41a', fontWeight: '500' }}>¥{Number(user.balance || 0).toFixed(2)}</div>
-                                            {(user.frozenBalance || 0) > 0 && (
-                                                <div style={{ fontSize: '12px', color: '#faad14' }}>冻结: ¥{Number(user.frozenBalance).toFixed(2)}</div>
-                                            )}
-                                        </td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                                            <div style={{ color: '#1890ff', fontWeight: '500' }}>{Number(user.silver || 0).toFixed(2)}</div>
-                                            {(user.frozenSilver || 0) > 0 && (
-                                                <div style={{ fontSize: '12px', color: '#faad14' }}>冻结: {Number(user.frozenSilver).toFixed(2)}</div>
-                                            )}
-                                        </td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                                            {user.vip ? (
-                                                <span style={{ padding: '2px 8px', background: '#fff7e6', color: '#d48806', borderRadius: '4px', fontSize: '12px' }}>
-                                                    VIP
-                                                </span>
-                                            ) : (
-                                                <span style={{ color: '#999', fontSize: '12px' }}>普通</span>
-                                            )}
-                                        </td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                                            <span style={{ color: getVerifyStatusColor(user.verifyStatus), fontSize: '12px' }}>
-                                                {getVerifyStatusText(user.verifyStatus)}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                                            {user.isBanned ? (
-                                                <span style={{ padding: '2px 8px', background: '#fff2f0', color: '#ff4d4f', borderRadius: '4px', fontSize: '12px' }}>
-                                                    已封禁
-                                                </span>
-                                            ) : user.isActive ? (
-                                                <span style={{ padding: '2px 8px', background: '#f6ffed', color: '#52c41a', borderRadius: '4px', fontSize: '12px' }}>
-                                                    正常
-                                                </span>
-                                            ) : (
-                                                <span style={{ padding: '2px 8px', background: '#f5f5f5', color: '#999', borderRadius: '4px', fontSize: '12px' }}>
-                                                    未激活
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                                                <button
-                                                    onClick={() => setDetailModal(user)}
-                                                    style={{ padding: '4px 10px', border: '1px solid #1890ff', borderRadius: '4px', background: '#fff', color: '#1890ff', cursor: 'pointer', fontSize: '12px' }}
-                                                >
-                                                    详情
-                                                </button>
-                                                <button
-                                                    onClick={() => setBalanceModal({ userId: user.id, username: user.username, type: 'balance', action: 'add' })}
-                                                    style={{ padding: '4px 10px', border: '1px solid #52c41a', borderRadius: '4px', background: '#fff', color: '#52c41a', cursor: 'pointer', fontSize: '12px' }}
-                                                >
-                                                    充值
-                                                </button>
-                                                <button
-                                                    onClick={() => setBalanceModal({ userId: user.id, username: user.username, type: 'balance', action: 'deduct' })}
-                                                    style={{ padding: '4px 10px', border: '1px solid #faad14', borderRadius: '4px', background: '#fff', color: '#faad14', cursor: 'pointer', fontSize: '12px' }}
-                                                >
-                                                    扣款
-                                                </button>
-                                                {!user.vip && (
-                                                    <button
-                                                        onClick={() => handleSetVip(user.id, 30)}
-                                                        style={{ padding: '4px 10px', border: '1px solid #722ed1', borderRadius: '4px', background: '#fff', color: '#722ed1', cursor: 'pointer', fontSize: '12px' }}
-                                                    >
-                                                        设VIP
-                                                    </button>
-                                                )}
-                                                {user.isBanned ? (
-                                                    <button
-                                                        onClick={() => handleUnban(user.id)}
-                                                        style={{ padding: '4px 10px', border: '1px solid #52c41a', borderRadius: '4px', background: '#52c41a', color: '#fff', cursor: 'pointer', fontSize: '12px' }}
-                                                    >
-                                                        解封
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => setBanModal({ userId: user.id, username: user.username })}
-                                                        style={{ padding: '4px 10px', border: '1px solid #ff4d4f', borderRadius: '4px', background: '#fff', color: '#ff4d4f', cursor: 'pointer', fontSize: '12px' }}
-                                                    >
-                                                        封禁
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-
-                        {/* 分页 */}
-                        <div style={{ padding: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #d9d9d9', background: '#fff', cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.5 : 1 }}>上一页</button>
-                            <span style={{ padding: '6px 12px', color: '#666' }}>第 {page} 页</span>
-                            <button onClick={() => setPage(p => p + 1)} disabled={users.length < 20} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #d9d9d9', background: '#fff', cursor: users.length < 20 ? 'not-allowed' : 'pointer', opacity: users.length < 20 ? 0.5 : 1 }}>下一页</button>
-                        </div>
-                    </>
-                )}
-            </div>
+            <Card>
+                <Table
+                    columns={columns}
+                    dataSource={users}
+                    rowKey="id"
+                    loading={loading}
+                    pagination={{
+                        current: page,
+                        total: total,
+                        pageSize: 20,
+                        onChange: setPage,
+                        showTotal: (t) => `共 ${t} 条记录`,
+                    }}
+                    scroll={{ x: 1000 }}
+                />
+            </Card>
 
             {/* 充值/扣款弹窗 */}
-            {balanceModal && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: '#fff', padding: '24px', borderRadius: '8px', width: '400px' }}>
-                        <h3 style={{ margin: '0 0 20px 0', fontSize: '16px' }}>
-                            {balanceModal.action === 'add' ? '💰 充值' : '💸 扣款'} - {balanceModal.username}
-                        </h3>
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', color: '#666' }}>账户类型</label>
-                            <select
-                                value={balanceModal.type}
-                                onChange={e => setBalanceModal({ ...balanceModal, type: e.target.value as 'balance' | 'silver' })}
-                                style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '6px' }}
-                            >
-                                <option value="balance">本金余额</option>
-                                <option value="silver">银锭余额</option>
-                            </select>
-                        </div>
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', color: '#666' }}>
-                                {balanceModal.action === 'add' ? '充值' : '扣除'}金额
-                            </label>
-                            <input
-                                type="number"
-                                value={balanceAmount}
-                                onChange={e => setBalanceAmount(e.target.value)}
-                                placeholder="请输入金额"
-                                style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '6px', boxSizing: 'border-box' }}
-                            />
-                        </div>
-                        <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', color: '#666' }}>操作原因</label>
-                            <input
-                                value={balanceReason}
-                                onChange={e => setBalanceReason(e.target.value)}
-                                placeholder="请输入操作原因"
-                                style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '6px', boxSizing: 'border-box' }}
-                            />
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                            <button onClick={() => { setBalanceModal(null); setBalanceAmount(''); setBalanceReason(''); }} style={{ padding: '8px 20px', border: '1px solid #d9d9d9', background: '#fff', borderRadius: '6px', cursor: 'pointer' }}>取消</button>
-                            <button onClick={handleAdjustBalance} style={{ padding: '8px 20px', background: balanceModal.action === 'add' ? '#52c41a' : '#faad14', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
-                                确认{balanceModal.action === 'add' ? '充值' : '扣款'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <Modal
+                title={`${balanceModal?.action === 'add' ? '💰 充值' : '💸 扣款'} - ${balanceModal?.username}`}
+                open={!!balanceModal}
+                onCancel={() => { setBalanceModal(null); form.resetFields(); }}
+                footer={null}
+            >
+                <Form form={form} layout="vertical" onFinish={handleAdjustBalance}>
+                    <Form.Item label="账户类型">
+                        <Select
+                            value={balanceModal?.type}
+                            onChange={t => balanceModal && setBalanceModal({ ...balanceModal, type: t })}
+                            options={[
+                                { value: 'balance', label: '本金余额' },
+                                { value: 'silver', label: '银锭余额' },
+                            ]}
+                        />
+                    </Form.Item>
+                    <Form.Item name="amount" label={`${balanceModal?.action === 'add' ? '充值' : '扣除'}金额`} rules={[{ required: true, message: '请输入金额' }]}>
+                        <InputNumber style={{ width: '100%' }} min={0} precision={2} placeholder="请输入金额" />
+                    </Form.Item>
+                    <Form.Item name="reason" label="操作原因" rules={[{ required: true, message: '请输入原因' }]}>
+                        <Input placeholder="请输入操作原因" />
+                    </Form.Item>
+                    <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+                        <Space>
+                            <Button onClick={() => { setBalanceModal(null); form.resetFields(); }}>取消</Button>
+                            <Button type="primary" htmlType="submit" style={{ background: balanceModal?.action === 'add' ? '#52c41a' : '#faad14' }}>
+                                确认{balanceModal?.action === 'add' ? '充值' : '扣款'}
+                            </Button>
+                        </Space>
+                    </Form.Item>
+                </Form>
+            </Modal>
 
             {/* 封禁弹窗 */}
-            {banModal && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: '#fff', padding: '24px', borderRadius: '8px', width: '400px' }}>
-                        <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', color: '#ff4d4f' }}>
-                            🚫 封禁用户 - {banModal.username}
-                        </h3>
-                        <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', color: '#666' }}>封禁原因</label>
-                            <textarea
-                                value={banReason}
-                                onChange={e => setBanReason(e.target.value)}
-                                placeholder="请输入封禁原因"
-                                rows={3}
-                                style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '6px', boxSizing: 'border-box', resize: 'none' }}
-                            />
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                            <button onClick={() => { setBanModal(null); setBanReason(''); }} style={{ padding: '8px 20px', border: '1px solid #d9d9d9', background: '#fff', borderRadius: '6px', cursor: 'pointer' }}>取消</button>
-                            <button onClick={handleBan} style={{ padding: '8px 20px', background: '#ff4d4f', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
-                                确认封禁
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <Modal
+                title={`🚫 封禁用户 - ${banModal?.username}`}
+                open={!!banModal}
+                onCancel={() => setBanModal(null)}
+                onOk={() => {
+                    const reason = (document.getElementById('banReason') as HTMLTextAreaElement)?.value;
+                    if (reason) handleBan(reason);
+                }}
+                okText="确认封禁"
+                okButtonProps={{ danger: true }}
+            >
+                <Form layout="vertical">
+                    <Form.Item label="封禁原因">
+                        <Input.TextArea id="banReason" rows={3} placeholder="请输入封禁原因" />
+                    </Form.Item>
+                </Form>
+            </Modal>
 
             {/* 用户详情弹窗 */}
-            {detailModal && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: '#fff', borderRadius: '8px', width: '700px', maxWidth: '95%', maxHeight: '90vh', overflow: 'auto' }}>
-                        <div style={{ padding: '20px 24px', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
-                            <h3 style={{ margin: 0, fontSize: '16px' }}>用户详情</h3>
-                            <button onClick={() => setDetailModal(null)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#999' }}>x</button>
-                        </div>
-                        <div style={{ padding: '24px' }}>
-                            {/* 基本信息 */}
-                            <div style={{ marginBottom: '24px' }}>
-                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>基本信息</h4>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                    <div><span style={{ color: '#999' }}>用户ID：</span><span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{detailModal.id}</span></div>
-                                    <div><span style={{ color: '#999' }}>用户名：</span><span style={{ fontWeight: '500' }}>{detailModal.username}</span></div>
-                                    <div><span style={{ color: '#999' }}>手机号：</span>{detailModal.phone}</div>
-                                    <div><span style={{ color: '#999' }}>QQ：</span>{detailModal.qq || '-'}</div>
-                                    <div><span style={{ color: '#999' }}>邀请码：</span><span style={{ fontFamily: 'monospace', color: '#1890ff' }}>{detailModal.invitationCode || '-'}</span></div>
-                                    <div><span style={{ color: '#999' }}>最后登录IP：</span>{detailModal.lastLoginIp || '-'}</div>
-                                </div>
-                            </div>
+            <Modal
+                title="用户详情"
+                open={!!detailModal}
+                onCancel={() => setDetailModal(null)}
+                width={700}
+                footer={[
+                    <Button key="recharge" type="primary" style={{ background: '#52c41a' }} onClick={() => { setBalanceModal({ userId: detailModal!.id, username: detailModal!.username, type: 'balance', action: 'add' }); setDetailModal(null); }}>
+                        充值
+                    </Button>,
+                    !detailModal?.vip && (
+                        <Button key="vip" style={{ background: '#722ed1', color: '#fff' }} onClick={() => { handleSetVip(detailModal!.id, 30); setDetailModal(null); }}>
+                            设为VIP
+                        </Button>
+                    ),
+                    detailModal?.isBanned ? (
+                        <Button key="unban" type="primary" onClick={() => { handleUnban(detailModal!.id); setDetailModal(null); }}>解封</Button>
+                    ) : (
+                        <Button key="ban" danger onClick={() => { setBanModal({ userId: detailModal!.id, username: detailModal!.username }); setDetailModal(null); }}>封禁</Button>
+                    ),
+                    <Button key="close" onClick={() => setDetailModal(null)}>关闭</Button>,
+                ]}
+            >
+                {detailModal && (
+                    <div>
+                        <Descriptions title="基本信息" column={2} bordered size="small" style={{ marginBottom: 24 }}>
+                            <Descriptions.Item label="用户ID">{detailModal.id}</Descriptions.Item>
+                            <Descriptions.Item label="用户名">{detailModal.username}</Descriptions.Item>
+                            <Descriptions.Item label="手机号">{detailModal.phone}</Descriptions.Item>
+                            <Descriptions.Item label="QQ">{detailModal.qq || '-'}</Descriptions.Item>
+                            <Descriptions.Item label="邀请码">{detailModal.invitationCode || '-'}</Descriptions.Item>
+                            <Descriptions.Item label="最后登录IP">{detailModal.lastLoginIp || '-'}</Descriptions.Item>
+                        </Descriptions>
 
-                            {/* 账户余额 */}
-                            <div style={{ marginBottom: '24px' }}>
-                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>账户余额</h4>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-                                    <div style={{ padding: '16px', background: '#f6ffed', borderRadius: '6px', textAlign: 'center' }}>
-                                        <div style={{ fontSize: '24px', fontWeight: '600', color: '#52c41a' }}>¥{Number(detailModal.balance || 0).toFixed(2)}</div>
-                                        <div style={{ fontSize: '12px', color: '#999' }}>本金余额</div>
-                                        {(detailModal.frozenBalance || 0) > 0 && (
-                                            <div style={{ fontSize: '11px', color: '#faad14', marginTop: '4px' }}>冻结: ¥{Number(detailModal.frozenBalance).toFixed(2)}</div>
-                                        )}
-                                    </div>
-                                    <div style={{ padding: '16px', background: '#e6f7ff', borderRadius: '6px', textAlign: 'center' }}>
-                                        <div style={{ fontSize: '24px', fontWeight: '600', color: '#1890ff' }}>{Number(detailModal.silver || 0).toFixed(2)}</div>
-                                        <div style={{ fontSize: '12px', color: '#999' }}>银锭余额</div>
-                                        {(detailModal.frozenSilver || 0) > 0 && (
-                                            <div style={{ fontSize: '11px', color: '#faad14', marginTop: '4px' }}>冻结: {Number(detailModal.frozenSilver).toFixed(2)}</div>
-                                        )}
-                                    </div>
-                                    <div style={{ padding: '16px', background: '#fff7e6', borderRadius: '6px', textAlign: 'center' }}>
-                                        <div style={{ fontSize: '24px', fontWeight: '600', color: '#fa8c16' }}>{Number(detailModal.reward || 0).toFixed(2)}</div>
-                                        <div style={{ fontSize: '12px', color: '#999' }}>累计赚取银锭</div>
-                                    </div>
-                                </div>
-                            </div>
+                        <Descriptions title="账户余额" column={3} bordered size="small" style={{ marginBottom: 24 }}>
+                            <Descriptions.Item label="本金余额">
+                                <span style={{ color: '#52c41a', fontWeight: 600 }}>¥{Number(detailModal.balance || 0).toFixed(2)}</span>
+                            </Descriptions.Item>
+                            <Descriptions.Item label="银锭余额">
+                                <span style={{ color: '#1890ff', fontWeight: 600 }}>{Number(detailModal.silver || 0).toFixed(2)}</span>
+                            </Descriptions.Item>
+                            <Descriptions.Item label="累计赚取">
+                                <span style={{ color: '#fa8c16', fontWeight: 600 }}>{Number(detailModal.reward || 0).toFixed(2)}</span>
+                            </Descriptions.Item>
+                        </Descriptions>
 
-                            {/* 会员状态 */}
-                            <div style={{ marginBottom: '24px' }}>
-                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>会员状态</h4>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-                                    <div><span style={{ color: '#999' }}>VIP状态：</span>
-                                        {detailModal.vip ? (
-                                            <span style={{ padding: '2px 8px', background: '#fff7e6', color: '#d48806', borderRadius: '4px', fontSize: '12px' }}>VIP</span>
-                                        ) : (
-                                            <span style={{ color: '#999' }}>普通用户</span>
-                                        )}
-                                    </div>
-                                    {detailModal.vip && detailModal.vipExpireAt && (
-                                        <div><span style={{ color: '#999' }}>VIP到期：</span>{new Date(detailModal.vipExpireAt).toLocaleDateString('zh-CN')}</div>
-                                    )}
-                                    <div><span style={{ color: '#999' }}>账号状态：</span>
-                                        {detailModal.isBanned ? (
-                                            <span style={{ color: '#ff4d4f' }}>已封禁</span>
-                                        ) : detailModal.isActive ? (
-                                            <span style={{ color: '#52c41a' }}>正常</span>
-                                        ) : (
-                                            <span style={{ color: '#999' }}>未激活</span>
-                                        )}
-                                    </div>
-                                </div>
-                                {detailModal.isBanned && detailModal.banReason && (
-                                    <div style={{ marginTop: '12px', padding: '12px', background: '#fff2f0', borderRadius: '4px', border: '1px solid #ffccc7' }}>
-                                        <span style={{ color: '#ff4d4f', fontWeight: '500' }}>封禁原因：</span>
-                                        <span style={{ color: '#ff4d4f' }}>{detailModal.banReason}</span>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* 实名认证 */}
-                            <div style={{ marginBottom: '24px' }}>
-                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>实名认证</h4>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                    <div><span style={{ color: '#999' }}>认证状态：</span>
-                                        <span style={{ color: getVerifyStatusColor(detailModal.verifyStatus) }}>{getVerifyStatusText(detailModal.verifyStatus)}</span>
-                                    </div>
-                                    <div><span style={{ color: '#999' }}>真实姓名：</span>{detailModal.realName || '-'}</div>
-                                    <div><span style={{ color: '#999' }}>身份证号：</span>{detailModal.idCard ? detailModal.idCard.replace(/(\d{4})\d{10}(\d{4})/, '$1**********$2') : '-'}</div>
-                                </div>
-                                {(detailModal.idCardFront || detailModal.idCardBack) && (
-                                    <div style={{ display: 'flex', gap: '16px', marginTop: '16px', flexWrap: 'wrap' }}>
-                                        {detailModal.idCardFront && (
-                                            <div style={{ textAlign: 'center' }}>
-                                                <img
-                                                    src={detailModal.idCardFront}
-                                                    alt="身份证正面"
-                                                    style={{ width: '150px', height: '100px', objectFit: 'cover', borderRadius: '4px', cursor: 'pointer', border: '1px solid #d9d9d9' }}
-                                                    onClick={() => setImageModal(detailModal.idCardFront!)}
-                                                />
-                                                <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>身份证正面</div>
-                                            </div>
-                                        )}
-                                        {detailModal.idCardBack && (
-                                            <div style={{ textAlign: 'center' }}>
-                                                <img
-                                                    src={detailModal.idCardBack}
-                                                    alt="身份证背面"
-                                                    style={{ width: '150px', height: '100px', objectFit: 'cover', borderRadius: '4px', cursor: 'pointer', border: '1px solid #d9d9d9' }}
-                                                    onClick={() => setImageModal(detailModal.idCardBack!)}
-                                                />
-                                                <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>身份证背面</div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* 推荐信息 */}
-                            <div style={{ marginBottom: '24px' }}>
-                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>推荐信息</h4>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-                                    <div><span style={{ color: '#999' }}>推荐人数：</span><span style={{ color: '#1890ff', fontWeight: '500' }}>{detailModal.referralCount || 0}</span></div>
-                                    <div><span style={{ color: '#999' }}>累计推荐奖励：</span><span style={{ color: '#52c41a', fontWeight: '500' }}>¥{Number(detailModal.referralReward || 0).toFixed(2)}</span></div>
-                                    <div><span style={{ color: '#999' }}>邀请人ID：</span><span style={{ fontFamily: 'monospace', fontSize: '11px' }}>{detailModal.invitedBy || detailModal.referrerId || '-'}</span></div>
-                                </div>
-                            </div>
-
-                            {/* 时间信息 */}
-                            <div style={{ marginBottom: '24px' }}>
-                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>时间记录</h4>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                    <div><span style={{ color: '#999' }}>注册时间：</span>{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</div>
-                                    <div><span style={{ color: '#999' }}>最后登录：</span>{detailModal.lastLoginAt ? new Date(detailModal.lastLoginAt).toLocaleString('zh-CN') : '-'}</div>
-                                    {detailModal.updatedAt && (
-                                        <div><span style={{ color: '#999' }}>更新时间：</span>{new Date(detailModal.updatedAt).toLocaleString('zh-CN')}</div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* 操作按钮 */}
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #f0f0f0' }}>
-                                <button
-                                    onClick={() => { setBalanceModal({ userId: detailModal.id, username: detailModal.username, type: 'balance', action: 'add' }); setDetailModal(null); }}
-                                    style={{ padding: '10px 20px', background: '#52c41a', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                >充值</button>
-                                {!detailModal.vip && (
-                                    <button
-                                        onClick={() => { handleSetVip(detailModal.id, 30); setDetailModal(null); }}
-                                        style={{ padding: '10px 20px', background: '#722ed1', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                    >设为VIP</button>
-                                )}
-                                {detailModal.isBanned ? (
-                                    <button
-                                        onClick={() => { handleUnban(detailModal.id); setDetailModal(null); }}
-                                        style={{ padding: '10px 20px', background: '#52c41a', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                    >解封</button>
-                                ) : (
-                                    <button
-                                        onClick={() => { setBanModal({ userId: detailModal.id, username: detailModal.username }); setDetailModal(null); }}
-                                        style={{ padding: '10px 20px', background: '#ff4d4f', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                    >封禁</button>
-                                )}
-                                <button onClick={() => setDetailModal(null)} style={{ padding: '10px 24px', background: '#fff', color: '#666', border: '1px solid #d9d9d9', borderRadius: '4px', cursor: 'pointer' }}>关闭</button>
-                            </div>
-                        </div>
+                        <Descriptions title="状态信息" column={2} bordered size="small">
+                            <Descriptions.Item label="VIP状态">{detailModal.vip ? <Tag color="gold">VIP</Tag> : '普通用户'}</Descriptions.Item>
+                            <Descriptions.Item label="实名认证">{getVerifyStatusTag(detailModal.verifyStatus)}</Descriptions.Item>
+                            <Descriptions.Item label="账号状态">
+                                {detailModal.isBanned ? <Tag color="error">已封禁</Tag> : detailModal.isActive ? <Tag color="success">正常</Tag> : <Tag>未激活</Tag>}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="注册时间">{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</Descriptions.Item>
+                        </Descriptions>
                     </div>
-                </div>
-            )}
-
-            {/* 图片预览弹窗 */}
-            {imageModal && (
-                <div onClick={() => setImageModal(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, cursor: 'zoom-out' }}>
-                    <img src={imageModal} alt="预览" style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain' }} />
-                </div>
-            )}
+                )}
+            </Modal>
         </div>
     );
 }
