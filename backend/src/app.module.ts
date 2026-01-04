@@ -264,8 +264,17 @@ const ENTITIES = [
       database: process.env.DB_DATABASE || 'order_management',
       // 【重要】显式实体列表 - 禁止使用通配符以防止重复实体加载导致的列膨胀
       entities: ENTITIES,
-      synchronize: false, // Auto-sync DB schema for dev
+      synchronize: false,
       logging: process.env.NODE_ENV !== 'production',
+      // 生产级连接池配置
+      extra: {
+        max: parseInt(process.env.DB_POOL_MAX || '20'), // 最大连接数
+        min: parseInt(process.env.DB_POOL_MIN || '5'),  // 最小连接数
+        idleTimeoutMillis: 30000, // 空闲连接超时 30s
+        connectionTimeoutMillis: 5000, // 连接超时 5s
+      },
+      // 生产环境启用 SSL (如果配置了)
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
     }),
     AuthModule,
     UsersModule,

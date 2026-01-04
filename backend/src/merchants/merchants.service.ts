@@ -4,7 +4,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import {
   Merchant,
   CreateMerchantDto,
@@ -24,6 +24,7 @@ export class MerchantsService {
     @InjectRepository(Merchant)
     private merchantsRepository: Repository<Merchant>,
     private financeRecordsService: FinanceRecordsService,
+    private dataSource: DataSource,
   ) { }
 
   async findAll(query: any = {}): Promise<{ data: Merchant[]; total: number; page: number; limit: number }> {
@@ -136,25 +137,27 @@ export class MerchantsService {
     return bcrypt.compare(password, merchant.password);
   }
 
-  // 余额操作
+  // 余额操作 (使用事务确保原子性)
   async addBalance(id: string, amount: number, memo: string): Promise<boolean> {
-    const merchant = await this.merchantsRepository.findOne({ where: { id } });
-    if (!merchant) return false;
+    return this.dataSource.transaction(async (manager) => {
+      const merchant = await manager.findOne(Merchant, { where: { id } });
+      if (!merchant) return false;
 
-    merchant.balance = Number(merchant.balance) + amount;
-    await this.merchantsRepository.save(merchant);
+      merchant.balance = Number(merchant.balance) + amount;
+      await manager.save(merchant);
 
-    // 记录财务流水
-    await this.financeRecordsService.recordAdminOperation(
-      id,
-      FinanceUserType.MERCHANT,
-      FinanceMoneyType.BALANCE,
-      amount,
-      Number(merchant.balance),
-      memo,
-      'system',
-    );
-    return true;
+      // 记录财务流水
+      await this.financeRecordsService.recordAdminOperation(
+        id,
+        FinanceUserType.MERCHANT,
+        FinanceMoneyType.BALANCE,
+        amount,
+        Number(merchant.balance),
+        memo,
+        'system',
+      );
+      return true;
+    });
   }
 
   async deductBalance(
@@ -162,52 +165,58 @@ export class MerchantsService {
     amount: number,
     memo: string,
   ): Promise<boolean> {
-    const merchant = await this.merchantsRepository.findOne({ where: { id } });
-    if (!merchant) return false;
+    return this.dataSource.transaction(async (manager) => {
+      const merchant = await manager.findOne(Merchant, { where: { id } });
+      if (!merchant) return false;
 
-    if (Number(merchant.balance) < amount) {
-      throw new BadRequestException('余额不足');
-    }
+      if (Number(merchant.balance) < amount) {
+        throw new BadRequestException('余额不足');
+      }
 
-    merchant.balance = Number(merchant.balance) - amount;
-    await this.merchantsRepository.save(merchant);
+      merchant.balance = Number(merchant.balance) - amount;
+      await manager.save(merchant);
 
-    // 记录财务流水
-    await this.financeRecordsService.recordAdminOperation(
-      id,
-      FinanceUserType.MERCHANT,
-      FinanceMoneyType.BALANCE,
-      -amount,
-      Number(merchant.balance),
-      memo,
-      'system',
-    );
-    return true;
+      // 记录财务流水
+      await this.financeRecordsService.recordAdminOperation(
+        id,
+        FinanceUserType.MERCHANT,
+        FinanceMoneyType.BALANCE,
+        -amount,
+        Number(merchant.balance),
+        memo,
+        'system',
+      );
+      return true;
+    });
   }
 
-  // 冻结余额（发布任务时预扣）
+  // 冻结余额（发布任务时预扣）- 使用事务
   async freezeBalance(id: string, amount: number): Promise<boolean> {
-    const merchant = await this.merchantsRepository.findOne({ where: { id } });
-    if (!merchant) return false;
+    return this.dataSource.transaction(async (manager) => {
+      const merchant = await manager.findOne(Merchant, { where: { id } });
+      if (!merchant) return false;
 
-    if (Number(merchant.balance) < amount) {
-      throw new BadRequestException('余额不足，请先充值');
-    }
+      if (Number(merchant.balance) < amount) {
+        throw new BadRequestException('余额不足，请先充值');
+      }
 
-    merchant.balance = Number(merchant.balance) - amount;
-    merchant.frozenBalance = Number(merchant.frozenBalance) + amount;
-    await this.merchantsRepository.save(merchant);
-    return true;
+      merchant.balance = Number(merchant.balance) - amount;
+      merchant.frozenBalance = Number(merchant.frozenBalance) + amount;
+      await manager.save(merchant);
+      return true;
+    });
   }
 
-  // 解冻余额
+  // 解冻余额 - 使用事务
   async unfreezeBalance(id: string, amount: number): Promise<boolean> {
-    const merchant = await this.merchantsRepository.findOne({ where: { id } });
-    if (!merchant) return false;
+    return this.dataSource.transaction(async (manager) => {
+      const merchant = await manager.findOne(Merchant, { where: { id } });
+      if (!merchant) return false;
 
-    merchant.frozenBalance = Number(merchant.frozenBalance) - amount;
-    await this.merchantsRepository.save(merchant);
-    return true;
+      merchant.frozenBalance = Number(merchant.frozenBalance) - amount;
+      await manager.save(merchant);
+      return true;
+    });
   }
 
   // 银锭操作（用于佣金/服务费）
