@@ -785,4 +785,63 @@ export class BatchOperationsService {
             return { success: false, message: error.message || '发货失败！' };
         }
     }
+
+    // ============ 修改关键词 ============
+
+    /**
+     * 修改订单关键词
+     * 对应原版接口: Task::edit_key
+     * 业务语义: 后台修改订单的搜索关键词(key)
+     * 前置条件: 无状态限制
+     *
+     * @param orderId 订单ID
+     * @param keyword 新的关键词
+     * @param operatorId 操作员ID
+     * @param operatorName 操作员姓名
+     */
+    async editKeyword(
+        orderId: string,
+        keyword: string,
+        operatorId: string,
+        operatorName: string
+    ): Promise<{ success: boolean; message: string }> {
+        try {
+            // 1. 参数验证
+            if (!keyword) {
+                return { success: false, message: '请填写关键字！' };
+            }
+            if (!orderId) {
+                return { success: false, message: '参数错误' };
+            }
+
+            // 2. 查询订单
+            const order = await this.orderRepository.findOne({ where: { id: orderId } });
+
+            if (!order) {
+                return { success: false, message: '任务不存在！' };
+            }
+
+            // 3. 更新关键词
+            order.keyword = keyword.trim();
+            await this.orderRepository.save(order);
+
+            // 4. 记录日志
+            await this.orderLogsService.logStatusChange(
+                orderId,
+                order.taskTitle,
+                OrderLogAction.ADMIN_OPERATE,
+                OrderLogOperatorType.ADMIN,
+                operatorId,
+                operatorName,
+                order.status as any,
+                order.status as any,
+                `修改订单关键字: ${keyword.trim()}`
+            );
+
+            return { success: true, message: '修改成功！' };
+
+        } catch (error) {
+            return { success: false, message: error.message || '修改失败！' };
+        }
+    }
 }

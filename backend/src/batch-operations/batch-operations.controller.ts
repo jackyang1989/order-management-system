@@ -311,4 +311,29 @@ export class BatchOperationsController {
             data: result
         };
     }
+
+    /**
+     * 修改订单关键词
+     * 对应原版接口: Task::edit_key
+     * 业务语义: 后台修改订单的搜索关键词(key)
+     * 前置条件: 无状态限制
+     */
+    @Post('edit-keyword')
+    @UseGuards(JwtAuthGuard)
+    async editKeyword(
+        @Body() body: { orderId: string; keyword: string },
+        @Request() req
+    ) {
+        const result = await this.batchService.editKeyword(
+            body.orderId,
+            body.keyword,
+            req.user.userId,
+            req.user.username || '管理员'
+        );
+        return {
+            success: result.success,
+            message: result.message,
+            data: result
+        };
+    }
 }

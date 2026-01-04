@@ -126,6 +126,9 @@ export class Order {
     @Column({ type: 'text', nullable: true })
     keywordImg: string; // 关键词搜索截图
 
+    @Column({ nullable: true })
+    keyword: string; // 搜索关键词 (对应原版 user_task.key)
+
     @Column({ type: 'text', nullable: true })
     chatImg: string; // 聊天截图（假聊）
 
