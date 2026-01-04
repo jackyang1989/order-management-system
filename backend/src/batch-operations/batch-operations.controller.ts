@@ -51,7 +51,7 @@ export class BatchOperationsController {
 
   /**
    * Excel导入发货 (双模式导入)
-   * 对应原版接口: Task::import (按ID) 和 Task::import1 (按任务编号)
+   * 和 Task::import1 (按任务编号)
    * 业务语义: 支持通过订单ID或任务编号两种方式匹配订单并发货
    * 前置条件: user_task.state = 3 (待发货)
    */
@@ -103,7 +103,7 @@ export class BatchOperationsController {
 
   /**
    * 批量拒绝任务
-   * 对应原版接口: Task::examineRefuse
+ *
    * 业务语义: 后台拒绝商家任务，退还押金和银锭
    * 前置条件: seller_task.status = 2 (待审核)
    * 后置状态: seller_task.status = 4 (已拒绝)
@@ -231,7 +231,7 @@ export class BatchOperationsController {
 
   /**
    * 预售返款（预付款/尾款）
-   * 对应原版接口: Task::returnys
+ *
    * 业务语义: 对预售订单(is_ys=1)进行预付款或尾款返款操作
    * 前置条件: user_task.state = 5 (待返款), is_ys = 1
    * 后置状态: user_task.state = 6 (待确认返款)
@@ -257,7 +257,7 @@ export class BatchOperationsController {
 
   /**
    * 修改预付金额
-   * 对应原版接口: Task::return_price1
+ *
    * 业务语义: 后台修改预售订单的预付款金额(yf_price)
    * 前置条件: user_task.state = 5 (待返款)
    * 限制: 浮动不能超过 ±500元
@@ -283,7 +283,7 @@ export class BatchOperationsController {
 
   /**
    * 修改尾款金额
-   * 对应原版接口: Task::return_price2
+ *
    * 业务语义: 后台修改预售订单的尾款金额(wk_price)
    * 前置条件: user_task.state = 5 (待返款)
    * 限制: 浮动不能超过 ±100元
@@ -309,7 +309,7 @@ export class BatchOperationsController {
 
   /**
    * 修改剩余单数
-   * 对应原版接口: Task::incomplete_num
+ *
    * 业务语义: 后台修改商家任务的剩余单数(incomplete_num)
    * 前置条件: seller_task.status = 3(已通过), 4(已拒绝), 5(已取消)
    * 禁止状态: status = 1(未支付), 2(待审核), 6(已完成)
@@ -335,7 +335,7 @@ export class BatchOperationsController {
 
   /**
    * 任务回退重发货
-   * 对应原版接口: Task::regression_examine
+ *
    * 业务语义: 将待返款(state=5)的订单回退到待收货(state=4)，重新发货
    * 前置条件: user_task.state = 5 (待返款)
    * 后置状态: user_task.state = 4 (待收货)
@@ -362,7 +362,7 @@ export class BatchOperationsController {
 
   /**
    * 修改订单关键词
-   * 对应原版接口: Task::edit_key
+ *
    * 业务语义: 后台修改订单的搜索关键词(key)
    * 前置条件: 无状态限制
    */
@@ -387,7 +387,7 @@ export class BatchOperationsController {
 
   /**
    * 后台修改商品
-   * 对应原版接口: Task::goodsEditDo
+ *
    * 业务语义: 后台管理员修改商品信息
    * 前置条件: 无状态限制
    */
@@ -424,7 +424,7 @@ export class BatchOperationsController {
 
   /**
    * 后台添加关键词方案
-   * 对应原版接口: Task::goodsKeyAdd
+ *
    * 业务语义: 后台管理员添加关键词方案
    */
   @Post('keyword-scheme-add')
@@ -462,7 +462,7 @@ export class BatchOperationsController {
 
   /**
    * 后台修改关键词方案
-   * 对应原版接口: Task::goodsKeyEdit
+ *
    * 业务语义: 后台管理员修改关键词方案（删除旧关键词，添加新关键词）
    */
   @Post('keyword-scheme-edit')
@@ -502,7 +502,7 @@ export class BatchOperationsController {
 
   /**
    * 批量审核买手提现申请
-   * 对应原版接口: Finance::allCheck (user_cash)
+   * 
    * 业务语义: 批量审核买手提现申请 (通过/拒绝)
    * 前置条件: state = 0 (已申请)
    * 后置状态: state = 1 (已同意) 或 state = 2 (已拒绝)
@@ -534,7 +534,7 @@ export class BatchOperationsController {
 
   /**
    * 批量审核商家提现申请
-   * 对应原版接口: Finance::allCheck (seller_cash)
+   * 
    * 业务语义: 批量审核商家提现申请 (通过/拒绝)
    * 前置条件: state = 0 (已申请)
    * 后置状态: state = 1 (已同意) 或 state = 2 (已拒绝)
@@ -568,7 +568,7 @@ export class BatchOperationsController {
 
   /**
    * 批量确认买手提现打款
-   * 对应原版接口: Finance::confirmPaymentAll (user_cash)
+   * 
    * 业务语义: 批量确认买手提现已打款完成
    * 前置条件: state = 1 (已同意)
    * 后置状态: state = 3 (已返款)
@@ -598,7 +598,7 @@ export class BatchOperationsController {
 
   /**
    * 批量确认商家提现打款
-   * 对应原版接口: Finance::confirmPaymentAll (seller_cash)
+   * 
    * 业务语义: 批量确认商家提现已打款完成
    * 前置条件: state = 1 (已同意)
    * 后置状态: state = 3 (已返款)

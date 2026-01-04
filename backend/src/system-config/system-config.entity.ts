@@ -26,7 +26,7 @@ export class SystemConfig {
 }
 
 /**
- * 系统全局配置表 (对应原版 tfkz_system)
+ * 系统全局配置表
  * 全局单行配置，所有配置项存储在同一条记录中
  */
 @Entity('system_global_config')

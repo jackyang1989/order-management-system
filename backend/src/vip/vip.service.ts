@@ -81,7 +81,7 @@ export class VipService {
 
   /**
    * 购买VIP - 支持银锭/本金/支付宝三种支付方式
-   * 对应原版: principal_member(), silver_member(), creat_order()
+   * , silver_member(), creat_order()
    */
   async purchaseVip(
     userId: string,
@@ -115,7 +115,7 @@ export class VipService {
 
   /**
    * 银锭支付VIP
-   * 对应原版: silver_member()
+   * 
    */
   private async purchaseWithSilver(
     user: User,
@@ -131,7 +131,7 @@ export class VipService {
 
   /**
    * 本金支付VIP
-   * 对应原版: principal_member()
+   * 
    */
   private async purchaseWithBalance(
     user: User,
@@ -147,7 +147,7 @@ export class VipService {
 
   /**
    * 创建支付宝订单
-   * 对应原版: creat_order()
+   * 
    */
   private async createAlipayOrder(
     user: User,
@@ -220,7 +220,7 @@ export class VipService {
       const now = new Date();
       const amount = Number(pkg.discountPrice);
 
-      // 计算VIP时间（对应原版逻辑：已是VIP则叠加时间）
+      // 计算VIP时间
       let vipStartAt: Date;
       let vipEndAt: Date;
       const oneMonth = pkg.days * 24 * 60 * 60 * 1000;

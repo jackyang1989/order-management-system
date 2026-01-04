@@ -33,7 +33,7 @@ import {
 } from '../finance-records/finance-record.entity';
 
 /**
- * 追评费用标准 (对应原版)
+ * 追评费用标准
  */
 const REVIEW_PRICE = {
   TEXT: 2, // 文字追评 2元/件
@@ -78,7 +78,7 @@ export class ReviewTasksService {
   }
 
   /**
-   * 获取可追评的订单列表 (对应原版 getData)
+   * 获取可追评的订单列表
    * 条件: is_shengji=2 AND state=1(已完成) AND is_zp=0
    */
   async getReviewableOrders(
@@ -110,7 +110,7 @@ export class ReviewTasksService {
   }
 
   /**
-   * 检查订单是否可以发布追评 (对应原版验证逻辑)
+   * 检查订单是否可以发布追评
    */
   async checkReviewable(
     orderId: string,
@@ -160,7 +160,7 @@ export class ReviewTasksService {
   }
 
   /**
-   * 创建追评任务 (对应原版 addTask)
+   * 创建追评任务
    * 第一步: 创建任务并计算费用，状态为0(未支付)
    */
   async createReviewTask(
@@ -259,7 +259,7 @@ export class ReviewTasksService {
   }
 
   /**
-   * 支付追评任务 (对应原版 payDo)
+   * 支付追评任务
    * 支持两种支付方式: 纯押金支付 / 银锭+押金混合支付
    */
   async payReviewTask(
@@ -360,7 +360,7 @@ export class ReviewTasksService {
   }
 
   /**
-   * 商家取消追评任务 (对应原版 quxiao)
+   * 商家取消追评任务
    * 只有 state < 3 时可以取消
    */
   async cancelReviewTask(
@@ -436,7 +436,7 @@ export class ReviewTasksService {
   }
 
   /**
-   * 买手提交追评截图 (对应原版 take_zhuipin)
+   * 买手提交追评截图
    */
   async submitReview(
     userId: string,
@@ -467,7 +467,7 @@ export class ReviewTasksService {
   }
 
   /**
-   * 买手拒绝追评 (对应原版 refuse_zhuipin)
+   * 买手拒绝追评
    */
   async rejectByBuyer(
     userId: string,
@@ -544,7 +544,7 @@ export class ReviewTasksService {
   }
 
   /**
-   * 商家确认追评完成 (对应原版 confirm)
+   * 商家确认追评完成
    * 发放佣金给买手，标记原订单已追评
    */
   async confirmReview(
@@ -601,7 +601,7 @@ export class ReviewTasksService {
   }
 
   /**
-   * 管理员审核追评 (对应原版 reviewtaskToExamine)
+   * 管理员审核追评
    * state: 2=通过(通知买手), 7=拒绝
    */
   async adminExamine(
@@ -649,7 +649,7 @@ export class ReviewTasksService {
   }
 
   /**
-   * 管理员批量审核 (对应原版 allexaminereview)
+   * 管理员批量审核
    */
   async adminBatchExamine(
     reviewTaskIds: string[],
@@ -670,7 +670,7 @@ export class ReviewTasksService {
   }
 
   /**
-   * 管理员返款 (对应原版 reviewTaskReturnPay)
+   * 管理员返款
    * 直接将佣金发放给买手
    */
   async adminRefund(reviewTaskId: string): Promise<ReviewTask> {
@@ -721,7 +721,7 @@ export class ReviewTasksService {
   }
 
   /**
-   * 管理员批量返款 (对应原版 reviewTaskReturnPays)
+   * 管理员批量返款
    */
   async adminBatchRefund(
     reviewTaskIds: string[],

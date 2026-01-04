@@ -505,7 +505,7 @@ export class FinanceRecordsService {
 
   /**
    * 记录商家任务银锭退款（拒绝审核时退还服务费银锭）
-   * 对应原版: 任务审核拒绝时退还银锭
+ *
    */
   async recordMerchantTaskSilverRefund(
     merchantId: string,
@@ -531,7 +531,7 @@ export class FinanceRecordsService {
 
   /**
    * 记录买手接单扣除银锭押金
-   * 对应原版: 接单时冻结1银锭
+ *
    */
   async recordBuyerTaskSilverPrepay(
     userId: string,
@@ -555,7 +555,7 @@ export class FinanceRecordsService {
 
   /**
    * 记录买手任务完成返还银锭押金
-   * 对应原版 type=11: 返还做任务押的银锭
+ *
    */
   async recordBuyerTaskSilverRefund(
     userId: string,
@@ -579,7 +579,7 @@ export class FinanceRecordsService {
 
   /**
    * 记录取消任务扣除冻结银锭
-   * 对应原版 type=13: 取消任务扣除冻结银锭
+ *
    */
   async recordBuyerTaskCancelSilver(
     userId: string,
@@ -603,7 +603,7 @@ export class FinanceRecordsService {
 
   /**
    * 记录买手提现拒绝退款
-   * 对应原版 type=12: 拒绝提现退款
+ *
    */
   async recordBuyerWithdrawReject(
     userId: string,

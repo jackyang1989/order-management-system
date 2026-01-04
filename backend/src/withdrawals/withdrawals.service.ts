@@ -40,7 +40,7 @@ export class WithdrawalsService {
   ) { }
 
   /**
-   * 计算提现手续费（对应原版逻辑）
+   * 计算提现手续费
    * 原版规则:
    * - 本金提现: 金额 <= userFeeMaxPrice 时收取 userCashFree 元手续费
    * - 银锭提现: 按 rewardPrice 单价折算取整

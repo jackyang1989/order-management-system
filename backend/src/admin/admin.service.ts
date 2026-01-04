@@ -293,7 +293,7 @@ export class AdminService {
 
   /**
    * 管理员调整用户余额
-   * 对应原版: 手动修改 balance/reward
+ *
    */
   async adjustUserBalance(
     userId: string,
@@ -332,7 +332,7 @@ export class AdminService {
 
   /**
    * 管理员调整商家余额
-   * 对应原版: 手动修改商家 balance/reward
+ *
    */
   async adjustMerchantBalance(
     merchantId: string,
@@ -387,7 +387,7 @@ export class AdminService {
 
   /**
    * 设置用户VIP状态
-   * 对应原版: 手动设置 vip=1, vip_time
+ *
    */
   async setUserVip(
     userId: string,

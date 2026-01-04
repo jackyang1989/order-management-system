@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
+import { AntdProvider } from './AntdProvider';
 
 export default function LayoutWrapper({ children }: { children: ReactNode }) {
     const pathname = usePathname();
@@ -9,11 +10,12 @@ export default function LayoutWrapper({ children }: { children: ReactNode }) {
     const isMerchant = pathname?.startsWith('/merchant');
     const isAdmin = pathname?.startsWith('/admin');
 
-    // 商家端和管理后台全屏显示，买手端使用移动端容器限制
+    // 商家端和管理后台使用Ant Design PC版
     if (isMerchant || isAdmin) {
-        return <>{children}</>;
+        return <AntdProvider>{children}</AntdProvider>;
     }
 
+    // 买手端使用移动端容器限制
     return (
         <div className="mobile-container">
             {children}

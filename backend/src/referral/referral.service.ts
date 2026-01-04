@@ -10,7 +10,7 @@ import { FinanceRecord, FinanceType } from '../finance-records/finance-record.en
 export class ReferralService {
     private readonly logger = new Logger(ReferralService.name);
 
-    // 里程碑奖励配置 (对应原版 $arr 和 $arrt)
+    // 里程碑奖励配置
     static readonly MILESTONE_REWARDS: Record<number, number> = {
         50: 10,   // 完成50单奖励10银锭
         100: 25,  // 完成100单奖励25银锭
@@ -18,13 +18,13 @@ export class ReferralService {
         200: 70,  // 完成200单奖励70银锭
     };
 
-    // 累计奖励上限 (对应原版 $prices >= 1000 限制)
+    // 累计奖励上限
     static readonly MAX_REWARD_PER_REFERRAL = 1000;
 
-    // 首单奖励金额 (对应原版首单5银锭)
+    // 首单奖励金额
     static readonly FIRST_ORDER_REWARD = 5;
 
-    // 普通订单奖励金额 (对应原版0.5银锭)
+    // 普通订单奖励金额
     static readonly NORMAL_ORDER_REWARD = 0.5;
 
     constructor(
@@ -81,7 +81,7 @@ export class ReferralService {
 
     /**
      * 处理订单完成推荐奖励（买手完成订单后给推荐人奖励）
-     * 对应原版逻辑：
+ *
      * - 首单奖励 5 银锭，后续每单 0.5 银锭
      * - 累计上限 1000 银锭
      * - 里程碑奖励：50单/100单/150单/200单
@@ -111,7 +111,7 @@ export class ReferralService {
             return;
         }
 
-        // 判断是否首单 (对应原版 $prices == 0 判断)
+        // 判断是否首单
         const isFirstOrder = totalRewardFromThisUser === 0;
         let rewardAmount = isFirstOrder
             ? ReferralService.FIRST_ORDER_REWARD
@@ -140,7 +140,7 @@ export class ReferralService {
 
         this.logger.log(`用户 ${buyer.referrerId} 推荐的买手 ${buyerId} 完成任务，${rewardType}奖励 ${rewardAmount} 银锭`);
 
-        // 检查里程碑奖励 (对应原版 mcTaskNum 到达 50/100/150/200 时)
+        // 检查里程碑奖励
         if (monthlyTaskCount !== undefined) {
             await this.checkAndGrantMilestoneReward(buyer, monthlyTaskCount, orderId);
         }
@@ -148,7 +148,7 @@ export class ReferralService {
 
     /**
      * 检查并发放里程碑奖励
-     * 对应原版: 本月完成 50/100/150/200 单时给推荐人发放额外奖励
+ *
      */
     private async checkAndGrantMilestoneReward(
         buyer: User,

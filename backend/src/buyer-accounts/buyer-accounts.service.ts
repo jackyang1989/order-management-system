@@ -224,7 +224,7 @@ export class BuyerAccountsService {
 
   /**
    * 增加买号的月度任务计数，并检查是否需要自动升级星级
-   * 对应原版星级自动升级逻辑：
+ *
    * - 完成 < 30 单: 1星
    * - 完成 30-59 单: 2星
    * - 完成 60-99 单: 3星
@@ -243,7 +243,7 @@ export class BuyerAccountsService {
       // 累计总任务数（用于星级升级判断）
       account.totalTaskCount = (account.totalTaskCount || 0) + 1;
 
-      // 自动升级星级 (对应原版逻辑)
+      // 自动升级星级
       const totalTasks = account.totalTaskCount;
       let newStar = account.star;
 

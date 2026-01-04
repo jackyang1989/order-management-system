@@ -35,7 +35,7 @@ export enum PayMethod {
 }
 
 /**
- * 银锭充值记录表 (对应原版 tfkz_user_reward_recharge / tfkz_seller_reward_recharge)
+ * 银锭充值记录表
  * 记录所有银锭充值历史
  */
 @Entity('reward_recharges')

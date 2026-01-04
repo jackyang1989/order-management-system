@@ -16,7 +16,7 @@ export enum TaskStatus {
   CANCELLED = 3, // 已取消
   AUDIT = 4, // 待审核
   PAUSED = 5, // 已暂停
-  REJECTED = 6, // 已拒绝 (对应原版 status=4)
+  REJECTED = 6, // 已拒绝
 }
 
 export enum TaskType {
@@ -233,7 +233,7 @@ export class Task {
   publishTime: Date; // 发布时间
 
   @Column({ type: 'text', nullable: true })
-  channelImages: string; // 通道图片（JSON数组，对应原版 channel_img）
+  channelImages: string; // 通道图片（JSON数组）
 
   @Column({ default: false })
   verifySwitch: boolean; // 商品核对开关

@@ -72,10 +72,10 @@ export class Shop {
   url: string;
 
   @Column({ default: true })
-  needLogistics: boolean; // 是否需要物流 (对应原版logistics字段)
+  needLogistics: boolean; // 是否需要物流
 
   @Column({ length: 50, nullable: true })
-  expressCode: string; // 快递站点号 (对应原版code字段)
+  expressCode: string; // 快递站点号
 
   @Column({
     type: 'enum',

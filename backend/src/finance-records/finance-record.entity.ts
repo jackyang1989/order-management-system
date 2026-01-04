@@ -18,7 +18,7 @@ export enum FinanceMoneyType {
   SILVER = 2, // 银锭/礼金
 }
 
-// 财务类型分类 (对应原版 type 字段)
+// 财务类型分类
 export enum FinanceType {
   // 买手相关
   BUYER_RECHARGE = 1, // 充值押金
@@ -50,7 +50,7 @@ export enum FinanceType {
   MERCHANT_ADMIN_ADD = 28, // 管理员充值
   MERCHANT_ADMIN_DEDUCT = 29, // 管理员扣除
 
-  // 追评相关 (对应原版 type 15-19)
+  // 追评相关
   REVIEW_TASK_PAY_BALANCE = 15, // 使用押金发布追评任务
   REVIEW_TASK_PAY_SILVER = 16, // 使用银锭发布追评任务
   REVIEW_TASK_CANCEL_REFUND = 17, // 取消追评任务退回

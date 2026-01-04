@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Query, Res } from '@nestjs/common';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { CaptchaService } from './captcha.service';
 
 class VerifyCaptchaDto {

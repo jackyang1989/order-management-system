@@ -29,11 +29,11 @@ export class ReviewTasksController {
   constructor(private reviewTasksService: ReviewTasksService) {}
 
   // ============================================================
-  // 商家端接口 (对应原版 seller/review)
+  // 商家端接口
   // ============================================================
 
   /**
-   * 获取可追评的订单列表 (对应原版 getData)
+   * 获取可追评的订单列表
    */
   @Get('merchant/reviewable-orders')
   async getReviewableOrders(
@@ -66,7 +66,7 @@ export class ReviewTasksController {
   }
 
   /**
-   * 创建追评任务 (对应原版 addTask)
+   * 创建追评任务
    * 第一步: 创建任务, 状态为未支付
    */
   @Post('merchant/create')
@@ -83,7 +83,7 @@ export class ReviewTasksController {
   }
 
   /**
-   * 支付追评任务 (对应原版 payDo)
+   * 支付追评任务
    * 第二步: 支付任务费用
    */
   @Post('merchant/pay')
@@ -100,7 +100,7 @@ export class ReviewTasksController {
   }
 
   /**
-   * 商家取消追评任务 (对应原版 quxiao)
+   * 商家取消追评任务
    */
   @Post('merchant/cancel')
   async cancelReviewTask(@Body() dto: CancelReviewDto, @Request() req) {
@@ -116,7 +116,7 @@ export class ReviewTasksController {
   }
 
   /**
-   * 商家确认追评完成 (对应原版 confirm)
+   * 商家确认追评完成
    */
   @Post('merchant/confirm')
   async confirmReview(@Body() dto: ConfirmReviewDto, @Request() req) {
@@ -136,7 +136,7 @@ export class ReviewTasksController {
   }
 
   /**
-   * 商家追评任务列表 (对应原版 getTaskData)
+   * 商家追评任务列表
    */
   @Get('merchant/list')
   async getMerchantTasks(
@@ -169,11 +169,11 @@ export class ReviewTasksController {
   }
 
   // ============================================================
-  // 买手端接口 (对应原版 buy/my)
+  // 买手端接口
   // ============================================================
 
   /**
-   * 买手追评任务列表 (对应原版 my/index?zhuipin)
+   * 买手追评任务列表
    */
   @Get('user/list')
   async getUserTasks(
@@ -212,7 +212,7 @@ export class ReviewTasksController {
   }
 
   /**
-   * 买手提交追评截图 (对应原版 take_zhuipin)
+   * 买手提交追评截图
    */
   @Post('user/submit')
   async submitReview(@Body() dto: SubmitReviewDto, @Request() req) {
@@ -232,7 +232,7 @@ export class ReviewTasksController {
   }
 
   /**
-   * 买手拒绝追评 (对应原版 refuse_zhuipin)
+   * 买手拒绝追评
    */
   @Post('user/reject')
   async rejectReview(@Body() dto: RejectReviewDto, @Request() req) {
@@ -248,11 +248,11 @@ export class ReviewTasksController {
   }
 
   // ============================================================
-  // 管理端接口 (对应原版 admin/task)
+  // 管理端接口
   // ============================================================
 
   /**
-   * 管理端追评任务列表 (对应原版 review_task)
+   * 管理端追评任务列表
    */
   @Get('admin/list')
   async getAdminTasks(
@@ -285,7 +285,7 @@ export class ReviewTasksController {
   }
 
   /**
-   * 管理员审核追评 (对应原版 reviewtaskToExamine)
+   * 管理员审核追评
    */
   @Post('admin/examine')
   async adminExamine(@Body() dto: AdminReviewExamineDto) {
@@ -306,7 +306,7 @@ export class ReviewTasksController {
   }
 
   /**
-   * 管理员批量审核 (对应原版 allexaminereview)
+   * 管理员批量审核
    */
   @Post('admin/batch-examine')
   async adminBatchExamine(@Body() body: { reviewTaskIds: string[] }) {
@@ -325,7 +325,7 @@ export class ReviewTasksController {
   }
 
   /**
-   * 管理员返款 (对应原版 reviewTaskReturnPay)
+   * 管理员返款
    */
   @Post('admin/refund/:id')
   async adminRefund(@Param('id') id: string) {
@@ -338,7 +338,7 @@ export class ReviewTasksController {
   }
 
   /**
-   * 管理员批量返款 (对应原版 reviewTaskReturnPays)
+   * 管理员批量返款
    */
   @Post('admin/batch-refund')
   async adminBatchRefund(@Body() dto: AdminBatchRefundDto) {

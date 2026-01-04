@@ -19,7 +19,7 @@ import { AdminUsersController } from './admin-users.controller';
       AdminOperationLog,
     ]),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'tfkz-order-management-secret-key-2026',
+      secret: process.env.JWT_SECRET || 'order-mgmt-jwt-secret-2026',
       signOptions: { expiresIn: '24h' },
     }),
   ],
@@ -28,7 +28,7 @@ import { AdminUsersController } from './admin-users.controller';
   exports: [AdminUsersService],
 })
 export class AdminUsersModule implements OnModuleInit {
-  constructor(private adminUsersService: AdminUsersService) {}
+  constructor(private adminUsersService: AdminUsersService) { }
 
   async onModuleInit() {
     // 初始化超级管理员账号

@@ -102,7 +102,7 @@ export class UsersController {
     };
   }
 
-  // ============ 用户安全设置API (对应原版个人信息修改) ============
+  // ============ 用户安全设置API ============
 
   // 修改登录密码
   @Post('change-password')

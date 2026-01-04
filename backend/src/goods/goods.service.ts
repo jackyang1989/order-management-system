@@ -160,7 +160,7 @@ export class GoodsService {
 
   /**
    * 后台修改商品 (管理员权限)
-   * 对应原版接口: Task::goodsEditDo
+ *
    * 业务语义: 后台管理员修改商品信息
    * 前置条件: 无状态限制
    *

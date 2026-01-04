@@ -65,7 +65,7 @@ export class User {
   invitedBy?: string; // 邀请人的ID
 
   @Column({ type: 'int', default: 0 })
-  inviteState: number; // 邀请状态 0=未验证 1=已验证(对应原版tjuser_state)
+  inviteState: number; // 邀请状态 0=未验证 1=已验证
 
   // ============ 推荐奖励相关 ============
   @Column({ nullable: true })
@@ -84,7 +84,7 @@ export class User {
   referralCount: number; // 推荐人数
 
   @Column({ type: 'int', default: 0 })
-  monthlyTaskCount: number; // 本月完成任务数 (对应原版 mc_task_num)
+  monthlyTaskCount: number; // 本月完成任务数
 
   @Column({ type: 'date', nullable: true })
   monthlyTaskCountResetDate: Date; // 月度计数重置日期

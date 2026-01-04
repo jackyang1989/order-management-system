@@ -68,7 +68,7 @@ export class MerchantWithdrawalsService {
 
         if (withdrawalType === MerchantWithdrawalType.BALANCE) {
           const rate = config.sellerCashFee || 0;
-          // sellerCashFee is rate? Legacy check: sellerCashFee (decimal 12,3). 
+          // sellerCashFee is rate?  sellerCashFee (decimal 12,3). 
           // If rate is e.g. 0.01 (1%), then fee = amount * 0.01.
           // Need to confirm if it represents percentage or fixed amount. 
           // Usually field name 'Fee' and type 'decimal' with scale 3 suggests rate (0.005) or percentage value (0.5).
@@ -82,11 +82,11 @@ export class MerchantWithdrawalsService {
           // Merchant silver withdrawal logic not explicitly in 'sellerCashFee'.
           // Usually silver -> balance or silver -> rmb.
           // If SystemGlobalConfig has no specific merchant silver rule, assume 1:1 or same as buyer?
-          // Legacy Finance.php:
+          // 
           // if user_type=1 (Seller):
           // ... nothing specific for silver different than balance in rejection logic.
           // But for CREATE, legacy Pay.php handles recharge. 
-          // Legacy Seller.php 'tixian' (withdraw):
+          // 
           // Not shown in viewed files.
           // Assuming no fee for silver (just exchange rate).
         }

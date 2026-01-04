@@ -14,7 +14,7 @@ export enum ReferralRewardType {
     BUYER_ORDER = 3,         // 推荐的买手完成订单奖励
     MERCHANT_TASK = 4,       // 推荐的商家发布任务奖励
     SECONDARY = 5,           // 二级推荐奖励
-    MILESTONE = 6,           // 里程碑奖励 (对应原版 type=20)
+    MILESTONE = 6,           // 里程碑奖励
 }
 
 export enum ReferralRewardStatus {

@@ -169,7 +169,7 @@ export class KeywordsService {
 
   /**
    * 后台添加关键词方案 (管理员权限)
-   * 对应原版接口: Task::goodsKeyAdd
+ *
    * 业务语义: 后台管理员添加关键词方案
    */
   async adminCreateScheme(
@@ -233,7 +233,7 @@ export class KeywordsService {
 
   /**
    * 后台修改关键词方案 (管理员权限)
-   * 对应原版接口: Task::goodsKeyEdit
+ *
    * 业务语义: 后台管理员修改关键词方案（删除旧关键词，添加新关键词）
    */
   async adminUpdateScheme(

@@ -3,7 +3,7 @@ import * as crypto from 'crypto';
 
 /**
  * 支付网关配置
- * 参考原版系统的优云宝支付配置
+ *
  */
 export interface PaymentGatewayConfig {
   appId: string; // 商户ID
@@ -73,7 +73,7 @@ export class PaymentGatewayService {
 
   /**
    * 创建支付订单
-   * 参考原版 Pay.php 的 codepay() 方法
+   * 方法
    */
   async createPayment(request: PaymentRequest): Promise<PaymentResponse> {
     const payTypeMap: Record<string, number> = {
@@ -150,7 +150,7 @@ export class PaymentGatewayService {
 
   /**
    * 生成签名Token
-   * 参考原版的签名规则
+ *
    */
   private generateToken(params: Record<string, any>): string {
     const tokenParams = {
@@ -169,7 +169,7 @@ export class PaymentGatewayService {
 
   /**
    * 验证回调签名
-   * 参考原版 callback.php 的签名验证
+ *
    */
   verifyCallback(params: CallbackParams): boolean {
     // 验证 appkey
@@ -198,7 +198,7 @@ export class PaymentGatewayService {
 
   /**
    * 验证支付宝免签回调签名
-   * 参考原版 alipayNotify 的签名验证
+ *
    */
   verifyAlipayNotify(params: {
     tradeNo: string;

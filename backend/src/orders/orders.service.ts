@@ -119,7 +119,7 @@ export class OrdersService {
       throw new NotFoundException('用户不存在');
     }
 
-    // VIP验证 (对应原版 vip=1 && vip_time > time())
+    // VIP验证)
     if (!user.vip) {
       throw new BadRequestException('您还不是VIP，请先充值');
     }
@@ -127,7 +127,7 @@ export class OrdersService {
       throw new BadRequestException('VIP已过期，请先续费');
     }
 
-    // 银锭验证 - 接单需要冻结1银锭 (对应原版 reward < 1 check)
+    // 银锭验证 - 接单需要冻结1银锭
     const SILVER_PREPAY = 1; // 接单押金1银锭
     if (Number(user.silver) < SILVER_PREPAY) {
       throw new BadRequestException('银锭不足，接单需要1银锭作为押金');
@@ -166,7 +166,7 @@ export class OrdersService {
       );
     }
 
-    // 2.3 黑名单校验 (对应原版 seller_limit 表)
+    // 2.3 黑名单校验
     const isBlacklisted = await this.merchantBlacklistService.isBlacklisted(
       task.merchantId,
       buyerAccount.accountName,
@@ -175,7 +175,7 @@ export class OrdersService {
       throw new BadRequestException('当前买号已被商家拉黑，无法接取此任务');
     }
 
-    // 2.4 购物周期校验 (对应原版 cycle_time 检查)
+    // 2.4 购物周期校验
     // 检查该买号是否在商家设置的周期内接过此店铺的任务
     if (task.cycle > 0 && task.shopId) {
       const cycleMonths = task.cycle * 30; // cycle存储的是费用，对应的天数
@@ -197,7 +197,7 @@ export class OrdersService {
       }
     }
 
-    // 2.45 接单间隔时间校验 (对应原版 union_interval_time)
+    // 2.45 接单间隔时间校验
     if (task.unionInterval > 0 && task.receiptTime) {
       const intervalMs = task.unionInterval * 60 * 1000; // 分钟转毫秒
       const nextAllowedTime = new Date(task.receiptTime.getTime() + intervalMs);
@@ -211,7 +211,7 @@ export class OrdersService {
       }
     }
 
-    // 2.5 验证每日/每月接单限制 (对应原版)
+    // 2.5 验证每日/每月接单限制
     const DAILY_LIMIT_PER_BUYNO = 4; // 每个买号每天最多4单
     const MONTHLY_LIMIT_PER_USER = 220; // 每个用户每月最多220单
 
@@ -238,11 +238,11 @@ export class OrdersService {
       createOrderDto.buynoId,
     );
 
-    // 4. 扣除银锭押金 (对应原版: 接单冻结1银锭)
+    // 4. 扣除银锭押金
     user.silver = Number(user.silver) - SILVER_PREPAY;
     await this.usersRepository.save(user);
 
-    // 构建步骤数据 (根据任务配置动态生成，对应原版详细流程)
+    // 构建步骤数据 (根据任务配置动态生成，
     const steps: OrderStepData[] = this.generateTaskSteps(task);
 
     // 设置订单超时时间 (1小时后)
@@ -369,7 +369,7 @@ export class OrdersService {
 
   /**
    * 获取买号今日接单数量
-   * 对应原版: 每个买号每天最多接4单
+ *
    */
   async getBuynoTodayOrderCount(buynoId: string): Promise<number> {
     const today = new Date();
@@ -387,7 +387,7 @@ export class OrdersService {
 
   /**
    * 获取用户本月接单数量
-   * 对应原版: 每个用户每月最多接220单
+ *
    */
   async getUserMonthlyOrderCount(userId: string): Promise<number> {
     const now = new Date();
@@ -522,7 +522,7 @@ export class OrdersService {
         // 3. 买手获得佣金（到银锭）
         user.silver = Number(user.silver) + commissionAmount;
 
-        // 4. 返还银锭押金 (对应原版 type=11)
+        // 4. 返还银锭押金
         const silverPrepayAmount = Number(order.silverPrepay) || 0;
         if (silverPrepayAmount > 0) {
           user.silver = Number(user.silver) + silverPrepayAmount;
@@ -798,10 +798,10 @@ export class OrdersService {
         await queryRunner.manager.save(task);
       }
 
-      // 检查是否符合免罚条件 (对应原版)
+      // 检查是否符合免罚条件
       const shouldPunish = await this.shouldPunishForCancel(userId, order.id);
 
-      // 用户取消订单，根据规则决定是否扣除银锭押金 (对应原版 type=13)
+      // 用户取消订单，根据规则决定是否扣除银锭押金
       const silverPrepayAmount = Number(order.silverPrepay) || 0;
       if (silverPrepayAmount > 0) {
         const user = await queryRunner.manager.findOne(User, {
@@ -1022,11 +1022,11 @@ export class OrdersService {
     return this.submitStep(orderId, userId, submitStepDto);
   }
 
-  // ============ 任务步骤模板生成 (对应原版详细流程) ============
+  // ============ 任务步骤模板生成 ============
 
   /**
    * 根据任务配置生成详细的步骤列表
-   * 对应原版 taskstep.html 的完整流程
+ *
    */
   private generateTaskSteps(task: Task): OrderStepData[] {
     const steps: OrderStepData[] = [];
@@ -1150,11 +1150,11 @@ export class OrdersService {
     return desc;
   }
 
-  // ============ 免罚逻辑 (对应原版) ============
+  // ============ 免罚逻辑 ============
 
   /**
    * 判断取消订单是否应该扣罚
-   * 对应原版规则：
+ *
    * 1. 每天前2单取消不扣银锭
    * 2. 晚上11点到第二天9点取消免罚
    */

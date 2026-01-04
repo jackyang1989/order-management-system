@@ -2,122 +2,125 @@
 
 import { useState, useEffect, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { Layout, Menu, Avatar, Dropdown, Button, theme } from 'antd';
+import {
+    DashboardOutlined,
+    UserOutlined,
+    ShopOutlined,
+    FileTextOutlined,
+    ShoppingOutlined,
+    DollarOutlined,
+    NotificationOutlined,
+    SettingOutlined,
+    LockOutlined,
+    ToolOutlined,
+    LogoutOutlined,
+    MenuFoldOutlined,
+    MenuUnfoldOutlined,
+} from '@ant-design/icons';
+import type { MenuProps } from 'antd';
+
+const { Header, Sider, Content } = Layout;
 
 interface AdminLayoutProps {
     children: ReactNode;
 }
 
-const menuItems = [
-    {
-        key: 'dashboard',
-        icon: '📊',
-        label: '仪表盘',
-        path: '/admin/dashboard'
-    },
-    {
-        key: 'users',
-        icon: '👥',
-        label: '买手管理',
-        path: '/admin/users',
-        children: [
-            { key: 'users-list', label: '买手列表', path: '/admin/users' },
-            { key: 'users-balance', label: '余额记录', path: '/admin/users/balance' },
-            { key: 'users-accounts', label: '买号审核', path: '/admin/users/accounts' },
-        ]
-    },
-    {
-        key: 'merchants',
-        icon: '🏪',
-        label: '商家管理',
-        path: '/admin/merchants',
-        children: [
-            { key: 'merchants-list', label: '商家列表', path: '/admin/merchants' },
-            { key: 'merchants-balance', label: '余额记录', path: '/admin/merchants/balance' },
-            { key: 'shops-list', label: '店铺管理', path: '/admin/shops' },
-        ]
-    },
-    {
-        key: 'tasks',
-        icon: '📋',
-        label: '任务管理',
-        path: '/admin/tasks',
-        children: [
-            { key: 'tasks-list', label: '任务列表', path: '/admin/tasks' },
-            { key: 'tasks-review', label: '追评任务', path: '/admin/tasks/reviews' },
-        ]
-    },
-    {
-        key: 'orders',
-        icon: '📦',
-        label: '订单管理',
-        path: '/admin/orders'
-    },
-    {
-        key: 'finance',
-        icon: '💰',
-        label: '财务管理',
-        path: '/admin/finance',
-        children: [
-            { key: 'finance-withdrawals', label: '提现审核', path: '/admin/withdrawals' },
-            { key: 'finance-recharge', label: '充值记录', path: '/admin/finance/recharge' },
-            { key: 'finance-bank', label: '银行卡审核', path: '/admin/finance/bank' },
-            { key: 'finance-vip', label: '会员记录', path: '/admin/finance/vip' },
-        ]
-    },
-    {
-        key: 'notice',
-        icon: '📢',
-        label: '公告管理',
-        path: '/admin/notice'
-    },
-    {
-        key: 'system',
-        icon: '⚙️',
-        label: '系统设置',
-        path: '/admin/system',
-        children: [
-            { key: 'system-params', label: '基础参数', path: '/admin/system/params' },
-            { key: 'system-commission', label: '费率配置', path: '/admin/system/commission' },
-            { key: 'system-vip', label: 'VIP等级', path: '/admin/system/vip' },
-            { key: 'system-platforms', label: '平台管理', path: '/admin/system/platforms' },
-            { key: 'system-deliveries', label: '快递管理', path: '/admin/system/deliveries' },
-            { key: 'system-sensitive', label: '敏感词管理', path: '/admin/system/sensitive' },
-            { key: 'system-api', label: 'API配置', path: '/admin/system/api' },
-        ]
-    },
-    {
-        key: 'permission',
-        icon: '🔐',
-        label: '权限管理',
-        path: '/admin/permission',
-        children: [
-            { key: 'permission-menu', label: '菜单管理', path: '/admin/permission/menu' },
-            { key: 'permission-role', label: '角色管理', path: '/admin/permission/role' },
-            { key: 'permission-admin', label: '管理员', path: '/admin/permission/admin' },
-        ]
-    },
-    {
-        key: 'tools',
-        icon: '🛠️',
-        label: '系统工具',
-        path: '/admin/tools',
-        children: [
-            { key: 'tools-backup', label: '数据备份', path: '/admin/tools/backup' },
-            { key: 'tools-logs', label: '操作日志', path: '/admin/tools/logs' },
-            { key: 'tools-cache', label: '缓存管理', path: '/admin/tools/cache' },
-        ]
-    },
+type MenuItem = Required<MenuProps>['items'][number];
+
+function getItem(
+    label: React.ReactNode,
+    key: string,
+    icon?: React.ReactNode,
+    children?: MenuItem[],
+): MenuItem {
+    return { key, icon, children, label } as MenuItem;
+}
+
+const menuItems: MenuItem[] = [
+    getItem('仪表盘', '/admin/dashboard', <DashboardOutlined />),
+    getItem('买手管理', 'users', <UserOutlined />, [
+        getItem('买手列表', '/admin/users'),
+        getItem('余额记录', '/admin/users/balance'),
+        getItem('买号审核', '/admin/users/accounts'),
+    ]),
+    getItem('商家管理', 'merchants', <ShopOutlined />, [
+        getItem('商家列表', '/admin/merchants'),
+        getItem('余额记录', '/admin/merchants/balance'),
+        getItem('店铺管理', '/admin/shops'),
+    ]),
+    getItem('任务管理', 'tasks', <FileTextOutlined />, [
+        getItem('任务列表', '/admin/tasks'),
+        getItem('追评任务', '/admin/tasks/reviews'),
+    ]),
+    getItem('订单管理', '/admin/orders', <ShoppingOutlined />),
+    getItem('财务管理', 'finance', <DollarOutlined />, [
+        getItem('提现审核', '/admin/withdrawals'),
+        getItem('充值记录', '/admin/finance/recharge'),
+        getItem('银行卡审核', '/admin/finance/bank'),
+        getItem('会员记录', '/admin/finance/vip'),
+    ]),
+    getItem('公告管理', '/admin/notice', <NotificationOutlined />),
+    getItem('系统设置', 'system', <SettingOutlined />, [
+        getItem('基础参数', '/admin/system/params'),
+        getItem('费率配置', '/admin/system/commission'),
+        getItem('VIP等级', '/admin/system/vip'),
+        getItem('平台管理', '/admin/system/platforms'),
+        getItem('快递管理', '/admin/system/deliveries'),
+        getItem('敏感词管理', '/admin/system/sensitive'),
+        getItem('API配置', '/admin/system/api'),
+    ]),
+    getItem('权限管理', 'permission', <LockOutlined />, [
+        getItem('菜单管理', '/admin/permission/menu'),
+        getItem('角色管理', '/admin/permission/role'),
+        getItem('管理员', '/admin/permission/admin'),
+    ]),
+    getItem('系统工具', 'tools', <ToolOutlined />, [
+        getItem('数据备份', '/admin/tools/backup'),
+        getItem('操作日志', '/admin/tools/logs'),
+        getItem('缓存管理', '/admin/tools/cache'),
+    ]),
 ];
+
+// Map path to open keys
+const pathToOpenKeys: Record<string, string> = {
+    '/admin/users': 'users',
+    '/admin/users/balance': 'users',
+    '/admin/users/accounts': 'users',
+    '/admin/merchants': 'merchants',
+    '/admin/merchants/balance': 'merchants',
+    '/admin/shops': 'merchants',
+    '/admin/tasks': 'tasks',
+    '/admin/tasks/reviews': 'tasks',
+    '/admin/withdrawals': 'finance',
+    '/admin/finance/recharge': 'finance',
+    '/admin/finance/bank': 'finance',
+    '/admin/finance/vip': 'finance',
+    '/admin/system/params': 'system',
+    '/admin/system/commission': 'system',
+    '/admin/system/vip': 'system',
+    '/admin/system/platforms': 'system',
+    '/admin/system/deliveries': 'system',
+    '/admin/system/sensitive': 'system',
+    '/admin/system/api': 'system',
+    '/admin/permission/menu': 'permission',
+    '/admin/permission/role': 'permission',
+    '/admin/permission/admin': 'permission',
+    '/admin/tools/backup': 'tools',
+    '/admin/tools/logs': 'tools',
+    '/admin/tools/cache': 'tools',
+};
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
     const router = useRouter();
     const pathname = usePathname();
+    const [collapsed, setCollapsed] = useState(false);
     const [admin, setAdmin] = useState<{ username: string } | null>(null);
-    const [expandedMenus, setExpandedMenus] = useState<string[]>(['users', 'merchants', 'finance', 'system']);
+    const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken();
 
     useEffect(() => {
-        const token = localStorage.getItem('adminToken') || localStorage.getItem('merchantToken');
-        if (!token && pathname !== '/admin/login') {
+        const adminToken = localStorage.getItem('adminToken');
+        if (!adminToken && pathname !== '/admin/login') {
             // router.push('/admin/login');
         }
         setAdmin({ username: 'Admin' });
@@ -128,10 +131,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         router.push('/admin/login');
     };
 
-    const toggleMenu = (key: string) => {
-        setExpandedMenus(prev =>
-            prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
-        );
+    const handleMenuClick: MenuProps['onClick'] = (e) => {
+        if (e.key.startsWith('/')) {
+            router.push(e.key);
+        }
     };
 
     // 登录页不使用布局
@@ -139,161 +142,115 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         return <>{children}</>;
     }
 
+    const currentOpenKey = pathname ? pathToOpenKeys[pathname] : undefined;
+    const openKeys = currentOpenKey ? [currentOpenKey] : ['users', 'merchants', 'finance', 'system'];
+
+    const dropdownItems: MenuProps['items'] = [
+        {
+            key: 'profile',
+            icon: <UserOutlined />,
+            label: '个人设置',
+        },
+        {
+            type: 'divider',
+        },
+        {
+            key: 'logout',
+            icon: <LogoutOutlined />,
+            label: '退出登录',
+            onClick: handleLogout,
+        },
+    ];
+
     return (
-        <div style={{
-            display: 'flex',
-            minHeight: '100vh',
-            background: '#f0f2f5',
-            fontSize: '14px',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif'
-        }}>
-            {/* 左侧导航 - 固定宽度 */}
-            <aside style={{
-                width: '300px',
-                background: '#001529',
-                color: '#fff',
-                display: 'flex',
-                flexDirection: 'column',
-                flexShrink: 0,
-                position: 'fixed',
-                height: '100vh',
-                left: 0,
-                top: 0,
-                zIndex: 100,
-                overflowY: 'auto'
-            }}>
-                {/* Logo区 */}
+        <Layout style={{ minHeight: '100vh' }}>
+            <Sider
+                trigger={null}
+                collapsible
+                collapsed={collapsed}
+                width={260}
+                style={{
+                    overflow: 'auto',
+                    height: '100vh',
+                    position: 'fixed',
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                }}
+            >
                 <div style={{
-                    height: '64px',
+                    height: 64,
                     display: 'flex',
                     alignItems: 'center',
-                    padding: '0 24px',
-                    borderBottom: '1px solid rgba(255,255,255,0.1)'
+                    justifyContent: collapsed ? 'center' : 'flex-start',
+                    padding: collapsed ? 0 : '0 24px',
+                    borderBottom: '1px solid rgba(255,255,255,0.1)',
                 }}>
-                    <span style={{ fontSize: '24px', marginRight: '12px' }}>🛡️</span>
-                    <span style={{ fontSize: '18px', fontWeight: '600' }}>管理后台</span>
+                    <span style={{ fontSize: 24 }}>🛡️</span>
+                    {!collapsed && (
+                        <span style={{
+                            fontSize: 18,
+                            fontWeight: 600,
+                            color: '#fff',
+                            marginLeft: 12,
+                        }}>
+                            管理后台
+                        </span>
+                    )}
                 </div>
-
-                {/* 菜单 */}
-                <nav style={{ flex: 1, padding: '8px 0' }}>
-                    {menuItems.map(item => (
-                        <div key={item.key}>
-                            <div
-                                onClick={() => item.children ? toggleMenu(item.key) : router.push(item.path)}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    padding: '12px 24px',
-                                    cursor: 'pointer',
-                                    background: pathname === item.path ? '#1890ff' : 'transparent',
-                                    transition: 'all 0.2s',
-                                    whiteSpace: 'nowrap'
-                                }}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <span style={{ fontSize: '16px' }}>{item.icon}</span>
-                                    <span>{item.label}</span>
-                                </div>
-                                {item.children && (
-                                    <span style={{
-                                        fontSize: '12px',
-                                        transform: expandedMenus.includes(item.key) ? 'rotate(90deg)' : 'rotate(0deg)',
-                                        transition: 'transform 0.2s'
-                                    }}>▶</span>
-                                )}
-                            </div>
-                            {item.children && expandedMenus.includes(item.key) && (
-                                <div style={{ background: 'rgba(0,0,0,0.2)' }}>
-                                    {item.children.map(child => (
-                                        <div
-                                            key={child.key}
-                                            onClick={() => router.push(child.path)}
-                                            style={{
-                                                padding: '10px 24px 10px 52px',
-                                                cursor: 'pointer',
-                                                background: pathname === child.path ? '#1890ff' : 'transparent',
-                                                color: pathname === child.path ? '#fff' : 'rgba(255,255,255,0.65)',
-                                                fontSize: '13px',
-                                                whiteSpace: 'nowrap'
-                                            }}
-                                        >
-                                            {child.label}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </nav>
-
-                {/* 退出登录 */}
-                <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                    <div
-                        onClick={handleLogout}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px',
-                            cursor: 'pointer',
-                            opacity: 0.8
-                        }}
-                    >
-                        <span>🚪</span>
-                        <span>退出登录</span>
-                    </div>
-                </div>
-            </aside>
-
-            {/* 右侧内容区 - 全屏宽度 */}
-            <div style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                marginLeft: '300px',
-                minWidth: 0
-            }}>
-                {/* 顶部栏 */}
-                <header style={{
-                    height: '64px',
-                    background: '#fff',
-                    borderBottom: '1px solid #e8e8e8',
+                <Menu
+                    theme="dark"
+                    mode="inline"
+                    selectedKeys={pathname ? [pathname] : []}
+                    defaultOpenKeys={openKeys}
+                    items={menuItems}
+                    onClick={handleMenuClick}
+                    style={{ borderRight: 0 }}
+                />
+            </Sider>
+            <Layout style={{ marginLeft: collapsed ? 80 : 260, transition: 'margin-left 0.2s' }}>
+                <Header style={{
+                    padding: '0 24px',
+                    background: colorBgContainer,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '0 24px',
                     position: 'sticky',
                     top: 0,
-                    zIndex: 99,
-                    boxShadow: '0 1px 4px rgba(0,21,41,0.08)'
+                    zIndex: 1,
+                    boxShadow: '0 1px 4px rgba(0,21,41,0.08)',
                 }}>
-                    <div style={{ fontSize: '16px', fontWeight: '500', color: '#000' }}>
-                        {menuItems.find(item => pathname && pathname.startsWith(item.path))?.label || '控制台'}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        <span style={{ color: '#666' }}>欢迎, {admin?.username}</span>
+                    <Button
+                        type="text"
+                        icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                        onClick={() => setCollapsed(!collapsed)}
+                        style={{ fontSize: 16, width: 64, height: 64 }}
+                    />
+                    <Dropdown menu={{ items: dropdownItems }} placement="bottomRight">
                         <div style={{
-                            width: '32px',
-                            height: '32px',
-                            background: '#1890ff',
-                            borderRadius: '50%',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#fff',
-                            fontWeight: 'bold',
-                            fontSize: '14px'
+                            gap: 8,
+                            cursor: 'pointer',
+                            padding: '0 12px',
                         }}>
-                            {admin?.username?.charAt(0).toUpperCase() || 'A'}
+                            <span style={{ color: '#666' }}>欢迎, {admin?.username}</span>
+                            <Avatar style={{ backgroundColor: '#1890ff' }}>
+                                {admin?.username?.charAt(0).toUpperCase() || 'A'}
+                            </Avatar>
                         </div>
-                    </div>
-                </header>
-
-                {/* 主内容插槽 */}
-                <main style={{ flex: 1, padding: '24px', overflow: 'auto', background: '#f0f2f5' }}>
+                    </Dropdown>
+                </Header>
+                <Content style={{
+                    margin: 24,
+                    padding: 24,
+                    background: colorBgContainer,
+                    borderRadius: borderRadiusLG,
+                    minHeight: 280,
+                }}>
                     {children}
-                </main>
-            </div>
-        </div>
+                </Content>
+            </Layout>
+        </Layout>
     );
 }

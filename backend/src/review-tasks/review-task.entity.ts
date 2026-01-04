@@ -16,7 +16,7 @@ import {
 } from 'class-validator';
 
 /**
- * 追评任务状态 (完全对应原版 tfkz_review_task.state)
+ * 追评任务状态 (完全
  *
  * 状态流转:
  * 0(未支付) -> 1(已支付) -> 2(已审核/通知买手) -> 3(已上传) -> 4(已完成)
@@ -37,7 +37,7 @@ export enum ReviewTaskStatus {
 }
 
 /**
- * 追评类型 (对应原版 tfkz_review_task_praise.type)
+ * 追评类型
  */
 export enum ReviewPraiseType {
   TEXT = 1, // 文字追评
@@ -46,7 +46,7 @@ export enum ReviewPraiseType {
 }
 
 /**
- * 追评任务表 (对应原版 tfkz_review_task)
+ * 追评任务表
  */
 @Entity('review_tasks')
 export class ReviewTask {
@@ -132,7 +132,7 @@ export class ReviewTask {
 }
 
 /**
- * 追评任务好评内容表 (对应原版 tfkz_review_task_praise)
+ * 追评任务好评内容表
  * 一个追评任务可以有多个商品的好评要求
  */
 @Entity('review_task_praises')
@@ -209,7 +209,7 @@ export class GoodsPraiseSettingDto {
 }
 
 /**
- * 创建追评任务请求 (对应原版 addTask)
+ * 创建追评任务请求
  */
 export class CreateReviewTaskDto {
   @IsString()
@@ -220,7 +220,7 @@ export class CreateReviewTaskDto {
 }
 
 /**
- * 支付追评任务请求 (对应原版 payDo)
+ * 支付追评任务请求
  */
 export class PayReviewTaskDto {
   @IsString()
@@ -232,7 +232,7 @@ export class PayReviewTaskDto {
 }
 
 /**
- * 买手提交追评截图请求 (对应原版 take_zhuipin)
+ * 买手提交追评截图请求
  */
 export class SubmitReviewDto {
   @IsString()
@@ -244,7 +244,7 @@ export class SubmitReviewDto {
 }
 
 /**
- * 买手拒绝追评请求 (对应原版 refuse_zhuipin)
+ * 买手拒绝追评请求
  */
 export class RejectReviewDto {
   @IsString()
@@ -256,7 +256,7 @@ export class RejectReviewDto {
 }
 
 /**
- * 商家确认追评完成请求 (对应原版 confirm)
+ * 商家确认追评完成请求
  */
 export class ConfirmReviewDto {
   @IsString()
@@ -264,7 +264,7 @@ export class ConfirmReviewDto {
 }
 
 /**
- * 商家取消追评任务请求 (对应原版 quxiao)
+ * 商家取消追评任务请求
  */
 export class CancelReviewDto {
   @IsString()
@@ -276,7 +276,7 @@ export class CancelReviewDto {
 }
 
 /**
- * 管理员审核追评请求 (对应原版 reviewtaskToExamine)
+ * 管理员审核追评请求
  */
 export class AdminReviewExamineDto {
   @IsString()
@@ -291,7 +291,7 @@ export class AdminReviewExamineDto {
 }
 
 /**
- * 管理员批量返款请求 (对应原版 reviewTaskReturnPays)
+ * 管理员批量返款请求
  */
 export class AdminBatchRefundDto {
   @IsArray()

@@ -12,7 +12,7 @@ import { UsersModule } from '../users/users.module';
     UsersModule,
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'tfkz-order-management-secret-key-2026',
+      secret: process.env.JWT_SECRET || 'order-mgmt-jwt-secret-2026',
       signOptions: { expiresIn: '7d' },
     }),
   ],
@@ -20,4 +20,4 @@ import { UsersModule } from '../users/users.module';
   controllers: [AuthController],
   exports: [AuthService, JwtModule, AdminGuard],
 })
-export class AuthModule {}
+export class AuthModule { }

@@ -362,7 +362,7 @@ export class TasksService implements OnModuleInit {
 
   /**
    * 更新任务的最后接单时间 (用于接单间隔校验)
-   * 对应原版 receipt_time 字段
+ *
    */
   async updateReceiptTime(taskId: string): Promise<void> {
     await this.tasksRepository.update(taskId, {

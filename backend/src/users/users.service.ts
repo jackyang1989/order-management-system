@@ -6,7 +6,7 @@ import { FundRecord, FundType, FundAction } from './fund-record.entity';
 import { Order, OrderStatus } from '../orders/order.entity';
 import * as bcrypt from 'bcrypt';
 
-// 用户统计数据接口（对应原版个人中心展示）
+// 用户统计数据接口
 export interface UserProfileStats {
   totalPaidPrincipal: number; // 累计垫付本金
   monthlyRemainingTasks: number; // 本月剩余任务数 (220 - 已完成)
@@ -271,11 +271,11 @@ export class UsersService {
     return this.fundRecordRepository.save(record);
   }
 
-  // ============ 用户统计数据 (对应原版个人中心) ============
+  // ============ 用户统计数据 ============
 
   /**
    * 获取用户个人中心完整统计数据
-   * 对应原版: 累计垫付本金、本月剩余任务数、累计完成任务数等
+ *
    */
   async getProfileStats(userId: string): Promise<UserProfileStats> {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
@@ -410,7 +410,7 @@ export class UsersService {
     };
   }
 
-  // ============ 用户安全设置 (对应原版个人信息修改) ============
+  // ============ 用户安全设置 ============
 
   /**
    * 修改登录密码
@@ -548,7 +548,7 @@ export class UsersService {
     return { success: true, message: '验证码发送成功' };
   }
 
-  // ============ 月度任务计数 (对应原版 mc_task_num) ============
+  // ============ 月度任务计数 ============
 
   /**
    * 检查并重置月度任务计数（如果跨月了）

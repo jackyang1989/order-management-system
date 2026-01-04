@@ -14,7 +14,7 @@ import {
   Index,
 } from 'typeorm';
 
-// 订单状态（对应原版6种状态）
+// 订单状态
 export enum OrderStatus {
   PENDING = 'PENDING', // 进行中（接单后执行任务中）
   SUBMITTED = 'SUBMITTED', // 待审核（买手提交等待商家审核）
@@ -140,7 +140,7 @@ export class Order {
   keywordImg: string; // 关键词搜索截图
 
   @Column({ nullable: true })
-  keyword: string; // 搜索关键词 (对应原版 user_task.key)
+  keyword: string; // 搜索关键词
 
   @Column({ type: 'text', nullable: true })
   chatImg: string; // 聊天截图（假聊）
