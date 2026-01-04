@@ -225,6 +225,21 @@ export class Task {
   @Column({ nullable: true })
   shopId: string; // 店铺ID
 
+  // --- 回购任务 (P0 Fix) ---
+  @Column({ name: 'is_repay', default: false })
+  isRepay: boolean; // 是否回购任务 (只允许曾在该店铺完成过订单的买号接取)
+
+  // --- 定时付款任务 (P0 Fix) ---
+  @Column({ name: 'is_timing_pay', default: false })
+  isTimingPay: boolean; // 是否定时付款任务
+
+  @Column({ type: 'timestamp', name: 'timing_time', nullable: true })
+  timingTime: Date | null; // 定时付款时间
+
+  // --- 隔天任务 (P0 Fix) ---
+  @Column({ name: 'is_next_day', default: false })
+  isNextDay: boolean; // 是否隔天任务 (次日16:40超时)
+
   // --- 状态与时间 ---
   @Column({ default: false })
   isTimingPublish: boolean; // 定时发布
@@ -311,6 +326,10 @@ export class CreateTaskDto {
   cycleTime?: number;
 
   addReward?: number;
+
+  // P0 Fix: 新任务类型
+  isRepay?: boolean; // 回购任务
+  isNextDay?: boolean; // 隔天任务
 }
 
 export class TaskFilterDto {

@@ -6,7 +6,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, In } from 'typeorm';
 import {
   Order,
   OrderStatus,
@@ -142,6 +142,21 @@ export class OrdersService {
       throw new BadRequestException('您已领取过此任务');
     }
 
+    // ========== P0 Fix: 未完成任务校验 (Incomplete Task Check) ==========
+    // 旧版逻辑: Task.php -> user() Line 531-543
+    // 必须确保用户没有未完成的任务才能接新单
+    const incompleteOrder = await this.ordersRepository.findOne({
+      where: {
+        userId,
+        status: In([OrderStatus.PENDING, OrderStatus.SUBMITTED]),
+      },
+      order: { createdAt: 'DESC' },
+    });
+
+    if (incompleteOrder) {
+      throw new BadRequestException('有未完成任务，请完成后再接！');
+    }
+
     // 1. 验证买号归属权 (Security Fix: IDOR)
     const buyerAccount = await this.buyerAccountsService.findOne(
       createOrderDto.buynoId,
@@ -173,6 +188,23 @@ export class OrdersService {
     );
     if (isBlacklisted) {
       throw new BadRequestException('当前买号已被商家拉黑，无法接取此任务');
+    }
+
+    // ========== P0 Fix: 回购任务校验 (Repurchase Task Validation) ==========
+    // 旧版逻辑: Task.php Line 269-275
+    // 回购任务只允许曾在该店铺完成过订单的买号接取
+    if (task.isRepay && task.shopId) {
+      const completedOrderInShop = await this.ordersRepository
+        .createQueryBuilder('order')
+        .innerJoin('tasks', 'task', 'order.taskId = task.id')
+        .where('order.buynoId = :buynoId', { buynoId: createOrderDto.buynoId })
+        .andWhere('task.shopId = :shopId', { shopId: task.shopId })
+        .andWhere('order.status = :status', { status: OrderStatus.COMPLETED })
+        .getOne();
+
+      if (!completedOrderInShop) {
+        throw new BadRequestException('此任务是回购任务，无法接取！');
+      }
     }
 
     // 2.4 购物周期校验
@@ -245,9 +277,22 @@ export class OrdersService {
     // 构建步骤数据 (根据任务配置动态生成，
     const steps: OrderStepData[] = this.generateTaskSteps(task);
 
-    // 设置订单超时时间 (1小时后)
-    const endingTime = new Date();
-    endingTime.setHours(endingTime.getHours() + 1);
+    // ========== P0 Fix: 动态超时时间计算 (Dynamic Timeout Calculation) ==========
+    // 旧版逻辑: Task.php Line 292-307
+    let endingTime = new Date();
+
+    if (task.isTimingPay && task.timingTime) {
+      // 定时付款任务: timingTime + 120分钟
+      endingTime = new Date(task.timingTime.getTime() + 120 * 60 * 1000);
+    } else if (task.isNextDay) {
+      // 隔天任务: 次日下午16:40
+      endingTime = new Date();
+      endingTime.setDate(endingTime.getDate() + 1);
+      endingTime.setHours(16, 40, 0, 0);
+    } else {
+      // 普通任务: 当前时间 + 1小时
+      endingTime.setHours(endingTime.getHours() + 1);
+    }
 
     // 平台名称映射
     const platformMap: Record<number, string> = {
