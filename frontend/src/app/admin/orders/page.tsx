@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { adminService } from '../../../../services/adminService';
+import { adminService } from '../../../services/adminService';
 import { BASE_URL } from '../../../../apiConfig';
 
 interface Order {
