@@ -108,6 +108,7 @@
 | 2026-01-04 | v1.6 | P0-06 双模式导入(import/import1)已实现 | Claude |
 | 2026-01-04 | v1.7 | P0-07 关键词修改(edit_key)已实现，Order新增keyword字段 | Claude |
 | 2026-01-04 | v1.8 | P0-08 商品编辑(goodsEditDo)已实现 | Claude |
+| 2026-01-04 | v1.9 | P0-09 关键词方案管理(goodsKeyAdd/Edit)已实现 | Claude |
 
 ---
 
@@ -123,7 +124,7 @@
 | P0-06 | 双模式导入 | Task::import/import1 | ✅ 已完成 | 2026-01-04 |
 | P0-07 | 关键词修改 | Task::edit_key | ✅ 已完成 | 2026-01-04 |
 | P0-08 | 商品编辑 | Task::goodsEditDo | ✅ 已完成 | 2026-01-04 |
-| P0-09 | 关键词方案管理 | Task::goodsKeyAdd/Edit | ⏳ 待实现 | - |
+| P0-09 | 关键词方案管理 | Task::goodsKeyAdd/Edit | ✅ 已完成 | 2026-01-04 |
 | P0-10 | 批量提现审核 | Finance::allCheck | ⏳ 待实现 | - |
 | P0-11 | 批量确认打款 | Finance::confirmPaymentAll | ⏳ 待实现 | - |
 

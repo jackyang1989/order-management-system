@@ -4,10 +4,15 @@ import { Repository, In } from 'typeorm';
 import { Order, OrderStatus, DeliveryState } from '../orders/order.entity';
 import { Task, TaskStatus } from '../tasks/task.entity';
 import { ReviewTask, ReviewTaskStatus } from '../review-tasks/review-task.entity';
+import { Withdrawal, WithdrawalStatus, WithdrawalType, WithdrawalOwnerType } from '../withdrawals/withdrawal.entity';
+import { MerchantWithdrawal, MerchantWithdrawalStatus, MerchantWithdrawalType } from '../merchant-withdrawals/merchant-withdrawal.entity';
+import { User } from '../users/user.entity';
+import { Merchant } from '../merchants/merchant.entity';
 import { OrderLogsService } from '../order-logs/order-logs.service';
 import { OrderLogAction, OrderLogOperatorType } from '../order-logs/order-log.entity';
 import { MessagesService } from '../messages/messages.service';
 import { MessageUserType } from '../messages/message.entity';
+import { FinanceRecordsService } from '../finance-records/finance-records.service';
 
 @Injectable()
 export class BatchOperationsService {
@@ -18,8 +23,17 @@ export class BatchOperationsService {
         private taskRepository: Repository<Task>,
         @InjectRepository(ReviewTask)
         private reviewTaskRepository: Repository<ReviewTask>,
+        @InjectRepository(Withdrawal)
+        private withdrawalRepository: Repository<Withdrawal>,
+        @InjectRepository(MerchantWithdrawal)
+        private merchantWithdrawalRepository: Repository<MerchantWithdrawal>,
+        @InjectRepository(User)
+        private userRepository: Repository<User>,
+        @InjectRepository(Merchant)
+        private merchantRepository: Repository<Merchant>,
         private orderLogsService: OrderLogsService,
         private messagesService: MessagesService,
+        private financeRecordsService: FinanceRecordsService,
     ) { }
 
     // ============ 批量发货 ============

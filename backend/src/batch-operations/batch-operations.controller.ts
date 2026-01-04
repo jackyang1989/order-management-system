@@ -1,13 +1,16 @@
 import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { BatchOperationsService } from './batch-operations.service';
 import { GoodsService } from '../goods/goods.service';
+import { KeywordsService } from '../keywords/keywords.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { KeywordPlatform, KeywordTerminal } from '../keywords/keyword.entity';
 
 @Controller('batch')
 export class BatchOperationsController {
     constructor(
         private batchService: BatchOperationsService,
-        private goodsService: GoodsService
+        private goodsService: GoodsService,
+        private keywordsService: KeywordsService
     ) { }
 
     /**
@@ -374,6 +377,80 @@ export class BatchOperationsController {
             success: result.success,
             message: result.message,
             data: result
+        };
+    }
+
+    /**
+     * 后台添加关键词方案
+     * 对应原版接口: Task::goodsKeyAdd
+     * 业务语义: 后台管理员添加关键词方案
+     */
+    @Post('keyword-scheme-add')
+    @UseGuards(JwtAuthGuard)
+    async goodsKeyAdd(
+        @Body() body: {
+            sellerId: string;
+            name: string;
+            platform?: KeywordPlatform;
+            details: Array<{
+                keyword: string;
+                terminal?: KeywordTerminal;
+                discount?: string;
+                filter?: string;
+                sort?: string;
+                maxPrice?: number;
+                minPrice?: number;
+                province?: string;
+            }>;
+        },
+        @Request() req
+    ) {
+        const result = await this.keywordsService.adminCreateScheme(
+            body.sellerId,
+            { name: body.name, platform: body.platform, details: body.details },
+            req.user.username || '管理员'
+        );
+        return {
+            success: result.success,
+            message: result.message,
+            data: result.data
+        };
+    }
+
+    /**
+     * 后台修改关键词方案
+     * 对应原版接口: Task::goodsKeyEdit
+     * 业务语义: 后台管理员修改关键词方案（删除旧关键词，添加新关键词）
+     */
+    @Post('keyword-scheme-edit')
+    @UseGuards(JwtAuthGuard)
+    async goodsKeyEdit(
+        @Body() body: {
+            schemeId: string;
+            name: string;
+            platform?: KeywordPlatform;
+            details: Array<{
+                keyword: string;
+                terminal?: KeywordTerminal;
+                discount?: string;
+                filter?: string;
+                sort?: string;
+                maxPrice?: number;
+                minPrice?: number;
+                province?: string;
+            }>;
+        },
+        @Request() req
+    ) {
+        const result = await this.keywordsService.adminUpdateScheme(
+            body.schemeId,
+            { name: body.name, platform: body.platform, details: body.details },
+            req.user.username || '管理员'
+        );
+        return {
+            success: result.success,
+            message: result.message,
+            data: result.data
         };
     }
 }
