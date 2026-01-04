@@ -388,4 +388,300 @@ export class BatchOperationsService {
 
         return { success, failed };
     }
+
+    // ============ 预售返款 ============
+
+    /**
+     * 预售返款（预付款/尾款）
+     * 对应原版接口: Task::returnys
+     * 业务语义: 对预售订单(is_ys=1)进行预付款或尾款返款操作
+     * 前置条件: user_task.state = 5 (待返款), is_ys = 1
+     * 后置状态: user_task.state = 6 (待确认返款)
+     *
+     * @param orderId 订单ID
+     * @param type 返款类型: 1=预付款返款, 2=尾款返款
+     * @param operatorId 操作员ID
+     * @param operatorName 操作员姓名
+     */
+    async presaleRefund(
+        orderId: string,
+        type: 1 | 2,
+        operatorId: string,
+        operatorName: string
+    ): Promise<{ success: boolean; message: string }> {
+        try {
+            // 1. 查询订单
+            const order = await this.orderRepository.findOne({ where: { id: orderId } });
+
+            if (!order) {
+                return { success: false, message: '未找到数据或数据状态不正确！请刷新重试' };
+            }
+
+            // 2. 验证订单状态必须为 WAITING_REFUND (state=5)
+            if (order.status !== OrderStatus.WAITING_REFUND) {
+                return { success: false, message: '未找到数据或数据状态不正确！请刷新重试' };
+            }
+
+            // 3. 验证是否为预售订单
+            if (!order.isPresale) {
+                return { success: false, message: '该任务不是预售任务！' };
+            }
+
+            // 4. 根据类型执行返款
+            if (type === 1) {
+                // 预付款返款
+                if (order.okYf) {
+                    return { success: false, message: '任务状态不对!' };
+                }
+
+                order.okYf = true;
+                order.platformRefundTime = new Date();
+                order.status = OrderStatus.WAITING_REVIEW_REFUND; // state = 6
+
+                await this.orderRepository.save(order);
+
+                // 记录日志
+                await this.orderLogsService.logStatusChange(
+                    orderId,
+                    order.taskTitle,
+                    OrderLogAction.ADMIN_OPERATE,
+                    OrderLogOperatorType.ADMIN,
+                    operatorId,
+                    operatorName,
+                    OrderStatus.WAITING_REFUND as any,
+                    OrderStatus.WAITING_REVIEW_REFUND as any,
+                    '任务预付款返款'
+                );
+
+            } else if (type === 2) {
+                // 尾款返款
+                if (order.okWk) {
+                    return { success: false, message: '任务状态不对!' };
+                }
+
+                order.okWk = true;
+                order.platformRefundTime = new Date();
+                order.status = OrderStatus.WAITING_REVIEW_REFUND; // state = 6
+
+                await this.orderRepository.save(order);
+
+                // 记录日志
+                await this.orderLogsService.logStatusChange(
+                    orderId,
+                    order.taskTitle,
+                    OrderLogAction.ADMIN_OPERATE,
+                    OrderLogOperatorType.ADMIN,
+                    operatorId,
+                    operatorName,
+                    OrderStatus.WAITING_REFUND as any,
+                    OrderStatus.WAITING_REVIEW_REFUND as any,
+                    '任务尾款返款'
+                );
+            }
+
+            return { success: true, message: '返款成功！' };
+
+        } catch (error) {
+            return { success: false, message: error.message || '操作失败' };
+        }
+    }
+
+    // ============ 修改预售金额 ============
+
+    /**
+     * 修改预付金额
+     * 对应原版接口: Task::return_price1
+     * 业务语义: 后台修改预售订单的预付款金额(yf_price)
+     * 前置条件: user_task.state = 5 (待返款)
+     * 限制: 浮动不能超过 ±500元
+     *
+     * @param orderId 订单ID
+     * @param price 新的预付款金额
+     * @param operatorId 操作员ID
+     * @param operatorName 操作员姓名
+     */
+    async updateYfPrice(
+        orderId: string,
+        price: number,
+        operatorId: string,
+        operatorName: string
+    ): Promise<{ success: boolean; message: string }> {
+        try {
+            // 1. 查询订单
+            const order = await this.orderRepository.findOne({ where: { id: orderId } });
+
+            if (!order) {
+                return { success: false, message: '任务不存在！' };
+            }
+
+            // 2. 验证订单状态必须为 WAITING_REFUND (state=5)
+            if (order.status !== OrderStatus.WAITING_REFUND) {
+                return { success: false, message: '任务状态不正确，只有待返款才能修改！' };
+            }
+
+            // 3. 验证浮动范围 ±500元
+            const currentYfPrice = Number(order.yfPrice) || 0;
+            if (currentYfPrice - 500 > price || currentYfPrice + 500 < price) {
+                return { success: false, message: '返款金额上下浮动不能超过500元！' };
+            }
+
+            // 4. 更新预付款金额
+            order.yfPrice = price;
+            await this.orderRepository.save(order);
+
+            // 5. 记录日志
+            await this.orderLogsService.logStatusChange(
+                orderId,
+                order.taskTitle,
+                OrderLogAction.ADMIN_OPERATE,
+                OrderLogOperatorType.ADMIN,
+                operatorId,
+                operatorName,
+                order.status as any,
+                order.status as any,
+                `修改预付金额: ${currentYfPrice} -> ${price}`
+            );
+
+            return { success: true, message: '修改成功！' };
+
+        } catch (error) {
+            return { success: false, message: error.message || '修改失败！' };
+        }
+    }
+
+    /**
+     * 修改尾款金额
+     * 对应原版接口: Task::return_price2
+     * 业务语义: 后台修改预售订单的尾款金额(wk_price)
+     * 前置条件: user_task.state = 5 (待返款)
+     * 限制: 浮动不能超过 ±100元
+     *
+     * @param orderId 订单ID
+     * @param price 新的尾款金额
+     * @param operatorId 操作员ID
+     * @param operatorName 操作员姓名
+     */
+    async updateWkPrice(
+        orderId: string,
+        price: number,
+        operatorId: string,
+        operatorName: string
+    ): Promise<{ success: boolean; message: string }> {
+        try {
+            // 1. 查询订单
+            const order = await this.orderRepository.findOne({ where: { id: orderId } });
+
+            if (!order) {
+                return { success: false, message: '任务不存在！' };
+            }
+
+            // 2. 验证订单状态必须为 WAITING_REFUND (state=5)
+            if (order.status !== OrderStatus.WAITING_REFUND) {
+                return { success: false, message: '任务状态不正确，只有待返款才能修改！' };
+            }
+
+            // 3. 验证浮动范围 ±100元
+            const currentWkPrice = Number(order.wkPrice) || 0;
+            if (currentWkPrice - 100 > price || currentWkPrice + 100 < price) {
+                return { success: false, message: '尾款金额上下浮动不能超过100元！' };
+            }
+
+            // 4. 更新尾款金额
+            order.wkPrice = price;
+            await this.orderRepository.save(order);
+
+            // 5. 记录日志
+            await this.orderLogsService.logStatusChange(
+                orderId,
+                order.taskTitle,
+                OrderLogAction.ADMIN_OPERATE,
+                OrderLogOperatorType.ADMIN,
+                operatorId,
+                operatorName,
+                order.status as any,
+                order.status as any,
+                `修改尾款金额: ${currentWkPrice} -> ${price}`
+            );
+
+            return { success: true, message: '修改成功！' };
+
+        } catch (error) {
+            return { success: false, message: error.message || '修改失败！' };
+        }
+    }
+
+    // ============ 修改剩余单数 ============
+
+    /**
+     * 修改剩余单数
+     * 对应原版接口: Task::incomplete_num
+     * 业务语义: 后台修改商家任务的剩余单数(incomplete_num)
+     * 前置条件: seller_task.status = 3(已通过), 4(已拒绝), 5(已取消)
+     * 禁止状态: status = 1(未支付), 2(待审核), 6(已完成)
+     *
+     * @param taskId 任务ID
+     * @param incompleteNum 新的剩余单数
+     * @param operatorId 操作员ID
+     * @param operatorName 操作员姓名
+     */
+    async updateIncompleteNum(
+        taskId: string,
+        incompleteNum: number,
+        operatorId: string,
+        operatorName: string
+    ): Promise<{ success: boolean; message: string }> {
+        try {
+            // 1. 参数验证
+            if (!taskId) {
+                return { success: false, message: '参数错误' };
+            }
+
+            // 2. 查询任务
+            const task = await this.taskRepository.findOne({ where: { id: taskId } });
+
+            if (!task) {
+                return { success: false, message: '任务不存在！' };
+            }
+
+            // 3. 验证任务状态
+            // 原版逻辑: if(($seller_task['status']==1||$seller_task['status']==2||$seller_task['status']==6))
+            //          return $this->error('任务状态不正确');
+            // 禁止: status=1(未支付), status=2(待审核), status=6(已完成)
+            // 重构版对应: PENDING_PAY(0), AUDIT(4), COMPLETED(2)
+            const forbiddenStatuses = [
+                TaskStatus.PENDING_PAY,   // 未支付
+                TaskStatus.AUDIT,         // 待审核
+                TaskStatus.COMPLETED      // 已完成
+            ];
+            if (forbiddenStatuses.includes(task.status)) {
+                return { success: false, message: '任务状态不正确' };
+            }
+
+            // 4. 更新剩余单数
+            // 原版: incomplete_num -> 重构版: count - claimedCount (可用单数)
+            // 但根据契约，incomplete_num 是独立字段，对应重构版的 incompleteCount
+            const oldValue = task.count - task.claimedCount;
+
+            // 计算新的 claimedCount，保持 count 不变
+            // 新剩余单数 = count - claimedCount, 所以 claimedCount = count - incompleteNum
+            const newClaimedCount = task.count - incompleteNum;
+
+            // 验证范围
+            if (newClaimedCount < 0 || newClaimedCount > task.count) {
+                return { success: false, message: '剩余单数超出有效范围！' };
+            }
+
+            task.claimedCount = newClaimedCount;
+            await this.taskRepository.save(task);
+
+            // 5. 记录日志 (使用通用日志方式)
+            // 原版: admin_log("修改剩余单数", "管理员{$this->admin_info['user_name']}操作:任务编号{$seller_task['task_number']}");
+            console.log(`[AdminLog] 修改剩余单数 - 管理员${operatorName}操作: 任务编号${task.taskNumber}, ${oldValue} -> ${incompleteNum}`);
+
+            return { success: true, message: '修改成功！' };
+
+        } catch (error) {
+            return { success: false, message: error.message || '修改失败！' };
+        }
+    }
 }

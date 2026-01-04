@@ -175,4 +175,108 @@ export class BatchOperationsController {
             data: result
         };
     }
+
+    /**
+     * 预售返款（预付款/尾款）
+     * 对应原版接口: Task::returnys
+     * 业务语义: 对预售订单(is_ys=1)进行预付款或尾款返款操作
+     * 前置条件: user_task.state = 5 (待返款), is_ys = 1
+     * 后置状态: user_task.state = 6 (待确认返款)
+     */
+    @Post('presale-refund')
+    @UseGuards(JwtAuthGuard)
+    async presaleRefund(
+        @Body() body: { orderId: string; type: 1 | 2 },
+        @Request() req
+    ) {
+        const result = await this.batchService.presaleRefund(
+            body.orderId,
+            body.type,
+            req.user.userId,
+            req.user.username || '管理员'
+        );
+        return {
+            success: result.success,
+            message: result.message,
+            data: result
+        };
+    }
+
+    /**
+     * 修改预付金额
+     * 对应原版接口: Task::return_price1
+     * 业务语义: 后台修改预售订单的预付款金额(yf_price)
+     * 前置条件: user_task.state = 5 (待返款)
+     * 限制: 浮动不能超过 ±500元
+     */
+    @Post('update-yf-price')
+    @UseGuards(JwtAuthGuard)
+    async updateYfPrice(
+        @Body() body: { orderId: string; price: number },
+        @Request() req
+    ) {
+        const result = await this.batchService.updateYfPrice(
+            body.orderId,
+            body.price,
+            req.user.userId,
+            req.user.username || '管理员'
+        );
+        return {
+            success: result.success,
+            message: result.message,
+            data: result
+        };
+    }
+
+    /**
+     * 修改尾款金额
+     * 对应原版接口: Task::return_price2
+     * 业务语义: 后台修改预售订单的尾款金额(wk_price)
+     * 前置条件: user_task.state = 5 (待返款)
+     * 限制: 浮动不能超过 ±100元
+     */
+    @Post('update-wk-price')
+    @UseGuards(JwtAuthGuard)
+    async updateWkPrice(
+        @Body() body: { orderId: string; price: number },
+        @Request() req
+    ) {
+        const result = await this.batchService.updateWkPrice(
+            body.orderId,
+            body.price,
+            req.user.userId,
+            req.user.username || '管理员'
+        );
+        return {
+            success: result.success,
+            message: result.message,
+            data: result
+        };
+    }
+
+    /**
+     * 修改剩余单数
+     * 对应原版接口: Task::incomplete_num
+     * 业务语义: 后台修改商家任务的剩余单数(incomplete_num)
+     * 前置条件: seller_task.status = 3(已通过), 4(已拒绝), 5(已取消)
+     * 禁止状态: status = 1(未支付), 2(待审核), 6(已完成)
+     */
+    @Post('update-incomplete-num')
+    @UseGuards(JwtAuthGuard)
+    async updateIncompleteNum(
+        @Body() body: { taskId: string; incompleteNum: number },
+        @Request() req
+    ) {
+        const result = await this.batchService.updateIncompleteNum(
+            body.taskId,
+            body.incompleteNum,
+            req.user.userId,
+            req.user.username || '管理员'
+        );
+        return {
+            success: result.success,
+            message: result.message,
+            data: result
+        };
+    }
 }
