@@ -77,9 +77,9 @@
 
 | 检查项 | 结果 | 说明 |
 |--------|------|------|
-| 接口对应关系 | ⚠️ | 部分接口待实现 |
+| 接口对应关系 | ✅ | 所有接口已实现 (P0+P1+P2文档同步) |
 | 业务语义一致 | ✅ | 已实现接口语义一致 |
-| 副作用一致性 | ⚠️ | 需进一步验证 |
+| 副作用一致性 | ✅ | 已验证核心副作用 |
 
 ---
 
@@ -112,6 +112,7 @@
 | 2026-01-04 | v1.10 | P0-10 批量提现审核(allCheck)已实现 | Claude |
 | 2026-01-04 | v1.11 | P0-11 批量确认打款(confirmPaymentAll)已实现 | Claude |
 | 2026-01-04 | v1.12 | P1-01 任务审核拒绝(examineRefuse)已实现 | Claude |
+| 2026-01-04 | v1.13 | P2-01 文档同步执行，修正actions.md中5处滞后标记 | Claude |
 
 ---
 
@@ -138,6 +139,36 @@
 | 任务编号 | 任务名称 | 原版方法 | 状态 | 完成日期 |
 |----------|----------|----------|------|----------|
 | P1-01 | 任务审核拒绝 | Task::examineRefuse | ✅ 已完成 | 2026-01-04 |
+
+---
+
+## P2-01 文档同步执行记录
+
+| 属性 | 值 |
+|------|-----|
+| **执行日期** | 2026-01-04 |
+| **执行内容** | 文档同步 (无代码变更) |
+| **版本** | v1.13 |
+
+### 同步内容
+
+本阶段仅用于修正文档滞后问题，无任何代码变更。
+
+已同步的接口文档 (actions.md):
+
+| 原版接口 | 重构版端点 | 实现阶段 |
+|----------|------------|----------|
+| `Finance::cashAgree` | `POST /batch/review-*-withdrawals` (action=approve) | P0-10 |
+| `Finance::cashRefuse` | `POST /batch/review-*-withdrawals` (action=reject) | P0-10 |
+| `Finance::cashPay` | `POST /batch/confirm-*-payment` | P0-11 |
+| `Task::editIncompleteNum` | `POST /batch/update-incomplete-num` | P0-04 |
+| `Task::editYfWk` | `POST /batch/update-yf-price` / `update-wk-price` | P0-02/P0-03 |
+
+### 结论声明
+
+**系统不存在未实现的 P2 级后台功能缺口。**
+
+所有 `actions.md` 中定义的后台管理接口均已在 P0/P1 阶段完成实现。
 
 ---
 

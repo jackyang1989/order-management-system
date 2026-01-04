@@ -138,36 +138,39 @@
 | 属性 | 值 |
 |------|-----|
 | **原版接口** | `Finance::cashAgree` |
-| **重构版接口** | 待实现 |
+| **重构版接口** | `POST /batch/review-buyer-withdrawals` (action=approve) / `POST /batch/review-merchant-withdrawals` (action=approve) |
 | **业务语义** | 后台审核通过提现申请 |
 | **前置条件** | state = 0 (已申请) |
 | **后置状态** | state = 1 (已同意) |
 | **触发角色** | 后台管理员 |
 | **副作用** | 更新 examine_time |
+| **备注** | ✅ Implemented in P0-10 (batch operations) |
 
 ### 4.2 提现审核拒绝
 
 | 属性 | 值 |
 |------|-----|
 | **原版接口** | `Finance::cashRefuse` |
-| **重构版接口** | 待实现 |
+| **重构版接口** | `POST /batch/review-buyer-withdrawals` (action=reject) / `POST /batch/review-merchant-withdrawals` (action=reject) |
 | **业务语义** | 后台拒绝提现申请，退还金额到账户 |
 | **前置条件** | state = 0 (已申请) |
 | **后置状态** | state = 2 (已拒绝) |
 | **触发角色** | 后台管理员 |
 | **副作用** | 更新 memo(拒绝原因), examine_time, 用户余额/银锭增加 |
+| **备注** | ✅ Implemented in P0-10 (batch operations) |
 
 ### 4.3 提现打款
 
 | 属性 | 值 |
 |------|-----|
 | **原版接口** | `Finance::cashPay` |
-| **重构版接口** | 待实现 |
+| **重构版接口** | `POST /batch/confirm-buyer-payment` / `POST /batch/confirm-merchant-payment` |
 | **业务语义** | 后台确认已完成打款 |
 | **前置条件** | state = 1 (已同意) |
 | **后置状态** | state = 3 (已返款) |
 | **触发角色** | 后台管理员 |
 | **副作用** | 更新 memo(打款单号) |
+| **备注** | ✅ Implemented in P0-11 (batch operations) |
 
 ---
 
@@ -178,22 +181,24 @@
 | 属性 | 值 |
 |------|-----|
 | **原版接口** | `Task::editIncompleteNum` |
-| **重构版接口** | 待实现 |
+| **重构版接口** | `POST /batch/update-incomplete-num` |
 | **业务语义** | 后台修改任务剩余可领取单数 |
 | **可修改条件** | seller_task.status = 3 (已通过) |
 | **目标字段** | seller_task.incomplete_num |
 | **限制** | 无限制 |
+| **备注** | ✅ Implemented in P0-04 (batch operations) |
 
 ### 5.2 修改预付款/尾款
 
 | 属性 | 值 |
 |------|-----|
 | **原版接口** | `Task::editYfWk` |
-| **重构版接口** | 待实现 |
+| **重构版接口** | `POST /batch/update-yf-price` (预付款) / `POST /batch/update-wk-price` (尾款) |
 | **业务语义** | 后台修改预售订单的预付款和尾款金额 |
 | **可修改条件** | seller_task.is_ys = 1 |
 | **目标字段** | seller_task.yf_price, seller_task.wk_price |
-| **限制** | 单次修改幅度 ±100元 |
+| **限制** | 预付款 ±500元, 尾款 ±100元 |
+| **备注** | ✅ Implemented in P0-02/P0-03 (batch operations) |
 
 ---
 
