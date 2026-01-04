@@ -13,13 +13,13 @@ export interface LoginResult {
     };
 }
 
-// 登录
-export const login = async (phone: string, password: string): Promise<LoginResult> => {
+// 登录 - 支持用户名或手机号登录
+export const login = async (usernameOrPhone: string, password: string): Promise<LoginResult> => {
     if (USE_MOCK) {
-        console.log('[AuthService] Mock login attempt:', phone);
+        console.log('[AuthService] Mock login attempt:', usernameOrPhone);
         await new Promise(resolve => setTimeout(resolve, 800));
 
-        const user = mockUsers.find(u => u.phone === phone && u.password === password);
+        const user = mockUsers.find(u => (u.phone === usernameOrPhone || u.username === usernameOrPhone) && u.password === password);
         if (user) {
             // 模拟存储 token
             if (typeof window !== 'undefined') {
@@ -37,7 +37,7 @@ export const login = async (phone: string, password: string): Promise<LoginResul
         }
         return {
             success: false,
-            message: '手机号或密码错误'
+            message: '用户名或密码错误'
         };
     }
 
@@ -45,7 +45,7 @@ export const login = async (phone: string, password: string): Promise<LoginResul
         const response = await fetch(`${BASE_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone, password })
+            body: JSON.stringify({ username: usernameOrPhone, phone: usernameOrPhone, password })
         });
         const data = await response.json();
         if (!response.ok) {
