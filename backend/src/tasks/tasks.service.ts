@@ -221,7 +221,17 @@ export class TasksService implements OnModuleInit {
       const totalCommissionPerOrder = baseFeePerOrder + extraCommission;
       const totalCommission = totalCommissionPerOrder * count;
 
-      // 2.4 检查余额
+      // 2.5 计算买手分成佣金 (user_divided)
+      // 分成基数 = 各种服务费的累加（周期费、定时付款费、预售费、隔天费等）
+      // userDivided = dividePrice * dividedRate
+      // 从 SystemGlobalConfig 获取 divided 分成比例（默认0.6即60%）
+      // 暂时使用简化逻辑：分成基数 = baseServiceFee * count
+      // 实际应从配置读取分成比例
+      const dividedRate = 0.6; // 默认60%分成给买手
+      const dividePrice = baseFeePerOrder * count; // 分成基数
+      const userDividedTotal = Math.round(dividePrice * dividedRate * 100) / 100;
+
+      // 2.6 检查余额
       const totalCost = totalDeposit + totalCommission; // Balance + Silver
       // In this system: Balance covers deposit, Silver covers commission?
       // Let's rely on merchant entity: balance, silver.
@@ -268,6 +278,7 @@ export class TasksService implements OnModuleInit {
         totalDeposit,
         totalCommission,
         baseServiceFee: baseFeePerOrder,
+        userDivided: userDividedTotal, // 买手分成佣金总额
 
         // Value Added Flags (Keep flags if present in DTO but no fees)
         isPraise: !!dto.isPraise,

@@ -144,6 +144,9 @@ export class Task {
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   totalCommission: number; // 总佣金/银锭
 
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  userDivided: number; // 买手分成佣金总额（任务全部单数的总分成）
+
   // --- 任务结算类型 ---
   @Column({ type: 'int', default: TaskTerminal.BENYONG_HUOFAN })
   terminal: number; // 结算方式 1本佣货返 2本立佣货

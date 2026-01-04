@@ -7,6 +7,7 @@ import { BuyerAccountsModule } from '../buyer-accounts/buyer-accounts.module';
 import { FinanceRecordsModule } from '../finance-records/finance-records.module';
 import { DingdanxiaModule } from '../dingdanxia/dingdanxia.module';
 import { MerchantBlacklistModule } from '../merchant-blacklist/merchant-blacklist.module';
+import { ReferralModule } from '../referral/referral.module';
 import { Order } from './order.entity';
 import { User } from '../users/user.entity';
 import { Merchant } from '../merchants/merchant.entity';
@@ -19,6 +20,7 @@ import { Merchant } from '../merchants/merchant.entity';
     FinanceRecordsModule,
     DingdanxiaModule,
     MerchantBlacklistModule,
+    ReferralModule,
   ],
   providers: [OrdersService],
   controllers: [OrdersController],

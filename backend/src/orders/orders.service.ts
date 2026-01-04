@@ -22,6 +22,7 @@ import { BuyerAccountStatus } from '../buyer-accounts/buyer-account.entity';
 import { FinanceRecordsService } from '../finance-records/finance-records.service';
 import { DingdanxiaService } from '../dingdanxia/dingdanxia.service';
 import { MerchantBlacklistService } from '../merchant-blacklist/merchant-blacklist.service';
+import { ReferralService } from '../referral/referral.service';
 import { User } from '../users/user.entity';
 import { Merchant } from '../merchants/merchant.entity';
 
@@ -40,6 +41,7 @@ export class OrdersService {
     private financeRecordsService: FinanceRecordsService,
     private dingdanxiaService: DingdanxiaService,
     private merchantBlacklistService: MerchantBlacklistService,
+    private referralService: ReferralService,
     private dataSource: DataSource,
   ) { }
 
@@ -302,6 +304,13 @@ export class OrdersService {
       4: '拼多多',
     };
 
+    // 计算每单的买手分成佣金
+    // userDivided = task.userDivided / task.count
+    const userDividedPerOrder =
+      task.count > 0
+        ? Math.round((Number(task.userDivided || 0) / task.count) * 100) / 100
+        : 0;
+
     const newOrder = this.ordersRepository.create({
       taskId: task.id,
       userId,
@@ -312,6 +321,7 @@ export class OrdersService {
       productName: task.title, // 使用任务标题作为商品名
       productPrice: Number(task.goodsPrice),
       commission: Number(task.baseServiceFee),
+      userDivided: userDividedPerOrder, // 买手分成佣金（每单）
       currentStep: 1,
       totalSteps: steps.length,
       stepData: steps,
@@ -530,10 +540,12 @@ export class OrdersService {
         order.status = OrderStatus.APPROVED;
         order.refundTime = new Date();
 
-        // 计算返款金额：本金 + 佣金
+        // 计算返款金额：本金 + 佣金 + 分成佣金
         const principalAmount =
           Number(order.sellerPrincipal) || Number(order.productPrice);
         const commissionAmount = Number(order.commission);
+        const userDividedAmount = Number(order.userDivided) || 0; // 买手分成佣金
+        const totalCommissionAmount = commissionAmount + userDividedAmount; // 总佣金 = 基础佣金 + 分成佣金
 
         // 1. 商家冻结余额减少本金
         merchant.frozenBalance =
@@ -557,15 +569,15 @@ export class OrdersService {
         await this.financeRecordsService.recordBuyerTaskRefund(
           order.userId,
           principalAmount,
-          commissionAmount,
+          totalCommissionAmount, // 总佣金包含分成
           Number(user.balance),
           Number(user.silver),
           order.id,
           '任务完成返款',
         );
 
-        // 3. 买手获得佣金（到银锭）
-        user.silver = Number(user.silver) + commissionAmount;
+        // 3. 买手获得佣金+分成（到银锭）
+        user.silver = Number(user.silver) + totalCommissionAmount;
 
         // 4. 返还银锭押金
         const silverPrepayAmount = Number(order.silverPrepay) || 0;
@@ -574,13 +586,15 @@ export class OrdersService {
         }
         await queryRunner.manager.save(user);
 
-        // 记录买手收到佣金
+        // 记录买手收到佣金（包含分成）
         await this.financeRecordsService.recordBuyerTaskCommission(
           order.userId,
-          commissionAmount,
+          totalCommissionAmount,
           Number(user.silver),
           order.id,
-          '任务佣金',
+          userDividedAmount > 0
+            ? `任务佣金${commissionAmount}+分成${userDividedAmount}银锭`
+            : '任务佣金',
         );
 
         // 记录银锭押金返还
@@ -594,13 +608,50 @@ export class OrdersService {
           );
         }
 
-        // 更新订单返款金额
-        order.refundAmount = principalAmount + commissionAmount;
+        // 更新订单返款金额（本金 + 总佣金）
+        order.refundAmount = principalAmount + totalCommissionAmount;
 
         // 4. 增加买号月度任务计数
         await this.buyerAccountsService.incrementMonthlyTaskCount(
           order.buynoId,
         );
+
+        // 5. 更新用户月度任务计数
+        user.monthlyTaskCount = (user.monthlyTaskCount || 0) + 1;
+
+        // 6. 更新用户最后任务完成时间（用于30天活跃熔断判定）
+        user.lastTaskAt = new Date();
+        await queryRunner.manager.save(user);
+
+        // 7. 推荐奖励发放（在事务外异步执行，避免影响主流程）
+        // 使用 setImmediate 确保在事务提交后执行
+        const orderId = order.id;
+        const userId = order.userId;
+        const taskTitle = order.taskTitle;
+        const monthlyCount = user.monthlyTaskCount;
+        setImmediate(async () => {
+          try {
+            // 发放推荐奖励
+            await this.referralService.processReferralBonus(
+              orderId,
+              userId,
+              taskTitle,
+            );
+
+            // 检查并恢复可能熔断的推荐关系
+            await this.referralService.checkAndRestoreBond(userId);
+
+            // 检查里程碑奖励
+            await this.referralService.checkAndGrantMilestoneReward(
+              userId,
+              monthlyCount,
+              orderId,
+            );
+          } catch (err) {
+            // 推荐奖励发放失败不影响订单完成
+            console.error('推荐奖励发放失败:', err);
+          }
+        });
       } else {
         order.status = OrderStatus.REJECTED;
         order.rejectReason = rejectReason || '';
