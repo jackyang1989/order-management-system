@@ -8,6 +8,8 @@ export interface ApiResponse<T = unknown> {
     status: number;
     success?: boolean;
     message?: string;
+    error?: boolean;
+    errorMessage?: string;
 }
 
 /**
@@ -59,23 +61,58 @@ export const clearToken = (type?: 'user' | 'merchant'): void => {
     }
 };
 
+/**
+ * 安全 fetch 封装 - 防止白屏
+ * 所有网络错误返回空对象，不抛出异常
+ */
+const safeFetch = async <T = any>(
+    url: string,
+    options: RequestInit
+): Promise<ApiResponse<T>> => {
+    try {
+        const response = await fetch(url, options);
+
+        // 处理非 JSON 响应
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            console.warn(`[API] Non-JSON response from ${url}`);
+            return {
+                data: {} as T,
+                status: response.status,
+                error: true,
+                errorMessage: `Non-JSON response: ${response.status}`,
+            };
+        }
+
+        const data = await response.json();
+        return { data, status: response.status };
+    } catch (error) {
+        // 网络错误、JSON 解析错误等 - 返回空对象防止白屏
+        console.error(`[API] Fetch error for ${url}:`, error);
+        return {
+            data: {} as T,
+            status: 0,
+            error: true,
+            errorMessage: error instanceof Error ? error.message : 'Network error',
+        };
+    }
+};
+
 const api = {
     async get<T = any>(url: string): Promise<ApiResponse<T>> {
         const token = getToken();
-        const response = await fetch(`${BASE_URL}${url}`, {
+        return safeFetch<T>(`${BASE_URL}${url}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
         });
-        const data = await response.json();
-        return { data, status: response.status };
     },
 
     async post<T = any>(url: string, body?: any): Promise<ApiResponse<T>> {
         const token = getToken();
-        const response = await fetch(`${BASE_URL}${url}`, {
+        return safeFetch<T>(`${BASE_URL}${url}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -83,13 +120,11 @@ const api = {
             },
             body: body ? JSON.stringify(body) : undefined,
         });
-        const data = await response.json();
-        return { data, status: response.status };
     },
 
     async put<T = any>(url: string, body?: any): Promise<ApiResponse<T>> {
         const token = getToken();
-        const response = await fetch(`${BASE_URL}${url}`, {
+        return safeFetch<T>(`${BASE_URL}${url}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -97,21 +132,17 @@ const api = {
             },
             body: body ? JSON.stringify(body) : undefined,
         });
-        const data = await response.json();
-        return { data, status: response.status };
     },
 
     async delete<T = any>(url: string): Promise<ApiResponse<T>> {
         const token = getToken();
-        const response = await fetch(`${BASE_URL}${url}`, {
+        return safeFetch<T>(`${BASE_URL}${url}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
         });
-        const data = await response.json();
-        return { data, status: response.status };
     },
 };
 
