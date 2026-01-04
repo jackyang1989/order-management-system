@@ -472,6 +472,30 @@ export class FinanceRecordsService {
         });
     }
 
+    /**
+     * 记录商家任务银锭退款（拒绝审核时退还服务费银锭）
+     * 对应原版: 任务审核拒绝时退还银锭
+     */
+    async recordMerchantTaskSilverRefund(
+        merchantId: string,
+        amount: number,
+        silverAfter: number,
+        taskId: string,
+        memo: string
+    ): Promise<FinanceRecord> {
+        return this.create({
+            userId: merchantId,
+            userType: FinanceUserType.MERCHANT,
+            moneyType: FinanceMoneyType.SILVER,
+            financeType: FinanceType.MERCHANT_TASK_REFUND,
+            amount,
+            balanceAfter: silverAfter,
+            memo,
+            relatedId: taskId,
+            relatedType: 'task',
+        });
+    }
+
     // ============ 买手银锭押金相关 (原版 type=11/13) ============
 
     /**

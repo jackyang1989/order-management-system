@@ -8,6 +8,7 @@ export enum TaskStatus {
     CANCELLED = 3,      // 已取消
     AUDIT = 4,          // 待审核
     PAUSED = 5,         // 已暂停
+    REJECTED = 6,       // 已拒绝 (对应原版 status=4)
 }
 
 export enum TaskType {
