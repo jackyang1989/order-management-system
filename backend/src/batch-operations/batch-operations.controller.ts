@@ -97,6 +97,33 @@ export class BatchOperationsController {
     }
 
     /**
+     * 批量拒绝任务
+     * 对应原版接口: Task::examineRefuse
+     * 业务语义: 后台拒绝商家任务，退还押金和银锭
+     * 前置条件: seller_task.status = 2 (待审核)
+     * 后置状态: seller_task.status = 4 (已拒绝)
+     * 副作用: 更新 remarks, examine_time, 退还押金/银锭
+     */
+    @Post('reject-tasks')
+    @UseGuards(JwtAuthGuard)
+    async batchRejectTasks(
+        @Body() body: { taskIds: string[]; reason: string },
+        @Request() req
+    ) {
+        const result = await this.batchService.batchRejectTasks(
+            body.taskIds,
+            body.reason,
+            req.user.userId,
+            req.user.username || '管理员'
+        );
+        return {
+            success: true,
+            message: `成功${result.success}个，失败${result.failed}个`,
+            data: result
+        };
+    }
+
+    /**
      * 批量审核订单
      */
     @Post('approve-orders')

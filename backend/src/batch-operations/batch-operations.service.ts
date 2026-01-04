@@ -220,6 +220,121 @@ export class BatchOperationsService {
     }
 
     /**
+     * 批量拒绝任务
+     * 对应原版接口: Task::examineRefuse
+     * 业务语义: 后台拒绝商家任务，退还押金和银锭
+     * 前置条件: seller_task.status = 2 (待审核) -> 重构版 TaskStatus.AUDIT (4)
+     * 后置状态: seller_task.status = 4 (已拒绝) -> 重构版 TaskStatus.REJECTED (6)
+     * 副作用: 更新 remarks, examine_time, 退还押金(yajin->totalDeposit), 退还银锭(yinding->totalCommission)
+     */
+    async batchRejectTasks(
+        taskIds: string[],
+        reason: string,
+        operatorId: string,
+        operatorName: string
+    ): Promise<{ success: number; failed: number; errors: string[] }> {
+        let success = 0;
+        let failed = 0;
+        const errors: string[] = [];
+
+        for (const taskId of taskIds) {
+            try {
+                const result = await this.taskRepository.manager.transaction(async transactionalEntityManager => {
+                    // 1. 查询任务
+                    const task = await transactionalEntityManager.findOne(Task, { where: { id: taskId } });
+                    if (!task) {
+                        return { success: false, message: `任务 ${taskId} 不存在` };
+                    }
+
+                    // 2. 验证状态: 必须为 AUDIT (待审核)
+                    if (task.status !== TaskStatus.AUDIT) {
+                        return { success: false, message: `任务 ${taskId} 状态不正确，只有待审核状态才能拒绝` };
+                    }
+
+                    // 3. 查询商家
+                    const merchant = await transactionalEntityManager.findOne(Merchant, { where: { id: task.merchantId } });
+                    if (!merchant) {
+                        return { success: false, message: `任务 ${taskId} 的商家不存在` };
+                    }
+
+                    // 4. 退还押金 (totalDeposit -> merchant.balance)
+                    const depositAmount = Number(task.totalDeposit) || 0;
+                    if (depositAmount > 0) {
+                        const newBalance = Number(merchant.balance) + depositAmount;
+                        await transactionalEntityManager
+                            .createQueryBuilder()
+                            .update(Merchant)
+                            .set({ balance: newBalance })
+                            .where("id = :merchantId", { merchantId: merchant.id })
+                            .execute();
+
+                        // 记录押金退还流水
+                        await this.financeRecordsService.recordMerchantTaskRefund(
+                            merchant.id,
+                            depositAmount,
+                            newBalance,
+                            taskId,
+                            `任务审核拒绝退还押金 - 任务编号${task.taskNumber}`
+                        );
+                    }
+
+                    // 5. 退还银锭 (totalCommission -> merchant.silver)
+                    const silverAmount = Number(task.totalCommission) || 0;
+                    if (silverAmount > 0) {
+                        const newSilver = Number(merchant.silver) + silverAmount;
+                        await transactionalEntityManager
+                            .createQueryBuilder()
+                            .update(Merchant)
+                            .set({ silver: newSilver })
+                            .where("id = :merchantId", { merchantId: merchant.id })
+                            .execute();
+
+                        // 记录银锭退还流水
+                        await this.financeRecordsService.recordMerchantTaskSilverRefund(
+                            merchant.id,
+                            silverAmount,
+                            newSilver,
+                            taskId,
+                            `任务审核拒绝退还银锭 - 任务编号${task.taskNumber}`
+                        );
+                    }
+
+                    // 6. 更新任务状态
+                    task.status = TaskStatus.REJECTED;
+                    task.remark = reason || '后台审核拒绝';
+                    task.examineTime = new Date();
+                    await transactionalEntityManager.save(task);
+
+                    // 7. 发送消息通知商家
+                    await this.messagesService.sendSystemMessage(
+                        merchant.id,
+                        MessageUserType.MERCHANT,
+                        '任务审核拒绝',
+                        `您的任务（编号：${task.taskNumber}）审核未通过，原因：${reason || '后台审核拒绝'}。押金和服务费已退还。`
+                    );
+
+                    return { success: true, message: '成功' };
+                });
+
+                if (result.success) {
+                    success++;
+                } else {
+                    failed++;
+                    errors.push(result.message);
+                }
+            } catch (error) {
+                failed++;
+                errors.push(`任务 ${taskId} 处理失败: ${error.message}`);
+            }
+        }
+
+        // 记录日志
+        console.log(`[AdminLog] 批量拒绝任务 - 管理员${operatorName}操作: 成功${success}个，失败${failed}个`);
+
+        return { success, failed, errors };
+    }
+
+    /**
      * 批量审核订单
      */
     async batchApproveOrders(

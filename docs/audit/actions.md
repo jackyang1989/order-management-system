@@ -31,7 +31,7 @@
 | 属性 | 值 |
 |------|-----|
 | **原版接口** | `Task::examineRefuse` |
-| **重构版接口** | 待实现 |
+| **重构版接口** | `POST /batch/reject-tasks` |
 | **业务语义** | 后台拒绝商家任务，退还商家费用 |
 | **前置条件** | seller_task.status = 2 (待审核) |
 | **后置状态** | seller_task.status = 4 (已拒绝) |
