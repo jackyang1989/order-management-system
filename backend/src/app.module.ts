@@ -48,6 +48,7 @@ import { OperationLogsModule } from './operation-logs/operation-logs.module';
 import { AdminMenusModule } from './admin-menus/admin-menus.module';
 import { VipModule } from './vip/vip.module';
 import { MerchantBlacklistModule } from './merchant-blacklist/merchant-blacklist.module';
+import { MobileCompatModule } from './mobile-compat/mobile-compat.module';
 
 // ============ 显式实体引入（禁止使用通配符加载）============
 // admin-config
@@ -276,6 +277,7 @@ const ENTITIES = [
     AdminMenusModule,
     VipModule,
     MerchantBlacklistModule,
+    MobileCompatModule,
   ],
   controllers: [AppController],
   providers: [
