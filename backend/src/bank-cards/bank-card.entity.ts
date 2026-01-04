@@ -70,6 +70,12 @@ export class BankCard {
     @Column({ type: 'text', nullable: true })
     idCardBackImage?: string;  // 身份证反面照
 
+    @Column({ type: 'text', nullable: true })
+    wechatQrCode?: string;     // 微信收款码
+
+    @Column({ type: 'text', nullable: true })
+    alipayQrCode?: string;     // 支付宝收款码
+
     // 商家特有字段
     @Column({ length: 50, nullable: true })
     taxNumber?: string;  // 税号（企业）
@@ -139,6 +145,14 @@ export class CreateBankCardDto {
     @IsOptional()
     idCardBackImage?: string;   // 身份证反面照 (base64或URL)
 
+    @IsString()
+    @IsOptional()
+    wechatQrCode?: string;      // 微信收款码
+
+    @IsString()
+    @IsOptional()
+    alipayQrCode?: string;      // 支付宝收款码
+
     // 商家特有字段
     @IsString()
     @IsOptional()
@@ -177,4 +191,12 @@ export class UpdateBankCardDto {
     @IsString()
     @IsOptional()
     licenseImage?: string;
+
+    @IsString()
+    @IsOptional()
+    wechatQrCode?: string;
+
+    @IsString()
+    @IsOptional()
+    alipayQrCode?: string;
 }

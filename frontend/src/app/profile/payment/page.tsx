@@ -22,7 +22,9 @@ export default function PaymentPage() {
         branchName: '',
         province: '',
         city: '',
-        phone: ''
+        phone: '',
+        wechatQrCode: '',
+        alipayQrCode: ''
     });
 
     useEffect(() => {
@@ -45,6 +47,28 @@ export default function PaymentPage() {
         }
     };
 
+    const fileToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, field: 'wechatQrCode' | 'alipayQrCode') => {
+        const file = e.target.files?.[0];
+        if (file) {
+            try {
+                const base64 = await fileToBase64(file);
+                setForm(prev => ({ ...prev, [field]: base64 }));
+            } catch (error) {
+                console.error('File read error:', error);
+                alert('图片读取失败');
+            }
+        }
+    };
+
     const handleSubmit = async () => {
         // 表单验证
         if (!form.accountName) { alert('请输入开户名'); return; }
@@ -53,6 +77,8 @@ export default function PaymentPage() {
         if (!/^(\d{16}|\d{17}|\d{18}|\d{19})$/.test(form.cardNumber)) { alert('银行卡号格式不正确'); return; }
         if (!form.phone) { alert('请输入银行预留手机号码'); return; }
         if (!/^1[3-9]\d{9}$/.test(form.phone)) { alert('手机号码格式不正确'); return; }
+        if (!form.wechatQrCode) { alert('请上传微信收款码'); return; }
+        if (!form.alipayQrCode) { alert('请上传支付宝收款码'); return; }
 
         setSubmitting(true);
         try {
@@ -63,7 +89,9 @@ export default function PaymentPage() {
                 phone: form.phone,
                 province: form.province,
                 city: form.city,
-                branchName: form.branchName
+                branchName: form.branchName,
+                wechatQrCode: form.wechatQrCode,
+                alipayQrCode: form.alipayQrCode
             });
 
             if (result.success) {
@@ -77,7 +105,9 @@ export default function PaymentPage() {
                     branchName: '',
                     province: '',
                     city: '',
-                    phone: ''
+                    phone: '',
+                    wechatQrCode: '',
+                    alipayQrCode: ''
                 });
                 // 刷新列表
                 await loadData();
@@ -135,12 +165,6 @@ export default function PaymentPage() {
         width: '110px',
         fontSize: '14px',
         color: '#666'
-    };
-
-    const valueStyle = {
-        flex: 1,
-        fontSize: '14px',
-        color: '#333'
     };
 
     return (
@@ -300,6 +324,26 @@ export default function PaymentPage() {
                             />
                         </div>
                         <div style={cellStyle}>
+                            <div style={labelStyle}>开户省份</div>
+                            <input
+                                type="text"
+                                placeholder="如：广东省"
+                                value={form.province}
+                                onChange={e => setForm({ ...form, province: e.target.value })}
+                                style={{ flex: 1, border: 'none', fontSize: '14px', textAlign: 'right', outline: 'none' }}
+                            />
+                        </div>
+                        <div style={cellStyle}>
+                            <div style={labelStyle}>开户城市</div>
+                            <input
+                                type="text"
+                                placeholder="如：深圳市"
+                                value={form.city}
+                                onChange={e => setForm({ ...form, city: e.target.value })}
+                                style={{ flex: 1, border: 'none', fontSize: '14px', textAlign: 'right', outline: 'none' }}
+                            />
+                        </div>
+                        <div style={cellStyle}>
                             <div style={labelStyle}>预留手机号 <span style={{ color: 'red' }}>*</span></div>
                             <input
                                 type="text"
@@ -309,6 +353,38 @@ export default function PaymentPage() {
                                 onChange={e => setForm({ ...form, phone: e.target.value })}
                                 style={{ flex: 1, border: 'none', fontSize: '14px', textAlign: 'right', outline: 'none' }}
                             />
+                        </div>
+                        <div style={{ ...cellStyle, flexDirection: 'column', alignItems: 'flex-start' }}>
+                            <div style={{ marginBottom: '10px', fontSize: '14px', color: '#666' }}>微信收款码 <span style={{ color: 'red' }}>*</span></div>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleFileChange(e, 'wechatQrCode')}
+                                style={{ width: '100%', fontSize: '14px' }}
+                            />
+                            {form.wechatQrCode && (
+                                <img
+                                    src={form.wechatQrCode}
+                                    alt="微信收款码"
+                                    style={{ width: '100px', height: '100px', objectFit: 'contain', marginTop: '10px', border: '1px solid #eee' }}
+                                />
+                            )}
+                        </div>
+                        <div style={{ ...cellStyle, flexDirection: 'column', alignItems: 'flex-start' }}>
+                            <div style={{ marginBottom: '10px', fontSize: '14px', color: '#666' }}>支付宝收款码 <span style={{ color: 'red' }}>*</span></div>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleFileChange(e, 'alipayQrCode')}
+                                style={{ width: '100%', fontSize: '14px' }}
+                            />
+                            {form.alipayQrCode && (
+                                <img
+                                    src={form.alipayQrCode}
+                                    alt="支付宝收款码"
+                                    style={{ width: '100px', height: '100px', objectFit: 'contain', marginTop: '10px', border: '1px solid #eee' }}
+                                />
+                            )}
                         </div>
                     </div>
 

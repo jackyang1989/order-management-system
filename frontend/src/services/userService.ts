@@ -113,6 +113,8 @@ export const addBankCard = async (card: {
     province?: string;
     city?: string;
     branchName?: string;
+    wechatQrCode?: string;
+    alipayQrCode?: string;
 }): Promise<{ success: boolean; message: string; data?: BankCard }> => {
     try {
         const token = localStorage.getItem('token');
