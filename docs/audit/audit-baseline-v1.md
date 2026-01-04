@@ -103,6 +103,9 @@
 | 2026-01-04 | v1.1 | P0-01 预售返款(returnys)已实现 | Claude |
 | 2026-01-04 | v1.2 | P0-02 修改预付金额(return_price1)已实现 | Claude |
 | 2026-01-04 | v1.3 | P0-03 修改尾款金额(return_price2)已实现 | Claude |
+| 2026-01-04 | v1.4 | P0-04 修改剩余单数(incomplete_num)已实现 | Claude |
+| 2026-01-04 | v1.5 | P0-05 任务回退重发货(regression_examine)已实现 | Claude |
+| 2026-01-04 | v1.6 | P0-06 双模式导入(import/import1)已实现 | Claude |
 
 ---
 
@@ -113,9 +116,9 @@
 | P0-01 | 预售返款 | Task::returnys | ✅ 已完成 | 2026-01-04 |
 | P0-02 | 修改预付金额 | Task::return_price1 | ✅ 已完成 | 2026-01-04 |
 | P0-03 | 修改尾款金额 | Task::return_price2 | ✅ 已完成 | 2026-01-04 |
-| P0-04 | 修改剩余单数 | Task::editIncompleteNum | ⏳ 待实现 | - |
-| P0-05 | 任务回退重发货 | Task::regression_examine | ⏳ 待实现 | - |
-| P0-06 | 双模式导入 | - | ⏳ 待实现 | - |
+| P0-04 | 修改剩余单数 | Task::incomplete_num | ✅ 已完成 | 2026-01-04 |
+| P0-05 | 任务回退重发货 | Task::regression_examine | ✅ 已完成 | 2026-01-04 |
+| P0-06 | 双模式导入 | Task::import/import1 | ✅ 已完成 | 2026-01-04 |
 | P0-07 | 关键词修改 | Task::edit_key | ⏳ 待实现 | - |
 | P0-08 | 商品编辑 | Task::goodsEditDo | ⏳ 待实现 | - |
 | P0-09 | 关键词方案管理 | Task::goodsKeyAdd/Edit | ⏳ 待实现 | - |

@@ -85,12 +85,17 @@ export class BatchOperationsService {
     }
 
     /**
-     * 从Excel数据批量发货
+     * 从Excel数据批量发货 (双模式导入)
+     * 对应原版接口: Task::import (按ID) 和 Task::import1 (按任务编号)
+     * 业务语义: 支持通过订单ID或任务编号两种方式匹配订单并发货
+     * 前置条件: user_task.state = 3 (待发货)
      */
     async batchShipFromExcel(
         data: Array<{
-            orderNo?: string;
-            taobaoOrderNo?: string;
+            orderId?: string;       // 模式1: 按订单ID匹配 (原版 import)
+            taskNumber?: string;    // 模式2: 按任务编号匹配 (原版 import1)
+            orderNo?: string;       // 兼容: 按订单号匹配
+            taobaoOrderNo?: string; // 兼容: 按淘宝单号匹配
             delivery: string;
             deliveryNum: string;
         }>,
@@ -105,12 +110,37 @@ export class BatchOperationsService {
             try {
                 let order: Order | null = null;
 
-                // 根据订单号或淘宝单号查找
-                if (row.orderNo) {
+                // 模式1: 按订单ID匹配 (原版 import)
+                if (row.orderId) {
+                    order = await this.orderRepository.findOne({
+                        where: { id: row.orderId, status: OrderStatus.WAITING_DELIVERY }
+                    });
+                    if (!order) {
+                        failed++;
+                        errors.push(`订单ID ${row.orderId} 未找到或状态不正确`);
+                        continue;
+                    }
+                }
+                // 模式2: 按任务编号匹配 (原版 import1)
+                // 原版使用 task_number，重构版使用 taskTitle 作为对应字段
+                else if (row.taskNumber) {
+                    order = await this.orderRepository.findOne({
+                        where: { taskTitle: row.taskNumber, status: OrderStatus.WAITING_DELIVERY }
+                    });
+                    if (!order) {
+                        failed++;
+                        errors.push(`任务编号 ${row.taskNumber} 未找到或状态不正确`);
+                        continue;
+                    }
+                }
+                // 兼容: 按订单号匹配
+                else if (row.orderNo) {
                     order = await this.orderRepository.findOne({
                         where: { taskTitle: row.orderNo }
                     });
-                } else if (row.taobaoOrderNo) {
+                }
+                // 兼容: 按淘宝单号匹配
+                else if (row.taobaoOrderNo) {
                     order = await this.orderRepository.findOne({
                         where: { taobaoOrderNumber: row.taobaoOrderNo }
                     });
@@ -118,7 +148,7 @@ export class BatchOperationsService {
 
                 if (!order) {
                     failed++;
-                    errors.push(`订单 ${row.orderNo || row.taobaoOrderNo} 未找到`);
+                    errors.push(`订单 ${row.orderId || row.taskNumber || row.orderNo || row.taobaoOrderNo} 未找到`);
                     continue;
                 }
 
@@ -682,6 +712,77 @@ export class BatchOperationsService {
 
         } catch (error) {
             return { success: false, message: error.message || '修改失败！' };
+        }
+    }
+
+    // ============ 任务回退重发货 ============
+
+    /**
+     * 任务回退重发货
+     * 对应原版接口: Task::regression_examine
+     * 业务语义: 将待返款(state=5)的订单回退到待收货(state=4)，重新发货
+     * 前置条件: user_task.state = 5 (待返款)
+     * 后置状态: user_task.state = 4 (待收货)
+     *
+     * @param orderId 订单ID
+     * @param delivery 快递公司
+     * @param deliveryNum 快递单号
+     * @param operatorId 操作员ID
+     * @param operatorName 操作员姓名
+     */
+    async regressionExamine(
+        orderId: string,
+        delivery: string,
+        deliveryNum: string,
+        operatorId: string,
+        operatorName: string
+    ): Promise<{ success: boolean; message: string }> {
+        try {
+            // 1. 参数验证
+            if (!orderId) {
+                return { success: false, message: '参数错误！' };
+            }
+            if (!delivery) {
+                return { success: false, message: '请填写快递公司！' };
+            }
+            if (!deliveryNum) {
+                return { success: false, message: '请填写快递单号！' };
+            }
+
+            // 2. 查询订单 - 前置条件: state=5 (待返款)
+            const order = await this.orderRepository.findOne({
+                where: { id: orderId, status: OrderStatus.WAITING_REFUND }
+            });
+
+            if (!order) {
+                return { success: false, message: '订单不存在！' };
+            }
+
+            // 3. 更新数据 - 回退到 state=4 (待收货)
+            order.delivery = delivery;
+            order.deliveryNum = deliveryNum;
+            order.status = OrderStatus.WAITING_RECEIVE; // state = 4
+            order.deliveryTime = new Date();
+
+            await this.orderRepository.save(order);
+
+            // 4. 记录日志
+            await this.orderLogsService.logStatusChange(
+                orderId,
+                order.taskTitle,
+                OrderLogAction.ADMIN_OPERATE,
+                OrderLogOperatorType.ADMIN,
+                operatorId,
+                operatorName,
+                OrderStatus.WAITING_REFUND as any,
+                OrderStatus.WAITING_RECEIVE as any,
+                '重新发货(回退)'
+            );
+
+            return { success: true, message: '发货成功！' };
+
+        } catch (error) {
+            return { success: false, message: error.message || '发货失败！' };
         }
     }
 }

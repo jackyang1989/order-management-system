@@ -42,15 +42,20 @@ export class BatchOperationsController {
     }
 
     /**
-     * Excel导入发货
+     * Excel导入发货 (双模式导入)
+     * 对应原版接口: Task::import (按ID) 和 Task::import1 (按任务编号)
+     * 业务语义: 支持通过订单ID或任务编号两种方式匹配订单并发货
+     * 前置条件: user_task.state = 3 (待发货)
      */
     @Post('ship/import')
     @UseGuards(JwtAuthGuard)
     async batchShipFromExcel(
         @Body() body: {
             data: Array<{
-                orderNo?: string;
-                taobaoOrderNo?: string;
+                orderId?: string;       // 模式1: 按订单ID匹配
+                taskNumber?: string;    // 模式2: 按任务编号匹配
+                orderNo?: string;       // 兼容: 按订单号匹配
+                taobaoOrderNo?: string; // 兼容: 按淘宝单号匹配
                 delivery: string;
                 deliveryNum: string;
             }>;
@@ -270,6 +275,33 @@ export class BatchOperationsController {
         const result = await this.batchService.updateIncompleteNum(
             body.taskId,
             body.incompleteNum,
+            req.user.userId,
+            req.user.username || '管理员'
+        );
+        return {
+            success: result.success,
+            message: result.message,
+            data: result
+        };
+    }
+
+    /**
+     * 任务回退重发货
+     * 对应原版接口: Task::regression_examine
+     * 业务语义: 将待返款(state=5)的订单回退到待收货(state=4)，重新发货
+     * 前置条件: user_task.state = 5 (待返款)
+     * 后置状态: user_task.state = 4 (待收货)
+     */
+    @Post('regression-examine')
+    @UseGuards(JwtAuthGuard)
+    async regressionExamine(
+        @Body() body: { orderId: string; delivery: string; deliveryNum: string },
+        @Request() req
+    ) {
+        const result = await this.batchService.regressionExamine(
+            body.orderId,
+            body.delivery,
+            body.deliveryNum,
             req.user.userId,
             req.user.username || '管理员'
         );
