@@ -53,7 +53,8 @@ export default function InvitePage() {
             // 获取推荐任务
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch('/api/invite/tasks', {
+                const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
+                const response = await fetch(`${BASE_URL}/invite/tasks`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                     },
