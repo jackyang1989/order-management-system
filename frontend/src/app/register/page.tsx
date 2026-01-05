@@ -13,8 +13,6 @@ function RegisterForm() {
     const [loading, setLoading] = useState(false);
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
-    const [captchaId, setCaptchaId] = useState('');
-    const [captchaSvg, setCaptchaSvg] = useState('');
     const [yzmDisabled, setYzmDisabled] = useState(false);
     const [yzmMsg, setYzmMsg] = useState('发送验证码');
     const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -27,24 +25,10 @@ function RegisterForm() {
         if (invite) {
             form.setFieldValue('invitationCode', invite);
         }
-        loadCaptcha();
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
     }, [searchParams, form]);
-
-    const loadCaptcha = async () => {
-        try {
-            const res = await fetch(`${BASE_URL}/captcha/generate`);
-            const data = await res.json();
-            if (data.captchaId && data.svg) {
-                setCaptchaId(data.captchaId);
-                setCaptchaSvg(data.svg);
-            }
-        } catch (e) {
-            console.error('加载验证码失败', e);
-        }
-    };
 
     const sendYzm = async () => {
         const phone = form.getFieldValue('phone');
@@ -54,31 +38,6 @@ function RegisterForm() {
         }
         if (!phoneReg.test(phone)) {
             Toast.show({ content: '手机号码格式不正确', icon: 'fail' });
-            return;
-        }
-
-        // Verify captcha first
-        const captcha = form.getFieldValue('captcha');
-        if (!captcha) {
-            Toast.show({ content: '请先输入图形验证码', icon: 'fail' });
-            return;
-        }
-
-        try {
-            const captchaRes = await fetch(`${BASE_URL}/captcha/verify`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ captchaId, code: captcha }),
-            });
-            const captchaData = await captchaRes.json();
-            if (!captchaData.valid) {
-                Toast.show({ content: '图形验证码错误', icon: 'fail' });
-                loadCaptcha();
-                return;
-            }
-        } catch (e) {
-            Toast.show({ content: '验证码校验失败', icon: 'fail' });
-            loadCaptcha();
             return;
         }
 
@@ -174,21 +133,6 @@ function RegisterForm() {
 
                     <Form.Item name="phone" label="手机号" rules={[{ required: true, message: '请输入手机号' }]}>
                         <Input placeholder="手机号" maxLength={11} clearable style={{ '--font-size': '16px' }} />
-                    </Form.Item>
-
-                    <Form.Item name="captcha" label="图形验证码" rules={[{ required: true, message: '请输入图形验证码' }]}>
-                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                            <Input placeholder="请输入验证码" style={{ flex: 1, '--font-size': '16px' }} />
-                            <div
-                                onClick={loadCaptcha}
-                                style={{
-                                    width: 120, height: 40, background: '#f5f5f5', borderRadius: 8,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    cursor: 'pointer', overflow: 'hidden',
-                                }}
-                                dangerouslySetInnerHTML={{ __html: captchaSvg || '<span style="color:#999">点击加载</span>' }}
-                            />
-                        </div>
                     </Form.Item>
 
                     <Form.Item name="smsCode" label="短信验证码" rules={[{ required: true, message: '请输入短信验证码' }]}>
