@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Form, Input, Button, Toast, NavBar, NoticeBar } from 'antd-mobile';
+import { Form, Input, Button, NavBar, NoticeBar } from 'antd-mobile';
 import { EyeInvisibleOutline, EyeOutline, InformationCircleOutline } from 'antd-mobile-icons';
 import { BASE_URL } from '../../../apiConfig';
 
@@ -15,10 +15,16 @@ function RegisterForm() {
     const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
     const [yzmDisabled, setYzmDisabled] = useState(false);
     const [yzmMsg, setYzmMsg] = useState('发送验证码');
+    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     const phoneReg = /^1[3-9]\d{9}$/;
     const passWordReg = /^[a-zA-Z0-9_-]{6,16}$/;
+
+    const showMessage = (type: 'success' | 'error', text: string) => {
+        setMessage({ type, text });
+        setTimeout(() => setMessage(null), 3000);
+    };
 
     useEffect(() => {
         const invite = searchParams.get('invite');
@@ -33,11 +39,11 @@ function RegisterForm() {
     const sendYzm = async () => {
         const phone = form.getFieldValue('phone');
         if (!phone) {
-            Toast.show({ content: '手机号码不能为空', icon: 'fail' });
+            showMessage('error', '手机号码不能为空');
             return;
         }
         if (!phoneReg.test(phone)) {
-            Toast.show({ content: '手机号码格式不正确', icon: 'fail' });
+            showMessage('error', '手机号码格式不正确');
             return;
         }
 
@@ -54,7 +60,7 @@ function RegisterForm() {
         let num = 60;
         setYzmDisabled(true);
         setYzmMsg(`${num}秒`);
-        Toast.show({ content: '验证码已发送', icon: 'success' });
+        showMessage('success', '验证码已发送');
 
         timerRef.current = setInterval(() => {
             num--;
@@ -68,14 +74,14 @@ function RegisterForm() {
     };
 
     const handleRegister = async (values: any) => {
-        if (!values.username) { Toast.show({ content: '用户名不能为空', icon: 'fail' }); return; }
-        if (!values.phone) { Toast.show({ content: '手机号不能为空', icon: 'fail' }); return; }
-        if (!phoneReg.test(values.phone)) { Toast.show({ content: '手机号格式不正确', icon: 'fail' }); return; }
-        if (!values.smsCode) { Toast.show({ content: '短信验证码不能为空', icon: 'fail' }); return; }
-        if (!values.password) { Toast.show({ content: '请输入密码', icon: 'fail' }); return; }
-        if (!passWordReg.test(values.password)) { Toast.show({ content: '密码格式不正确', icon: 'fail' }); return; }
-        if (values.password !== values.confirmPassword) { Toast.show({ content: '两次密码不一致', icon: 'fail' }); return; }
-        if (!values.invitationCode) { Toast.show({ content: '请输入邀请码', icon: 'fail' }); return; }
+        if (!values.username) { showMessage('error', '用户名不能为空'); return; }
+        if (!values.phone) { showMessage('error', '手机号不能为空'); return; }
+        if (!phoneReg.test(values.phone)) { showMessage('error', '手机号格式不正确'); return; }
+        if (!values.smsCode) { showMessage('error', '短信验证码不能为空'); return; }
+        if (!values.password) { showMessage('error', '请输入密码'); return; }
+        if (!passWordReg.test(values.password)) { showMessage('error', '密码格式不正确'); return; }
+        if (values.password !== values.confirmPassword) { showMessage('error', '两次密码不一致'); return; }
+        if (!values.invitationCode) { showMessage('error', '请输入邀请码'); return; }
 
         setLoading(true);
         try {
@@ -94,7 +100,7 @@ function RegisterForm() {
             const data = await response.json();
 
             if (data.success) {
-                Toast.show({ content: '注册成功', icon: 'success' });
+                showMessage('success', '注册成功');
                 setTimeout(() => {
                     if (data.data?.accessToken) {
                         localStorage.setItem('token', data.data.accessToken);
@@ -105,10 +111,10 @@ function RegisterForm() {
                     }
                 }, 1500);
             } else {
-                Toast.show({ content: data.message || '注册失败', icon: 'fail' });
+                showMessage('error', data.message || '注册失败');
             }
         } catch (error) {
-            Toast.show({ content: '网络错误', icon: 'fail' });
+            showMessage('error', '网络错误');
         } finally {
             setLoading(false);
         }
@@ -209,6 +215,25 @@ function RegisterForm() {
                     style={{ marginTop: 24, borderRadius: 8 }}
                 />
             </div>
+
+            {/* Toast Message */}
+            {message && (
+                <div style={{
+                    position: 'fixed',
+                    top: 60,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    padding: '12px 24px',
+                    borderRadius: 8,
+                    background: message.type === 'success' ? '#52c41a' : '#ff4d4f',
+                    color: '#fff',
+                    fontSize: 14,
+                    zIndex: 1000,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                }}>
+                    {message.text}
+                </div>
+            )}
         </div>
     );
 }

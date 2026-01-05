@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Form, Input, Button, Toast, NavBar, Card, List, Tag, Tabs, Dialog, DotLoading, Selector, NoticeBar } from 'antd-mobile';
-import { BankcardOutline, PayCircleOutline, HistogramOutline, LockOutline } from 'antd-mobile-icons';
+import { Form, Input, Button, NavBar, Card, List, Tag, Tabs, DotLoading, Selector, NoticeBar } from 'antd-mobile';
 import { isAuthenticated, getCurrentUser } from '../../../services/authService';
 import { fetchBankCards, fetchWithdrawals, createWithdrawal, BankCard, Withdrawal } from '../../../services/userService';
 import { BASE_URL } from '../../../../apiConfig';
@@ -11,6 +10,7 @@ import { BASE_URL } from '../../../../apiConfig';
 export default function WithdrawPage() {
     const router = useRouter();
     const [form] = Form.useForm();
+    const [confirmForm] = Form.useForm();
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<string>('principal');
     const [balance, setBalance] = useState({ principal: 0, silver: 0, frozenSilver: 0 });
@@ -22,9 +22,15 @@ export default function WithdrawPage() {
     const [captchaId, setCaptchaId] = useState('');
     const [captchaSvg, setCaptchaSvg] = useState('');
     const [withdrawData, setWithdrawData] = useState<{ amount: number; type: string } | null>(null);
+    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     const feeRate = 0.05;
     const minWithdraw = 10;
+
+    const showMessage = (type: 'success' | 'error', text: string) => {
+        setMessage({ type, text });
+        setTimeout(() => setMessage(null), 3000);
+    };
 
     useEffect(() => {
         if (!isAuthenticated()) { router.push('/login'); return; }
@@ -58,16 +64,16 @@ export default function WithdrawPage() {
 
     const handleWithdrawClick = (values: { amount: string }) => {
         const amount = parseFloat(values.amount);
-        if (!amount || amount < minWithdraw) { Toast.show({ content: `最低提现金额 ${minWithdraw} 元`, icon: 'fail' }); return; }
-        if (amount > getAvailableBalance()) { Toast.show({ content: '提现金额超过可用余额', icon: 'fail' }); return; }
-        if (!selectedCard) { Toast.show({ content: '请选择银行卡', icon: 'fail' }); return; }
+        if (!amount || amount < minWithdraw) { showMessage('error', `最低提现金额 ${minWithdraw} 元`); return; }
+        if (amount > getAvailableBalance()) { showMessage('error', '提现金额超过可用余额'); return; }
+        if (!selectedCard) { showMessage('error', '请选择银行卡'); return; }
         setWithdrawData({ amount, type: activeTab });
         setShowConfirm(true);
     };
 
     const handleConfirmWithdraw = async (values: { captcha: string; payPassword: string }) => {
-        if (!values.captcha) { Toast.show({ content: '请输入验证码', icon: 'fail' }); return; }
-        if (!values.payPassword) { Toast.show({ content: '请输入支付密码', icon: 'fail' }); return; }
+        if (!values.captcha) { showMessage('error', '请输入验证码'); return; }
+        if (!values.payPassword) { showMessage('error', '请输入支付密码'); return; }
         if (!withdrawData) return;
 
         // Verify captcha
@@ -77,8 +83,8 @@ export default function WithdrawPage() {
                 body: JSON.stringify({ captchaId, code: values.captcha }),
             });
             const captchaData = await captchaRes.json();
-            if (!captchaData.valid) { Toast.show({ content: '验证码错误', icon: 'fail' }); loadCaptcha(); return; }
-        } catch (e) { Toast.show({ content: '验证码校验失败', icon: 'fail' }); loadCaptcha(); return; }
+            if (!captchaData.valid) { showMessage('error', '验证码错误'); loadCaptcha(); return; }
+        } catch (e) { showMessage('error', '验证码校验失败'); loadCaptcha(); return; }
 
         setSubmitting(true);
         try {
@@ -87,13 +93,14 @@ export default function WithdrawPage() {
                 bankCardId: selectedCard,
                 type: activeTab === 'principal' ? 1 : 2,
             });
-            Toast.show({ content: '提现申请已提交', icon: 'success' });
+            showMessage('success', '提现申请已提交');
             setShowConfirm(false);
             form.resetFields();
+            confirmForm.resetFields();
             loadData();
             loadCaptcha();
         } catch (error: any) {
-            Toast.show({ content: error.message || '提现失败', icon: 'fail' });
+            showMessage('error', error.message || '提现失败');
             loadCaptcha();
         } finally { setSubmitting(false); }
     };
@@ -201,40 +208,84 @@ export default function WithdrawPage() {
                 </Tabs.Tab>
             </Tabs>
 
-            {/* Confirm Dialog */}
-            <Dialog
-                visible={showConfirm}
-                title="确认提现"
-                content={
-                    withdrawData && (
-                        <Form onFinish={handleConfirmWithdraw}>
-                            <div style={{ marginBottom: 16, textAlign: 'center' }}>
-                                <div style={{ fontSize: 28, fontWeight: 600, color: '#1677ff' }}>¥{calculateActual(withdrawData.amount).toFixed(2)}</div>
-                                {activeTab === 'silver' && <div style={{ fontSize: 12, color: '#999' }}>手续费: ¥{calculateFee(withdrawData.amount).toFixed(2)}</div>}
-                            </div>
+            {/* Toast Message */}
+            {message && (
+                <div style={{
+                    position: 'fixed',
+                    top: 60,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    padding: '12px 24px',
+                    borderRadius: 8,
+                    background: message.type === 'success' ? '#52c41a' : '#ff4d4f',
+                    color: '#fff',
+                    fontSize: 14,
+                    zIndex: 1000,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                }}>
+                    {message.text}
+                </div>
+            )}
 
-                            <Form.Item name="captcha" label="图形验证码">
-                                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                                    <Input placeholder="验证码" style={{ flex: 1 }} />
-                                    <div
-                                        onClick={loadCaptcha}
-                                        style={{ width: 100, height: 36, background: '#f5f5f5', borderRadius: 4, overflow: 'hidden', cursor: 'pointer' }}
-                                        dangerouslySetInnerHTML={{ __html: captchaSvg || '加载中...' }}
-                                    />
+            {/* Confirm Modal */}
+            {showConfirm && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 999
+                }}>
+                    <div style={{
+                        background: '#fff',
+                        borderRadius: 12,
+                        width: '90%',
+                        maxWidth: 360,
+                        padding: 20,
+                        maxHeight: '80vh',
+                        overflow: 'auto'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                            <h3 style={{ margin: 0, fontSize: 18 }}>确认提现</h3>
+                            <span
+                                onClick={() => { setShowConfirm(false); confirmForm.resetFields(); loadCaptcha(); }}
+                                style={{ cursor: 'pointer', fontSize: 20, color: '#999' }}
+                            >×</span>
+                        </div>
+
+                        {withdrawData && (
+                            <Form form={confirmForm} onFinish={handleConfirmWithdraw}>
+                                <div style={{ marginBottom: 16, textAlign: 'center' }}>
+                                    <div style={{ fontSize: 28, fontWeight: 600, color: '#1677ff' }}>¥{calculateActual(withdrawData.amount).toFixed(2)}</div>
+                                    {activeTab === 'silver' && <div style={{ fontSize: 12, color: '#999' }}>手续费: ¥{calculateFee(withdrawData.amount).toFixed(2)}</div>}
                                 </div>
-                            </Form.Item>
 
-                            <Form.Item name="payPassword" label="支付密码">
-                                <Input placeholder="请输入支付密码" type="password" />
-                            </Form.Item>
+                                <Form.Item name="captcha" label="图形验证码">
+                                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                                        <Input placeholder="验证码" style={{ flex: 1 }} />
+                                        <div
+                                            onClick={loadCaptcha}
+                                            style={{ width: 100, height: 36, background: '#f5f5f5', borderRadius: 4, overflow: 'hidden', cursor: 'pointer' }}
+                                            dangerouslySetInnerHTML={{ __html: captchaSvg || '加载中...' }}
+                                        />
+                                    </div>
+                                </Form.Item>
 
-                            <Button block color="primary" type="submit" loading={submitting}>确认提现</Button>
-                        </Form>
-                    )
-                }
-                onClose={() => { setShowConfirm(false); loadCaptcha(); }}
-                actions={[]}
-            />
+                                <Form.Item name="payPassword" label="支付密码">
+                                    <Input placeholder="请输入支付密码" type="password" />
+                                </Form.Item>
+
+                                <Button block color="primary" type="submit" loading={submitting}>确认提现</Button>
+                            </Form>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
