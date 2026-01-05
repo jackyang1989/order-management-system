@@ -147,13 +147,11 @@ function RecordsContent() {
     const loadSilverRecords = async () => {
         try {
             const token = getToken();
-            const res = await fetch(`${BASE_URL}/mobile/money/yindinglist`, {
-                method: 'POST',
+            const res = await fetch(`${BASE_URL}/mobile/money/yindinglist?page=${silverPage}`, {
+                method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ page: silverPage })
+                }
             });
             const data = await res.json();
             if (data.code === 1) {
