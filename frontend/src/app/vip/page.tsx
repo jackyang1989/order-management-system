@@ -368,7 +368,7 @@ function VipContent() {
                                                 fontWeight: '600',
                                                 color: getPaymentMethodColor(method.key)
                                             }}>
-                                                {method.key === 'silver' ? userSilver.toFixed(2) : `¥${userBalance.toFixed(2)}`}
+                                                {method.key === 'silver' ? Number(userSilver || 0).toFixed(2) : `¥${Number(userBalance || 0).toFixed(2)}`}
                                             </div>
                                         )}
                                         <div style={{
