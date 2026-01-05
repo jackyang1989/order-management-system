@@ -216,12 +216,12 @@ function VipContent() {
                 justifyContent: 'space-around'
             }}>
                 <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '20px', fontWeight: '700', color: 'white' }}>{userSilver.toFixed(2)}</div>
+                    <div style={{ fontSize: '20px', fontWeight: '700', color: 'white' }}>{Number(userSilver || 0).toFixed(2)}</div>
                     <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>银锭余额</div>
                 </div>
                 <div style={{ width: '1px', background: 'rgba(255,255,255,0.2)' }} />
                 <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '20px', fontWeight: '700', color: 'white' }}>¥{userBalance.toFixed(2)}</div>
+                    <div style={{ fontSize: '20px', fontWeight: '700', color: 'white' }}>¥{Number(userBalance || 0).toFixed(2)}</div>
                     <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>本金余额</div>
                 </div>
             </div>

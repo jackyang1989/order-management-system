@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Form, Input, Button, Toast, NavBar } from 'antd-mobile';
+import { Form, Input, Button, NavBar } from 'antd-mobile';
 import { EyeInvisibleOutline, EyeOutline } from 'antd-mobile-icons';
 import { login } from '../../services/authService';
 
@@ -11,10 +11,16 @@ export default function LoginPage() {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [passwordVisible, setPasswordVisible] = useState(false);
+    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+    const showMessage = (type: 'success' | 'error', text: string) => {
+        setMessage({ type, text });
+        setTimeout(() => setMessage(null), 3000);
+    };
 
     const handleLogin = async (values: { phone: string; password: string }) => {
         if (!values.phone || !values.password) {
-            Toast.show({ content: '请输入手机号和密码', icon: 'fail' });
+            showMessage('error', '请输入手机号和密码');
             return;
         }
 
@@ -28,13 +34,13 @@ export default function LoginPage() {
                 if (result.data.user) {
                     localStorage.setItem('user', JSON.stringify(result.data.user));
                 }
-                Toast.show({ content: '登录成功', icon: 'success' });
-                router.push('/profile');
+                showMessage('success', '登录成功');
+                setTimeout(() => router.push('/profile'), 1000);
             } else {
-                Toast.show({ content: '登录失败: Token缺失', icon: 'fail' });
+                showMessage('error', '登录失败: Token缺失');
             }
         } else {
-            Toast.show({ content: result.message || '登录失败', icon: 'fail' });
+            showMessage('error', result.message || '登录失败');
         }
     };
 
@@ -43,6 +49,25 @@ export default function LoginPage() {
             <NavBar onBack={() => router.back()} style={{ borderBottom: '1px solid #eee' }}>
                 登录
             </NavBar>
+
+            {/* 消息提示 */}
+            {message && (
+                <div style={{
+                    position: 'fixed',
+                    top: '60px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    background: message.type === 'success' ? '#52c41a' : '#ff4d4f',
+                    color: '#fff',
+                    fontSize: '14px',
+                    zIndex: 1000,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                }}>
+                    {message.text}
+                </div>
+            )}
 
             <div style={{ padding: '40px 24px' }}>
                 <div style={{ marginBottom: 32 }}>
