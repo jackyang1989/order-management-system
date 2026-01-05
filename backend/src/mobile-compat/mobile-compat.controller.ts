@@ -607,4 +607,77 @@ export class MobileCompatController {
       return { code: 0, msg: error.message || '发送验证码失败', data: null };
     }
   }
+
+  // ============ /mobile/my/taskmanagement 订单管理 ============
+
+  /**
+   * 获取用户订单列表
+   * 原版: POST /mobile/my/taskmanagement
+   * 参数: page, datetime1, datetime2, choose_a, buyno, task_type, terminal, zhuipin, indexorder
+   */
+  @Post('my/taskmanagement')
+  @UseGuards(JwtAuthGuard)
+  async taskManagement(@Request() req: any, @Body() body: any) {
+    try {
+      const userId = req.user.id;
+      const page = body.page || 1;
+      const limit = body.limit || 10;
+
+      // 获取用户订单
+      const orders = await this.ordersService.findAll(userId, {
+        status: body.choose_a || undefined,
+      });
+
+      // 手动分页
+      const startIndex = (page - 1) * limit;
+      const paginatedOrders = orders.slice(startIndex, startIndex + limit);
+
+      // 格式化返回数据，符合原版格式
+      const list = paginatedOrders.map((order: any) => ({
+        id: order.id,
+        task_id: order.taskId,
+        task_title: order.taskTitle || order.productName,
+        product_name: order.productName,
+        product_price: order.productPrice,
+        commission: order.commission,
+        status: order.status,
+        progress: this.getOrderProgress(order),
+        buyno: order.buynoAccount,
+        platform: order.platform,
+        created_at: order.createdAt,
+        updated_at: order.updatedAt,
+      }));
+
+      return {
+        code: 1,
+        msg: 'success',
+        data: {
+          list,
+          total: orders.length,
+          page,
+          limit,
+        },
+      };
+    } catch (error) {
+      return { code: 0, msg: error.message || '获取订单列表失败', data: null };
+    }
+  }
+
+  // 辅助函数：计算订单进度百分比
+  private getOrderProgress(order: any): number {
+    if (order.status === 'COMPLETED') return 100;
+    if (order.status === 'CANCELLED') return 0;
+    if (order.totalSteps && order.currentStep) {
+      return Math.round((order.currentStep / order.totalSteps) * 100);
+    }
+    // 根据状态估算进度
+    const statusProgress: Record<string, number> = {
+      PENDING: 10,
+      SUBMITTED: 30,
+      APPROVED: 50,
+      SHIPPED: 70,
+      RECEIVED: 90,
+    };
+    return statusProgress[order.status] || 0;
+  }
 }
