@@ -159,7 +159,7 @@ export default function CachePage() {
                     <div className="mb-2 text-sm text-slate-500">内存使用</div>
                     <div className="text-2xl font-bold text-blue-600">{systemInfo.memoryUsed}</div>
                     <div className="mt-3 h-2 w-full overflow-hidden rounded bg-slate-100">
-                        <div className={cn('h-full origin-left rounded transition-transform', getMemoryBarColor())} style={{ transform: `scaleX(${Math.max(0, Math.min(1, systemInfo.memoryPercent / 100))})` }} />
+                        <div className={cn('h-full origin-left rounded transition-transform [transform:scaleX(var(--progress))]', getMemoryBarColor(), `[--progress:${Math.max(0, Math.min(1, systemInfo.memoryPercent / 100))}]`)} />
                     </div>
                     <div className="mt-1 text-xs text-slate-400">共 {systemInfo.memoryTotal} ({systemInfo.memoryPercent}%)</div>
                 </Card>
