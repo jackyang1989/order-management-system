@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { BASE_URL } from '../../../../apiConfig';
 import { cn } from '../../../../lib/utils';
 import { toastError, toastSuccess } from '../../../../lib/toast';
@@ -59,16 +58,30 @@ interface Task {
     updatedAt: string;
 }
 
-const statusLabels: Record<number, { text: string; color: string }> = {
-    0: { text: '待支付', color: 'default' },
-    1: { text: '进行中', color: 'success' },
-    2: { text: '已完成', color: 'processing' },
-    3: { text: '已取消', color: 'error' },
-    4: { text: '待审核', color: 'warning' },
+const statusLabels: Record<number, { text: string; color: 'slate' | 'green' | 'blue' | 'red' | 'amber' }> = {
+    0: { text: '待支付', color: 'slate' },
+    1: { text: '进行中', color: 'green' },
+    2: { text: '已完成', color: 'blue' },
+    3: { text: '已取消', color: 'red' },
+    4: { text: '待审核', color: 'amber' },
 };
 
 const platformLabels: Record<number, string> = { 1: '淘宝', 2: '天猫', 3: '京东', 4: '拼多多' };
 const terminalLabels: Record<number, string> = { 1: '本佣货返', 2: '本立佣货' };
+
+function progressWidthClass(percent: number) {
+    if (percent <= 0) return 'w-0';
+    if (percent <= 10) return 'w-1/6';
+    if (percent <= 20) return 'w-1/4';
+    if (percent <= 35) return 'w-1/3';
+    if (percent <= 45) return 'w-2/5';
+    if (percent <= 55) return 'w-1/2';
+    if (percent <= 65) return 'w-3/5';
+    if (percent <= 75) return 'w-2/3';
+    if (percent <= 85) return 'w-3/4';
+    if (percent <= 95) return 'w-5/6';
+    return 'w-full';
+}
 
 export default function AdminTasksPage() {
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -111,8 +124,13 @@ export default function AdminTasksPage() {
                 body: JSON.stringify({ status })
             });
             const json = await res.json();
-            if (json.success) { message.success('状态更新成功'); loadTasks(); }
-        } catch (e) { message.error('操作失败'); }
+            if (json.success) {
+                toastSuccess('状态更新成功');
+                loadTasks();
+            }
+        } catch (e) {
+            toastError('操作失败');
+        }
     };
 
     const handleExport = async () => {
@@ -132,34 +150,98 @@ export default function AdminTasksPage() {
                 a.click();
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(downloadUrl);
-                message.success('导出成功');
-            } else { message.error('导出失败'); }
-        } catch (e) { message.error('导出失败'); } finally { setExporting(false); }
+                toastSuccess('导出成功');
+            } else {
+                toastError('导出失败');
+            }
+        } catch (e) {
+            toastError('导出失败');
+        } finally {
+            setExporting(false);
+        }
     };
 
-    const columns: ColumnsType<Task> = [
-        { title: '任务编号', dataIndex: 'taskNumber', width: 120, render: (v) => <code style={{ fontSize: 12 }}>{v}</code> },
-        { title: '标题', dataIndex: 'title', width: 200, ellipsis: true },
-        { title: '平台', dataIndex: 'taskType', width: 80, render: (v) => platformLabels[v] || '其他' },
-        { title: '单价', dataIndex: 'goodsPrice', width: 100, align: 'right', render: (v) => <span style={{ fontWeight: 500 }}>¥{Number(v).toFixed(2)}</span> },
+    const columns: Column<Task>[] = [
         {
-            title: '进度', key: 'progress', width: 150, render: (_, r) => (
-                <Space direction="vertical" size={0}>
-                    <Progress percent={Math.round((r.claimedCount / r.count) * 100)} size="small" />
-                    <span style={{ fontSize: 12, color: '#999' }}>{r.claimedCount} / {r.count}</span>
-                </Space>
-            )
+            key: 'taskNumber',
+            title: '任务编号',
+            render: (row) => <code className="text-xs text-slate-500">{row.taskNumber}</code>,
+            className: 'w-[140px]',
         },
-        { title: '状态', dataIndex: 'status', width: 90, align: 'center', render: (v) => <Tag color={statusLabels[v]?.color}>{statusLabels[v]?.text}</Tag> },
-        { title: '创建时间', dataIndex: 'createdAt', width: 110, render: (v) => new Date(v).toLocaleDateString('zh-CN') },
         {
-            title: '操作', key: 'actions', width: 200, render: (_, r) => (
-                <Space>
-                    <Button size="small" icon={<EyeOutlined />} onClick={() => setDetailModal(r)}>查看</Button>
-                    <Select size="small" value={r.status} onChange={(v) => handleUpdateStatus(r.id, v)} style={{ width: 90 }}
-                        options={Object.entries(statusLabels).map(([k, v]) => ({ value: Number(k), label: v.text }))} />
-                </Space>
-            )
+            key: 'title',
+            title: '标题',
+            render: (row) => <span className="line-clamp-1 text-slate-700">{row.title}</span>,
+            className: 'min-w-[180px]',
+        },
+        {
+            key: 'taskType',
+            title: '平台',
+            render: (row) => <span>{platformLabels[row.taskType] || '其他'}</span>,
+            className: 'w-[90px]',
+        },
+        {
+            key: 'goodsPrice',
+            title: '单价',
+            render: (row) => <span className="font-medium text-slate-800">¥{Number(row.goodsPrice).toFixed(2)}</span>,
+            className: 'w-[120px] text-right',
+        },
+        {
+            key: 'progress',
+            title: '进度',
+            render: (row) => {
+                const percent = Math.min(100, Math.round((row.claimedCount / row.count) * 100));
+                const barClass = percent >= 100 ? 'bg-emerald-500' : 'bg-blue-500';
+                return (
+                    <div className="space-y-1">
+                        <div className="h-2 w-full rounded-full bg-slate-100">
+                            <div className={cn('h-2 rounded-full', barClass, progressWidthClass(percent))} />
+                        </div>
+                        <span className="text-xs text-slate-500">
+                            {row.claimedCount} / {row.count}
+                        </span>
+                    </div>
+                );
+            },
+            className: 'w-[180px]',
+        },
+        {
+            key: 'status',
+            title: '状态',
+            render: (row) => {
+                const config = statusLabels[row.status] || statusLabels[0];
+                return (
+                    <Badge variant="soft" color={config.color}>
+                        {config.text}
+                    </Badge>
+                );
+            },
+            className: 'w-[110px] text-center',
+        },
+        {
+            key: 'createdAt',
+            title: '创建时间',
+            render: (row) => new Date(row.createdAt).toLocaleDateString('zh-CN'),
+            className: 'w-[120px] text-slate-500',
+        },
+        {
+            key: 'actions',
+            title: '操作',
+            render: (row) => (
+                <div className="flex items-center gap-2">
+                    <Button size="sm" variant="secondary" onClick={() => setDetailModal(row)}>
+                        查看
+                    </Button>
+                    <div className="w-28">
+                        <Select
+                            value={String(row.status)}
+                            onChange={(value) => handleUpdateStatus(row.id, Number(value))}
+                            options={statusOptions}
+                        />
+                    </div>
+                </div>
+            ),
+            className: 'w-[220px]',
         },
     ];
 

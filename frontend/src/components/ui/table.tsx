@@ -17,6 +17,10 @@ export interface TableProps<T> {
   emptyText?: string;
   rowKey?: (row: T) => string | number;
   className?: string;
+  onRowSelect?: (selectedKeys: Array<string | number>) => void;
+  selectedKeys?: Array<string | number>;
+  getRowDisabled?: (row: T) => boolean;
+  selectable?: boolean;
 }
 
 export function Table<T extends Record<string, unknown>>({
@@ -26,6 +30,10 @@ export function Table<T extends Record<string, unknown>>({
   emptyText = '暂无数据',
   rowKey,
   className,
+  onRowSelect,
+  selectedKeys = [],
+  getRowDisabled,
+  selectable,
 }: TableProps<T>) {
   const getKey = (row: T, idx: number) => (rowKey ? rowKey(row) : idx);
 
@@ -51,11 +59,18 @@ export function Table<T extends Record<string, unknown>>({
     );
   }
 
+  const selectedSet = new Set(selectedKeys);
+
   return (
     <div className={cn('overflow-hidden rounded-xl border border-slate-200 bg-white', className)}>
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr className="border-b border-slate-200 bg-slate-50">
+            {selectable && (
+              <th className="w-10 px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                <span className="sr-only">选择</span>
+              </th>
+            )}
             {columns.map((col) => (
               <th
                 key={col.key}
@@ -70,15 +85,40 @@ export function Table<T extends Record<string, unknown>>({
           </tr>
         </thead>
         <tbody>
-          {data.map((row, idx) => (
-            <tr key={getKey(row, idx)} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-              {columns.map((col) => (
-                <td key={col.key} className={cn('px-4 py-3 text-slate-700', col.className)}>
-                  {col.render ? col.render(row, idx) : (row[col.key] as ReactNode)}
-                </td>
-              ))}
-            </tr>
-          ))}
+          {data.map((row, idx) => {
+            const key = getKey(row, idx);
+            const disabled = getRowDisabled?.(row) ?? false;
+            const checked = selectedSet.has(key);
+            return (
+              <tr key={key} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                {selectable && (
+                  <td className="px-3 py-3">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/20"
+                      disabled={disabled}
+                      checked={checked}
+                      onChange={(event) => {
+                        if (!onRowSelect) return;
+                        const next = new Set(selectedSet);
+                        if (event.target.checked) {
+                          next.add(key);
+                        } else {
+                          next.delete(key);
+                        }
+                        onRowSelect(Array.from(next));
+                      }}
+                    />
+                  </td>
+                )}
+                {columns.map((col) => (
+                  <td key={col.key} className={cn('px-4 py-3 text-slate-700', col.className)}>
+                    {col.render ? col.render(row, idx) : (row[col.key] as ReactNode)}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
