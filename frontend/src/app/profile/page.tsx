@@ -91,8 +91,8 @@ export default function ProfilePage() {
 
     if (loading) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#0A0A0B] to-[#12121A]">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+            <div className="flex min-h-screen items-center justify-center bg-slate-50">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
             </div>
         );
     }
@@ -114,190 +114,149 @@ export default function ProfilePage() {
     ];
 
     return (
-        <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-[#0A0A0B] to-[#12121A] pb-24">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-[#1a1a1d] to-[#2c2c2e] px-4 pb-5 pt-12">
-                <ProfileContainer className="flex items-center justify-between">
-                    <Button
-                        onClick={() => router.push('/tasks/continue')}
-                        className="rounded-full bg-amber-500 px-4 py-2 text-xs font-semibold text-white hover:bg-amber-600"
-                    >
-                        ✓ 继续任务
-                    </Button>
+        <div className="min-h-screen overflow-x-hidden bg-slate-50 pb-24">
+            {/* Header - Professional Blue */}
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 pb-6 pt-12">
+                <ProfileContainer>
+                    <div className="mb-4 flex items-center justify-between">
+                        <h1 className="text-lg font-bold text-white">个人中心</h1>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => router.push('/tasks/continue')}
+                                className="rounded-full bg-white/20 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-white/30"
+                            >
+                                继续任务
+                            </button>
+                            <button
+                                onClick={() => router.push('/profile/messages')}
+                                className="relative rounded-full bg-white/20 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-white/30"
+                            >
+                                通知
+                                {tagShow && (
+                                    <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-red-500 px-1 py-0.5 text-center text-[10px] text-white">
+                                        {tagNum}
+                                    </span>
+                                )}
+                            </button>
+                        </div>
+                    </div>
 
-                    <button
-                        onClick={() => router.push('/profile/messages')}
-                        className="relative rounded-full bg-amber-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-amber-600"
-                    >
-                        ✓ 个人通知
-                        {tagShow && (
-                            <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-red-500 px-1.5 py-0.5 text-center text-[10px] text-white">
-                                {tagNum}
-                            </span>
-                        )}
-                    </button>
+                    {/* User Info in Header */}
+                    <div className="flex items-center gap-4">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-2xl shadow-lg">
+                            👤
+                        </div>
+                        <div className="flex-1 text-white">
+                            <div className="text-lg font-semibold">{profile?.username || '-'}</div>
+                            <div className="mt-0.5 text-sm opacity-80">{profile?.mobile || '-'}</div>
+                            <div className="mt-1 flex items-center gap-2">
+                                <Badge variant={profile?.vip === 1 ? 'solid' : 'outline'} className={profile?.vip === 1 ? 'bg-amber-500 text-white' : 'border-white/50 text-white'}>
+                                    {profile?.vip === 1 ? 'VIP会员' : '普通用户'}
+                                </Badge>
+                                <span className="text-xs opacity-70">经验值: {profile?.all_num_task || 0}</span>
+                            </div>
+                        </div>
+                    </div>
                 </ProfileContainer>
             </div>
 
-            <ProfileContainer className="flex flex-col gap-6 py-4">
-                {/* User Info Card */}
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-xl backdrop-blur-2xl">
-                    <div className="mb-5 flex items-center gap-4">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-2xl shadow-lg">
-                            👤
-                        </div>
-                        <div>
-                            <div className="mb-1 text-sm font-medium text-slate-300">
-                                用户名：<span className="text-emerald-400">{profile?.username || '-'}</span>
-                            </div>
-                            <div className="mb-1 text-xs text-slate-400">
-                                绑定手机号：{profile?.mobile || '-'}
-                            </div>
-                            <div className="text-xs text-slate-400">
-                                经验值：<span className="font-semibold text-amber-400">{profile?.all_num_task || 0}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* VIP Status */}
-                    <div className={cn(
-                        'rounded-xl p-3',
-                        profile?.vip === 1
-                            ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/10 border border-amber-500/30'
-                            : 'bg-white/5 border border-white/10'
-                    )}>
-                        <div className="mb-1 text-sm text-slate-200">
-                            会员状态：
-                            <span className={cn('font-semibold', profile?.vip === 1 ? 'text-amber-400' : 'text-slate-500')}>
-                                {profile?.vip === 1 ? 'VIP会员' : '不是会员'}
-                            </span>
-                        </div>
-                        <div className="mb-1 text-xs text-slate-400">
-                            到期时间：{formatVipTime(profile?.vip_time || 0)}
-                        </div>
-                        <div className="flex justify-between text-xs text-slate-400">
-                            <span>累积赚取银锭：<span className="font-semibold text-amber-400">{profile?.all_obtain_reward || 0}</span></span>
+            <ProfileContainer className="flex flex-col gap-4 py-4">
+                {/* Balance Cards Row */}
+                <div className="grid grid-cols-2 gap-4">
+                    {/* Principal Balance */}
+                    <Card className="bg-white p-4 shadow-sm">
+                        <div className="mb-2 text-xs font-medium text-slate-500">本金余额</div>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-xl font-bold text-slate-900">¥{profile?.balance || 0}</span>
                         </div>
                         <div className="mt-1 text-xs text-slate-400">
-                            待商家发放银锭：<span className="font-semibold text-amber-500">{profile?.wait_shop_issue || 0}</span>
+                            累计垫付: ¥{profile?.all_user_principal || 0}
+                        </div>
+                        <Button
+                            onClick={() => router.push('/profile/withdraw')}
+                            className="mt-3 w-full bg-blue-600 text-xs hover:bg-blue-700"
+                            size="sm"
+                        >
+                            提现
+                        </Button>
+                    </Card>
+
+                    {/* Silver Balance */}
+                    <Card className="bg-white p-4 shadow-sm">
+                        <div className="mb-2 text-xs font-medium text-slate-500">银锭余额</div>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-xl font-bold text-slate-900">{profile?.reward || 0}</span>
+                            <span className="text-xs text-slate-400">≈¥{profile?.discounting || 0}</span>
+                        </div>
+                        <div className="mt-1 text-xs text-slate-400">
+                            冻结: {profile?.freeze_reward || 0}
+                        </div>
+                        <Button
+                            onClick={() => router.push('/profile/withdraw?ydtx=1')}
+                            className="mt-3 w-full bg-indigo-600 text-xs hover:bg-indigo-700"
+                            size="sm"
+                        >
+                            提现
+                        </Button>
+                    </Card>
+                </div>
+
+                {/* VIP & Invite Stats */}
+                <Card className="bg-white p-4 shadow-sm">
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <div className="text-lg font-bold text-blue-600">{profile?.all_obtain_reward || 0}</div>
+                            <div className="mt-0.5 text-xs text-slate-500">累计赚取银锭</div>
+                        </div>
+                        <div>
+                            <div className="text-lg font-bold text-blue-600">{profile?.all_invite || 0}</div>
+                            <div className="mt-0.5 text-xs text-slate-500">邀请人数</div>
+                        </div>
+                        <div>
+                            <div className="text-lg font-bold text-blue-600">{profile?.tj_award || 0}</div>
+                            <div className="mt-0.5 text-xs text-slate-500">邀请奖励</div>
                         </div>
                     </div>
-                </div>
+                </Card>
 
-                {/* Withdrawal Section Title */}
-                <div className="px-1 text-sm font-semibold text-slate-200">提现入口</div>
-
-                {/* Principal Card */}
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-2xl">
-                    <div className="mb-4 text-sm font-semibold text-slate-200">我的本金</div>
-                    <div className="mb-3 flex items-baseline gap-1">
-                        <span className="text-xl">💰</span>
-                        <span className="text-2xl font-bold text-emerald-400">{profile?.balance || 0}</span>
-                        <span className="text-sm text-emerald-400">元</span>
-                        <span className="ml-2 text-xs text-slate-500">(可提现本金)</span>
-                    </div>
-                    <div className="mb-4 flex items-baseline gap-1">
-                        <span className="text-xl">💰</span>
-                        <span className="text-lg font-semibold text-slate-400">{profile?.all_user_principal || 0}</span>
-                        <span className="text-xs text-slate-400">元</span>
-                        <span className="ml-2 text-xs text-slate-500">(总计垫付本金)</span>
-                    </div>
-                    <Button
-                        onClick={() => router.push('/profile/withdraw')}
-                        className="w-full rounded-lg bg-emerald-600 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
-                    >
-                        提现
-                    </Button>
-                </div>
-
-                {/* Silver Card */}
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-2xl">
-                    <div className="mb-4 text-sm font-semibold text-slate-200">我的银锭</div>
-                    <div className="mb-3 flex items-baseline gap-1">
-                        <span className="text-xl">🥇</span>
-                        <span className="text-2xl font-bold text-amber-400">{profile?.reward || 0}</span>
-                        <span className="text-sm text-amber-400">银锭</span>
-                        <span className="mx-1 text-slate-500">=</span>
-                        <span className="text-lg font-bold text-amber-400">{profile?.discounting || 0}</span>
-                        <span className="text-sm text-amber-400">元</span>
-                    </div>
-                    <div className="mb-4 flex items-baseline gap-1">
-                        <span className="text-xl">🥇</span>
-                        <span className="text-lg font-semibold text-amber-500">{profile?.freeze_reward || 0}</span>
-                        <span className="text-xs text-amber-500">银锭</span>
-                        <span className="ml-2 text-xs text-slate-500">(冻结银锭)</span>
-                    </div>
-                    <Button
-                        onClick={() => router.push('/profile/withdraw?ydtx=1')}
-                        className="w-full rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700"
-                    >
-                        提现
-                    </Button>
-                </div>
-
-                {/* Invite Card */}
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-xl backdrop-blur-2xl">
-                    <div className="mb-3 text-sm font-semibold text-slate-200">我的邀请</div>
-                    <div className="mb-2 flex items-center text-sm text-slate-300">
-                        <span className="mr-2 text-xl">🏅</span>
-                        总计获得奖励：<span className="font-semibold text-amber-400">{profile?.tj_award || 0}银锭</span>
-                    </div>
-                    <div className="mb-2 flex items-center text-sm text-slate-300">
-                        <span className="mr-2 text-xl">👥</span>
-                        总计邀请人数：<span className="font-semibold text-emerald-400">{profile?.all_invite || 0}人</span>
-                    </div>
-                    <div className="mb-1 text-xs text-slate-400">
-                        今日获得奖励：<span className="text-amber-500">{profile?.tj_award_day || 0}银锭</span>
-                    </div>
-                    <div className="mb-3 text-xs text-slate-400">
-                        今日邀请人数：<span className="text-emerald-500">{profile?.day_invite || 0}人</span>
-                    </div>
-                    <Button
-                        onClick={() => router.push('/invite')}
-                        className="w-full rounded-lg bg-emerald-600 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
-                    >
-                        邀请
-                    </Button>
-                </div>
-
-                {/* History Buttons */}
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-xl backdrop-blur-2xl">
-                    <div className="mb-3 text-sm font-semibold text-slate-200">历史记录</div>
+                {/* Quick Actions */}
+                <Card className="bg-white p-4 shadow-sm">
+                    <div className="mb-3 text-sm font-semibold text-slate-700">快捷入口</div>
                     <div className="flex flex-wrap gap-2">
                         {historyButtons.map((btn) => (
                             <button
                                 key={btn.path}
                                 onClick={() => router.push(btn.path)}
-                                className="rounded-lg bg-white/10 px-4 py-2 text-xs font-medium text-emerald-400 transition hover:bg-white/20"
+                                className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-100"
                             >
                                 {btn.label}
                             </button>
                         ))}
                     </div>
-                </div>
+                </Card>
 
                 {/* Menu List */}
-                <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-xl backdrop-blur-2xl">
+                <Card className="overflow-hidden bg-white shadow-sm">
                     {menuItems.map((item, index) => (
                         <div
                             key={item.path}
                             onClick={() => router.push(item.path)}
                             className={cn(
-                                'flex cursor-pointer items-center px-5 py-4 transition hover:bg-white/5',
-                                index < menuItems.length - 1 && 'border-b border-white/5'
+                                'flex cursor-pointer items-center px-4 py-3.5 transition hover:bg-slate-50',
+                                index < menuItems.length - 1 && 'border-b border-slate-100'
                             )}
                         >
-                            <span className="mr-4 text-xl">{item.icon}</span>
-                            <span className="flex-1 text-sm font-medium text-slate-200">{item.label}</span>
-                            <span className="text-lg text-slate-500">›</span>
+                            <span className="mr-3 text-lg">{item.icon}</span>
+                            <span className="flex-1 text-sm font-medium text-slate-700">{item.label}</span>
+                            <span className="text-slate-400">›</span>
                         </div>
                     ))}
-                </div>
+                </Card>
 
                 {/* Logout Button */}
                 <button
                     onClick={handleLogout}
-                    className="w-full rounded-2xl border border-red-500/30 bg-white/5 py-4 text-sm font-medium text-red-400 shadow-xl backdrop-blur-2xl transition hover:bg-red-500/10"
+                    className="w-full rounded-xl border border-red-200 bg-white py-3.5 text-sm font-medium text-red-500 shadow-sm transition hover:bg-red-50"
                 >
                     退出登录
                 </button>
