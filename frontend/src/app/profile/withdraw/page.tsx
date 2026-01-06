@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '../../../lib/utils';
 import { toastSuccess, toastError } from '../../../lib/toast';
-import { ProfileContainer } from '../../../components/ProfileContainer';
+import ProfileContainer from '../../../components/ProfileContainer';
 import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
 import { Modal } from '../../../components/ui/modal';
@@ -135,9 +135,11 @@ export default function WithdrawPage() {
     return (
         <div className="min-h-screen bg-slate-50 pb-4">
             {/* Header */}
-            <header className="sticky top-0 z-10 flex h-14 items-center border-b border-slate-200 bg-white px-4">
-                <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
-                <h1 className="flex-1 text-base font-medium text-slate-800">提现</h1>
+            <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
+                <div className="mx-auto flex h-14 max-w-md items-center px-4">
+                    <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
+                    <h1 className="flex-1 text-base font-medium text-slate-800">提现</h1>
+                </div>
             </header>
 
             <ProfileContainer className="py-4">

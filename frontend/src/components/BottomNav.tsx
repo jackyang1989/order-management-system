@@ -72,7 +72,7 @@ export default function BottomNav() {
     };
 
     return (
-        <div className="fixed inset-x-0 bottom-0 z-50 flex h-16 w-full border-t border-slate-200 bg-white">
+        <div className="fixed inset-x-0 bottom-0 z-50 mx-auto flex h-16 w-full max-w-md border-t border-slate-200 bg-white">
             {navItems.map((item) => (
                 <div key={item.key} className="relative flex-1">
                     {/* Popup Menu */}

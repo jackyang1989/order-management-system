@@ -1,971 +1,336 @@
 'use client';
 
-import { useEffect, useState, Suspense, useRef, useCallback } from 'react';
-import Link from 'next/link';
+import { useEffect, useState, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { cn } from '../../lib/utils';
 import { isAuthenticated, getToken } from '../../services/authService';
 import BottomNav from '../../components/BottomNav';
 
-
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
-// ========================
-
-// ========================
-
-
 const STATUS_OPTIONS = [
-    { value: '', label: '全部状态' },
-    { value: '1', label: '已打印快递单，待发货' },
-    { value: '2', label: '已发货，待确认收货' },
-    { value: '3', label: '已确认收货，待商家返款' },
-    { value: '4', label: '商家已返款，待确认返款' },
-    { value: '5', label: '已完成' },
-    { value: '6', label: '已超时' },
-    { value: '7', label: '已取消' },
-    { value: '8', label: '自动放弃' },
+    { value: '', label: '全部状态' }, { value: '1', label: '已打印快递单，待发货' }, { value: '2', label: '已发货，待确认收货' },
+    { value: '3', label: '已确认收货，待商家返款' }, { value: '4', label: '商家已返款，待确认返款' }, { value: '5', label: '已完成' },
+    { value: '6', label: '已超时' }, { value: '7', label: '已取消' }, { value: '8', label: '自动放弃' },
 ];
-
 
 const TASK_TYPE_OPTIONS = [
-    { value: 0, label: '全部' },
-    { value: 1, label: '关键词' },
-    { value: 2, label: '淘口令' },
-    { value: 3, label: '二维码' },
-    { value: 4, label: '直通车' },
-    { value: 5, label: '通道任务' },  // 补齐通道任务
+    { value: 0, label: '全部' }, { value: 1, label: '关键词' }, { value: 2, label: '淘口令' },
+    { value: 3, label: '二维码' }, { value: 4, label: '直通车' }, { value: 5, label: '通道任务' },
 ];
 
-
-const REFUND_TYPE_OPTIONS = [
-    { value: '', label: '全部' },
-    { value: '3', label: '全部' },
-    { value: '2', label: '本立佣货' },
-    { value: '1', label: '本佣货返' },
-];
-
+const REFUND_TYPE_OPTIONS = [{ value: '', label: '全部' }, { value: '3', label: '全部' }, { value: '2', label: '本立佣货' }, { value: '1', label: '本佣货返' }];
 
 const REVIEW_STATUS_OPTIONS = [
-    { value: '', label: '全部追评' },
-    { value: '1', label: '待处理追评任务' },
-    { value: '2', label: '待返款追评任务' },
-    { value: '3', label: '已完成追评任务' },
-    { value: '4', label: '已拒接追评任务' },
+    { value: '', label: '全部追评' }, { value: '1', label: '待处理追评任务' }, { value: '2', label: '待返款追评任务' },
+    { value: '3', label: '已完成追评任务' }, { value: '4', label: '已拒接追评任务' },
 ];
 
-// 订单数据类型
-interface OrderItem {
-    id: string;
-    task_number: string;
-    shop_name: string;
-    shop_img: string;
-    type: string;
-    task_type: string;
-    main_product_name: string;
-    main_product_pc_img: string;
-    state: string;
-    index_state: string;
-    wwid: string;
-    commission: number;
-    user_divided: number;
-    user_principal: number;
-    create_time: string;
-    progress: string;
-    review_task_id?: string;
-    checked?: boolean;
-}
+interface OrderItem { id: string; task_number: string; shop_name: string; shop_img: string; type: string; task_type: string; main_product_name: string; main_product_pc_img: string; state: string; index_state: string; wwid: string; commission: number; user_divided: number; user_principal: number; create_time: string; progress: string; review_task_id?: string; checked?: boolean; }
+interface BuynoItem { id: string; wwid: string; }
 
-// 买号数据类型
-interface BuynoItem {
-    id: string;
-    wwid: string;
-}
-
-// 内部组件，使用 useSearchParams
 function OrdersPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [orders, setOrders] = useState<OrderItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [buynos, setBuynos] = useState<BuynoItem[]>([]);
-
-    // ========================
-
-    // ========================
-    const [value1, setValue1] = useState(searchParams.get('status') || ''); // 任务状态 choose_a
-    const [value2, setValue2] = useState(''); // 买号 buyno
-    const [value3, setValue3] = useState<number | string>(''); // 任务类型 task_type
-    const [value4, setValue4] = useState(''); // 返款方式 terminal
-    const [value5, setValue5] = useState(''); // 追评任务 zhuipin
-    const [indexorder, setIndexorder] = useState(''); // 搜索任务编号
+    const [value1, setValue1] = useState(searchParams.get('status') || '');
+    const [value2, setValue2] = useState('');
+    const [value3, setValue3] = useState<number | string>('');
+    const [value4, setValue4] = useState('');
+    const [value5, setValue5] = useState('');
+    const [indexorder, setIndexorder] = useState('');
     const [showFilters, setShowFilters] = useState(false);
-
-
     const [datetime1, setDatetime1] = useState('');
     const [datetime2, setDatetime2] = useState('');
-
-
     const [currentPage, setCurrentPage] = useState(1);
     const [total, setTotal] = useState(0);
     const pageSize = 10;
-
-
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [selectAll, setSelectAll] = useState(false);
-
-
     const [buttonvalue, setButtonvalue] = useState('查看详情');
     const [buttonvalue2] = useState('去追评');
 
-    const alertSuccess = useCallback((msg: string) => {
-        alert(msg);
-    }, []);
+    const alertSuccess = useCallback((msg: string) => alert(msg), []);
+    const alertError = useCallback((msg: string) => alert(msg), []);
 
-    const alertError = useCallback((msg: string) => {
-        alert(msg);
-    }, []);
+    useEffect(() => { if (!isAuthenticated()) { router.push('/login'); return; } loadBuynos(); getData(); }, []);
+    useEffect(() => { if (!loading) getData(); }, [value1, value2, value3, value4, value5, currentPage]);
 
-    useEffect(() => {
-        if (!isAuthenticated()) {
-            router.push('/login');
-            return;
-        }
-        loadBuynos();
-        getData();
-    }, []);
-
-    // ========================
-
-    // ========================
     const loadBuynos = async () => {
         try {
             const token = getToken();
-            const res = await fetch(`${BASE_URL}/mobile/my/buynolist`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const res = await fetch(`${BASE_URL}/mobile/my/buynolist`, { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
-            if (data.code === 1) {
-                setBuynos(data.data || []);
-            }
-        } catch (error) {
-            console.error('Load buynos error:', error);
-        }
+            if (data.code === 1) setBuynos(data.data || []);
+        } catch (error) { console.error('Load buynos error:', error); }
     };
 
-    // ========================
-
-    // POST mobile/my/taskmanagement
-    // 参数: page, datetime1, datetime2, choose_a, buyno, task_type, terminal, zhuipin, indexorder
-    // ========================
     const getData = async (date1?: string, date2?: string) => {
         setLoading(true);
         try {
             const token = getToken();
             const response = await fetch(`${BASE_URL}/mobile/my/taskmanagement`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    page: currentPage,
-                    datetime1: date1 || datetime1,
-                    datetime2: date2 || datetime2,
-                    choose_a: value1,
-                    buyno: value2,
-                    task_type: value3,
-                    terminal: value4,
-                    zhuipin: value5,
-                    indexorder: indexorder,
-                }),
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ page: currentPage, datetime1: date1 || datetime1, datetime2: date2 || datetime2, choose_a: value1, buyno: value2, task_type: value3, terminal: value4, zhuipin: value5, indexorder }),
             });
             const data = await response.json();
-
-            if (data.code === 1) {
-                const list = data.data?.list || [];
-                // 添加 progress 百分号
-                for (let i = 0; i < list.length; i++) {
-                    list[i].progress = list[i].progress + '%';
-                }
-                setOrders(list);
-                setTotal(data.data?.total || 0);
-            } else {
-                alertError(data.msg || '获取数据失败');
-            }
-        } catch (error) {
-            console.error('Failed to load orders:', error);
-        } finally {
-            setLoading(false);
-        }
+            if (data.code === 1) { const list = data.data?.list || []; for (let i = 0; i < list.length; i++) list[i].progress = list[i].progress + '%'; setOrders(list); setTotal(data.data?.total || 0); }
+            else alertError(data.msg || '获取数据失败');
+        } catch (error) { console.error('Failed to load orders:', error); }
+        finally { setLoading(false); }
     };
 
-
-    const searchOrder = () => {
-        setCurrentPage(1);
-        getData();
-    };
-
+    const searchOrder = () => { setCurrentPage(1); getData(); };
 
     const getChooseValue = (value: string) => {
-        setValue5(''); // 清除追评筛选
-        setValue1(value);
-        setCurrentPage(1);
-
-        // 更新按钮文字
-        if (value === '4') {
-            setButtonvalue('确认返款');
-        } else if (value === '2') {
-            setButtonvalue('去收货');
-        } else {
-            setButtonvalue('查看详情');
-        }
+        setValue5(''); setValue1(value); setCurrentPage(1);
+        if (value === '4') setButtonvalue('确认返款');
+        else if (value === '2') setButtonvalue('去收货');
+        else setButtonvalue('查看详情');
     };
-
 
     const getZhuiPingValue = (value: string) => {
-        setValue1(''); // 清除状态筛选
-        setValue5(value);
-        setCurrentPage(1);
-
-        if (value === '1') {
-            setButtonvalue('拒接任务');
-        } else {
-            setButtonvalue('查看详情');
-        }
+        setValue1(''); setValue5(value); setCurrentPage(1);
+        if (value === '1') setButtonvalue('拒接任务');
+        else setButtonvalue('查看详情');
     };
-
-
-    const pageChange = (val: number) => {
-        setCurrentPage(val);
-    };
-
-    // 当筛选条件变化时重新加载
-    useEffect(() => {
-        if (!loading) {
-            getData();
-        }
-    }, [value1, value2, value3, value4, value5, currentPage]);
-
 
     const handleSelectAll = () => {
         const newSelectAll = !selectAll;
         setSelectAll(newSelectAll);
-        if (newSelectAll) {
-            setSelectedIds(orders.map(o => o.id));
-            // 更新每个订单的 checked 状态
-            setOrders(orders.map(o => ({ ...o, checked: true })));
-        } else {
-            setSelectedIds([]);
-            setOrders(orders.map(o => ({ ...o, checked: false })));
-        }
+        if (newSelectAll) { setSelectedIds(orders.map(o => o.id)); setOrders(orders.map(o => ({ ...o, checked: true }))); }
+        else { setSelectedIds([]); setOrders(orders.map(o => ({ ...o, checked: false }))); }
     };
 
-
     const handleSelectOrder = (orderId: string) => {
-        const newOrders = orders.map(o => {
-            if (o.id === orderId) {
-                return { ...o, checked: !o.checked };
-            }
-            return o;
-        });
+        const newOrders = orders.map(o => o.id === orderId ? { ...o, checked: !o.checked } : o);
         setOrders(newOrders);
-
         const checkedIds = newOrders.filter(o => o.checked).map(o => o.id);
         setSelectedIds(checkedIds);
         setSelectAll(checkedIds.length === orders.length);
     };
 
-    // ========================
-
-    // ========================
     const handleBatchConfirmRefund = async () => {
-        if (selectedIds.length === 0) {
-            alertError('请选择要确认返款的订单');
-            return;
-        }
-
+        if (selectedIds.length === 0) { alertError('请选择要确认返款的订单'); return; }
         try {
             const token = getToken();
-            // 先获取返款金额
             const principalRes = await fetch(`${BASE_URL}/mobile/task/all_seller_principal`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ taskid: selectedIds }),
             });
             const principalData = await principalRes.json();
-
             if (principalData.code === 1) {
                 if (confirm(`商家确认返款金额为: ${principalData.data.principal}，是否确认？`)) {
-                    // 确认返款
                     const res = await fetch(`${BASE_URL}/mobile/task/allfankuan`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
+                        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                         body: JSON.stringify({ taskid: selectedIds }),
                     });
                     const data = await res.json();
-
-                    if (data.code === 1) {
-                        alertSuccess(data.msg || '返款成功');
-                        setTimeout(() => {
-                            if (data.url) {
-                                router.push(data.url);
-                            } else {
-                                getData();
-                            }
-                        }, 3000);
-                    } else {
-                        alertError(data.msg || '返款失败');
-                    }
+                    if (data.code === 1) { alertSuccess(data.msg || '返款成功'); setTimeout(() => { if (data.url) router.push(data.url); else getData(); }, 3000); }
+                    else alertError(data.msg || '返款失败');
                 }
-            } else {
-                alertError(principalData.msg || '获取返款金额失败');
-            }
-        } catch (error) {
-            alertError('网络错误');
-        }
+            } else alertError(principalData.msg || '获取返款金额失败');
+        } catch (error) { alertError('网络错误'); }
     };
 
-    // ========================
-
-    // ========================
     const chooseTiao = (id: string) => {
         const val = value1;
-        if (val === '4') {
-            router.push(`/orders/${id}`); // 确认返款在详情页处理
-        } else if (val === '2') {
-            router.push(`/orders/${id}/receive`);
-        } else {
-            router.push(`/orders/${id}`);
-        }
+        if (val === '4') router.push(`/orders/${id}`);
+        else if (val === '2') router.push(`/orders/${id}/receive`);
+        else router.push(`/orders/${id}`);
     };
 
-    // ========================
-
-    // ========================
     const chooseTiao2 = async (review_task_id: string) => {
         if (value5 === '1') {
-            // 拒接任务
             if (confirm('您确定要拒接任务吗？')) {
                 try {
                     const token = getToken();
                     const res = await fetch(`${BASE_URL}/mobile/my/refuse_zhuipin`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
+                        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                         body: JSON.stringify({ id: review_task_id }),
                     });
                     const data = await res.json();
-
-                    if (data.code === 1) {
-                        alertSuccess(data.msg || '已拒接');
-                        setTimeout(() => {
-                            if (data.url) {
-                                router.push(data.url);
-                            } else {
-                                getData();
-                            }
-                        }, 3000);
-                    } else {
-                        alertError(data.msg || '操作失败');
-                    }
-                } catch (error) {
-                    alertError('网络错误');
-                }
+                    if (data.code === 1) { alertSuccess(data.msg || '已拒接'); setTimeout(() => { if (data.url) router.push(data.url); else getData(); }, 3000); }
+                    else alertError(data.msg || '操作失败');
+                } catch (error) { alertError('网络错误'); }
             }
-        } else {
-            router.push(`/orders/zhuipin/${review_task_id}`);
-        }
+        } else router.push(`/orders/zhuipin/${review_task_id}`);
     };
 
-    // 去追评详情
-    const goZhuiPin = (review_task_id: string) => {
-        router.push(`/orders/zhuipin/${review_task_id}`);
-    };
+    const goZhuiPin = (review_task_id: string) => router.push(`/orders/zhuipin/${review_task_id}`);
 
+    const defaultBtn = (index_state: string) => { if (index_state === '4') return '确认返款'; if (index_state === '2') return '去收货'; return '查看详情'; };
+    const defaultBtnClick = (index_state: string, id: string) => { if (!index_state || index_state === '4') router.push(`/orders/${id}`); else if (index_state === '2') router.push(`/orders/${id}/receive`); else router.push(`/orders/${id}`); };
 
-    const defaultBtn = (index_state: string) => {
-        if (index_state === '4') {
-            return '确认返款';
-        } else if (index_state === '2') {
-            return '去收货';
-        } else {
-            return '查看详情';
-        }
-    };
+    const getStatusColor = (state: string) => { if (state.includes('完成')) return 'bg-green-50 text-green-600'; if (state.includes('取消') || state.includes('放弃') || state.includes('超时')) return 'bg-slate-100 text-slate-500'; if (state.includes('返款')) return 'bg-amber-50 text-amber-600'; return 'bg-blue-50 text-blue-600'; };
 
-
-    const defaultBtnClick = (index_state: string, id: string) => {
-        if (!index_state || index_state === '4') {
-            router.push(`/orders/${id}`);
-        } else if (index_state === '2') {
-            router.push(`/orders/${id}/receive`);
-        } else {
-            router.push(`/orders/${id}`);
-        }
-    };
-
-    // 获取状态颜色
-    const getStatusColor = (state: string) => {
-        if (state.includes('完成')) return '#07c160';
-        if (state.includes('取消') || state.includes('放弃') || state.includes('超时')) return '#999';
-        if (state.includes('返款')) return '#ff9500';
-        return '#409eff';
-    };
-
-    // 计算总页数
     const totalPages = Math.ceil(total / pageSize);
 
+    const QUICK_TABS = [{ key: '', label: '全部' }, { key: '1', label: '待发货' }, { key: '2', label: '待收货' }, { key: '3', label: '待返款' }, { key: '4', label: '待确认' }, { key: '5', label: '已完成' }, { key: '6', label: '已超时' }];
+
     return (
-        <div style={{ minHeight: '100vh', background: '#f5f5f5', paddingBottom: '80px' }}>
-            {/* 顶部栏 */}
-            <div style={{
-                background: 'linear-gradient(135deg, #1d1d1f 0%, #2c2c2e 100%)',
-                padding: '50px 16px 20px',
-                color: '#fff'
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div onClick={() => router.back()} style={{ fontSize: '24px', cursor: 'pointer' }}>‹</div>
-                    <div style={{ fontSize: '18px', fontWeight: '600' }}>任务管理</div>
-                    <div
-                        onClick={() => setShowFilters(!showFilters)}
-                        style={{ fontSize: '14px', cursor: 'pointer', opacity: 0.8 }}
-                    >
-                        {showFilters ? '收起' : '筛选'}
+        <div className="min-h-screen bg-slate-50 pb-20">
+            {/* Header Area */}
+            <div className="sticky top-0 z-20 border-b border-slate-200 bg-white">
+                <div className="mx-auto max-w-md px-4">
+                    <div className="flex h-14 items-center">
+                        <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
+                        <h1 className="flex-1 text-base font-medium text-slate-800">任务管理</h1>
+                        <button onClick={() => setShowFilters(!showFilters)} className="text-sm text-blue-500">{showFilters ? '收起' : '筛选'}</button>
                     </div>
-                </div>
-
-                <div style={{
-                    marginTop: '16px',
-                    display: 'flex',
-                    gap: '8px'
-                }}>
-                    <input
-                        type="text"
-                        placeholder="请输入任务编号"
-                        value={indexorder}
-                        onChange={(e) => setIndexorder(e.target.value)}
-                        style={{
-                            flex: 1,
-                            padding: '10px 14px',
-                            borderRadius: '8px',
-                            border: 'none',
-                            fontSize: '14px',
-                            background: 'rgba(255,255,255,0.1)',
-                            color: '#fff',
-                            outline: 'none'
-                        }}
-                    />
-                    <button
-                        onClick={searchOrder}
-                        style={{
-                            padding: '10px 20px',
-                            borderRadius: '8px',
-                            border: 'none',
-                            background: '#ffd700',
-                            color: '#1d1d1f',
-                            fontWeight: '600',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        搜索
-                    </button>
+                    {/* Search */}
+                    <div className="flex gap-2 pb-3">
+                        <input type="text" placeholder="请输入任务编号" value={indexorder} onChange={(e) => setIndexorder(e.target.value)}
+                            className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400" />
+                        <button onClick={searchOrder} className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white">搜索</button>
+                    </div>
                 </div>
             </div>
 
-            {showFilters && (
-                <div style={{
-                    background: '#fff',
-                    padding: '16px',
-                    borderBottom: '1px solid #e5e5e5'
-                }}>
-                    {/* 第一行：任务状态 + 任务买号 */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                        <div>
-                            <div style={{ fontSize: '12px', color: '#86868b', marginBottom: '8px' }}>任务状态</div>
-                            <select
-                                value={value1}
-                                onChange={(e) => getChooseValue(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #e5e5e5',
-                                    fontSize: '14px'
-                                }}
-                            >
-                                {STATUS_OPTIONS.map(opt => (
-                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <div style={{ fontSize: '12px', color: '#86868b', marginBottom: '8px' }}>任务买号</div>
-                            <select
-                                value={value2}
-                                onChange={(e) => { setValue2(e.target.value); setCurrentPage(1); }}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #e5e5e5',
-                                    fontSize: '14px'
-                                }}
-                            >
-                                <option value="">全部买号</option>
-                                {buynos.map(b => (
-                                    <option key={b.id} value={b.id}>{b.wwid}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* 第二行：返款方式 + 任务类型 */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                        <div>
-                            <div style={{ fontSize: '12px', color: '#86868b', marginBottom: '8px' }}>返款方式</div>
-                            <select
-                                value={value4}
-                                onChange={(e) => { setValue4(e.target.value); setCurrentPage(1); }}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #e5e5e5',
-                                    fontSize: '14px'
-                                }}
-                            >
-                                {REFUND_TYPE_OPTIONS.map(opt => (
-                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <div style={{ fontSize: '12px', color: '#86868b', marginBottom: '8px' }}>任务类型</div>
-                            <select
-                                value={value3}
-                                onChange={(e) => { setValue3(e.target.value ? Number(e.target.value) : ''); setCurrentPage(1); }}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #e5e5e5',
-                                    fontSize: '14px'
-                                }}
-                            >
-                                {TASK_TYPE_OPTIONS.map(opt => (
-                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* 追评任务 */}
-                    <div style={{ marginBottom: '12px' }}>
-                        <div style={{ fontSize: '12px', color: '#86868b', marginBottom: '8px' }}>追评任务</div>
-                        <select
-                            value={value5}
-                            onChange={(e) => getZhuiPingValue(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '10px',
-                                borderRadius: '8px',
-                                border: '1px solid #e5e5e5',
-                                fontSize: '14px'
-                            }}
-                        >
-                            {REVIEW_STATUS_OPTIONS.map(opt => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div>
-                        <div style={{ fontSize: '12px', color: '#86868b', marginBottom: '8px' }}>任务起止时间</div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                            <input
-                                type="date"
-                                value={datetime1}
-                                onChange={(e) => {
-                                    setDatetime1(e.target.value);
-                                    setCurrentPage(1);
-                                }}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #e5e5e5',
-                                    fontSize: '14px'
-                                }}
-                            />
-                            <input
-                                type="date"
-                                value={datetime2}
-                                onChange={(e) => {
-                                    setDatetime2(e.target.value);
-                                    setCurrentPage(1);
-                                    getData(datetime1, e.target.value);
-                                }}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #e5e5e5',
-                                    fontSize: '14px'
-                                }}
-                            />
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* 快捷Tab切换 */}
-            <div style={{
-                background: '#fff',
-                display: 'flex',
-                overflowX: 'auto',
-                borderBottom: '1px solid #e5e5e5',
-                marginBottom: '10px'
-            }}>
-                {[
-                    { key: '', label: '全部' },
-                    { key: '1', label: '待发货' },
-                    { key: '2', label: '待收货' },
-                    { key: '3', label: '待返款' },
-                    { key: '4', label: '待确认' },
-                    { key: '5', label: '已完成' },
-                    { key: '6', label: '已超时' },
-                ].map((tab) => (
-                    <div
-                        key={tab.key}
-                        onClick={() => getChooseValue(tab.key)}
-                        style={{
-                            flex: 'none',
-                            padding: '12px 16px',
-                            fontSize: '13px',
-                            color: value1 === tab.key ? '#409eff' : '#666',
-                            borderBottom: value1 === tab.key ? '2px solid #409eff' : 'none',
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap'
-                        }}
-                    >
-                        {tab.label}
-                    </div>
-                ))}
-            </div>
-
-            {value1 === '4' && (
-                <div style={{
-                    background: '#fff',
-                    padding: '12px 16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    borderBottom: '1px solid #e5e5e5',
-                    marginBottom: '10px'
-                }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-                        <input
-                            type="checkbox"
-                            checked={selectAll}
-                            onChange={handleSelectAll}
-                            style={{ width: '18px', height: '18px' }}
-                        />
-                        全选
-                    </label>
-                    <button
-                        onClick={handleBatchConfirmRefund}
-                        disabled={selectedIds.length === 0}
-                        style={{
-                            padding: '8px 20px',
-                            borderRadius: '20px',
-                            border: 'none',
-                            background: selectedIds.length > 0 ? '#ff9500' : '#ccc',
-                            color: '#fff',
-                            fontWeight: '600',
-                            cursor: selectedIds.length > 0 ? 'pointer' : 'not-allowed'
-                        }}
-                    >
-                        确认返款 ({selectedIds.length})
-                    </button>
-                </div>
-            )}
-
-            <div style={{ padding: '0 12px' }}>
-                {loading ? (
-                    <div style={{ textAlign: 'center', padding: '40px', fontSize: '14px', color: '#999' }}>
-                        加载中...
-                    </div>
-                ) : orders.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '40px', fontSize: '14px', color: '#999' }}>
-                        暂无订单
-                    </div>
-                ) : (
-                    orders.map((order) => (
-                        <div key={order.id} style={{
-                            background: '#fff',
-                            borderRadius: '12px',
-                            marginBottom: '12px',
-                            overflow: 'hidden',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-                        }}>
-                            <div style={{
-                                padding: '12px 16px',
-                                borderBottom: '1px solid #f5f5f5',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between'
-                            }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    {value1 === '4' && (
-                                        <input
-                                            type="checkbox"
-                                            checked={order.checked || false}
-                                            onChange={() => handleSelectOrder(order.id)}
-                                            style={{ width: '18px', height: '18px' }}
-                                        />
-                                    )}
-                                    {order.shop_img ? (
-                                        <img
-                                            src={order.shop_img}
-                                            alt=""
-                                            style={{ width: '36px', height: '36px', borderRadius: '8px', objectFit: 'cover' }}
-                                        />
-                                    ) : (
-                                        <div style={{
-                                            width: '36px',
-                                            height: '36px',
-                                            borderRadius: '8px',
-                                            background: '#f5f5f5',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '18px'
-                                        }}>
-                                            🏪
-                                        </div>
-                                    )}
-                                    <div>
-                                        <div style={{ fontSize: '14px', fontWeight: '600', color: '#333' }}>
-                                            {order.type}店铺：{order.shop_name?.substring(0, 3)}...
-                                        </div>
-                                        <div style={{ fontSize: '11px', color: '#999' }}>
-                                            任务类型：{order.task_type}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div style={{
-                                    fontSize: '12px',
-                                    fontWeight: '600',
-                                    color: getStatusColor(order.state),
-                                    padding: '4px 10px',
-                                    background: `${getStatusColor(order.state)}15`,
-                                    borderRadius: '12px'
-                                }}>
-                                    {order.state}
-                                </div>
+            <div className="mx-auto max-w-md">
+                {/* Filters Panel */}
+                {showFilters && (
+                    <div className="border-b border-slate-200 bg-white px-4 py-4">
+                        <div className="mb-3 grid grid-cols-2 gap-3">
+                            <div>
+                                <div className="mb-1 text-xs text-slate-500">任务状态</div>
+                                <select value={value1} onChange={(e) => getChooseValue(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                                    {STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                </select>
                             </div>
-
-                            <div style={{ padding: '12px 16px' }}>
-                                <div style={{ fontSize: '12px', color: '#999', marginBottom: '8px' }}>
-                                    任务编号：{order.task_number}
-                                </div>
-                                <div style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: '1fr 1fr',
-                                    gap: '8px',
-                                    fontSize: '13px',
-                                    color: '#666'
-                                }}>
-                                    <div>买号：<span style={{ color: '#333' }}>{order.wwid}</span></div>
-                                    <div>
-                                        佣金：<span style={{ color: '#07c160', fontWeight: '600' }}>
-                                            {order.commission}+{order.user_divided}银锭
-                                        </span>
-                                    </div>
-                                    <div>
-                                        垫付资金：<span style={{ color: '#409eff', fontWeight: '600' }}>¥{order.user_principal}</span>
-                                    </div>
-                                    <div style={{ fontSize: '12px', color: '#999' }}>
-                                        {order.create_time}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div style={{
-                                padding: '12px 16px',
-                                borderTop: '1px solid #f5f5f5',
-                                display: 'flex',
-                                justifyContent: 'flex-end',
-                                alignItems: 'center',
-                                gap: '8px'
-                            }}>
-                                {/* 默认按钮 - 当没有筛选时显示 */}
-                                {!value5 && !value1 && (
-                                    <button
-                                        onClick={() => defaultBtnClick(order.index_state, order.id)}
-                                        style={{
-                                            padding: '6px 16px',
-                                            borderRadius: '16px',
-                                            border: 'none',
-                                            background: '#ff9500',
-                                            color: '#fff',
-                                            fontSize: '12px',
-                                            fontWeight: '600',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        {defaultBtn(order.index_state)}
-                                    </button>
-                                )}
-
-                                {/* 根据条件渲染的按钮 */}
-                                {(value5 || value1) && (
-                                    <button
-                                        onClick={() => value5 ? chooseTiao2(order.review_task_id || '') : chooseTiao(order.id)}
-                                        style={{
-                                            padding: '6px 16px',
-                                            borderRadius: '16px',
-                                            border: 'none',
-                                            background: '#ff9500',
-                                            color: '#fff',
-                                            fontSize: '12px',
-                                            fontWeight: '600',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        {buttonvalue}
-                                    </button>
-                                )}
-
-                                {/* 去追评按钮 - 当 value5 === '1' 时显示 */}
-                                {value5 === '1' && order.review_task_id && (
-                                    <button
-                                        onClick={() => goZhuiPin(order.review_task_id!)}
-                                        style={{
-                                            padding: '6px 16px',
-                                            borderRadius: '16px',
-                                            border: 'none',
-                                            background: '#409eff',
-                                            color: '#fff',
-                                            fontSize: '12px',
-                                            fontWeight: '600',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        {buttonvalue2}
-                                    </button>
-                                )}
+                            <div>
+                                <div className="mb-1 text-xs text-slate-500">任务买号</div>
+                                <select value={value2} onChange={(e) => { setValue2(e.target.value); setCurrentPage(1); }} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                                    <option value="">全部买号</option>
+                                    {buynos.map(b => <option key={b.id} value={b.id}>{b.wwid}</option>)}
+                                </select>
                             </div>
                         </div>
-                    ))
+                        <div className="mb-3 grid grid-cols-2 gap-3">
+                            <div>
+                                <div className="mb-1 text-xs text-slate-500">返款方式</div>
+                                <select value={value4} onChange={(e) => { setValue4(e.target.value); setCurrentPage(1); }} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                                    {REFUND_TYPE_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <div className="mb-1 text-xs text-slate-500">任务类型</div>
+                                <select value={value3} onChange={(e) => { setValue3(e.target.value ? Number(e.target.value) : ''); setCurrentPage(1); }} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                                    {TASK_TYPE_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                </select>
+                            </div>
+                        </div>
+                        <div className="mb-3">
+                            <div className="mb-1 text-xs text-slate-500">追评任务</div>
+                            <select value={value5} onChange={(e) => getZhuiPingValue(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                                {REVIEW_STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <div className="mb-1 text-xs text-slate-500">任务起止时间</div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <input type="date" value={datetime1} onChange={(e) => { setDatetime1(e.target.value); setCurrentPage(1); }} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700" />
+                                <input type="date" value={datetime2} onChange={(e) => { setDatetime2(e.target.value); setCurrentPage(1); getData(datetime1, e.target.value); }} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700" />
+                            </div>
+                        </div>
+                    </div>
                 )}
-            </div>
 
-            {!loading && orders.length > 0 && (
-                <div style={{
-                    padding: '20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '10px'
-                }}>
-                    <div style={{ fontSize: '12px', color: '#999' }}>
-                        共 {total} 条
+                {/* Quick Tabs */}
+                <div className="flex overflow-x-auto border-b border-slate-200 bg-white">
+                    {QUICK_TABS.map(tab => (
+                        <button key={tab.key} onClick={() => getChooseValue(tab.key)}
+                            className={cn('flex-none whitespace-nowrap px-4 py-3 text-sm font-medium', value1 === tab.key ? 'border-b-2 border-blue-500 text-blue-500' : 'text-slate-500')}>
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Batch Select (when value1 === '4') */}
+                {value1 === '4' && (
+                    <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
+                        <label className="flex items-center gap-2 text-sm text-slate-600">
+                            <input type="checkbox" checked={selectAll} onChange={handleSelectAll} className="h-4 w-4 rounded border-slate-300" /> 全选
+                        </label>
+                        <button onClick={handleBatchConfirmRefund} disabled={selectedIds.length === 0}
+                            className={cn('rounded-full px-4 py-1.5 text-sm font-medium text-white', selectedIds.length > 0 ? 'bg-amber-500' : 'cursor-not-allowed bg-slate-300')}>
+                            确认返款 ({selectedIds.length})
+                        </button>
                     </div>
-                    {totalPages > 1 && (
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                            <button
-                                onClick={() => pageChange(Math.max(1, currentPage - 1))}
-                                disabled={currentPage === 1}
-                                style={{
-                                    padding: '8px 12px',
-                                    borderRadius: '6px',
-                                    border: '1px solid #e5e5e5',
-                                    background: currentPage === 1 ? '#f5f5f5' : '#fff',
-                                    color: currentPage === 1 ? '#999' : '#333',
-                                    fontSize: '14px',
-                                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
-                                }}
-                            >
-                                上一页
-                            </button>
-                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                let pageNum: number;
-                                if (totalPages <= 5) {
-                                    pageNum = i + 1;
-                                } else if (currentPage <= 3) {
-                                    pageNum = i + 1;
-                                } else if (currentPage >= totalPages - 2) {
-                                    pageNum = totalPages - 4 + i;
-                                } else {
-                                    pageNum = currentPage - 2 + i;
-                                }
-                                return (
-                                    <button
-                                        key={pageNum}
-                                        onClick={() => pageChange(pageNum)}
-                                        style={{
-                                            padding: '8px 12px',
-                                            borderRadius: '6px',
-                                            border: currentPage === pageNum ? 'none' : '1px solid #e5e5e5',
-                                            background: currentPage === pageNum ? '#409eff' : '#fff',
-                                            color: currentPage === pageNum ? '#fff' : '#333',
-                                            fontSize: '14px',
-                                            cursor: 'pointer',
-                                            minWidth: '36px'
-                                        }}
-                                    >
-                                        {pageNum}
-                                    </button>
-                                );
-                            })}
-                            <button
-                                onClick={() => pageChange(Math.min(totalPages, currentPage + 1))}
-                                disabled={currentPage === totalPages}
-                                style={{
-                                    padding: '8px 12px',
-                                    borderRadius: '6px',
-                                    border: '1px solid #e5e5e5',
-                                    background: currentPage === totalPages ? '#f5f5f5' : '#fff',
-                                    color: currentPage === totalPages ? '#999' : '#333',
-                                    fontSize: '14px',
-                                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
-                                }}
-                            >
-                                下一页
-                            </button>
+                )}
+
+                {/* Order List */}
+                <div className="mt-4 space-y-3 px-4">
+                    {loading ? (
+                        <div className="rounded-xl bg-white py-12 text-center text-slate-400">加载中...</div>
+                    ) : orders.length === 0 ? (
+                        <div className="rounded-xl border border-slate-200 bg-white py-12 text-center shadow-sm">
+                            <div className="mb-3 text-4xl">📦</div>
+                            <div className="text-sm text-slate-400">暂无订单</div>
                         </div>
+                    ) : (
+                        orders.map((order) => (
+                            <div key={order.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                                {/* Order Header */}
+                                <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                                    <div className="flex items-center gap-3">
+                                        {value1 === '4' && <input type="checkbox" checked={order.checked || false} onChange={() => handleSelectOrder(order.id)} className="h-4 w-4 rounded border-slate-300" />}
+                                        {order.shop_img ? <img src={order.shop_img} alt="" className="h-9 w-9 rounded-lg object-cover" /> : <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-lg">🏪</div>}
+                                        <div>
+                                            <div className="text-sm font-medium text-slate-800">{order.type}店铺：{order.shop_name?.substring(0, 3)}...</div>
+                                            <div className="text-xs text-slate-400">任务类型：{order.task_type}</div>
+                                        </div>
+                                    </div>
+                                    <span className={cn('rounded-full px-2.5 py-1 text-xs font-medium', getStatusColor(order.state))}>{order.state}</span>
+                                </div>
+                                {/* Order Body */}
+                                <div className="px-4 py-3">
+                                    <div className="mb-2 text-xs text-slate-400">任务编号：{order.task_number}</div>
+                                    <div className="grid grid-cols-2 gap-1 text-sm">
+                                        <div className="text-slate-500">买号：<span className="text-slate-700">{order.wwid}</span></div>
+                                        <div className="text-slate-500">佣金：<span className="font-medium text-green-500">{order.commission}+{order.user_divided}银锭</span></div>
+                                        <div className="text-slate-500">垫付资金：<span className="font-medium text-blue-500">¥{order.user_principal}</span></div>
+                                        <div className="text-xs text-slate-400">{order.create_time}</div>
+                                    </div>
+                                </div>
+                                {/* Order Footer */}
+                                <div className="flex justify-end gap-2 border-t border-slate-100 px-4 py-3">
+                                    {!value5 && !value1 && <button onClick={() => defaultBtnClick(order.index_state, order.id)} className="rounded-full bg-amber-500 px-4 py-1.5 text-xs font-medium text-white">{defaultBtn(order.index_state)}</button>}
+                                    {(value5 || value1) && <button onClick={() => value5 ? chooseTiao2(order.review_task_id || '') : chooseTiao(order.id)} className="rounded-full bg-amber-500 px-4 py-1.5 text-xs font-medium text-white">{buttonvalue}</button>}
+                                    {value5 === '1' && order.review_task_id && <button onClick={() => goZhuiPin(order.review_task_id!)} className="rounded-full bg-blue-500 px-4 py-1.5 text-xs font-medium text-white">{buttonvalue2}</button>}
+                                </div>
+                            </div>
+                        ))
                     )}
                 </div>
-            )}
+
+                {/* Pagination */}
+                {!loading && orders.length > 0 && (
+                    <div className="mt-4 text-center">
+                        <div className="mb-2 text-xs text-slate-400">共 {total} 条</div>
+                        {totalPages > 1 && (
+                            <div className="flex justify-center gap-2">
+                                <button onClick={() => setCurrentPage(Math.max(1, currentPage - 1))} disabled={currentPage === 1}
+                                    className={cn('rounded-lg border px-3 py-1.5 text-sm', currentPage === 1 ? 'border-slate-200 bg-slate-100 text-slate-400' : 'border-slate-200 bg-white text-slate-700')}>上一页</button>
+                                <span className="px-3 py-1.5 text-sm text-slate-500">{currentPage} / {totalPages}</span>
+                                <button onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages}
+                                    className={cn('rounded-lg border px-3 py-1.5 text-sm', currentPage === totalPages ? 'border-slate-200 bg-slate-100 text-slate-400' : 'border-slate-200 bg-white text-slate-700')}>下一页</button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
 
             <BottomNav />
         </div>
     );
 }
 
-// 导出的主组件，使用 Suspense 包装
 export default function OrdersPage() {
     return (
-        <Suspense fallback={
-            <div style={{
-                minHeight: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: '#f5f5f7'
-            }}>
-                <div style={{ color: '#86868b', fontSize: '14px' }}>加载中...</div>
-            </div>
-        }>
+        <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-slate-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" /></div>}>
             <OrdersPageContent />
         </Suspense>
     );

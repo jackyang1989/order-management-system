@@ -2,19 +2,16 @@
 
 import { cn } from '../lib/utils';
 
-interface ProfileContainerProps {
-    children: React.ReactNode;
-    className?: string;
-}
-
 /**
- * ProfileContainer - Mobile container with consistent padding
- * Full width on mobile, content centered with proper padding
+ * ProfileContainer - Mobile container with consistent width and spacing
+ * Fixed max-width on larger screens, full width on mobile
  */
-export function ProfileContainer({ children, className }: ProfileContainerProps) {
+export default function ProfileContainer({ children, className = "" }: { children: React.ReactNode, className?: string }) {
     return (
-        <div className={cn('w-full px-4', className)}>
-            {children}
-        </div>
+        <main className={cn("min-h-screen bg-slate-50 pb-20", className)}>
+            <div className="mx-auto w-full max-w-md px-4">
+                {children}
+            </div>
+        </main>
     );
 }

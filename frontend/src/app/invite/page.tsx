@@ -76,137 +76,141 @@ export default function InvitePage() {
     return (
         <div className="min-h-screen bg-slate-50 pb-4">
             {/* Header */}
-            <header className="sticky top-0 z-10 flex h-14 items-center border-b border-slate-200 bg-white px-4">
-                <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
-                <h1 className="flex-1 text-base font-medium text-slate-800">邀请好友</h1>
+            <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
+                <div className="mx-auto flex h-14 max-w-md items-center px-4">
+                    <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
+                    <h1 className="flex-1 text-base font-medium text-slate-800">邀请好友</h1>
+                </div>
             </header>
 
-            {/* Stats Card */}
-            <div className="mx-4 mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
-                    <div className="text-2xl font-bold text-slate-800">{stats.totalInvited}</div>
-                    <div className="mt-1 text-xs text-slate-400">累计邀请(人)</div>
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
-                    <div className="text-2xl font-bold text-amber-500">{stats.totalReward}</div>
-                    <div className="mt-1 text-xs text-slate-400">累计奖励(银锭)</div>
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
-                    <div className="text-2xl font-bold text-slate-800">{stats.todayInvited}</div>
-                    <div className="mt-1 text-xs text-slate-400">今日邀请(人)</div>
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
-                    <div className="text-2xl font-bold text-amber-500">{stats.todayReward}</div>
-                    <div className="mt-1 text-xs text-slate-400">今日奖励(银锭)</div>
-                </div>
-            </div>
-
-            {/* Tabs */}
-            <div className="mx-4 mt-4 flex border-b border-slate-200 bg-white rounded-t-xl overflow-hidden">
-                {tabs.map(tab => (
-                    <button key={tab.key} onClick={() => setActiveTab(tab.key as 'invite' | 'records' | 'tasks')}
-                        className={cn('flex-1 py-3 text-center text-sm font-medium', activeTab === tab.key ? 'border-b-2 border-blue-500 text-blue-500' : 'text-slate-500')}>
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
-
-            {/* Content */}
-            <div className="mx-4 rounded-b-xl border border-t-0 border-slate-200 bg-white p-4 shadow-sm">
-                {activeTab === 'invite' && (
-                    <div className="space-y-4">
-                        <div className="text-sm text-slate-600 leading-relaxed">
-                            复制您的 <span className="font-bold text-blue-500">专属邀请链接</span>，邀请好友成功注册后，好友完成任务您即可获得邀请奖励！
-                        </div>
-                        <div>
-                            <div className="mb-2 text-sm font-medium text-slate-700">买手邀请链接</div>
-                            <div className="flex gap-2">
-                                <input type="text" value={inviteLink} readOnly className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600" />
-                                <button onClick={handleCopyLink} className={cn('whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium text-white', copied ? 'bg-green-500' : 'bg-blue-500')}>
-                                    {copied ? '已复制' : '复制链接'}
-                                </button>
-                            </div>
-                            <div className="mt-2 text-xs text-slate-400">邀请码：<span className="font-medium text-blue-500">{inviteCode}</span></div>
-                        </div>
-                        <div className="rounded-lg bg-amber-50 p-3">
-                            <div className="mb-2 flex items-center gap-1 text-sm font-medium text-amber-600">⚠️ 请注意</div>
-                            <div className="space-y-1 text-xs text-slate-600 leading-relaxed">
-                                <p>1. 邀请链接只能发布于聊天工具中（微信、QQ等），禁止推广于外部网站。</p>
-                                <p>2. 邀请好友只能是朋友、亲戚、同事等熟人，不可向陌生人发送链接。</p>
-                                <p>3. 严禁自己邀请自己获取奖励，一经发现将永久封号。</p>
-                            </div>
-                        </div>
-                        <div>
-                            <div className="mb-2 text-sm font-medium text-slate-700">🎁 邀请奖励</div>
-                            <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-600 leading-relaxed">
-                                <p>• 邀请好友每完成一单任务（完结后），您可获得 <span className="font-bold text-red-500">1</span> 银锭奖励</p>
-                                <p>• 每邀请一个好友可获得奖励上限 <span className="font-bold text-red-500">1000</span> 银锭</p>
-                            </div>
-                            <div className="mt-2 text-xs text-slate-400">注：奖励由平台承担，不会扣除好友的任务佣金</div>
-                        </div>
+            <div className="mx-auto max-w-md">
+                {/* Stats Card */}
+                <div className="mx-4 mt-4 grid grid-cols-2 gap-3">
+                    <div className="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
+                        <div className="text-2xl font-bold text-slate-800">{stats.totalInvited}</div>
+                        <div className="mt-1 text-xs text-slate-400">累计邀请(人)</div>
                     </div>
-                )}
-
-                {activeTab === 'records' && (
-                    <div>
-                        {records.length === 0 ? (
-                            <div className="py-12 text-center">
-                                <div className="mb-3 text-4xl">👥</div>
-                                <div className="text-sm text-slate-400">暂无邀请记录</div>
-                            </div>
-                        ) : (
-                            <div className="divide-y divide-slate-100">
-                                {records.map(record => (
-                                    <div key={record.id} className="py-3">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-base">👤</div>
-                                                <span className="font-medium text-slate-800">{record.username}</span>
-                                            </div>
-                                            <span className="font-medium text-blue-500">+{record.reward} 银锭</span>
-                                        </div>
-                                        <div className="mt-1 ml-12 text-xs text-slate-400">
-                                            <div>注册时间：{record.registerTime}</div>
-                                            <div>已完成任务：{record.completedTasks} 单</div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                    <div className="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
+                        <div className="text-2xl font-bold text-amber-500">{stats.totalReward}</div>
+                        <div className="mt-1 text-xs text-slate-400">累计奖励(银锭)</div>
                     </div>
-                )}
+                    <div className="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
+                        <div className="text-2xl font-bold text-slate-800">{stats.todayInvited}</div>
+                        <div className="mt-1 text-xs text-slate-400">今日邀请(人)</div>
+                    </div>
+                    <div className="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
+                        <div className="text-2xl font-bold text-amber-500">{stats.todayReward}</div>
+                        <div className="mt-1 text-xs text-slate-400">今日奖励(银锭)</div>
+                    </div>
+                </div>
 
-                {activeTab === 'tasks' && (
-                    <div>
-                        {recommendedTasks.length === 0 ? (
-                            <div className="py-12 text-center">
-                                <div className="mb-3 text-4xl">📋</div>
-                                <div className="text-sm text-slate-400">暂无推荐任务记录</div>
+                {/* Tabs */}
+                <div className="mx-4 mt-4 flex border-b border-slate-200 bg-white rounded-t-xl overflow-hidden">
+                    {tabs.map(tab => (
+                        <button key={tab.key} onClick={() => setActiveTab(tab.key as 'invite' | 'records' | 'tasks')}
+                            className={cn('flex-1 py-3 text-center text-sm font-medium', activeTab === tab.key ? 'border-b-2 border-blue-500 text-blue-500' : 'text-slate-500')}>
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Content */}
+                <div className="mx-4 rounded-b-xl border border-t-0 border-slate-200 bg-white p-4 shadow-sm">
+                    {activeTab === 'invite' && (
+                        <div className="space-y-4">
+                            <div className="text-sm text-slate-600 leading-relaxed">
+                                复制您的 <span className="font-bold text-blue-500">专属邀请链接</span>，邀请好友成功注册后，好友完成任务您即可获得邀请奖励！
                             </div>
-                        ) : (
-                            <div className="divide-y divide-slate-100">
-                                {recommendedTasks.map(task => (
-                                    <div key={task.id} className="py-3">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-base">✅</div>
-                                                <div>
-                                                    <div className="font-medium text-slate-800">{task.username}</div>
-                                                    <div className="text-xs text-slate-400">{task.taskTitle}</div>
+                            <div>
+                                <div className="mb-2 text-sm font-medium text-slate-700">买手邀请链接</div>
+                                <div className="flex gap-2">
+                                    <input type="text" value={inviteLink} readOnly className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600" />
+                                    <button onClick={handleCopyLink} className={cn('whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium text-white', copied ? 'bg-green-500' : 'bg-blue-500')}>
+                                        {copied ? '已复制' : '复制链接'}
+                                    </button>
+                                </div>
+                                <div className="mt-2 text-xs text-slate-400">邀请码：<span className="font-medium text-blue-500">{inviteCode}</span></div>
+                            </div>
+                            <div className="rounded-lg bg-amber-50 p-3">
+                                <div className="mb-2 flex items-center gap-1 text-sm font-medium text-amber-600">⚠️ 请注意</div>
+                                <div className="space-y-1 text-xs text-slate-600 leading-relaxed">
+                                    <p>1. 邀请链接只能发布于聊天工具中（微信、QQ等），禁止推广于外部网站。</p>
+                                    <p>2. 邀请好友只能是朋友、亲戚、同事等熟人，不可向陌生人发送链接。</p>
+                                    <p>3. 严禁自己邀请自己获取奖励，一经发现将永久封号。</p>
+                                </div>
+                            </div>
+                            <div>
+                                <div className="mb-2 text-sm font-medium text-slate-700">🎁 邀请奖励</div>
+                                <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-600 leading-relaxed">
+                                    <p>• 邀请好友每完成一单任务（完结后），您可获得 <span className="font-bold text-red-500">1</span> 银锭奖励</p>
+                                    <p>• 每邀请一个好友可获得奖励上限 <span className="font-bold text-red-500">1000</span> 银锭</p>
+                                </div>
+                                <div className="mt-2 text-xs text-slate-400">注：奖励由平台承担，不会扣除好友的任务佣金</div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'records' && (
+                        <div>
+                            {records.length === 0 ? (
+                                <div className="py-12 text-center">
+                                    <div className="mb-3 text-4xl">👥</div>
+                                    <div className="text-sm text-slate-400">暂无邀请记录</div>
+                                </div>
+                            ) : (
+                                <div className="divide-y divide-slate-100">
+                                    {records.map(record => (
+                                        <div key={record.id} className="py-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-base">👤</div>
+                                                    <span className="font-medium text-slate-800">{record.username}</span>
                                                 </div>
+                                                <span className="font-medium text-blue-500">+{record.reward} 银锭</span>
                                             </div>
-                                            <span className="font-medium text-green-500">+{task.commissionAmount} 银锭</span>
+                                            <div className="mt-1 ml-12 text-xs text-slate-400">
+                                                <div>注册时间：{record.registerTime}</div>
+                                                <div>已完成任务：{record.completedTasks} 单</div>
+                                            </div>
                                         </div>
-                                        <div className="mt-1 ml-12 text-xs text-slate-400">
-                                            <div>完成时间：{task.completedAt ? new Date(task.completedAt).toLocaleString('zh-CN') : '-'}</div>
-                                            <div>所属月份：{task.month}</div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {activeTab === 'tasks' && (
+                        <div>
+                            {recommendedTasks.length === 0 ? (
+                                <div className="py-12 text-center">
+                                    <div className="mb-3 text-4xl">📋</div>
+                                    <div className="text-sm text-slate-400">暂无推荐任务记录</div>
+                                </div>
+                            ) : (
+                                <div className="divide-y divide-slate-100">
+                                    {recommendedTasks.map(task => (
+                                        <div key={task.id} className="py-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-base">✅</div>
+                                                    <div>
+                                                        <div className="font-medium text-slate-800">{task.username}</div>
+                                                        <div className="text-xs text-slate-400">{task.taskTitle}</div>
+                                                    </div>
+                                                </div>
+                                                <span className="font-medium text-green-500">+{task.commissionAmount} 银锭</span>
+                                            </div>
+                                            <div className="mt-1 ml-12 text-xs text-slate-400">
+                                                <div>完成时间：{task.completedAt ? new Date(task.completedAt).toLocaleString('zh-CN') : '-'}</div>
+                                                <div>所属月份：{task.month}</div>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

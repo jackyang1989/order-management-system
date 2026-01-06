@@ -94,84 +94,88 @@ export default function TasksPage() {
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
             {/* Header */}
-            <header className="sticky top-0 z-10 flex h-14 items-center border-b border-slate-200 bg-white px-4">
-                <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
-                <h1 className="flex-1 text-base font-medium text-slate-800">任务大厅</h1>
+            <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
+                <div className="mx-auto flex h-14 max-w-md items-center px-4">
+                    <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
+                    <h1 className="flex-1 text-base font-medium text-slate-800">任务大厅</h1>
+                </div>
             </header>
 
-            {/* Filters */}
-            <div className="mx-4 mt-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="mb-3">
-                    <div className="mb-1.5 text-xs text-slate-500">选择买号</div>
-                    <select value={value2} onChange={(e) => selectChange(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
-                        <option value="">请选择买号</option>
-                        {buynos.map(b => <option key={b.id} value={b.id}>{b.wwid}</option>)}
-                    </select>
-                    {op2count && <div className="mt-1.5 text-xs text-amber-500">今日可接 {op2count} 单</div>}
-                </div>
-                <div className="mb-3">
-                    <div className="mb-1.5 text-xs text-slate-500">返款方式</div>
-                    <select value={value4} onChange={(e) => setValue4(e.target.value ? Number(e.target.value) : '')} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
-                        <option value="">请选择</option>
-                        {TERMINAL_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                    </select>
-                </div>
-                <div className="mb-3">
-                    <div className="mb-1.5 text-xs text-slate-500">任务类型</div>
-                    <select value={value3} onChange={(e) => { setValue3(e.target.value ? Number(e.target.value) : ''); setCurrentPage(1); }} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
-                        {TASK_TYPE_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                    </select>
-                </div>
-                <div className="mb-3">
-                    <div className="mb-1.5 text-xs text-slate-500">任务价格</div>
-                    <select value={value5} onChange={(e) => { setValue5(e.target.value ? Number(e.target.value) : ''); setCurrentPage(1); }} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
-                        {PRICE_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                    </select>
-                </div>
-                <div className="rounded-lg bg-amber-50 p-3 text-xs text-amber-600">当日只可以接同一个商家的1单任务</div>
-            </div>
-
-            {/* Task List */}
-            <div className="mx-4 mt-4 space-y-3">
-                {loading ? (
-                    <div className="rounded-xl bg-white py-12 text-center text-slate-400">加载中...</div>
-                ) : tasks.length === 0 ? (
-                    <div className="rounded-xl border border-slate-200 bg-white py-12 text-center shadow-sm">
-                        <div className="mb-3 text-4xl">📋</div>
-                        <div className="text-sm text-slate-400">暂无数据</div>
+            <div className="mx-auto max-w-md">
+                {/* Filters */}
+                <div className="mx-4 mt-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="mb-3">
+                        <div className="mb-1.5 text-xs text-slate-500">选择买号</div>
+                        <select value={value2} onChange={(e) => selectChange(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
+                            <option value="">请选择买号</option>
+                            {buynos.map(b => <option key={b.id} value={b.id}>{b.wwid}</option>)}
+                        </select>
+                        {op2count && <div className="mt-1.5 text-xs text-amber-500">今日可接 {op2count} 单</div>}
                     </div>
-                ) : (
-                    tasks.map((task, index) => (
-                        <div key={task.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                            <div className="mb-2 flex justify-between text-sm text-slate-500">
-                                <span>ID：<span className="text-slate-700">{task.rand_num}</span></span>
-                                <span>商家：<span className="text-slate-700">{task.seller_name?.substring(0, 4)}...</span></span>
-                            </div>
-                            <div className="mb-3 flex justify-between text-sm text-slate-500">
-                                <span>垫付资金：<span className="font-medium text-blue-500">¥{task.total_price}</span></span>
-                                <span>佣金：<span className="font-medium text-green-500">{task.user_reward}+{(task.user_divided / task.num).toFixed(2)}</span></span>
-                            </div>
-                            <button onClick={() => addTask(index)} className="w-full rounded-lg bg-green-500 py-2.5 text-sm font-medium text-white">添加任务单</button>
-                        </div>
-                    ))
-                )}
-            </div>
+                    <div className="mb-3">
+                        <div className="mb-1.5 text-xs text-slate-500">返款方式</div>
+                        <select value={value4} onChange={(e) => setValue4(e.target.value ? Number(e.target.value) : '')} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
+                            <option value="">请选择</option>
+                            {TERMINAL_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                        </select>
+                    </div>
+                    <div className="mb-3">
+                        <div className="mb-1.5 text-xs text-slate-500">任务类型</div>
+                        <select value={value3} onChange={(e) => { setValue3(e.target.value ? Number(e.target.value) : ''); setCurrentPage(1); }} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
+                            {TASK_TYPE_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                        </select>
+                    </div>
+                    <div className="mb-3">
+                        <div className="mb-1.5 text-xs text-slate-500">任务价格</div>
+                        <select value={value5} onChange={(e) => { setValue5(e.target.value ? Number(e.target.value) : ''); setCurrentPage(1); }} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
+                            {PRICE_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                        </select>
+                    </div>
+                    <div className="rounded-lg bg-amber-50 p-3 text-xs text-amber-600">当日只可以接同一个商家的1单任务</div>
+                </div>
 
-            {/* Pagination */}
-            {!loading && tasks.length > 0 && (
-                <div className="mt-4 text-center">
-                    <div className="mb-2 text-xs text-slate-400">共 {total} 条</div>
-                    {totalPages > 1 && (
-                        <div className="flex justify-center gap-2">
-                            <button onClick={() => setCurrentPage(Math.max(1, currentPage - 1))} disabled={currentPage === 1}
-                                className={cn('rounded-lg border px-3 py-1.5 text-sm', currentPage === 1 ? 'border-slate-200 bg-slate-100 text-slate-400' : 'border-slate-200 bg-white text-slate-700')}>上一页</button>
-                            <span className="px-3 py-1.5 text-sm text-slate-500">{currentPage} / {totalPages}</span>
-                            <button onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages}
-                                className={cn('rounded-lg border px-3 py-1.5 text-sm', currentPage === totalPages ? 'border-slate-200 bg-slate-100 text-slate-400' : 'border-slate-200 bg-white text-slate-700')}>下一页</button>
+                {/* Task List */}
+                <div className="mt-4 space-y-3 px-4">
+                    {loading ? (
+                        <div className="rounded-xl bg-white py-12 text-center text-slate-400">加载中...</div>
+                    ) : tasks.length === 0 ? (
+                        <div className="rounded-xl border border-slate-200 bg-white py-12 text-center shadow-sm">
+                            <div className="mb-3 text-4xl">📋</div>
+                            <div className="text-sm text-slate-400">暂无数据</div>
                         </div>
+                    ) : (
+                        tasks.map((task, index) => (
+                            <div key={task.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                                <div className="mb-2 flex justify-between text-sm text-slate-500">
+                                    <span>ID：<span className="text-slate-700">{task.rand_num}</span></span>
+                                    <span>商家：<span className="text-slate-700">{task.seller_name?.substring(0, 4)}...</span></span>
+                                </div>
+                                <div className="mb-3 flex justify-between text-sm text-slate-500">
+                                    <span>垫付资金：<span className="font-medium text-blue-500">¥{task.total_price}</span></span>
+                                    <span>佣金：<span className="font-medium text-green-500">{task.user_reward}+{(task.user_divided / task.num).toFixed(2)}</span></span>
+                                </div>
+                                <button onClick={() => addTask(index)} className="w-full rounded-lg bg-green-500 py-2.5 text-sm font-medium text-white">添加任务单</button>
+                            </div>
+                        ))
                     )}
                 </div>
-            )}
+
+                {/* Pagination */}
+                {!loading && tasks.length > 0 && (
+                    <div className="mt-4 text-center pb-4">
+                        <div className="mb-2 text-xs text-slate-400">共 {total} 条</div>
+                        {totalPages > 1 && (
+                            <div className="flex justify-center gap-2">
+                                <button onClick={() => setCurrentPage(Math.max(1, currentPage - 1))} disabled={currentPage === 1}
+                                    className={cn('rounded-lg border px-3 py-1.5 text-sm', currentPage === 1 ? 'border-slate-200 bg-slate-100 text-slate-400' : 'border-slate-200 bg-white text-slate-700')}>上一页</button>
+                                <span className="px-3 py-1.5 text-sm text-slate-500">{currentPage} / {totalPages}</span>
+                                <button onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages}
+                                    className={cn('rounded-lg border px-3 py-1.5 text-sm', currentPage === totalPages ? 'border-slate-200 bg-slate-100 text-slate-400' : 'border-slate-200 bg-white text-slate-700')}>下一页</button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
 
             <BottomNav />
         </div>
