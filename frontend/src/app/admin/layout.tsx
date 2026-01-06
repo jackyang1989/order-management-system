@@ -2,40 +2,18 @@
 
 import { useState, useEffect, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Layout, Menu, Avatar, Dropdown, Button, theme } from 'antd';
-import {
-    DashboardOutlined,
-    UserOutlined,
-    ShopOutlined,
-    FileTextOutlined,
-    ShoppingOutlined,
-    DollarOutlined,
-    NotificationOutlined,
-    SettingOutlined,
-    LockOutlined,
-    ToolOutlined,
-    LogoutOutlined,
-    MenuFoldOutlined,
-    MenuUnfoldOutlined,
-} from '@ant-design/icons';
-import type { MenuProps } from 'antd';
-
-const { Header, Sider, Content } = Layout;
+import { cn } from '../../lib/utils';
 
 interface AdminLayoutProps {
     children: ReactNode;
 }
 
-type MenuItem = Required<MenuProps>['items'][number];
-
-function getItem(
-    label: React.ReactNode,
-    key: string,
-    icon?: React.ReactNode,
-    children?: MenuItem[],
-): MenuItem {
-    return { key, icon, children, label } as MenuItem;
-}
+type MenuItem = {
+    key: string;
+    label: string;
+    icon?: string;
+    children?: MenuItem[];
+};
 
 const menuItems: MenuItem[] = [
     getItem('仪表盘', '/admin/dashboard', <DashboardOutlined />),
