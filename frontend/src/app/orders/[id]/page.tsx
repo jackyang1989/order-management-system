@@ -5,53 +5,45 @@ import { useRouter } from 'next/navigation';
 import { isAuthenticated, getToken } from '../../../services/authService';
 import BottomNav from '../../../components/BottomNav';
 
-// ========================
-
-// 完整的任务详情页面
-// ========================
-
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
-
 interface TaskData {
-    maiHao: string;           // 买号
-    type: string;             // 任务类型
-    zhongDuan: string;        // 返款方式
-    benJin: string;           // 垫付金额
-    yongJin: string;          // 佣金
-    user_divided: string;     // 银锭分成
-    money: string;            // 返款金额
-    dianPu: string;           // 店铺名称
-    taskNum: string;          // 任务编号
-    time: string;             // 创建时间
-    taskType: string;         // 任务状态
-    delType: string;          // 取消原因
-    goods_price: string;      // 任务金额
-    seller_name: string;      // 商家用户名
+    maiHao: string;
+    type: string;
+    zhongDuan: string;
+    benJin: string;
+    yongJin: string;
+    user_divided: string;
+    money: string;
+    dianPu: string;
+    taskNum: string;
+    time: string;
+    taskType: string;
+    delType: string;
+    goods_price: string;
+    seller_name: string;
 }
-
 
 interface TaskData2 {
-    img: string;              // 关键词截图 keywordimg
-    img2: string;             // 聊天截图 chatimg
-    zhiFu: string;            // 支付状态
-    order: string;            // 订单编号 table_order_id
-    style: string;            // 快递方式 delivery
-    num: string;              // 快递单号 delivery_num
-    type1: string;            // 当前状态 state
-    time: string;             // 更新时间
-    step_two_complete: string;   // 第二步完成时间
-    upload_order_time: string;   // 上传订单时间
-    delivery_time: string;       // 发货时间
-    platform_refund_time: string; // 平台返款时间
+    img: string;
+    img2: string;
+    zhiFu: string;
+    order: string;
+    style: string;
+    num: string;
+    type1: string;
+    time: string;
+    step_two_complete: string;
+    upload_order_time: string;
+    delivery_time: string;
+    platform_refund_time: string;
 }
-
 
 interface ProductInfo {
     name: string;
-    text_praise: string;      // 好评内容
-    img_praise: string[];     // 好评图片
-    video_praise: string;     // 好评视频
+    text_praise: string;
+    img_praise: string[];
+    video_praise: string;
 }
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -64,13 +56,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     const [products, setProducts] = useState<ProductInfo[]>([]);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-    const alertError = useCallback((msg: string) => {
-        alert(msg);
-    }, []);
+    const alertError = useCallback((msg: string) => { alert(msg); }, []);
 
-    // ========================
-
-    // ========================
     const loadDetail = useCallback(async () => {
         setLoading(true);
         try {
@@ -89,7 +76,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 const data = res.data;
                 const list = data.list || {};
 
-
                 setTaskData({
                     maiHao: list.wwid || '',
                     type: list.task_type || '',
@@ -107,7 +93,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                     seller_name: list.seller_name || '',
                 });
 
-
                 setTaskData2({
                     img: list.keywordimg || '',
                     img2: list.chatimg || '',
@@ -122,7 +107,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                     delivery_time: list.delivery_time || '',
                     platform_refund_time: list.platform_refund_time || '',
                 });
-
 
                 if (data.product && Array.isArray(data.product)) {
                     setProducts(data.product.map((item: any) => ({
@@ -152,7 +136,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
         loadDetail();
     }, [router, loadDetail]);
 
-
     const showImage = (img: string) => {
         if (img && img.length > 0) {
             setPreviewImage(img);
@@ -163,8 +146,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
     if (loading) {
         return (
-            <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5' }}>
-                <div style={{ color: '#999', fontSize: '14px' }}>加载中...</div>
+            <div className="flex h-screen items-center justify-center bg-slate-100">
+                <div className="text-sm text-slate-400">加载中...</div>
             </div>
         );
     }
@@ -172,254 +155,211 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     if (!taskData) return null;
 
     return (
-        <div style={{ minHeight: '100vh', background: '#f5f5f5', paddingBottom: '80px' }}>
-            <div style={{
-                background: 'linear-gradient(135deg, #1d1d1f 0%, #2c2c2e 100%)',
-                padding: '50px 16px 20px',
-                color: '#fff'
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div onClick={() => router.back()} style={{ fontSize: '24px', cursor: 'pointer' }}>‹</div>
-                    <div style={{ fontSize: '18px', fontWeight: '600' }}>任务详情</div>
-                    <div style={{ width: '24px' }}></div>
+        <div className="min-h-screen bg-slate-100 pb-20">
+            {/* Header */}
+            <div className="bg-gradient-to-br from-slate-800 to-slate-700 px-4 pb-5 pt-12 text-white">
+                <div className="flex items-center justify-between">
+                    <button onClick={() => router.back()} className="cursor-pointer text-2xl">‹</button>
+                    <span className="text-lg font-semibold">任务详情</span>
+                    <div className="w-6" />
                 </div>
             </div>
 
-            <div style={{
-                background: '#fff',
-                padding: '14px 16px',
-                borderBottom: '1px solid #e5e5e5',
-                textAlign: 'center',
-                fontSize: '15px',
-                fontWeight: '600',
-                color: '#409eff'
-            }}>
+            {/* Title Bar */}
+            <div className="border-b border-slate-200 bg-white px-4 py-3.5 text-center text-sm font-semibold text-blue-500">
                 任务详情
             </div>
 
-            <div style={{ padding: '12px' }}>
-                <div style={{
-                    background: '#fff',
-                    borderRadius: '12px',
-                    marginBottom: '12px',
-                    overflow: 'hidden',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-                }}>
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '14px 16px',
-                        borderBottom: '1px solid #f5f5f5'
-                    }}>
-                        <div style={{ color: '#f56c6c', fontWeight: '600', fontSize: '15px' }}>任务信息</div>
-                        <div style={{ display: 'flex', gap: '12px' }}>
-                            <a
+            {/* Content */}
+            <div className="p-3">
+                {/* Task Info Card */}
+                <div className="mb-3 overflow-hidden rounded-xl bg-white shadow-sm">
+                    <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5">
+                        <span className="text-sm font-semibold text-red-500">任务信息</span>
+                        <div className="flex gap-3">
+                            <button
                                 onClick={() => router.push('/profile/records?type=silver')}
-                                style={{ color: '#409eff', fontSize: '13px', cursor: 'pointer' }}
+                                className="cursor-pointer text-xs text-blue-500"
                             >
                                 银锭记录
-                            </a>
-                            <a
+                            </button>
+                            <button
                                 onClick={() => router.push('/profile/records?type=principal')}
-                                style={{ color: '#409eff', fontSize: '13px', cursor: 'pointer' }}
+                                className="cursor-pointer text-xs text-blue-500"
                             >
                                 本金记录
-                            </a>
+                            </button>
                         </div>
                     </div>
 
-                    <div style={{ padding: '16px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
-                            <span style={{ color: '#666' }}>买号：</span>
-                            <span style={{ color: '#333' }}>{taskData.maiHao}</span>
+                    <div className="space-y-3 p-4 text-xs">
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">买号：</span>
+                            <span className="text-slate-800">{taskData.maiHao}</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
-                            <span style={{ color: '#666' }}>任务类型：</span>
-                            <span style={{ color: '#333' }}>{taskData.type}</span>
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">任务类型：</span>
+                            <span className="text-slate-800">{taskData.type}</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
-                            <span style={{ color: '#666' }}>返款方式：</span>
-                            <span style={{ color: '#333' }}>{taskData.zhongDuan}</span>
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">返款方式：</span>
+                            <span className="text-slate-800">{taskData.zhongDuan}</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
-                            <span style={{ color: '#666' }}>佣金：</span>
-                            <span style={{ color: '#1677ff', fontWeight: '600' }}>
-                                {taskData.yongJin}<span style={{ color: '#ffd700' }}>+{taskData.user_divided}银锭</span>
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">佣金：</span>
+                            <span className="font-semibold text-blue-500">
+                                {taskData.yongJin}<span className="text-amber-400">+{taskData.user_divided}银锭</span>
                             </span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
-                            <span style={{ color: '#666' }}>任务金额：</span>
-                            <span style={{ color: '#333' }}>{taskData.goods_price}</span>
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">任务金额：</span>
+                            <span className="text-slate-800">{taskData.goods_price}</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
-                            <span style={{ color: '#666' }}>垫付金额：</span>
-                            <span style={{ color: '#409eff', fontWeight: '600' }}>{taskData.benJin}元</span>
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">垫付金额：</span>
+                            <span className="font-semibold text-blue-500">{taskData.benJin}元</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
-                            <span style={{ color: '#666' }}>返款金额：</span>
-                            <span style={{ color: '#333' }}>{taskData.money}元</span>
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">返款金额：</span>
+                            <span className="text-slate-800">{taskData.money}元</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
-                            <span style={{ color: '#666' }}>任务编号：</span>
-                            <span style={{ color: '#333' }}>{taskData.taskNum}</span>
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">任务编号：</span>
+                            <span className="text-slate-800">{taskData.taskNum}</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
-                            <span style={{ color: '#666' }}>店铺：</span>
-                            <span style={{ color: '#333' }}>{taskData.dianPu?.substring(0, 3)}...</span>
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">店铺：</span>
+                            <span className="text-slate-800">{taskData.dianPu?.substring(0, 3)}...</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
-                            <span style={{ color: '#666' }}>创建时间：</span>
-                            <span style={{ color: '#333' }}>{taskData.time}</span>
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">创建时间：</span>
+                            <span className="text-slate-800">{taskData.time}</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                            <span style={{ color: '#666' }}>任务状态：</span>
-                            <span style={{ color: '#333' }}>
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">任务状态：</span>
+                            <span className="text-slate-800">
                                 {taskData.taskType}
                                 {taskData.taskType === '已取消' && taskData.delType && (
-                                    <span style={{ marginLeft: '10px', color: '#f56c6c' }}>{taskData.delType}</span>
+                                    <span className="ml-2.5 text-red-500">{taskData.delType}</span>
                                 )}
                             </span>
                         </div>
                     </div>
                 </div>
 
+                {/* Task Progress Card */}
                 {taskData2 && (
-                    <div style={{
-                        background: '#fff',
-                        borderRadius: '12px',
-                        marginBottom: '12px',
-                        overflow: 'hidden',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-                    }}>
-                        {/* 标题栏 */}
-                        <div style={{
-                            padding: '14px 16px',
-                            borderBottom: '1px solid #f5f5f5'
-                        }}>
-                            <div style={{ color: '#f56c6c', fontWeight: '600', fontSize: '15px' }}>任务进度</div>
+                    <div className="mb-3 overflow-hidden rounded-xl bg-white shadow-sm">
+                        <div className="border-b border-slate-100 px-4 py-3.5">
+                            <span className="text-sm font-semibold text-red-500">任务进度</span>
                         </div>
 
-                        <div style={{ padding: '16px', overflowX: 'auto' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', minWidth: '500px' }}>
+                        <div className="overflow-x-auto p-4">
+                            <table className="min-w-[500px] w-full border-collapse text-xs">
                                 <thead>
-                                    <tr style={{ background: '#f5f5f7' }}>
-                                        <th style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'left' }}>服务项目</th>
-                                        <th style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>完成状态</th>
-                                        <th style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>完成时间</th>
+                                    <tr className="bg-slate-50">
+                                        <th className="border border-slate-200 p-2.5 text-left">服务项目</th>
+                                        <th className="border border-slate-200 p-2.5 text-center">完成状态</th>
+                                        <th className="border border-slate-200 p-2.5 text-center">完成时间</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {/* 浏览店铺及在线客服聊天 */}
                                     <tr>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>浏览店铺及在线客服聊天</td>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>
-                                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                                                <a
-                                                    onClick={() => showImage(taskData2.img)}
-                                                    style={{ color: '#409eff', cursor: 'pointer' }}
-                                                >
+                                        <td className="border border-slate-200 p-2.5">浏览店铺及在线客服聊天</td>
+                                        <td className="border border-slate-200 p-2.5 text-center">
+                                            <div className="flex justify-center gap-2">
+                                                <button onClick={() => showImage(taskData2.img)} className="cursor-pointer text-blue-500">
                                                     点击查看
-                                                </a>
-                                                <a
-                                                    onClick={() => showImage(taskData2.img2)}
-                                                    style={{ color: '#409eff', cursor: 'pointer' }}
-                                                >
+                                                </button>
+                                                <button onClick={() => showImage(taskData2.img2)} className="cursor-pointer text-blue-500">
                                                     点击查看
-                                                </a>
+                                                </button>
                                             </div>
                                         </td>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.step_two_complete}</td>
+                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.step_two_complete}</td>
                                     </tr>
-                                    {/* 下单/支付 */}
                                     <tr>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>下单/支付</td>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.zhiFu}</td>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.upload_order_time}</td>
+                                        <td className="border border-slate-200 p-2.5">下单/支付</td>
+                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.zhiFu}</td>
+                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.upload_order_time}</td>
                                     </tr>
-                                    {/* 订单编号 */}
                                     <tr>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>订单编号</td>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.order}</td>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.upload_order_time}</td>
+                                        <td className="border border-slate-200 p-2.5">订单编号</td>
+                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.order}</td>
+                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.upload_order_time}</td>
                                     </tr>
-                                    {/* 商家发货 */}
                                     <tr>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>商家发货</td>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>
+                                        <td className="border border-slate-200 p-2.5">商家发货</td>
+                                        <td className="border border-slate-200 p-2.5">
                                             <div>
-                                                <p style={{ margin: '0 0 4px' }}>快递方式：<span>{taskData2.style || '-'}</span></p>
-                                                <p style={{ margin: 0 }}>快递单号：<span>{taskData2.num || '-'}</span></p>
+                                                <p className="mb-1">快递方式：<span>{taskData2.style || '-'}</span></p>
+                                                <p>快递单号：<span>{taskData2.num || '-'}</span></p>
                                             </div>
                                         </td>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.delivery_time}</td>
+                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.delivery_time}</td>
                                     </tr>
-                                    {/* 平台返款 */}
                                     <tr>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>平台返款</td>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>
+                                        <td className="border border-slate-200 p-2.5">平台返款</td>
+                                        <td className="border border-slate-200 p-2.5 text-center">
                                             {taskData2.type1 === '待确认返款' || taskData2.type1 === '已完成' ? (
-                                                <span style={{ color: '#07c160' }}>已返款</span>
+                                                <span className="text-green-500">已返款</span>
                                             ) : (
-                                                <span style={{ color: '#ff9500' }}>待返款</span>
+                                                <span className="text-amber-500">待返款</span>
                                             )}
                                         </td>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.platform_refund_time}</td>
+                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.platform_refund_time}</td>
                                     </tr>
-                                    {/* 任务状态 */}
                                     <tr>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>任务状态</td>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.type1}</td>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{taskData2.time}</td>
+                                        <td className="border border-slate-200 p-2.5">任务状态</td>
+                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.type1}</td>
+                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.time}</td>
                                     </tr>
                                     {products.map((vo, index) => (
                                         <tr key={index}>
-                                            <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>好评内容</td>
-                                            <td style={{ padding: '10px', border: '1px solid #e5e5e5', color: '#f56c6c' }}>{vo.text_praise || '暂无内容'}</td>
-                                            <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>暂无内容</td>
+                                            <td className="border border-slate-200 p-2.5">好评内容</td>
+                                            <td className="border border-slate-200 p-2.5 text-red-500">{vo.text_praise || '暂无内容'}</td>
+                                            <td className="border border-slate-200 p-2.5 text-center">暂无内容</td>
                                         </tr>
                                     ))}
-                                    {/* 好评图片 */}
                                     <tr>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>图片</td>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>
-                                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                        <td className="border border-slate-200 p-2.5">图片</td>
+                                        <td className="border border-slate-200 p-2.5">
+                                            <div className="flex flex-wrap gap-2">
                                                 {products.flatMap(p => p.img_praise || []).map((img, idx) => (
                                                     <img
                                                         key={idx}
                                                         src={`https://b--d.oss-cn-guangzhou.aliyuncs.com${img}`}
                                                         alt="好评图片"
-                                                        style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px', cursor: 'pointer' }}
+                                                        className="h-[50px] w-[50px] cursor-pointer rounded object-cover"
                                                         onClick={() => setPreviewImage(`https://b--d.oss-cn-guangzhou.aliyuncs.com${img}`)}
                                                     />
                                                 ))}
                                                 {products.flatMap(p => p.img_praise || []).length === 0 && (
-                                                    <span style={{ color: '#999' }}>暂无图片</span>
+                                                    <span className="text-slate-400">暂无图片</span>
                                                 )}
                                             </div>
                                         </td>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>暂无内容</td>
+                                        <td className="border border-slate-200 p-2.5 text-center">暂无内容</td>
                                     </tr>
-                                    {/* 好评视频 */}
                                     <tr>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>视频</td>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5' }}>
+                                        <td className="border border-slate-200 p-2.5">视频</td>
+                                        <td className="border border-slate-200 p-2.5">
                                             {products.some(p => p.video_praise) ? (
                                                 <video
                                                     src={`https://b--d.oss-cn-guangzhou.aliyuncs.com${products.find(p => p.video_praise)?.video_praise}`}
                                                     controls
-                                                    style={{ width: '120px', height: '80px', borderRadius: '4px' }}
+                                                    className="h-20 w-[120px] rounded"
                                                 />
                                             ) : (
-                                                <span style={{ color: '#999' }}>暂无视频</span>
+                                                <span className="text-slate-400">暂无视频</span>
                                             )}
                                         </td>
-                                        <td style={{ padding: '10px', border: '1px solid #e5e5e5', textAlign: 'center' }}>
+                                        <td className="border border-slate-200 p-2.5 text-center">
                                             {products.some(p => p.video_praise) && (
                                                 <a
                                                     href={`https://b--d.oss-cn-guangzhou.aliyuncs.com${products.find(p => p.video_praise)?.video_praise}`}
                                                     download="视频"
-                                                    style={{ color: '#409eff' }}
+                                                    className="text-blue-500"
                                                 >
                                                     下载
                                                 </a>
@@ -433,27 +373,16 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 )}
             </div>
 
-            {/* 图片预览弹层 */}
+            {/* Image Preview Modal */}
             {previewImage && (
                 <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'rgba(0,0,0,0.8)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 1000,
-                    }}
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
                     onClick={() => setPreviewImage(null)}
                 >
                     <img
                         src={previewImage}
                         alt="预览"
-                        style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain' }}
+                        className="max-h-[90%] max-w-[90%] object-contain"
                     />
                 </div>
             )}

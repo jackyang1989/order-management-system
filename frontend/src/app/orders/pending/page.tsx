@@ -24,7 +24,6 @@ export default function PendingOrdersPage() {
         setLoading(true);
         try {
             const allOrders = await fetchMyOrders();
-            // 只显示进行中的任务
             const pendingOrders = allOrders.filter(
                 o => o.status === 'PENDING' || o.status === 'SUBMITTED'
             );
@@ -63,159 +62,92 @@ export default function PendingOrdersPage() {
     };
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            background: 'linear-gradient(180deg, #f8f9ff 0%, #ffffff 100%)',
-            paddingBottom: '100px'
-        }}>
-            {/* 毛玻璃顶栏 */}
-            <div style={{
-                position: 'sticky',
-                top: 0,
-                zIndex: 100,
-                background: 'rgba(255, 255, 255, 0.85)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                padding: '16px 20px',
-                borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px'
-            }}>
+        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-24">
+            {/* Glassmorphism Header */}
+            <header className="sticky top-0 z-20 flex items-center gap-4 border-b border-slate-100 bg-white/85 px-5 py-4 backdrop-blur-xl">
                 <button
                     onClick={() => router.back()}
-                    style={{
-                        background: 'none',
-                        border: 'none',
-                        fontSize: '20px',
-                        cursor: 'pointer',
-                        padding: 0
-                    }}
+                    className="cursor-pointer border-none bg-transparent p-0 text-xl"
                 >
                     ←
                 </button>
-                <h1 style={{ fontSize: '18px', fontWeight: '600', color: '#1d1d1f', margin: 0 }}>
+                <h1 className="m-0 text-lg font-semibold text-slate-800">
                     进行中任务
                 </h1>
-            </div>
+            </header>
 
-            {/* 任务列表 */}
-            <div style={{ padding: '20px 16px' }}>
+            {/* Task List */}
+            <div className="px-4 py-5">
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: '60px', color: '#86868b' }}>
+                    <div className="py-16 text-center text-slate-400">
                         加载中...
                     </div>
                 ) : orders.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '60px', color: '#86868b' }}>
+                    <div className="py-16 text-center text-slate-400">
                         暂无进行中的任务
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div className="flex flex-col gap-4">
                         {orders.map((order) => (
                             <div
                                 key={order.id}
-                                style={{
-                                    background: '#fff',
-                                    borderRadius: '20px',
-                                    padding: '20px',
-                                    boxShadow: '0 2px 20px rgba(0, 0, 0, 0.04)',
-                                    border: '1px solid rgba(0, 0, 0, 0.04)'
-                                }}
+                                className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"
                             >
-                                {/* 任务头部 */}
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                    <span style={{ fontSize: '12px', color: '#86868b' }}>
+                                {/* Task Header */}
+                                <div className="mb-4 flex items-center justify-between">
+                                    <span className="text-xs text-slate-400">
                                         #{order.taskNumber || order.id?.slice(-6)}
                                     </span>
-                                    <span style={{
-                                        background: 'rgba(0, 122, 255, 0.1)',
-                                        color: '#007aff',
-                                        padding: '4px 10px',
-                                        borderRadius: '8px',
-                                        fontSize: '11px',
-                                        fontWeight: '600'
-                                    }}>
+                                    <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-500">
                                         进行中
                                     </span>
                                 </div>
 
-                                {/* 订单信息 */}
-                                <div style={{ marginBottom: '16px' }}>
-                                    <div style={{
-                                        display: 'grid',
-                                        gridTemplateColumns: '1fr 1fr',
-                                        gap: '12px',
-                                        fontSize: '13px'
-                                    }}>
+                                {/* Order Info */}
+                                <div className="mb-4">
+                                    <div className="grid grid-cols-2 gap-3 text-xs">
                                         <div>
-                                            <span style={{ color: '#86868b' }}>商家: </span>
-                                            <span style={{ color: '#1d1d1f', fontWeight: '500' }}>{order.shopName || '-'}</span>
+                                            <span className="text-slate-400">商家: </span>
+                                            <span className="font-medium text-slate-800">{order.shopName || '-'}</span>
                                         </div>
                                         <div>
-                                            <span style={{ color: '#86868b' }}>买号: </span>
-                                            <span style={{ color: '#1d1d1f', fontWeight: '500' }}>{order.buyerAccount || '-'}</span>
+                                            <span className="text-slate-400">买号: </span>
+                                            <span className="font-medium text-slate-800">{order.buyerAccount || '-'}</span>
                                         </div>
                                         <div>
-                                            <span style={{ color: '#86868b' }}>模式: </span>
-                                            <span style={{ color: '#1d1d1f', fontWeight: '500' }}>{getTerminalLabel(order.terminal)}</span>
+                                            <span className="text-slate-400">模式: </span>
+                                            <span className="font-medium text-slate-800">{getTerminalLabel(order.terminal)}</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* 金额信息 */}
-                                <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    background: '#f8f9ff',
-                                    padding: '14px 16px',
-                                    borderRadius: '14px',
-                                    marginBottom: '16px'
-                                }}>
+                                {/* Amount Info */}
+                                <div className="mb-4 flex justify-between rounded-xl bg-slate-50 px-4 py-3.5">
                                     <div>
-                                        <div style={{ fontSize: '12px', color: '#86868b', marginBottom: '4px' }}>垫付本金</div>
-                                        <div style={{ fontSize: '18px', fontWeight: '700', color: '#1d1d1f' }}>
+                                        <div className="mb-1 text-xs text-slate-400">垫付本金</div>
+                                        <div className="text-lg font-bold text-slate-800">
                                             ¥{Number(order.principal || 0).toFixed(2)}
                                         </div>
                                     </div>
-                                    <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontSize: '12px', color: '#86868b', marginBottom: '4px' }}>任务佣金</div>
-                                        <div style={{ fontSize: '18px', fontWeight: '700', color: '#ff6b35' }}>
+                                    <div className="text-right">
+                                        <div className="mb-1 text-xs text-slate-400">任务佣金</div>
+                                        <div className="text-lg font-bold text-orange-500">
                                             ¥{Number(order.commission || 0).toFixed(2)}
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* 操作按钮 */}
-                                <div style={{ display: 'flex', gap: '12px' }}>
+                                {/* Action Buttons */}
+                                <div className="flex gap-3">
                                     <button
                                         onClick={() => handleGoStep(order)}
-                                        style={{
-                                            flex: 2,
-                                            padding: '14px',
-                                            background: '#1d1d1f',
-                                            color: '#fff',
-                                            border: 'none',
-                                            borderRadius: '14px',
-                                            fontSize: '15px',
-                                            fontWeight: '600',
-                                            cursor: 'pointer'
-                                        }}
+                                        className="flex-[2] cursor-pointer rounded-xl border-none bg-slate-800 py-3.5 text-sm font-semibold text-white"
                                     >
                                         去完成
                                     </button>
                                     <button
                                         onClick={() => handleCancel(order)}
-                                        style={{
-                                            flex: 1,
-                                            padding: '14px',
-                                            background: '#fff',
-                                            color: '#ff3b30',
-                                            border: '1px solid #ff3b30',
-                                            borderRadius: '14px',
-                                            fontSize: '15px',
-                                            fontWeight: '600',
-                                            cursor: 'pointer'
-                                        }}
+                                        className="flex-1 cursor-pointer rounded-xl border border-red-500 bg-white py-3.5 text-sm font-semibold text-red-500"
                                     >
                                         放弃
                                     </button>

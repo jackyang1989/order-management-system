@@ -5,25 +5,19 @@ import { useRouter } from 'next/navigation';
 import { isAuthenticated, getToken } from '../../../services/authService';
 import BottomNav from '../../../components/BottomNav';
 
-
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
-
-// ========================
-
-// 显示用户已接但未完成的任务列表
-// ========================
 
 interface TaskItem {
     id: string;
-    terminal: number;       // 1=本佣货返, 2=本立佣货
-    task_type: string;      // 任务类型
-    seller: string;         // 商家账号
-    principal: number;      // 垫付本金
-    commission: number;     // 佣金
-    user_divided: number;   // 银锭分成
-    user_buyno_wangwang: string; // 接手买号
-    task_step: number;      // 当前步骤
-    is_ys: number;          // 是否验收
+    terminal: number;
+    task_type: string;
+    seller: string;
+    principal: number;
+    commission: number;
+    user_divided: number;
+    user_buyno_wangwang: string;
+    task_step: number;
+    is_ys: number;
 }
 
 export default function ContinueTasksPage() {
@@ -31,13 +25,8 @@ export default function ContinueTasksPage() {
     const [tasks, setTasks] = useState<TaskItem[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const alertSuccess = useCallback((msg: string) => {
-        alert(msg);
-    }, []);
-
-    const alertError = useCallback((msg: string) => {
-        alert(msg);
-    }, []);
+    const alertSuccess = useCallback((msg: string) => { alert(msg); }, []);
+    const alertError = useCallback((msg: string) => { alert(msg); }, []);
 
     useEffect(() => {
         if (!isAuthenticated()) {
@@ -47,9 +36,6 @@ export default function ContinueTasksPage() {
         loadTasks();
     }, [router]);
 
-    // ========================
-
-    // ========================
     const loadTasks = async () => {
         setLoading(true);
         try {
@@ -71,20 +57,15 @@ export default function ContinueTasksPage() {
         }
     };
 
-    // ========================
-
-    // ========================
     const gostep = (index: number) => {
         const task = tasks[index];
         const id = task.id;
         const taskStep = task.task_step;
         const ys = task.is_ys;
 
-
         if (ys === 1 && taskStep === 4) {
             router.push(`/task/${id}/wk`);
         } else {
-            // 存储当前步骤到 sessionStorage
             if (typeof window !== 'undefined') {
                 sessionStorage.setItem('active', String(taskStep));
             }
@@ -92,10 +73,6 @@ export default function ContinueTasksPage() {
         }
     };
 
-    // ========================
-
-    // POST mobile/task/del_task
-    // ========================
     const cancelActive = async (index: number) => {
         const confirmMsg = '是否放弃此条订单，每人每天前2单任务自行放弃不扣银锭，超出订单冻结的银锭将不会返还';
 
@@ -131,187 +108,99 @@ export default function ContinueTasksPage() {
         }
     };
 
-
     const filterPhone = (val: string) => {
         if (!val || val.length < 11) return val;
         return val.substring(0, 3) + '****' + val.substring(7);
     };
 
-    // 获取返款方式文本
     const getTerminalText = (terminal: number) => {
         return terminal === 1 ? '本佣货返' : terminal === 2 ? '本立佣货' : '-';
     };
 
     return (
-        <div style={{ minHeight: '100vh', background: '#f5f5f5', paddingBottom: '80px' }}>
-
-            <div style={{
-                background: 'linear-gradient(135deg, #1d1d1f 0%, #2c2c2e 100%)',
-                padding: '50px 16px 20px',
-                color: '#fff'
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div onClick={() => router.back()} style={{ fontSize: '24px', cursor: 'pointer' }}>‹</div>
-                    <div style={{ fontSize: '18px', fontWeight: '600' }}>做任务</div>
-                    <div
+        <div className="min-h-screen overflow-x-hidden bg-slate-100 pb-20">
+            {/* Header */}
+            <div className="bg-gradient-to-br from-slate-800 to-slate-700 px-4 pb-5 pt-12 text-white">
+                <div className="flex items-center justify-between">
+                    <button onClick={() => router.back()} className="cursor-pointer text-2xl">‹</button>
+                    <span className="text-lg font-semibold">做任务</span>
+                    <button
                         onClick={() => router.push('/tasks')}
-                        style={{ fontSize: '14px', cursor: 'pointer', color: '#ff9500' }}
+                        className="cursor-pointer text-sm text-amber-400"
                     >
                         任务大厅
-                    </div>
+                    </button>
                 </div>
             </div>
 
-
-            <div style={{
-                background: '#fff',
-                padding: '14px 16px',
-                borderBottom: '1px solid #e5e5e5',
-                textAlign: 'center',
-                fontSize: '15px',
-                fontWeight: '600',
-                color: '#409eff'
-            }}>
+            {/* Title Bar */}
+            <div className="border-b border-slate-200 bg-white px-4 py-3.5 text-center text-sm font-semibold text-blue-500">
                 做任务
             </div>
 
-
-            <div style={{ padding: '12px' }}>
+            {/* Task List */}
+            <div className="p-3">
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: '40px', fontSize: '14px', color: '#999' }}>
+                    <div className="py-10 text-center text-sm text-slate-400">
                         加载中...
                     </div>
                 ) : tasks.length === 0 ? (
-                    <div style={{
-                        background: '#fff',
-                        borderRadius: '12px',
-                        padding: '40px',
-                        textAlign: 'center',
-                        color: '#999'
-                    }}>
-                        <div style={{ fontSize: '50px', marginBottom: '15px' }}>📋</div>
-                        <div style={{ fontSize: '14px' }}>暂无待完成任务</div>
+                    <div className="rounded-xl bg-white py-10 text-center text-slate-400">
+                        <div className="mb-4 text-5xl">📋</div>
+                        <div className="text-sm">暂无待完成任务</div>
                         <button
                             onClick={() => router.push('/tasks')}
-                            style={{
-                                marginTop: '20px',
-                                padding: '10px 24px',
-                                background: '#409eff',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '20px',
-                                fontSize: '14px',
-                                cursor: 'pointer'
-                            }}
+                            className="mt-5 cursor-pointer rounded-full bg-blue-500 px-6 py-2.5 text-sm text-white"
                         >
                             去接单
                         </button>
                     </div>
                 ) : (
                     tasks.map((task, index) => (
-                        <div key={task.id} style={{
-                            background: '#fff',
-                            borderRadius: '12px',
-                            marginBottom: '12px',
-                            overflow: 'hidden',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-                        }}>
-
-                            <div style={{ padding: '16px' }}>
-                                <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    marginBottom: '10px',
-                                    fontSize: '13px'
-                                }}>
-                                    <span style={{ color: '#666' }}>商家账号：</span>
-                                    <span style={{ color: '#333' }}>{filterPhone(task.seller)}</span>
+                        <div key={task.id} className="mb-3 overflow-hidden rounded-xl bg-white shadow-sm">
+                            {/* Task Details */}
+                            <div className="space-y-2.5 p-4 text-xs">
+                                <div className="flex justify-between">
+                                    <span className="text-slate-500">商家账号：</span>
+                                    <span className="text-slate-800">{filterPhone(task.seller)}</span>
                                 </div>
-                                <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    marginBottom: '10px',
-                                    fontSize: '13px'
-                                }}>
-                                    <span style={{ color: '#666' }}>任务类型：</span>
-                                    <span style={{ color: '#333' }}>{task.task_type}</span>
+                                <div className="flex justify-between">
+                                    <span className="text-slate-500">任务类型：</span>
+                                    <span className="text-slate-800">{task.task_type}</span>
                                 </div>
-                                <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    marginBottom: '10px',
-                                    fontSize: '13px'
-                                }}>
-                                    <span style={{ color: '#666' }}>接手买号：</span>
-                                    <span style={{ color: '#333' }}>{task.user_buyno_wangwang}</span>
+                                <div className="flex justify-between">
+                                    <span className="text-slate-500">接手买号：</span>
+                                    <span className="text-slate-800">{task.user_buyno_wangwang}</span>
                                 </div>
-                                <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    marginBottom: '10px',
-                                    fontSize: '13px'
-                                }}>
-                                    <span style={{ color: '#666' }}>垫付本金：</span>
-                                    <span style={{ color: '#409eff', fontWeight: '600' }}>¥{task.principal}</span>
+                                <div className="flex justify-between">
+                                    <span className="text-slate-500">垫付本金：</span>
+                                    <span className="font-semibold text-blue-500">¥{task.principal}</span>
                                 </div>
-                                <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    marginBottom: '10px',
-                                    fontSize: '13px'
-                                }}>
-                                    <span style={{ color: '#666' }}>任务佣金：</span>
-                                    <span style={{ color: '#1677ff', fontWeight: '600' }}>
-                                        {task.commission}<span style={{ color: '#ffd700' }}>+{task.user_divided}银锭</span>
+                                <div className="flex justify-between">
+                                    <span className="text-slate-500">任务佣金：</span>
+                                    <span className="font-semibold text-blue-600">
+                                        {task.commission}<span className="text-amber-400">+{task.user_divided}银锭</span>
                                     </span>
                                 </div>
-                                <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    fontSize: '13px'
-                                }}>
-                                    <span style={{ color: '#666' }}>返款方式：</span>
-                                    <span style={{ color: '#333' }}>{getTerminalText(task.terminal)}</span>
+                                <div className="flex justify-between">
+                                    <span className="text-slate-500">返款方式：</span>
+                                    <span className="text-slate-800">{getTerminalText(task.terminal)}</span>
                                 </div>
                             </div>
 
-
-                            <div style={{
-                                background: 'linear-gradient(135deg, #f8f9ff 0%, #f5f5f7 100%)',
-                                padding: '12px 16px',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center'
-                            }}>
-                                <span style={{ fontSize: '13px', color: '#666' }}>操作：</span>
-                                <div style={{ display: 'flex', gap: '10px' }}>
+                            {/* Action Bar */}
+                            <div className="flex items-center justify-between bg-gradient-to-r from-slate-50 to-slate-100 px-4 py-3">
+                                <span className="text-xs text-slate-500">操作：</span>
+                                <div className="flex gap-2.5">
                                     <button
                                         onClick={() => gostep(index)}
-                                        style={{
-                                            padding: '8px 20px',
-                                            background: '#07c160',
-                                            color: '#fff',
-                                            border: 'none',
-                                            borderRadius: '6px',
-                                            fontSize: '13px',
-                                            fontWeight: '600',
-                                            cursor: 'pointer'
-                                        }}
+                                        className="cursor-pointer rounded-md bg-green-500 px-5 py-2 text-xs font-semibold text-white"
                                     >
                                         去完成
                                     </button>
                                     <button
                                         onClick={() => cancelActive(index)}
-                                        style={{
-                                            padding: '8px 20px',
-                                            background: '#ff9500',
-                                            color: '#fff',
-                                            border: 'none',
-                                            borderRadius: '6px',
-                                            fontSize: '13px',
-                                            fontWeight: '600',
-                                            cursor: 'pointer'
-                                        }}
+                                        className="cursor-pointer rounded-md bg-amber-500 px-5 py-2 text-xs font-semibold text-white"
                                     >
                                         放弃
                                     </button>
@@ -322,14 +211,9 @@ export default function ContinueTasksPage() {
                 )}
             </div>
 
-            {/* 分页信息 */}
+            {/* Pagination Info */}
             {!loading && tasks.length > 0 && (
-                <div style={{
-                    padding: '20px',
-                    textAlign: 'center',
-                    fontSize: '12px',
-                    color: '#999'
-                }}>
+                <div className="py-5 text-center text-xs text-slate-400">
                     共 {tasks.length} 条待完成任务
                 </div>
             )}

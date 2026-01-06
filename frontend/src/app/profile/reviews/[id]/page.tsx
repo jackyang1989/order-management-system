@@ -13,6 +13,7 @@ import {
     ReviewTaskStatusLabels
 } from '../../../../services/reviewTaskService';
 import BottomNav from '../../../../components/BottomNav';
+import { cn } from '../../../../lib/utils';
 
 export default function ReviewTaskDetailPage() {
     const router = useRouter();
@@ -54,8 +55,6 @@ export default function ReviewTaskDetailPage() {
         const files = e.target.files;
         if (!files) return;
 
-        // 模拟上传并生成临时URL
-        // 实际应用中需要上传到服务器
         const newImages = [...uploadedImages];
         for (let i = 0; i < files.length && newImages.length < 3; i++) {
             const url = URL.createObjectURL(files[i]);
@@ -117,8 +116,8 @@ export default function ReviewTaskDetailPage() {
 
     if (loading || !task) {
         return (
-            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f7' }}>
-                <div style={{ color: '#86868b', fontSize: '14px' }}>加载中...</div>
+            <div className="flex min-h-screen items-center justify-center bg-slate-50">
+                <span className="text-sm text-slate-400">加载中...</span>
             </div>
         );
     }
@@ -126,124 +125,78 @@ export default function ReviewTaskDetailPage() {
     const statusInfo = ReviewTaskStatusLabels[task.state];
     const canSubmit = task.state === ReviewTaskStatus.APPROVED;
 
-    // 解析追评内容
     const textPraises = praises.filter(p => p.type === 1);
     const imagePraises = praises.filter(p => p.type === 2);
     const videoPraises = praises.filter(p => p.type === 3);
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            background: '#f5f5f7',
-            paddingBottom: '120px'
-        }}>
+        <div className="min-h-screen overflow-x-hidden bg-slate-50 pb-32">
             {/* Header */}
-            <div style={{
-                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                padding: '20px',
-                color: 'white',
-                textAlign: 'center'
-            }}>
-                <div onClick={() => router.back()} style={{
-                    position: 'absolute',
-                    left: '16px',
-                    top: '20px',
-                    fontSize: '20px',
-                    cursor: 'pointer'
-                }}>←</div>
-                <div style={{ fontSize: '20px', fontWeight: '700' }}>追评任务详情</div>
-                <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '4px' }}>
-                    {task.taskNumber}
-                </div>
+            <div className="relative bg-gradient-to-br from-indigo-500 to-purple-500 px-5 py-5 text-center text-white">
+                <button
+                    onClick={() => router.back()}
+                    className="absolute left-4 top-5 cursor-pointer text-xl"
+                >
+                    ←
+                </button>
+                <div className="text-xl font-bold">追评任务详情</div>
+                <div className="mt-1 text-xs opacity-80">{task.taskNumber}</div>
             </div>
 
-            {/* 状态卡片 */}
-            <div style={{
-                margin: '16px',
-                background: 'white',
-                borderRadius: '12px',
-                padding: '16px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.08)'
-            }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* Status Card */}
+            <div className="m-4 rounded-xl bg-white p-4 shadow-sm">
+                <div className="flex items-center justify-between">
                     <div>
-                        <div style={{ fontSize: '14px', color: '#666' }}>任务状态</div>
-                        <div style={{
-                            fontSize: '18px',
-                            fontWeight: '700',
-                            color: statusInfo.color,
-                            marginTop: '4px'
-                        }}>
+                        <div className="text-sm text-slate-500">任务状态</div>
+                        <div className={cn(
+                            'mt-1 text-lg font-bold',
+                            task.state === ReviewTaskStatus.UNPAID && 'text-amber-500',
+                            task.state === ReviewTaskStatus.PAID && 'text-indigo-500',
+                            task.state === ReviewTaskStatus.APPROVED && 'text-blue-500',
+                            task.state === ReviewTaskStatus.UPLOADED && 'text-purple-500',
+                            task.state === ReviewTaskStatus.COMPLETED && 'text-emerald-500',
+                            task.state === ReviewTaskStatus.CANCELLED && 'text-slate-500',
+                            task.state === ReviewTaskStatus.BUYER_REJECTED && 'text-red-500',
+                            task.state === ReviewTaskStatus.REJECTED && 'text-red-600'
+                        )}>
                             {statusInfo.text}
                         </div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '14px', color: '#666' }}>追评佣金</div>
-                        <div style={{
-                            fontSize: '24px',
-                            fontWeight: '700',
-                            color: '#10b981',
-                            marginTop: '4px'
-                        }}>
+                    <div className="text-right">
+                        <div className="text-sm text-slate-500">追评佣金</div>
+                        <div className="mt-1 text-2xl font-bold text-emerald-500">
                             ¥{Number(task.userMoney).toFixed(2)}
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* 追评内容 */}
-            <div style={{
-                margin: '16px',
-                background: 'white',
-                borderRadius: '12px',
-                padding: '16px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.08)'
-            }}>
-                <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: '#333' }}>
-                    追评要求
-                </div>
+            {/* Review Content */}
+            <div className="m-4 rounded-xl bg-white p-4 shadow-sm">
+                <div className="mb-4 text-base font-bold text-slate-800">追评要求</div>
 
-                {/* 文字追评 */}
-                {textPraises.map((praise, idx) => (
-                    <div key={praise.id} style={{
-                        marginBottom: '16px',
-                        padding: '12px',
-                        background: '#f9fafb',
-                        borderRadius: '8px'
-                    }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                            <span style={{
-                                fontSize: '12px',
-                                padding: '2px 8px',
-                                background: '#dbeafe',
-                                color: '#1d4ed8',
-                                borderRadius: '4px'
-                            }}>
+                {/* Text Reviews */}
+                {textPraises.map((praise) => (
+                    <div key={praise.id} className="mb-4 rounded-lg bg-slate-50 p-3">
+                        <div className="mb-2 flex items-center justify-between">
+                            <span className="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
                                 文字追评 +2元
                             </span>
                             <button
                                 onClick={() => copyText(praise.content)}
-                                style={{
-                                    padding: '4px 10px',
-                                    fontSize: '12px',
-                                    border: '1px solid #6366f1',
-                                    borderRadius: '4px',
-                                    background: 'white',
-                                    color: '#6366f1',
-                                    cursor: 'pointer'
-                                }}
+                                className="cursor-pointer rounded border border-indigo-500 bg-white px-2.5 py-1 text-xs text-indigo-500"
                             >
                                 一键复制
                             </button>
                         </div>
-                        <div style={{ fontSize: '14px', color: '#333', lineHeight: '1.6' }}>
+                        <div className="text-sm leading-relaxed text-slate-800">
                             {praise.content}
                         </div>
                     </div>
                 ))}
 
-                {/* 图片追评 */}
-                {imagePraises.map((praise, idx) => {
+                {/* Image Reviews */}
+                {imagePraises.map((praise) => {
                     let images: string[] = [];
                     try {
                         images = JSON.parse(praise.content);
@@ -251,172 +204,91 @@ export default function ReviewTaskDetailPage() {
                         images = praise.content.split(',');
                     }
                     return (
-                        <div key={praise.id} style={{
-                            marginBottom: '16px',
-                            padding: '12px',
-                            background: '#f9fafb',
-                            borderRadius: '8px'
-                        }}>
-                            <div style={{
-                                fontSize: '12px',
-                                padding: '2px 8px',
-                                background: '#fef3c7',
-                                color: '#92400e',
-                                borderRadius: '4px',
-                                display: 'inline-block',
-                                marginBottom: '8px'
-                            }}>
+                        <div key={praise.id} className="mb-4 rounded-lg bg-slate-50 p-3">
+                            <span className="mb-2 inline-block rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-700">
                                 图片追评 +3元
-                            </div>
-                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            </span>
+                            <div className="flex flex-wrap gap-2">
                                 {images.map((img, i) => (
                                     <img
                                         key={i}
                                         src={img}
                                         alt=""
-                                        style={{
-                                            width: '80px',
-                                            height: '80px',
-                                            objectFit: 'cover',
-                                            borderRadius: '8px'
-                                        }}
+                                        className="h-20 w-20 rounded-lg object-cover"
                                     />
                                 ))}
                             </div>
-                            <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+                            <div className="mt-2 text-xs text-slate-500">
                                 请长按保存图片后上传到追评
                             </div>
                         </div>
                     );
                 })}
 
-                {/* 视频追评 */}
-                {videoPraises.map((praise, idx) => (
-                    <div key={praise.id} style={{
-                        marginBottom: '16px',
-                        padding: '12px',
-                        background: '#f9fafb',
-                        borderRadius: '8px'
-                    }}>
-                        <div style={{
-                            fontSize: '12px',
-                            padding: '2px 8px',
-                            background: '#fce7f3',
-                            color: '#be185d',
-                            borderRadius: '4px',
-                            display: 'inline-block',
-                            marginBottom: '8px'
-                        }}>
+                {/* Video Reviews */}
+                {videoPraises.map((praise) => (
+                    <div key={praise.id} className="mb-4 rounded-lg bg-slate-50 p-3">
+                        <span className="mb-2 inline-block rounded bg-pink-100 px-2 py-0.5 text-xs text-pink-700">
                             视频追评 +10元
-                        </div>
+                        </span>
                         <video
                             src={praise.content}
                             controls
-                            style={{
-                                width: '100%',
-                                maxHeight: '200px',
-                                borderRadius: '8px'
-                            }}
+                            className="w-full max-h-[200px] rounded-lg"
                         />
-                        <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+                        <div className="mt-2 text-xs text-slate-500">
                             请下载视频后上传到追评
                         </div>
                     </div>
                 ))}
             </div>
 
-            {/* 上传追评截图 - 仅待追评状态显示 */}
+            {/* Upload Section - only for approved state */}
             {canSubmit && (
-                <div style={{
-                    margin: '16px',
-                    background: 'white',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.08)'
-                }}>
-                    <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: '#333' }}>
-                        上传追评截图
-                    </div>
+                <div className="m-4 rounded-xl bg-white p-4 shadow-sm">
+                    <div className="mb-4 text-base font-bold text-slate-800">上传追评截图</div>
 
-                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                    <div className="flex flex-wrap gap-3">
                         {uploadedImages.map((img, idx) => (
-                            <div key={idx} style={{ position: 'relative' }}>
+                            <div key={idx} className="relative">
                                 <img
                                     src={img}
                                     alt=""
-                                    style={{
-                                        width: '80px',
-                                        height: '80px',
-                                        objectFit: 'cover',
-                                        borderRadius: '8px'
-                                    }}
+                                    className="h-20 w-20 rounded-lg object-cover"
                                 />
-                                <div
+                                <button
                                     onClick={() => handleRemoveImage(idx)}
-                                    style={{
-                                        position: 'absolute',
-                                        top: '-8px',
-                                        right: '-8px',
-                                        width: '20px',
-                                        height: '20px',
-                                        background: '#ef4444',
-                                        color: 'white',
-                                        borderRadius: '50%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '12px',
-                                        cursor: 'pointer'
-                                    }}
+                                    className="absolute -right-2 -top-2 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-red-500 text-xs text-white"
                                 >
                                     ×
-                                </div>
+                                </button>
                             </div>
                         ))}
                         {uploadedImages.length < 3 && (
-                            <label style={{
-                                width: '80px',
-                                height: '80px',
-                                border: '2px dashed #ddd',
-                                borderRadius: '8px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                flexDirection: 'column',
-                                color: '#999'
-                            }}>
+                            <label className="flex h-20 w-20 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 text-slate-400">
                                 <input
                                     type="file"
                                     accept="image/*"
                                     multiple
                                     onChange={handleImageUpload}
-                                    style={{ display: 'none' }}
+                                    className="hidden"
                                 />
-                                <span style={{ fontSize: '24px' }}>+</span>
-                                <span style={{ fontSize: '11px' }}>上传</span>
+                                <span className="text-2xl">+</span>
+                                <span className="text-[11px]">上传</span>
                             </label>
                         )}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#999', marginTop: '12px' }}>
+                    <div className="mt-3 text-xs text-slate-400">
                         最多上传3张追评截图
                     </div>
                 </div>
             )}
 
-            {/* 已上传的截图展示 - 非待追评状态 */}
+            {/* Submitted Images - non-approved state */}
             {!canSubmit && task.img && (
-                <div style={{
-                    margin: '16px',
-                    background: 'white',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.08)'
-                }}>
-                    <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: '#333' }}>
-                        已提交的截图
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <div className="m-4 rounded-xl bg-white p-4 shadow-sm">
+                    <div className="mb-4 text-base font-bold text-slate-800">已提交的截图</div>
+                    <div className="flex flex-wrap gap-2">
                         {(() => {
                             let images: string[] = [];
                             try {
@@ -429,12 +301,7 @@ export default function ReviewTaskDetailPage() {
                                     key={i}
                                     src={img}
                                     alt=""
-                                    style={{
-                                        width: '80px',
-                                        height: '80px',
-                                        objectFit: 'cover',
-                                        borderRadius: '8px'
-                                    }}
+                                    className="h-20 w-20 rounded-lg object-cover"
                                 />
                             ));
                         })()}
@@ -442,145 +309,67 @@ export default function ReviewTaskDetailPage() {
                 </div>
             )}
 
-            {/* 温馨提示 */}
-            <div style={{
-                margin: '16px',
-                padding: '12px',
-                background: '#fffbeb',
-                borderRadius: '8px',
-                fontSize: '12px',
-                color: '#92400e'
-            }}>
-                <div style={{ fontWeight: '600', marginBottom: '4px' }}>温馨提示</div>
-                <ul style={{ margin: 0, paddingLeft: '16px', lineHeight: '1.6' }}>
+            {/* Tips */}
+            <div className="m-4 rounded-lg bg-amber-50 p-3 text-xs text-amber-700">
+                <div className="mb-1 font-semibold">温馨提示</div>
+                <ul className="m-0 list-disc pl-4 leading-relaxed">
                     <li>请按指定内容进行追评，不符合要求将扣除佣金</li>
                     <li>胡乱评价、复制他人评价等行为将被拉黑</li>
                     <li>追评截图需清晰完整</li>
                 </ul>
             </div>
 
-            {/* 底部操作按钮 */}
+            {/* Fixed Bottom Actions */}
             {canSubmit && (
-                <div style={{
-                    position: 'fixed',
-                    bottom: '70px',
-                    left: 0,
-                    right: 0,
-                    padding: '16px',
-                    background: 'white',
-                    borderTop: '1px solid #eee',
-                    display: 'flex',
-                    gap: '12px'
-                }}>
-                    <button
-                        onClick={() => setShowRejectModal(true)}
-                        disabled={submitting}
-                        style={{
-                            flex: 1,
-                            padding: '14px',
-                            borderRadius: '8px',
-                            border: '1px solid #ef4444',
-                            background: 'white',
-                            color: '#ef4444',
-                            fontSize: '16px',
-                            fontWeight: '600',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        拒绝追评
-                    </button>
-                    <button
-                        onClick={handleSubmit}
-                        disabled={submitting || uploadedImages.length === 0}
-                        style={{
-                            flex: 2,
-                            padding: '14px',
-                            borderRadius: '8px',
-                            border: 'none',
-                            background: submitting || uploadedImages.length === 0
-                                ? '#ccc'
-                                : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                            color: 'white',
-                            fontSize: '16px',
-                            fontWeight: '600',
-                            cursor: submitting || uploadedImages.length === 0 ? 'not-allowed' : 'pointer'
-                        }}
-                    >
-                        {submitting ? '提交中...' : '提交追评'}
-                    </button>
+                <div className="fixed bottom-16 left-0 right-0 border-t border-slate-200 bg-white">
+                    <div className="mx-auto flex w-full max-w-md gap-3 px-4 py-4">
+                        <button
+                            onClick={() => setShowRejectModal(true)}
+                            disabled={submitting}
+                            className="flex-1 cursor-pointer rounded-lg border border-red-500 bg-white py-3.5 text-base font-semibold text-red-500"
+                        >
+                            拒绝追评
+                        </button>
+                        <button
+                            onClick={handleSubmit}
+                            disabled={submitting || uploadedImages.length === 0}
+                            className={cn(
+                                'flex-[2] rounded-lg py-3.5 text-base font-semibold text-white',
+                                submitting || uploadedImages.length === 0
+                                    ? 'cursor-not-allowed bg-slate-300'
+                                    : 'cursor-pointer bg-gradient-to-r from-indigo-500 to-purple-500'
+                            )}
+                        >
+                            {submitting ? '提交中...' : '提交追评'}
+                        </button>
+                    </div>
                 </div>
             )}
 
-            {/* 拒绝弹窗 */}
+            {/* Reject Modal */}
             {showRejectModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    padding: '20px'
-                }}>
-                    <div style={{
-                        background: 'white',
-                        borderRadius: '16px',
-                        padding: '24px',
-                        width: '100%',
-                        maxWidth: '320px'
-                    }}>
-                        <div style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px', textAlign: 'center' }}>
-                            确认拒绝追评？
-                        </div>
-                        <div style={{ marginBottom: '16px' }}>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-5">
+                    <div className="w-full max-w-[320px] rounded-2xl bg-white p-6">
+                        <div className="mb-4 text-center text-lg font-bold">确认拒绝追评？</div>
+                        <div className="mb-4">
                             <textarea
                                 value={rejectReason}
                                 onChange={e => setRejectReason(e.target.value)}
                                 placeholder="请输入拒绝原因（可选）"
-                                style={{
-                                    width: '100%',
-                                    height: '80px',
-                                    padding: '12px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '8px',
-                                    resize: 'none',
-                                    fontSize: '14px'
-                                }}
+                                className="h-20 w-full resize-none rounded-lg border border-slate-200 p-3 text-sm"
                             />
                         </div>
-                        <div style={{ display: 'flex', gap: '12px' }}>
+                        <div className="flex gap-3">
                             <button
                                 onClick={() => setShowRejectModal(false)}
-                                style={{
-                                    flex: 1,
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #ddd',
-                                    background: 'white',
-                                    color: '#666',
-                                    fontSize: '14px',
-                                    cursor: 'pointer'
-                                }}
+                                className="flex-1 cursor-pointer rounded-lg border border-slate-200 bg-white py-3 text-sm text-slate-600"
                             >
                                 取消
                             </button>
                             <button
                                 onClick={handleReject}
                                 disabled={submitting}
-                                style={{
-                                    flex: 1,
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: 'none',
-                                    background: '#ef4444',
-                                    color: 'white',
-                                    fontSize: '14px',
-                                    cursor: 'pointer'
-                                }}
+                                className="flex-1 cursor-pointer rounded-lg bg-red-500 py-3 text-sm text-white"
                             >
                                 {submitting ? '处理中...' : '确认拒绝'}
                             </button>
