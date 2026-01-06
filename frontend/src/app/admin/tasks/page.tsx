@@ -10,9 +10,8 @@ import { Badge } from '../../../../components/ui/badge';
 import { Select } from '../../../../components/ui/select';
 import { Table, Column } from '../../../../components/ui/table';
 import { Modal } from '../../../../components/ui/modal';
-import { Tabs } from '../../../../components/ui/tabs';
 import { Pagination } from '../../../../components/ui/pagination';
-import { Spinner } from '../../../../components/ui/spinner';
+import { Tabs } from '../../../../components/ui/tabs';
 
 interface Task {
     id: string;
