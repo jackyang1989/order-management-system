@@ -16,48 +16,95 @@ type MenuItem = {
 };
 
 const menuItems: MenuItem[] = [
-    getItem('仪表盘', '/admin/dashboard', <DashboardOutlined />),
-    getItem('买手管理', 'users', <UserOutlined />, [
-        getItem('买手列表', '/admin/users'),
-        getItem('余额记录', '/admin/users/balance'),
-        getItem('买号审核', '/admin/users/accounts'),
-    ]),
-    getItem('商家管理', 'merchants', <ShopOutlined />, [
-        getItem('商家列表', '/admin/merchants'),
-        getItem('余额记录', '/admin/merchants/balance'),
-        getItem('店铺管理', '/admin/shops'),
-    ]),
-    getItem('任务管理', 'tasks', <FileTextOutlined />, [
-        getItem('任务列表', '/admin/tasks'),
-        getItem('追评任务', '/admin/tasks/reviews'),
-    ]),
-    getItem('订单管理', '/admin/orders', <ShoppingOutlined />),
-    getItem('财务管理', 'finance', <DollarOutlined />, [
-        getItem('提现审核', '/admin/withdrawals'),
-        getItem('充值记录', '/admin/finance/recharge'),
-        getItem('银行卡审核', '/admin/finance/bank'),
-        getItem('会员记录', '/admin/finance/vip'),
-    ]),
-    getItem('公告管理', '/admin/notice', <NotificationOutlined />),
-    getItem('系统设置', 'system', <SettingOutlined />, [
-        getItem('基础参数', '/admin/system/params'),
-        getItem('费率配置', '/admin/system/commission'),
-        getItem('VIP等级', '/admin/system/vip'),
-        getItem('平台管理', '/admin/system/platforms'),
-        getItem('快递管理', '/admin/system/deliveries'),
-        getItem('敏感词管理', '/admin/system/sensitive'),
-        getItem('API配置', '/admin/system/api'),
-    ]),
-    getItem('权限管理', 'permission', <LockOutlined />, [
-        getItem('菜单管理', '/admin/permission/menu'),
-        getItem('角色管理', '/admin/permission/role'),
-        getItem('管理员', '/admin/permission/admin'),
-    ]),
-    getItem('系统工具', 'tools', <ToolOutlined />, [
-        getItem('数据备份', '/admin/tools/backup'),
-        getItem('操作日志', '/admin/tools/logs'),
-        getItem('缓存管理', '/admin/tools/cache'),
-    ]),
+    {
+        key: '/admin/dashboard',
+        label: '仪表盘',
+        icon: '📊',
+    },
+    {
+        key: 'users',
+        label: '买手管理',
+        icon: '👤',
+        children: [
+            { key: '/admin/users', label: '买手列表' },
+            { key: '/admin/users/balance', label: '余额记录' },
+            { key: '/admin/users/accounts', label: '买号审核' },
+        ],
+    },
+    {
+        key: 'merchants',
+        label: '商家管理',
+        icon: '🏪',
+        children: [
+            { key: '/admin/merchants', label: '商家列表' },
+            { key: '/admin/merchants/balance', label: '余额记录' },
+            { key: '/admin/shops', label: '店铺管理' },
+        ],
+    },
+    {
+        key: 'tasks',
+        label: '任务管理',
+        icon: '🧾',
+        children: [
+            { key: '/admin/tasks', label: '任务列表' },
+            { key: '/admin/tasks/reviews', label: '追评任务' },
+        ],
+    },
+    {
+        key: '/admin/orders',
+        label: '订单管理',
+        icon: '📦',
+    },
+    {
+        key: 'finance',
+        label: '财务管理',
+        icon: '💰',
+        children: [
+            { key: '/admin/withdrawals', label: '提现审核' },
+            { key: '/admin/finance/recharge', label: '充值记录' },
+            { key: '/admin/finance/bank', label: '银行卡审核' },
+            { key: '/admin/finance/vip', label: '会员记录' },
+        ],
+    },
+    {
+        key: '/admin/notice',
+        label: '公告管理',
+        icon: '📣',
+    },
+    {
+        key: 'system',
+        label: '系统设置',
+        icon: '⚙️',
+        children: [
+            { key: '/admin/system/params', label: '基础参数' },
+            { key: '/admin/system/commission', label: '费率配置' },
+            { key: '/admin/system/vip', label: 'VIP等级' },
+            { key: '/admin/system/platforms', label: '平台管理' },
+            { key: '/admin/system/deliveries', label: '快递管理' },
+            { key: '/admin/system/sensitive', label: '敏感词管理' },
+            { key: '/admin/system/api', label: 'API配置' },
+        ],
+    },
+    {
+        key: 'permission',
+        label: '权限管理',
+        icon: '🔐',
+        children: [
+            { key: '/admin/permission/menu', label: '菜单管理' },
+            { key: '/admin/permission/role', label: '角色管理' },
+            { key: '/admin/permission/admin', label: '管理员' },
+        ],
+    },
+    {
+        key: 'tools',
+        label: '系统工具',
+        icon: '🛠️',
+        children: [
+            { key: '/admin/tools/backup', label: '数据备份' },
+            { key: '/admin/tools/logs', label: '操作日志' },
+            { key: '/admin/tools/cache', label: '缓存管理' },
+        ],
+    },
 ];
 
 // Map path to open keys
@@ -94,7 +141,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
     const [admin, setAdmin] = useState<{ username: string } | null>(null);
-    const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken();
 
     useEffect(() => {
         const adminToken = localStorage.getItem('adminToken');
@@ -109,9 +155,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         router.push('/admin/login');
     };
 
-    const handleMenuClick: MenuProps['onClick'] = (e) => {
-        if (e.key.startsWith('/')) {
-            router.push(e.key);
+    const handleMenuClick = (key: string) => {
+        if (key.startsWith('/')) {
+            router.push(key);
         }
     };
 
