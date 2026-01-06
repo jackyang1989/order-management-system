@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { cn } from '../../../lib/utils';
+import { ProfileContainer } from '../../../components/ProfileContainer';
+import { Button } from '../../../components/ui/button';
 import { isAuthenticated } from '../../../services/authService';
 import { fetchBankCards, addBankCard, deleteBankCard, setDefaultBankCard, BankCard } from '../../../services/userService';
 
-// 银行列表
 const bankList = ['工商银行', '建设银行', '农业银行', '中国银行', '招商银行', '交通银行', '邮储银行', '兴业银行', '民生银行', '浦发银行'];
 
 export default function PaymentPage() {
@@ -16,35 +18,20 @@ export default function PaymentPage() {
     const [submitting, setSubmitting] = useState(false);
 
     const [form, setForm] = useState({
-        accountName: '',
-        bankName: '',
-        cardNumber: '',
-        branchName: '',
-        province: '',
-        city: '',
-        phone: '',
-        wechatQrCode: '',
-        alipayQrCode: ''
+        accountName: '', bankName: '', cardNumber: '', branchName: '',
+        province: '', city: '', phone: '', wechatQrCode: '', alipayQrCode: ''
     });
 
     useEffect(() => {
-        if (!isAuthenticated()) {
-            router.push('/login');
-            return;
-        }
+        if (!isAuthenticated()) { router.push('/login'); return; }
         loadData();
     }, [router]);
 
     const loadData = async () => {
         setLoading(true);
-        try {
-            const cards = await fetchBankCards();
-            setBankCards(cards);
-        } catch (error) {
-            console.error('Load bank cards error:', error);
-        } finally {
-            setLoading(false);
-        }
+        try { const cards = await fetchBankCards(); setBankCards(cards); }
+        catch (error) { console.error('Load bank cards error:', error); }
+        finally { setLoading(false); }
     };
 
     const fileToBase64 = (file: File): Promise<string> => {
@@ -59,18 +46,12 @@ export default function PaymentPage() {
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, field: 'wechatQrCode' | 'alipayQrCode') => {
         const file = e.target.files?.[0];
         if (file) {
-            try {
-                const base64 = await fileToBase64(file);
-                setForm(prev => ({ ...prev, [field]: base64 }));
-            } catch (error) {
-                console.error('File read error:', error);
-                alert('图片读取失败');
-            }
+            try { const base64 = await fileToBase64(file); setForm(prev => ({ ...prev, [field]: base64 })); }
+            catch (error) { console.error('File read error:', error); alert('图片读取失败'); }
         }
     };
 
     const handleSubmit = async () => {
-        // 表单验证
         if (!form.accountName) { alert('请输入开户名'); return; }
         if (!form.bankName) { alert('请选择银行'); return; }
         if (!form.cardNumber) { alert('请输入银行卡号'); return; }
@@ -83,346 +64,187 @@ export default function PaymentPage() {
         setSubmitting(true);
         try {
             const result = await addBankCard({
-                bankName: form.bankName,
-                accountName: form.accountName,
-                cardNumber: form.cardNumber,
-                phone: form.phone,
-                province: form.province,
-                city: form.city,
-                branchName: form.branchName,
-                wechatQrCode: form.wechatQrCode,
-                alipayQrCode: form.alipayQrCode
+                bankName: form.bankName, accountName: form.accountName, cardNumber: form.cardNumber,
+                phone: form.phone, province: form.province, city: form.city, branchName: form.branchName,
+                wechatQrCode: form.wechatQrCode, alipayQrCode: form.alipayQrCode
             });
-
             if (result.success) {
                 alert(result.message || '绑定成功');
                 setShowForm(false);
-                // 重置表单
-                setForm({
-                    accountName: '',
-                    bankName: '',
-                    cardNumber: '',
-                    branchName: '',
-                    province: '',
-                    city: '',
-                    phone: '',
-                    wechatQrCode: '',
-                    alipayQrCode: ''
-                });
-                // 刷新列表
+                setForm({ accountName: '', bankName: '', cardNumber: '', branchName: '', province: '', city: '', phone: '', wechatQrCode: '', alipayQrCode: '' });
                 await loadData();
-            } else {
-                alert(result.message || '绑定失败');
-            }
-        } catch (error) {
-            alert('网络错误，请重试');
-        } finally {
-            setSubmitting(false);
-        }
+            } else { alert(result.message || '绑定失败'); }
+        } catch (error) { alert('网络错误，请重试'); }
+        finally { setSubmitting(false); }
     };
 
     const handleDelete = async (id: string) => {
         if (!confirm('确定要解绑此银行卡吗？')) return;
-
         const result = await deleteBankCard(id);
-        if (result.success) {
-            alert(result.message || '解绑成功');
-            await loadData();
-        } else {
-            alert(result.message || '解绑失败');
-        }
+        if (result.success) { alert(result.message || '解绑成功'); await loadData(); }
+        else { alert(result.message || '解绑失败'); }
     };
 
     const handleSetDefault = async (id: string) => {
         const result = await setDefaultBankCard(id);
-        if (result.success) {
-            await loadData();
-        } else {
-            alert(result.message || '设置失败');
-        }
+        if (result.success) { await loadData(); }
+        else { alert(result.message || '设置失败'); }
     };
 
     const getStatusText = (status: number | string) => {
-        if (status === 0 || status === 'PENDING') return { text: '待审核', color: '#e6a23c' };
-        if (status === 1 || status === 'APPROVED') return { text: '已通过', color: '#67c23a' };
-        if (status === 2 || status === 'REJECTED') return { text: '未通过', color: '#f56c6c' };
-        return { text: '未知', color: '#999' };
+        if (status === 0 || status === 'PENDING') return { text: '待审核', color: 'amber' };
+        if (status === 1 || status === 'APPROVED') return { text: '已通过', color: 'green' };
+        if (status === 2 || status === 'REJECTED') return { text: '未通过', color: 'red' };
+        return { text: '未知', color: 'slate' };
     };
 
     if (loading) {
-        return <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>加载中...</div>;
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-slate-50">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+            </div>
+        );
     }
 
-    const cellStyle = {
-        display: 'flex',
-        padding: '12px 15px',
-        borderBottom: '1px solid #f5f5f5',
-        alignItems: 'center',
-        background: '#fff'
-    };
-
-    const labelStyle = {
-        width: '110px',
-        fontSize: '14px',
-        color: '#666'
-    };
-
     return (
-        <div style={{ minHeight: '100vh', background: '#f8f8f8', paddingBottom: '60px' }}>
-            {/* 顶部栏 */}
-            <div style={{
-                background: '#fff',
-                height: '44px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderBottom: '1px solid #e5e5e5',
-                position: 'sticky',
-                top: 0,
-                zIndex: 10
-            }}>
-                <div onClick={() => router.back()} style={{ position: 'absolute', left: '15px', fontSize: '20px', cursor: 'pointer', color: '#333' }}>‹</div>
-                <div style={{ fontSize: '16px', fontWeight: '500', color: '#333' }}>收款账户管理</div>
-            </div>
+        <div className="min-h-screen bg-slate-50 pb-16">
+            {/* Header */}
+            <header className="sticky top-0 z-10 flex h-14 items-center border-b border-slate-200 bg-white px-4">
+                <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
+                <h1 className="flex-1 text-base font-medium text-slate-800">收款账户管理</h1>
+            </header>
 
-            {/* 未绑定状态 */}
+            {/* Empty State */}
             {bankCards.length === 0 && !showForm && (
-                <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                    <div style={{ fontSize: '60px', marginBottom: '20px' }}>💳</div>
-                    <div style={{ fontSize: '14px', color: '#999', marginBottom: '20px' }}>暂未绑定银行卡</div>
-                    <button
-                        onClick={() => setShowForm(true)}
-                        style={{
-                            background: '#409eff',
-                            border: 'none',
-                            color: '#fff',
-                            padding: '12px 30px',
-                            borderRadius: '4px',
-                            fontSize: '14px',
-                            cursor: 'pointer'
-                        }}
-                    >
+                <div className="py-16 text-center">
+                    <div className="mb-5 text-5xl">💳</div>
+                    <div className="mb-5 text-sm text-slate-400">暂未绑定银行卡</div>
+                    <Button onClick={() => setShowForm(true)} className="bg-blue-500 hover:bg-blue-600">
                         + 绑定银行卡
-                    </button>
+                    </Button>
                 </div>
             )}
 
-            {/* 已绑定银行卡列表 */}
+            {/* Card List */}
             {bankCards.length > 0 && !showForm && (
-                <div>
-                    <div style={{ padding: '10px 15px', fontSize: '12px', color: '#999', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>已绑定账户 ({bankCards.length})</span>
-                        <span
-                            onClick={() => setShowForm(true)}
-                            style={{ color: '#409eff', cursor: 'pointer' }}
-                        >
-                            + 添加银行卡
-                        </span>
+                <ProfileContainer className="py-4">
+                    <div className="mb-3 flex items-center justify-between text-sm">
+                        <span className="text-slate-400">已绑定账户 ({bankCards.length})</span>
+                        <button onClick={() => setShowForm(true)} className="text-blue-500">+ 添加银行卡</button>
                     </div>
-                    {bankCards.map((card) => (
-                        <div key={card.id} style={{ background: '#fff', marginBottom: '10px', borderRadius: '8px', overflow: 'hidden', margin: '0 10px 10px' }}>
-                            <div style={{ padding: '15px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{
-                                    width: '50px',
-                                    height: '50px',
-                                    background: 'linear-gradient(135deg, #409eff 0%, #66b1ff 100%)',
-                                    borderRadius: '8px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#fff',
-                                    fontSize: '14px',
-                                    fontWeight: 'bold'
-                                }}>
-                                    {card.bankName.substring(0, 2)}
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                                        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#333' }}>{card.bankName}</span>
-                                        {card.isDefault && (
-                                            <span style={{ fontSize: '10px', background: '#fdf6ec', color: '#e6a23c', padding: '1px 6px', borderRadius: '10px' }}>默认</span>
+                    <div className="space-y-3">
+                        {bankCards.map((card) => {
+                            const status = getStatusText(card.status);
+                            return (
+                                <div key={card.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                                    <div className="flex items-center gap-3 p-4">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-500 text-sm font-bold text-white">
+                                            {card.bankName.substring(0, 2)}
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-medium text-slate-800">{card.bankName}</span>
+                                                {card.isDefault && (
+                                                    <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-600">默认</span>
+                                                )}
+                                                <span className={cn(
+                                                    'rounded px-1.5 py-0.5 text-xs',
+                                                    status.color === 'amber' && 'bg-amber-100 text-amber-600',
+                                                    status.color === 'green' && 'bg-green-100 text-green-600',
+                                                    status.color === 'red' && 'bg-red-100 text-red-600'
+                                                )}>
+                                                    {status.text}
+                                                </span>
+                                            </div>
+                                            <div className="mt-0.5 text-sm text-slate-400">
+                                                {card.cardNumber.replace(/(\d{4})(\d+)(\d{4})/, '$1 **** **** $3')}
+                                            </div>
+                                            <div className="mt-0.5 text-xs text-slate-400">
+                                                {card.accountName} · {card.phone}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-end gap-4 border-t border-slate-100 px-4 py-2.5">
+                                        {!card.isDefault && (
+                                            <button onClick={() => handleSetDefault(card.id)} className="text-sm text-blue-500">设为默认</button>
                                         )}
-                                        <span style={{ fontSize: '10px', background: getStatusText(card.status).color + '20', color: getStatusText(card.status).color, padding: '1px 6px', borderRadius: '10px' }}>
-                                            {getStatusText(card.status).text}
-                                        </span>
-                                    </div>
-                                    <div style={{ fontSize: '13px', color: '#999' }}>
-                                        {card.cardNumber.replace(/(\d{4})(\d+)(\d{4})/, '$1 **** **** $3')}
-                                    </div>
-                                    <div style={{ fontSize: '12px', color: '#999', marginTop: '2px' }}>
-                                        {card.accountName} · {card.phone}
+                                        <button onClick={() => handleDelete(card.id)} className="text-sm text-red-500">解绑</button>
                                     </div>
                                 </div>
-                            </div>
-                            <div style={{ borderTop: '1px solid #f5f5f5', padding: '10px 15px', display: 'flex', justifyContent: 'flex-end', gap: '15px' }}>
-                                {!card.isDefault && (
-                                    <span
-                                        onClick={() => handleSetDefault(card.id)}
-                                        style={{ fontSize: '13px', color: '#409eff', cursor: 'pointer' }}
-                                    >
-                                        设为默认
-                                    </span>
-                                )}
-                                <span
-                                    onClick={() => handleDelete(card.id)}
-                                    style={{ fontSize: '13px', color: '#f56c6c', cursor: 'pointer' }}
-                                >
-                                    解绑
-                                </span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                            );
+                        })}
+                    </div>
+                </ProfileContainer>
             )}
 
-            {/* 绑定表单 */}
+            {/* Add Form */}
             {showForm && (
-                <div>
-                    <div style={{ padding: '10px 15px', fontSize: '12px', color: '#999' }}>绑定银行卡</div>
-                    <div style={{ background: '#fff' }}>
-                        <div style={cellStyle}>
-                            <div style={labelStyle}>开户名 <span style={{ color: 'red' }}>*</span></div>
-                            <input
-                                type="text"
-                                placeholder="请输入真实姓名"
-                                value={form.accountName}
+                <ProfileContainer className="py-4">
+                    <div className="mb-3 text-sm text-slate-400">绑定银行卡</div>
+                    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                        <FormRow label="开户名" required>
+                            <input type="text" placeholder="请输入真实姓名" value={form.accountName}
                                 onChange={e => setForm({ ...form, accountName: e.target.value })}
-                                style={{ flex: 1, border: 'none', fontSize: '14px', textAlign: 'right', outline: 'none' }}
-                            />
-                        </div>
-                        <div style={cellStyle}>
-                            <div style={labelStyle}>银行 <span style={{ color: 'red' }}>*</span></div>
-                            <select
-                                value={form.bankName}
-                                onChange={e => setForm({ ...form, bankName: e.target.value })}
-                                style={{ flex: 1, border: 'none', fontSize: '14px', textAlign: 'right', outline: 'none', background: 'transparent' }}
-                            >
+                                className="flex-1 border-none bg-transparent text-right text-sm text-slate-800 outline-none" />
+                        </FormRow>
+                        <FormRow label="银行" required>
+                            <select value={form.bankName} onChange={e => setForm({ ...form, bankName: e.target.value })}
+                                className="flex-1 border-none bg-transparent text-right text-sm text-slate-800 outline-none">
                                 <option value="">请选择银行</option>
-                                {bankList.map(bank => (
-                                    <option key={bank} value={bank}>{bank}</option>
-                                ))}
+                                {bankList.map(bank => <option key={bank} value={bank}>{bank}</option>)}
                             </select>
-                        </div>
-                        <div style={cellStyle}>
-                            <div style={labelStyle}>银行卡号 <span style={{ color: 'red' }}>*</span></div>
-                            <input
-                                type="text"
-                                placeholder="请输入银行卡号"
-                                value={form.cardNumber}
+                        </FormRow>
+                        <FormRow label="银行卡号" required>
+                            <input type="text" placeholder="请输入银行卡号" value={form.cardNumber}
                                 onChange={e => setForm({ ...form, cardNumber: e.target.value })}
-                                style={{ flex: 1, border: 'none', fontSize: '14px', textAlign: 'right', outline: 'none' }}
-                            />
-                        </div>
-                        <div style={cellStyle}>
-                            <div style={labelStyle}>开户行支行</div>
-                            <input
-                                type="text"
-                                placeholder="如：XX市XX区支行"
-                                value={form.branchName}
+                                className="flex-1 border-none bg-transparent text-right text-sm text-slate-800 outline-none" />
+                        </FormRow>
+                        <FormRow label="开户行支行">
+                            <input type="text" placeholder="如：XX市XX区支行" value={form.branchName}
                                 onChange={e => setForm({ ...form, branchName: e.target.value })}
-                                style={{ flex: 1, border: 'none', fontSize: '14px', textAlign: 'right', outline: 'none' }}
-                            />
-                        </div>
-                        <div style={cellStyle}>
-                            <div style={labelStyle}>开户省份</div>
-                            <input
-                                type="text"
-                                placeholder="如：广东省"
-                                value={form.province}
+                                className="flex-1 border-none bg-transparent text-right text-sm text-slate-800 outline-none" />
+                        </FormRow>
+                        <FormRow label="开户省份">
+                            <input type="text" placeholder="如：广东省" value={form.province}
                                 onChange={e => setForm({ ...form, province: e.target.value })}
-                                style={{ flex: 1, border: 'none', fontSize: '14px', textAlign: 'right', outline: 'none' }}
-                            />
-                        </div>
-                        <div style={cellStyle}>
-                            <div style={labelStyle}>开户城市</div>
-                            <input
-                                type="text"
-                                placeholder="如：深圳市"
-                                value={form.city}
+                                className="flex-1 border-none bg-transparent text-right text-sm text-slate-800 outline-none" />
+                        </FormRow>
+                        <FormRow label="开户城市">
+                            <input type="text" placeholder="如：深圳市" value={form.city}
                                 onChange={e => setForm({ ...form, city: e.target.value })}
-                                style={{ flex: 1, border: 'none', fontSize: '14px', textAlign: 'right', outline: 'none' }}
-                            />
-                        </div>
-                        <div style={cellStyle}>
-                            <div style={labelStyle}>预留手机号 <span style={{ color: 'red' }}>*</span></div>
-                            <input
-                                type="text"
-                                placeholder="请输入银行预留手机号"
-                                maxLength={11}
-                                value={form.phone}
+                                className="flex-1 border-none bg-transparent text-right text-sm text-slate-800 outline-none" />
+                        </FormRow>
+                        <FormRow label="预留手机号" required>
+                            <input type="text" placeholder="请输入银行预留手机号" maxLength={11} value={form.phone}
                                 onChange={e => setForm({ ...form, phone: e.target.value })}
-                                style={{ flex: 1, border: 'none', fontSize: '14px', textAlign: 'right', outline: 'none' }}
-                            />
+                                className="flex-1 border-none bg-transparent text-right text-sm text-slate-800 outline-none" />
+                        </FormRow>
+                        <div className="border-b border-slate-100 p-4">
+                            <div className="mb-2 text-sm text-slate-500">微信收款码 <span className="text-red-500">*</span></div>
+                            <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'wechatQrCode')} className="text-sm" />
+                            {form.wechatQrCode && <img src={form.wechatQrCode} alt="微信收款码" className="mt-2 h-24 w-24 rounded border object-contain" />}
                         </div>
-                        <div style={{ ...cellStyle, flexDirection: 'column', alignItems: 'flex-start' }}>
-                            <div style={{ marginBottom: '10px', fontSize: '14px', color: '#666' }}>微信收款码 <span style={{ color: 'red' }}>*</span></div>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => handleFileChange(e, 'wechatQrCode')}
-                                style={{ width: '100%', fontSize: '14px' }}
-                            />
-                            {form.wechatQrCode && (
-                                <img
-                                    src={form.wechatQrCode}
-                                    alt="微信收款码"
-                                    style={{ width: '100px', height: '100px', objectFit: 'contain', marginTop: '10px', border: '1px solid #eee' }}
-                                />
-                            )}
-                        </div>
-                        <div style={{ ...cellStyle, flexDirection: 'column', alignItems: 'flex-start' }}>
-                            <div style={{ marginBottom: '10px', fontSize: '14px', color: '#666' }}>支付宝收款码 <span style={{ color: 'red' }}>*</span></div>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => handleFileChange(e, 'alipayQrCode')}
-                                style={{ width: '100%', fontSize: '14px' }}
-                            />
-                            {form.alipayQrCode && (
-                                <img
-                                    src={form.alipayQrCode}
-                                    alt="支付宝收款码"
-                                    style={{ width: '100px', height: '100px', objectFit: 'contain', marginTop: '10px', border: '1px solid #eee' }}
-                                />
-                            )}
+                        <div className="p-4">
+                            <div className="mb-2 text-sm text-slate-500">支付宝收款码 <span className="text-red-500">*</span></div>
+                            <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'alipayQrCode')} className="text-sm" />
+                            {form.alipayQrCode && <img src={form.alipayQrCode} alt="支付宝收款码" className="mt-2 h-24 w-24 rounded border object-contain" />}
                         </div>
                     </div>
-
-                    <div style={{ padding: '15px', display: 'flex', gap: '10px' }}>
-                        <button
-                            onClick={() => setShowForm(false)}
-                            style={{
-                                flex: 1,
-                                background: '#fff',
-                                border: '1px solid #ddd',
-                                color: '#666',
-                                padding: '12px',
-                                borderRadius: '4px',
-                                fontSize: '14px',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            取消
-                        </button>
-                        <button
-                            onClick={handleSubmit}
-                            disabled={submitting}
-                            style={{
-                                flex: 2,
-                                background: submitting ? '#ccc' : '#409eff',
-                                border: 'none',
-                                color: '#fff',
-                                padding: '12px',
-                                borderRadius: '4px',
-                                fontSize: '14px',
-                                cursor: submitting ? 'not-allowed' : 'pointer'
-                            }}
-                        >
-                            {submitting ? '提交中...' : '提交'}
-                        </button>
+                    <div className="mt-4 flex gap-3">
+                        <Button variant="secondary" onClick={() => setShowForm(false)} className="flex-1">取消</Button>
+                        <Button onClick={handleSubmit} loading={submitting} className="flex-[2] bg-blue-500 hover:bg-blue-600">提交</Button>
                     </div>
-                </div>
+                </ProfileContainer>
             )}
+        </div>
+    );
+}
+
+function FormRow({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+    return (
+        <div className="flex items-center border-b border-slate-100 px-4 py-3">
+            <span className="w-24 text-sm text-slate-500">{label} {required && <span className="text-red-500">*</span>}</span>
+            {children}
         </div>
     );
 }

@@ -2,474 +2,272 @@
 
 import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { cn } from '../../../lib/utils';
+import { ProfileContainer } from '../../../components/ProfileContainer';
 import { isAuthenticated, getToken } from '../../../services/authService';
-
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
-// ========================
-
-// ========================
-
-// 本金记录
-interface PrincipalRecord {
-    id: string;
-    type: string;           // 类型描述
-    money: number;          // 金额
-    balance: number;        // 余额
-    create_time: string;    // 创建时间
-    remark: string;         // 备注
-}
-
-// 银锭记录
-interface SilverRecord {
-    id: string;
-    type: string;           // 类型描述
-    reward: number;         // 银锭数量
-    balance: number;        // 余额
-    create_time: string;    // 创建时间
-    remark: string;         // 备注
-}
-
-// 提现记录
-interface WithdrawRecord {
-    id: string;
-    type: number;           // 1=本金提现, 2=银锭提现
-    money: number;          // 提现金额
-    state: number;          // 0=待审核, 1=已通过, 2=已拒绝
-    state_text: string;     // 状态文本
-    bank_name: string;      // 银行名称
-    bank_card: string;      // 银行卡号
-    create_time: string;    // 创建时间
-    remark: string;         // 备注
-}
+interface PrincipalRecord { id: string; type: string; money: number; balance: number; create_time: string; remark: string; }
+interface SilverRecord { id: string; type: string; reward: number; balance: number; create_time: string; remark: string; }
+interface WithdrawRecord { id: string; type: number; money: number; state: number; state_text: string; bank_name: string; bank_card: string; create_time: string; remark: string; }
 
 function RecordsContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const initialType = searchParams.get('type') || 'principal';
 
-    // 三种独立记录 Tab
-    const [activeTab, setActiveTab] = useState<'principal' | 'silver' | 'withdraw'>(
-        initialType as 'principal' | 'silver' | 'withdraw'
-    );
-
-    // 独立的记录列表和分页
+    const [activeTab, setActiveTab] = useState<'principal' | 'silver' | 'withdraw'>(initialType as 'principal' | 'silver' | 'withdraw');
     const [principalRecords, setPrincipalRecords] = useState<PrincipalRecord[]>([]);
     const [silverRecords, setSilverRecords] = useState<SilverRecord[]>([]);
     const [withdrawRecords, setWithdrawRecords] = useState<WithdrawRecord[]>([]);
-
     const [principalPage, setPrincipalPage] = useState(1);
     const [silverPage, setSilverPage] = useState(1);
     const [withdrawPage, setWithdrawPage] = useState(1);
-
     const [principalTotal, setPrincipalTotal] = useState(0);
     const [silverTotal, setSilverTotal] = useState(0);
     const [withdrawTotal, setWithdrawTotal] = useState(0);
-
     const [loading, setLoading] = useState(true);
     const [balance, setBalance] = useState({ principal: 0, silver: 0 });
 
-    const alertError = useCallback((msg: string) => {
-        alert(msg);
-    }, []);
-
     useEffect(() => {
-        if (!isAuthenticated()) {
-            router.push('/login');
-            return;
-        }
+        if (!isAuthenticated()) { router.push('/login'); return; }
         loadData();
     }, [activeTab]);
 
-    // 加载余额信息
     const loadBalance = async () => {
         try {
             const token = getToken();
-            const res = await fetch(`${BASE_URL}/mobile/my/index`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const res = await fetch(`${BASE_URL}/mobile/my/index`, { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
-            if (data.code === 1) {
-                setBalance({
-                    principal: data.data?.balance || 0,
-                    silver: data.data?.reward || 0
-                });
-            }
-        } catch (error) {
-            console.error('Load balance error:', error);
-        }
+            if (data.code === 1) { setBalance({ principal: data.data?.balance || 0, silver: data.data?.reward || 0 }); }
+        } catch (error) { console.error('Load balance error:', error); }
     };
 
-    // 根据当前 Tab 加载对应数据
     const loadData = async () => {
         setLoading(true);
         await loadBalance();
-
-        if (activeTab === 'principal') {
-            await loadPrincipalRecords();
-        } else if (activeTab === 'silver') {
-            await loadSilverRecords();
-        } else if (activeTab === 'withdraw') {
-            await loadWithdrawRecords();
-        }
-
+        if (activeTab === 'principal') await loadPrincipalRecords();
+        else if (activeTab === 'silver') await loadSilverRecords();
+        else if (activeTab === 'withdraw') await loadWithdrawRecords();
         setLoading(false);
     };
 
-    // ========================
-
-    // ========================
     const loadPrincipalRecords = async () => {
         try {
             const token = getToken();
             const res = await fetch(`${BASE_URL}/mobile/money/benjinlist`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ page: principalPage })
             });
             const data = await res.json();
-            if (data.code === 1) {
-                setPrincipalRecords(data.data?.list || []);
-                setPrincipalTotal(data.data?.total || 0);
-            }
-        } catch (error) {
-            console.error('Load principal records error:', error);
-        }
+            if (data.code === 1) { setPrincipalRecords(data.data?.list || []); setPrincipalTotal(data.data?.total || 0); }
+        } catch (error) { console.error('Load principal records error:', error); }
     };
 
-    // ========================
-
-    // ========================
     const loadSilverRecords = async () => {
         try {
             const token = getToken();
             const res = await fetch(`${BASE_URL}/mobile/money/yindinglist?page=${silverPage}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                method: 'GET', headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
-            if (data.code === 1) {
-                setSilverRecords(data.data?.list || []);
-                setSilverTotal(data.data?.total || 0);
-            }
-        } catch (error) {
-            console.error('Load silver records error:', error);
-        }
+            if (data.code === 1) { setSilverRecords(data.data?.list || []); setSilverTotal(data.data?.total || 0); }
+        } catch (error) { console.error('Load silver records error:', error); }
     };
 
-    // ========================
-
-    // ========================
     const loadWithdrawRecords = async () => {
         try {
             const token = getToken();
             const res = await fetch(`${BASE_URL}/mobile/money/tixianlist`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ page: withdrawPage })
             });
             const data = await res.json();
-            if (data.code === 1) {
-                setWithdrawRecords(data.data?.list || []);
-                setWithdrawTotal(data.data?.total || 0);
-            }
-        } catch (error) {
-            console.error('Load withdraw records error:', error);
-        }
+            if (data.code === 1) { setWithdrawRecords(data.data?.list || []); setWithdrawTotal(data.data?.total || 0); }
+        } catch (error) { console.error('Load withdraw records error:', error); }
     };
 
-    // 切换 Tab
-    const switchTab = (tab: 'principal' | 'silver' | 'withdraw') => {
-        setActiveTab(tab);
-    };
-
-    // 获取状态颜色
     const getStateColor = (state: number) => {
         switch (state) {
-            case 0: return '#ff9500'; // 待审核
-            case 1: return '#67c23a'; // 已通过
-            case 2: return '#f56c6c'; // 已拒绝
-            default: return '#999';
+            case 0: return 'text-amber-500 bg-amber-50';
+            case 1: return 'text-green-500 bg-green-50';
+            case 2: return 'text-red-500 bg-red-50';
+            default: return 'text-slate-500 bg-slate-50';
         }
     };
 
+    const tabs = [
+        { key: 'principal', label: '本金记录' },
+        { key: 'silver', label: '银锭记录' },
+        { key: 'withdraw', label: '提现记录' },
+    ];
+
     return (
-        <div style={{ minHeight: '100vh', background: '#f5f5f5', paddingBottom: '20px' }}>
-            <div style={{
-                background: 'linear-gradient(135deg, #1d1d1f 0%, #2c2c2e 100%)',
-                padding: '50px 16px 20px',
-                color: '#fff'
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                    <div onClick={() => router.back()} style={{ fontSize: '24px', cursor: 'pointer' }}>‹</div>
-                    <div style={{ fontSize: '18px', fontWeight: '600' }}>资金记录</div>
-                    <div style={{ width: '24px' }}></div>
-                </div>
+        <div className="min-h-screen bg-slate-50 pb-4">
+            {/* Header */}
+            <header className="sticky top-0 z-10 flex h-14 items-center border-b border-slate-200 bg-white px-4">
+                <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
+                <h1 className="flex-1 text-base font-medium text-slate-800">资金记录</h1>
+            </header>
 
-                {/* 余额展示 */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div style={{
-                        background: 'rgba(255,255,255,0.1)',
-                        borderRadius: '12px',
-                        padding: '16px',
-                        textAlign: 'center'
-                    }}>
-                        <div style={{ fontSize: '24px', fontWeight: '700', marginBottom: '4px' }}>
-                            ¥{balance.principal}
-                        </div>
-                        <div style={{ fontSize: '12px', opacity: 0.7 }}>可用本金</div>
+            {/* Balance Card */}
+            <ProfileContainer className="py-4">
+                <div className="mb-4 grid grid-cols-2 gap-3">
+                    <div className="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
+                        <div className="text-xl font-bold text-slate-800">¥{balance.principal}</div>
+                        <div className="mt-1 text-xs text-slate-400">可用本金</div>
                     </div>
-                    <div style={{
-                        background: 'rgba(255,255,255,0.1)',
-                        borderRadius: '12px',
-                        padding: '16px',
-                        textAlign: 'center'
-                    }}>
-                        <div style={{ fontSize: '24px', fontWeight: '700', color: '#ffd700', marginBottom: '4px' }}>
-                            {balance.silver}
-                        </div>
-                        <div style={{ fontSize: '12px', opacity: 0.7 }}>可用银锭</div>
+                    <div className="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
+                        <div className="text-xl font-bold text-amber-500">{balance.silver}</div>
+                        <div className="mt-1 text-xs text-slate-400">可用银锭</div>
                     </div>
                 </div>
-            </div>
+            </ProfileContainer>
 
-            {/* Tab Switch - 三种独立记录 */}
-            <div style={{
-                display: 'flex',
-                background: '#fff',
-                borderBottom: '1px solid #e5e5e5'
-            }}>
-                {[
-                    { key: 'principal', label: '本金记录' },
-                    { key: 'silver', label: '银锭记录' },
-                    { key: 'withdraw', label: '提现记录' },
-                ].map(tab => (
-                    <div
+            {/* Tabs */}
+            <div className="flex border-b border-slate-200 bg-white">
+                {tabs.map(tab => (
+                    <button
                         key={tab.key}
-                        onClick={() => switchTab(tab.key as 'principal' | 'silver' | 'withdraw')}
-                        style={{
-                            flex: 1,
-                            textAlign: 'center',
-                            padding: '14px 0',
-                            fontSize: '14px',
-                            color: activeTab === tab.key ? '#409eff' : '#666',
-                            borderBottom: activeTab === tab.key ? '2px solid #409eff' : 'none',
-                            cursor: 'pointer',
-                            fontWeight: activeTab === tab.key ? '600' : 'normal'
-                        }}
+                        onClick={() => setActiveTab(tab.key as 'principal' | 'silver' | 'withdraw')}
+                        className={cn(
+                            'flex-1 py-3 text-center text-sm font-medium',
+                            activeTab === tab.key ? 'border-b-2 border-blue-500 text-blue-500' : 'text-slate-500'
+                        )}
                     >
                         {tab.label}
-                    </div>
+                    </button>
                 ))}
             </div>
 
-            {/* Records List */}
-            <div style={{ marginTop: '10px' }}>
+            {/* Records */}
+            <ProfileContainer className="py-4">
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: '40px', color: '#999', background: '#fff' }}>
-                        加载中...
-                    </div>
+                    <div className="rounded-xl bg-white py-12 text-center text-slate-400">加载中...</div>
                 ) : (
                     <>
-                        {/* 本金记录列表 */}
+                        {/* Principal Records */}
                         {activeTab === 'principal' && (
-                            <div style={{ background: '#fff' }}>
+                            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                                 {principalRecords.length === 0 ? (
-                                    <div style={{ textAlign: 'center', padding: '60px 0', color: '#999' }}>
-                                        <div style={{ fontSize: '50px', marginBottom: '15px' }}>💰</div>
-                                        <div style={{ fontSize: '14px' }}>暂无本金记录</div>
+                                    <div className="py-12 text-center">
+                                        <div className="mb-3 text-4xl">💰</div>
+                                        <div className="text-sm text-slate-400">暂无本金记录</div>
                                     </div>
                                 ) : (
-                                    principalRecords.map((record, index) => (
-                                        <div
-                                            key={record.id}
-                                            style={{
-                                                padding: '15px',
-                                                borderBottom: index < principalRecords.length - 1 ? '1px solid #f5f5f5' : 'none'
-                                            }}
-                                        >
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                                <div style={{ fontSize: '14px', color: '#333', fontWeight: '500' }}>
-                                                    {record.type}
+                                    <div className="divide-y divide-slate-100">
+                                        {principalRecords.map(record => (
+                                            <div key={record.id} className="p-4">
+                                                <div className="mb-1.5 flex items-center justify-between">
+                                                    <span className="font-medium text-slate-700">{record.type}</span>
+                                                    <span className={cn('font-bold', record.money >= 0 ? 'text-green-500' : 'text-red-500')}>
+                                                        {record.money >= 0 ? '+' : ''}{record.money}元
+                                                    </span>
                                                 </div>
-                                                <div style={{
-                                                    fontSize: '16px',
-                                                    fontWeight: 'bold',
-                                                    color: record.money >= 0 ? '#67c23a' : '#f56c6c'
-                                                }}>
-                                                    {record.money >= 0 ? '+' : ''}{record.money}元
+                                                <div className="flex justify-between text-xs text-slate-400">
+                                                    <span>{record.create_time}</span>
+                                                    <span>余额: ¥{record.balance}</span>
                                                 </div>
+                                                {record.remark && <div className="mt-1.5 text-xs text-slate-400">备注: {record.remark}</div>}
                                             </div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#999' }}>
-                                                <span>{record.create_time}</span>
-                                                <span>余额: ¥{record.balance}</span>
-                                            </div>
-                                            {record.remark && (
-                                                <div style={{ fontSize: '12px', color: '#999', marginTop: '6px' }}>
-                                                    备注: {record.remark}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))
-                                )}
-                                {principalTotal > 10 && (
-                                    <div style={{ padding: '15px', textAlign: 'center', fontSize: '12px', color: '#999' }}>
-                                        共 {principalTotal} 条记录
+                                        ))}
                                     </div>
                                 )}
+                                {principalTotal > 10 && <div className="py-3 text-center text-xs text-slate-400">共 {principalTotal} 条记录</div>}
                             </div>
                         )}
 
-                        {/* 银锭记录列表 */}
+                        {/* Silver Records */}
                         {activeTab === 'silver' && (
-                            <div style={{ background: '#fff' }}>
+                            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                                 {silverRecords.length === 0 ? (
-                                    <div style={{ textAlign: 'center', padding: '60px 0', color: '#999' }}>
-                                        <div style={{ fontSize: '50px', marginBottom: '15px' }}>🥇</div>
-                                        <div style={{ fontSize: '14px' }}>暂无银锭记录</div>
+                                    <div className="py-12 text-center">
+                                        <div className="mb-3 text-4xl">🥇</div>
+                                        <div className="text-sm text-slate-400">暂无银锭记录</div>
                                     </div>
                                 ) : (
-                                    silverRecords.map((record, index) => (
-                                        <div
-                                            key={record.id}
-                                            style={{
-                                                padding: '15px',
-                                                borderBottom: index < silverRecords.length - 1 ? '1px solid #f5f5f5' : 'none'
-                                            }}
-                                        >
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                                <div style={{ fontSize: '14px', color: '#333', fontWeight: '500' }}>
-                                                    {record.type}
+                                    <div className="divide-y divide-slate-100">
+                                        {silverRecords.map(record => (
+                                            <div key={record.id} className="p-4">
+                                                <div className="mb-1.5 flex items-center justify-between">
+                                                    <span className="font-medium text-slate-700">{record.type}</span>
+                                                    <span className={cn('font-bold', record.reward >= 0 ? 'text-amber-500' : 'text-red-500')}>
+                                                        {record.reward >= 0 ? '+' : ''}{record.reward}银锭
+                                                    </span>
                                                 </div>
-                                                <div style={{
-                                                    fontSize: '16px',
-                                                    fontWeight: 'bold',
-                                                    color: record.reward >= 0 ? '#ffd700' : '#f56c6c'
-                                                }}>
-                                                    {record.reward >= 0 ? '+' : ''}{record.reward}银锭
+                                                <div className="flex justify-between text-xs text-slate-400">
+                                                    <span>{record.create_time}</span>
+                                                    <span>余额: {record.balance}银锭</span>
                                                 </div>
+                                                {record.remark && <div className="mt-1.5 text-xs text-slate-400">备注: {record.remark}</div>}
                                             </div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#999' }}>
-                                                <span>{record.create_time}</span>
-                                                <span>余额: {record.balance}银锭</span>
-                                            </div>
-                                            {record.remark && (
-                                                <div style={{ fontSize: '12px', color: '#999', marginTop: '6px' }}>
-                                                    备注: {record.remark}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))
-                                )}
-                                {silverTotal > 10 && (
-                                    <div style={{ padding: '15px', textAlign: 'center', fontSize: '12px', color: '#999' }}>
-                                        共 {silverTotal} 条记录
+                                        ))}
                                     </div>
                                 )}
+                                {silverTotal > 10 && <div className="py-3 text-center text-xs text-slate-400">共 {silverTotal} 条记录</div>}
                             </div>
                         )}
 
-                        {/* 提现记录列表 */}
+                        {/* Withdraw Records */}
                         {activeTab === 'withdraw' && (
-                            <div style={{ background: '#fff' }}>
+                            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                                 {withdrawRecords.length === 0 ? (
-                                    <div style={{ textAlign: 'center', padding: '60px 0', color: '#999' }}>
-                                        <div style={{ fontSize: '50px', marginBottom: '15px' }}>💳</div>
-                                        <div style={{ fontSize: '14px' }}>暂无提现记录</div>
+                                    <div className="py-12 text-center">
+                                        <div className="mb-3 text-4xl">💳</div>
+                                        <div className="text-sm text-slate-400">暂无提现记录</div>
                                     </div>
                                 ) : (
-                                    withdrawRecords.map((record, index) => (
-                                        <div
-                                            key={record.id}
-                                            style={{
-                                                padding: '15px',
-                                                borderBottom: index < withdrawRecords.length - 1 ? '1px solid #f5f5f5' : 'none'
-                                            }}
-                                        >
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                                <div style={{ fontSize: '14px', color: '#333', fontWeight: '500' }}>
-                                                    {record.type === 1 ? '本金提现' : '银锭提现'}
+                                    <div className="divide-y divide-slate-100">
+                                        {withdrawRecords.map(record => (
+                                            <div key={record.id} className="p-4">
+                                                <div className="mb-1.5 flex items-center justify-between">
+                                                    <span className="font-medium text-slate-700">{record.type === 1 ? '本金提现' : '银锭提现'}</span>
+                                                    <span className={cn('rounded px-2 py-0.5 text-xs font-medium', getStateColor(record.state))}>
+                                                        {record.state_text}
+                                                    </span>
                                                 </div>
-                                                <div style={{
-                                                    fontSize: '12px',
-                                                    fontWeight: '600',
-                                                    color: getStateColor(record.state),
-                                                    padding: '2px 8px',
-                                                    background: `${getStateColor(record.state)}15`,
-                                                    borderRadius: '10px'
-                                                }}>
-                                                    {record.state_text}
-                                                </div>
+                                                <div className="mb-1.5 text-lg font-bold text-red-500">-¥{record.money}</div>
+                                                <div className="text-xs text-slate-400">提现至: {record.bank_name} {record.bank_card}</div>
+                                                <div className="mt-0.5 text-xs text-slate-400">{record.create_time}</div>
+                                                {record.remark && <div className="mt-1.5 text-xs text-slate-400">备注: {record.remark}</div>}
                                             </div>
-                                            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#f56c6c', marginBottom: '8px' }}>
-                                                -¥{record.money}
-                                            </div>
-                                            <div style={{ fontSize: '12px', color: '#999', marginBottom: '4px' }}>
-                                                提现至: {record.bank_name} {record.bank_card}
-                                            </div>
-                                            <div style={{ fontSize: '12px', color: '#999' }}>
-                                                {record.create_time}
-                                            </div>
-                                            {record.remark && (
-                                                <div style={{ fontSize: '12px', color: '#999', marginTop: '6px' }}>
-                                                    备注: {record.remark}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))
-                                )}
-                                {withdrawTotal > 10 && (
-                                    <div style={{ padding: '15px', textAlign: 'center', fontSize: '12px', color: '#999' }}>
-                                        共 {withdrawTotal} 条记录
+                                        ))}
                                     </div>
                                 )}
+                                {withdrawTotal > 10 && <div className="py-3 text-center text-xs text-slate-400">共 {withdrawTotal} 条记录</div>}
                             </div>
                         )}
                     </>
                 )}
-            </div>
 
-            {/* Tips */}
-            <div style={{ padding: '15px', fontSize: '12px', color: '#999', lineHeight: '1.8' }}>
-                <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>说明：</div>
-                {activeTab === 'principal' && (
-                    <>
+                {/* Tips */}
+                <div className="mt-4 rounded-xl bg-slate-100 p-4 text-xs text-slate-500 leading-relaxed">
+                    <div className="mb-1 font-medium">说明：</div>
+                    {activeTab === 'principal' && <>
                         <div>• 本金为订单垫付后返还的金额</div>
                         <div>• 本金可随时申请提现至绑定银行卡</div>
                         <div>• 提现到账时间为1-3个工作日</div>
-                    </>
-                )}
-                {activeTab === 'silver' && (
-                    <>
+                    </>}
+                    {activeTab === 'silver' && <>
                         <div>• 银锭是平台的虚拟货币，1银锭=1元</div>
                         <div>• 银锭可通过完成任务、邀请好友获得</div>
                         <div>• 银锭提现将收取5%手续费</div>
-                    </>
-                )}
-                {activeTab === 'withdraw' && (
-                    <>
+                    </>}
+                    {activeTab === 'withdraw' && <>
                         <div>• 提现申请将在1-3个工作日内审核处理</div>
                         <div>• 请确保银行卡信息正确，以免提现失败</div>
                         <div>• 如有疑问请联系客服</div>
-                    </>
-                )}
-            </div>
+                    </>}
+                </div>
+            </ProfileContainer>
         </div>
     );
 }
 
 export default function RecordsPage() {
     return (
-        <Suspense fallback={<div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>加载中...</div>}>
+        <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-slate-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" /></div>}>
             <RecordsContent />
         </Suspense>
     );

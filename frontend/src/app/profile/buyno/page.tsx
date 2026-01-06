@@ -144,7 +144,7 @@ export default function BuynoPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ mobile: form.receiverPhone }),
             });
-        } catch (error) {}
+        } catch (error) { }
 
         let num = 60;
         setYzmDisabled(true);
@@ -270,14 +270,9 @@ export default function BuynoPage() {
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
             {/* 页面头部 */}
-            <header className="sticky top-0 z-10 flex h-11 items-center justify-center border-b border-slate-200 bg-white">
-                <button
-                    onClick={() => router.back()}
-                    className="absolute left-4 text-xl text-slate-600"
-                >
-                    ‹
-                </button>
-                <span className="text-base font-medium text-slate-800">买号添加</span>
+            <header className="sticky top-0 z-10 flex h-14 items-center border-b border-slate-200 bg-white px-4">
+                <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
+                <span className="flex-1 text-base font-medium text-slate-800">买号添加</span>
             </header>
 
             {/* Tab切换 */}
@@ -286,24 +281,24 @@ export default function BuynoPage() {
                     onClick={() => setActiveTab('list')}
                     className={cn(
                         'relative flex-1 py-3 text-center text-sm',
-                        activeTab === 'list' ? 'text-primary' : 'text-slate-500'
+                        activeTab === 'list' ? 'text-blue-500' : 'text-slate-500'
                     )}
                 >
                     买号信息
                     {activeTab === 'list' && (
-                        <div className="absolute bottom-0 left-1/2 h-0.5 w-14 -translate-x-1/2 bg-primary" />
+                        <div className="absolute bottom-0 left-1/2 h-0.5 w-14 -translate-x-1/2 bg-blue-500" />
                     )}
                 </button>
                 <button
                     onClick={() => setActiveTab('add')}
                     className={cn(
                         'relative flex-1 py-3 text-center text-sm',
-                        activeTab === 'add' ? 'text-primary' : 'text-slate-500'
+                        activeTab === 'add' ? 'text-blue-500' : 'text-slate-500'
                     )}
                 >
                     添加账号
                     {activeTab === 'add' && (
-                        <div className="absolute bottom-0 left-1/2 h-0.5 w-14 -translate-x-1/2 bg-primary" />
+                        <div className="absolute bottom-0 left-1/2 h-0.5 w-14 -translate-x-1/2 bg-blue-500" />
                     )}
                 </button>
             </div>
@@ -358,7 +353,7 @@ export default function BuynoPage() {
                                     <div className="flex justify-end border-t border-slate-100 bg-gradient-to-b from-slate-50 to-white px-4 py-2.5">
                                         <button
                                             onClick={() => router.push(`/profile/buyno/edit/${acc.id}`)}
-                                            className="rounded-full bg-primary px-4 py-1.5 text-xs text-white"
+                                            className="rounded-full bg-blue-500 px-4 py-1.5 text-xs text-white"
                                         >
                                             信息修改
                                         </button>
@@ -607,7 +602,7 @@ export default function BuynoPage() {
                                     disabled={yzmDisabled}
                                     className={cn(
                                         'whitespace-nowrap rounded px-3 py-1.5 text-xs text-white',
-                                        yzmDisabled ? 'cursor-not-allowed bg-blue-300' : 'bg-primary'
+                                        yzmDisabled ? 'cursor-not-allowed bg-blue-300' : 'bg-blue-500'
                                     )}
                                 >
                                     {yzmMsg}

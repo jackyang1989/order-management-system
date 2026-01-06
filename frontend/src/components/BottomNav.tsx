@@ -72,20 +72,20 @@ export default function BottomNav() {
     };
 
     return (
-        <div className="fixed inset-x-0 bottom-0 z-50 mx-auto flex h-15 max-w-xl border-t border-slate-200 bg-white">
+        <div className="fixed inset-x-0 bottom-0 z-50 flex h-16 w-full border-t border-slate-200 bg-white">
             {navItems.map((item) => (
                 <div key={item.key} className="relative flex-1">
                     {/* Popup Menu */}
                     {activeNav === item.key && item.subItems && (
-                        <div className="absolute bottom-15 left-1/2 w-30 -translate-x-1/2 rounded border border-slate-200 bg-white text-center shadow-lg">
+                        <div className="absolute bottom-16 left-1/2 w-32 -translate-x-1/2 rounded-lg border border-slate-200 bg-white text-center shadow-lg">
                             {item.subItems.map((sub, idx) => (
                                 <Link
                                     key={sub.href}
                                     href={sub.href}
                                     onClick={() => setActiveNav(null)}
                                     className={cn(
-                                        'block px-2.5 py-2.5 text-xs no-underline',
-                                        pathname.startsWith(sub.href.split('?')[0]) ? 'text-blue-500' : 'text-slate-600',
+                                        'block px-3 py-3 text-sm no-underline',
+                                        pathname.startsWith(sub.href.split('?')[0]) ? 'text-blue-500 font-medium' : 'text-slate-600',
                                         idx < item.subItems!.length - 1 && 'border-b border-slate-100'
                                     )}
                                 >
@@ -98,12 +98,14 @@ export default function BottomNav() {
                     <div
                         onClick={() => toggleNav(item.key)}
                         className={cn(
-                            'flex h-full cursor-pointer flex-col items-center justify-center',
-                            item.highlight ? 'bg-orange-400 text-white' : (activeNav === item.key || isActive(item) ? 'text-blue-500' : 'text-slate-500')
+                            'flex h-full cursor-pointer flex-col items-center justify-center gap-1',
+                            item.highlight
+                                ? 'bg-blue-500 text-white'
+                                : (activeNav === item.key || isActive(item) ? 'text-blue-500' : 'text-slate-500')
                         )}
                     >
                         <span className="text-xl">{item.icon}</span>
-                        <span className="mt-0.5 text-[11px]">{item.label}</span>
+                        <span className="text-xs">{item.label}</span>
                     </div>
                 </div>
             ))}
