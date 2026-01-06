@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { cn } from '../lib/utils';
 
 interface NavItem {
     key: string;
@@ -71,74 +72,38 @@ export default function BottomNav() {
     };
 
     return (
-        <div
-            style={{
-                position: 'fixed',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                maxWidth: '540px',
-                margin: '0 auto',
-                background: '#fff',
-                borderTop: '1px solid #ddd',
-                display: 'flex',
-                height: '60px',
-                zIndex: 1000,
-            }}
-        >
+        <div className="fixed inset-x-0 bottom-0 z-50 mx-auto flex h-15 max-w-xl border-t border-slate-200 bg-white">
             {navItems.map((item) => (
-                <div key={item.key} style={{ flex: 1, position: 'relative' }}>
-                    {/* 弹出菜单 */}
+                <div key={item.key} className="relative flex-1">
+                    {/* Popup Menu */}
                     {activeNav === item.key && item.subItems && (
-                        <div
-                            style={{
-                                position: 'absolute',
-                                bottom: '60px',
-                                left: '50%',
-                                transform: 'translateX(-50%)',
-                                background: '#fff',
-                                border: '1px solid #ccc',
-                                borderRadius: '4px',
-                                width: '120px',
-                                textAlign: 'center',
-                                boxShadow: '0 -2px 8px rgba(0,0,0,0.1)',
-                            }}
-                        >
+                        <div className="absolute bottom-15 left-1/2 w-30 -translate-x-1/2 rounded border border-slate-200 bg-white text-center shadow-lg">
                             {item.subItems.map((sub, idx) => (
                                 <Link
                                     key={sub.href}
                                     href={sub.href}
                                     onClick={() => setActiveNav(null)}
-                                    style={{
-                                        display: 'block',
-                                        padding: '10px',
-                                        fontSize: '13px',
-                                        color: pathname.startsWith(sub.href.split('?')[0]) ? '#409eff' : '#666',
-                                        borderBottom: idx < item.subItems!.length - 1 ? '1px solid #e5e5e5' : 'none',
-                                        textDecoration: 'none',
-                                    }}
+                                    className={cn(
+                                        'block px-2.5 py-2.5 text-xs no-underline',
+                                        pathname.startsWith(sub.href.split('?')[0]) ? 'text-blue-500' : 'text-slate-600',
+                                        idx < item.subItems!.length - 1 && 'border-b border-slate-100'
+                                    )}
                                 >
                                     {sub.label}
                                 </Link>
                             ))}
                         </div>
                     )}
-                    {/* 导航按钮 */}
+                    {/* Nav Button */}
                     <div
                         onClick={() => toggleNav(item.key)}
-                        style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            height: '100%',
-                            cursor: 'pointer',
-                            background: item.highlight ? '#ff976a' : 'transparent',
-                            color: item.highlight ? 'white' : (activeNav === item.key || isActive(item) ? '#409eff' : '#606266'),
-                        }}
+                        className={cn(
+                            'flex h-full cursor-pointer flex-col items-center justify-center',
+                            item.highlight ? 'bg-orange-400 text-white' : (activeNav === item.key || isActive(item) ? 'text-blue-500' : 'text-slate-500')
+                        )}
                     >
-                        <span style={{ fontSize: '22px' }}>{item.icon}</span>
-                        <span style={{ fontSize: '11px', marginTop: '2px' }}>{item.label}</span>
+                        <span className="text-xl">{item.icon}</span>
+                        <span className="mt-0.5 text-[11px]">{item.label}</span>
                     </div>
                 </div>
             ))}
