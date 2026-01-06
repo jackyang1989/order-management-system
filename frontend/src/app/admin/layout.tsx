@@ -140,6 +140,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const router = useRouter();
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
+    const [openSections, setOpenSections] = useState<string[]>(['users', 'merchants', 'finance', 'system']);
     const [admin, setAdmin] = useState<{ username: string } | null>(null);
 
     useEffect(() => {
@@ -167,7 +168,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     }
 
     const currentOpenKey = pathname ? pathToOpenKeys[pathname] : undefined;
-    const openKeys = currentOpenKey ? [currentOpenKey] : ['users', 'merchants', 'finance', 'system'];
+
+    useEffect(() => {
+        if (currentOpenKey) {
+            setOpenSections((prev) => (prev.includes(currentOpenKey) ? prev : [...prev, currentOpenKey]));
+        }
+    }, [currentOpenKey]);
 
     const dropdownItems = [
         { key: 'profile', label: '个人设置' },
