@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../apiConfig';
+import { cn } from '../../../lib/utils';
+import { Button } from '../../../components/ui/button';
+import { Card } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Select } from '../../../components/ui/select';
+import { Input } from '../../../components/ui/input';
+import { Modal } from '../../../components/ui/modal';
 
 interface Notice {
     id: string;
@@ -30,16 +37,16 @@ const typeLabels: Record<number, string> = {
     4: '通知公告',
 };
 
-const targetLabels: Record<number, { text: string; color: string }> = {
-    0: { text: '所有人', color: '#1890ff' },
-    1: { text: '买手', color: '#52c41a' },
-    2: { text: '商家', color: '#722ed1' },
+const targetLabels: Record<number, { text: string; color: 'blue' | 'green' | 'purple' }> = {
+    0: { text: '所有人', color: 'blue' },
+    1: { text: '买手', color: 'green' },
+    2: { text: '商家', color: 'purple' },
 };
 
-const statusLabels: Record<number, { text: string; color: string }> = {
-    0: { text: '草稿', color: '#999' },
-    1: { text: '已发布', color: '#52c41a' },
-    2: { text: '已归档', color: '#ff4d4f' },
+const statusLabels: Record<number, { text: string; color: 'slate' | 'green' | 'red' }> = {
+    0: { text: '草稿', color: 'slate' },
+    1: { text: '已发布', color: 'green' },
+    2: { text: '已归档', color: 'red' },
 };
 
 export default function AdminNoticePage() {
@@ -47,7 +54,7 @@ export default function AdminNoticePage() {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
-    const [statusFilter, setStatusFilter] = useState<number | undefined>(undefined);
+    const [statusFilter, setStatusFilter] = useState<string>('all');
     const [showModal, setShowModal] = useState(false);
     const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
     const [detailModal, setDetailModal] = useState<Notice | null>(null);
@@ -71,7 +78,7 @@ export default function AdminNoticePage() {
         setLoading(true);
         try {
             let url = `${BASE_URL}/notices/admin/list?page=${page}&limit=20`;
-            if (statusFilter !== undefined) url += `&status=${statusFilter}`;
+            if (statusFilter !== 'all') url += `&status=${statusFilter}`;
 
             const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -90,16 +97,7 @@ export default function AdminNoticePage() {
 
     const handleCreate = () => {
         setEditingNotice(null);
-        setForm({
-            title: '',
-            content: '',
-            type: 1,
-            target: 0,
-            sort: 0,
-            isTop: false,
-            isPopup: false,
-            coverImage: ''
-        });
+        setForm({ title: '', content: '', type: 1, target: 0, sort: 0, isTop: false, isPopup: false, coverImage: '' });
         setShowModal(true);
     };
 
@@ -121,16 +119,10 @@ export default function AdminNoticePage() {
     const handleSubmit = async () => {
         const token = localStorage.getItem('adminToken');
         try {
-            const url = editingNotice
-                ? `${BASE_URL}/notices/admin/${editingNotice.id}`
-                : `${BASE_URL}/notices/admin`;
-
+            const url = editingNotice ? `${BASE_URL}/notices/admin/${editingNotice.id}` : `${BASE_URL}/notices/admin`;
             const res = await fetch(url, {
                 method: editingNotice ? 'PUT' : 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify(form)
             });
             const json = await res.json();
@@ -153,11 +145,8 @@ export default function AdminNoticePage() {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();
-            if (json.success) {
-                loadNotices();
-            } else {
-                alert(json.message || '操作失败');
-            }
+            if (json.success) loadNotices();
+            else alert(json.message || '操作失败');
         } catch (e) {
             alert('操作失败');
         }
@@ -171,11 +160,8 @@ export default function AdminNoticePage() {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();
-            if (json.success) {
-                loadNotices();
-            } else {
-                alert(json.message || '操作失败');
-            }
+            if (json.success) loadNotices();
+            else alert(json.message || '操作失败');
         } catch (e) {
             alert('操作失败');
         }
@@ -190,11 +176,8 @@ export default function AdminNoticePage() {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();
-            if (json.success) {
-                loadNotices();
-            } else {
-                alert(json.message || '操作失败');
-            }
+            if (json.success) loadNotices();
+            else alert(json.message || '操作失败');
         } catch (e) {
             alert('操作失败');
         }
@@ -208,11 +191,8 @@ export default function AdminNoticePage() {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();
-            if (json.success) {
-                loadNotices();
-            } else {
-                alert(json.message || '操作失败');
-            }
+            if (json.success) loadNotices();
+            else alert(json.message || '操作失败');
         } catch (e) {
             alert('操作失败');
         }
@@ -227,273 +207,237 @@ export default function AdminNoticePage() {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();
-            if (json.success) {
-                loadNotices();
-            } else {
-                alert(json.message || '操作失败');
-            }
+            if (json.success) loadNotices();
+            else alert(json.message || '操作失败');
         } catch (e) {
             alert('操作失败');
         }
     };
 
     return (
-        <div>
-            {/* 操作栏 */}
-            <div style={{ background: '#fff', padding: '16px 20px', borderRadius: '8px', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <span style={{ fontSize: '16px', fontWeight: '500' }}>公告管理</span>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                        <span style={{ color: '#666' }}>共 {total} 条记录</span>
-                        <button
-                            onClick={handleCreate}
-                            style={{ padding: '8px 20px', background: '#1890ff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                        >
-                            + 发布公告
-                        </button>
+        <div className="space-y-4">
+            {/* Toolbar */}
+            <Card className="bg-white">
+                <div className="mb-4 flex items-center justify-between">
+                    <span className="text-base font-medium">公告管理</span>
+                    <div className="flex items-center gap-3">
+                        <span className="text-slate-500">共 {total} 条记录</span>
+                        <Button onClick={handleCreate}>+ 发布公告</Button>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <select
-                        value={statusFilter ?? ''}
-                        onChange={e => { setStatusFilter(e.target.value !== '' ? parseInt(e.target.value) : undefined); setPage(1); }}
-                        style={{ padding: '8px 12px', border: '1px solid #d9d9d9', borderRadius: '4px' }}
-                    >
-                        <option value="">全部状态</option>
-                        <option value="0">草稿</option>
-                        <option value="1">已发布</option>
-                        <option value="2">已归档</option>
-                    </select>
+                <div className="flex items-center gap-3">
+                    <Select
+                        value={statusFilter}
+                        onChange={(v) => { setStatusFilter(v); setPage(1); }}
+                        options={[
+                            { value: 'all', label: '全部状态' },
+                            { value: '0', label: '草稿' },
+                            { value: '1', label: '已发布' },
+                            { value: '2', label: '已归档' },
+                        ]}
+                        className="w-32"
+                    />
                 </div>
-            </div>
+            </Card>
 
-            {/* 公告列表 */}
-            <div style={{ background: '#fff', borderRadius: '8px', overflow: 'hidden' }}>
+            {/* Notice List */}
+            <Card className="overflow-hidden bg-white">
                 {loading ? (
-                    <div style={{ padding: '48px', textAlign: 'center', color: '#999' }}>加载中...</div>
+                    <div className="py-12 text-center text-slate-400">加载中...</div>
                 ) : notices.length === 0 ? (
-                    <div style={{ padding: '48px', textAlign: 'center', color: '#999' }}>暂无公告</div>
+                    <div className="py-12 text-center text-slate-400">暂无公告</div>
                 ) : (
                     <>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                            <thead>
-                                <tr style={{ background: '#fafafa' }}>
-                                    <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>标题</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>类型</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>目标</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>状态</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>置顶</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'right', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>浏览</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>发布时间</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {notices.map(notice => (
-                                    <tr key={notice.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                        <td style={{ padding: '14px 16px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                {notice.isPopup && <span style={{ padding: '1px 4px', background: '#ff4d4f', color: '#fff', fontSize: '10px', borderRadius: '2px' }}>弹窗</span>}
-                                                <span style={{ fontWeight: '500', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{notice.title}</span>
-                                            </div>
-                                        </td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'center', color: '#666' }}>{typeLabels[notice.type] || '未知'}</td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                                            <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '12px', background: (targetLabels[notice.target]?.color || '#999') + '20', color: targetLabels[notice.target]?.color || '#999' }}>
-                                                {targetLabels[notice.target]?.text || '未知'}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                                            <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '12px', background: (statusLabels[notice.status]?.color || '#999') + '20', color: statusLabels[notice.status]?.color || '#999' }}>
-                                                {statusLabels[notice.status]?.text || '未知'}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                                            {notice.isTop ? <span style={{ color: '#faad14' }}>★</span> : <span style={{ color: '#d9d9d9' }}>☆</span>}
-                                        </td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'right', color: '#666' }}>{notice.viewCount}</td>
-                                        <td style={{ padding: '14px 16px', color: '#999', fontSize: '13px' }}>{notice.publishedAt ? new Date(notice.publishedAt).toLocaleString('zh-CN') : '-'}</td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                                                <button onClick={() => setDetailModal(notice)} style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #1890ff', background: '#fff', color: '#1890ff', cursor: 'pointer', fontSize: '12px' }}>查看</button>
-                                                <button onClick={() => handleEdit(notice)} style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #d9d9d9', background: '#fff', cursor: 'pointer', fontSize: '12px' }}>编辑</button>
-                                                {notice.status === 0 && (
-                                                    <button onClick={() => handlePublish(notice.id)} style={{ padding: '4px 8px', borderRadius: '4px', border: 'none', background: '#52c41a', color: '#fff', cursor: 'pointer', fontSize: '12px' }}>发布</button>
-                                                )}
-                                                {notice.status === 1 && (
-                                                    <>
-                                                        <button onClick={() => handleUnpublish(notice.id)} style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #faad14', background: '#fff', color: '#faad14', cursor: 'pointer', fontSize: '12px' }}>撤回</button>
-                                                        <button onClick={() => handleToggleTop(notice.id)} style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #722ed1', background: '#fff', color: '#722ed1', cursor: 'pointer', fontSize: '12px' }}>{notice.isTop ? '取消置顶' : '置顶'}</button>
-                                                    </>
-                                                )}
-                                                {notice.status !== 2 && (
-                                                    <button onClick={() => handleArchive(notice.id)} style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #999', background: '#fff', color: '#999', cursor: 'pointer', fontSize: '12px' }}>归档</button>
-                                                )}
-                                                <button onClick={() => handleDelete(notice.id)} style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #ff4d4f', background: '#fff', color: '#ff4d4f', cursor: 'pointer', fontSize: '12px' }}>删除</button>
-                                            </div>
-                                        </td>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-[900px] w-full border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-50">
+                                        <th className="border-b border-slate-100 px-4 py-3.5 text-left text-sm font-medium text-slate-700">标题</th>
+                                        <th className="border-b border-slate-100 px-4 py-3.5 text-center text-sm font-medium text-slate-700">类型</th>
+                                        <th className="border-b border-slate-100 px-4 py-3.5 text-center text-sm font-medium text-slate-700">目标</th>
+                                        <th className="border-b border-slate-100 px-4 py-3.5 text-center text-sm font-medium text-slate-700">状态</th>
+                                        <th className="border-b border-slate-100 px-4 py-3.5 text-center text-sm font-medium text-slate-700">置顶</th>
+                                        <th className="border-b border-slate-100 px-4 py-3.5 text-right text-sm font-medium text-slate-700">浏览</th>
+                                        <th className="border-b border-slate-100 px-4 py-3.5 text-left text-sm font-medium text-slate-700">发布时间</th>
+                                        <th className="border-b border-slate-100 px-4 py-3.5 text-center text-sm font-medium text-slate-700">操作</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        <div style={{ padding: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #d9d9d9', background: '#fff', cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.5 : 1 }}>上一页</button>
-                            <span style={{ padding: '6px 12px', color: '#666' }}>第 {page} 页</span>
-                            <button onClick={() => setPage(p => p + 1)} disabled={notices.length < 20} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #d9d9d9', background: '#fff', cursor: notices.length < 20 ? 'not-allowed' : 'pointer', opacity: notices.length < 20 ? 0.5 : 1 }}>下一页</button>
+                                </thead>
+                                <tbody>
+                                    {notices.map(notice => (
+                                        <tr key={notice.id} className="border-b border-slate-100">
+                                            <td className="px-4 py-3.5">
+                                                <div className="flex items-center gap-2">
+                                                    {notice.isPopup && <Badge variant="solid" color="red">弹窗</Badge>}
+                                                    <span className="max-w-[200px] truncate font-medium">{notice.title}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3.5 text-center text-slate-500">{typeLabels[notice.type] || '未知'}</td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                <Badge variant="soft" color={targetLabels[notice.target]?.color || 'slate'}>
+                                                    {targetLabels[notice.target]?.text || '未知'}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                <Badge variant="soft" color={statusLabels[notice.status]?.color || 'slate'}>
+                                                    {statusLabels[notice.status]?.text || '未知'}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                {notice.isTop ? <span className="text-amber-500">★</span> : <span className="text-slate-300">☆</span>}
+                                            </td>
+                                            <td className="px-4 py-3.5 text-right text-slate-500">{notice.viewCount}</td>
+                                            <td className="px-4 py-3.5 text-xs text-slate-400">
+                                                {notice.publishedAt ? new Date(notice.publishedAt).toLocaleString('zh-CN') : '-'}
+                                            </td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                <div className="flex flex-wrap justify-center gap-1.5">
+                                                    <Button size="sm" variant="secondary" onClick={() => setDetailModal(notice)}>查看</Button>
+                                                    <Button size="sm" variant="secondary" onClick={() => handleEdit(notice)}>编辑</Button>
+                                                    {notice.status === 0 && (
+                                                        <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handlePublish(notice.id)}>发布</Button>
+                                                    )}
+                                                    {notice.status === 1 && (
+                                                        <>
+                                                            <Button size="sm" className="border border-amber-500 bg-white text-amber-600 hover:bg-amber-50" onClick={() => handleUnpublish(notice.id)}>撤回</Button>
+                                                            <Button size="sm" className="border border-purple-500 bg-white text-purple-600 hover:bg-purple-50" onClick={() => handleToggleTop(notice.id)}>{notice.isTop ? '取消置顶' : '置顶'}</Button>
+                                                        </>
+                                                    )}
+                                                    {notice.status !== 2 && (
+                                                        <Button size="sm" variant="secondary" onClick={() => handleArchive(notice.id)}>归档</Button>
+                                                    )}
+                                                    <Button size="sm" variant="destructive" onClick={() => handleDelete(notice.id)}>删除</Button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="flex justify-end gap-2 px-4 py-4">
+                            <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>上一页</Button>
+                            <span className="px-3 py-1.5 text-sm text-slate-500">第 {page} 页</span>
+                            <Button size="sm" variant="secondary" onClick={() => setPage(p => p + 1)} disabled={notices.length < 20}>下一页</Button>
                         </div>
                     </>
                 )}
-            </div>
+            </Card>
 
-            {/* 详情弹窗 */}
-            {detailModal && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: '#fff', borderRadius: '8px', width: '600px', maxWidth: '95%', maxHeight: '90vh', overflow: 'auto' }}>
-                        <div style={{ padding: '20px 24px', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
-                            <h3 style={{ margin: 0, fontSize: '16px' }}>公告详情</h3>
-                            <button onClick={() => setDetailModal(null)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#999' }}>x</button>
+            {/* Detail Modal */}
+            <Modal title="公告详情" open={!!detailModal} onClose={() => setDetailModal(null)} className="max-w-xl">
+                {detailModal && (
+                    <div className="space-y-4">
+                        <div>
+                            <h2 className="mb-3 text-lg font-semibold">{detailModal.title}</h2>
+                            <div className="mb-4 flex flex-wrap gap-2">
+                                <Badge variant="soft" color="slate">{typeLabels[detailModal.type]}</Badge>
+                                <Badge variant="soft" color={targetLabels[detailModal.target]?.color || 'slate'}>{targetLabels[detailModal.target]?.text}</Badge>
+                                <Badge variant="soft" color={statusLabels[detailModal.status]?.color || 'slate'}>{statusLabels[detailModal.status]?.text}</Badge>
+                                {detailModal.isTop && <Badge variant="soft" color="amber">置顶</Badge>}
+                                {detailModal.isPopup && <Badge variant="solid" color="red">弹窗</Badge>}
+                            </div>
                         </div>
-                        <div style={{ padding: '24px' }}>
-                            <div style={{ marginBottom: '20px' }}>
-                                <h2 style={{ margin: '0 0 12px', fontSize: '20px' }}>{detailModal.title}</h2>
-                                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
-                                    <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '12px', background: '#f0f0f0' }}>{typeLabels[detailModal.type]}</span>
-                                    <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '12px', background: (targetLabels[detailModal.target]?.color || '#999') + '20', color: targetLabels[detailModal.target]?.color }}>
-                                        {targetLabels[detailModal.target]?.text}
-                                    </span>
-                                    <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '12px', background: (statusLabels[detailModal.status]?.color || '#999') + '20', color: statusLabels[detailModal.status]?.color }}>
-                                        {statusLabels[detailModal.status]?.text}
-                                    </span>
-                                    {detailModal.isTop && <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '12px', background: '#faad1420', color: '#faad14' }}>置顶</span>}
-                                    {detailModal.isPopup && <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '12px', background: '#ff4d4f20', color: '#ff4d4f' }}>弹窗</span>}
-                                </div>
-                            </div>
-
-                            <div style={{ marginBottom: '20px', padding: '16px', background: '#fafafa', borderRadius: '4px', lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
-                                {detailModal.content}
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', color: '#666', fontSize: '13px' }}>
-                                <div><span style={{ color: '#999' }}>发布者：</span>{detailModal.adminName || '-'}</div>
-                                <div><span style={{ color: '#999' }}>浏览次数：</span>{detailModal.viewCount}</div>
-                                <div><span style={{ color: '#999' }}>创建时间：</span>{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</div>
-                                <div><span style={{ color: '#999' }}>发布时间：</span>{detailModal.publishedAt ? new Date(detailModal.publishedAt).toLocaleString('zh-CN') : '-'}</div>
-                            </div>
-
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '20px', borderTop: '1px solid #f0f0f0', marginTop: '20px' }}>
-                                <button onClick={() => setDetailModal(null)} style={{ padding: '10px 24px', background: '#fff', color: '#666', border: '1px solid #d9d9d9', borderRadius: '4px', cursor: 'pointer' }}>关闭</button>
-                            </div>
+                        <div className="whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-sm leading-relaxed">{detailModal.content}</div>
+                        <div className="grid grid-cols-2 gap-3 text-xs text-slate-500">
+                            <div><span className="text-slate-400">发布者：</span>{detailModal.adminName || '-'}</div>
+                            <div><span className="text-slate-400">浏览次数：</span>{detailModal.viewCount}</div>
+                            <div><span className="text-slate-400">创建时间：</span>{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</div>
+                            <div><span className="text-slate-400">发布时间：</span>{detailModal.publishedAt ? new Date(detailModal.publishedAt).toLocaleString('zh-CN') : '-'}</div>
+                        </div>
+                        <div className="flex justify-end border-t border-slate-200 pt-4">
+                            <Button variant="secondary" onClick={() => setDetailModal(null)}>关闭</Button>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </Modal>
 
-            {/* 编辑/发布弹窗 */}
-            {showModal && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowModal(false)}>
-                    <div style={{ background: '#fff', borderRadius: '8px', width: '600px', maxWidth: '95%', maxHeight: '90vh', overflow: 'auto' }} onClick={e => e.stopPropagation()}>
-                        <div style={{ padding: '20px 24px', borderBottom: '1px solid #f0f0f0', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
-                            <h3 style={{ margin: 0 }}>{editingNotice ? '编辑公告' : '发布公告'}</h3>
+            {/* Create/Edit Modal */}
+            <Modal title={editingNotice ? '编辑公告' : '发布公告'} open={showModal} onClose={() => setShowModal(false)} className="max-w-xl">
+                <div className="space-y-4">
+                    <Input
+                        label="标题"
+                        placeholder="请输入公告标题"
+                        value={form.title}
+                        onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    />
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">内容</label>
+                        <textarea
+                            className="w-full resize-y rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            rows={6}
+                            placeholder="请输入公告内容"
+                            value={form.content}
+                            onChange={(e) => setForm({ ...form, content: e.target.value })}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">类型</label>
+                            <Select
+                                value={String(form.type)}
+                                onChange={(v) => setForm({ ...form, type: parseInt(v) })}
+                                options={[
+                                    { value: '1', label: '系统公告' },
+                                    { value: '2', label: '活动公告' },
+                                    { value: '3', label: '更新公告' },
+                                    { value: '4', label: '通知公告' },
+                                ]}
+                            />
                         </div>
-                        <div style={{ padding: '24px' }}>
-                            <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', color: '#666' }}>标题 <span style={{ color: '#ff4d4f' }}>*</span></label>
-                                <input
-                                    value={form.title}
-                                    onChange={e => setForm({ ...form, title: e.target.value })}
-                                    placeholder="请输入公告标题"
-                                    style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '4px' }}
-                                />
-                            </div>
-                            <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', color: '#666' }}>内容 <span style={{ color: '#ff4d4f' }}>*</span></label>
-                                <textarea
-                                    value={form.content}
-                                    onChange={e => setForm({ ...form, content: e.target.value })}
-                                    placeholder="请输入公告内容"
-                                    rows={6}
-                                    style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '4px', resize: 'vertical' }}
-                                />
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', color: '#666' }}>类型</label>
-                                    <select
-                                        value={form.type}
-                                        onChange={e => setForm({ ...form, type: parseInt(e.target.value) })}
-                                        style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '4px' }}
-                                    >
-                                        <option value={1}>系统公告</option>
-                                        <option value={2}>活动公告</option>
-                                        <option value={3}>更新公告</option>
-                                        <option value={4}>通知公告</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', color: '#666' }}>目标用户</label>
-                                    <select
-                                        value={form.target}
-                                        onChange={e => setForm({ ...form, target: parseInt(e.target.value) })}
-                                        style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '4px' }}
-                                    >
-                                        <option value={0}>所有人</option>
-                                        <option value={1}>买手</option>
-                                        <option value={2}>商家</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', color: '#666' }}>排序</label>
-                                    <input
-                                        type="number"
-                                        value={form.sort}
-                                        onChange={e => setForm({ ...form, sort: parseInt(e.target.value) || 0 })}
-                                        style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '4px' }}
-                                    />
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', paddingTop: '28px' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                        <input
-                                            type="checkbox"
-                                            checked={form.isTop}
-                                            onChange={e => setForm({ ...form, isTop: e.target.checked })}
-                                            style={{ marginRight: '8px' }}
-                                        />
-                                        置顶
-                                    </label>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', paddingTop: '28px' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                        <input
-                                            type="checkbox"
-                                            checked={form.isPopup}
-                                            onChange={e => setForm({ ...form, isPopup: e.target.checked })}
-                                            style={{ marginRight: '8px' }}
-                                        />
-                                        弹窗显示
-                                    </label>
-                                </div>
-                            </div>
-                            <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', color: '#666' }}>封面图URL（可选）</label>
-                                <input
-                                    value={form.coverImage}
-                                    onChange={e => setForm({ ...form, coverImage: e.target.value })}
-                                    placeholder="请输入封面图URL"
-                                    style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '4px' }}
-                                />
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', paddingTop: '16px', borderTop: '1px solid #f0f0f0' }}>
-                                <button onClick={() => setShowModal(false)} style={{ padding: '10px 24px', border: '1px solid #d9d9d9', borderRadius: '4px', background: '#fff', cursor: 'pointer' }}>取消</button>
-                                <button onClick={handleSubmit} style={{ padding: '10px 24px', border: 'none', borderRadius: '4px', background: '#1890ff', color: '#fff', cursor: 'pointer' }}>
-                                    {editingNotice ? '保存' : '创建'}
-                                </button>
-                            </div>
+                        <div>
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">目标用户</label>
+                            <Select
+                                value={String(form.target)}
+                                onChange={(v) => setForm({ ...form, target: parseInt(v) })}
+                                options={[
+                                    { value: '0', label: '所有人' },
+                                    { value: '1', label: '买手' },
+                                    { value: '2', label: '商家' },
+                                ]}
+                            />
                         </div>
                     </div>
+                    <div className="grid grid-cols-3 gap-4">
+                        <Input
+                            label="排序"
+                            type="number"
+                            value={String(form.sort)}
+                            onChange={(e) => setForm({ ...form, sort: parseInt(e.target.value) || 0 })}
+                        />
+                        <div className="flex items-end pb-2">
+                            <label className="flex cursor-pointer items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={form.isTop}
+                                    onChange={(e) => setForm({ ...form, isTop: e.target.checked })}
+                                    className="h-4 w-4 rounded border-slate-300"
+                                />
+                                <span className="text-sm">置顶</span>
+                            </label>
+                        </div>
+                        <div className="flex items-end pb-2">
+                            <label className="flex cursor-pointer items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={form.isPopup}
+                                    onChange={(e) => setForm({ ...form, isPopup: e.target.checked })}
+                                    className="h-4 w-4 rounded border-slate-300"
+                                />
+                                <span className="text-sm">弹窗显示</span>
+                            </label>
+                        </div>
+                    </div>
+                    <Input
+                        label="封面图URL（可选）"
+                        placeholder="请输入封面图URL"
+                        value={form.coverImage}
+                        onChange={(e) => setForm({ ...form, coverImage: e.target.value })}
+                    />
+                    <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                        <Button variant="secondary" onClick={() => setShowModal(false)}>取消</Button>
+                        <Button onClick={handleSubmit}>{editingNotice ? '保存' : '创建'}</Button>
+                    </div>
                 </div>
-            )}
+            </Modal>
         </div>
     );
 }
