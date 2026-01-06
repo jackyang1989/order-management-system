@@ -2,25 +2,29 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Form, Input, Button, NavBar } from 'antd-mobile';
-import { EyeInvisibleOutline, EyeOutline } from 'antd-mobile-icons';
 import { login } from '../../services/authService';
 import { toastError, toastSuccess } from '../../lib/toast';
+import { cn } from '../../lib/utils';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
 
 export default function LoginPage() {
     const router = useRouter();
-    const [form] = Form.useForm();
+    const [phone, setPhone] = useState('');
+    const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [passwordVisible, setPasswordVisible] = useState(false);
 
-    const handleLogin = async (values: { phone: string; password: string }) => {
-        if (!values.phone || !values.password) {
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!phone || !password) {
             toastError('请输入手机号和密码');
             return;
         }
 
         setLoading(true);
-        const result = await login(values.phone, values.password);
+        const result = await login(phone, password);
         setLoading(false);
 
         if (result.success) {
@@ -41,9 +45,17 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen bg-white">
-            <NavBar onBack={() => router.back()} className="border-b border-slate-200">
-                登录
-            </NavBar>
+            {/* NavBar */}
+            <header className="sticky top-0 z-10 flex h-11 items-center justify-center border-b border-slate-200 bg-white">
+                <button
+                    type="button"
+                    onClick={() => router.back()}
+                    className="absolute left-4 text-xl text-slate-600"
+                >
+                    ‹
+                </button>
+                <span className="text-base font-medium text-slate-800">登录</span>
+            </header>
 
             <div className="px-6 py-10">
                 <div className="mb-8">
@@ -51,44 +63,56 @@ export default function LoginPage() {
                     <div className="mt-2 text-sm text-slate-500">订单管理系统</div>
                 </div>
 
-                <Form
-                    form={form}
-                    layout="vertical"
-                    onFinish={handleLogin}
-                    footer={
-                        <Button
-                            block
-                            type="submit"
-                            color="primary"
-                            size="large"
-                            loading={loading}
-                            className="rounded-full h-12 text-base font-medium"
-                        >
-                            登录
-                        </Button>
-                    }
-                >
-                    <Form.Item name="phone" label="手机号/用户名" rules={[{ required: true, message: '请输入手机号或用户名' }]}>
-                        <Input placeholder="请输入手机号或用户名" clearable className="text-base" />
-                    </Form.Item>
+                <form onSubmit={handleLogin} className="space-y-6">
+                    <Input
+                        label="手机号/用户名"
+                        placeholder="请输入手机号或用户名"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                    />
 
-                    <Form.Item name="password" label="密码" rules={[{ required: true, message: '请输入密码' }]}>
-                        <div className="flex items-center">
-                            <Input
-                                placeholder="请输入密码"
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                            密码
+                        </label>
+                        <div className="relative flex items-center">
+                            <input
                                 type={passwordVisible ? 'text' : 'password'}
-                                className="flex-1 text-base"
+                                placeholder="请输入密码"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className={cn(
+                                    'w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 pr-10 text-sm text-slate-900 placeholder:text-slate-400',
+                                    'focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+                                )}
                             />
                             <button
                                 type="button"
-                                className="px-2 text-slate-500"
+                                className="absolute right-3 text-slate-400"
                                 onClick={() => setPasswordVisible(!passwordVisible)}
                             >
-                                {passwordVisible ? <EyeOutline fontSize={20} /> : <EyeInvisibleOutline fontSize={20} />}
+                                {passwordVisible ? (
+                                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                ) : (
+                                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                                    </svg>
+                                )}
                             </button>
                         </div>
-                    </Form.Item>
-                </Form>
+                    </div>
+
+                    <Button
+                        type="submit"
+                        loading={loading}
+                        className="h-12 w-full rounded-full text-base font-medium"
+                    >
+                        登录
+                    </Button>
+                </form>
 
                 <div className="mt-6 text-center text-sm text-slate-600">
                     还没有账号？

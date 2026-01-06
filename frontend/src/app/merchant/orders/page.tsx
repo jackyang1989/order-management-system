@@ -1,6 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { cn } from '../../../../lib/utils';
+import { toastSuccess, toastError } from '../../../../lib/toast';
+import { Modal } from '../../../../components/ui/modal';
+import { Button } from '../../../../components/ui/button';
 import { BASE_URL } from '../../../../apiConfig';
 
 interface Order {
@@ -29,6 +33,14 @@ interface Stats {
     rejected: number;
     total: number;
 }
+
+const statusConfig: Record<string, { text: string; className: string }> = {
+    PENDING: { text: '进行中', className: 'bg-blue-100 text-blue-600' },
+    SUBMITTED: { text: '待审核', className: 'bg-amber-100 text-amber-600' },
+    APPROVED: { text: '已通过', className: 'bg-green-100 text-green-600' },
+    REJECTED: { text: '已驳回', className: 'bg-red-100 text-red-600' },
+    COMPLETED: { text: '已完成', className: 'bg-slate-100 text-slate-600' },
+};
 
 export default function MerchantOrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
@@ -88,154 +100,113 @@ export default function MerchantOrdersPage() {
             });
             const json = await res.json();
             if (json.success) {
-                alert(approved ? '审核通过' : '已驳回');
+                toastSuccess(approved ? '审核通过' : '已驳回');
                 setSelectedOrder(null);
                 loadData();
             } else {
-                alert(json.message || '操作失败');
+                toastError(json.message || '操作失败');
             }
         } catch (e) {
-            alert('网络错误');
+            toastError('网络错误');
         } finally {
             setReviewing(false);
         }
     };
 
-    const statusLabels: Record<string, { text: string; color: string }> = {
-        PENDING: { text: '进行中', color: '#3b82f6' },
-        SUBMITTED: { text: '待审核', color: '#f59e0b' },
-        APPROVED: { text: '已通过', color: '#10b981' },
-        REJECTED: { text: '已驳回', color: '#ef4444' },
-        COMPLETED: { text: '已完成', color: '#6b7280' },
-    };
+    const statCards = [
+        { label: '待审核', value: stats.pendingReview, colorClass: 'text-amber-500', filterKey: 'SUBMITTED' },
+        { label: '已通过', value: stats.approved, colorClass: 'text-green-500', filterKey: 'APPROVED' },
+        { label: '已驳回', value: stats.rejected, colorClass: 'text-red-500', filterKey: 'REJECTED' },
+        { label: '总订单', value: stats.total, colorClass: 'text-slate-500', filterKey: '' },
+    ];
 
     return (
-        <div>
+        <div className="space-y-6">
             {/* Stats Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-                {[
-                    { label: '待审核', value: stats.pendingReview, color: '#f59e0b', filter: 'SUBMITTED' },
-                    { label: '已通过', value: stats.approved, color: '#10b981', filter: 'APPROVED' },
-                    { label: '已驳回', value: stats.rejected, color: '#ef4444', filter: 'REJECTED' },
-                    { label: '总订单', value: stats.total, color: '#6b7280', filter: '' },
-                ].map((stat, idx) => (
-                    <div
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                {statCards.map((stat, idx) => (
+                    <button
                         key={idx}
-                        onClick={() => stat.filter && setFilter(stat.filter)}
-                        style={{
-                            background: filter === stat.filter ? '#eef2ff' : '#fff',
-                            border: `1px solid ${filter === stat.filter ? '#4f46e5' : '#e5e7eb'}`,
-                            borderRadius: '12px',
-                            padding: '20px',
-                            cursor: stat.filter ? 'pointer' : 'default',
-                            transition: 'all 0.2s'
-                        }}
+                        onClick={() => stat.filterKey && setFilter(stat.filterKey)}
+                        disabled={!stat.filterKey}
+                        className={cn(
+                            'rounded-xl border p-5 text-left transition-all',
+                            filter === stat.filterKey
+                                ? 'border-indigo-500 bg-indigo-50'
+                                : 'border-slate-200 bg-white hover:border-slate-300',
+                            !stat.filterKey && 'cursor-default'
+                        )}
                     >
-                        <div style={{ fontSize: '28px', fontWeight: 'bold', color: stat.color }}>{stat.value}</div>
-                        <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>{stat.label}</div>
-                    </div>
+                        <div className={cn('text-3xl font-bold', stat.colorClass)}>{stat.value}</div>
+                        <div className="mt-1 text-sm text-slate-500">{stat.label}</div>
+                    </button>
                 ))}
             </div>
 
             {/* Filter Tabs */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+            <div className="flex gap-2">
                 {['SUBMITTED', 'APPROVED', 'REJECTED', 'PENDING'].map(status => (
                     <button
                         key={status}
                         onClick={() => setFilter(status)}
-                        style={{
-                            padding: '8px 16px',
-                            borderRadius: '6px',
-                            border: 'none',
-                            background: filter === status ? '#4f46e5' : '#f3f4f6',
-                            color: filter === status ? '#fff' : '#374151',
-                            cursor: 'pointer',
-                            fontWeight: filter === status ? '600' : '400'
-                        }}
+                        className={cn(
+                            'rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+                            filter === status
+                                ? 'bg-indigo-600 text-white'
+                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        )}
                     >
-                        {statusLabels[status]?.text || status}
+                        {statusConfig[status]?.text || status}
                     </button>
                 ))}
             </div>
 
             {/* Orders Table */}
-            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
                 {loading ? (
-                    <div style={{ padding: '48px', textAlign: 'center', color: '#6b7280' }}>加载中...</div>
+                    <div className="py-12 text-center text-slate-500">加载中...</div>
                 ) : orders.length === 0 ? (
-                    <div style={{ padding: '48px', textAlign: 'center', color: '#6b7280' }}>暂无订单</div>
+                    <div className="py-12 text-center text-slate-500">暂无订单</div>
                 ) : (
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <table className="w-full">
                         <thead>
-                            <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: '#6b7280' }}>任务</th>
-                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: '#6b7280' }}>买号</th>
-                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: '#6b7280' }}>金额</th>
-                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: '#6b7280' }}>状态</th>
-                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: '#6b7280' }}>提交时间</th>
-                                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', color: '#6b7280' }}>操作</th>
+                            <tr className="border-b border-slate-200 bg-slate-50">
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">任务</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">买号</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">金额</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">状态</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">提交时间</th>
+                                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-slate-500">操作</th>
                             </tr>
                         </thead>
                         <tbody>
                             {orders.map(order => (
-                                <tr key={order.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                                    <td style={{ padding: '16px' }}>
-                                        <div style={{ fontWeight: '500', color: '#1f2937', marginBottom: '4px' }}>{order.taskTitle}</div>
-                                        <div style={{ fontSize: '12px', color: '#9ca3af' }}>{order.platform}</div>
+                                <tr key={order.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                                    <td className="px-4 py-4">
+                                        <div className="font-medium text-slate-900">{order.taskTitle}</div>
+                                        <div className="mt-0.5 text-xs text-slate-400">{order.platform}</div>
                                     </td>
-                                    <td style={{ padding: '16px', color: '#374151', fontSize: '14px' }}>{order.buynoAccount}</td>
-                                    <td style={{ padding: '16px' }}>
-                                        <div style={{ fontWeight: '500', color: '#1f2937' }}>¥{Number(order.productPrice).toFixed(2)}</div>
-                                        <div style={{ fontSize: '12px', color: '#10b981' }}>佣金 ¥{Number(order.commission).toFixed(2)}</div>
+                                    <td className="px-4 py-4 text-sm text-slate-700">{order.buynoAccount}</td>
+                                    <td className="px-4 py-4">
+                                        <div className="font-medium text-slate-900">¥{Number(order.productPrice).toFixed(2)}</div>
+                                        <div className="mt-0.5 text-xs text-green-600">佣金 ¥{Number(order.commission).toFixed(2)}</div>
                                     </td>
-                                    <td style={{ padding: '16px' }}>
-                                        <span style={{
-                                            display: 'inline-block',
-                                            padding: '4px 10px',
-                                            borderRadius: '999px',
-                                            fontSize: '12px',
-                                            fontWeight: '500',
-                                            background: statusLabels[order.status]?.color + '20',
-                                            color: statusLabels[order.status]?.color
-                                        }}>
-                                            {statusLabels[order.status]?.text || order.status}
+                                    <td className="px-4 py-4">
+                                        <span className={cn('inline-block rounded-full px-2.5 py-1 text-xs font-medium', statusConfig[order.status]?.className)}>
+                                            {statusConfig[order.status]?.text || order.status}
                                         </span>
                                     </td>
-                                    <td style={{ padding: '16px', fontSize: '13px', color: '#6b7280' }}>
+                                    <td className="px-4 py-4 text-sm text-slate-500">
                                         {new Date(order.completedAt || order.createdAt).toLocaleString('zh-CN')}
                                     </td>
-                                    <td style={{ padding: '16px', textAlign: 'center' }}>
-                                        {order.status === 'SUBMITTED' ? (
-                                            <button
-                                                onClick={() => setSelectedOrder(order)}
-                                                style={{
-                                                    padding: '6px 16px',
-                                                    borderRadius: '6px',
-                                                    border: 'none',
-                                                    background: '#4f46e5',
-                                                    color: '#fff',
-                                                    cursor: 'pointer',
-                                                    fontSize: '13px'
-                                                }}
-                                            >
-                                                审核
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() => setSelectedOrder(order)}
-                                                style={{
-                                                    padding: '6px 16px',
-                                                    borderRadius: '6px',
-                                                    border: '1px solid #d1d5db',
-                                                    background: '#fff',
-                                                    color: '#374151',
-                                                    cursor: 'pointer',
-                                                    fontSize: '13px'
-                                                }}
-                                            >
-                                                查看
-                                            </button>
-                                        )}
+                                    <td className="px-4 py-4 text-center">
+                                        <Button
+                                            size="sm"
+                                            variant={order.status === 'SUBMITTED' ? 'primary' : 'secondary'}
+                                            onClick={() => setSelectedOrder(order)}
+                                        >
+                                            {order.status === 'SUBMITTED' ? '审核' : '查看'}
+                                        </Button>
                                     </td>
                                 </tr>
                             ))}
@@ -245,54 +216,38 @@ export default function MerchantOrdersPage() {
             </div>
 
             {/* Review Modal */}
-            {selectedOrder && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }} onClick={() => setSelectedOrder(null)}>
-                    <div style={{
-                        background: '#fff',
-                        borderRadius: '16px',
-                        width: '600px',
-                        maxHeight: '80vh',
-                        overflow: 'auto',
-                        padding: '24px'
-                    }} onClick={e => e.stopPropagation()}>
-                        <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px' }}>
-                            订单详情 - {selectedOrder.status === 'SUBMITTED' ? '待审核' : statusLabels[selectedOrder.status]?.text}
-                        </h2>
-
+            <Modal
+                open={!!selectedOrder}
+                onClose={() => setSelectedOrder(null)}
+                title={`订单详情 - ${selectedOrder?.status === 'SUBMITTED' ? '待审核' : statusConfig[selectedOrder?.status || '']?.text || ''}`}
+                className="max-w-2xl"
+            >
+                {selectedOrder && (
+                    <div className="space-y-5">
                         {/* Order Info */}
-                        <div style={{ background: '#f9fafb', borderRadius: '8px', padding: '16px', marginBottom: '20px' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '14px' }}>
-                                <div><span style={{ color: '#6b7280' }}>任务：</span>{selectedOrder.taskTitle}</div>
-                                <div><span style={{ color: '#6b7280' }}>平台：</span>{selectedOrder.platform}</div>
-                                <div><span style={{ color: '#6b7280' }}>买号：</span>{selectedOrder.buynoAccount}</div>
-                                <div><span style={{ color: '#6b7280' }}>金额：</span>¥{Number(selectedOrder.productPrice).toFixed(2)}</div>
-                            </div>
+                        <div className="grid grid-cols-2 gap-3 rounded-lg bg-slate-50 p-4 text-sm">
+                            <div><span className="text-slate-500">任务：</span>{selectedOrder.taskTitle}</div>
+                            <div><span className="text-slate-500">平台：</span>{selectedOrder.platform}</div>
+                            <div><span className="text-slate-500">买号：</span>{selectedOrder.buynoAccount}</div>
+                            <div><span className="text-slate-500">金额：</span>¥{Number(selectedOrder.productPrice).toFixed(2)}</div>
                         </div>
 
                         {/* Step Screenshots */}
-                        <div style={{ marginBottom: '20px' }}>
-                            <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '12px' }}>提交凭证</h3>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                        <div>
+                            <h3 className="mb-3 text-sm font-semibold text-slate-800">提交凭证</h3>
+                            <div className="grid grid-cols-3 gap-3">
                                 {selectedOrder.stepData.filter(s => s.submitted).map(step => (
-                                    <div key={step.step} style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '12px' }}>
-                                        <div style={{ fontSize: '13px', fontWeight: '500', marginBottom: '8px' }}>{step.title}</div>
+                                    <div key={step.step} className="rounded-lg border border-slate-200 p-3">
+                                        <div className="mb-2 text-xs font-medium text-slate-700">{step.title}</div>
                                         {step.screenshot ? (
                                             <img
                                                 src={step.screenshot.startsWith('http') ? step.screenshot : `${BASE_URL}${step.screenshot}`}
                                                 alt={step.title}
-                                                style={{ width: '100%', borderRadius: '4px', cursor: 'pointer' }}
+                                                className="w-full cursor-pointer rounded"
                                                 onClick={() => window.open(step.screenshot, '_blank')}
                                             />
                                         ) : (
-                                            <div style={{ height: '80px', background: '#f3f4f6', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '12px' }}>
+                                            <div className="flex h-20 items-center justify-center rounded bg-slate-100 text-xs text-slate-400">
                                                 无截图
                                             </div>
                                         )}
@@ -303,63 +258,39 @@ export default function MerchantOrdersPage() {
 
                         {/* Action Buttons */}
                         {selectedOrder.status === 'SUBMITTED' && (
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
-                                <button
+                            <div className="flex justify-end gap-3 border-t border-slate-200 pt-5">
+                                <Button
+                                    variant="destructive"
                                     onClick={() => {
                                         const reason = prompt('请输入驳回原因（可选）：');
                                         handleReview(selectedOrder.id, false, reason || undefined);
                                     }}
                                     disabled={reviewing}
-                                    style={{
-                                        padding: '10px 24px',
-                                        borderRadius: '8px',
-                                        border: '1px solid #ef4444',
-                                        background: '#fff',
-                                        color: '#ef4444',
-                                        cursor: 'pointer',
-                                        fontWeight: '500'
-                                    }}
+                                    className="border border-red-500 bg-white text-red-500 hover:bg-red-50"
                                 >
                                     驳回
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     onClick={() => handleReview(selectedOrder.id, true)}
                                     disabled={reviewing}
-                                    style={{
-                                        padding: '10px 24px',
-                                        borderRadius: '8px',
-                                        border: 'none',
-                                        background: '#10b981',
-                                        color: '#fff',
-                                        cursor: 'pointer',
-                                        fontWeight: '500'
-                                    }}
+                                    loading={reviewing}
+                                    className="bg-green-600 hover:bg-green-700"
                                 >
-                                    {reviewing ? '处理中...' : '通过'}
-                                </button>
+                                    通过
+                                </Button>
                             </div>
                         )}
 
                         {selectedOrder.status !== 'SUBMITTED' && (
-                            <div style={{ textAlign: 'right', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
-                                <button
-                                    onClick={() => setSelectedOrder(null)}
-                                    style={{
-                                        padding: '10px 24px',
-                                        borderRadius: '8px',
-                                        border: '1px solid #d1d5db',
-                                        background: '#fff',
-                                        color: '#374151',
-                                        cursor: 'pointer'
-                                    }}
-                                >
+                            <div className="border-t border-slate-200 pt-5 text-right">
+                                <Button variant="secondary" onClick={() => setSelectedOrder(null)}>
                                     关闭
-                                </button>
+                                </Button>
                             </div>
                         )}
                     </div>
-                </div>
-            )}
+                )}
+            </Modal>
         </div>
     );
 }

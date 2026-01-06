@@ -2,20 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Row, Col, Card, Statistic, Spin, Badge, Typography, Space } from 'antd';
-import {
-    UserOutlined,
-    ShopOutlined,
-    FileTextOutlined,
-    ShoppingOutlined,
-    AuditOutlined,
-    DollarOutlined,
-    SettingOutlined,
-    RiseOutlined,
-} from '@ant-design/icons';
+import { cn } from '../../../../lib/utils';
 import { BASE_URL } from '../../../../apiConfig';
-
-const { Title, Text } = Typography;
 
 interface Stats {
     totalUsers: number;
@@ -56,146 +44,134 @@ export default function AdminDashboardPage() {
 
     if (loading) {
         return (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
-                <Spin size="large" />
+            <div className="flex h-96 items-center justify-center">
+                <svg className="h-8 w-8 animate-spin text-primary" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
             </div>
         );
     }
 
     const statCards = [
-        { label: '总用户数', value: stats?.totalUsers || 0, icon: <UserOutlined />, color: '#1890ff' },
-        { label: '总商家数', value: stats?.totalMerchants || 0, icon: <ShopOutlined />, color: '#52c41a' },
-        { label: '总任务数', value: stats?.totalTasks || 0, icon: <FileTextOutlined />, color: '#722ed1' },
-        { label: '总订单数', value: stats?.totalOrders || 0, icon: <ShoppingOutlined />, color: '#fa8c16' },
+        { label: '总用户数', value: stats?.totalUsers || 0, icon: '👤', color: 'text-blue-500', bgColor: 'bg-blue-50' },
+        { label: '总商家数', value: stats?.totalMerchants || 0, icon: '🏪', color: 'text-green-500', bgColor: 'bg-green-50' },
+        { label: '总任务数', value: stats?.totalTasks || 0, icon: '📋', color: 'text-purple-500', bgColor: 'bg-purple-50' },
+        { label: '总订单数', value: stats?.totalOrders || 0, icon: '📦', color: 'text-orange-500', bgColor: 'bg-orange-50' },
     ];
 
     const quickActions = [
-        { label: '审核商家', count: stats?.pendingMerchants || 0, path: '/admin/merchants', icon: <AuditOutlined /> },
-        { label: '审核提现', count: stats?.pendingWithdrawals || 0, path: '/admin/withdrawals', icon: <DollarOutlined /> },
+        { label: '审核商家', count: stats?.pendingMerchants || 0, path: '/admin/merchants', icon: '✅' },
+        { label: '审核提现', count: stats?.pendingWithdrawals || 0, path: '/admin/withdrawals', icon: '💵' },
     ];
 
     const quickLinks = [
-        { icon: <UserOutlined style={{ fontSize: 24 }} />, label: '买手列表', path: '/admin/users' },
-        { icon: <ShopOutlined style={{ fontSize: 24 }} />, label: '商家列表', path: '/admin/merchants' },
-        { icon: <FileTextOutlined style={{ fontSize: 24 }} />, label: '任务列表', path: '/admin/tasks' },
-        { icon: <ShoppingOutlined style={{ fontSize: 24 }} />, label: '订单列表', path: '/admin/orders' },
-        { icon: <DollarOutlined style={{ fontSize: 24 }} />, label: '提现审核', path: '/admin/withdrawals' },
-        { icon: <SettingOutlined style={{ fontSize: 24 }} />, label: '系统设置', path: '/admin/system' },
+        { icon: '👤', label: '买手列表', path: '/admin/users' },
+        { icon: '🏪', label: '商家列表', path: '/admin/merchants' },
+        { icon: '📋', label: '任务列表', path: '/admin/tasks' },
+        { icon: '📦', label: '订单列表', path: '/admin/orders' },
+        { icon: '💵', label: '提现审核', path: '/admin/withdrawals' },
+        { icon: '⚙️', label: '系统设置', path: '/admin/system' },
     ];
 
     return (
-        <div>
+        <div className="space-y-6">
             {/* 欢迎卡片 */}
-            <Card
-                style={{
-                    background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
-                    marginBottom: 24,
-                    border: 'none',
-                }}
-                styles={{ body: { padding: '24px 32px' } }}
-            >
-                <Title level={3} style={{ color: '#fff', marginBottom: 8 }}>
-                    欢迎回来，管理员
-                </Title>
-                <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
+            <div className="rounded-xl bg-gradient-to-r from-primary to-blue-700 px-8 py-6 text-white shadow-lg">
+                <h2 className="mb-2 text-xl font-semibold">欢迎回来，管理员</h2>
+                <p className="text-white/85">
                     今日新增用户 <strong>{stats?.todayUsers || 0}</strong> 人，新增订单 <strong>{stats?.todayOrders || 0}</strong> 单
-                </Text>
-            </Card>
+                </p>
+            </div>
 
             {/* 统计卡片 */}
-            <Row gutter={[20, 20]} style={{ marginBottom: 24 }}>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 {statCards.map((item, idx) => (
-                    <Col xs={24} sm={12} lg={6} key={idx}>
-                        <Card hoverable>
-                            <Statistic
-                                title={item.label}
-                                value={item.value}
-                                prefix={<span style={{ color: item.color }}>{item.icon}</span>}
-                                valueStyle={{ color: item.color }}
-                            />
-                        </Card>
-                    </Col>
+                    <div
+                        key={idx}
+                        className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className={cn('flex h-10 w-10 items-center justify-center rounded-lg text-xl', item.bgColor)}>
+                                {item.icon}
+                            </div>
+                            <div>
+                                <div className="text-sm text-slate-500">{item.label}</div>
+                                <div className={cn('text-2xl font-bold', item.color)}>{item.value}</div>
+                            </div>
+                        </div>
+                    </div>
                 ))}
-            </Row>
+            </div>
 
             {/* 快捷操作区 */}
-            <Row gutter={[20, 20]} style={{ marginBottom: 24 }}>
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
                 {/* 待处理事项 */}
-                <Col xs={24} lg={12}>
-                    <Card title="待处理事项" extra={<RiseOutlined />}>
-                        <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                            {quickActions.map((action, idx) => (
-                                <Card
-                                    key={idx}
-                                    size="small"
-                                    hoverable
-                                    onClick={() => router.push(action.path)}
-                                    style={{ cursor: 'pointer' }}
+                <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                        <h3 className="font-medium text-slate-800">待处理事项</h3>
+                        <span className="text-lg">📈</span>
+                    </div>
+                    <div className="space-y-3 p-5">
+                        {quickActions.map((action, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => router.push(action.path)}
+                                className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3 transition-colors hover:bg-slate-50"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <span className="text-lg">{action.icon}</span>
+                                    <span className="text-slate-700">{action.label}</span>
+                                </div>
+                                <span
+                                    className={cn(
+                                        'flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-xs font-medium text-white',
+                                        action.count > 0 ? 'bg-amber-500' : 'bg-slate-300'
+                                    )}
                                 >
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <Space>
-                                            {action.icon}
-                                            <span>{action.label}</span>
-                                        </Space>
-                                        <Badge
-                                            count={action.count}
-                                            showZero
-                                            style={{ backgroundColor: action.count > 0 ? '#faad14' : '#d9d9d9' }}
-                                        />
-                                    </div>
-                                </Card>
-                            ))}
-                        </Space>
-                    </Card>
-                </Col>
+                                    {action.count}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
                 {/* 今日数据 */}
-                <Col xs={24} lg={12}>
-                    <Card title="今日数据">
-                        <Row gutter={16}>
-                            <Col span={12}>
-                                <Card style={{ background: '#e6f7ff', textAlign: 'center' }}>
-                                    <Statistic
-                                        title="新增用户"
-                                        value={stats?.todayUsers || 0}
-                                        valueStyle={{ color: '#1890ff' }}
-                                    />
-                                </Card>
-                            </Col>
-                            <Col span={12}>
-                                <Card style={{ background: '#f6ffed', textAlign: 'center' }}>
-                                    <Statistic
-                                        title="新增订单"
-                                        value={stats?.todayOrders || 0}
-                                        valueStyle={{ color: '#52c41a' }}
-                                    />
-                                </Card>
-                            </Col>
-                        </Row>
-                    </Card>
-                </Col>
-            </Row>
+                <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <div className="border-b border-slate-100 px-5 py-4">
+                        <h3 className="font-medium text-slate-800">今日数据</h3>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 p-5">
+                        <div className="rounded-lg bg-blue-50 p-4 text-center">
+                            <div className="text-sm text-slate-500">新增用户</div>
+                            <div className="mt-1 text-2xl font-bold text-primary">{stats?.todayUsers || 0}</div>
+                        </div>
+                        <div className="rounded-lg bg-green-50 p-4 text-center">
+                            <div className="text-sm text-slate-500">新增订单</div>
+                            <div className="mt-1 text-2xl font-bold text-green-600">{stats?.todayOrders || 0}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {/* 快捷入口 */}
-            <Card title="快捷入口">
-                <Row gutter={[16, 16]}>
+            <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div className="border-b border-slate-100 px-5 py-4">
+                    <h3 className="font-medium text-slate-800">快捷入口</h3>
+                </div>
+                <div className="grid grid-cols-3 gap-4 p-5 sm:grid-cols-4 md:grid-cols-6">
                     {quickLinks.map((item, idx) => (
-                        <Col xs={12} sm={8} md={4} key={idx}>
-                            <Card
-                                hoverable
-                                onClick={() => router.push(item.path)}
-                                style={{ textAlign: 'center', cursor: 'pointer' }}
-                                styles={{ body: { padding: '20px 16px' } }}
-                            >
-                                <div style={{ color: '#1890ff', marginBottom: 8 }}>
-                                    {item.icon}
-                                </div>
-                                <Text>{item.label}</Text>
-                            </Card>
-                        </Col>
+                        <button
+                            key={idx}
+                            onClick={() => router.push(item.path)}
+                            className="flex flex-col items-center gap-2 rounded-lg p-4 transition-colors hover:bg-slate-50"
+                        >
+                            <span className="text-2xl text-primary">{item.icon}</span>
+                            <span className="text-sm text-slate-600">{item.label}</span>
+                        </button>
                     ))}
-                </Row>
-            </Card>
+                </div>
+            </div>
         </div>
     );
 }

@@ -3,7 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated, getToken } from '../../../services/authService';
-
+import { cn } from '../../../lib/utils';
+import { toastSuccess, toastError } from '../../../lib/toast';
+import { Button } from '../../../components/ui/button';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
@@ -40,25 +42,31 @@ interface BuyerAccount {
 }
 
 interface FormData {
-
-    wangwangProvince: string;  // 对应旧版 provinceValue2
-    wangwangCity: string;      // 对应旧版 cityValue2
-    wangwangId: string;        // 对应旧版 wangwangIdValue
-    img1: string | null;       // 旺旺档案截图 - 对应旧版 img1
-    img2: string | null;       // 淘气值截图 - 对应旧版 img2
-    // 基本信息
-    receiverName: string;      // 对应旧版 renZhengValue (支付宝认证姓名)
-    addressProvince: string;   // 对应旧版 provinceValue
-    addressCity: string;       // 对应旧版 cityValue
-    addressDistrict: string;   // 对应旧版 districtValue
-    addressDetail: string;     // 对应旧版 addressValue
-    receiverPhone: string;     // 对应旧版 phoneNumValue
-    smsCode: string;           // 对应旧版 yzmNumValue
-    alipayName: string;        // 对应旧版 renZhengValue
-    // 支付宝信息
-    img3: string | null;       // 支付宝实名认证截图 - 对应旧版 img3
-    img4: string | null;       // 芝麻信用截图 - 对应旧版 img4
+    platformAccount: string;     // R3映射: wangwangId -> platformAccount
+    wangwangProvince: string;
+    wangwangCity: string;
+    img1: string | null;
+    img2: string | null;
+    receiverName: string;
+    addressProvince: string;
+    addressCity: string;
+    addressDistrict: string;
+    addressDetail: string;
+    receiverPhone: string;
+    smsCode: string;
+    alipayName: string;
+    img3: string | null;
+    img4: string | null;
 }
+
+const statusConfig: Record<string, { text: string; className: string }> = {
+    'PENDING': { text: '未审核', className: 'text-amber-500' },
+    'APPROVED': { text: '审核通过', className: 'text-green-500' },
+    'REJECTED': { text: '已禁用', className: 'text-red-500' },
+    '0': { text: '未审核', className: 'text-amber-500' },
+    '1': { text: '审核通过', className: 'text-green-500' },
+    '2': { text: '已禁用', className: 'text-red-500' },
+};
 
 export default function BuynoPage() {
     const router = useRouter();
@@ -66,32 +74,20 @@ export default function BuynoPage() {
     const [accounts, setAccounts] = useState<BuyerAccount[]>([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [countdown, setCountdown] = useState(0);
-
 
     const [yzmDisabled, setYzmDisabled] = useState(false);
     const [yzmMsg, setYzmMsg] = useState('发送验证码');
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-
     const phoneReg = /^1[3-9]\d{9}$/;
 
-    const alertSuccess = useCallback((msg: string) => {
-        alert(msg);
-    }, []);
-
-    const alertError = useCallback((msg: string) => {
-        alert(msg);
-    }, []);
-
-    // 地区选择器显示状态
     const [showWangwangArea, setShowWangwangArea] = useState(false);
     const [showAddressArea, setShowAddressArea] = useState(false);
 
     const [form, setForm] = useState<FormData>({
+        platformAccount: '',
         wangwangProvince: '',
         wangwangCity: '',
-        wangwangId: '',
         img1: null,
         img2: null,
         receiverName: '',
@@ -106,14 +102,6 @@ export default function BuynoPage() {
         img4: null,
     });
 
-    // 示例图URL
-    const exampleImages = {
-        archive: '/images/examples/wangwang-archive.png',
-        taoqizhi: '/images/examples/taoqizhi.png',
-        zhima: '/images/examples/zhima.png',
-        alipay: '/images/examples/alipay-auth.png',
-    };
-
     useEffect(() => {
         if (!isAuthenticated()) {
             router.push('/login');
@@ -124,13 +112,6 @@ export default function BuynoPage() {
             if (timerRef.current) clearInterval(timerRef.current);
         };
     }, [router]);
-
-    useEffect(() => {
-        if (countdown > 0) {
-            const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-            return () => clearTimeout(timer);
-        }
-    }, [countdown]);
 
     const loadAccounts = async () => {
         try {
@@ -149,28 +130,21 @@ export default function BuynoPage() {
         }
     };
 
-    // ========================
-
-    // ========================
     const sendSmsCode = async () => {
         if (!form.receiverPhone) {
-            return alertError('手机号码不能为空');
+            return toastError('手机号码不能为空');
         }
         if (!phoneReg.test(form.receiverPhone)) {
-            return alertError('手机号码格式不规范,请检查后重新输入');
+            return toastError('手机号码格式不规范,请检查后重新输入');
         }
 
         try {
             await fetch(`${BASE_URL}/mobile/way/send_code`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    mobile: form.receiverPhone,
-                }),
+                body: JSON.stringify({ mobile: form.receiverPhone }),
             });
-        } catch (error) {
-
-        }
+        } catch (error) {}
 
         let num = 60;
         setYzmDisabled(true);
@@ -184,7 +158,7 @@ export default function BuynoPage() {
                 setYzmMsg('重新发送');
                 setYzmDisabled(false);
             } else if (num === 59) {
-                alertSuccess('验证码发送成功');
+                toastSuccess('验证码发送成功');
             }
         }, 1000);
     };
@@ -193,7 +167,6 @@ export default function BuynoPage() {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // 转为base64
         const reader = new FileReader();
         reader.onload = () => {
             setForm(prev => ({ ...prev, [field]: reader.result as string }));
@@ -203,7 +176,7 @@ export default function BuynoPage() {
 
     const validateForm = (): string | null => {
         if (!form.wangwangProvince || !form.wangwangCity) return '请选择旺旺常用登陆地';
-        if (!form.wangwangId) return '旺旺ID不能为空';
+        if (!form.platformAccount) return '旺旺ID不能为空';
         if (!form.img1) return '旺旺档案截图不能为空';
         if (!form.img2) return '淘气值截图不能为空';
         if (!form.receiverName) return '收货人姓名不能为空';
@@ -218,14 +191,10 @@ export default function BuynoPage() {
         return null;
     };
 
-    // ========================
-
-    // 参数: wangwangId, provinceValue2, cityValue2, renZhengValue, provinceValue, cityValue, districtValue, addressValue, phoneNumValue, yzmNumValue, img1, img2, img3, img4
-    // ========================
     const handleSubmit = async () => {
         const error = validateForm();
         if (error) {
-            alertError(error);
+            toastError(error);
             return;
         }
 
@@ -239,7 +208,7 @@ export default function BuynoPage() {
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    wangwangId: form.wangwangId,
+                    wangwangId: form.platformAccount,
                     provinceValue2: form.wangwangProvince,
                     cityValue2: form.wangwangCity,
                     renZhengValue: form.alipayName,
@@ -258,18 +227,17 @@ export default function BuynoPage() {
             const data = await response.json();
 
             if (data.code === 1) {
-                alertSuccess(data.msg || '买号提交成功，请等待审核');
+                toastSuccess(data.msg || '买号提交成功，请等待审核');
                 setTimeout(() => {
                     if (data.url) {
                         router.push(data.url);
                     } else {
                         loadAccounts();
                         setActiveTab('list');
-                        // 重置表单
                         setForm({
+                            platformAccount: '',
                             wangwangProvince: '',
                             wangwangCity: '',
-                            wangwangId: '',
                             img1: null,
                             img2: null,
                             receiverName: '',
@@ -286,179 +254,111 @@ export default function BuynoPage() {
                     }
                 }, 3000);
             } else {
-                alertError(data.msg || '提交失败');
+                toastError(data.msg || '提交失败');
             }
         } catch (error) {
-            alertError('网络错误，请重试');
+            toastError('网络错误，请重试');
         } finally {
             setSubmitting(false);
         }
     };
 
-    const getStatusInfo = (status: number | string) => {
-        if (status === 0 || status === 'PENDING') return { text: '未审核', bg: '#fdf6ec', color: '#e6a23c' };
-        if (status === 1 || status === 'APPROVED') return { text: '审核通过', bg: '#f0f9eb', color: '#67c23a' };
-        if (status === 2 || status === 'REJECTED') return { text: '已禁用', bg: '#fef0f0', color: '#f56c6c' };
-        return { text: '未知', bg: '#f5f5f5', color: '#999' };
-    };
-
-    const cellStyle = {
-        display: 'flex',
-        padding: '12px 15px',
-        borderBottom: '1px solid #f0f0f0',
-        alignItems: 'center',
-        background: '#fff',
-    };
-
-    const labelStyle = {
-        width: '120px',
-        fontSize: '14px',
-        color: '#333',
-    };
-
-    const inputStyle = {
-        flex: 1,
-        border: 'none',
-        fontSize: '14px',
-        outline: 'none',
-        textAlign: 'right' as const,
-        background: 'transparent',
-    };
-
     if (loading) {
-        return <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>加载中...</div>;
+        return <div className="p-5 text-center text-slate-500">加载中...</div>;
     }
 
     return (
-        <div style={{ minHeight: '100vh', background: '#f5f5f5', paddingBottom: '80px' }}>
+        <div className="min-h-screen bg-slate-50 pb-20">
             {/* 页面头部 */}
-            <div style={{
-                background: '#fff',
-                height: '44px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderBottom: '1px solid #e5e5e5',
-                position: 'sticky',
-                top: 0,
-                zIndex: 10
-            }}>
-                <div onClick={() => router.back()} style={{ position: 'absolute', left: '15px', fontSize: '20px', cursor: 'pointer', color: '#333' }}>‹</div>
-                <div style={{ fontSize: '16px', fontWeight: '500', color: '#333' }}>买号添加</div>
-            </div>
+            <header className="sticky top-0 z-10 flex h-11 items-center justify-center border-b border-slate-200 bg-white">
+                <button
+                    onClick={() => router.back()}
+                    className="absolute left-4 text-xl text-slate-600"
+                >
+                    ‹
+                </button>
+                <span className="text-base font-medium text-slate-800">买号添加</span>
+            </header>
 
             {/* Tab切换 */}
-            <div style={{ display: 'flex', background: '#fff', borderBottom: '1px solid #e5e5e5' }}>
-                <div
+            <div className="flex border-b border-slate-200 bg-white">
+                <button
                     onClick={() => setActiveTab('list')}
-                    style={{
-                        flex: 1,
-                        textAlign: 'center',
-                        padding: '12px 0',
-                        fontSize: '14px',
-                        color: activeTab === 'list' ? '#1989fa' : '#666',
-                        position: 'relative',
-                        cursor: 'pointer'
-                    }}
+                    className={cn(
+                        'relative flex-1 py-3 text-center text-sm',
+                        activeTab === 'list' ? 'text-primary' : 'text-slate-500'
+                    )}
                 >
                     买号信息
-                    {activeTab === 'list' && <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '60px', height: '2px', background: '#1989fa' }} />}
-                </div>
-                <div
+                    {activeTab === 'list' && (
+                        <div className="absolute bottom-0 left-1/2 h-0.5 w-14 -translate-x-1/2 bg-primary" />
+                    )}
+                </button>
+                <button
                     onClick={() => setActiveTab('add')}
-                    style={{
-                        flex: 1,
-                        textAlign: 'center',
-                        padding: '12px 0',
-                        fontSize: '14px',
-                        color: activeTab === 'add' ? '#1989fa' : '#666',
-                        position: 'relative',
-                        cursor: 'pointer'
-                    }}
+                    className={cn(
+                        'relative flex-1 py-3 text-center text-sm',
+                        activeTab === 'add' ? 'text-primary' : 'text-slate-500'
+                    )}
                 >
                     添加账号
-                    {activeTab === 'add' && <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '60px', height: '2px', background: '#1989fa' }} />}
-                </div>
+                    {activeTab === 'add' && (
+                        <div className="absolute bottom-0 left-1/2 h-0.5 w-14 -translate-x-1/2 bg-primary" />
+                    )}
+                </button>
             </div>
 
             {/* 买号信息列表 */}
             {activeTab === 'list' && (
-                <div style={{ padding: '10px' }}>
+                <div className="p-2.5">
                     {accounts.length === 0 ? (
-                        <div style={{
-                            background: '#fff',
-                            borderRadius: '8px',
-                            padding: '40px 15px',
-                            textAlign: 'center',
-                            color: '#999',
-                            fontSize: '14px'
-                        }}>
+                        <div className="rounded-lg bg-white p-10 text-center text-sm text-slate-400">
                             暂无内容
                         </div>
                     ) : (
                         accounts.map(acc => {
-                            const statusInfo = getStatusInfo(acc.status);
+                            const status = String(acc.status);
+                            const statusInfo = statusConfig[status] || { text: '未知', className: 'text-slate-400' };
                             return (
-                                <div key={acc.id} style={{
-                                    background: '#fff',
-                                    borderRadius: '8px',
-                                    marginBottom: '10px',
-                                    overflow: 'hidden',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-                                }}>
-                                    <div style={{ padding: '15px' }}>
-                                        <div style={{ display: 'flex', marginBottom: '8px' }}>
-                                            <span style={{ width: '80px', color: '#999', fontSize: '13px' }}>旺旺ID：</span>
-                                            <span style={{ color: '#333', fontSize: '13px' }}>{acc.accountName}</span>
+                                <div key={acc.id} className="mb-2.5 overflow-hidden rounded-lg bg-white shadow-sm">
+                                    <div className="p-4">
+                                        <div className="mb-2 flex text-xs">
+                                            <span className="w-20 text-slate-400">旺旺ID：</span>
+                                            <span className="text-slate-700">{acc.accountName}</span>
                                         </div>
-                                        <div style={{ display: 'flex', marginBottom: '8px' }}>
-                                            <span style={{ width: '80px', color: '#999', fontSize: '13px' }}>收货人：</span>
-                                            <span style={{ color: '#333', fontSize: '13px' }}>{acc.receiverName || '-'}</span>
+                                        <div className="mb-2 flex text-xs">
+                                            <span className="w-20 text-slate-400">收货人：</span>
+                                            <span className="text-slate-700">{acc.receiverName || '-'}</span>
                                         </div>
-                                        <div style={{ display: 'flex', marginBottom: '8px' }}>
-                                            <span style={{ width: '80px', color: '#999', fontSize: '13px' }}>收货地址：</span>
-                                            <span style={{ color: '#333', fontSize: '13px', flex: 1 }}>{acc.fullAddress || '-'}</span>
+                                        <div className="mb-2 flex text-xs">
+                                            <span className="w-20 text-slate-400">收货地址：</span>
+                                            <span className="flex-1 text-slate-700">{acc.fullAddress || '-'}</span>
                                         </div>
-                                        <div style={{ display: 'flex', marginBottom: '8px' }}>
-                                            <span style={{ width: '80px', color: '#999', fontSize: '13px' }}>手机号码：</span>
-                                            <span style={{ color: '#333', fontSize: '13px' }}>{acc.receiverPhone || '-'}</span>
+                                        <div className="mb-2 flex text-xs">
+                                            <span className="w-20 text-slate-400">手机号码：</span>
+                                            <span className="text-slate-700">{acc.receiverPhone || '-'}</span>
                                         </div>
-                                        <div style={{ display: 'flex', marginBottom: '8px' }}>
-                                            <span style={{ width: '80px', color: '#999', fontSize: '13px' }}>买号状态：</span>
-                                            <span style={{ color: statusInfo.color, fontSize: '13px' }}>{statusInfo.text}</span>
+                                        <div className="mb-2 flex text-xs">
+                                            <span className="w-20 text-slate-400">买号状态：</span>
+                                            <span className={statusInfo.className}>{statusInfo.text}</span>
                                         </div>
                                         {acc.note && (
-                                            <div style={{ display: 'flex' }}>
-                                                <span style={{ width: '80px', color: '#999', fontSize: '13px' }}>备注：</span>
-                                                <span style={{ color: '#f56c6c', fontSize: '13px' }}>{acc.note}</span>
+                                            <div className="flex text-xs">
+                                                <span className="w-20 text-slate-400">备注：</span>
+                                                <span className="text-red-500">{acc.note}</span>
                                             </div>
                                         )}
                                         {acc.rejectReason && (
-                                            <div style={{ display: 'flex' }}>
-                                                <span style={{ width: '80px', color: '#999', fontSize: '13px' }}>拒绝原因：</span>
-                                                <span style={{ color: '#f56c6c', fontSize: '13px' }}>{acc.rejectReason}</span>
+                                            <div className="flex text-xs">
+                                                <span className="w-20 text-slate-400">拒绝原因：</span>
+                                                <span className="text-red-500">{acc.rejectReason}</span>
                                             </div>
                                         )}
                                     </div>
-                                    {/* 底部操作区 */}
-                                    <div style={{
-                                        background: 'linear-gradient(180deg, #f8f8f8 0%, #fff 100%)',
-                                        padding: '10px 15px',
-                                        display: 'flex',
-                                        justifyContent: 'flex-end',
-                                        borderTop: '1px solid #f0f0f0'
-                                    }}>
+                                    <div className="flex justify-end border-t border-slate-100 bg-gradient-to-b from-slate-50 to-white px-4 py-2.5">
                                         <button
                                             onClick={() => router.push(`/profile/buyno/edit/${acc.id}`)}
-                                            style={{
-                                                padding: '6px 16px',
-                                                background: '#1989fa',
-                                                color: '#fff',
-                                                border: 'none',
-                                                borderRadius: '15px',
-                                                fontSize: '12px',
-                                                cursor: 'pointer'
-                                            }}
+                                            className="rounded-full bg-primary px-4 py-1.5 text-xs text-white"
                                         >
                                             信息修改
                                         </button>
@@ -467,16 +367,7 @@ export default function BuynoPage() {
                             );
                         })
                     )}
-                    {/* 提示信息 */}
-                    <div style={{
-                        background: '#fffbe6',
-                        borderRadius: '8px',
-                        padding: '12px 15px',
-                        marginTop: '10px',
-                        fontSize: '12px',
-                        color: '#666',
-                        lineHeight: '1.8'
-                    }}>
+                    <div className="mt-2.5 rounded-lg bg-amber-50 p-3 text-xs leading-relaxed text-slate-500">
                         提示：平台优先审核优质女号，买号提交审核后，平台预计在24小时内完成审核操作，只有审核通过的买号才能接手任务 (任务完成后25天后可以复购)
                     </div>
                 </div>
@@ -486,25 +377,32 @@ export default function BuynoPage() {
             {activeTab === 'add' && (
                 <div>
                     {/* 旺旺信息 */}
-                    <div style={{ margin: '10px', background: '#fff', borderRadius: '8px', overflow: 'hidden' }}>
-                        <div style={{ padding: '12px 15px', background: '#f8f8f8', fontSize: '14px', fontWeight: '500', color: '#333', borderBottom: '1px solid #f0f0f0' }}>
+                    <div className="m-2.5 overflow-hidden rounded-lg bg-white">
+                        <div className="border-b border-slate-100 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
                             旺旺信息
                         </div>
+
                         {/* 旺旺常用登陆地 */}
-                        <div style={cellStyle} onClick={() => setShowWangwangArea(!showWangwangArea)}>
-                            <div style={labelStyle}><span style={{ color: '#f56c6c' }}>*</span>旺旺常用登陆地：</div>
-                            <div style={{ flex: 1, textAlign: 'right', color: form.wangwangProvince ? '#333' : '#999', fontSize: '14px' }}>
+                        <button
+                            onClick={() => setShowWangwangArea(!showWangwangArea)}
+                            className="flex w-full items-center border-b border-slate-100 bg-white px-4 py-3"
+                        >
+                            <span className="w-28 text-sm text-slate-700">
+                                <span className="text-red-500">*</span>旺旺常用登陆地：
+                            </span>
+                            <span className={cn('flex-1 text-right text-sm', form.wangwangProvince ? 'text-slate-700' : 'text-slate-400')}>
                                 {form.wangwangProvince ? `${form.wangwangProvince} ${form.wangwangCity}` : '请选择省市'}
-                            </div>
-                            <div style={{ color: '#ccc', marginLeft: '8px' }}>›</div>
-                        </div>
+                            </span>
+                            <span className="ml-2 text-slate-300">›</span>
+                        </button>
+
                         {showWangwangArea && (
-                            <div style={{ padding: '10px 15px', background: '#f9f9f9', borderBottom: '1px solid #f0f0f0' }}>
-                                <div style={{ display: 'flex', gap: '10px' }}>
+                            <div className="border-b border-slate-100 bg-slate-50 p-4">
+                                <div className="flex gap-2.5">
                                     <select
                                         value={form.wangwangProvince}
                                         onChange={e => setForm({ ...form, wangwangProvince: e.target.value, wangwangCity: '' })}
-                                        style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+                                        className="flex-1 rounded border border-slate-200 px-2 py-2 text-sm"
                                     >
                                         <option value="">请选择省</option>
                                         {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
@@ -512,123 +410,138 @@ export default function BuynoPage() {
                                     <select
                                         value={form.wangwangCity}
                                         onChange={e => setForm({ ...form, wangwangCity: e.target.value })}
-                                        style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+                                        className="flex-1 rounded border border-slate-200 px-2 py-2 text-sm"
                                     >
                                         <option value="">请选择市</option>
                                         {(CITIES[form.wangwangProvince] || []).map(c => <option key={c} value={c}>{c}</option>)}
                                     </select>
                                 </div>
-                                <div style={{ fontSize: '12px', color: '#e6a23c', marginTop: '8px', lineHeight: '1.6' }}>
+                                <p className="mt-2 text-xs leading-relaxed text-amber-600">
                                     请选择该旺旺经常登录的城市或地区，一经选择后，所有买号对应的收货地址必须和旺旺登录的常用登录地保持一致，绑定后无法自行修改，请谨慎选择
-                                </div>
+                                </p>
                             </div>
                         )}
+
                         {/* 旺旺ID */}
-                        <div style={cellStyle}>
-                            <div style={labelStyle}><span style={{ color: '#f56c6c' }}>*</span>旺旺ID:</div>
+                        <div className="flex items-center border-b border-slate-100 bg-white px-4 py-3">
+                            <span className="w-28 text-sm text-slate-700">
+                                <span className="text-red-500">*</span>旺旺ID:
+                            </span>
                             <input
                                 type="text"
                                 placeholder="请填写旺旺ID"
-                                value={form.wangwangId}
-                                onChange={e => setForm({ ...form, wangwangId: e.target.value })}
-                                style={inputStyle}
+                                value={form.platformAccount}
+                                onChange={e => setForm({ ...form, platformAccount: e.target.value })}
+                                className="flex-1 bg-transparent text-right text-sm text-slate-700 outline-none placeholder:text-slate-400"
                             />
                         </div>
-                        <div style={{ padding: '8px 15px', fontSize: '12px', color: '#e6a23c', background: '#fffbe6' }}>
+                        <div className="bg-amber-50 px-4 py-2 text-xs text-amber-600">
                             请填写该买号使用的旺旺ID，绑定后无法修改，严禁绑定相似的买号。
                         </div>
+
                         {/* 旺旺档案截图 */}
-                        <div style={{ padding: '12px 15px', borderBottom: '1px solid #f0f0f0' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                <span style={{ fontSize: '14px', color: '#333' }}><span style={{ color: '#f56c6c' }}>*</span>旺旺档案截图:</span>
+                        <div className="border-b border-slate-100 p-4">
+                            <div className="mb-2.5 text-sm text-slate-700">
+                                <span className="text-red-500">*</span>旺旺档案截图:
                             </div>
-                            <div style={{ display: 'flex', gap: '15px' }}>
-                                <div style={{ position: 'relative' }}>
+                            <div className="flex gap-4">
+                                <div className="relative">
                                     {form.img1 ? (
-                                        <img src={form.img1} alt="已上传" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
+                                        <img src={form.img1} alt="已上传" className="h-20 w-20 rounded object-cover" />
                                     ) : (
-                                        <div style={{ width: '80px', height: '80px', border: '1px dashed #ddd', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '24px' }}>+</div>
+                                        <div className="flex h-20 w-20 items-center justify-center rounded border border-dashed border-slate-300 text-2xl text-slate-400">+</div>
                                     )}
                                     <input
                                         type="file"
                                         accept="image/*"
                                         onChange={e => handleFileUpload(e, 'img1')}
-                                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                                        className="absolute inset-0 cursor-pointer opacity-0"
                                     />
                                 </div>
-                                <div style={{ textAlign: 'center' }}>
-                                    <div style={{ width: '80px', height: '80px', background: '#f5f5f5', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: '#999' }}>示例图</div>
-                                    <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>示例图</div>
+                                <div className="text-center">
+                                    <div className="flex h-20 w-20 items-center justify-center rounded bg-slate-100 text-xs text-slate-400">示例图</div>
+                                    <span className="mt-1 text-xs text-slate-400">示例图</span>
                                 </div>
                             </div>
-                            <div style={{ fontSize: '12px', color: '#999', marginTop: '10px', lineHeight: '1.6' }}>
+                            <p className="mt-2.5 text-xs leading-relaxed text-slate-500">
                                 请登录淘宝APP，点击"我的淘宝-官方客服-发送"评价管理"点"评价管理（电脑版）"截图即可，所绑定买号必须和截图上一致。绑定成功后无法自行修改，请谨慎选择。
-                            </div>
+                            </p>
                         </div>
+
                         {/* 淘气值截图 */}
-                        <div style={{ padding: '12px 15px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                <span style={{ fontSize: '14px', color: '#333' }}><span style={{ color: '#f56c6c' }}>*</span>淘气值截图:</span>
+                        <div className="p-4">
+                            <div className="mb-2.5 text-sm text-slate-700">
+                                <span className="text-red-500">*</span>淘气值截图:
                             </div>
-                            <div style={{ display: 'flex', gap: '15px' }}>
-                                <div style={{ position: 'relative' }}>
+                            <div className="flex gap-4">
+                                <div className="relative">
                                     {form.img2 ? (
-                                        <img src={form.img2} alt="已上传" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
+                                        <img src={form.img2} alt="已上传" className="h-20 w-20 rounded object-cover" />
                                     ) : (
-                                        <div style={{ width: '80px', height: '80px', border: '1px dashed #ddd', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '24px' }}>+</div>
+                                        <div className="flex h-20 w-20 items-center justify-center rounded border border-dashed border-slate-300 text-2xl text-slate-400">+</div>
                                     )}
                                     <input
                                         type="file"
                                         accept="image/*"
                                         onChange={e => handleFileUpload(e, 'img2')}
-                                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                                        className="absolute inset-0 cursor-pointer opacity-0"
                                     />
                                 </div>
-                                <div style={{ textAlign: 'center' }}>
-                                    <div style={{ width: '80px', height: '80px', background: '#f5f5f5', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: '#999' }}>示例图</div>
-                                    <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>示例图</div>
+                                <div className="text-center">
+                                    <div className="flex h-20 w-20 items-center justify-center rounded bg-slate-100 text-xs text-slate-400">示例图</div>
+                                    <span className="mt-1 text-xs text-slate-400">示例图</span>
                                 </div>
                             </div>
-                            <div style={{ fontSize: '12px', color: '#333', marginTop: '10px', lineHeight: '1.6' }}>
+                            <p className="mt-2.5 text-xs leading-relaxed text-slate-700">
                                 请登录淘宝APP，点击"我的淘宝-会员中心"截图即可，所绑定买号必须和截图上一致。
-                            </div>
+                            </p>
                         </div>
                     </div>
 
                     {/* 基本信息 */}
-                    <div style={{ margin: '10px', background: '#fff', borderRadius: '8px', overflow: 'hidden' }}>
-                        <div style={{ padding: '12px 15px', background: '#f8f8f8', fontSize: '14px', fontWeight: '500', color: '#333', borderBottom: '1px solid #f0f0f0' }}>
+                    <div className="m-2.5 overflow-hidden rounded-lg bg-white">
+                        <div className="border-b border-slate-100 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
                             基本信息
                         </div>
+
                         {/* 收货人姓名 */}
-                        <div style={cellStyle}>
-                            <div style={labelStyle}><span style={{ color: '#f56c6c' }}>*</span>收货人姓名:</div>
+                        <div className="flex items-center border-b border-slate-100 bg-white px-4 py-3">
+                            <span className="w-28 text-sm text-slate-700">
+                                <span className="text-red-500">*</span>收货人姓名:
+                            </span>
                             <input
                                 type="text"
                                 placeholder="请输入收货人姓名"
                                 value={form.receiverName}
                                 onChange={e => setForm({ ...form, receiverName: e.target.value })}
-                                style={inputStyle}
+                                className="flex-1 bg-transparent text-right text-sm text-slate-700 outline-none placeholder:text-slate-400"
                             />
                         </div>
-                        <div style={{ padding: '8px 15px', fontSize: '12px', color: '#e6a23c', background: '#fffbe6' }}>
+                        <div className="bg-amber-50 px-4 py-2 text-xs text-amber-600">
                             绑定的买号必须是与支付宝实名认证一致的账号，支付宝认证姓名只允许输入6个字以内的中文
                         </div>
+
                         {/* 收货人地址 */}
-                        <div style={cellStyle} onClick={() => setShowAddressArea(!showAddressArea)}>
-                            <div style={labelStyle}><span style={{ color: '#f56c6c' }}>*</span>收货人地址：</div>
-                            <div style={{ flex: 1, textAlign: 'right', color: form.addressProvince ? '#333' : '#999', fontSize: '14px' }}>
+                        <button
+                            onClick={() => setShowAddressArea(!showAddressArea)}
+                            className="flex w-full items-center border-b border-slate-100 bg-white px-4 py-3"
+                        >
+                            <span className="w-28 text-sm text-slate-700">
+                                <span className="text-red-500">*</span>收货人地址：
+                            </span>
+                            <span className={cn('flex-1 text-right text-sm', form.addressProvince ? 'text-slate-700' : 'text-slate-400')}>
                                 {form.addressProvince ? `${form.addressProvince} ${form.addressCity} ${form.addressDistrict}` : '请选择省市区'}
-                            </div>
-                            <div style={{ color: '#ccc', marginLeft: '8px' }}>›</div>
-                        </div>
+                            </span>
+                            <span className="ml-2 text-slate-300">›</span>
+                        </button>
+
                         {showAddressArea && (
-                            <div style={{ padding: '10px 15px', background: '#f9f9f9', borderBottom: '1px solid #f0f0f0' }}>
-                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                            <div className="border-b border-slate-100 bg-slate-50 p-4">
+                                <div className="flex flex-wrap gap-2.5">
                                     <select
                                         value={form.addressProvince}
                                         onChange={e => setForm({ ...form, addressProvince: e.target.value, addressCity: '', addressDistrict: '' })}
-                                        style={{ flex: 1, minWidth: '100px', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+                                        className="min-w-24 flex-1 rounded border border-slate-200 px-2 py-2 text-sm"
                                     >
                                         <option value="">请选择省</option>
                                         {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
@@ -636,7 +549,7 @@ export default function BuynoPage() {
                                     <select
                                         value={form.addressCity}
                                         onChange={e => setForm({ ...form, addressCity: e.target.value, addressDistrict: '' })}
-                                        style={{ flex: 1, minWidth: '100px', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+                                        className="min-w-24 flex-1 rounded border border-slate-200 px-2 py-2 text-sm"
                                     >
                                         <option value="">请选择市</option>
                                         {(CITIES[form.addressProvince] || []).map(c => <option key={c} value={c}>{c}</option>)}
@@ -644,183 +557,172 @@ export default function BuynoPage() {
                                 </div>
                             </div>
                         )}
-                        <div style={cellStyle}>
+
+                        <div className="flex items-center border-b border-slate-100 bg-white px-4 py-3">
                             <input
                                 type="text"
                                 placeholder="请输入详细地址（街道门牌号）"
                                 value={form.addressDetail}
                                 onChange={e => setForm({ ...form, addressDetail: e.target.value })}
-                                style={{ ...inputStyle, textAlign: 'left' }}
+                                className="flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
                             />
                         </div>
-                        <div style={{ padding: '8px 15px', fontSize: '12px', color: '#e6a23c', background: '#fffbe6' }}>
+                        <div className="bg-amber-50 px-4 py-2 text-xs text-amber-600">
                             填写的街道地址必须详细到"门牌号"，否则不予通过
                         </div>
+
                         {/* 收货人手机号 */}
-                        <div style={cellStyle}>
-                            <div style={labelStyle}><span style={{ color: '#f56c6c' }}>*</span>收货人手机号:</div>
+                        <div className="flex items-center border-b border-slate-100 bg-white px-4 py-3">
+                            <span className="w-28 text-sm text-slate-700">
+                                <span className="text-red-500">*</span>收货人手机号:
+                            </span>
                             <input
                                 type="text"
                                 placeholder="请输入手机号"
                                 value={form.receiverPhone}
                                 onChange={e => setForm({ ...form, receiverPhone: e.target.value })}
-                                style={inputStyle}
+                                className="flex-1 bg-transparent text-right text-sm text-slate-700 outline-none placeholder:text-slate-400"
                             />
                         </div>
-                        <div style={{ padding: '8px 15px', fontSize: '12px', color: '#e6a23c', background: '#fffbe6' }}>
+                        <div className="bg-amber-50 px-4 py-2 text-xs text-amber-600">
                             该手机号必须与您支付宝上认证的手机号码一致；否则不予审核通过
                         </div>
+
                         {/* 手机验证码 */}
-                        <div style={{ ...cellStyle, justifyContent: 'space-between' }}>
-                            <div style={labelStyle}><span style={{ color: '#f56c6c' }}>*</span>手机验证码:</div>
-                            <div style={{ display: 'flex', gap: '10px', flex: 1, justifyContent: 'flex-end' }}>
+                        <div className="flex items-center justify-between border-b border-slate-100 bg-white px-4 py-3">
+                            <span className="w-28 text-sm text-slate-700">
+                                <span className="text-red-500">*</span>手机验证码:
+                            </span>
+                            <div className="flex flex-1 items-center justify-end gap-2.5">
                                 <input
                                     type="text"
                                     placeholder="请输入验证码"
                                     maxLength={6}
                                     value={form.smsCode}
                                     onChange={e => setForm({ ...form, smsCode: e.target.value })}
-                                    style={{ width: '100px', padding: '6px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', textAlign: 'center' }}
+                                    className="w-24 rounded border border-slate-200 px-2.5 py-1.5 text-center text-sm"
                                 />
                                 <button
                                     onClick={sendSmsCode}
                                     disabled={yzmDisabled}
-                                    style={{
-                                        padding: '6px 12px',
-                                        background: yzmDisabled ? '#a0cfff' : '#1989fa',
-                                        color: '#fff',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        fontSize: '12px',
-                                        whiteSpace: 'nowrap',
-                                        cursor: yzmDisabled ? 'not-allowed' : 'pointer'
-                                    }}
+                                    className={cn(
+                                        'whitespace-nowrap rounded px-3 py-1.5 text-xs text-white',
+                                        yzmDisabled ? 'cursor-not-allowed bg-blue-300' : 'bg-primary'
+                                    )}
                                 >
                                     {yzmMsg}
                                 </button>
                             </div>
                         </div>
+
                         {/* 支付宝认证姓名 */}
-                        <div style={cellStyle}>
-                            <div style={labelStyle}><span style={{ color: '#f56c6c' }}>*</span>支付宝认证姓名:</div>
+                        <div className="flex items-center border-b border-slate-100 bg-white px-4 py-3">
+                            <span className="w-28 text-sm text-slate-700">
+                                <span className="text-red-500">*</span>支付宝认证姓名:
+                            </span>
                             <input
                                 type="text"
                                 placeholder="请输入支付宝认证姓名"
                                 value={form.alipayName}
                                 onChange={e => setForm({ ...form, alipayName: e.target.value })}
-                                style={inputStyle}
+                                className="flex-1 bg-transparent text-right text-sm text-slate-700 outline-none placeholder:text-slate-400"
                             />
                         </div>
-                        <div style={{ padding: '8px 15px', fontSize: '12px', color: '#e6a23c', background: '#fffbe6' }}>
+                        <div className="bg-amber-50 px-4 py-2 text-xs text-amber-600">
                             绑定多个买号必须使用不同身份认证的支付宝账号，支付宝认证姓名只允许输入6个字以内的中文
                         </div>
                     </div>
 
                     {/* 支付宝信息 */}
-                    <div style={{ margin: '10px', background: '#fff', borderRadius: '8px', overflow: 'hidden' }}>
-                        <div style={{ padding: '12px 15px', background: '#f8f8f8', fontSize: '14px', fontWeight: '500', color: '#333', borderBottom: '1px solid #f0f0f0' }}>
+                    <div className="m-2.5 overflow-hidden rounded-lg bg-white">
+                        <div className="border-b border-slate-100 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
                             支付宝信息
                         </div>
+
                         {/* 支付宝实名认证 */}
-                        <div style={{ padding: '12px 15px', borderBottom: '1px solid #f0f0f0' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                <span style={{ fontSize: '14px', color: '#333' }}><span style={{ color: '#f56c6c' }}>*</span>支付宝实名认证:</span>
+                        <div className="border-b border-slate-100 p-4">
+                            <div className="mb-2.5 text-sm text-slate-700">
+                                <span className="text-red-500">*</span>支付宝实名认证:
                             </div>
-                            <div style={{ display: 'flex', gap: '15px' }}>
-                                <div style={{ position: 'relative' }}>
+                            <div className="flex gap-4">
+                                <div className="relative">
                                     {form.img3 ? (
-                                        <img src={form.img3} alt="已上传" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
+                                        <img src={form.img3} alt="已上传" className="h-20 w-20 rounded object-cover" />
                                     ) : (
-                                        <div style={{ width: '80px', height: '80px', border: '1px dashed #ddd', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '24px' }}>+</div>
+                                        <div className="flex h-20 w-20 items-center justify-center rounded border border-dashed border-slate-300 text-2xl text-slate-400">+</div>
                                     )}
                                     <input
                                         type="file"
                                         accept="image/*"
                                         onChange={e => handleFileUpload(e, 'img3')}
-                                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                                        className="absolute inset-0 cursor-pointer opacity-0"
                                     />
                                 </div>
-                                <div style={{ textAlign: 'center' }}>
-                                    <div style={{ width: '80px', height: '80px', background: '#f5f5f5', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: '#999' }}>示例图</div>
-                                    <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>示例图</div>
+                                <div className="text-center">
+                                    <div className="flex h-20 w-20 items-center justify-center rounded bg-slate-100 text-xs text-slate-400">示例图</div>
+                                    <span className="mt-1 text-xs text-slate-400">示例图</span>
                                 </div>
                             </div>
-                            <div style={{ fontSize: '12px', color: '#333', marginTop: '10px', lineHeight: '1.6' }}>
+                            <p className="mt-2.5 text-xs leading-relaxed text-slate-700">
                                 请登录您的"支付宝"，点击"我的-支付宝昵称"，截取您的支付宝"个人信息"作为审核凭证，截图中的姓名必须和您填写的支付宝姓名保持一致、实名制淘宝会员名必须和您上传的旺旺档案截图一致。
-                            </div>
+                            </p>
                         </div>
+
                         {/* 芝麻信用截图 */}
-                        <div style={{ padding: '12px 15px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                <span style={{ fontSize: '14px', color: '#333' }}><span style={{ color: '#f56c6c' }}>*</span>芝麻信用截图:</span>
+                        <div className="p-4">
+                            <div className="mb-2.5 text-sm text-slate-700">
+                                <span className="text-red-500">*</span>芝麻信用截图:
                             </div>
-                            <div style={{ display: 'flex', gap: '15px' }}>
-                                <div style={{ position: 'relative' }}>
+                            <div className="flex gap-4">
+                                <div className="relative">
                                     {form.img4 ? (
-                                        <img src={form.img4} alt="已上传" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
+                                        <img src={form.img4} alt="已上传" className="h-20 w-20 rounded object-cover" />
                                     ) : (
-                                        <div style={{ width: '80px', height: '80px', border: '1px dashed #ddd', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '24px' }}>+</div>
+                                        <div className="flex h-20 w-20 items-center justify-center rounded border border-dashed border-slate-300 text-2xl text-slate-400">+</div>
                                     )}
                                     <input
                                         type="file"
                                         accept="image/*"
                                         onChange={e => handleFileUpload(e, 'img4')}
-                                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                                        className="absolute inset-0 cursor-pointer opacity-0"
                                     />
                                 </div>
-                                <div style={{ textAlign: 'center' }}>
-                                    <div style={{ width: '80px', height: '80px', background: '#f5f5f5', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: '#999' }}>示例图</div>
-                                    <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>示例图</div>
+                                <div className="text-center">
+                                    <div className="flex h-20 w-20 items-center justify-center rounded bg-slate-100 text-xs text-slate-400">示例图</div>
+                                    <span className="mt-1 text-xs text-slate-400">示例图</span>
                                 </div>
                             </div>
-                            <div style={{ fontSize: '12px', color: '#333', marginTop: '10px', lineHeight: '1.6' }}>
+                            <p className="mt-2.5 text-xs leading-relaxed text-slate-700">
                                 请登录您的"支付宝"，点击"我的-芝麻信用"，截取您的支付宝"芝麻信用"作为审核凭证，截图中的姓名必须和您的支付宝实名认证姓名一致。
-                            </div>
+                            </p>
                         </div>
                     </div>
 
                     {/* 保存按钮 */}
-                    <div style={{ padding: '20px 15px', display: 'flex', gap: '15px' }}>
-                        <button
+                    <div className="flex gap-4 p-4">
+                        <Button
                             onClick={handleSubmit}
-                            disabled={submitting}
-                            style={{
-                                flex: 1,
-                                padding: '12px',
-                                background: submitting ? '#ccc' : '#1989fa',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '4px',
-                                fontSize: '16px',
-                                cursor: submitting ? 'not-allowed' : 'pointer'
-                            }}
+                            loading={submitting}
+                            className="flex-1"
                         >
                             {submitting ? '提交中...' : '保存'}
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                            variant="secondary"
                             onClick={() => router.back()}
-                            style={{
-                                flex: 1,
-                                padding: '12px',
-                                background: '#f5f5f5',
-                                color: '#666',
-                                border: 'none',
-                                borderRadius: '4px',
-                                fontSize: '16px',
-                                cursor: 'pointer'
-                            }}
+                            className="flex-1"
                         >
                             取消
-                        </button>
+                        </Button>
                     </div>
 
                     {/* 温馨提示 */}
-                    <div style={{ margin: '0 10px 20px', background: '#fff', borderRadius: '8px', padding: '15px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', color: '#e6a23c' }}>
-                            <span style={{ marginRight: '5px' }}>⚠️</span>
-                            <span style={{ fontSize: '14px', fontWeight: '500' }}>温馨提示</span>
+                    <div className="mx-2.5 mb-5 rounded-lg bg-white p-4">
+                        <div className="mb-2.5 flex items-center text-amber-600">
+                            <span className="mr-1">⚠️</span>
+                            <span className="text-sm font-medium">温馨提示</span>
                         </div>
-                        <div style={{ fontSize: '12px', color: '#666', lineHeight: '1.8' }}>
+                        <div className="space-y-1 text-xs leading-relaxed text-slate-500">
                             <p>1.平台优先审核优质女号，注册时间超过1年、实名认证、淘气值≥400，信誉等级3心以上、信誉大于2钻的买号注册时间要超过3年，好评率大于99%的安全号；</p>
                             <p>2.淘宝|天猫可绑1个买号，买号要求绑定的收货信息（收货人姓名、地址、电话均要求真实有效，能联系上买手本人）；</p>
                             <p>3.平台填写的收货信息，务必和淘宝网下单时收货信息保持一致，否则将封闭您的账号，并没收所有佣金；</p>
