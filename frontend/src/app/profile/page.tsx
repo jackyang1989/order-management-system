@@ -139,7 +139,7 @@ export default function ProfilePage() {
                 </ProfileContainer>
             </div>
 
-            <ProfileContainer className="space-y-4 py-4">
+            <ProfileContainer className="flex flex-col gap-6 py-4">
                 {/* User Info Card */}
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-xl backdrop-blur-2xl">
                     <div className="mb-5 flex items-center gap-4">
@@ -188,16 +188,18 @@ export default function ProfilePage() {
                 <div className="px-1 text-sm font-semibold text-slate-200">提现入口</div>
 
                 {/* Principal Card */}
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-xl backdrop-blur-2xl">
-                    <div className="mb-3 text-sm font-semibold text-slate-200">我的本金</div>
-                    <div className="mb-2 flex items-center">
-                        <span className="mr-2 text-xl">💰</span>
-                        <span className="text-xl font-bold text-emerald-400">{profile?.balance || 0}元</span>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-2xl">
+                    <div className="mb-4 text-sm font-semibold text-slate-200">我的本金</div>
+                    <div className="mb-3 flex items-baseline gap-1">
+                        <span className="text-xl">💰</span>
+                        <span className="text-2xl font-bold text-emerald-400">{profile?.balance || 0}</span>
+                        <span className="text-sm text-emerald-400">元</span>
                         <span className="ml-2 text-xs text-slate-500">(可提现本金)</span>
                     </div>
-                    <div className="mb-3 flex items-center">
-                        <span className="mr-2 text-xl">💰</span>
-                        <span className="text-base font-semibold text-slate-400">{profile?.all_user_principal || 0}元</span>
+                    <div className="mb-4 flex items-baseline gap-1">
+                        <span className="text-xl">💰</span>
+                        <span className="text-lg font-semibold text-slate-400">{profile?.all_user_principal || 0}</span>
+                        <span className="text-xs text-slate-400">元</span>
                         <span className="ml-2 text-xs text-slate-500">(总计垫付本金)</span>
                     </div>
                     <Button
@@ -209,18 +211,20 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Silver Card */}
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-xl backdrop-blur-2xl">
-                    <div className="mb-3 text-sm font-semibold text-slate-200">我的银锭</div>
-                    <div className="mb-2 flex items-center">
-                        <span className="mr-2 text-xl">🥇</span>
-                        <span className="text-lg font-bold text-amber-400">
-                            {profile?.reward || 0}银锭 = {profile?.discounting || 0}元
-                        </span>
-                        <span className="ml-2 text-xs text-slate-500">(总银锭)</span>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-2xl">
+                    <div className="mb-4 text-sm font-semibold text-slate-200">我的银锭</div>
+                    <div className="mb-3 flex items-baseline gap-1">
+                        <span className="text-xl">🥇</span>
+                        <span className="text-2xl font-bold text-amber-400">{profile?.reward || 0}</span>
+                        <span className="text-sm text-amber-400">银锭</span>
+                        <span className="mx-1 text-slate-500">=</span>
+                        <span className="text-lg font-bold text-amber-400">{profile?.discounting || 0}</span>
+                        <span className="text-sm text-amber-400">元</span>
                     </div>
-                    <div className="mb-3 flex items-center">
-                        <span className="mr-2 text-xl">🥇</span>
-                        <span className="text-base font-semibold text-amber-500">{profile?.freeze_reward || 0}银锭</span>
+                    <div className="mb-4 flex items-baseline gap-1">
+                        <span className="text-xl">🥇</span>
+                        <span className="text-lg font-semibold text-amber-500">{profile?.freeze_reward || 0}</span>
+                        <span className="text-xs text-amber-500">银锭</span>
                         <span className="ml-2 text-xs text-slate-500">(冻结银锭)</span>
                     </div>
                     <Button

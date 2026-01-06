@@ -17,7 +17,7 @@ export function ProfileContainer({ children, className, size = 'default' }: Prof
     return (
         <div
             className={cn(
-                'mx-auto flex w-full min-w-0 flex-col px-4 md:px-6',
+                'mx-auto flex w-full min-w-0 flex-col items-stretch px-4 md:px-6',
                 size === 'wide' ? 'max-w-5xl' : 'max-w-4xl',
                 className
             )}
