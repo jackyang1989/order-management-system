@@ -1,10 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Table, Card, Input, Select, Button, Tag, Space, Modal, Form, InputNumber, message, Avatar, Badge, Descriptions, Image, Tooltip } from 'antd';
-import { SearchOutlined, ReloadOutlined, UserOutlined, DollarOutlined, CrownOutlined, StopOutlined, CheckCircleOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
 import { BASE_URL } from '../../../../apiConfig';
+import { cn } from '../../../lib/utils';
+import { toastSuccess, toastError } from '../../../lib/toast';
+import { Button } from '../../../components/ui/button';
+import { Card } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Input } from '../../../components/ui/input';
+import { Select } from '../../../components/ui/select';
+import { Table, Column } from '../../../components/ui/table';
+import { Modal } from '../../../components/ui/modal';
+import { Pagination } from '../../../components/ui/pagination';
 
 interface User {
     id: string;
@@ -27,14 +34,8 @@ interface User {
     lastLoginIp?: string;
     realName?: string;
     idCard?: string;
-    idCardFront?: string;
-    idCardBack?: string;
     invitationCode?: string;
     invitedBy?: string;
-    referrerId?: string;
-    referrerType?: number;
-    referralReward?: number;
-    referralCount?: number;
 }
 
 interface BalanceModalData {
@@ -43,6 +44,13 @@ interface BalanceModalData {
     type: 'balance' | 'silver';
     action: 'add' | 'deduct';
 }
+
+const verifyLabels: Record<number, { text: string; color: 'slate' | 'amber' | 'green' | 'red' }> = {
+    0: { text: '未认证', color: 'slate' },
+    1: { text: '待审核', color: 'amber' },
+    2: { text: '已认证', color: 'green' },
+    3: { text: '已拒绝', color: 'red' },
+};
 
 export default function AdminUsersPage() {
     const [users, setUsers] = useState<User[]>([]);
@@ -56,7 +64,11 @@ export default function AdminUsersPage() {
     const [balanceModal, setBalanceModal] = useState<BalanceModalData | null>(null);
     const [detailModal, setDetailModal] = useState<User | null>(null);
     const [banModal, setBanModal] = useState<{ userId: string; username: string } | null>(null);
-    const [form] = Form.useForm();
+
+    // Form state for balance modal
+    const [balanceAmount, setBalanceAmount] = useState('');
+    const [balanceReason, setBalanceReason] = useState('');
+    const [banReason, setBanReasonText] = useState('');
 
     useEffect(() => {
         loadUsers();
@@ -91,8 +103,12 @@ export default function AdminUsersPage() {
         loadUsers();
     };
 
-    const handleAdjustBalance = async (values: { amount: number; reason: string }) => {
+    const handleAdjustBalance = async () => {
         if (!balanceModal) return;
+        if (!balanceAmount || !balanceReason) {
+            toastError('请填写金额和原因');
+            return;
+        }
         const token = localStorage.getItem('adminToken');
         try {
             const res = await fetch(`${BASE_URL}/admin/users/${balanceModal.userId}/balance`, {
@@ -104,26 +120,30 @@ export default function AdminUsersPage() {
                 body: JSON.stringify({
                     type: balanceModal.type,
                     action: balanceModal.action,
-                    amount: values.amount,
-                    reason: values.reason
+                    amount: Number(balanceAmount),
+                    reason: balanceReason
                 })
             });
             const json = await res.json();
             if (json.success) {
-                message.success('操作成功');
+                toastSuccess('操作成功');
                 setBalanceModal(null);
-                form.resetFields();
+                setBalanceAmount('');
+                setBalanceReason('');
                 loadUsers();
             } else {
-                message.error(json.message || '操作失败');
+                toastError(json.message || '操作失败');
             }
         } catch (e) {
-            message.error('操作失败');
+            toastError('操作失败');
         }
     };
 
-    const handleBan = async (reason: string) => {
-        if (!banModal) return;
+    const handleBan = async () => {
+        if (!banModal || !banReason) {
+            toastError('请输入封禁原因');
+            return;
+        }
         const token = localStorage.getItem('adminToken');
         try {
             await fetch(`${BASE_URL}/admin/users/${banModal.userId}/ban`, {
@@ -132,13 +152,14 @@ export default function AdminUsersPage() {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ reason })
+                body: JSON.stringify({ reason: banReason })
             });
-            message.success('用户已封禁');
+            toastSuccess('用户已封禁');
             setBanModal(null);
+            setBanReasonText('');
             loadUsers();
         } catch (e) {
-            message.error('操作失败');
+            toastError('操作失败');
         }
     };
 
@@ -149,10 +170,10 @@ export default function AdminUsersPage() {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            message.success('已解封');
+            toastSuccess('已解封');
             loadUsers();
         } catch (e) {
-            message.error('操作失败');
+            toastError('操作失败');
         }
     };
 
@@ -167,284 +188,372 @@ export default function AdminUsersPage() {
                 },
                 body: JSON.stringify({ days })
             });
-            message.success('VIP已设置');
+            toastSuccess('VIP已设置');
             loadUsers();
         } catch (e) {
-            message.error('操作失败');
+            toastError('操作失败');
         }
     };
 
-    const getVerifyStatusTag = (status: number) => {
-        const configs = [
-            { text: '未认证', color: 'default' },
-            { text: '待审核', color: 'warning' },
-            { text: '已认证', color: 'success' },
-            { text: '已拒绝', color: 'error' },
-        ];
-        const config = configs[status] || configs[0];
-        return <Tag color={config.color}>{config.text}</Tag>;
-    };
-
-    const columns: ColumnsType<User> = [
+    const columns: Column<User>[] = [
         {
-            title: '用户信息',
             key: 'info',
-            width: 200,
-            render: (_, record) => (
-                <Space>
-                    <Avatar icon={<UserOutlined />} />
-                    <div>
-                        <div style={{ fontWeight: 500 }}>{record.username}</div>
-                        <div style={{ fontSize: 12, color: '#999' }}>{record.phone}</div>
+            title: '用户信息',
+            className: 'w-[200px]',
+            render: (row) => (
+                <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-lg">
+                        👤
                     </div>
-                </Space>
+                    <div>
+                        <div className="font-medium text-slate-800">{row.username}</div>
+                        <div className="text-xs text-slate-400">{row.phone}</div>
+                    </div>
+                </div>
             ),
         },
         {
-            title: '本金余额',
             key: 'balance',
-            align: 'right',
-            width: 120,
-            render: (_, record) => (
+            title: '本金余额',
+            className: 'w-[120px] text-right',
+            render: (row) => (
                 <div>
-                    <div style={{ color: '#52c41a', fontWeight: 500 }}>¥{Number(record.balance || 0).toFixed(2)}</div>
-                    {(record.frozenBalance || 0) > 0 && (
-                        <div style={{ fontSize: 12, color: '#faad14' }}>冻结: ¥{Number(record.frozenBalance).toFixed(2)}</div>
+                    <div className="font-medium text-green-600">¥{Number(row.balance || 0).toFixed(2)}</div>
+                    {(row.frozenBalance || 0) > 0 && (
+                        <div className="text-xs text-amber-500">冻结: ¥{Number(row.frozenBalance).toFixed(2)}</div>
                     )}
                 </div>
             ),
         },
         {
-            title: '银锭余额',
             key: 'silver',
-            align: 'right',
-            width: 120,
-            render: (_, record) => (
+            title: '银锭余额',
+            className: 'w-[120px] text-right',
+            render: (row) => (
                 <div>
-                    <div style={{ color: '#1890ff', fontWeight: 500 }}>{Number(record.silver || 0).toFixed(2)}</div>
-                    {(record.frozenSilver || 0) > 0 && (
-                        <div style={{ fontSize: 12, color: '#faad14' }}>冻结: {Number(record.frozenSilver).toFixed(2)}</div>
+                    <div className="font-medium text-blue-600">{Number(row.silver || 0).toFixed(2)}</div>
+                    {(row.frozenSilver || 0) > 0 && (
+                        <div className="text-xs text-amber-500">冻结: {Number(row.frozenSilver).toFixed(2)}</div>
                     )}
                 </div>
             ),
         },
         {
-            title: '会员',
             key: 'vip',
-            align: 'center',
-            width: 80,
-            render: (_, record) => record.vip ? <Tag color="gold">VIP</Tag> : <Tag>普通</Tag>,
+            title: '会员',
+            className: 'w-[80px] text-center',
+            render: (row) => row.vip ? (
+                <Badge variant="solid" color="amber">VIP</Badge>
+            ) : (
+                <Badge variant="soft" color="slate">普通</Badge>
+            ),
         },
         {
-            title: '实名',
             key: 'verify',
-            align: 'center',
-            width: 80,
-            render: (_, record) => getVerifyStatusTag(record.verifyStatus),
-        },
-        {
-            title: '状态',
-            key: 'status',
-            align: 'center',
-            width: 80,
-            render: (_, record) => {
-                if (record.isBanned) return <Tag color="error">已封禁</Tag>;
-                if (record.isActive) return <Tag color="success">正常</Tag>;
-                return <Tag>未激活</Tag>;
+            title: '实名',
+            className: 'w-[80px] text-center',
+            render: (row) => {
+                const conf = verifyLabels[row.verifyStatus] || verifyLabels[0];
+                return <Badge variant="soft" color={conf.color}>{conf.text}</Badge>;
             },
         },
         {
-            title: '操作',
+            key: 'status',
+            title: '状态',
+            className: 'w-[80px] text-center',
+            render: (row) => {
+                if (row.isBanned) return <Badge variant="soft" color="red">已封禁</Badge>;
+                if (row.isActive) return <Badge variant="soft" color="green">正常</Badge>;
+                return <Badge variant="soft" color="slate">未激活</Badge>;
+            },
+        },
+        {
             key: 'actions',
-            width: 280,
-            render: (_, record) => (
-                <Space size="small" wrap>
-                    <Button size="small" onClick={() => setDetailModal(record)}>详情</Button>
-                    <Button size="small" type="primary" ghost onClick={() => setBalanceModal({ userId: record.id, username: record.username, type: 'balance', action: 'add' })}>
+            title: '操作',
+            className: 'w-[320px]',
+            render: (row) => (
+                <div className="flex flex-wrap items-center gap-1.5">
+                    <Button size="sm" variant="secondary" onClick={() => setDetailModal(row)}>
+                        详情
+                    </Button>
+                    <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'balance', action: 'add' })}>
                         充值
                     </Button>
-                    <Button size="small" style={{ color: '#faad14', borderColor: '#faad14' }} onClick={() => setBalanceModal({ userId: record.id, username: record.username, type: 'balance', action: 'deduct' })}>
+                    <Button size="sm" className="border border-amber-500 bg-white text-amber-600 hover:bg-amber-50" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'balance', action: 'deduct' })}>
                         扣款
                     </Button>
-                    {!record.vip && (
-                        <Tooltip title="设置30天VIP">
-                            <Button size="small" icon={<CrownOutlined />} onClick={() => handleSetVip(record.id, 30)}>VIP</Button>
-                        </Tooltip>
+                    {!row.vip && (
+                        <Button size="sm" className="bg-purple-600 hover:bg-purple-700" onClick={() => handleSetVip(row.id, 30)}>
+                            👑 VIP
+                        </Button>
                     )}
-                    {record.isBanned ? (
-                        <Button size="small" type="primary" onClick={() => handleUnban(record.id)}>解封</Button>
+                    {row.isBanned ? (
+                        <Button size="sm" onClick={() => handleUnban(row.id)}>解封</Button>
                     ) : (
-                        <Button size="small" danger onClick={() => setBanModal({ userId: record.id, username: record.username })}>封禁</Button>
+                        <Button size="sm" variant="destructive" onClick={() => setBanModal({ userId: row.id, username: row.username })}>
+                            封禁
+                        </Button>
                     )}
-                </Space>
+                </div>
             ),
         },
     ];
 
     return (
-        <div>
+        <div className="space-y-6">
             {/* 搜索栏 */}
-            <Card style={{ marginBottom: 16 }}>
-                <Space wrap>
+            <Card className="bg-white">
+                <div className="flex flex-wrap items-center gap-3">
                     <Input
                         placeholder="搜索用户名/手机号/姓名..."
                         value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        onPressEnter={handleSearch}
-                        style={{ width: 280 }}
-                        prefix={<SearchOutlined />}
+                        onChange={(e) => setSearch(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                        className="w-64"
                     />
                     <Select
                         value={statusFilter}
-                        onChange={v => { setStatusFilter(v); setPage(1); }}
-                        style={{ width: 120 }}
+                        onChange={(v) => { setStatusFilter(v); setPage(1); }}
                         options={[
                             { value: 'all', label: '全部状态' },
                             { value: 'active', label: '正常' },
                             { value: 'banned', label: '已封禁' },
                         ]}
+                        className="w-28"
                     />
                     <Select
                         value={vipFilter}
-                        onChange={v => { setVipFilter(v); setPage(1); }}
-                        style={{ width: 120 }}
+                        onChange={(v) => { setVipFilter(v); setPage(1); }}
                         options={[
                             { value: 'all', label: '全部会员' },
                             { value: 'vip', label: 'VIP用户' },
                             { value: 'normal', label: '普通用户' },
                         ]}
+                        className="w-28"
                     />
-                    <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>搜索</Button>
-                    <Button icon={<ReloadOutlined />} onClick={loadUsers}>刷新</Button>
-                </Space>
+                    <Button onClick={handleSearch} className="flex items-center gap-1">
+                        🔍 搜索
+                    </Button>
+                    <Button variant="secondary" onClick={loadUsers} className="flex items-center gap-1">
+                        🔄 刷新
+                    </Button>
+                </div>
             </Card>
 
             {/* 用户列表 */}
-            <Card>
+            <Card className="overflow-hidden bg-white">
                 <Table
                     columns={columns}
-                    dataSource={users}
-                    rowKey="id"
+                    data={users}
+                    rowKey={(r) => r.id}
                     loading={loading}
-                    pagination={{
-                        current: page,
-                        total: total,
-                        pageSize: 20,
-                        onChange: setPage,
-                        showTotal: (t) => `共 ${t} 条记录`,
-                    }}
-                    scroll={{ x: 1000 }}
+                    emptyText="暂无用户数据"
                 />
+                <div className="mt-4 flex justify-end px-6 pb-6">
+                    <Pagination
+                        current={page}
+                        total={total}
+                        pageSize={20}
+                        onChange={setPage}
+                    />
+                </div>
             </Card>
 
             {/* 充值/扣款弹窗 */}
             <Modal
                 title={`${balanceModal?.action === 'add' ? '💰 充值' : '💸 扣款'} - ${balanceModal?.username}`}
                 open={!!balanceModal}
-                onCancel={() => { setBalanceModal(null); form.resetFields(); }}
-                footer={null}
+                onClose={() => { setBalanceModal(null); setBalanceAmount(''); setBalanceReason(''); }}
             >
-                <Form form={form} layout="vertical" onFinish={handleAdjustBalance}>
-                    <Form.Item label="账户类型">
+                <div className="space-y-4">
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">账户类型</label>
                         <Select
-                            value={balanceModal?.type}
-                            onChange={t => balanceModal && setBalanceModal({ ...balanceModal, type: t })}
+                            value={balanceModal?.type || 'balance'}
+                            onChange={(t) => balanceModal && setBalanceModal({ ...balanceModal, type: t as 'balance' | 'silver' })}
                             options={[
                                 { value: 'balance', label: '本金余额' },
                                 { value: 'silver', label: '银锭余额' },
                             ]}
                         />
-                    </Form.Item>
-                    <Form.Item name="amount" label={`${balanceModal?.action === 'add' ? '充值' : '扣除'}金额`} rules={[{ required: true, message: '请输入金额' }]}>
-                        <InputNumber style={{ width: '100%' }} min={0} precision={2} placeholder="请输入金额" />
-                    </Form.Item>
-                    <Form.Item name="reason" label="操作原因" rules={[{ required: true, message: '请输入原因' }]}>
-                        <Input placeholder="请输入操作原因" />
-                    </Form.Item>
-                    <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
-                        <Space>
-                            <Button onClick={() => { setBalanceModal(null); form.resetFields(); }}>取消</Button>
-                            <Button type="primary" htmlType="submit" style={{ background: balanceModal?.action === 'add' ? '#52c41a' : '#faad14' }}>
-                                确认{balanceModal?.action === 'add' ? '充值' : '扣款'}
-                            </Button>
-                        </Space>
-                    </Form.Item>
-                </Form>
+                    </div>
+                    <Input
+                        label={`${balanceModal?.action === 'add' ? '充值' : '扣除'}金额`}
+                        type="number"
+                        placeholder="请输入金额"
+                        value={balanceAmount}
+                        onChange={(e) => setBalanceAmount(e.target.value)}
+                    />
+                    <Input
+                        label="操作原因"
+                        placeholder="请输入操作原因"
+                        value={balanceReason}
+                        onChange={(e) => setBalanceReason(e.target.value)}
+                    />
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => { setBalanceModal(null); setBalanceAmount(''); setBalanceReason(''); }}>
+                            取消
+                        </Button>
+                        <Button
+                            onClick={handleAdjustBalance}
+                            className={balanceModal?.action === 'add' ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-500 hover:bg-amber-600'}
+                        >
+                            确认{balanceModal?.action === 'add' ? '充值' : '扣款'}
+                        </Button>
+                    </div>
+                </div>
             </Modal>
 
             {/* 封禁弹窗 */}
             <Modal
                 title={`🚫 封禁用户 - ${banModal?.username}`}
                 open={!!banModal}
-                onCancel={() => setBanModal(null)}
-                onOk={() => {
-                    const reason = (document.getElementById('banReason') as HTMLTextAreaElement)?.value;
-                    if (reason) handleBan(reason);
-                }}
-                okText="确认封禁"
-                okButtonProps={{ danger: true }}
+                onClose={() => { setBanModal(null); setBanReasonText(''); }}
             >
-                <Form layout="vertical">
-                    <Form.Item label="封禁原因">
-                        <Input.TextArea id="banReason" rows={3} placeholder="请输入封禁原因" />
-                    </Form.Item>
-                </Form>
+                <div className="space-y-4">
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">封禁原因</label>
+                        <textarea
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            rows={3}
+                            placeholder="请输入封禁原因"
+                            value={banReason}
+                            onChange={(e) => setBanReasonText(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => { setBanModal(null); setBanReasonText(''); }}>
+                            取消
+                        </Button>
+                        <Button variant="destructive" onClick={handleBan}>
+                            确认封禁
+                        </Button>
+                    </div>
+                </div>
             </Modal>
 
             {/* 用户详情弹窗 */}
             <Modal
                 title="用户详情"
                 open={!!detailModal}
-                onCancel={() => setDetailModal(null)}
-                width={700}
-                footer={[
-                    <Button key="recharge" type="primary" style={{ background: '#52c41a' }} onClick={() => { setBalanceModal({ userId: detailModal!.id, username: detailModal!.username, type: 'balance', action: 'add' }); setDetailModal(null); }}>
-                        充值
-                    </Button>,
-                    !detailModal?.vip && (
-                        <Button key="vip" style={{ background: '#722ed1', color: '#fff' }} onClick={() => { handleSetVip(detailModal!.id, 30); setDetailModal(null); }}>
-                            设为VIP
-                        </Button>
-                    ),
-                    detailModal?.isBanned ? (
-                        <Button key="unban" type="primary" onClick={() => { handleUnban(detailModal!.id); setDetailModal(null); }}>解封</Button>
-                    ) : (
-                        <Button key="ban" danger onClick={() => { setBanModal({ userId: detailModal!.id, username: detailModal!.username }); setDetailModal(null); }}>封禁</Button>
-                    ),
-                    <Button key="close" onClick={() => setDetailModal(null)}>关闭</Button>,
-                ]}
+                onClose={() => setDetailModal(null)}
+                className="max-w-2xl"
             >
                 {detailModal && (
-                    <div>
-                        <Descriptions title="基本信息" column={2} bordered size="small" style={{ marginBottom: 24 }}>
-                            <Descriptions.Item label="用户ID">{detailModal.id}</Descriptions.Item>
-                            <Descriptions.Item label="用户名">{detailModal.username}</Descriptions.Item>
-                            <Descriptions.Item label="手机号">{detailModal.phone}</Descriptions.Item>
-                            <Descriptions.Item label="QQ">{detailModal.qq || '-'}</Descriptions.Item>
-                            <Descriptions.Item label="邀请码">{detailModal.invitationCode || '-'}</Descriptions.Item>
-                            <Descriptions.Item label="最后登录IP">{detailModal.lastLoginIp || '-'}</Descriptions.Item>
-                        </Descriptions>
+                    <div className="space-y-6">
+                        {/* 基本信息 */}
+                        <div>
+                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-slate-800">基本信息</h3>
+                            <div className="grid grid-cols-2 gap-4 rounded-lg bg-slate-50 p-4">
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">用户ID</div>
+                                    <div className="text-sm font-medium">{detailModal.id}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">用户名</div>
+                                    <div className="text-sm font-medium">{detailModal.username}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">手机号</div>
+                                    <div className="text-sm font-medium">{detailModal.phone}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">QQ</div>
+                                    <div className="text-sm font-medium">{detailModal.qq || '-'}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">邀请码</div>
+                                    <div className="text-sm font-medium">{detailModal.invitationCode || '-'}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">最后登录IP</div>
+                                    <div className="text-sm font-medium">{detailModal.lastLoginIp || '-'}</div>
+                                </div>
+                            </div>
+                        </div>
 
-                        <Descriptions title="账户余额" column={3} bordered size="small" style={{ marginBottom: 24 }}>
-                            <Descriptions.Item label="本金余额">
-                                <span style={{ color: '#52c41a', fontWeight: 600 }}>¥{Number(detailModal.balance || 0).toFixed(2)}</span>
-                            </Descriptions.Item>
-                            <Descriptions.Item label="银锭余额">
-                                <span style={{ color: '#1890ff', fontWeight: 600 }}>{Number(detailModal.silver || 0).toFixed(2)}</span>
-                            </Descriptions.Item>
-                            <Descriptions.Item label="累计赚取">
-                                <span style={{ color: '#fa8c16', fontWeight: 600 }}>{Number(detailModal.reward || 0).toFixed(2)}</span>
-                            </Descriptions.Item>
-                        </Descriptions>
+                        {/* 账户余额 */}
+                        <div>
+                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-slate-800">账户余额</h3>
+                            <div className="grid grid-cols-3 gap-4 rounded-lg bg-slate-50 p-4">
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">本金余额</div>
+                                    <div className="text-lg font-bold text-green-600">¥{Number(detailModal.balance || 0).toFixed(2)}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">银锭余额</div>
+                                    <div className="text-lg font-bold text-blue-600">{Number(detailModal.silver || 0).toFixed(2)}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">累计赚取</div>
+                                    <div className="text-lg font-bold text-amber-500">{Number(detailModal.reward || 0).toFixed(2)}</div>
+                                </div>
+                            </div>
+                        </div>
 
-                        <Descriptions title="状态信息" column={2} bordered size="small">
-                            <Descriptions.Item label="VIP状态">{detailModal.vip ? <Tag color="gold">VIP</Tag> : '普通用户'}</Descriptions.Item>
-                            <Descriptions.Item label="实名认证">{getVerifyStatusTag(detailModal.verifyStatus)}</Descriptions.Item>
-                            <Descriptions.Item label="账号状态">
-                                {detailModal.isBanned ? <Tag color="error">已封禁</Tag> : detailModal.isActive ? <Tag color="success">正常</Tag> : <Tag>未激活</Tag>}
-                            </Descriptions.Item>
-                            <Descriptions.Item label="注册时间">{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</Descriptions.Item>
-                        </Descriptions>
+                        {/* 状态信息 */}
+                        <div>
+                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-slate-800">状态信息</h3>
+                            <div className="grid grid-cols-2 gap-4 rounded-lg bg-slate-50 p-4">
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">VIP状态</div>
+                                    <div>{detailModal.vip ? <Badge variant="solid" color="amber">VIP</Badge> : <span className="text-sm">普通用户</span>}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">实名认证</div>
+                                    <div><Badge variant="soft" color={verifyLabels[detailModal.verifyStatus]?.color}>{verifyLabels[detailModal.verifyStatus]?.text}</Badge></div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">账号状态</div>
+                                    <div>
+                                        {detailModal.isBanned ? (
+                                            <Badge variant="soft" color="red">已封禁</Badge>
+                                        ) : detailModal.isActive ? (
+                                            <Badge variant="soft" color="green">正常</Badge>
+                                        ) : (
+                                            <Badge variant="soft" color="slate">未激活</Badge>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">注册时间</div>
+                                    <div className="text-sm font-medium">{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 操作按钮 */}
+                        <div className="flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-4">
+                            <Button
+                                className="bg-green-600 hover:bg-green-700"
+                                onClick={() => { setBalanceModal({ userId: detailModal.id, username: detailModal.username, type: 'balance', action: 'add' }); setDetailModal(null); }}
+                            >
+                                充值
+                            </Button>
+                            {!detailModal.vip && (
+                                <Button
+                                    className="bg-purple-600 hover:bg-purple-700"
+                                    onClick={() => { handleSetVip(detailModal.id, 30); setDetailModal(null); }}
+                                >
+                                    设为VIP
+                                </Button>
+                            )}
+                            {detailModal.isBanned ? (
+                                <Button onClick={() => { handleUnban(detailModal.id); setDetailModal(null); }}>
+                                    解封
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="destructive"
+                                    onClick={() => { setBanModal({ userId: detailModal.id, username: detailModal.username }); setDetailModal(null); }}
+                                >
+                                    封禁
+                                </Button>
+                            )}
+                            <Button variant="secondary" onClick={() => setDetailModal(null)}>
+                                关闭
+                            </Button>
+                        </div>
                     </div>
                 )}
             </Modal>

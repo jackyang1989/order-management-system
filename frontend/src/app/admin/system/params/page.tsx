@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, Form, Input, InputNumber, Switch, Button, Tabs, message, Spin, Divider, Typography } from 'antd';
-import { SaveOutlined, ReloadOutlined } from '@ant-design/icons';
+import { cn } from '../../../../lib/utils';
+import { toastSuccess, toastError } from '../../../../lib/toast';
+import { Button } from '../../../../components/ui/button';
+import { Card } from '../../../../components/ui/card';
+import { Input } from '../../../../components/ui/input';
+import { Tabs } from '../../../../components/ui/tabs';
 import { adminService, SystemConfigDto } from '../../../../services/adminService';
-
-const { Title, Text } = Typography;
 
 const CONFIG_ITEMS: { key: keyof SystemConfigDto; group: string; label: string; type: 'text' | 'number' | 'switch'; desc: string }[] = [
     // Basic
@@ -37,7 +39,7 @@ const TABS = [
 ];
 
 export default function AdminSystemParamsPage() {
-    const [form] = Form.useForm();
+    const [config, setConfig] = useState<Partial<SystemConfigDto>>({});
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [activeTab, setActiveTab] = useState('finance');
@@ -49,7 +51,7 @@ export default function AdminSystemParamsPage() {
         try {
             const res = await adminService.getGlobalConfig();
             if (res.data) {
-                form.setFieldsValue(res.data);
+                setConfig(res.data);
             }
         } catch (e) {
             console.error(e);
@@ -61,71 +63,102 @@ export default function AdminSystemParamsPage() {
     const handleSave = async () => {
         setSaving(true);
         try {
-            const values = form.getFieldsValue();
-            await adminService.updateGlobalConfig(values);
-            message.success('配置保存成功');
+            await adminService.updateGlobalConfig(config as SystemConfigDto);
+            toastSuccess('配置保存成功');
         } catch (e) {
-            message.error('保存失败');
+            toastError('保存失败');
         } finally {
             setSaving(false);
         }
     };
 
-    const renderFormItem = (item: typeof CONFIG_ITEMS[0]) => {
-        const commonProps = { style: { width: '100%' } };
-        switch (item.type) {
-            case 'text':
-                return <Input {...commonProps} placeholder={item.desc} />;
-            case 'number':
-                return <InputNumber {...commonProps} min={0} precision={2} placeholder={item.desc} />;
-            case 'switch':
-                return <Switch checkedChildren="开" unCheckedChildren="关" />;
-            default:
-                return <Input {...commonProps} />;
-        }
+    const updateField = (key: keyof SystemConfigDto, value: unknown) => {
+        setConfig(prev => ({ ...prev, [key]: value }));
     };
 
     const groupedItems = CONFIG_ITEMS.filter(c => c.group === activeTab);
 
     return (
-        <div>
-            <Card>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                    <Title level={4} style={{ margin: 0 }}>系统参数配置</Title>
-                    <div>
-                        <Button icon={<ReloadOutlined />} onClick={loadConfig} style={{ marginRight: 8 }}>刷新</Button>
-                        <Button type="primary" icon={<SaveOutlined />} onClick={handleSave} loading={saving}>保存配置</Button>
+        <div className="space-y-6">
+            <Card className="bg-white">
+                <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+                    <h2 className="text-lg font-semibold text-slate-800">系统参数配置</h2>
+                    <div className="flex items-center gap-2">
+                        <Button variant="secondary" onClick={loadConfig} className="flex items-center gap-1">
+                            🔄 刷新
+                        </Button>
+                        <Button onClick={handleSave} loading={saving} className="flex items-center gap-1">
+                            💾 保存配置
+                        </Button>
                     </div>
                 </div>
 
-                <Spin spinning={loading}>
-                    <Tabs
-                        activeKey={activeTab}
-                        onChange={setActiveTab}
-                        items={TABS.map(t => ({
-                            key: t.key,
-                            label: t.label,
-                            children: (
-                                <Form form={form} layout="vertical" style={{ maxWidth: 600 }}>
-                                    {groupedItems.map(item => (
-                                        <Form.Item
-                                            key={item.key}
-                                            name={item.key}
-                                            label={item.label}
-                                            tooltip={item.desc}
-                                            valuePropName={item.type === 'switch' ? 'checked' : 'value'}
+                {loading ? (
+                    <div className="flex items-center justify-center py-12 text-slate-500">
+                        <svg className="mr-2 h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        加载中...
+                    </div>
+                ) : (
+                    <div>
+                        <Tabs
+                            value={activeTab}
+                            onChange={setActiveTab}
+                            items={TABS.map(t => ({ key: t.key, label: t.label }))}
+                        />
+
+                        <div className="mt-6 max-w-lg space-y-5">
+                            {groupedItems.map(item => (
+                                <div key={item.key}>
+                                    <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                                        {item.label}
+                                        <span className="ml-2 text-xs font-normal text-slate-400">{item.desc}</span>
+                                    </label>
+                                    {item.type === 'switch' ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => updateField(item.key, !config[item.key])}
+                                            className={cn(
+                                                'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20',
+                                                config[item.key] ? 'bg-primary' : 'bg-slate-200'
+                                            )}
                                         >
-                                            {renderFormItem(item)}
-                                        </Form.Item>
-                                    ))}
-                                    {groupedItems.length === 0 && (
-                                        <Text type="secondary">该分组暂无配置项</Text>
+                                            <span
+                                                className={cn(
+                                                    'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200',
+                                                    config[item.key] ? 'translate-x-5' : 'translate-x-0'
+                                                )}
+                                            />
+                                        </button>
+                                    ) : item.type === 'number' ? (
+                                        <input
+                                            type="number"
+                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                            value={config[item.key] as number ?? ''}
+                                            onChange={(e) => updateField(item.key, e.target.value === '' ? '' : Number(e.target.value))}
+                                            min={0}
+                                            step="0.01"
+                                            placeholder={item.desc}
+                                        />
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                            value={(config[item.key] as string) ?? ''}
+                                            onChange={(e) => updateField(item.key, e.target.value)}
+                                            placeholder={item.desc}
+                                        />
                                     )}
-                                </Form>
-                            )
-                        }))}
-                    />
-                </Spin>
+                                </div>
+                            ))}
+                            {groupedItems.length === 0 && (
+                                <p className="py-8 text-center text-slate-400">该分组暂无配置项</p>
+                            )}
+                        </div>
+                    </div>
+                )}
             </Card>
         </div>
     );

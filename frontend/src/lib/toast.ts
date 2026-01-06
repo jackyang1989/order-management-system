@@ -12,6 +12,10 @@ export function toastInfo(message: string) {
   return toast(message);
 }
 
+export function toastWarning(message: string) {
+  return toast.warning(message);
+}
+
 export function toastLoading(message: string) {
   return toast.loading(message);
 }

@@ -23,7 +23,7 @@ export interface TableProps<T> {
   selectable?: boolean;
 }
 
-export function Table<T extends Record<string, unknown>>({
+export function Table<T extends object>({
   columns,
   data,
   loading,
@@ -113,7 +113,7 @@ export function Table<T extends Record<string, unknown>>({
                 )}
                 {columns.map((col) => (
                   <td key={col.key} className={cn('px-4 py-3 text-slate-700', col.className)}>
-                    {col.render ? col.render(row, idx) : (row[col.key] as ReactNode)}
+                    {col.render ? col.render(row, idx) : ((row as Record<string, unknown>)[col.key] as ReactNode)}
                   </td>
                 ))}
               </tr>

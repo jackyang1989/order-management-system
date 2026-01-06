@@ -5,7 +5,7 @@ import { cn } from '../../../lib/utils';
 import { toastSuccess, toastError } from '../../../lib/toast';
 import { Modal } from '../../../components/ui/modal';
 import { Button } from '../../../components/ui/button';
-import { BASE_URL } from '../../../apiConfig';
+import { BASE_URL } from '../../../../apiConfig';
 
 interface Order {
     id: string;

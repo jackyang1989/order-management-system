@@ -3,7 +3,7 @@
 import { useState, useEffect, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { cn } from '../lib/utils';
-import { BASE_URL } from '../apiConfig';
+import { BASE_URL } from '../../apiConfig';
 
 interface MerchantLayoutProps {
     children: ReactNode;

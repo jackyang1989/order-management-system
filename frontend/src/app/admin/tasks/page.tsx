@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { BASE_URL } from '../../../apiConfig';
+import { BASE_URL } from '../../../../apiConfig';
 import { cn } from '../../../lib/utils';
 import { toastError, toastSuccess } from '../../../lib/toast';
 import { Button } from '../../../components/ui/button';

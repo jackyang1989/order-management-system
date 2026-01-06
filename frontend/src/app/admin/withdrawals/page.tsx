@@ -1,12 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Table, Card, Select, Button, Tag, Space, Modal, message, Popconfirm, Input, Typography } from 'antd';
-import { ReloadOutlined, CheckCircleOutlined, CloseCircleOutlined, DollarOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
 import { BASE_URL } from '../../../../apiConfig';
-
-const { Text } = Typography;
+import { cn } from '../../../lib/utils';
+import { toastSuccess, toastError, toastWarning } from '../../../lib/toast';
+import { Button } from '../../../components/ui/button';
+import { Card } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Select } from '../../../components/ui/select';
+import { Table, Column } from '../../../components/ui/table';
+import { Modal } from '../../../components/ui/modal';
 
 interface Withdrawal {
     id: string;
@@ -22,11 +25,11 @@ interface Withdrawal {
     createdAt: string;
 }
 
-const statusLabels: Record<string, { text: string; color: string }> = {
-    PENDING: { text: '待审核', color: 'warning' },
-    APPROVED: { text: '已通过', color: 'success' },
-    REJECTED: { text: '已拒绝', color: 'error' },
-    COMPLETED: { text: '已完成', color: 'default' },
+const statusLabels: Record<string, { text: string; color: 'amber' | 'green' | 'red' | 'slate' }> = {
+    PENDING: { text: '待审核', color: 'amber' },
+    APPROVED: { text: '已通过', color: 'green' },
+    REJECTED: { text: '已拒绝', color: 'red' },
+    COMPLETED: { text: '已完成', color: 'slate' },
 };
 
 export default function AdminWithdrawalsPage() {
@@ -34,8 +37,15 @@ export default function AdminWithdrawalsPage() {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<string>('PENDING');
     const [reviewing, setReviewing] = useState<string | null>(null);
-    const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+    const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string | number>>([]);
     const [batchLoading, setBatchLoading] = useState(false);
+
+    // Reject modal
+    const [rejectModal, setRejectModal] = useState<string | null>(null);
+    const [rejectReason, setRejectReason] = useState('');
+
+    // Batch modal
+    const [batchModal, setBatchModal] = useState<{ action: 'approve' | 'reject'; count: number } | null>(null);
 
     useEffect(() => {
         loadWithdrawals();
@@ -68,226 +78,259 @@ export default function AdminWithdrawalsPage() {
             });
             const json = await res.json();
             if (json.success) {
-                message.success(approved ? '提现已通过' : '提现已拒绝');
+                toastSuccess(approved ? '提现已通过' : '提现已拒绝');
                 loadWithdrawals();
             }
         } catch (e) {
-            message.error('操作失败');
+            toastError('操作失败');
         } finally {
             setReviewing(null);
         }
     };
 
-    const handleReject = (id: string) => {
-        Modal.confirm({
-            title: '拒绝提现',
-            content: (
-                <Input.TextArea id="rejectReason" rows={3} placeholder="请输入拒绝原因" style={{ marginTop: 16 }} />
-            ),
-            onOk: async () => {
-                const reason = (document.getElementById('rejectReason') as HTMLTextAreaElement)?.value || '';
-                await handleApprove(id, false, reason);
-            },
-        });
+    const submitReject = async () => {
+        if (!rejectModal || !rejectReason.trim()) {
+            toastWarning('请输入拒绝原因');
+            return;
+        }
+        await handleApprove(rejectModal, false, rejectReason);
+        setRejectModal(null);
+        setRejectReason('');
     };
 
     const handleBatchApprove = async (approved: boolean) => {
         if (selectedRowKeys.length === 0) {
-            message.warning('请先选择要操作的记录');
+            toastWarning('请先选择要操作的记录');
             return;
         }
-        const action = approved ? '批量通过' : '批量拒绝';
-
-        Modal.confirm({
-            title: `确定${action}？`,
-            content: `将对选中的 ${selectedRowKeys.length} 条记录执行${action}操作`,
-            onOk: async () => {
-                const token = localStorage.getItem('adminToken');
-                setBatchLoading(true);
-                try {
-                    const remark = approved ? '' : '批量拒绝';
-                    await Promise.all(
-                        selectedRowKeys.map(id =>
-                            fetch(`${BASE_URL}/admin/withdrawals/${id}/approve`, {
-                                method: 'PUT',
-                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                body: JSON.stringify({ approved, remark })
-                            })
-                        )
-                    );
-                    message.success(`已${action} ${selectedRowKeys.length} 条记录`);
-                    loadWithdrawals();
-                } catch (e) {
-                    message.error('部分操作失败');
-                } finally {
-                    setBatchLoading(false);
-                }
-            },
-        });
+        setBatchModal({ action: approved ? 'approve' : 'reject', count: selectedRowKeys.length });
     };
 
-    const columns: ColumnsType<Withdrawal> = [
+    const submitBatch = async () => {
+        if (!batchModal) return;
+        const token = localStorage.getItem('adminToken');
+        setBatchLoading(true);
+        try {
+            const remark = batchModal.action === 'approve' ? '' : '批量拒绝';
+            await Promise.all(
+                selectedRowKeys.map(id =>
+                    fetch(`${BASE_URL}/admin/withdrawals/${id}/approve`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ approved: batchModal.action === 'approve', remark })
+                    })
+                )
+            );
+            toastSuccess(`已${batchModal.action === 'approve' ? '批量通过' : '批量拒绝'} ${selectedRowKeys.length} 条记录`);
+            setBatchModal(null);
+            loadWithdrawals();
+        } catch (e) {
+            toastError('部分操作失败');
+        } finally {
+            setBatchLoading(false);
+        }
+    };
+
+    const columns: Column<Withdrawal>[] = [
         {
-            title: '提现金额',
             key: 'amount',
-            width: 140,
-            render: (_, record) => (
+            title: '提现金额',
+            className: 'w-[140px]',
+            render: (row) => (
                 <div>
-                    <div style={{ fontSize: 16, fontWeight: 600, color: '#1890ff' }}>¥{Number(record.amount).toFixed(2)}</div>
-                    <div style={{ fontSize: 12, color: '#999' }}>
-                        手续费: ¥{Number(record.fee).toFixed(2)}
+                    <div className="text-base font-semibold text-blue-600">¥{Number(row.amount).toFixed(2)}</div>
+                    <div className="text-xs text-slate-400">
+                        手续费: ¥{Number(row.fee).toFixed(2)}
                     </div>
                 </div>
             ),
         },
         {
-            title: '到账金额',
             key: 'actualAmount',
-            width: 100,
-            render: (_, record) => (
-                <Text strong style={{ color: '#52c41a' }}>¥{Number(record.actualAmount).toFixed(2)}</Text>
+            title: '到账金额',
+            className: 'w-[100px]',
+            render: (row) => (
+                <span className="font-semibold text-green-600">¥{Number(row.actualAmount).toFixed(2)}</span>
             ),
         },
         {
-            title: '银行卡信息',
             key: 'bank',
-            width: 200,
-            render: (_, record) => (
+            title: '银行卡信息',
+            className: 'w-[200px]',
+            render: (row) => (
                 <div>
-                    <div style={{ fontWeight: 500 }}>{record.holderName}</div>
-                    <div style={{ fontSize: 12, color: '#666' }}>{record.bankName}</div>
-                    <div style={{ fontSize: 12, color: '#999', fontFamily: 'monospace' }}>
-                        {record.cardNumber?.replace(/(\d{4})\d+(\d{4})/, '$1****$2')}
+                    <div className="font-medium text-slate-800">{row.holderName}</div>
+                    <div className="text-xs text-slate-500">{row.bankName}</div>
+                    <div className="font-mono text-xs text-slate-400">
+                        {row.cardNumber?.replace(/(\d{4})\d+(\d{4})/, '$1****$2')}
                     </div>
                 </div>
             ),
         },
         {
-            title: '状态',
             key: 'status',
-            width: 100,
-            align: 'center',
-            render: (_, record) => {
-                const config = statusLabels[record.status] || statusLabels.PENDING;
-                return <Tag color={config.color}>{config.text}</Tag>;
+            title: '状态',
+            className: 'w-[100px] text-center',
+            render: (row) => {
+                const conf = statusLabels[row.status] || statusLabels.PENDING;
+                return <Badge variant="soft" color={conf.color}>{conf.text}</Badge>;
             },
         },
         {
-            title: '申请时间',
-            dataIndex: 'createdAt',
             key: 'createdAt',
-            width: 160,
-            render: (v) => v ? new Date(v).toLocaleString('zh-CN') : '-',
+            title: '申请时间',
+            className: 'w-[160px]',
+            render: (row) => row.createdAt ? new Date(row.createdAt).toLocaleString('zh-CN') : '-',
         },
         {
-            title: '备注',
-            dataIndex: 'remark',
             key: 'remark',
-            width: 150,
-            ellipsis: true,
-            render: (v) => v || '-',
+            title: '备注',
+            className: 'w-[150px]',
+            render: (row) => (
+                <span className="line-clamp-1 text-slate-500">{row.remark || '-'}</span>
+            ),
         },
         {
-            title: '操作',
             key: 'actions',
-            width: 200,
-            render: (_, record) => {
-                if (record.status !== 'PENDING') {
-                    return <Text type="secondary">已处理</Text>;
+            title: '操作',
+            className: 'w-[200px]',
+            render: (row) => {
+                if (row.status !== 'PENDING') {
+                    return <span className="text-sm text-slate-400">已处理</span>;
                 }
                 return (
-                    <Space>
-                        <Popconfirm
-                            title="确定通过该提现申请？"
-                            onConfirm={() => handleApprove(record.id, true)}
-                        >
-                            <Button
-                                size="small"
-                                type="primary"
-                                icon={<CheckCircleOutlined />}
-                                loading={reviewing === record.id}
-                            >
-                                通过
-                            </Button>
-                        </Popconfirm>
+                    <div className="flex items-center gap-2">
                         <Button
-                            size="small"
-                            danger
-                            icon={<CloseCircleOutlined />}
-                            loading={reviewing === record.id}
-                            onClick={() => handleReject(record.id)}
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700"
+                            loading={reviewing === row.id}
+                            onClick={() => handleApprove(row.id, true)}
                         >
-                            拒绝
+                            ✓ 通过
                         </Button>
-                    </Space>
+                        <Button
+                            size="sm"
+                            variant="destructive"
+                            loading={reviewing === row.id}
+                            onClick={() => setRejectModal(row.id)}
+                        >
+                            ✗ 拒绝
+                        </Button>
+                    </div>
                 );
             },
         },
     ];
 
-    const pendingWithdrawals = withdrawals.filter(w => w.status === 'PENDING');
-
     return (
-        <div>
+        <div className="space-y-6">
             {/* 筛选栏 */}
-            <Card style={{ marginBottom: 16 }}>
-                <Space>
+            <Card className="bg-white">
+                <div className="flex flex-wrap items-center gap-3">
                     <Select
                         value={filter}
                         onChange={setFilter}
-                        style={{ width: 140 }}
                         options={[
                             { value: 'PENDING', label: '待审核' },
                             { value: 'APPROVED', label: '已通过' },
                             { value: 'REJECTED', label: '已拒绝' },
                             { value: '', label: '全部' },
                         ]}
+                        className="w-32"
                     />
-                    <Button icon={<ReloadOutlined />} onClick={loadWithdrawals}>刷新</Button>
+                    <Button variant="secondary" onClick={loadWithdrawals} className="flex items-center gap-1">
+                        🔄 刷新
+                    </Button>
                     {filter === 'PENDING' && selectedRowKeys.length > 0 && (
                         <>
                             <Button
-                                type="primary"
-                                icon={<CheckCircleOutlined />}
+                                className="bg-green-600 hover:bg-green-700"
                                 loading={batchLoading}
                                 onClick={() => handleBatchApprove(true)}
                             >
-                                批量通过 ({selectedRowKeys.length})
+                                ✓ 批量通过 ({selectedRowKeys.length})
                             </Button>
                             <Button
-                                danger
-                                icon={<CloseCircleOutlined />}
+                                variant="destructive"
                                 loading={batchLoading}
                                 onClick={() => handleBatchApprove(false)}
                             >
-                                批量拒绝 ({selectedRowKeys.length})
+                                ✗ 批量拒绝 ({selectedRowKeys.length})
                             </Button>
                         </>
                     )}
-                </Space>
+                </div>
             </Card>
 
             {/* 提现列表 */}
-            <Card>
+            <Card className="overflow-hidden bg-white">
                 <Table
                     columns={columns}
-                    dataSource={withdrawals}
-                    rowKey="id"
+                    data={withdrawals}
+                    rowKey={(r) => r.id}
                     loading={loading}
-                    rowSelection={filter === 'PENDING' ? {
-                        selectedRowKeys,
-                        onChange: setSelectedRowKeys,
-                        getCheckboxProps: (record) => ({
-                            disabled: record.status !== 'PENDING',
-                        }),
-                    } : undefined}
-                    pagination={{
-                        showTotal: (t) => `共 ${t} 条记录`,
-                        showSizeChanger: true,
-                    }}
-                    scroll={{ x: 1000 }}
+                    emptyText="暂无提现记录"
+                    selectable={filter === 'PENDING'}
+                    selectedKeys={selectedRowKeys}
+                    onRowSelect={setSelectedRowKeys}
+                    getRowDisabled={(row) => row.status !== 'PENDING'}
                 />
             </Card>
+
+            {/* 拒绝弹窗 */}
+            <Modal
+                title="拒绝提现"
+                open={!!rejectModal}
+                onClose={() => { setRejectModal(null); setRejectReason(''); }}
+            >
+                <div className="space-y-4">
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">拒绝原因</label>
+                        <textarea
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            rows={3}
+                            placeholder="请输入拒绝原因"
+                            value={rejectReason}
+                            onChange={(e) => setRejectReason(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => { setRejectModal(null); setRejectReason(''); }}>
+                            取消
+                        </Button>
+                        <Button variant="destructive" onClick={submitReject}>
+                            确认拒绝
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* 批量确认弹窗 */}
+            <Modal
+                title={`确定${batchModal?.action === 'approve' ? '批量通过' : '批量拒绝'}？`}
+                open={!!batchModal}
+                onClose={() => setBatchModal(null)}
+            >
+                <div className="space-y-4">
+                    <p className="text-slate-600">
+                        将对选中的 <span className="font-semibold text-slate-800">{batchModal?.count}</span> 条记录执行
+                        {batchModal?.action === 'approve' ? '批量通过' : '批量拒绝'}操作
+                    </p>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => setBatchModal(null)}>
+                            取消
+                        </Button>
+                        <Button
+                            className={batchModal?.action === 'approve' ? 'bg-green-600 hover:bg-green-700' : ''}
+                            variant={batchModal?.action === 'reject' ? 'destructive' : 'primary'}
+                            loading={batchLoading}
+                            onClick={submitBatch}
+                        >
+                            确认{batchModal?.action === 'approve' ? '通过' : '拒绝'}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }
