@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../../apiConfig';
+import { cn } from '../../../../lib/utils';
+import { Button } from '../../../../components/ui/button';
+import { Card } from '../../../../components/ui/card';
+import { Badge } from '../../../../components/ui/badge';
 
 interface Backup {
     id: string;
@@ -14,15 +18,26 @@ interface Backup {
     error?: string;
 }
 
+const statusConfig: Record<string, { color: 'amber' | 'blue' | 'green' | 'red'; text: string }> = {
+    pending: { color: 'amber', text: '等待中' },
+    running: { color: 'blue', text: '进行中' },
+    completed: { color: 'green', text: '已完成' },
+    failed: { color: 'red', text: '失败' },
+};
+
+const typeConfig: Record<string, { color: 'blue' | 'red' | 'green'; text: string }> = {
+    full: { color: 'blue', text: '完整备份' },
+    data: { color: 'red', text: '数据备份' },
+    config: { color: 'green', text: '配置备份' },
+};
+
 export default function BackupPage() {
     const [backups, setBackups] = useState<Backup[]>([]);
     const [loading, setLoading] = useState(true);
     const [creating, setCreating] = useState(false);
     const [restoring, setRestoring] = useState<string | null>(null);
 
-    useEffect(() => {
-        loadBackups();
-    }, []);
+    useEffect(() => { loadBackups(); }, []);
 
     const loadBackups = async () => {
         setLoading(true);
@@ -37,26 +52,9 @@ export default function BackupPage() {
             }
         } catch (error) {
             console.error('加载失败:', error);
-            // 模拟数据
             setBackups([
-                {
-                    id: '1',
-                    filename: 'backup_20241225_120000.sql',
-                    size: 1024 * 1024 * 15,
-                    type: 'full',
-                    status: 'completed',
-                    createdAt: new Date(Date.now() - 86400000).toISOString(),
-                    completedAt: new Date(Date.now() - 86400000 + 60000).toISOString(),
-                },
-                {
-                    id: '2',
-                    filename: 'backup_20241224_120000.sql',
-                    size: 1024 * 1024 * 14,
-                    type: 'full',
-                    status: 'completed',
-                    createdAt: new Date(Date.now() - 172800000).toISOString(),
-                    completedAt: new Date(Date.now() - 172800000 + 60000).toISOString(),
-                },
+                { id: '1', filename: 'backup_20241225_120000.sql', size: 1024 * 1024 * 15, type: 'full', status: 'completed', createdAt: new Date(Date.now() - 86400000).toISOString(), completedAt: new Date(Date.now() - 86400000 + 60000).toISOString() },
+                { id: '2', filename: 'backup_20241224_120000.sql', size: 1024 * 1024 * 14, type: 'full', status: 'completed', createdAt: new Date(Date.now() - 172800000).toISOString(), completedAt: new Date(Date.now() - 172800000 + 60000).toISOString() },
             ]);
         } finally {
             setLoading(false);
@@ -69,10 +67,7 @@ export default function BackupPage() {
             const token = localStorage.getItem('adminToken');
             await fetch(`${BASE_URL}/backup`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ type }),
             });
             alert('备份任务已创建，请稍后刷新查看');
@@ -88,7 +83,6 @@ export default function BackupPage() {
     const handleRestore = async (id: string) => {
         if (!confirm('确定要恢复到此备份？此操作不可逆！')) return;
         if (!confirm('再次确认：恢复备份将覆盖当前所有数据！')) return;
-
         setRestoring(id);
         try {
             const token = localStorage.getItem('adminToken');
@@ -149,270 +143,127 @@ export default function BackupPage() {
         return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
     };
 
-    const formatDate = (dateStr: string) => {
-        return new Date(dateStr).toLocaleString('zh-CN');
-    };
-
-    const getStatusBadge = (status: string) => {
-        const styles: Record<string, { bg: string; color: string; text: string }> = {
-            pending: { bg: '#fff7e6', color: '#fa8c16', text: '等待中' },
-            running: { bg: '#e6f7ff', color: '#1890ff', text: '进行中' },
-            completed: { bg: '#f6ffed', color: '#52c41a', text: '已完成' },
-            failed: { bg: '#fff2f0', color: '#ff4d4f', text: '失败' },
-        };
-        const style = styles[status] || styles.pending;
-        return (
-            <span style={{
-                padding: '4px 12px',
-                borderRadius: '12px',
-                fontSize: '12px',
-                background: style.bg,
-                color: style.color
-            }}>
-                {style.text}
-            </span>
-        );
-    };
-
-    const getTypeBadge = (type: string) => {
-        const styles: Record<string, { bg: string; color: string; text: string }> = {
-            full: { bg: '#f0f5ff', color: '#2f54eb', text: '完整备份' },
-            data: { bg: '#fff0f6', color: '#eb2f96', text: '数据备份' },
-            config: { bg: '#f6ffed', color: '#52c41a', text: '配置备份' },
-        };
-        const style = styles[type] || styles.full;
-        return (
-            <span style={{
-                padding: '4px 12px',
-                borderRadius: '12px',
-                fontSize: '12px',
-                background: style.bg,
-                color: style.color
-            }}>
-                {style.text}
-            </span>
-        );
-    };
+    const formatDate = (dateStr: string) => new Date(dateStr).toLocaleString('zh-CN');
 
     return (
-        <div>
-            {/* 页面标题 */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '24px'
-            }}>
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
                 <div>
-                    <h2 style={{ margin: 0, fontSize: '20px' }}>数据备份</h2>
-                    <p style={{ margin: '8px 0 0', color: '#666', fontSize: '14px' }}>
-                        创建和管理数据库备份，支持一键恢复
-                    </p>
+                    <h2 className="text-xl font-semibold">数据备份</h2>
+                    <p className="mt-2 text-sm text-slate-500">创建和管理数据库备份，支持一键恢复</p>
                 </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                    <button
+                <div className="flex gap-3">
+                    <Button
                         onClick={() => handleCreate('full')}
                         disabled={creating}
-                        style={{
-                            padding: '10px 24px',
-                            background: '#1890ff',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: creating ? 'not-allowed' : 'pointer',
-                            fontSize: '14px',
-                            opacity: creating ? 0.7 : 1,
-                        }}
+                        className={cn(creating && 'cursor-not-allowed opacity-70')}
                     >
                         {creating ? '创建中...' : '🗄️ 完整备份'}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         onClick={() => handleCreate('data')}
                         disabled={creating}
-                        style={{
-                            padding: '10px 24px',
-                            background: '#52c41a',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: creating ? 'not-allowed' : 'pointer',
-                            fontSize: '14px',
-                            opacity: creating ? 0.7 : 1,
-                        }}
+                        className={cn('bg-green-500 hover:bg-green-600', creating && 'cursor-not-allowed opacity-70')}
                     >
                         📊 数据备份
-                    </button>
+                    </Button>
                 </div>
             </div>
 
-            {/* 统计卡片 */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: '20px',
-                marginBottom: '24px'
-            }}>
-                <div style={{
-                    background: '#fff',
-                    borderRadius: '8px',
-                    padding: '20px',
-                    textAlign: 'center'
-                }}>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#1890ff' }}>
-                        {backups.length}
-                    </div>
-                    <div style={{ color: '#666', marginTop: '4px', fontSize: '14px' }}>备份总数</div>
-                </div>
-                <div style={{
-                    background: '#fff',
-                    borderRadius: '8px',
-                    padding: '20px',
-                    textAlign: 'center'
-                }}>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#52c41a' }}>
-                        {backups.filter(b => b.status === 'completed').length}
-                    </div>
-                    <div style={{ color: '#666', marginTop: '4px', fontSize: '14px' }}>成功备份</div>
-                </div>
-                <div style={{
-                    background: '#fff',
-                    borderRadius: '8px',
-                    padding: '20px',
-                    textAlign: 'center'
-                }}>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#faad14' }}>
-                        {formatSize(backups.reduce((sum, b) => sum + b.size, 0))}
-                    </div>
-                    <div style={{ color: '#666', marginTop: '4px', fontSize: '14px' }}>占用空间</div>
-                </div>
-                <div style={{
-                    background: '#fff',
-                    borderRadius: '8px',
-                    padding: '20px',
-                    textAlign: 'center'
-                }}>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#722ed1' }}>
-                        {backups.length > 0 ? formatDate(backups[0].createdAt).split(' ')[0] : '-'}
-                    </div>
-                    <div style={{ color: '#666', marginTop: '4px', fontSize: '14px' }}>最近备份</div>
-                </div>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-4 gap-5">
+                <Card className="bg-white p-5 text-center">
+                    <div className="text-3xl font-bold text-blue-600">{backups.length}</div>
+                    <div className="mt-1 text-sm text-slate-500">备份总数</div>
+                </Card>
+                <Card className="bg-white p-5 text-center">
+                    <div className="text-3xl font-bold text-green-600">{backups.filter(b => b.status === 'completed').length}</div>
+                    <div className="mt-1 text-sm text-slate-500">成功备份</div>
+                </Card>
+                <Card className="bg-white p-5 text-center">
+                    <div className="text-3xl font-bold text-amber-600">{formatSize(backups.reduce((sum, b) => sum + b.size, 0))}</div>
+                    <div className="mt-1 text-sm text-slate-500">占用空间</div>
+                </Card>
+                <Card className="bg-white p-5 text-center">
+                    <div className="text-3xl font-bold text-purple-600">{backups.length > 0 ? formatDate(backups[0].createdAt).split(' ')[0] : '-'}</div>
+                    <div className="mt-1 text-sm text-slate-500">最近备份</div>
+                </Card>
             </div>
 
-            {/* 备份列表 */}
-            <div style={{
-                background: '#fff',
-                borderRadius: '8px',
-                overflow: 'hidden'
-            }}>
-                <div style={{
-                    padding: '16px 24px',
-                    borderBottom: '1px solid #f0f0f0',
-                    fontWeight: '500',
-                    fontSize: '15px'
-                }}>
-                    备份记录
-                </div>
+            {/* Backup List */}
+            <Card className="overflow-hidden bg-white p-0">
+                <div className="border-b border-slate-100 px-6 py-4 text-sm font-medium">备份记录</div>
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>加载中...</div>
+                    <div className="py-16 text-center text-slate-400">加载中...</div>
                 ) : backups.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
-                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>📁</div>
+                    <div className="py-16 text-center text-slate-400">
+                        <div className="mb-4 text-5xl">📁</div>
                         <div>暂无备份记录</div>
-                        <div style={{ marginTop: '8px', fontSize: '14px' }}>点击上方按钮创建第一个备份</div>
+                        <div className="mt-2 text-sm">点击上方按钮创建第一个备份</div>
                     </div>
                 ) : (
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ background: '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>文件名</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>类型</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>大小</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>状态</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>创建时间</th>
-                                <th style={{ padding: '16px', textAlign: 'center', fontWeight: '500' }}>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {backups.map(backup => (
-                                <tr key={backup.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                    <td style={{ padding: '16px' }}>
-                                        <span style={{ marginRight: '8px' }}>📄</span>
-                                        {backup.filename}
-                                    </td>
-                                    <td style={{ padding: '16px' }}>{getTypeBadge(backup.type)}</td>
-                                    <td style={{ padding: '16px' }}>{formatSize(backup.size)}</td>
-                                    <td style={{ padding: '16px' }}>{getStatusBadge(backup.status)}</td>
-                                    <td style={{ padding: '16px', color: '#666', fontSize: '13px' }}>
-                                        {formatDate(backup.createdAt)}
-                                    </td>
-                                    <td style={{ padding: '16px', textAlign: 'center' }}>
-                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                                            <button
-                                                onClick={() => handleDownload(backup.id, backup.filename)}
-                                                disabled={backup.status !== 'completed'}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    background: '#fff',
-                                                    border: '1px solid #d9d9d9',
-                                                    borderRadius: '4px',
-                                                    cursor: backup.status === 'completed' ? 'pointer' : 'not-allowed',
-                                                    fontSize: '13px',
-                                                    opacity: backup.status === 'completed' ? 1 : 0.5
-                                                }}
-                                            >
-                                                下载
-                                            </button>
-                                            <button
-                                                onClick={() => handleRestore(backup.id)}
-                                                disabled={backup.status !== 'completed' || restoring === backup.id}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    background: '#fff2e8',
-                                                    border: '1px solid #ffbb96',
-                                                    borderRadius: '4px',
-                                                    cursor: backup.status === 'completed' && restoring !== backup.id ? 'pointer' : 'not-allowed',
-                                                    fontSize: '13px',
-                                                    color: '#d46b08',
-                                                    opacity: backup.status === 'completed' ? 1 : 0.5
-                                                }}
-                                            >
-                                                {restoring === backup.id ? '恢复中...' : '恢复'}
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(backup.id)}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    background: '#fff',
-                                                    border: '1px solid #ff4d4f',
-                                                    borderRadius: '4px',
-                                                    cursor: 'pointer',
-                                                    fontSize: '13px',
-                                                    color: '#ff4d4f'
-                                                }}
-                                            >
-                                                删除
-                                            </button>
-                                        </div>
-                                    </td>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-[900px] w-full border-collapse">
+                            <thead>
+                                <tr className="border-b border-slate-100 bg-slate-50">
+                                    <th className="px-4 py-4 text-left text-sm font-medium">文件名</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">类型</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">大小</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">状态</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">创建时间</th>
+                                    <th className="px-4 py-4 text-center text-sm font-medium">操作</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {backups.map(backup => (
+                                    <tr key={backup.id} className="border-b border-slate-100">
+                                        <td className="px-4 py-4">
+                                            <span className="mr-2">📄</span>
+                                            {backup.filename}
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            <Badge variant="soft" color={typeConfig[backup.type]?.color}>{typeConfig[backup.type]?.text}</Badge>
+                                        </td>
+                                        <td className="px-4 py-4">{formatSize(backup.size)}</td>
+                                        <td className="px-4 py-4">
+                                            <Badge variant="soft" color={statusConfig[backup.status]?.color}>{statusConfig[backup.status]?.text}</Badge>
+                                        </td>
+                                        <td className="px-4 py-4 text-xs text-slate-500">{formatDate(backup.createdAt)}</td>
+                                        <td className="px-4 py-4 text-center">
+                                            <div className="flex justify-center gap-2">
+                                                <Button
+                                                    size="sm"
+                                                    variant="secondary"
+                                                    onClick={() => handleDownload(backup.id, backup.filename)}
+                                                    disabled={backup.status !== 'completed'}
+                                                    className={cn(backup.status !== 'completed' && 'cursor-not-allowed opacity-50')}
+                                                >
+                                                    下载
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    className={cn('border border-amber-300 bg-amber-50 text-amber-600 hover:bg-amber-100', (backup.status !== 'completed' || restoring === backup.id) && 'cursor-not-allowed opacity-50')}
+                                                    onClick={() => handleRestore(backup.id)}
+                                                    disabled={backup.status !== 'completed' || restoring === backup.id}
+                                                >
+                                                    {restoring === backup.id ? '恢复中...' : '恢复'}
+                                                </Button>
+                                                <Button size="sm" variant="destructive" onClick={() => handleDelete(backup.id)}>删除</Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
-            </div>
+            </Card>
 
-            {/* 说明 */}
-            <div style={{
-                background: '#e6f7ff',
-                border: '1px solid #91d5ff',
-                borderRadius: '8px',
-                padding: '16px 24px',
-                marginTop: '20px'
-            }}>
-                <h4 style={{ margin: '0 0 8px', color: '#1890ff', fontSize: '14px' }}>
-                    💡 备份说明
-                </h4>
-                <ul style={{ margin: 0, paddingLeft: '20px', color: '#666', fontSize: '13px', lineHeight: '1.8' }}>
+            {/* Info Box */}
+            <div className="rounded-lg border border-blue-200 bg-blue-50 px-6 py-4">
+                <h4 className="mb-2 text-sm font-medium text-blue-600">💡 备份说明</h4>
+                <ul className="space-y-1 pl-5 text-xs leading-relaxed text-slate-600" style={{ listStyleType: 'disc' }}>
                     <li><strong>完整备份</strong>：包含数据库所有表的数据和结构</li>
                     <li><strong>数据备份</strong>：仅包含业务数据（用户、订单、任务等）</li>
                     <li><strong>配置备份</strong>：仅包含系统配置数据</li>
