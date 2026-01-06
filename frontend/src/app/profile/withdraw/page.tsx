@@ -2,15 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Form, Input, Button, NavBar, Card, List, Tag, Tabs, DotLoading, Selector, NoticeBar } from 'antd-mobile';
+import { cn } from '../../../lib/utils';
+import { toastSuccess, toastError } from '../../../lib/toast';
+import { Card } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Tabs } from '../../../components/ui/tabs';
+import { Modal } from '../../../components/ui/modal';
+import { Button } from '../../../components/ui/button';
 import { isAuthenticated, getCurrentUser } from '../../../services/authService';
 import { fetchBankCards, fetchWithdrawals, createWithdrawal, BankCard, Withdrawal } from '../../../services/userService';
 import { BASE_URL } from '../../../../apiConfig';
 
 export default function WithdrawPage() {
     const router = useRouter();
-    const [form] = Form.useForm();
-    const [confirmForm] = Form.useForm();
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<string>('principal');
     const [balance, setBalance] = useState({ principal: 0, silver: 0, frozenSilver: 0 });
@@ -21,16 +25,15 @@ export default function WithdrawPage() {
     const [submitting, setSubmitting] = useState(false);
     const [captchaId, setCaptchaId] = useState('');
     const [captchaSvg, setCaptchaSvg] = useState('');
+
+    // Form state
+    const [amount, setAmount] = useState('');
+    const [captcha, setCaptcha] = useState('');
+    const [payPassword, setPayPassword] = useState('');
     const [withdrawData, setWithdrawData] = useState<{ amount: number; type: string } | null>(null);
-    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     const feeRate = 0.05;
     const minWithdraw = 10;
-
-    const showMessage = (type: 'success' | 'error', text: string) => {
-        setMessage({ type, text });
-        setTimeout(() => setMessage(null), 3000);
-    };
 
     useEffect(() => {
         if (!isAuthenticated()) { router.push('/login'); return; }
@@ -59,32 +62,34 @@ export default function WithdrawPage() {
     };
 
     const getAvailableBalance = () => activeTab === 'principal' ? balance.principal : (balance.silver - balance.frozenSilver);
-    const calculateFee = (amount: number) => activeTab === 'principal' ? 0 : amount * feeRate;
-    const calculateActual = (amount: number) => amount - calculateFee(amount);
+    const calculateFee = (amt: number) => activeTab === 'principal' ? 0 : amt * feeRate;
+    const calculateActual = (amt: number) => amt - calculateFee(amt);
 
-    const handleWithdrawClick = (values: { amount: string }) => {
-        const amount = parseFloat(values.amount);
-        if (!amount || amount < minWithdraw) { showMessage('error', `最低提现金额 ${minWithdraw} 元`); return; }
-        if (amount > getAvailableBalance()) { showMessage('error', '提现金额超过可用余额'); return; }
-        if (!selectedCard) { showMessage('error', '请选择银行卡'); return; }
-        setWithdrawData({ amount, type: activeTab });
+    const handleWithdrawClick = (e: React.FormEvent) => {
+        e.preventDefault();
+        const amt = parseFloat(amount);
+        if (!amt || amt < minWithdraw) { toastError(`最低提现金额 ${minWithdraw} 元`); return; }
+        if (amt > getAvailableBalance()) { toastError('提现金额超过可用余额'); return; }
+        if (!selectedCard) { toastError('请选择银行卡'); return; }
+        setWithdrawData({ amount: amt, type: activeTab });
         setShowConfirm(true);
     };
 
-    const handleConfirmWithdraw = async (values: { captcha: string; payPassword: string }) => {
-        if (!values.captcha) { showMessage('error', '请输入验证码'); return; }
-        if (!values.payPassword) { showMessage('error', '请输入支付密码'); return; }
+    const handleConfirmWithdraw = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!captcha) { toastError('请输入验证码'); return; }
+        if (!payPassword) { toastError('请输入支付密码'); return; }
         if (!withdrawData) return;
 
         // Verify captcha
         try {
             const captchaRes = await fetch(`${BASE_URL}/captcha/verify`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ captchaId, code: values.captcha }),
+                body: JSON.stringify({ captchaId, code: captcha }),
             });
             const captchaData = await captchaRes.json();
-            if (!captchaData.valid) { showMessage('error', '验证码错误'); loadCaptcha(); return; }
-        } catch (e) { showMessage('error', '验证码校验失败'); loadCaptcha(); return; }
+            if (!captchaData.valid) { toastError('验证码错误'); loadCaptcha(); return; }
+        } catch (e) { toastError('验证码校验失败'); loadCaptcha(); return; }
 
         setSubmitting(true);
         try {
@@ -93,199 +98,248 @@ export default function WithdrawPage() {
                 bankCardId: selectedCard,
                 type: activeTab === 'principal' ? 1 : 2,
             });
-            showMessage('success', '提现申请已提交');
+            toastSuccess('提现申请已提交');
             setShowConfirm(false);
-            form.resetFields();
-            confirmForm.resetFields();
+            setAmount('');
+            setCaptcha('');
+            setPayPassword('');
             loadData();
             loadCaptcha();
         } catch (error: any) {
-            showMessage('error', error.message || '提现失败');
+            toastError(error.message || '提现失败');
             loadCaptcha();
         } finally { setSubmitting(false); }
     };
 
-    const getStatusTag = (status: number) => {
-        const colors: Record<number, 'primary' | 'success' | 'warning' | 'danger' | 'default'> = {
-            0: 'warning', 1: 'success', 2: 'danger', 3: 'default',
+    const getStatusBadge = (status: number) => {
+        const configs: Record<number, { text: string; color: 'amber' | 'green' | 'red' | 'slate' }> = {
+            0: { text: '审核中', color: 'amber' },
+            1: { text: '已通过', color: 'green' },
+            2: { text: '已拒绝', color: 'red' },
+            3: { text: '已完成', color: 'slate' },
         };
-        const texts: Record<number, string> = { 0: '审核中', 1: '已通过', 2: '已拒绝', 3: '已完成' };
-        return <Tag color={colors[status] || 'default'}>{texts[status] || '未知'}</Tag>;
+        const conf = configs[status] || { text: '未知', color: 'slate' };
+        return <Badge variant="soft" color={conf.color}>{conf.text}</Badge>;
     };
 
-    if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><DotLoading color="primary" /></div>;
+    if (loading) return (
+        <div className="flex h-screen items-center justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+    );
 
     return (
-        <div style={{ minHeight: '100vh', background: '#f5f5f5' }}>
-            <NavBar onBack={() => router.back()}>提现</NavBar>
-
-            {/* Balance Cards */}
-            <div style={{ padding: 16 }}>
-                <Card style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', marginBottom: 16 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center', padding: '8px 0' }}>
-                        <div>
-                            <div style={{ fontSize: 24, fontWeight: 600 }}>¥{balance.principal.toFixed(2)}</div>
-                            <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>本金余额</div>
-                        </div>
-                        <div style={{ borderLeft: '1px solid rgba(255,255,255,0.3)', paddingLeft: 24 }}>
-                            <div style={{ fontSize: 24, fontWeight: 600 }}>{balance.silver.toFixed(2)}</div>
-                            <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>银锭余额</div>
-                        </div>
-                    </div>
-                </Card>
+        <div className="min-h-screen bg-slate-50">
+            {/* Header */}
+            <div className="sticky top-0 z-10 flex items-center border-b border-slate-200 bg-white px-4 py-3">
+                <button onClick={() => router.back()} className="mr-4 text-slate-600">← 返回</button>
+                <h1 className="text-base font-medium text-slate-800">提现</h1>
             </div>
 
-            <Tabs activeKey={activeTab} onChange={setActiveTab} style={{ '--title-font-size': '15px' }}>
-                <Tabs.Tab title="本金提现" key="principal">
-                    <div style={{ padding: 16 }}>
-                        <Form form={form} layout="vertical" onFinish={handleWithdrawClick}>
-                            <Form.Item name="amount" label={`可提现: ¥${getAvailableBalance().toFixed(2)}`}>
-                                <Input placeholder="输入提现金额" type="number" style={{ '--font-size': '20px', '--text-align': 'center' }} />
-                            </Form.Item>
-
-                            {bankCards.length > 0 ? (
-                                <Form.Item label="选择银行卡">
-                                    <Selector
-                                        options={bankCards.map(c => ({ label: `${c.bankName} *${c.cardNumber.slice(-4)}`, value: c.id }))}
-                                        value={[selectedCard]}
-                                        onChange={(v) => setSelectedCard(v[0] as string)}
-                                    />
-                                </Form.Item>
-                            ) : (
-                                <NoticeBar content="请先绑定银行卡" color="alert" onClick={() => router.push('/profile/bank')} />
-                            )}
-
-                            <Button block color="primary" size="large" type="submit" disabled={bankCards.length === 0} style={{ marginTop: 16, borderRadius: 24 }}>
-                                申请提现
-                            </Button>
-                        </Form>
+            {/* Balance Card */}
+            <div className="p-4">
+                <div className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 p-5 text-white shadow-lg">
+                    <div className="flex justify-around text-center">
+                        <div>
+                            <div className="text-2xl font-bold">¥{balance.principal.toFixed(2)}</div>
+                            <div className="mt-1 text-xs opacity-80">本金余额</div>
+                        </div>
+                        <div className="border-l border-white/30 pl-6">
+                            <div className="text-2xl font-bold">{balance.silver.toFixed(2)}</div>
+                            <div className="mt-1 text-xs opacity-80">银锭余额</div>
+                        </div>
                     </div>
-                </Tabs.Tab>
-
-                <Tabs.Tab title="银锭提现" key="silver">
-                    <div style={{ padding: 16 }}>
-                        <NoticeBar content={`银锭提现手续费: ${feeRate * 100}%`} color="info" style={{ marginBottom: 16 }} />
-                        <Form layout="vertical" onFinish={handleWithdrawClick}>
-                            <Form.Item name="amount" label={`可提现银锭: ${(balance.silver - balance.frozenSilver).toFixed(2)}`}>
-                                <Input placeholder="输入提现银锭数量" type="number" style={{ '--font-size': '20px', '--text-align': 'center' }} />
-                            </Form.Item>
-
-                            {bankCards.length > 0 ? (
-                                <Form.Item label="选择银行卡">
-                                    <Selector
-                                        options={bankCards.map(c => ({ label: `${c.bankName} *${c.cardNumber.slice(-4)}`, value: c.id }))}
-                                        value={[selectedCard]}
-                                        onChange={(v) => setSelectedCard(v[0] as string)}
-                                    />
-                                </Form.Item>
-                            ) : (
-                                <NoticeBar content="请先绑定银行卡" color="alert" onClick={() => router.push('/profile/bank')} />
-                            )}
-
-                            <Button block color="primary" size="large" type="submit" disabled={bankCards.length === 0} style={{ marginTop: 16, borderRadius: 24 }}>
-                                申请提现
-                            </Button>
-                        </Form>
-                    </div>
-                </Tabs.Tab>
-
-                <Tabs.Tab title="提现记录" key="records">
-                    <div style={{ padding: 16 }}>
-                        <List>
-                            {records.length === 0 ? (
-                                <List.Item>暂无提现记录</List.Item>
-                            ) : records.map(r => (
-                                <List.Item
-                                    key={r.id}
-                                    description={new Date(r.createdAt).toLocaleString('zh-CN')}
-                                    extra={getStatusTag(r.status)}
-                                >
-                                    <div style={{ fontWeight: 500 }}>¥{Number(r.amount).toFixed(2)}</div>
-                                </List.Item>
-                            ))}
-                        </List>
-                    </div>
-                </Tabs.Tab>
-            </Tabs>
-
-            {/* Toast Message */}
-            {message && (
-                <div style={{
-                    position: 'fixed',
-                    top: 60,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    padding: '12px 24px',
-                    borderRadius: 8,
-                    background: message.type === 'success' ? '#52c41a' : '#ff4d4f',
-                    color: '#fff',
-                    fontSize: 14,
-                    zIndex: 1000,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                }}>
-                    {message.text}
                 </div>
-            )}
+            </div>
 
-            {/* Confirm Modal */}
-            {showConfirm && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    zIndex: 999
-                }}>
-                    <div style={{
-                        background: '#fff',
-                        borderRadius: 12,
-                        width: '90%',
-                        maxWidth: 360,
-                        padding: 20,
-                        maxHeight: '80vh',
-                        overflow: 'auto'
-                    }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                            <h3 style={{ margin: 0, fontSize: 18 }}>确认提现</h3>
-                            <span
-                                onClick={() => { setShowConfirm(false); confirmForm.resetFields(); loadCaptcha(); }}
-                                style={{ cursor: 'pointer', fontSize: 20, color: '#999' }}
-                            >×</span>
+            <Tabs
+                value={activeTab}
+                onChange={setActiveTab}
+                items={[
+                    { key: 'principal', label: '本金提现' },
+                    { key: 'silver', label: '银锭提现' },
+                    { key: 'records', label: '提现记录' },
+                ]}
+            />
+
+            <div className="p-4">
+                {activeTab === 'principal' && (
+                    <form onSubmit={handleWithdrawClick} className="space-y-4">
+                        <div>
+                            <label className="mb-1.5 block text-sm text-slate-600">
+                                可提现: <span className="font-medium text-slate-800">¥{getAvailableBalance().toFixed(2)}</span>
+                            </label>
+                            <input
+                                type="number"
+                                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-center text-xl font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                placeholder="输入提现金额"
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                            />
                         </div>
 
-                        {withdrawData && (
-                            <Form form={confirmForm} onFinish={handleConfirmWithdraw}>
-                                <div style={{ marginBottom: 16, textAlign: 'center' }}>
-                                    <div style={{ fontSize: 28, fontWeight: 600, color: '#1677ff' }}>¥{calculateActual(withdrawData.amount).toFixed(2)}</div>
-                                    {activeTab === 'silver' && <div style={{ fontSize: 12, color: '#999' }}>手续费: ¥{calculateFee(withdrawData.amount).toFixed(2)}</div>}
+                        {bankCards.length > 0 ? (
+                            <div>
+                                <label className="mb-1.5 block text-sm text-slate-600">选择银行卡</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {bankCards.map(c => (
+                                        <button
+                                            key={c.id}
+                                            type="button"
+                                            onClick={() => setSelectedCard(c.id)}
+                                            className={cn(
+                                                'rounded-lg border px-4 py-2 text-sm transition',
+                                                selectedCard === c.id
+                                                    ? 'border-primary bg-primary/10 text-primary'
+                                                    : 'border-slate-200 bg-white text-slate-600'
+                                            )}
+                                        >
+                                            {c.bankName} *{c.cardNumber.slice(-4)}
+                                        </button>
+                                    ))}
                                 </div>
+                            </div>
+                        ) : (
+                            <div
+                                className="cursor-pointer rounded-lg bg-amber-50 p-3 text-sm text-amber-700"
+                                onClick={() => router.push('/profile/bank')}
+                            >
+                                ⚠️ 请先绑定银行卡
+                            </div>
+                        )}
 
-                                <Form.Item name="captcha" label="图形验证码">
-                                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                                        <Input placeholder="验证码" style={{ flex: 1 }} />
-                                        <div
-                                            onClick={loadCaptcha}
-                                            style={{ width: 100, height: 36, background: '#f5f5f5', borderRadius: 4, overflow: 'hidden', cursor: 'pointer' }}
-                                            dangerouslySetInnerHTML={{ __html: captchaSvg || '加载中...' }}
-                                        />
+                        <Button type="submit" className="mt-4 w-full rounded-full py-3" disabled={bankCards.length === 0}>
+                            申请提现
+                        </Button>
+                    </form>
+                )}
+
+                {activeTab === 'silver' && (
+                    <form onSubmit={handleWithdrawClick} className="space-y-4">
+                        <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-700">
+                            ℹ️ 银锭提现手续费: {feeRate * 100}%
+                        </div>
+
+                        <div>
+                            <label className="mb-1.5 block text-sm text-slate-600">
+                                可提现银锭: <span className="font-medium text-slate-800">{(balance.silver - balance.frozenSilver).toFixed(2)}</span>
+                            </label>
+                            <input
+                                type="number"
+                                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-center text-xl font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                placeholder="输入提现银锭数量"
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                            />
+                        </div>
+
+                        {bankCards.length > 0 ? (
+                            <div>
+                                <label className="mb-1.5 block text-sm text-slate-600">选择银行卡</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {bankCards.map(c => (
+                                        <button
+                                            key={c.id}
+                                            type="button"
+                                            onClick={() => setSelectedCard(c.id)}
+                                            className={cn(
+                                                'rounded-lg border px-4 py-2 text-sm transition',
+                                                selectedCard === c.id
+                                                    ? 'border-primary bg-primary/10 text-primary'
+                                                    : 'border-slate-200 bg-white text-slate-600'
+                                            )}
+                                        >
+                                            {c.bankName} *{c.cardNumber.slice(-4)}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div
+                                className="cursor-pointer rounded-lg bg-amber-50 p-3 text-sm text-amber-700"
+                                onClick={() => router.push('/profile/bank')}
+                            >
+                                ⚠️ 请先绑定银行卡
+                            </div>
+                        )}
+
+                        <Button type="submit" className="mt-4 w-full rounded-full py-3" disabled={bankCards.length === 0}>
+                            申请提现
+                        </Button>
+                    </form>
+                )}
+
+                {activeTab === 'records' && (
+                    <div className="space-y-3">
+                        {records.length === 0 ? (
+                            <div className="py-12 text-center text-slate-400">暂无提现记录</div>
+                        ) : (
+                            records.map(r => (
+                                <Card key={r.id} className="bg-white">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <div className="font-medium text-slate-800">¥{Number(r.amount).toFixed(2)}</div>
+                                            <div className="mt-0.5 text-xs text-slate-400">{new Date(r.createdAt).toLocaleString('zh-CN')}</div>
+                                        </div>
+                                        {getStatusBadge(r.status)}
                                     </div>
-                                </Form.Item>
-
-                                <Form.Item name="payPassword" label="支付密码">
-                                    <Input placeholder="请输入支付密码" type="password" />
-                                </Form.Item>
-
-                                <Button block color="primary" type="submit" loading={submitting}>确认提现</Button>
-                            </Form>
+                                </Card>
+                            ))
                         )}
                     </div>
-                </div>
-            )}
+                )}
+            </div>
+
+            {/* Confirm Modal */}
+            <Modal
+                title="确认提现"
+                open={showConfirm}
+                onClose={() => { setShowConfirm(false); setCaptcha(''); setPayPassword(''); loadCaptcha(); }}
+            >
+                {withdrawData && (
+                    <form onSubmit={handleConfirmWithdraw} className="space-y-4">
+                        <div className="text-center">
+                            <div className="text-3xl font-bold text-primary">¥{calculateActual(withdrawData.amount).toFixed(2)}</div>
+                            {activeTab === 'silver' && (
+                                <div className="mt-1 text-xs text-slate-500">手续费: ¥{calculateFee(withdrawData.amount).toFixed(2)}</div>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">图形验证码</label>
+                            <div className="flex items-center gap-3">
+                                <input
+                                    type="text"
+                                    className="flex-1 rounded-lg border border-slate-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                    placeholder="验证码"
+                                    value={captcha}
+                                    onChange={(e) => setCaptcha(e.target.value)}
+                                />
+                                <div
+                                    onClick={loadCaptcha}
+                                    className="h-9 w-24 cursor-pointer overflow-hidden rounded bg-slate-100"
+                                    dangerouslySetInnerHTML={{ __html: captchaSvg || '加载中...' }}
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">支付密码</label>
+                            <input
+                                type="password"
+                                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                placeholder="请输入支付密码"
+                                value={payPassword}
+                                onChange={(e) => setPayPassword(e.target.value)}
+                            />
+                        </div>
+
+                        <Button type="submit" className="w-full" loading={submitting}>
+                            确认提现
+                        </Button>
+                    </form>
+                )}
+            </Modal>
         </div>
     );
 }

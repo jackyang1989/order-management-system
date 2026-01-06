@@ -6,13 +6,10 @@
     "dev": "next dev -p 6005",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "r4": "rg \"from 'antd'|from \\\"antd\\\"|antd-mobile|@ant-design|antd/dist\" -n src && exit 1 || true"
   },
   "dependencies": {
-    "@ant-design/icons": "^6.1.0",
-    "@ant-design/nextjs-registry": "^1.3.0",
-    "antd": "^6.1.3",
-    "antd-mobile": "^5.41.1",
     "next": "16.1.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
