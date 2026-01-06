@@ -2,30 +2,8 @@
 
 import { useState, useEffect, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Layout, Menu, Avatar, Dropdown, Button, Statistic, Card, Space, theme } from 'antd';
-import {
-    DashboardOutlined,
-    ShopOutlined,
-    ShoppingOutlined,
-    KeyOutlined,
-    FileTextOutlined,
-    AuditOutlined,
-    StarOutlined,
-    StopOutlined,
-    WalletOutlined,
-    CreditCardOutlined,
-    CrownOutlined,
-    GiftOutlined,
-    SettingOutlined,
-    QuestionCircleOutlined,
-    LogoutOutlined,
-    MenuFoldOutlined,
-    MenuUnfoldOutlined,
-} from '@ant-design/icons';
-import type { MenuProps } from 'antd';
-import { BASE_URL } from '../../apiConfig';
-
-const { Header, Sider, Content } = Layout;
+import { cn } from '../lib/utils';
+import { BASE_URL } from '../apiConfig';
 
 interface MerchantLayoutProps {
     children: ReactNode;
@@ -40,11 +18,12 @@ interface Merchant {
     frozenBalance: number;
 }
 
-type MenuItem = Required<MenuProps>['items'][number];
-
-function getItem(label: React.ReactNode, key: string, icon?: React.ReactNode): MenuItem {
-    return { key, icon, label } as MenuItem;
-}
+type MenuItem = {
+    key: string;
+    label: string;
+    icon?: string;
+    children?: MenuItem[];
+};
 
 const menuItems: MenuItem[] = [
     getItem('工作台', '/merchant/dashboard', <DashboardOutlined />),
