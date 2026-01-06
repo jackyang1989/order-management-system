@@ -142,6 +142,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const [collapsed, setCollapsed] = useState(false);
     const [openSections, setOpenSections] = useState<string[]>(['users', 'merchants', 'finance', 'system']);
     const [admin, setAdmin] = useState<{ username: string } | null>(null);
+    const [showDropdown, setShowDropdown] = useState(false);
 
     useEffect(() => {
         const adminToken = localStorage.getItem('adminToken');
@@ -162,6 +163,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         }
     };
 
+    const toggleSection = (key: string) => {
+        setOpenSections((prev) =>
+            prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+        );
+    };
+
     // 登录页不使用布局
     if (pathname === '/admin/login') {
         return <>{children}</>;
@@ -175,100 +182,172 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         }
     }, [currentOpenKey]);
 
-    const dropdownItems = [
-        { key: 'profile', label: '个人设置' },
-        { key: 'logout', label: '退出登录', onClick: handleLogout },
-    ];
-
     return (
-        <Layout style={{ minHeight: '100vh' }}>
-            <Sider
-                trigger={null}
-                collapsible
-                collapsed={collapsed}
-                width={260}
-                style={{
-                    overflow: 'auto',
-                    height: '100vh',
-                    position: 'fixed',
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                }}
+        <div className="flex min-h-screen overflow-x-hidden bg-slate-100">
+            {/* Sidebar */}
+            <aside
+                className={cn(
+                    'fixed left-0 top-0 z-40 h-screen overflow-y-auto bg-slate-900 transition-all duration-200',
+                    collapsed ? 'w-20' : 'w-64'
+                )}
             >
-                <div style={{
-                    height: 64,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: collapsed ? 'center' : 'flex-start',
-                    padding: collapsed ? 0 : '0 24px',
-                    borderBottom: '1px solid rgba(255,255,255,0.1)',
-                }}>
-                    <span style={{ fontSize: 24 }}>🛡️</span>
+                {/* Logo */}
+                <div
+                    className={cn(
+                        'flex h-16 items-center border-b border-white/10',
+                        collapsed ? 'justify-center' : 'px-6'
+                    )}
+                >
+                    <span className="text-2xl">🛡️</span>
                     {!collapsed && (
-                        <span style={{
-                            fontSize: 18,
-                            fontWeight: 600,
-                            color: '#fff',
-                            marginLeft: 12,
-                        }}>
+                        <span className="ml-3 text-lg font-semibold text-white">
                             管理后台
                         </span>
                     )}
                 </div>
-                <Menu
-                    theme="dark"
-                    mode="inline"
-                    selectedKeys={pathname ? [pathname] : []}
-                    defaultOpenKeys={openKeys}
-                    items={menuItems}
-                    onClick={handleMenuClick}
-                    style={{ borderRight: 0 }}
-                />
-            </Sider>
-            <Layout style={{ marginLeft: collapsed ? 80 : 260, transition: 'margin-left 0.2s' }}>
-                <Header style={{
-                    padding: '0 24px',
-                    background: colorBgContainer,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 1,
-                    boxShadow: '0 1px 4px rgba(0,21,41,0.08)',
-                }}>
-                    <Button
-                        type="text"
-                        icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+
+                {/* Menu */}
+                <nav className="py-4">
+                    {menuItems.map((item) => {
+                        const hasChildren = item.children && item.children.length > 0;
+                        const isOpen = openSections.includes(item.key);
+                        const isActive = pathname === item.key;
+
+                        return (
+                            <div key={item.key}>
+                                <button
+                                    onClick={() => {
+                                        if (hasChildren) {
+                                            toggleSection(item.key);
+                                        } else {
+                                            handleMenuClick(item.key);
+                                        }
+                                    }}
+                                    className={cn(
+                                        'flex w-full items-center px-6 py-3 text-left text-sm transition-colors',
+                                        isActive
+                                            ? 'bg-primary text-white'
+                                            : 'text-slate-300 hover:bg-slate-800 hover:text-white',
+                                        collapsed && 'justify-center px-0'
+                                    )}
+                                >
+                                    <span className="text-lg">{item.icon}</span>
+                                    {!collapsed && (
+                                        <>
+                                            <span className="ml-3 flex-1">{item.label}</span>
+                                            {hasChildren && (
+                                                <svg
+                                                    className={cn(
+                                                        'h-4 w-4 transition-transform',
+                                                        isOpen && 'rotate-180'
+                                                    )}
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M19 9l-7 7-7-7"
+                                                    />
+                                                </svg>
+                                            )}
+                                        </>
+                                    )}
+                                </button>
+
+                                {/* Sub menu */}
+                                {hasChildren && isOpen && !collapsed && (
+                                    <div className="bg-slate-950/50">
+                                        {item.children?.map((child) => (
+                                            <button
+                                                key={child.key}
+                                                onClick={() => handleMenuClick(child.key)}
+                                                className={cn(
+                                                    'block w-full py-2.5 pl-14 pr-6 text-left text-sm transition-colors',
+                                                    pathname === child.key
+                                                        ? 'bg-primary/20 text-primary'
+                                                        : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                                                )}
+                                            >
+                                                {child.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </nav>
+            </aside>
+
+            {/* Main content */}
+            <div
+                className={cn(
+                    'flex flex-1 flex-col transition-all duration-200',
+                    collapsed ? 'ml-20' : 'ml-64'
+                )}
+            >
+                {/* Header */}
+                <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6 shadow-sm">
+                    <button
                         onClick={() => setCollapsed(!collapsed)}
-                        style={{ fontSize: 16, width: 64, height: 64 }}
-                    />
-                    <Dropdown menu={{ items: dropdownItems }} placement="bottomRight">
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 8,
-                            cursor: 'pointer',
-                            padding: '0 12px',
-                        }}>
-                            <span style={{ color: '#666' }}>欢迎, {admin?.username}</span>
-                            <Avatar style={{ backgroundColor: '#1890ff' }}>
+                        className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
+                    >
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            {collapsed ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                            ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h8m-8 6h16" />
+                            )}
+                        </svg>
+                    </button>
+
+                    {/* User dropdown */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowDropdown(!showDropdown)}
+                            className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-slate-100"
+                        >
+                            <span className="text-sm text-slate-600">欢迎, {admin?.username}</span>
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-white">
                                 {admin?.username?.charAt(0).toUpperCase() || 'A'}
-                            </Avatar>
-                        </div>
-                    </Dropdown>
-                </Header>
-                <Content style={{
-                    margin: 24,
-                    padding: 24,
-                    background: colorBgContainer,
-                    borderRadius: borderRadiusLG,
-                    minHeight: 280,
-                }}>
-                    {children}
-                </Content>
-            </Layout>
-        </Layout>
+                            </div>
+                        </button>
+
+                        {showDropdown && (
+                            <div className="absolute right-0 top-full mt-1 w-40 rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+                                <button
+                                    onClick={() => {
+                                        router.push('/admin/profile');
+                                        setShowDropdown(false);
+                                    }}
+                                    className="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                                >
+                                    个人设置
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        handleLogout();
+                                        setShowDropdown(false);
+                                    }}
+                                    className="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                                >
+                                    退出登录
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </header>
+
+                {/* Page content */}
+                <main className="flex-1 p-6">
+                    <div className="mx-auto w-full max-w-7xl">
+                        {children}
+                    </div>
+                </main>
+            </div>
+        </div>
     );
 }
