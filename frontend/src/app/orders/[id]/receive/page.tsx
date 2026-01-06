@@ -4,26 +4,22 @@ import { useEffect, useState, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated, getToken } from '../../../../services/authService';
 import BottomNav from '../../../../components/BottomNav';
-
-// ========================
-
-// 确认收货页面 - 上传好评截图
-// ========================
+import { cn } from '../../../../lib/utils';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
 interface ProductInfo {
-    taskBianHao: string;      // 任务编号
-    time: string;             // 发布时间
-    type: string;             // 任务类型
-    title: string;            // 商品标题
-    content: string;          // 文字好评内容
-    img: string;              // 照片好评图片 (逗号分隔)
-    video: string;            // 视频好评地址
-    maiHao: string;           // 买号
-    kuaiDi: string;           // 快递方式
-    danHao: string;           // 快递单号
-    price: string;            // 付款金额
+    taskBianHao: string;
+    time: string;
+    type: string;
+    title: string;
+    content: string;
+    img: string;
+    video: string;
+    maiHao: string;
+    kuaiDi: string;
+    danHao: string;
+    price: string;
 }
 
 export default function ReceivePage({ params }: { params: Promise<{ id: string }> }) {
@@ -37,17 +33,9 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
     const [dialogVisible, setDialogVisible] = useState(false);
     const [localFile, setLocalFile] = useState<{ file: File; content: string } | null>(null);
 
-    const alertSuccess = useCallback((msg: string) => {
-        alert(msg);
-    }, []);
+    const alertSuccess = useCallback((msg: string) => { alert(msg); }, []);
+    const alertError = useCallback((msg: string) => { alert(msg); }, []);
 
-    const alertError = useCallback((msg: string) => {
-        alert(msg);
-    }, []);
-
-    // ========================
-
-    // ========================
     const loadData = useCallback(async () => {
         setLoading(true);
         try {
@@ -66,7 +54,6 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                 const data = res.data;
                 const list = data.list || {};
                 setTaskId(list.id || id);
-
 
                 if (data.product && Array.isArray(data.product)) {
                     setTestData(data.product.map((vo: any) => ({
@@ -102,7 +89,6 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
         loadData();
     }, [router, loadData]);
 
-    // 文件转Base64
     const fileToBase64 = (file: File): Promise<string> => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -112,7 +98,6 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
         });
     };
 
-    // 处理文件选择
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -121,18 +106,13 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
         }
     };
 
-
-    const handleRemove = () => {
-        setLocalFile(null);
-    };
-
+    const handleRemove = () => setLocalFile(null);
 
     const copyText = async (text: string) => {
         try {
             await navigator.clipboard.writeText(text);
             alertSuccess('复制成功');
         } catch {
-            // 降级方案
             const input = document.createElement('input');
             input.value = text;
             document.body.appendChild(input);
@@ -143,9 +123,6 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
         }
     };
 
-    // ========================
-
-    // ========================
     const dialogConfirm = async () => {
         if (!localFile) {
             alertError('请上传好评截图！');
@@ -186,107 +163,68 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
 
     if (loading) {
         return (
-            <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5' }}>
-                <div style={{ color: '#999', fontSize: '14px' }}>加载中...</div>
+            <div className="flex h-screen items-center justify-center bg-slate-100">
+                <div className="text-sm text-slate-400">加载中...</div>
             </div>
         );
     }
 
     return (
-        <div style={{ minHeight: '100vh', background: '#f5f5f5', paddingBottom: '80px' }}>
-            <div style={{
-                background: 'linear-gradient(135deg, #1d1d1f 0%, #2c2c2e 100%)',
-                padding: '50px 16px 20px',
-                color: '#fff'
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div onClick={() => router.back()} style={{ fontSize: '24px', cursor: 'pointer' }}>‹</div>
-                    <div style={{ fontSize: '18px', fontWeight: '600' }}>去收货</div>
-                    <div style={{ width: '24px' }}></div>
+        <div className="min-h-screen bg-slate-100 pb-20">
+            {/* Header */}
+            <div className="bg-gradient-to-br from-slate-800 to-slate-700 px-4 pb-5 pt-12 text-white">
+                <div className="flex items-center justify-between">
+                    <button onClick={() => router.back()} className="cursor-pointer text-2xl">‹</button>
+                    <span className="text-lg font-semibold">去收货</span>
+                    <div className="w-6" />
                 </div>
             </div>
 
-            <div style={{
-                background: '#fff',
-                padding: '14px 16px',
-                borderBottom: '1px solid #e5e5e5',
-                textAlign: 'center',
-                fontSize: '15px',
-                fontWeight: '600',
-                color: '#409eff'
-            }}>
+            {/* Title Bar */}
+            <div className="border-b border-slate-200 bg-white px-4 py-3.5 text-center text-sm font-semibold text-blue-500">
                 去收货
             </div>
 
-            <div style={{ padding: '12px' }}>
-                <div style={{ marginBottom: '12px', textAlign: 'right' }}>
+            {/* Content */}
+            <div className="p-3">
+                <div className="mb-3 text-right">
                     <button
                         onClick={() => setDialogVisible(true)}
-                        style={{
-                            padding: '10px 24px',
-                            background: '#f56c6c',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '6px',
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            cursor: 'pointer'
-                        }}
+                        className="cursor-pointer rounded-md bg-red-500 px-6 py-2.5 text-sm font-semibold text-white"
                     >
                         确认收货
                     </button>
                 </div>
 
                 {testData.map((item, index) => (
-                    <div key={index} style={{
-                        background: '#fff',
-                        borderRadius: '12px',
-                        padding: '16px',
-                        marginBottom: '12px',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-                    }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px' }}>
-                            <span style={{ color: '#666' }}>任务编号：</span>
-                            <span style={{ color: '#333' }}>{item.taskBianHao}</span>
+                    <div key={index} className="mb-3 rounded-xl bg-white p-4 shadow-sm">
+                        <div className="mb-2.5 flex justify-between text-xs">
+                            <span className="text-slate-500">任务编号：</span>
+                            <span className="text-slate-800">{item.taskBianHao}</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px' }}>
-                            <span style={{ color: '#666' }}>发布时间：</span>
-                            <span style={{ color: '#333' }}>{item.time}</span>
+                        <div className="mb-2.5 flex justify-between text-xs">
+                            <span className="text-slate-500">发布时间：</span>
+                            <span className="text-slate-800">{item.time}</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px' }}>
-                            <span style={{ color: '#666' }}>任务类型：</span>
-                            <span style={{ color: '#333' }}>{item.type}</span>
+                        <div className="mb-2.5 flex justify-between text-xs">
+                            <span className="text-slate-500">任务类型：</span>
+                            <span className="text-slate-800">{item.type}</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px' }}>
-                            <span style={{ color: '#666' }}>商品标题：</span>
-                            <span style={{ color: '#333' }}>{item.title}</span>
+                        <div className="mb-2.5 flex justify-between text-xs">
+                            <span className="text-slate-500">商品标题：</span>
+                            <span className="min-w-0 flex-1 truncate text-right text-slate-800">{item.title}</span>
                         </div>
 
                         {item.content && (
-                            <div style={{
-                                background: '#f9f9f9',
-                                borderRadius: '8px',
-                                padding: '12px',
-                                marginTop: '12px',
-                                marginBottom: '12px'
-                            }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                    <div>
-                                        <span style={{ fontWeight: '600', color: '#333', fontSize: '13px' }}>文字好评：</span>
-                                        <span style={{ color: '#f56c6c', fontSize: '13px' }}>{item.content}</span>
+                            <div className="my-3 rounded-lg bg-slate-50 p-3">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="min-w-0 flex-1">
+                                        <span className="text-xs font-semibold text-slate-800">文字好评：</span>
+                                        <span className="text-xs text-red-500">{item.content}</span>
                                     </div>
                                     <button
                                         onClick={() => copyText(item.content)}
-                                        style={{
-                                            padding: '4px 12px',
-                                            background: '#f56c6c',
-                                            color: '#fff',
-                                            border: 'none',
-                                            borderRadius: '4px',
-                                            fontSize: '12px',
-                                            cursor: 'pointer',
-                                            whiteSpace: 'nowrap'
-                                        }}
+                                        className="shrink-0 cursor-pointer whitespace-nowrap rounded bg-red-500 px-3 py-1 text-xs text-white"
                                     >
                                         一键复制
                                     </button>
@@ -295,15 +233,15 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                         )}
 
                         {item.img && item.img.length > 0 && (
-                            <div style={{ marginBottom: '12px' }}>
-                                <span style={{ fontWeight: '600', color: '#333', fontSize: '13px', marginRight: '8px' }}>照片好评：</span>
-                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
+                            <div className="mb-3">
+                                <span className="mr-2 text-xs font-semibold text-slate-800">照片好评：</span>
+                                <div className="mt-2 flex flex-wrap gap-2">
                                     {item.img.split(',').filter(Boolean).map((imgUrl, idx) => (
                                         <img
                                             key={idx}
                                             src={imgUrl.startsWith('http') ? imgUrl : `https://b--d.oss-cn-guangzhou.aliyuncs.com${imgUrl}`}
                                             alt="好评图片"
-                                            style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px' }}
+                                            className="h-[60px] w-[60px] rounded object-cover"
                                         />
                                     ))}
                                 </div>
@@ -311,24 +249,19 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                         )}
 
                         {item.video && (
-                            <div style={{ marginBottom: '12px' }}>
-                                <span style={{ fontWeight: '600', color: '#333', fontSize: '13px', marginRight: '8px' }}>视频好评：</span>
-                                <div style={{ marginTop: '8px' }}>
+                            <div className="mb-3">
+                                <span className="mr-2 text-xs font-semibold text-slate-800">视频好评：</span>
+                                <div className="mt-2">
                                     <video
                                         src={item.video}
                                         controls
-                                        style={{ width: '100%', maxWidth: '300px', borderRadius: '8px' }}
+                                        className="w-full max-w-[300px] rounded-lg"
                                     />
                                 </div>
                                 <a
                                     href={item.video}
                                     download="视频"
-                                    style={{
-                                        display: 'inline-block',
-                                        marginTop: '8px',
-                                        color: '#409eff',
-                                        fontSize: '13px'
-                                    }}
+                                    className="mt-2 inline-block text-xs text-blue-500"
                                 >
                                     下载视频
                                 </a>
@@ -337,82 +270,46 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                     </div>
                 ))}
 
-                <div style={{
-                    background: '#fff3cd',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    marginTop: '12px'
-                }}>
-                    <div style={{ fontWeight: '600', color: '#856404', marginBottom: '8px', fontSize: '14px' }}>提示</div>
-                    <div style={{ fontSize: '13px', color: '#856404', lineHeight: '1.8' }}>
-                        <p style={{ margin: '0 0 8px', color: '#f56c6c' }}>
+                {/* Tips */}
+                <div className="mt-3 rounded-xl bg-amber-100 p-4">
+                    <div className="mb-2 text-sm font-semibold text-amber-700">提示</div>
+                    <div className="space-y-2 text-xs leading-relaxed text-amber-700">
+                        <p className="text-red-500">
                             1.请复制以上指定文字好评内容进行5星好评，若有照片好评内容需长按每张照片保存到相册再到评价页面上传买家秀，若有视频好评内容先点击下载视频保存到相册后再到评价页面上传视频，评价提交后将评价页面截图上传。
                         </p>
-                        <p style={{ margin: '0 0 8px', color: '#f56c6c' }}>
+                        <p className="text-red-500">
                             2.无指定评价内容时需全5星并自由发挥15字以上与商品相关的评语。
                         </p>
-                        <p style={{ margin: '0 0 8px' }}>
-                            3.未按指定文字、照片、视频好评将扣除本次任务的银锭(佣金)。
-                        </p>
-                        <p style={{ margin: 0 }}>
-                            4.评价环节若胡乱评价、复制店内他人评价、评价与商品不符、中差评、低星评分等恶劣评价行为，买号将永久拉黑。
-                        </p>
+                        <p>3.未按指定文字、照片、视频好评将扣除本次任务的银锭(佣金)。</p>
+                        <p>4.评价环节若胡乱评价、复制店内他人评价、评价与商品不符、中差评、低星评分等恶劣评价行为，买号将永久拉黑。</p>
                     </div>
                 </div>
             </div>
 
+            {/* Dialog */}
             {dialogVisible && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <div style={{
-                        background: '#fff',
-                        borderRadius: '12px',
-                        width: '85%',
-                        maxWidth: '360px',
-                        padding: '20px'
-                    }}>
-                        <h3 style={{ fontSize: '16px', textAlign: 'center', marginBottom: '20px', color: '#333' }}>温馨提示</h3>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="w-[85%] max-w-[360px] rounded-xl bg-white p-5">
+                        <h3 className="mb-5 text-center text-base font-medium text-slate-800">温馨提示</h3>
 
-                        <div style={{ marginBottom: '20px' }}>
-                            <p style={{ fontSize: '13px', color: '#333', marginBottom: '10px' }}>请上传好评截图：</p>
+                        <div className="mb-5">
+                            <p className="mb-2.5 text-xs text-slate-800">请上传好评截图：</p>
                             <input
                                 type="file"
                                 accept="image/*"
                                 onChange={handleFileSelect}
-                                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                                className="w-full rounded border border-slate-200 p-2"
                             />
                             {localFile && (
-                                <div style={{ marginTop: '10px', position: 'relative', display: 'inline-block' }}>
+                                <div className="relative mt-2.5 inline-block">
                                     <img
                                         src={localFile.content}
                                         alt="预览"
-                                        style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }}
+                                        className="h-20 w-20 rounded object-cover"
                                     />
                                     <button
                                         onClick={handleRemove}
-                                        style={{
-                                            position: 'absolute',
-                                            top: '-8px',
-                                            right: '-8px',
-                                            width: '20px',
-                                            height: '20px',
-                                            borderRadius: '50%',
-                                            background: '#f56c6c',
-                                            color: '#fff',
-                                            border: 'none',
-                                            cursor: 'pointer',
-                                            fontSize: '12px'
-                                        }}
+                                        className="absolute -right-2 -top-2 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-red-500 text-xs text-white"
                                     >
                                         ×
                                     </button>
@@ -420,36 +317,23 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                             )}
                         </div>
 
-                        <div style={{ display: 'flex', gap: '10px' }}>
+                        <div className="flex gap-2.5">
                             <button
                                 onClick={() => {
                                     setDialogVisible(false);
                                     setLocalFile(null);
                                 }}
-                                style={{
-                                    flex: 1,
-                                    padding: '10px',
-                                    background: '#ddd',
-                                    color: '#333',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer'
-                                }}
+                                className="flex-1 cursor-pointer rounded-md bg-slate-200 py-2.5 text-slate-700"
                             >
                                 取消
                             </button>
                             <button
                                 onClick={dialogConfirm}
                                 disabled={submitting}
-                                style={{
-                                    flex: 1,
-                                    padding: '10px',
-                                    background: submitting ? '#a0cfff' : '#409eff',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    cursor: submitting ? 'not-allowed' : 'pointer'
-                                }}
+                                className={cn(
+                                    'flex-1 rounded-md py-2.5 text-white',
+                                    submitting ? 'cursor-not-allowed bg-blue-300' : 'cursor-pointer bg-blue-500'
+                                )}
                             >
                                 {submitting ? '提交中...' : '确认'}
                             </button>

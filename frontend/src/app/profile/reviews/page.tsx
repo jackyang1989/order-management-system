@@ -45,8 +45,14 @@ function ReviewsContent() {
 
     const getStatusBadge = (state: ReviewTaskStatus) => {
         const label = ReviewTaskStatusLabels[state] || { text: '未知', color: '#6b7280' };
-        // Map hex to tailwind colors or use style
-        return <Badge variant="soft" style={{ backgroundColor: `${label.color}20`, color: label.color }}>{label.text}</Badge>;
+        // Map status to tailwind color classes
+        const colorMap: Record<string, string> = {
+            'pending': 'bg-amber-100 text-amber-600',
+            'submitted': 'bg-blue-100 text-blue-600',
+            'rejected': 'bg-red-100 text-red-600',
+            'approved': 'bg-green-100 text-green-600',
+        };
+        return <Badge variant="soft" className={colorMap[state] || 'bg-slate-100 text-slate-600'}>{label.text}</Badge>;
     };
 
     return (

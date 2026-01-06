@@ -124,7 +124,7 @@ function VipContent() {
                                         <div key={pkg.id} onClick={() => setSelectedPackage(pkg)}
                                             className={cn('relative cursor-pointer rounded-xl border-2 p-4 transition-colors',
                                                 selectedPackage?.id === pkg.id ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-slate-50')}>
-                                            {selectedPackage?.id === pkg.id && <div className="absolute -top-2 right-3 rounded bg-blue-500 px-2 py-0.5 text-white shadow-sm" style={{ fontSize: '10px' }}>已选</div>}
+                                            {selectedPackage?.id === pkg.id && <div className="absolute -top-2 right-3 rounded bg-blue-500 px-2 py-0.5 text-[10px] text-white shadow-sm">已选</div>}
                                             <div className="flex items-center justify-between">
                                                 <span className="font-medium text-slate-800">{pkg.name}</span>
                                                 <div className="flex items-baseline gap-1">

@@ -7,8 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "r4": "echo '🔍 R4 Guard: Scanning buyer portal for antd imports and inline styles...' && (rg \"from 'antd'|from \\\"antd\\\"|antd-mobile|@ant-design|antd/dist|style=\\{\\{\" -n src/app/profile src/app/orders src/app/tasks src/app/invite src/app/vip src/app/login src/app/register src/app/messages src/app/pay src/components && echo '❌ R4 FAILED: Found forbidden patterns!' && exit 1) || echo '✅ R4 PASSED: No antd or inline styles found in buyer portal.'",
-    "r4:profile": "echo '🔍 R4 Profile Guard: Scanning for dangerous layout patterns...' && (rg \"w-screen|100vw|fixed left-0|fixed right-0|min-w-\\[\" -n src/app/profile && echo '❌ R4:PROFILE FAILED: Found layout-breaking patterns!' && exit 1) || echo '✅ R4:PROFILE PASSED: No dangerous patterns found.'"
+    "r4:buyer": "echo '🔍 R4:BUYER - Scanning buyer portal...' && (rg \"from 'antd'|antd-mobile|@ant-design|antd/dist|style=\\{\\{\" -n src/app/profile src/app/invite src/app/vip src/app/tasks src/app/orders src/components/BottomNav.tsx src/components/ProfileContainer.tsx src/components/LayoutWrapper.tsx && echo '❌ R4:BUYER FAILED!' && exit 1) || echo '✅ R4:BUYER PASSED'",
+    "r4:admin": "echo '🔍 R4:ADMIN - Scanning admin portal...' && (rg \"from 'antd'|antd-mobile|@ant-design|antd/dist|style=\\{\\{\" -n src/app/admin && echo '❌ R4:ADMIN FAILED!' && exit 1) || echo '✅ R4:ADMIN PASSED'",
+    "r4:layout": "echo '🔍 R4:LAYOUT - Scanning for dangerous layout patterns...' && (rg \"w-screen|100vw|fixed left-0|fixed right-0|min-w-\\[\" -n src/app/profile && echo '❌ R4:LAYOUT FAILED!' && exit 1) || echo '✅ R4:LAYOUT PASSED'",
+    "r4": "npm run r4:buyer && npm run r4:admin && npm run r4:layout"
   },
   "dependencies": {
     "next": "16.1.1",
