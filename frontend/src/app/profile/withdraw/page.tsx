@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '../../../lib/utils';
 import { toastSuccess, toastError } from '../../../lib/toast';
+import { ProfileContainer } from '../../../components/ProfileContainer';
 import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
-import { Tabs } from '../../../components/ui/tabs';
 import { Modal } from '../../../components/ui/modal';
 import { Button } from '../../../components/ui/button';
 import { isAuthenticated, getCurrentUser } from '../../../services/authService';
@@ -122,151 +122,171 @@ export default function WithdrawPage() {
         return <Badge variant="soft" color={conf.color}>{conf.text}</Badge>;
     };
 
+    const tabs = [
+        { key: 'principal', label: '本金提现' },
+        { key: 'silver', label: '银锭提现' },
+        { key: 'records', label: '提现记录' },
+    ];
+
     if (loading) return (
-        <div className="flex h-screen items-center justify-center">
+        <div className="flex h-screen items-center justify-center bg-slate-50">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
     );
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen overflow-x-hidden bg-slate-50">
             {/* Header */}
-            <div className="sticky top-0 z-10 flex items-center border-b border-slate-200 bg-white px-4 py-3">
-                <button onClick={() => router.back()} className="mr-4 text-slate-600">← 返回</button>
-                <h1 className="text-base font-medium text-slate-800">提现</h1>
+            <div className="sticky top-0 z-10 border-b border-slate-200 bg-white">
+                <ProfileContainer className="flex items-center py-3">
+                    <button onClick={() => router.back()} className="mr-4 text-slate-600">← 返回</button>
+                    <h1 className="text-base font-medium text-slate-800">提现</h1>
+                </ProfileContainer>
             </div>
 
-            {/* Balance Card */}
-            <div className="p-4">
-                <div className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 p-5 text-white shadow-lg">
-                    <div className="flex justify-around text-center">
+            <ProfileContainer className="py-4">
+                {/* Balance Card */}
+                <div className="mb-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 p-5 text-white shadow-lg">
+                    <div className="grid grid-cols-2 gap-4 text-center">
                         <div>
                             <div className="text-2xl font-bold">¥{balance.principal.toFixed(2)}</div>
                             <div className="mt-1 text-xs opacity-80">本金余额</div>
                         </div>
-                        <div className="border-l border-white/30 pl-6">
+                        <div className="border-l border-white/30 pl-4">
                             <div className="text-2xl font-bold">{balance.silver.toFixed(2)}</div>
                             <div className="mt-1 text-xs opacity-80">银锭余额</div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <Tabs
-                value={activeTab}
-                onChange={setActiveTab}
-                items={[
-                    { key: 'principal', label: '本金提现' },
-                    { key: 'silver', label: '银锭提现' },
-                    { key: 'records', label: '提现记录' },
-                ]}
-            />
+                {/* Tabs - Fixed layout */}
+                <div className="mb-4 grid grid-cols-3 gap-2 rounded-xl bg-slate-100 p-1 md:flex md:gap-0">
+                    {tabs.map((tab) => (
+                        <button
+                            key={tab.key}
+                            type="button"
+                            onClick={() => setActiveTab(tab.key)}
+                            className={cn(
+                                'rounded-lg px-4 py-2 text-center text-sm font-medium transition-colors md:flex-1',
+                                activeTab === tab.key
+                                    ? 'bg-white text-slate-900 shadow-sm'
+                                    : 'text-slate-500 hover:text-slate-700'
+                            )}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
 
-            <div className="p-4">
+                {/* Tab Content */}
                 {activeTab === 'principal' && (
-                    <form onSubmit={handleWithdrawClick} className="space-y-4">
-                        <div>
-                            <label className="mb-1.5 block text-sm text-slate-600">
-                                可提现: <span className="font-medium text-slate-800">¥{getAvailableBalance().toFixed(2)}</span>
-                            </label>
-                            <input
-                                type="number"
-                                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-center text-xl font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                placeholder="输入提现金额"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
-                            />
-                        </div>
-
-                        {bankCards.length > 0 ? (
+                    <Card className="bg-white">
+                        <form onSubmit={handleWithdrawClick} className="space-y-4">
                             <div>
-                                <label className="mb-1.5 block text-sm text-slate-600">选择银行卡</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {bankCards.map(c => (
-                                        <button
-                                            key={c.id}
-                                            type="button"
-                                            onClick={() => setSelectedCard(c.id)}
-                                            className={cn(
-                                                'rounded-lg border px-4 py-2 text-sm transition',
-                                                selectedCard === c.id
-                                                    ? 'border-primary bg-primary/10 text-primary'
-                                                    : 'border-slate-200 bg-white text-slate-600'
-                                            )}
-                                        >
-                                            {c.bankName} *{c.cardNumber.slice(-4)}
-                                        </button>
-                                    ))}
-                                </div>
+                                <label className="mb-1.5 block text-sm text-slate-600">
+                                    可提现: <span className="font-medium text-slate-800">¥{getAvailableBalance().toFixed(2)}</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    className="w-full rounded-lg border border-slate-300 px-4 py-3 text-center text-xl font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                    placeholder="输入提现金额"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                />
                             </div>
-                        ) : (
-                            <div
-                                className="cursor-pointer rounded-lg bg-amber-50 p-3 text-sm text-amber-700"
-                                onClick={() => router.push('/profile/bank')}
-                            >
-                                ⚠️ 请先绑定银行卡
-                            </div>
-                        )}
 
-                        <Button type="submit" className="mt-4 w-full rounded-full py-3" disabled={bankCards.length === 0}>
-                            申请提现
-                        </Button>
-                    </form>
+                            {bankCards.length > 0 ? (
+                                <div>
+                                    <label className="mb-1.5 block text-sm text-slate-600">选择银行卡</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {bankCards.map(c => (
+                                            <button
+                                                key={c.id}
+                                                type="button"
+                                                onClick={() => setSelectedCard(c.id)}
+                                                className={cn(
+                                                    'rounded-lg border px-4 py-2 text-sm transition',
+                                                    selectedCard === c.id
+                                                        ? 'border-primary bg-primary/10 text-primary'
+                                                        : 'border-slate-200 bg-white text-slate-600'
+                                                )}
+                                            >
+                                                {c.bankName} *{c.cardNumber.slice(-4)}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div
+                                    className="cursor-pointer rounded-lg bg-amber-50 p-3 text-sm text-amber-700"
+                                    onClick={() => router.push('/profile/bank')}
+                                >
+                                    ⚠️ 请先绑定银行卡
+                                </div>
+                            )}
+
+                            <Button type="submit" className="w-full rounded-full py-3" disabled={bankCards.length === 0}>
+                                申请提现
+                            </Button>
+                        </form>
+                    </Card>
                 )}
 
                 {activeTab === 'silver' && (
-                    <form onSubmit={handleWithdrawClick} className="space-y-4">
-                        <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-700">
-                            ℹ️ 银锭提现手续费: {feeRate * 100}%
-                        </div>
+                    <Card className="bg-white">
+                        <form onSubmit={handleWithdrawClick} className="space-y-4">
+                            <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-700">
+                                ℹ️ 银锭提现手续费: {feeRate * 100}%
+                            </div>
 
-                        <div>
-                            <label className="mb-1.5 block text-sm text-slate-600">
-                                可提现银锭: <span className="font-medium text-slate-800">{(balance.silver - balance.frozenSilver).toFixed(2)}</span>
-                            </label>
-                            <input
-                                type="number"
-                                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-center text-xl font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                placeholder="输入提现银锭数量"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
-                            />
-                        </div>
-
-                        {bankCards.length > 0 ? (
                             <div>
-                                <label className="mb-1.5 block text-sm text-slate-600">选择银行卡</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {bankCards.map(c => (
-                                        <button
-                                            key={c.id}
-                                            type="button"
-                                            onClick={() => setSelectedCard(c.id)}
-                                            className={cn(
-                                                'rounded-lg border px-4 py-2 text-sm transition',
-                                                selectedCard === c.id
-                                                    ? 'border-primary bg-primary/10 text-primary'
-                                                    : 'border-slate-200 bg-white text-slate-600'
-                                            )}
-                                        >
-                                            {c.bankName} *{c.cardNumber.slice(-4)}
-                                        </button>
-                                    ))}
-                                </div>
+                                <label className="mb-1.5 block text-sm text-slate-600">
+                                    可提现银锭: <span className="font-medium text-slate-800">{(balance.silver - balance.frozenSilver).toFixed(2)}</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    className="w-full rounded-lg border border-slate-300 px-4 py-3 text-center text-xl font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                    placeholder="输入提现银锭数量"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                />
                             </div>
-                        ) : (
-                            <div
-                                className="cursor-pointer rounded-lg bg-amber-50 p-3 text-sm text-amber-700"
-                                onClick={() => router.push('/profile/bank')}
-                            >
-                                ⚠️ 请先绑定银行卡
-                            </div>
-                        )}
 
-                        <Button type="submit" className="mt-4 w-full rounded-full py-3" disabled={bankCards.length === 0}>
-                            申请提现
-                        </Button>
-                    </form>
+                            {bankCards.length > 0 ? (
+                                <div>
+                                    <label className="mb-1.5 block text-sm text-slate-600">选择银行卡</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {bankCards.map(c => (
+                                            <button
+                                                key={c.id}
+                                                type="button"
+                                                onClick={() => setSelectedCard(c.id)}
+                                                className={cn(
+                                                    'rounded-lg border px-4 py-2 text-sm transition',
+                                                    selectedCard === c.id
+                                                        ? 'border-primary bg-primary/10 text-primary'
+                                                        : 'border-slate-200 bg-white text-slate-600'
+                                                )}
+                                            >
+                                                {c.bankName} *{c.cardNumber.slice(-4)}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div
+                                    className="cursor-pointer rounded-lg bg-amber-50 p-3 text-sm text-amber-700"
+                                    onClick={() => router.push('/profile/bank')}
+                                >
+                                    ⚠️ 请先绑定银行卡
+                                </div>
+                            )}
+
+                            <Button type="submit" className="w-full rounded-full py-3" disabled={bankCards.length === 0}>
+                                申请提现
+                            </Button>
+                        </form>
+                    </Card>
                 )}
 
                 {activeTab === 'records' && (
@@ -288,7 +308,7 @@ export default function WithdrawPage() {
                         )}
                     </div>
                 )}
-            </div>
+            </ProfileContainer>
 
             {/* Confirm Modal */}
             <Modal

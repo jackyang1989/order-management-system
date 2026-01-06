@@ -2,9 +2,13 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { cn } from '../../../lib/utils';
+import { toastSuccess, toastError } from '../../../lib/toast';
+import { ProfileContainer } from '../../../components/ProfileContainer';
+import { Modal } from '../../../components/ui/modal';
+import { Button } from '../../../components/ui/button';
 import { isAuthenticated, getToken } from '../../../services/authService';
 import { fetchUserProfile } from '../../../services/userService';
-
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
@@ -12,7 +16,6 @@ export default function ProfileSettingsPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
 
-    // 用户信息
     const [userInfo, setUserInfo] = useState({
         username: '',
         mobile: '',
@@ -22,40 +25,15 @@ export default function ProfileSettingsPage() {
         vipExpireTime: ''
     });
 
-    // 弹窗状态
     const [showPhoneModal, setShowPhoneModal] = useState(false);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [showPayPwdModal, setShowPayPwdModal] = useState(false);
-
-    // 操作状态
     const [submitting, setSubmitting] = useState(false);
 
-    // Phone form state
-    const [phoneForm, setPhoneForm] = useState({
-        oldPhoneNum: '',
-        zhifuPassWord: '',
-        newPhoneNum: '',
-        newYzmNum: ''
-    });
+    const [phoneForm, setPhoneForm] = useState({ oldPhoneNum: '', zhifuPassWord: '', newPhoneNum: '', newYzmNum: '' });
+    const [passwordForm, setPasswordForm] = useState({ oldPassWord: '', newPassWord: '', queRenPassWord: '', phoneNum: '', newYzmNum: '' });
+    const [payPwdForm, setPayPwdForm] = useState({ newZhiFuPassWord: '', queRenZhiFuPassWord: '', phoneNum: '', yzmNum: '' });
 
-    // Password form state
-    const [passwordForm, setPasswordForm] = useState({
-        oldPassWord: '',
-        newPassWord: '',
-        queRenPassWord: '',
-        phoneNum: '',
-        newYzmNum: ''
-    });
-
-    // Payment password form state
-    const [payPwdForm, setPayPwdForm] = useState({
-        newZhiFuPassWord: '',
-        queRenZhiFuPassWord: '',
-        phoneNum: '',
-        yzmNum: ''
-    });
-
-    // 验证码状态 - 三个独立倒计时对应旧版 yzmMsg/yzmMsg2/yzmMsg3
     const [yzmDisabled, setYzmDisabled] = useState(false);
     const [yzmDisabled2, setYzmDisabled2] = useState(false);
     const [yzmDisabled3, setYzmDisabled3] = useState(false);
@@ -67,23 +45,11 @@ export default function ProfileSettingsPage() {
     const timerRef2 = useRef<NodeJS.Timeout | null>(null);
     const timerRef3 = useRef<NodeJS.Timeout | null>(null);
 
-
     const phoneReg = /^1[3-9]\d{9}$/;
     const zhifuReg = /^\d{6}$/;
 
-    const alertSuccess = useCallback((msg: string) => {
-        alert(msg);
-    }, []);
-
-    const alertError = useCallback((msg: string) => {
-        alert(msg);
-    }, []);
-
     useEffect(() => {
-        if (!isAuthenticated()) {
-            router.push('/login');
-            return;
-        }
+        if (!isAuthenticated()) { router.push('/login'); return; }
         loadUserInfo();
         return () => {
             if (timerRef1.current) clearInterval(timerRef1.current);
@@ -95,10 +61,7 @@ export default function ProfileSettingsPage() {
     const loadUserInfo = async () => {
         try {
             const data = await fetchUserProfile();
-            if (!data) {
-                console.error('Failed to fetch user profile');
-                return;
-            }
+            if (!data) { console.error('Failed to fetch user profile'); return; }
             setUserInfo({
                 username: data.username || '',
                 mobile: data.phone || '',
@@ -107,713 +70,293 @@ export default function ProfileSettingsPage() {
                 vip: data.vip || false,
                 vipExpireTime: data.vipExpireAt ? new Date(data.vipExpireAt).toLocaleDateString() : ''
             });
-            // 预填手机号
             setPayPwdForm(prev => ({ ...prev, phoneNum: data.phone || '' }));
             setPasswordForm(prev => ({ ...prev, phoneNum: data.phone || '' }));
             setPhoneForm(prev => ({ ...prev, oldPhoneNum: data.phone || '' }));
-        } catch (error) {
-            console.error('Failed to load user info:', error);
-        } finally {
-            setLoading(false);
-        }
+        } catch (error) { console.error('Failed to load user info:', error); }
+        finally { setLoading(false); }
     };
 
-    // ========================
-
-    // ========================
-    const sendYzm = async () => {
-        if (!phoneForm.newPhoneNum) {
-            return alertError('手机号码不能为空');
-        }
-        if (!phoneReg.test(phoneForm.newPhoneNum)) {
-            return alertError('手机号码格式不规范,请检查后重新输入');
-        }
+    const sendYzm = async (type: 1 | 2 | 3) => {
+        const phone = type === 1 ? phoneForm.newPhoneNum : type === 2 ? passwordForm.phoneNum : payPwdForm.phoneNum;
+        if (!phone) { toastError('手机号码不能为空'); return; }
+        if (!phoneReg.test(phone)) { toastError('手机号码格式不规范'); return; }
 
         try {
             await fetch(`${BASE_URL}/mobile/way/send_code`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    mobile: phoneForm.newPhoneNum,
-                    dxyzm: phoneForm.newYzmNum,
-                }),
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mobile: phone }),
             });
-        } catch (error) {
-
-        }
+        } catch (error) { }
 
         let num = 60;
-        setYzmDisabled(true);
-        setYzmMsg(`还剩 ${num} 秒`);
+        const setDisabled = type === 1 ? setYzmDisabled : type === 2 ? setYzmDisabled2 : setYzmDisabled3;
+        const setMsg = type === 1 ? setYzmMsg : type === 2 ? setYzmMsg2 : setYzmMsg3;
+        const timerRef = type === 1 ? timerRef1 : type === 2 ? timerRef2 : timerRef3;
 
-        timerRef1.current = setInterval(() => {
+        setDisabled(true);
+        setMsg(`${num}秒`);
+
+        timerRef.current = setInterval(() => {
             num--;
-            setYzmMsg(`还剩 ${num} 秒`);
+            setMsg(`${num}秒`);
             if (num <= 0) {
-                clearInterval(timerRef1.current!);
-                setYzmMsg('重新发送');
-                setYzmDisabled(false);
+                clearInterval(timerRef.current!);
+                setMsg('重新发送');
+                setDisabled(false);
             } else if (num === 59) {
-                alertSuccess('验证码发送成功');
+                toastSuccess('验证码发送成功');
             }
         }, 1000);
     };
 
-    const sendYzm2 = async () => {
-        if (!passwordForm.phoneNum) {
-            return alertError('手机号码不能为空');
-        }
-        if (!phoneReg.test(passwordForm.phoneNum)) {
-            return alertError('手机号码格式不规范,请检查后重新输入');
-        }
-
-        try {
-            await fetch(`${BASE_URL}/mobile/way/send_code`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    mobile: passwordForm.phoneNum,
-                    dxyzm: passwordForm.newYzmNum,
-                }),
-            });
-        } catch (error) {
-            // 忽略错误
-        }
-
-        let num = 60;
-        setYzmDisabled2(true);
-        setYzmMsg2(`还剩 ${num} 秒`);
-
-        timerRef2.current = setInterval(() => {
-            num--;
-            setYzmMsg2(`还剩 ${num} 秒`);
-            if (num <= 0) {
-                clearInterval(timerRef2.current!);
-                setYzmMsg2('重新发送');
-                setYzmDisabled2(false);
-            } else if (num === 59) {
-                alertSuccess('验证码发送成功');
-            }
-        }, 1000);
-    };
-
-    const sendYzm3 = async () => {
-        if (!payPwdForm.phoneNum) {
-            return alertError('手机号码不能为空');
-        }
-        if (!phoneReg.test(payPwdForm.phoneNum)) {
-            return alertError('手机号码格式不规范,请检查后重新输入');
-        }
-
-        try {
-            await fetch(`${BASE_URL}/mobile/way/send_code`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    mobile: payPwdForm.phoneNum,
-                    dxyzm: payPwdForm.yzmNum,
-                }),
-            });
-        } catch (error) {
-            // 忽略错误
-        }
-
-        let num = 60;
-        setYzmDisabled3(true);
-        setYzmMsg3(`还剩 ${num} 秒`);
-
-        timerRef3.current = setInterval(() => {
-            num--;
-            setYzmMsg3(`还剩 ${num} 秒`);
-            if (num <= 0) {
-                clearInterval(timerRef3.current!);
-                setYzmMsg3('重新发送');
-                setYzmDisabled3(false);
-            } else if (num === 59) {
-                alertSuccess('验证码发送成功');
-            }
-        }, 1000);
-    };
-
-    // Submit phone change
     const phoneBtnActive = async () => {
-        if (!phoneForm.oldPhoneNum) { return alertError('原手机号码不能为空'); }
-        if (!phoneForm.zhifuPassWord) { return alertError('支付密码不能为空'); }
-        if (!phoneForm.newPhoneNum) { return alertError('新手机号码不能为空'); }
-        if (!phoneForm.newYzmNum) { return alertError('新手机号码验证码不能为空'); }
+        if (!phoneForm.oldPhoneNum) { toastError('原手机号码不能为空'); return; }
+        if (!phoneForm.zhifuPassWord) { toastError('支付密码不能为空'); return; }
+        if (!phoneForm.newPhoneNum) { toastError('新手机号码不能为空'); return; }
+        if (!phoneForm.newYzmNum) { toastError('验证码不能为空'); return; }
 
         setSubmitting(true);
         try {
             const response = await fetch(`${BASE_URL}/mobile/my/editphone`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getToken()}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
                 body: JSON.stringify({
-                    oldphone: phoneForm.oldPhoneNum,
-                    pay_pwd: phoneForm.zhifuPassWord,
-                    mobile: phoneForm.newPhoneNum,
-                    dxyzm: phoneForm.newYzmNum,
+                    oldphone: phoneForm.oldPhoneNum, pay_pwd: phoneForm.zhifuPassWord,
+                    mobile: phoneForm.newPhoneNum, dxyzm: phoneForm.newYzmNum,
                 }),
             });
             const data = await response.json();
-
             if (data.code === 1) {
-                alertSuccess(data.msg);
-                setTimeout(() => {
-                    if (data.url) {
-                        router.push(data.url);
-                    } else {
-                        setShowPhoneModal(false);
-                        loadUserInfo();
-                    }
-                }, 3000);
-            } else {
-                alertError(data.msg);
-            }
-        } catch (error) {
-            alertError('网络错误');
-        } finally {
-            setSubmitting(false);
-        }
+                toastSuccess(data.msg);
+                setTimeout(() => { data.url ? router.push(data.url) : (setShowPhoneModal(false), loadUserInfo()); }, 2000);
+            } else { toastError(data.msg); }
+        } catch (error) { toastError('网络错误'); }
+        finally { setSubmitting(false); }
     };
 
-    // Submit password change
     const editBtnActive = async () => {
-        if (!passwordForm.oldPassWord) { return alertError('原登录密码不能为空'); }
-        if (!passwordForm.newPassWord) { return alertError('新登录密码不能为空'); }
-        if (!passwordForm.queRenPassWord) { return alertError('确认登录密码不能为空'); }
-        if (!passwordForm.phoneNum) { return alertError('手机号码不能为空'); }
-        if (!passwordForm.newYzmNum) { return alertError('验证码不能为空'); }
-        if (!zhifuReg.test(passwordForm.newYzmNum)) {
-            return alertError('验证码格式不规范');
-        }
+        if (!passwordForm.oldPassWord) { toastError('原登录密码不能为空'); return; }
+        if (!passwordForm.newPassWord) { toastError('新登录密码不能为空'); return; }
+        if (!passwordForm.queRenPassWord) { toastError('确认登录密码不能为空'); return; }
+        if (!passwordForm.phoneNum) { toastError('手机号码不能为空'); return; }
+        if (!passwordForm.newYzmNum) { toastError('验证码不能为空'); return; }
 
         setSubmitting(true);
         try {
             const response = await fetch(`${BASE_URL}/mobile/my/edit_login_pwd`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getToken()}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
                 body: JSON.stringify({
-                    oldloginpwd: passwordForm.oldPassWord,
-                    login_pwd: passwordForm.newPassWord,
-                    login_pwd2: passwordForm.queRenPassWord,
-                    mobile: passwordForm.phoneNum,
-                    dxyzm: passwordForm.newYzmNum,
+                    oldloginpwd: passwordForm.oldPassWord, login_pwd: passwordForm.newPassWord,
+                    login_pwd2: passwordForm.queRenPassWord, mobile: passwordForm.phoneNum, dxyzm: passwordForm.newYzmNum,
                 }),
             });
             const data = await response.json();
-
             if (data.code === 1) {
-                alertSuccess(data.msg);
-                setTimeout(() => {
-                    if (data.url) {
-                        router.push(data.url);
-                    } else {
-                        setShowPasswordModal(false);
-                    }
-                }, 3000);
-            } else {
-                alertError(data.msg);
-            }
-        } catch (error) {
-            alertError('网络错误');
-        } finally {
-            setSubmitting(false);
-        }
+                toastSuccess(data.msg);
+                setTimeout(() => { data.url ? router.push(data.url) : setShowPasswordModal(false); }, 2000);
+            } else { toastError(data.msg); }
+        } catch (error) { toastError('网络错误'); }
+        finally { setSubmitting(false); }
     };
 
-    // Submit payment password change
     const zhiFuBtnActive = async () => {
-        if (!payPwdForm.newZhiFuPassWord) { return alertError('新支付密码不能为空'); }
-        if (!payPwdForm.queRenZhiFuPassWord) { return alertError('确认新密码不能为空'); }
-        if (!payPwdForm.phoneNum) { return alertError('手机号码不能为空'); }
-        if (!payPwdForm.yzmNum) { return alertError('验证码不能为空'); }
-        if (!zhifuReg.test(payPwdForm.newZhiFuPassWord)) {
-            return alertError('您输入的密码不规范');
-        }
+        if (!payPwdForm.newZhiFuPassWord) { toastError('新支付密码不能为空'); return; }
+        if (!payPwdForm.queRenZhiFuPassWord) { toastError('确认新密码不能为空'); return; }
+        if (!payPwdForm.phoneNum) { toastError('手机号码不能为空'); return; }
+        if (!payPwdForm.yzmNum) { toastError('验证码不能为空'); return; }
+        if (!zhifuReg.test(payPwdForm.newZhiFuPassWord)) { toastError('支付密码格式不规范'); return; }
 
         setSubmitting(true);
         try {
             const response = await fetch(`${BASE_URL}/mobile/my/edit_pay_pwd`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getToken()}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
                 body: JSON.stringify({
-                    pay_pwd: payPwdForm.newZhiFuPassWord,
-                    pay_pwd2: payPwdForm.queRenZhiFuPassWord,
-                    mobile: payPwdForm.phoneNum,
-                    dxyzm: payPwdForm.yzmNum,
+                    pay_pwd: payPwdForm.newZhiFuPassWord, pay_pwd2: payPwdForm.queRenZhiFuPassWord,
+                    mobile: payPwdForm.phoneNum, dxyzm: payPwdForm.yzmNum,
                 }),
             });
             const data = await response.json();
-
             if (data.code === 1) {
-                alertSuccess(data.msg);
-                setTimeout(() => {
-                    if (data.url) {
-                        router.push(data.url);
-                    } else {
-                        setShowPayPwdModal(false);
-                    }
-                }, 3000);
-            } else {
-                alertError(data.msg);
-            }
-        } catch (error) {
-            alertError('网络错误');
-        } finally {
-            setSubmitting(false);
-        }
+                toastSuccess(data.msg);
+                setTimeout(() => { data.url ? router.push(data.url) : setShowPayPwdModal(false); }, 2000);
+            } else { toastError(data.msg); }
+        } catch (error) { toastError('网络错误'); }
+        finally { setSubmitting(false); }
     };
 
     if (loading) {
-        return <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>加载中...</div>;
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#0A0A0B] to-[#12121A]">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+            </div>
+        );
     }
 
-    const cellStyle = {
-        display: 'flex',
-        padding: '15px',
-        borderBottom: '1px solid #f5f5f5',
-        alignItems: 'center',
-        background: '#fff'
-    };
-
-    const labelStyle = {
-        width: '90px',
-        fontSize: '14px',
-        color: '#333'
-    };
-
-    const valueStyle = {
-        flex: 1,
-        fontSize: '14px',
-        color: '#666',
-        textAlign: 'right' as const
-    };
-
-    const editBtnStyle = {
-        marginLeft: '10px',
-        padding: '4px 10px',
-        fontSize: '12px',
-        color: '#409eff',
-        background: 'transparent',
-        border: '1px solid #409eff',
-        borderRadius: '4px',
-        cursor: 'pointer'
-    };
-
-    const modalOverlayStyle = {
-        position: 'fixed' as const,
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000
-    };
-
-    const modalStyle = {
-        background: '#fff',
-        borderRadius: '8px',
-        width: '90%',
-        maxWidth: '400px',
-        maxHeight: '80vh',
-        overflow: 'auto'
-    };
-
-    const modalHeaderStyle = {
-        padding: '15px',
-        borderBottom: '1px solid #e5e5e5',
-        fontSize: '16px',
-        fontWeight: 'bold' as const,
-        textAlign: 'center' as const
-    };
-
-    const modalBodyStyle = {
-        padding: '15px'
-    };
-
-    const inputStyle = {
-        width: '100%',
-        padding: '10px',
-        border: '1px solid #ddd',
-        borderRadius: '4px',
-        fontSize: '14px',
-        marginTop: '8px',
-        boxSizing: 'border-box' as const
-    };
-
-    const modalFooterStyle = {
-        display: 'flex',
-        borderTop: '1px solid #e5e5e5'
-    };
-
-    const modalBtnStyle = {
-        flex: 1,
-        padding: '12px',
-        border: 'none',
-        fontSize: '14px',
-        cursor: 'pointer'
-    };
-
-    // 手机号脱敏显示
     const maskedPhone = userInfo.mobile ? userInfo.mobile.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '未绑定';
 
+    const InfoRow = ({ label, value, action }: { label: string; value: string; action?: () => void }) => (
+        <div className="flex items-center border-b border-white/5 px-4 py-4">
+            <span className="w-24 text-sm text-slate-400">{label}</span>
+            <span className="flex-1 text-right text-sm text-slate-200">{value}</span>
+            {action && (
+                <button onClick={action} className="ml-3 rounded border border-emerald-500/50 px-3 py-1 text-xs text-emerald-400 hover:bg-emerald-500/10">
+                    修改
+                </button>
+            )}
+        </div>
+    );
+
     return (
-        <div style={{ minHeight: '100vh', background: '#f8f8f8', paddingBottom: '60px' }}>
-            {/* 顶部栏 */}
-            <div style={{
-                background: '#fff',
-                height: '44px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderBottom: '1px solid #e5e5e5',
-                position: 'sticky',
-                top: 0,
-                zIndex: 10
-            }}>
-                <div onClick={() => router.back()} style={{ position: 'absolute', left: '15px', fontSize: '20px', cursor: 'pointer', color: '#333' }}>‹</div>
-                <div style={{ fontSize: '16px', fontWeight: '500', color: '#333' }}>基本信息</div>
+        <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-[#0A0A0B] to-[#12121A] pb-10">
+            {/* Header */}
+            <div className="sticky top-0 z-10 border-b border-white/10 bg-[#0A0A0B]/95 backdrop-blur-sm">
+                <ProfileContainer className="relative flex h-12 items-center justify-center">
+                    <button onClick={() => router.back()} className="absolute left-4 text-xl text-slate-400">‹</button>
+                    <span className="text-base font-medium text-slate-100">基本信息</span>
+                </ProfileContainer>
             </div>
 
-            {/* 头像区域 */}
-            <div style={{ background: '#fff', padding: '30px 0', textAlign: 'center', marginBottom: '10px' }}>
-                <div style={{
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '50%',
-                    background: '#e0e0e0',
-                    margin: '0 auto 15px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '36px'
-                }}>👤</div>
-                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>{userInfo.username}</div>
-            </div>
+            <ProfileContainer className="py-6">
+                {/* Avatar Section */}
+                <div className="mb-6 flex flex-col items-center rounded-2xl border border-white/10 bg-white/5 py-8 backdrop-blur-2xl">
+                    <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-4xl shadow-lg">
+                        👤
+                    </div>
+                    <span className="text-lg font-bold text-slate-100">{userInfo.username}</span>
+                </div>
 
-            {/* 基本信息 */}
-            <div style={{ marginBottom: '10px' }}>
-                <div style={{ padding: '10px 15px', fontSize: '12px', color: '#999' }}>基本信息</div>
-                <div style={cellStyle}>
-                    <div style={labelStyle}>用户名</div>
-                    <div style={valueStyle}>{userInfo.username}</div>
+                {/* Basic Info */}
+                <div className="mb-4 overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-2xl">
+                    <div className="border-b border-white/5 px-4 py-2 text-xs text-slate-500">基本信息</div>
+                    <InfoRow label="用户名" value={userInfo.username} />
+                    <InfoRow label="手机号" value={maskedPhone} action={() => setShowPhoneModal(true)} />
+                    <InfoRow label="QQ号" value={userInfo.qq || '未绑定'} />
                 </div>
-                <div style={cellStyle}>
-                    <div style={labelStyle}>QQ账号</div>
-                    <div style={valueStyle}>{userInfo.qq || '-'}</div>
-                </div>
-                <div style={cellStyle}>
-                    <div style={labelStyle}>手机号码</div>
-                    <div style={valueStyle}>{maskedPhone}</div>
-                    <button style={editBtnStyle} onClick={() => {
-                        setPhoneForm({ oldPhoneNum: userInfo.mobile, zhifuPassWord: '', newPhoneNum: '', newYzmNum: '' });
-                        setShowPhoneModal(true);
-                    }}>修改</button>
-                </div>
-            </div>
 
-            {/* 会员信息 */}
-            <div style={{ marginBottom: '10px' }}>
-                <div style={{ padding: '10px 15px', fontSize: '12px', color: '#999' }}>会员信息</div>
-                <div style={cellStyle}>
-                    <div style={labelStyle}>会员状态</div>
-                    <div style={valueStyle}>
-                        {userInfo.vip ? (
-                            <span style={{ color: '#e6a23c' }}>VIP会员</span>
-                        ) : (
-                            <span style={{ color: '#999' }}>不是会员</span>
-                        )}
+                {/* VIP Info */}
+                <div className="mb-4 overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-2xl">
+                    <div className="border-b border-white/5 px-4 py-2 text-xs text-slate-500">会员信息</div>
+                    <InfoRow
+                        label="会员状态"
+                        value={userInfo.vip ? 'VIP会员' : '不是会员'}
+                    />
+                    <InfoRow label="开通/续费" value="请联系客服" />
+                    <InfoRow label="到期时间" value={userInfo.vipExpireTime || '-'} />
+                </div>
+
+                {/* Security Settings */}
+                <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-2xl">
+                    <div className="border-b border-white/5 px-4 py-2 text-xs text-slate-500">安全设置</div>
+                    <InfoRow label="登陆密码" value="**********" action={() => setShowPasswordModal(true)} />
+                    <div className="flex items-center border-b border-white/5 px-4 py-4">
+                        <span className="w-24 text-sm text-slate-400">支付密码</span>
+                        <span className="flex-1 text-right text-sm text-slate-200">**********</span>
+                        <button onClick={() => setShowPayPwdModal(true)} className="ml-3 rounded border border-emerald-500/50 px-3 py-1 text-xs text-emerald-400 hover:bg-emerald-500/10">
+                            修改
+                        </button>
                     </div>
                 </div>
-                <div style={cellStyle}>
-                    <div style={labelStyle}>VIP延时</div>
-                    <div style={{ ...valueStyle, color: '#409eff' }}>请联系客服</div>
-                </div>
-                {userInfo.vipExpireTime && (
-                    <div style={cellStyle}>
-                        <div style={labelStyle}>VIP时限</div>
-                        <div style={valueStyle}>{userInfo.vipExpireTime}</div>
+            </ProfileContainer>
+
+            {/* Phone Modal */}
+            <Modal title="修改手机号" open={showPhoneModal} onClose={() => setShowPhoneModal(false)}>
+                <div className="space-y-4">
+                    <div>
+                        <label className="mb-1 block text-xs text-slate-500">原手机号码 <span className="text-red-500">*</span></label>
+                        <input className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none" value={phoneForm.oldPhoneNum} readOnly />
                     </div>
-                )}
-            </div>
-
-            {/* 安全设置 */}
-            <div style={{ marginBottom: '10px' }}>
-                <div style={{ padding: '10px 15px', fontSize: '12px', color: '#999' }}>安全设置</div>
-                <div style={cellStyle}>
-                    <div style={labelStyle}>登录密码</div>
-                    <div style={{ ...valueStyle, color: '#409eff' }}>**********</div>
-                    <button style={editBtnStyle} onClick={() => {
-                        setPasswordForm({ oldPassWord: '', newPassWord: '', queRenPassWord: '', phoneNum: userInfo.mobile, newYzmNum: '' });
-                        setShowPasswordModal(true);
-                    }}>修改</button>
-                </div>
-                <div style={cellStyle}>
-                    <div style={labelStyle}>支付密码</div>
-                    <div style={{ ...valueStyle, color: '#409eff' }}>**********</div>
-                    <button style={editBtnStyle} onClick={() => {
-                        setPayPwdForm({ newZhiFuPassWord: '', queRenZhiFuPassWord: '', phoneNum: userInfo.mobile, yzmNum: '' });
-                        setShowPayPwdModal(true);
-                    }}>修改</button>
-                </div>
-            </div>
-
-            {showPhoneModal && (
-                <div style={modalOverlayStyle}>
-                    <div style={modalStyle}>
-                        <div style={modalHeaderStyle}>修改手机号码</div>
-                        <div style={modalBodyStyle}>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ fontSize: '13px', color: '#666' }}>原手机号码：<span style={{ color: 'red' }}>*</span></label>
-                                <input
-                                    type="text"
-                                    placeholder="请输入原手机号码"
-                                    maxLength={13}
-                                    value={phoneForm.oldPhoneNum}
-                                    onChange={e => setPhoneForm({ ...phoneForm, oldPhoneNum: e.target.value })}
-                                    style={inputStyle}
-                                />
-                            </div>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ fontSize: '13px', color: '#666' }}>支付密码：<span style={{ color: 'red' }}>*</span></label>
-                                <input
-                                    type="password"
-                                    placeholder="请输入6位支付密码"
-                                    maxLength={6}
-                                    value={phoneForm.zhifuPassWord}
-                                    onChange={e => setPhoneForm({ ...phoneForm, zhifuPassWord: e.target.value })}
-                                    style={inputStyle}
-                                />
-                            </div>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ fontSize: '13px', color: '#666' }}>新手机号码：<span style={{ color: 'red' }}>*</span></label>
-                                <input
-                                    type="text"
-                                    placeholder="请输入新手机号码"
-                                    maxLength={13}
-                                    value={phoneForm.newPhoneNum}
-                                    onChange={e => setPhoneForm({ ...phoneForm, newPhoneNum: e.target.value })}
-                                    style={inputStyle}
-                                />
-                            </div>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ fontSize: '13px', color: '#666' }}>验证码：<span style={{ color: 'red' }}>*</span></label>
-                                <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
-                                    <input
-                                        type="text"
-                                        placeholder="验证码"
-                                        maxLength={6}
-                                        value={phoneForm.newYzmNum}
-                                        onChange={e => setPhoneForm({ ...phoneForm, newYzmNum: e.target.value })}
-                                        style={{ ...inputStyle, flex: 1, marginTop: 0 }}
-                                    />
-                                    <button
-                                        onClick={sendYzm}
-                                        disabled={yzmDisabled}
-                                        style={{
-                                            padding: '10px 15px',
-                                            background: yzmDisabled ? '#a0cfff' : '#409eff',
-                                            color: '#fff',
-                                            border: 'none',
-                                            borderRadius: '4px',
-                                            fontSize: '12px',
-                                            whiteSpace: 'nowrap',
-                                            cursor: yzmDisabled ? 'not-allowed' : 'pointer'
-                                        }}
-                                    >
-                                        {yzmMsg}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div style={modalFooterStyle}>
-                            <button onClick={() => setShowPhoneModal(false)} style={{ ...modalBtnStyle, background: '#f5f5f5', color: '#666' }}>取消</button>
-                            <button onClick={phoneBtnActive} disabled={submitting} style={{ ...modalBtnStyle, background: submitting ? '#ccc' : '#409eff', color: '#fff' }}>
-                                {submitting ? '提交中...' : '确认'}
+                    <div>
+                        <label className="mb-1 block text-xs text-slate-500">支付密码 <span className="text-red-500">*</span></label>
+                        <input type="password" className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none" placeholder="请输入支付密码" value={phoneForm.zhifuPassWord} onChange={e => setPhoneForm(p => ({ ...p, zhifuPassWord: e.target.value }))} />
+                    </div>
+                    <div>
+                        <label className="mb-1 block text-xs text-slate-500">新手机号码 <span className="text-red-500">*</span></label>
+                        <input className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none" placeholder="请输入新手机号" value={phoneForm.newPhoneNum} onChange={e => setPhoneForm(p => ({ ...p, newPhoneNum: e.target.value }))} />
+                    </div>
+                    <div>
+                        <label className="mb-1 block text-xs text-slate-500">验证码 <span className="text-red-500">*</span></label>
+                        <div className="flex gap-2">
+                            <input className="flex-1 rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none" placeholder="验证码" value={phoneForm.newYzmNum} onChange={e => setPhoneForm(p => ({ ...p, newYzmNum: e.target.value }))} />
+                            <button disabled={yzmDisabled} onClick={() => sendYzm(1)} className={cn('rounded-lg px-4 py-2 text-xs font-medium transition', yzmDisabled ? 'bg-slate-700 text-slate-500' : 'bg-emerald-600 text-white hover:bg-emerald-700')}>
+                                {yzmMsg}
                             </button>
                         </div>
                     </div>
+                    <div className="flex gap-3 pt-2">
+                        <Button variant="secondary" onClick={() => setShowPhoneModal(false)} className="flex-1">取消</Button>
+                        <Button onClick={phoneBtnActive} loading={submitting} className="flex-1">确定</Button>
+                    </div>
                 </div>
-            )}
+            </Modal>
 
-            {showPasswordModal && (
-                <div style={modalOverlayStyle}>
-                    <div style={modalStyle}>
-                        <div style={modalHeaderStyle}>修改登录密码</div>
-                        <div style={modalBodyStyle}>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ fontSize: '13px', color: '#666' }}>原登陆密码：<span style={{ color: 'red' }}>*</span></label>
-                                <input
-                                    type="password"
-                                    placeholder="请输入原登录密码"
-                                    maxLength={16}
-                                    value={passwordForm.oldPassWord}
-                                    onChange={e => setPasswordForm({ ...passwordForm, oldPassWord: e.target.value })}
-                                    style={inputStyle}
-                                />
-                            </div>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ fontSize: '13px', color: '#666' }}>新登陆密码：<span style={{ color: 'red' }}>*</span></label>
-                                <input
-                                    type="password"
-                                    placeholder="请输入新登录密码"
-                                    maxLength={16}
-                                    value={passwordForm.newPassWord}
-                                    onChange={e => setPasswordForm({ ...passwordForm, newPassWord: e.target.value })}
-                                    style={inputStyle}
-                                />
-                            </div>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ fontSize: '13px', color: '#666' }}>确认新密码：<span style={{ color: 'red' }}>*</span></label>
-                                <input
-                                    type="password"
-                                    placeholder="请确认新登录密码"
-                                    maxLength={16}
-                                    value={passwordForm.queRenPassWord}
-                                    onChange={e => setPasswordForm({ ...passwordForm, queRenPassWord: e.target.value })}
-                                    style={inputStyle}
-                                />
-                            </div>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ fontSize: '13px', color: '#666' }}>手机号码：<span style={{ color: 'red' }}>*</span></label>
-                                <input
-                                    type="text"
-                                    placeholder="请输入手机号码"
-                                    maxLength={13}
-                                    value={passwordForm.phoneNum}
-                                    onChange={e => setPasswordForm({ ...passwordForm, phoneNum: e.target.value })}
-                                    style={inputStyle}
-                                />
-                            </div>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ fontSize: '13px', color: '#666' }}>验证码：<span style={{ color: 'red' }}>*</span></label>
-                                <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
-                                    <input
-                                        type="text"
-                                        placeholder="验证码"
-                                        maxLength={6}
-                                        value={passwordForm.newYzmNum}
-                                        onChange={e => setPasswordForm({ ...passwordForm, newYzmNum: e.target.value })}
-                                        style={{ ...inputStyle, flex: 1, marginTop: 0 }}
-                                    />
-                                    <button
-                                        onClick={sendYzm2}
-                                        disabled={yzmDisabled2}
-                                        style={{
-                                            padding: '10px 15px',
-                                            background: yzmDisabled2 ? '#a0cfff' : '#409eff',
-                                            color: '#fff',
-                                            border: 'none',
-                                            borderRadius: '4px',
-                                            fontSize: '12px',
-                                            whiteSpace: 'nowrap',
-                                            cursor: yzmDisabled2 ? 'not-allowed' : 'pointer'
-                                        }}
-                                    >
-                                        {yzmMsg2}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div style={modalFooterStyle}>
-                            <button onClick={() => setShowPasswordModal(false)} style={{ ...modalBtnStyle, background: '#f5f5f5', color: '#666' }}>取消</button>
-                            <button onClick={editBtnActive} disabled={submitting} style={{ ...modalBtnStyle, background: submitting ? '#ccc' : '#409eff', color: '#fff' }}>
-                                {submitting ? '提交中...' : '确认'}
+            {/* Password Modal */}
+            <Modal title="修改登陆密码" open={showPasswordModal} onClose={() => setShowPasswordModal(false)}>
+                <div className="space-y-4">
+                    <div>
+                        <label className="mb-1 block text-xs text-slate-500">原登陆密码 <span className="text-red-500">*</span></label>
+                        <input type="password" className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none" placeholder="请输入原密码" value={passwordForm.oldPassWord} onChange={e => setPasswordForm(p => ({ ...p, oldPassWord: e.target.value }))} />
+                    </div>
+                    <div>
+                        <label className="mb-1 block text-xs text-slate-500">新登陆密码 <span className="text-red-500">*</span></label>
+                        <input type="password" className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none" placeholder="请输入新密码" value={passwordForm.newPassWord} onChange={e => setPasswordForm(p => ({ ...p, newPassWord: e.target.value }))} />
+                    </div>
+                    <div>
+                        <label className="mb-1 block text-xs text-slate-500">确认新密码 <span className="text-red-500">*</span></label>
+                        <input type="password" className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none" placeholder="请确认新密码" value={passwordForm.queRenPassWord} onChange={e => setPasswordForm(p => ({ ...p, queRenPassWord: e.target.value }))} />
+                    </div>
+                    <div>
+                        <label className="mb-1 block text-xs text-slate-500">手机号码 <span className="text-red-500">*</span></label>
+                        <input className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none" placeholder="手机号" value={passwordForm.phoneNum} onChange={e => setPasswordForm(p => ({ ...p, phoneNum: e.target.value }))} />
+                    </div>
+                    <div>
+                        <label className="mb-1 block text-xs text-slate-500">验证码 <span className="text-red-500">*</span></label>
+                        <div className="flex gap-2">
+                            <input className="flex-1 rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none" placeholder="验证码" value={passwordForm.newYzmNum} onChange={e => setPasswordForm(p => ({ ...p, newYzmNum: e.target.value }))} />
+                            <button disabled={yzmDisabled2} onClick={() => sendYzm(2)} className={cn('rounded-lg px-4 py-2 text-xs font-medium transition', yzmDisabled2 ? 'bg-slate-700 text-slate-500' : 'bg-emerald-600 text-white hover:bg-emerald-700')}>
+                                {yzmMsg2}
                             </button>
                         </div>
                     </div>
+                    <div className="flex gap-3 pt-2">
+                        <Button variant="secondary" onClick={() => setShowPasswordModal(false)} className="flex-1">取消</Button>
+                        <Button onClick={editBtnActive} loading={submitting} className="flex-1">确定</Button>
+                    </div>
                 </div>
-            )}
+            </Modal>
 
-            {showPayPwdModal && (
-                <div style={modalOverlayStyle}>
-                    <div style={modalStyle}>
-                        <div style={modalHeaderStyle}>修改支付密码</div>
-                        <div style={modalBodyStyle}>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ fontSize: '13px', color: '#666' }}>新支付密码：<span style={{ color: 'red' }}>*</span></label>
-                                <input
-                                    type="password"
-                                    placeholder="请输入6位支付密码"
-                                    maxLength={6}
-                                    value={payPwdForm.newZhiFuPassWord}
-                                    onChange={e => setPayPwdForm({ ...payPwdForm, newZhiFuPassWord: e.target.value })}
-                                    style={inputStyle}
-                                />
-                            </div>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ fontSize: '13px', color: '#666' }}>确认新密码：<span style={{ color: 'red' }}>*</span></label>
-                                <input
-                                    type="password"
-                                    placeholder="请确认新支付密码"
-                                    maxLength={6}
-                                    value={payPwdForm.queRenZhiFuPassWord}
-                                    onChange={e => setPayPwdForm({ ...payPwdForm, queRenZhiFuPassWord: e.target.value })}
-                                    style={inputStyle}
-                                />
-                            </div>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ fontSize: '13px', color: '#666' }}>手机号码：<span style={{ color: 'red' }}>*</span></label>
-                                <input
-                                    type="text"
-                                    placeholder="请输入手机号"
-                                    maxLength={13}
-                                    value={payPwdForm.phoneNum}
-                                    onChange={e => setPayPwdForm({ ...payPwdForm, phoneNum: e.target.value })}
-                                    style={inputStyle}
-                                />
-                            </div>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ fontSize: '13px', color: '#666' }}>验证码：<span style={{ color: 'red' }}>*</span></label>
-                                <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
-                                    <input
-                                        type="text"
-                                        placeholder="验证码"
-                                        maxLength={6}
-                                        value={payPwdForm.yzmNum}
-                                        onChange={e => setPayPwdForm({ ...payPwdForm, yzmNum: e.target.value })}
-                                        style={{ ...inputStyle, flex: 1, marginTop: 0 }}
-                                    />
-                                    <button
-                                        onClick={sendYzm3}
-                                        disabled={yzmDisabled3}
-                                        style={{
-                                            padding: '10px 15px',
-                                            background: yzmDisabled3 ? '#a0cfff' : '#409eff',
-                                            color: '#fff',
-                                            border: 'none',
-                                            borderRadius: '4px',
-                                            fontSize: '12px',
-                                            whiteSpace: 'nowrap',
-                                            cursor: yzmDisabled3 ? 'not-allowed' : 'pointer'
-                                        }}
-                                    >
-                                        {yzmMsg3}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div style={modalFooterStyle}>
-                            <button onClick={() => setShowPayPwdModal(false)} style={{ ...modalBtnStyle, background: '#f5f5f5', color: '#666' }}>取消</button>
-                            <button onClick={zhiFuBtnActive} disabled={submitting} style={{ ...modalBtnStyle, background: submitting ? '#ccc' : '#409eff', color: '#fff' }}>
-                                {submitting ? '提交中...' : '确认'}
+            {/* Payment Password Modal */}
+            <Modal title="修改支付密码" open={showPayPwdModal} onClose={() => setShowPayPwdModal(false)}>
+                <div className="space-y-4">
+                    <div>
+                        <label className="mb-1 block text-xs text-slate-500">新支付密码 <span className="text-red-500">*</span></label>
+                        <input type="password" className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none" placeholder="6位数字密码" value={payPwdForm.newZhiFuPassWord} onChange={e => setPayPwdForm(p => ({ ...p, newZhiFuPassWord: e.target.value }))} />
+                    </div>
+                    <div>
+                        <label className="mb-1 block text-xs text-slate-500">确认新密码 <span className="text-red-500">*</span></label>
+                        <input type="password" className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none" placeholder="请确认新密码" value={payPwdForm.queRenZhiFuPassWord} onChange={e => setPayPwdForm(p => ({ ...p, queRenZhiFuPassWord: e.target.value }))} />
+                    </div>
+                    <div>
+                        <label className="mb-1 block text-xs text-slate-500">手机号码 <span className="text-red-500">*</span></label>
+                        <input className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none" placeholder="手机号" value={payPwdForm.phoneNum} onChange={e => setPayPwdForm(p => ({ ...p, phoneNum: e.target.value }))} />
+                    </div>
+                    <div>
+                        <label className="mb-1 block text-xs text-slate-500">验证码 <span className="text-red-500">*</span></label>
+                        <div className="flex gap-2">
+                            <input className="flex-1 rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none" placeholder="验证码" value={payPwdForm.yzmNum} onChange={e => setPayPwdForm(p => ({ ...p, yzmNum: e.target.value }))} />
+                            <button disabled={yzmDisabled3} onClick={() => sendYzm(3)} className={cn('rounded-lg px-4 py-2 text-xs font-medium transition', yzmDisabled3 ? 'bg-slate-700 text-slate-500' : 'bg-emerald-600 text-white hover:bg-emerald-700')}>
+                                {yzmMsg3}
                             </button>
                         </div>
                     </div>
+                    <div className="flex gap-3 pt-2">
+                        <Button variant="secondary" onClick={() => setShowPayPwdModal(false)} className="flex-1">取消</Button>
+                        <Button onClick={zhiFuBtnActive} loading={submitting} className="flex-1">确定</Button>
+                    </div>
                 </div>
-            )}
+            </Modal>
         </div>
     );
 }
