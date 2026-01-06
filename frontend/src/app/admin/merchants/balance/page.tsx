@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../../apiConfig';
+import { cn } from '../../../../lib/utils';
+import { Button } from '../../../../components/ui/button';
+import { Card } from '../../../../components/ui/card';
+import { Badge } from '../../../../components/ui/badge';
+import { Input } from '../../../../components/ui/input';
+import { Select } from '../../../../components/ui/select';
 
 interface BalanceRecord {
     id: string;
@@ -36,9 +42,9 @@ const changeTypeLabels: Record<string, string> = {
     'DEPOSIT': '押金',
 };
 
-const moneyTypeLabels: Record<number, { text: string; color: string }> = {
-    1: { text: '本金', color: '#52c41a' },
-    2: { text: '银锭', color: '#1890ff' },
+const moneyTypeLabels: Record<number, { text: string; color: 'green' | 'blue' }> = {
+    1: { text: '本金', color: 'green' },
+    2: { text: '银锭', color: 'blue' },
 };
 
 export default function AdminMerchantsBalancePage() {
@@ -46,7 +52,7 @@ export default function AdminMerchantsBalancePage() {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
-    const [moneyTypeFilter, setMoneyTypeFilter] = useState<number | undefined>(undefined);
+    const [moneyTypeFilter, setMoneyTypeFilter] = useState<string>('');
     const [search, setSearch] = useState('');
 
     useEffect(() => {
@@ -82,83 +88,104 @@ export default function AdminMerchantsBalancePage() {
     };
 
     return (
-        <div>
-            <div style={{ background: '#fff', padding: '16px 20px', borderRadius: '8px', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <span style={{ fontSize: '16px', fontWeight: '500' }}>商家余额记录</span>
-                    <span style={{ color: '#666' }}>共 {total} 条记录</span>
+        <div className="space-y-4">
+            {/* Filter Card */}
+            <Card className="bg-white">
+                <div className="mb-4 flex items-center justify-between">
+                    <span className="text-base font-medium">商家余额记录</span>
+                    <span className="text-slate-500">共 {total} 条记录</span>
                 </div>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <input
-                        type="text"
+                <div className="flex flex-wrap items-center gap-3">
+                    <Input
                         placeholder="搜索商家名..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                        style={{ width: '200px', padding: '8px 12px', border: '1px solid #d9d9d9', borderRadius: '4px' }}
+                        className="w-52"
                     />
-                    <select
-                        value={moneyTypeFilter || ''}
-                        onChange={e => { setMoneyTypeFilter(e.target.value ? parseInt(e.target.value) : undefined); setPage(1); }}
-                        style={{ padding: '8px 12px', border: '1px solid #d9d9d9', borderRadius: '4px' }}
-                    >
-                        <option value="">全部类型</option>
-                        <option value="1">本金</option>
-                        <option value="2">银锭</option>
-                    </select>
-                    <button onClick={handleSearch} style={{ padding: '8px 20px', background: '#1890ff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>搜索</button>
+                    <Select
+                        value={moneyTypeFilter}
+                        onChange={v => { setMoneyTypeFilter(v); setPage(1); }}
+                        options={[
+                            { value: '', label: '全部类型' },
+                            { value: '1', label: '本金' },
+                            { value: '2', label: '银锭' },
+                        ]}
+                        className="w-32"
+                    />
+                    <Button onClick={handleSearch}>搜索</Button>
                 </div>
-            </div>
+            </Card>
 
-            <div style={{ background: '#fff', borderRadius: '8px', overflow: 'hidden' }}>
+            {/* Table Card */}
+            <Card className="overflow-hidden bg-white p-0">
                 {loading ? (
-                    <div style={{ padding: '48px', textAlign: 'center', color: '#999' }}>加载中...</div>
+                    <div className="py-12 text-center text-slate-400">加载中...</div>
                 ) : records.length === 0 ? (
-                    <div style={{ padding: '48px', textAlign: 'center', color: '#999' }}>暂无记录</div>
+                    <div className="py-12 text-center text-slate-400">暂无记录</div>
                 ) : (
                     <>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                            <thead>
-                                <tr style={{ background: '#fafafa' }}>
-                                    <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>商家</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>类型</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>账户</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'right', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>变动金额</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'right', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>变动前</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'right', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>变动后</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>备注</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>时间</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {records.map(r => (
-                                    <tr key={r.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                        <td style={{ padding: '14px 16px', fontWeight: '500' }}>{r.username || '-'}</td>
-                                        <td style={{ padding: '14px 16px', color: '#666' }}>{changeTypeLabels[r.changeType] || r.changeType}</td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                                            <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '12px', background: (moneyTypeLabels[r.moneyType]?.color || '#999') + '20', color: moneyTypeLabels[r.moneyType]?.color || '#999' }}>
-                                                {moneyTypeLabels[r.moneyType]?.text || '未知'}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'right', color: Number(r.amount) > 0 ? '#52c41a' : '#ff4d4f', fontWeight: '500' }}>
-                                            {Number(r.amount) > 0 ? '+' : ''}{Number(r.amount).toFixed(2)}
-                                        </td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'right', color: '#999' }}>{Number(r.beforeBalance || 0).toFixed(2)}</td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'right', color: '#000' }}>{Number(r.afterBalance || 0).toFixed(2)}</td>
-                                        <td style={{ padding: '14px 16px', color: '#666', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.remark || '-'}</td>
-                                        <td style={{ padding: '14px 16px', color: '#999', fontSize: '13px' }}>{r.createdAt ? new Date(r.createdAt).toLocaleString('zh-CN') : '-'}</td>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-[1000px] w-full border-collapse">
+                                <thead>
+                                    <tr className="border-b border-slate-100 bg-slate-50">
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">商家</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">类型</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium">账户</th>
+                                        <th className="px-4 py-3.5 text-right text-sm font-medium">变动金额</th>
+                                        <th className="px-4 py-3.5 text-right text-sm font-medium">变动前</th>
+                                        <th className="px-4 py-3.5 text-right text-sm font-medium">变动后</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">备注</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">时间</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        <div style={{ padding: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #d9d9d9', background: '#fff', cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.5 : 1 }}>上一页</button>
-                            <span style={{ padding: '6px 12px', color: '#666' }}>第 {page} 页</span>
-                            <button onClick={() => setPage(p => p + 1)} disabled={records.length < 20} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #d9d9d9', background: '#fff', cursor: records.length < 20 ? 'not-allowed' : 'pointer', opacity: records.length < 20 ? 0.5 : 1 }}>下一页</button>
+                                </thead>
+                                <tbody>
+                                    {records.map(r => (
+                                        <tr key={r.id} className="border-b border-slate-100">
+                                            <td className="px-4 py-3.5 font-medium">{r.username || '-'}</td>
+                                            <td className="px-4 py-3.5 text-slate-500">{changeTypeLabels[r.changeType] || r.changeType}</td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                <Badge variant="soft" color={moneyTypeLabels[r.moneyType]?.color || 'slate'}>
+                                                    {moneyTypeLabels[r.moneyType]?.text || '未知'}
+                                                </Badge>
+                                            </td>
+                                            <td className={cn('px-4 py-3.5 text-right font-medium', Number(r.amount) > 0 ? 'text-green-600' : 'text-red-500')}>
+                                                {Number(r.amount) > 0 ? '+' : ''}{Number(r.amount).toFixed(2)}
+                                            </td>
+                                            <td className="px-4 py-3.5 text-right text-slate-400">{Number(r.beforeBalance || 0).toFixed(2)}</td>
+                                            <td className="px-4 py-3.5 text-right">{Number(r.afterBalance || 0).toFixed(2)}</td>
+                                            <td className="max-w-[150px] truncate px-4 py-3.5 text-slate-500">{r.remark || '-'}</td>
+                                            <td className="px-4 py-3.5 text-xs text-slate-400">{r.createdAt ? new Date(r.createdAt).toLocaleString('zh-CN') : '-'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-2 p-4">
+                            <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                className={cn(page === 1 && 'cursor-not-allowed opacity-50')}
+                            >
+                                上一页
+                            </Button>
+                            <span className="px-3 text-sm text-slate-500">第 {page} 页</span>
+                            <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => setPage(p => p + 1)}
+                                disabled={records.length < 20}
+                                className={cn(records.length < 20 && 'cursor-not-allowed opacity-50')}
+                            >
+                                下一页
+                            </Button>
                         </div>
                     </>
                 )}
-            </div>
+            </Card>
         </div>
     );
 }

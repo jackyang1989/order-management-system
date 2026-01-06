@@ -2,14 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../../apiConfig';
+import { cn } from '../../../../lib/utils';
+import { Button } from '../../../../components/ui/button';
+import { Card } from '../../../../components/ui/card';
+import { Badge } from '../../../../components/ui/badge';
+import { Select } from '../../../../components/ui/select';
+import { Modal } from '../../../../components/ui/modal';
 
 interface BuyerAccount {
     id: string;
     userId: string;
-    user?: {
-        username: string;
-        phone: string;
-    };
+    user?: { username: string; phone: string };
     platform: string;
     accountName: string;
     province?: string;
@@ -33,19 +36,15 @@ interface BuyerAccount {
 }
 
 const platformNames: Record<string, string> = {
-    '淘宝': '淘宝',
-    '京东': '京东',
-    '拼多多': '拼多多',
-    '1': '淘宝',
-    '2': '京东',
-    '3': '拼多多',
+    '淘宝': '淘宝', '京东': '京东', '拼多多': '拼多多',
+    '1': '淘宝', '2': '京东', '3': '拼多多',
 };
 
-const statusLabels: Record<number, { text: string; color: string }> = {
-    0: { text: '待审核', color: '#faad14' },
-    1: { text: '已通过', color: '#52c41a' },
-    2: { text: '已拒绝', color: '#ff4d4f' },
-    3: { text: '已删除', color: '#999' }
+const statusLabels: Record<number, { text: string; color: 'amber' | 'green' | 'red' | 'slate' }> = {
+    0: { text: '待审核', color: 'amber' },
+    1: { text: '已通过', color: 'green' },
+    2: { text: '已拒绝', color: 'red' },
+    3: { text: '已删除', color: 'slate' }
 };
 
 export default function AdminBuyerAccountsPage() {
@@ -64,9 +63,7 @@ export default function AdminBuyerAccountsPage() {
 
     const getToken = () => localStorage.getItem('adminToken');
 
-    useEffect(() => {
-        loadAccounts();
-    }, [page, filterStatus]);
+    useEffect(() => { loadAccounts(); }, [page, filterStatus]);
 
     const loadAccounts = async () => {
         setLoading(true);
@@ -75,9 +72,7 @@ export default function AdminBuyerAccountsPage() {
             const params = new URLSearchParams();
             params.append('page', page.toString());
             params.append('limit', '20');
-            if (filterStatus) {
-                params.append('status', filterStatus);
-            }
+            if (filterStatus) params.append('status', filterStatus);
 
             const res = await fetch(`${BASE_URL}/admin/buyer-accounts?${params.toString()}`, {
                 headers: { 'Authorization': `Bearer ${getToken()}` }
@@ -99,97 +94,57 @@ export default function AdminBuyerAccountsPage() {
         try {
             const res = await fetch(`${BASE_URL}/admin/buyer-accounts/${id}/review`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getToken()}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
                 body: JSON.stringify({ approved: true })
             });
             const data = await res.json();
-            if (data.success) {
-                alert('审核通过');
-                loadAccounts();
-                setDetailModal(null);
-            } else {
-                alert(data.message);
-            }
-        } catch (error) {
-            alert('操作失败');
-        }
+            if (data.success) { alert('审核通过'); loadAccounts(); setDetailModal(null); }
+            else alert(data.message);
+        } catch { alert('操作失败'); }
     };
 
     const handleReject = async (id: string) => {
-        if (!rejectReason.trim()) {
-            alert('请输入拒绝理由');
-            return;
-        }
+        if (!rejectReason.trim()) { alert('请输入拒绝理由'); return; }
         try {
             const res = await fetch(`${BASE_URL}/admin/buyer-accounts/${id}/review`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getToken()}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
                 body: JSON.stringify({ approved: false, rejectReason })
             });
             const data = await res.json();
-            if (data.success) {
-                alert('已拒绝');
-                setRejectingId(null);
-                setRejectReason('');
-                loadAccounts();
-                setDetailModal(null);
-            } else {
-                alert(data.message);
-            }
-        } catch (error) {
-            alert('操作失败');
-        }
+            if (data.success) { alert('已拒绝'); setRejectingId(null); setRejectReason(''); loadAccounts(); setDetailModal(null); }
+            else alert(data.message);
+        } catch { alert('操作失败'); }
     };
 
     const handleSetStar = async (id: string, star: number) => {
         try {
             const res = await fetch(`${BASE_URL}/admin/buyer-accounts/${id}/star`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getToken()}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
                 body: JSON.stringify({ star })
             });
             const data = await res.json();
-            if (data.success) {
-                alert('星级设置成功');
-                loadAccounts();
-            } else {
-                alert(data.message);
-            }
-        } catch (error) {
-            alert('操作失败');
-        }
+            if (data.success) { alert('星级设置成功'); loadAccounts(); }
+            else alert(data.message);
+        } catch { alert('操作失败'); }
     };
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
             const pendingIds = accounts.filter(a => a.status === 0).map(a => a.id);
             setSelectedIds(new Set(pendingIds));
-        } else {
-            setSelectedIds(new Set());
-        }
+        } else setSelectedIds(new Set());
     };
 
     const handleSelectOne = (id: string, checked: boolean) => {
         const newSet = new Set(selectedIds);
-        if (checked) newSet.add(id);
-        else newSet.delete(id);
+        if (checked) newSet.add(id); else newSet.delete(id);
         setSelectedIds(newSet);
     };
 
     const handleBatchReview = async (approved: boolean) => {
-        if (selectedIds.size === 0) {
-            alert('请先选择要操作的记录');
-            return;
-        }
+        if (selectedIds.size === 0) { alert('请先选择要操作的记录'); return; }
         const action = approved ? '批量通过' : '批量拒绝';
         if (!confirm(`确定要${action}选中的 ${selectedIds.size} 条记录吗？`)) return;
 
@@ -198,28 +153,14 @@ export default function AdminBuyerAccountsPage() {
         try {
             const res = await fetch(`${BASE_URL}/admin/buyer-accounts/batch-review`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getToken()}`
-                },
-                body: JSON.stringify({
-                    ids: Array.from(selectedIds),
-                    approved,
-                    rejectReason: rejectReasonInput
-                })
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+                body: JSON.stringify({ ids: Array.from(selectedIds), approved, rejectReason: rejectReasonInput })
             });
             const data = await res.json();
-            if (data.success) {
-                alert(data.message);
-                loadAccounts();
-            } else {
-                alert(data.message || '操作失败');
-            }
-        } catch (error) {
-            alert('操作失败');
-        } finally {
-            setBatchLoading(false);
-        }
+            if (data.success) { alert(data.message); loadAccounts(); }
+            else alert(data.message || '操作失败');
+        } catch { alert('操作失败'); }
+        finally { setBatchLoading(false); }
     };
 
     const pendingAccounts = accounts.filter(a => a.status === 0);
@@ -228,239 +169,240 @@ export default function AdminBuyerAccountsPage() {
     const renderImageThumbnail = (url: string | undefined, label: string) => {
         if (!url) return null;
         return (
-            <div style={{ textAlign: 'center' }}>
-                <img
-                    src={url}
-                    alt={label}
-                    style={{ width: '120px', height: '80px', objectFit: 'cover', borderRadius: '4px', cursor: 'pointer', border: '1px solid #d9d9d9' }}
-                    onClick={() => setImageModal(url)}
-                />
-                <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{label}</div>
+            <div className="text-center">
+                <img src={url} alt={label} className="h-20 w-[120px] cursor-pointer rounded border border-slate-200 object-cover" onClick={() => setImageModal(url)} />
+                <div className="mt-1 text-xs text-slate-500">{label}</div>
             </div>
         );
     };
 
     return (
-        <div>
-            <div style={{ background: '#fff', padding: '16px 20px', borderRadius: '8px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <span style={{ fontSize: '16px', fontWeight: '500' }}>买号审核</span>
-                    <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
-                        style={{ padding: '8px 12px', border: '1px solid #d9d9d9', borderRadius: '4px' }}>
-                        <option value="">全部状态</option>
-                        <option value="0">待审核</option>
-                        <option value="1">已通过</option>
-                        <option value="2">已拒绝</option>
-                    </select>
-                </div>
-                {filterStatus === '0' && (
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                        <button onClick={() => handleBatchReview(true)} disabled={batchLoading || selectedIds.size === 0}
-                            style={{ padding: '8px 16px', borderRadius: '4px', border: 'none', background: selectedIds.size === 0 ? '#d9d9d9' : '#52c41a', color: '#fff', cursor: selectedIds.size === 0 ? 'not-allowed' : 'pointer', fontSize: '14px' }}>
-                            {batchLoading ? '处理中...' : `批量通过 (${selectedIds.size})`}
-                        </button>
-                        <button onClick={() => handleBatchReview(false)} disabled={batchLoading || selectedIds.size === 0}
-                            style={{ padding: '8px 16px', borderRadius: '4px', border: '1px solid #ff4d4f', background: selectedIds.size === 0 ? '#f5f5f5' : '#fff', color: selectedIds.size === 0 ? '#999' : '#ff4d4f', cursor: selectedIds.size === 0 ? 'not-allowed' : 'pointer', fontSize: '14px' }}>
-                            批量拒绝
-                        </button>
+        <div className="space-y-4">
+            {/* Header */}
+            <Card className="bg-white">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <span className="text-base font-medium">买号审核</span>
+                        <Select
+                            value={filterStatus}
+                            onChange={v => { setFilterStatus(v); setPage(1); }}
+                            options={[
+                                { value: '', label: '全部状态' },
+                                { value: '0', label: '待审核' },
+                                { value: '1', label: '已通过' },
+                                { value: '2', label: '已拒绝' },
+                            ]}
+                            className="w-32"
+                        />
                     </div>
-                )}
-            </div>
+                    {filterStatus === '0' && (
+                        <div className="flex gap-2">
+                            <Button
+                                onClick={() => handleBatchReview(true)}
+                                disabled={batchLoading || selectedIds.size === 0}
+                                className={cn('bg-green-500 text-white hover:bg-green-600', selectedIds.size === 0 && 'cursor-not-allowed opacity-50')}
+                            >
+                                {batchLoading ? '处理中...' : `批量通过 (${selectedIds.size})`}
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                onClick={() => handleBatchReview(false)}
+                                disabled={batchLoading || selectedIds.size === 0}
+                                className={cn(selectedIds.size === 0 && 'cursor-not-allowed opacity-50')}
+                            >
+                                批量拒绝
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            </Card>
 
-            <div style={{ background: '#fff', borderRadius: '8px', overflow: 'hidden' }}>
+            {/* Table */}
+            <Card className="overflow-hidden bg-white p-0">
                 {loading ? (
-                    <div style={{ padding: '40px', textAlign: 'center' }}>加载中...</div>
+                    <div className="py-10 text-center text-slate-400">加载中...</div>
                 ) : accounts.length === 0 ? (
-                    <div style={{ padding: '40px', textAlign: 'center', color: '#999' }}>暂无数据</div>
+                    <div className="py-10 text-center text-slate-400">暂无数据</div>
                 ) : (
                     <>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                            <thead>
-                                <tr style={{ background: '#fafafa' }}>
-                                    {filterStatus === '0' && (
-                                        <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0', width: '50px' }}>
-                                            <input type="checkbox" checked={allPendingSelected} onChange={(e) => handleSelectAll(e.target.checked)} style={{ cursor: 'pointer' }} />
-                                        </th>
-                                    )}
-                                    <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>买号账号</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>平台</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>收货信息</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>星级</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>状态</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>提交时间</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {accounts.map(a => (
-                                    <tr key={a.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-[1100px] w-full border-collapse">
+                                <thead>
+                                    <tr className="border-b border-slate-100 bg-slate-50">
                                         {filterStatus === '0' && (
-                                            <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                                                {a.status === 0 && <input type="checkbox" checked={selectedIds.has(a.id)} onChange={(e) => handleSelectOne(a.id, e.target.checked)} style={{ cursor: 'pointer' }} />}
-                                            </td>
+                                            <th className="w-[50px] px-4 py-3.5 text-center text-sm font-medium">
+                                                <input type="checkbox" checked={allPendingSelected} onChange={e => handleSelectAll(e.target.checked)} className="cursor-pointer" />
+                                            </th>
                                         )}
-                                        <td style={{ padding: '14px 16px' }}>
-                                            <div style={{ fontWeight: '500', color: '#1890ff' }}>{a.accountName}</div>
-                                            {a.alipayName && <div style={{ fontSize: '12px', color: '#999' }}>支付宝: {a.alipayName}</div>}
-                                        </td>
-                                        <td style={{ padding: '14px 16px' }}>
-                                            <span style={{ padding: '2px 8px', background: '#f0f0f0', borderRadius: '4px', fontSize: '12px' }}>{platformNames[a.platform] || a.platform || '未知'}</span>
-                                        </td>
-                                        <td style={{ padding: '14px 16px' }}>
-                                            <div style={{ fontSize: '13px' }}>{a.receiverName} {a.receiverPhone}</div>
-                                            <div style={{ fontSize: '12px', color: '#999' }}>{a.province} {a.city}</div>
-                                        </td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                                            <select value={a.star} onChange={(e) => handleSetStar(a.id, parseInt(e.target.value))}
-                                                style={{ padding: '4px 8px', border: '1px solid #d9d9d9', borderRadius: '4px', fontSize: '12px' }}>
-                                                {[1, 2, 3, 4, 5].map(s => <option key={s} value={s}>{s}星</option>)}
-                                            </select>
-                                        </td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                                            <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '12px', background: statusLabels[a.status]?.color + '20', color: statusLabels[a.status]?.color }}>{statusLabels[a.status]?.text}</span>
-                                            {a.rejectReason && <div style={{ fontSize: '11px', color: '#ff4d4f', marginTop: '4px' }}>{a.rejectReason}</div>}
-                                        </td>
-                                        <td style={{ padding: '14px 16px', color: '#999', fontSize: '13px' }}>{new Date(a.createdAt).toLocaleDateString()}</td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                                                <button onClick={() => setDetailModal(a)} style={{ padding: '4px 12px', borderRadius: '4px', border: '1px solid #1890ff', background: '#fff', color: '#1890ff', cursor: 'pointer' }}>查看</button>
-                                                {a.status === 0 && (
-                                                    <>
-                                                        <button onClick={() => handleApprove(a.id)} style={{ padding: '4px 12px', borderRadius: '4px', border: 'none', background: '#52c41a', color: '#fff', cursor: 'pointer' }}>通过</button>
-                                                        <button onClick={() => setRejectingId(a.id)} style={{ padding: '4px 12px', borderRadius: '4px', border: '1px solid #ff4d4f', background: '#fff', color: '#ff4d4f', cursor: 'pointer' }}>拒绝</button>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </td>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">买号账号</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">平台</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">收货信息</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium">星级</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium">状态</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">提交时间</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium">操作</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {accounts.map(a => (
+                                        <tr key={a.id} className="border-b border-slate-100">
+                                            {filterStatus === '0' && (
+                                                <td className="px-4 py-3.5 text-center">
+                                                    {a.status === 0 && <input type="checkbox" checked={selectedIds.has(a.id)} onChange={e => handleSelectOne(a.id, e.target.checked)} className="cursor-pointer" />}
+                                                </td>
+                                            )}
+                                            <td className="px-4 py-3.5">
+                                                <div className="font-medium text-blue-600">{a.accountName}</div>
+                                                {a.alipayName && <div className="text-xs text-slate-400">支付宝: {a.alipayName}</div>}
+                                            </td>
+                                            <td className="px-4 py-3.5">
+                                                <span className="rounded bg-slate-100 px-2 py-0.5 text-xs">{platformNames[a.platform] || a.platform || '未知'}</span>
+                                            </td>
+                                            <td className="px-4 py-3.5">
+                                                <div className="text-sm">{a.receiverName} {a.receiverPhone}</div>
+                                                <div className="text-xs text-slate-400">{a.province} {a.city}</div>
+                                            </td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                <select
+                                                    value={a.star}
+                                                    onChange={e => handleSetStar(a.id, parseInt(e.target.value))}
+                                                    className="rounded border border-slate-200 px-2 py-1 text-xs"
+                                                >
+                                                    {[1, 2, 3, 4, 5].map(s => <option key={s} value={s}>{s}星</option>)}
+                                                </select>
+                                            </td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                <Badge variant="soft" color={statusLabels[a.status]?.color}>{statusLabels[a.status]?.text}</Badge>
+                                                {a.rejectReason && <div className="mt-1 text-[11px] text-red-500">{a.rejectReason}</div>}
+                                            </td>
+                                            <td className="px-4 py-3.5 text-xs text-slate-400">{new Date(a.createdAt).toLocaleDateString()}</td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                <div className="flex flex-wrap justify-center gap-1.5">
+                                                    <Button size="sm" variant="secondary" onClick={() => setDetailModal(a)}>查看</Button>
+                                                    {a.status === 0 && (
+                                                        <>
+                                                            <Button size="sm" className="bg-green-500 text-white hover:bg-green-600" onClick={() => handleApprove(a.id)}>通过</Button>
+                                                            <Button size="sm" variant="destructive" onClick={() => setRejectingId(a.id)}>拒绝</Button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
                         {totalPages > 1 && (
-                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px', gap: '8px' }}>
-                                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                                    style={{ padding: '8px 16px', border: '1px solid #d9d9d9', borderRadius: '4px', cursor: page === 1 ? 'not-allowed' : 'pointer', background: page === 1 ? '#f5f5f5' : '#fff' }}>上一页</button>
-                                <span style={{ padding: '0 16px' }}>{page} / {totalPages} (共 {total} 条)</span>
-                                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                                    style={{ padding: '8px 16px', border: '1px solid #d9d9d9', borderRadius: '4px', cursor: page === totalPages ? 'not-allowed' : 'pointer', background: page === totalPages ? '#f5f5f5' : '#fff' }}>下一页</button>
+                            <div className="flex items-center justify-center gap-2 p-4">
+                                <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className={cn(page === 1 && 'cursor-not-allowed opacity-50')}>上一页</Button>
+                                <span className="px-4 text-sm text-slate-500">{page} / {totalPages} (共 {total} 条)</span>
+                                <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className={cn(page === totalPages && 'cursor-not-allowed opacity-50')}>下一页</Button>
                             </div>
                         )}
                     </>
                 )}
-            </div>
+            </Card>
 
-            {/* 详情弹窗 */}
-            {detailModal && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: '#fff', borderRadius: '8px', width: '700px', maxWidth: '95%', maxHeight: '90vh', overflow: 'auto' }}>
-                        <div style={{ padding: '20px 24px', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h3 style={{ margin: 0, fontSize: '16px' }}>买号详情</h3>
-                            <button onClick={() => setDetailModal(null)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#999' }}>x</button>
+            {/* Detail Modal */}
+            <Modal title="买号详情" open={detailModal !== null} onClose={() => setDetailModal(null)} className="max-w-2xl">
+                {detailModal && (
+                    <div className="space-y-6">
+                        {/* Basic Info */}
+                        <div>
+                            <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm font-medium text-slate-600">基本信息</h4>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                <div><span className="text-slate-400">账号名称：</span><span className="font-medium">{detailModal.accountName}</span></div>
+                                <div><span className="text-slate-400">平台：</span>{platformNames[detailModal.platform] || detailModal.platform}</div>
+                                <div><span className="text-slate-400">支付宝姓名：</span>{detailModal.alipayName || '-'}</div>
+                                <div><span className="text-slate-400">星级：</span>{detailModal.star}星</div>
+                                <div><span className="text-slate-400">状态：</span><Badge variant="soft" color={statusLabels[detailModal.status]?.color}>{statusLabels[detailModal.status]?.text}</Badge></div>
+                                <div><span className="text-slate-400">提交时间：</span>{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</div>
+                            </div>
                         </div>
-                        <div style={{ padding: '24px' }}>
-                            {/* 基本信息 */}
-                            <div style={{ marginBottom: '24px' }}>
-                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>基本信息</h4>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                    <div><span style={{ color: '#999' }}>账号名称：</span><span style={{ fontWeight: '500' }}>{detailModal.accountName}</span></div>
-                                    <div><span style={{ color: '#999' }}>平台：</span>{platformNames[detailModal.platform] || detailModal.platform}</div>
-                                    <div><span style={{ color: '#999' }}>支付宝姓名：</span>{detailModal.alipayName || '-'}</div>
-                                    <div><span style={{ color: '#999' }}>星级：</span>{detailModal.star}星</div>
-                                    <div><span style={{ color: '#999' }}>状态：</span>
-                                        <span style={{ color: statusLabels[detailModal.status]?.color }}>{statusLabels[detailModal.status]?.text}</span>
-                                    </div>
-                                    <div><span style={{ color: '#999' }}>提交时间：</span>{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</div>
-                                </div>
+
+                        {/* Receiver Info */}
+                        <div>
+                            <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm font-medium text-slate-600">收货信息</h4>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                <div><span className="text-slate-400">收货人：</span>{detailModal.receiverName || '-'}</div>
+                                <div><span className="text-slate-400">手机号：</span>{detailModal.receiverPhone || '-'}</div>
+                                <div><span className="text-slate-400">省份：</span>{detailModal.province || '-'}</div>
+                                <div><span className="text-slate-400">城市：</span>{detailModal.city || '-'}</div>
+                                <div className="col-span-2"><span className="text-slate-400">详细地址：</span>{detailModal.fullAddress || '-'}</div>
                             </div>
-
-                            {/* 收货信息 */}
-                            <div style={{ marginBottom: '24px' }}>
-                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>收货信息</h4>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                    <div><span style={{ color: '#999' }}>收货人：</span>{detailModal.receiverName || '-'}</div>
-                                    <div><span style={{ color: '#999' }}>手机号：</span>{detailModal.receiverPhone || '-'}</div>
-                                    <div><span style={{ color: '#999' }}>省份：</span>{detailModal.province || '-'}</div>
-                                    <div><span style={{ color: '#999' }}>城市：</span>{detailModal.city || '-'}</div>
-                                    <div style={{ gridColumn: '1 / -1' }}><span style={{ color: '#999' }}>详细地址：</span>{detailModal.fullAddress || '-'}</div>
-                                </div>
-                            </div>
-
-                            {/* 旺旺信息 */}
-                            {(detailModal.wangwangProvince || detailModal.wangwangCity || detailModal.addressRemark) && (
-                                <div style={{ marginBottom: '24px' }}>
-                                    <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>旺旺信息</h4>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                        <div><span style={{ color: '#999' }}>旺旺省份：</span>{detailModal.wangwangProvince || '-'}</div>
-                                        <div><span style={{ color: '#999' }}>旺旺城市：</span>{detailModal.wangwangCity || '-'}</div>
-                                        {detailModal.addressRemark && (
-                                            <div style={{ gridColumn: '1 / -1' }}><span style={{ color: '#999' }}>地址备注：</span>{detailModal.addressRemark}</div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* 认证图片 */}
-                            <div style={{ marginBottom: '24px' }}>
-                                <h4 style={{ fontSize: '14px', color: '#666', marginBottom: '12px', borderBottom: '1px solid #f0f0f0', paddingBottom: '8px' }}>认证图片</h4>
-                                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                                    {renderImageThumbnail(detailModal.idCardImage, '身份证截图')}
-                                    {renderImageThumbnail(detailModal.alipayImage, '支付宝认证')}
-                                    {renderImageThumbnail(detailModal.archiveImage, '旺旺档案')}
-                                    {renderImageThumbnail(detailModal.ipImage, 'IP截图')}
-                                    {!detailModal.idCardImage && !detailModal.alipayImage && !detailModal.archiveImage && !detailModal.ipImage && (
-                                        <div style={{ color: '#999', padding: '20px' }}>暂无认证图片</div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* 拒绝原因 */}
-                            {detailModal.rejectReason && (
-                                <div style={{ marginBottom: '24px', padding: '12px', background: '#fff2f0', borderRadius: '4px', border: '1px solid #ffccc7' }}>
-                                    <span style={{ color: '#ff4d4f', fontWeight: '500' }}>拒绝原因：</span>
-                                    <span style={{ color: '#ff4d4f' }}>{detailModal.rejectReason}</span>
-                                </div>
-                            )}
-
-                            {/* 操作按钮 */}
-                            {detailModal.status === 0 && (
-                                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #f0f0f0' }}>
-                                    <button onClick={() => { setRejectingId(detailModal.id); setDetailModal(null); }}
-                                        style={{ padding: '10px 24px', background: '#fff', color: '#ff4d4f', border: '1px solid #ff4d4f', borderRadius: '4px', cursor: 'pointer' }}>拒绝</button>
-                                    <button onClick={() => handleApprove(detailModal.id)}
-                                        style={{ padding: '10px 24px', background: '#52c41a', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>通过审核</button>
-                                </div>
-                            )}
                         </div>
+
+                        {/* Wangwang Info */}
+                        {(detailModal.wangwangProvince || detailModal.wangwangCity || detailModal.addressRemark) && (
+                            <div>
+                                <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm font-medium text-slate-600">旺旺信息</h4>
+                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                    <div><span className="text-slate-400">旺旺省份：</span>{detailModal.wangwangProvince || '-'}</div>
+                                    <div><span className="text-slate-400">旺旺城市：</span>{detailModal.wangwangCity || '-'}</div>
+                                    {detailModal.addressRemark && <div className="col-span-2"><span className="text-slate-400">地址备注：</span>{detailModal.addressRemark}</div>}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Images */}
+                        <div>
+                            <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm font-medium text-slate-600">认证图片</h4>
+                            <div className="flex flex-wrap gap-4">
+                                {renderImageThumbnail(detailModal.idCardImage, '身份证截图')}
+                                {renderImageThumbnail(detailModal.alipayImage, '支付宝认证')}
+                                {renderImageThumbnail(detailModal.archiveImage, '旺旺档案')}
+                                {renderImageThumbnail(detailModal.ipImage, 'IP截图')}
+                                {!detailModal.idCardImage && !detailModal.alipayImage && !detailModal.archiveImage && !detailModal.ipImage && (
+                                    <div className="p-5 text-slate-400">暂无认证图片</div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Reject Reason */}
+                        {detailModal.rejectReason && (
+                            <div className="rounded border border-red-200 bg-red-50 p-3">
+                                <span className="font-medium text-red-500">拒绝原因：</span>
+                                <span className="text-red-500">{detailModal.rejectReason}</span>
+                            </div>
+                        )}
+
+                        {/* Actions */}
+                        {detailModal.status === 0 && (
+                            <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                                <Button variant="destructive" onClick={() => { setRejectingId(detailModal.id); setDetailModal(null); }}>拒绝</Button>
+                                <Button className="bg-green-500 text-white hover:bg-green-600" onClick={() => handleApprove(detailModal.id)}>通过审核</Button>
+                            </div>
+                        )}
                     </div>
-                </div>
-            )}
+                )}
+            </Modal>
 
-            {/* 图片预览弹窗 */}
+            {/* Image Preview */}
             {imageModal && (
-                <div onClick={() => setImageModal(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, cursor: 'zoom-out' }}>
-                    <img src={imageModal} alt="预览" style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain' }} />
+                <div onClick={() => setImageModal(null)} className="fixed inset-0 z-[1100] flex cursor-zoom-out items-center justify-center bg-black/80">
+                    <img src={imageModal} alt="预览" className="max-h-[90%] max-w-[90%] object-contain" />
                 </div>
             )}
 
-            {/* 拒绝弹窗 */}
-            {rejectingId && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: '#fff', borderRadius: '8px', padding: '24px', width: '400px', maxWidth: '90%' }}>
-                        <h3 style={{ marginBottom: '16px' }}>拒绝买号</h3>
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px' }}>拒绝理由</label>
-                            <textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="请输入拒绝理由..."
-                                style={{ width: '100%', padding: '10px 12px', border: '1px solid #d9d9d9', borderRadius: '4px', minHeight: '80px', resize: 'vertical', boxSizing: 'border-box' }} />
-                        </div>
-                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                            <button onClick={() => { setRejectingId(null); setRejectReason(''); }}
-                                style={{ padding: '10px 24px', background: '#fff', color: '#666', border: '1px solid #d9d9d9', borderRadius: '4px', cursor: 'pointer' }}>取消</button>
-                            <button onClick={() => handleReject(rejectingId)}
-                                style={{ padding: '10px 24px', background: '#ff4d4f', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>确认拒绝</button>
-                        </div>
+            {/* Reject Modal */}
+            <Modal title="拒绝买号" open={rejectingId !== null} onClose={() => { setRejectingId(null); setRejectReason(''); }} className="max-w-sm">
+                <div className="space-y-4">
+                    <div>
+                        <label className="mb-2 block text-sm font-medium">拒绝理由</label>
+                        <textarea
+                            value={rejectReason}
+                            onChange={e => setRejectReason(e.target.value)}
+                            placeholder="请输入拒绝理由..."
+                            className="min-h-[80px] w-full resize-y rounded border border-slate-300 p-2.5"
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3">
+                        <Button variant="secondary" onClick={() => { setRejectingId(null); setRejectReason(''); }}>取消</Button>
+                        <Button variant="destructive" onClick={() => rejectingId && handleReject(rejectingId)}>确认拒绝</Button>
                     </div>
                 </div>
-            )}
+            </Modal>
         </div>
     );
 }
