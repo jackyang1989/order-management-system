@@ -65,7 +65,7 @@ export default function PaymentSettingsPage() {
         <div className="min-h-screen bg-slate-50 pb-20">
             {/* Header */}
             <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
-                <div className="mx-auto flex h-14 max-w-md items-center px-4">
+                <div className="mx-auto flex h-14 max-w-[515px] items-center px-4">
                     <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
                     <h1 className="flex-1 text-base font-medium text-slate-800">银行卡管理</h1>
                     <button onClick={() => setShowAddModal(true)} className="text-sm font-medium text-blue-500">添加</button>

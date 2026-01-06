@@ -173,8 +173,8 @@ function OrdersPageContent() {
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
             {/* Header Area */}
-            <div className="sticky top-0 z-20 border-b border-slate-200 bg-white">
-                <div className="mx-auto max-w-md px-4">
+            <div className="sticky top-0 z-20 mx-auto max-w-[515px] border-b border-slate-200 bg-white">
+                <div className="px-4">
                     <div className="flex h-14 items-center">
                         <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
                         <h1 className="flex-1 text-base font-medium text-slate-800">任务管理</h1>
@@ -189,7 +189,7 @@ function OrdersPageContent() {
                 </div>
             </div>
 
-            <div className="mx-auto max-w-md">
+            <div>
                 {/* Filters Panel */}
                 {showFilters && (
                     <div className="border-b border-slate-200 bg-white px-4 py-4">

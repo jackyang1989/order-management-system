@@ -76,16 +76,16 @@ export default function InvitePage() {
     return (
         <div className="min-h-screen bg-slate-50 pb-4">
             {/* Header */}
-            <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
-                <div className="mx-auto flex h-14 max-w-md items-center px-4">
+            <header className="sticky top-0 z-20 mx-auto max-w-[515px] border-b border-slate-200 bg-white">
+                <div className="flex h-14 items-center px-4">
                     <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
                     <h1 className="flex-1 text-base font-medium text-slate-800">邀请好友</h1>
                 </div>
             </header>
 
-            <div className="mx-auto max-w-md">
+            <div className="px-4 pb-24 pt-4">
                 {/* Stats Card */}
-                <div className="mx-4 mt-4 grid grid-cols-2 gap-3">
+                <div className="mt-4 grid grid-cols-2 gap-3">
                     <div className="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
                         <div className="text-2xl font-bold text-slate-800">{stats.totalInvited}</div>
                         <div className="mt-1 text-xs text-slate-400">累计邀请(人)</div>

@@ -47,8 +47,8 @@ export default function ProfilePage() {
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
             {/* Header */}
-            <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
-                <div className="mx-auto flex h-14 max-w-md items-center justify-between px-4">
+            <header className="sticky top-0 z-10 mx-auto max-w-[515px] border-b border-slate-200 bg-white">
+                <div className="flex h-14 items-center justify-between px-4">
                     <h1 className="text-base font-medium text-slate-800">个人中心</h1>
                     <div className="flex gap-2">
                         <Button variant="ghost" size="sm" className="text-blue-500 hover:bg-blue-50" onClick={() => router.push('/tasks')}>继续任务</Button>
@@ -57,7 +57,7 @@ export default function ProfilePage() {
                 </div>
             </header>
 
-            <div className="mx-auto max-w-md">
+            <div>
                 {/* User Info Card */}
                 <div className="px-4 pt-4">
                     <Card className="flex items-center gap-4 border-slate-200 p-5 shadow-sm">

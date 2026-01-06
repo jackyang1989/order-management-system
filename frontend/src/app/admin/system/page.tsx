@@ -23,39 +23,22 @@ export default function AdminSystemPage() {
     return (
         <div>
             {/* 基础参数 */}
-            <div style={{
-                background: '#fff',
-                borderRadius: '8px',
-                overflow: 'hidden'
-            }}>
-                <div style={{
-                    padding: '16px 24px',
-                    borderBottom: '1px solid #f0f0f0',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                }}>
-                    <span style={{ fontSize: '16px', fontWeight: '500' }}>基础参数设置</span>
+            <div className="overflow-hidden rounded-lg bg-white">
+                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                    <span className="text-base font-medium">基础参数设置</span>
                     <button
                         onClick={handleSave}
-                        style={{
-                            padding: '8px 20px',
-                            background: '#1890ff',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                        }}
+                        className="cursor-pointer rounded bg-blue-500 px-5 py-2 text-white hover:bg-blue-600"
                     >
                         保存设置
                     </button>
                 </div>
 
-                <div style={{ padding: '24px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                <div className="p-6">
+                    <div className="grid grid-cols-2 gap-6">
                         {params.map((param, idx) => (
-                            <div key={param.key} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                <label style={{ color: '#666', fontSize: '14px' }}>{param.label}</label>
+                            <div key={param.key} className="flex flex-col gap-2">
+                                <label className="text-sm text-slate-500">{param.label}</label>
                                 <input
                                     type={param.type}
                                     value={param.value}
@@ -64,12 +47,7 @@ export default function AdminSystemPage() {
                                         updated[idx].value = e.target.value;
                                         setParams(updated);
                                     }}
-                                    style={{
-                                        padding: '10px 12px',
-                                        border: '1px solid #d9d9d9',
-                                        borderRadius: '4px',
-                                        fontSize: '14px'
-                                    }}
+                                    className="rounded border border-slate-300 px-3 py-2.5 text-sm"
                                 />
                             </div>
                         ))}
@@ -78,25 +56,20 @@ export default function AdminSystemPage() {
             </div>
 
             {/* 系统信息 */}
-            <div style={{
-                background: '#fff',
-                borderRadius: '8px',
-                marginTop: '20px',
-                padding: '24px'
-            }}>
-                <h3 style={{ marginBottom: '16px', fontSize: '16px', fontWeight: '500' }}>系统信息</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-                    <div style={{ padding: '16px', background: '#fafafa', borderRadius: '6px' }}>
-                        <div style={{ color: '#666', fontSize: '13px', marginBottom: '4px' }}>系统版本</div>
-                        <div style={{ fontWeight: '500' }}>v2.0.0</div>
+            <div className="mt-5 rounded-lg bg-white p-6">
+                <h3 className="mb-4 text-base font-medium">系统信息</h3>
+                <div className="grid grid-cols-3 gap-4">
+                    <div className="rounded-md bg-slate-50 p-4">
+                        <div className="mb-1 text-xs text-slate-500">系统版本</div>
+                        <div className="font-medium">v2.0.0</div>
                     </div>
-                    <div style={{ padding: '16px', background: '#fafafa', borderRadius: '6px' }}>
-                        <div style={{ color: '#666', fontSize: '13px', marginBottom: '4px' }}>数据库状态</div>
-                        <div style={{ fontWeight: '500', color: '#52c41a' }}>正常运行</div>
+                    <div className="rounded-md bg-slate-50 p-4">
+                        <div className="mb-1 text-xs text-slate-500">数据库状态</div>
+                        <div className="font-medium text-green-500">正常运行</div>
                     </div>
-                    <div style={{ padding: '16px', background: '#fafafa', borderRadius: '6px' }}>
-                        <div style={{ color: '#666', fontSize: '13px', marginBottom: '4px' }}>服务器时间</div>
-                        <div style={{ fontWeight: '500' }}>{new Date().toLocaleString('zh-CN')}</div>
+                    <div className="rounded-md bg-slate-50 p-4">
+                        <div className="mb-1 text-xs text-slate-500">服务器时间</div>
+                        <div className="font-medium">{new Date().toLocaleString('zh-CN')}</div>
                     </div>
                 </div>
             </div>

@@ -79,8 +79,8 @@ function VipContent() {
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
             {/* Header */}
-            <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
-                <div className="mx-auto flex h-14 max-w-md items-center px-4">
+            <header className="sticky top-0 z-10 mx-auto max-w-[515px] border-b border-slate-200 bg-white">
+                <div className="flex h-14 items-center px-4">
                     <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
                     <div className="flex-1">
                         <h1 className="text-base font-medium text-slate-800">VIP会员中心</h1>
@@ -89,7 +89,7 @@ function VipContent() {
                 </div>
             </header>
 
-            <div className="mx-auto max-w-md">
+            <div>
                 {/* Balance Card */}
                 <div className="mx-4 mt-4 grid grid-cols-2 gap-3">
                     <div className="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">

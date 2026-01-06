@@ -103,13 +103,13 @@ export default function BuynoPage() {
         <div className="min-h-screen bg-slate-50 pb-20">
             {/* Header */}
             <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
-                <div className="mx-auto flex h-14 max-w-md items-center px-4">
+                <div className="mx-auto flex h-14 max-w-[515px] items-center px-4">
                     <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
                     <h1 className="flex-1 text-base font-medium text-slate-800">买号添加</h1>
                 </div>
             </header>
 
-            <div className="mx-auto max-w-md px-4 py-4">
+            <div className="mx-auto max-w-[515px] px-4 py-4">
                 {/* Tabs */}
                 <div className="mb-4 flex rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
                     {[{ key: 'list', label: '买号信息' }, { key: 'add', label: '添加账号' }].map(tab => (
