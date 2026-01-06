@@ -5,22 +5,17 @@ import { useRouter } from 'next/navigation';
 import { Form, Input, Button, NavBar } from 'antd-mobile';
 import { EyeInvisibleOutline, EyeOutline } from 'antd-mobile-icons';
 import { login } from '../../services/authService';
+import { toastError, toastSuccess } from '../../lib/toast';
 
 export default function LoginPage() {
     const router = useRouter();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [passwordVisible, setPasswordVisible] = useState(false);
-    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-
-    const showMessage = (type: 'success' | 'error', text: string) => {
-        setMessage({ type, text });
-        setTimeout(() => setMessage(null), 3000);
-    };
 
     const handleLogin = async (values: { phone: string; password: string }) => {
         if (!values.phone || !values.password) {
-            showMessage('error', '请输入手机号和密码');
+            toastError('请输入手机号和密码');
             return;
         }
 
@@ -34,45 +29,26 @@ export default function LoginPage() {
                 if (result.data.user) {
                     localStorage.setItem('user', JSON.stringify(result.data.user));
                 }
-                showMessage('success', '登录成功');
+                toastSuccess('登录成功');
                 setTimeout(() => router.push('/profile'), 1000);
             } else {
-                showMessage('error', '登录失败: Token缺失');
+                toastError('登录失败: Token缺失');
             }
         } else {
-            showMessage('error', result.message || '登录失败');
+            toastError(result.message || '登录失败');
         }
     };
 
     return (
-        <div style={{ minHeight: '100vh', background: '#fff' }}>
-            <NavBar onBack={() => router.back()} style={{ borderBottom: '1px solid #eee' }}>
+        <div className="min-h-screen bg-white">
+            <NavBar onBack={() => router.back()} className="border-b border-slate-200">
                 登录
             </NavBar>
 
-            {/* 消息提示 */}
-            {message && (
-                <div style={{
-                    position: 'fixed',
-                    top: '60px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    padding: '10px 20px',
-                    borderRadius: '8px',
-                    background: message.type === 'success' ? '#52c41a' : '#ff4d4f',
-                    color: '#fff',
-                    fontSize: '14px',
-                    zIndex: 1000,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                }}>
-                    {message.text}
-                </div>
-            )}
-
-            <div style={{ padding: '40px 24px' }}>
-                <div style={{ marginBottom: 32 }}>
-                    <div style={{ fontSize: 28, fontWeight: 600, color: '#333', marginBottom: 8 }}>欢迎登录</div>
-                    <div style={{ fontSize: 14, color: '#999' }}>订单管理系统</div>
+            <div className="px-6 py-10">
+                <div className="mb-8">
+                    <div className="text-2xl font-semibold text-slate-800">欢迎登录</div>
+                    <div className="mt-2 text-sm text-slate-500">订单管理系统</div>
                 </div>
 
                 <Form
@@ -86,50 +62,53 @@ export default function LoginPage() {
                             color="primary"
                             size="large"
                             loading={loading}
-                            style={{ borderRadius: 24, height: 48, fontSize: 16, fontWeight: 500 }}
+                            className="rounded-full h-12 text-base font-medium"
                         >
                             登录
                         </Button>
                     }
                 >
                     <Form.Item name="phone" label="手机号/用户名" rules={[{ required: true, message: '请输入手机号或用户名' }]}>
-                        <Input placeholder="请输入手机号或用户名" clearable style={{ '--font-size': '16px' }} />
+                        <Input placeholder="请输入手机号或用户名" clearable className="text-base" />
                     </Form.Item>
 
                     <Form.Item name="password" label="密码" rules={[{ required: true, message: '请输入密码' }]}>
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <div className="flex items-center">
                             <Input
                                 placeholder="请输入密码"
                                 type={passwordVisible ? 'text' : 'password'}
-                                style={{ flex: 1, '--font-size': '16px' }}
+                                className="flex-1 text-base"
                             />
-                            <div
-                                style={{ padding: '0 8px', cursor: 'pointer' }}
+                            <button
+                                type="button"
+                                className="px-2 text-slate-500"
                                 onClick={() => setPasswordVisible(!passwordVisible)}
                             >
                                 {passwordVisible ? <EyeOutline fontSize={20} /> : <EyeInvisibleOutline fontSize={20} />}
-                            </div>
+                            </button>
                         </div>
                     </Form.Item>
                 </Form>
 
-                <div style={{ textAlign: 'center', marginTop: 24, fontSize: 14, color: '#666' }}>
+                <div className="mt-6 text-center text-sm text-slate-600">
                     还没有账号？
-                    <span
-                        style={{ color: '#1677ff', cursor: 'pointer' }}
+                    <button
+                        type="button"
+                        className="ml-1 text-blue-600"
                         onClick={() => router.push('/register')}
                     >
                         立即注册
-                    </span>
+                    </button>
                 </div>
 
-                <div style={{ textAlign: 'center', marginTop: 12, fontSize: 14 }}>
-                    <span
-                        style={{ color: '#999', cursor: 'pointer' }}
+                <div className="mt-3 text-center text-sm">
+                    <button
+                        type="button"
+                        className="text-slate-500"
                         onClick={() => router.push('/forgot-password')}
                     >
                         忘记密码？
-                    </span>
+                    </button>
                 </div>
             </div>
         </div>
