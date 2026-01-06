@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../../apiConfig';
+import { cn } from '../../../../lib/utils';
+import { Button } from '../../../../components/ui/button';
+import { Card } from '../../../../components/ui/card';
+import { Badge } from '../../../../components/ui/badge';
+import { Input } from '../../../../components/ui/input';
+import { Modal } from '../../../../components/ui/modal';
 
 interface Platform {
     id: string;
@@ -66,17 +72,12 @@ export default function PlatformsPage() {
     const handleSave = async () => {
         try {
             const token = localStorage.getItem('adminToken');
-            const url = editingId
-                ? `${BASE_URL}/admin/platforms/${editingId}`
-                : `${BASE_URL}/admin/platforms`;
+            const url = editingId ? `${BASE_URL}/admin/platforms/${editingId}` : `${BASE_URL}/admin/platforms`;
             const method = editingId ? 'PUT' : 'POST';
 
             await fetch(url, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify(editForm),
             });
 
@@ -118,288 +119,151 @@ export default function PlatformsPage() {
     const platformIcons = ['🛒', '🏪', '🛍️', '📦', '🎁', '💎', '⭐', '🔥', '🎯', '💰'];
 
     return (
-        <div>
-            {/* 页面标题 */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '24px'
-            }}>
+        <div className="space-y-6">
+            {/* Page Header */}
+            <div className="flex items-center justify-between">
                 <div>
-                    <h2 style={{ margin: 0, fontSize: '20px' }}>平台管理</h2>
-                    <p style={{ margin: '8px 0 0', color: '#666', fontSize: '14px' }}>
-                        管理电商平台分类，如淘宝、天猫、京东、拼多多等
-                    </p>
+                    <h2 className="text-xl font-semibold">平台管理</h2>
+                    <p className="mt-1 text-sm text-slate-500">管理电商平台分类，如淘宝、天猫、京东、拼多多等</p>
                 </div>
-                <button
-                    onClick={handleCreate}
-                    style={{
-                        padding: '10px 24px',
-                        background: '#1890ff',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                    }}
-                >
-                    + 添加平台
-                </button>
+                <Button onClick={handleCreate}>+ 添加平台</Button>
             </div>
 
-            {/* 平台列表 */}
-            <div style={{
-                background: '#fff',
-                borderRadius: '8px',
-                overflow: 'hidden'
-            }}>
+            {/* Platform List */}
+            <Card className="overflow-hidden bg-white p-0">
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>加载中...</div>
+                    <div className="py-16 text-center text-slate-400">加载中...</div>
                 ) : (
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ background: '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>排序</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>图标</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>平台代码</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>平台名称</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>基础费率</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>淘口令</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>状态</th>
-                                <th style={{ padding: '16px', textAlign: 'center', fontWeight: '500' }}>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {platforms.sort((a, b) => a.sortOrder - b.sortOrder).map(platform => (
-                                <tr key={platform.id} style={{
-                                    borderBottom: '1px solid #f0f0f0',
-                                    opacity: platform.isActive ? 1 : 0.5
-                                }}>
-                                    <td style={{ padding: '16px' }}>{platform.sortOrder}</td>
-                                    <td style={{ padding: '16px', fontSize: '24px' }}>{platform.icon || '🛒'}</td>
-                                    <td style={{ padding: '16px', fontFamily: 'monospace' }}>{platform.code}</td>
-                                    <td style={{ padding: '16px', fontWeight: '500' }}>{platform.name}</td>
-                                    <td style={{ padding: '16px' }}>{platform.baseFeeRate}%</td>
-                                    <td style={{ padding: '16px' }}>
-                                        <span style={{
-                                            padding: '4px 12px',
-                                            borderRadius: '12px',
-                                            fontSize: '12px',
-                                            background: platform.supportsTkl ? '#e6f7ff' : '#f5f5f5',
-                                            color: platform.supportsTkl ? '#1890ff' : '#999'
-                                        }}>
-                                            {platform.supportsTkl ? '支持' : '不支持'}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: '16px' }}>
-                                        <span style={{
-                                            padding: '4px 12px',
-                                            borderRadius: '12px',
-                                            fontSize: '12px',
-                                            background: platform.isActive ? '#f6ffed' : '#fff2f0',
-                                            color: platform.isActive ? '#52c41a' : '#ff4d4f'
-                                        }}>
-                                            {platform.isActive ? '启用' : '禁用'}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: '16px', textAlign: 'center' }}>
-                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                                            <button
-                                                onClick={() => handleEdit(platform)}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    background: '#fff',
-                                                    border: '1px solid #d9d9d9',
-                                                    borderRadius: '4px',
-                                                    cursor: 'pointer',
-                                                    fontSize: '13px'
-                                                }}
-                                            >
-                                                编辑
-                                            </button>
-                                            <button
-                                                onClick={() => handleToggle(platform.id)}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    background: platform.isActive ? '#fff2e8' : '#e6f7ff',
-                                                    border: `1px solid ${platform.isActive ? '#ffbb96' : '#91d5ff'}`,
-                                                    borderRadius: '4px',
-                                                    cursor: 'pointer',
-                                                    fontSize: '13px',
-                                                    color: platform.isActive ? '#d46b08' : '#1890ff'
-                                                }}
-                                            >
-                                                {platform.isActive ? '禁用' : '启用'}
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(platform.id)}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    background: '#fff',
-                                                    border: '1px solid #ff4d4f',
-                                                    borderRadius: '4px',
-                                                    cursor: 'pointer',
-                                                    fontSize: '13px',
-                                                    color: '#ff4d4f'
-                                                }}
-                                            >
-                                                删除
-                                            </button>
-                                        </div>
-                                    </td>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-[900px] w-full border-collapse">
+                            <thead>
+                                <tr className="border-b border-slate-100 bg-slate-50">
+                                    <th className="px-4 py-4 text-left text-sm font-medium">排序</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">图标</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">平台代码</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">平台名称</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">基础费率</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">淘口令</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">状态</th>
+                                    <th className="px-4 py-4 text-center text-sm font-medium">操作</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {platforms.sort((a, b) => a.sortOrder - b.sortOrder).map(platform => (
+                                    <tr key={platform.id} className={cn('border-b border-slate-100', !platform.isActive && 'opacity-50')}>
+                                        <td className="px-4 py-4">{platform.sortOrder}</td>
+                                        <td className="px-4 py-4 text-2xl">{platform.icon || '🛒'}</td>
+                                        <td className="px-4 py-4 font-mono">{platform.code}</td>
+                                        <td className="px-4 py-4 font-medium">{platform.name}</td>
+                                        <td className="px-4 py-4">{platform.baseFeeRate}%</td>
+                                        <td className="px-4 py-4">
+                                            <Badge variant="soft" color={platform.supportsTkl ? 'blue' : 'slate'}>
+                                                {platform.supportsTkl ? '支持' : '不支持'}
+                                            </Badge>
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            <Badge variant="soft" color={platform.isActive ? 'green' : 'red'}>
+                                                {platform.isActive ? '启用' : '禁用'}
+                                            </Badge>
+                                        </td>
+                                        <td className="px-4 py-4 text-center">
+                                            <div className="flex justify-center gap-2">
+                                                <Button size="sm" variant="secondary" onClick={() => handleEdit(platform)}>编辑</Button>
+                                                <Button
+                                                    size="sm"
+                                                    className={cn(
+                                                        platform.isActive
+                                                            ? 'border border-amber-400 bg-amber-50 text-amber-600 hover:bg-amber-100'
+                                                            : 'border border-blue-400 bg-blue-50 text-blue-600 hover:bg-blue-100'
+                                                    )}
+                                                    onClick={() => handleToggle(platform.id)}
+                                                >
+                                                    {platform.isActive ? '禁用' : '启用'}
+                                                </Button>
+                                                <Button size="sm" variant="destructive" onClick={() => handleDelete(platform.id)}>删除</Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
-            </div>
+            </Card>
 
-            {/* 编辑弹窗 */}
-            {showModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <div style={{
-                        background: '#fff',
-                        borderRadius: '12px',
-                        width: '500px',
-                        overflow: 'hidden'
-                    }}>
-                        <div style={{
-                            padding: '20px 24px',
-                            borderBottom: '1px solid #f0f0f0',
-                            fontWeight: '500',
-                            fontSize: '16px'
-                        }}>
-                            {editingId ? '编辑平台' : '添加平台'}
-                        </div>
-                        <div style={{ padding: '24px' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>平台代码</label>
-                                    <input
-                                        value={editForm.code || ''}
-                                        onChange={e => setEditForm({ ...editForm, code: e.target.value })}
-                                        placeholder="如: taobao, tmall, jd"
-                                        style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '6px', boxSizing: 'border-box' }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>平台名称</label>
-                                    <input
-                                        value={editForm.name || ''}
-                                        onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-                                        placeholder="如: 淘宝, 天猫, 京东"
-                                        style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '6px', boxSizing: 'border-box' }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>图标</label>
-                                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                        {platformIcons.map(icon => (
-                                            <button
-                                                key={icon}
-                                                type="button"
-                                                onClick={() => setEditForm({ ...editForm, icon })}
-                                                style={{
-                                                    width: '40px',
-                                                    height: '40px',
-                                                    fontSize: '20px',
-                                                    border: editForm.icon === icon ? '2px solid #1890ff' : '1px solid #d9d9d9',
-                                                    borderRadius: '8px',
-                                                    background: editForm.icon === icon ? '#e6f7ff' : '#fff',
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                {icon}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>基础费率 (%)</label>
-                                    <input
-                                        type="number"
-                                        value={editForm.baseFeeRate || 0}
-                                        onChange={e => setEditForm({ ...editForm, baseFeeRate: parseFloat(e.target.value) })}
-                                        style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '6px', boxSizing: 'border-box' }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>排序</label>
-                                    <input
-                                        type="number"
-                                        value={editForm.sortOrder || 0}
-                                        onChange={e => setEditForm({ ...editForm, sortOrder: parseInt(e.target.value) })}
-                                        style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '6px', boxSizing: 'border-box' }}
-                                    />
-                                </div>
-                                <div style={{ display: 'flex', gap: '24px' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                        <input
-                                            type="checkbox"
-                                            checked={editForm.supportsTkl || false}
-                                            onChange={e => setEditForm({ ...editForm, supportsTkl: e.target.checked })}
-                                        />
-                                        <span>支持淘口令</span>
-                                    </label>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                        <input
-                                            type="checkbox"
-                                            checked={editForm.isActive !== false}
-                                            onChange={e => setEditForm({ ...editForm, isActive: e.target.checked })}
-                                        />
-                                        <span>启用</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        <div style={{
-                            padding: '16px 24px',
-                            borderTop: '1px solid #f0f0f0',
-                            display: 'flex',
-                            justifyContent: 'flex-end',
-                            gap: '12px'
-                        }}>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                style={{
-                                    padding: '10px 24px',
-                                    background: '#fff',
-                                    border: '1px solid #d9d9d9',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                取消
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                style={{
-                                    padding: '10px 24px',
-                                    background: '#1890ff',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                保存
-                            </button>
+            {/* Edit Modal */}
+            <Modal title={editingId ? '编辑平台' : '添加平台'} open={showModal} onClose={() => setShowModal(false)} className="max-w-md">
+                <div className="space-y-5">
+                    <Input
+                        label="平台代码"
+                        placeholder="如: taobao, tmall, jd"
+                        value={editForm.code || ''}
+                        onChange={e => setEditForm({ ...editForm, code: e.target.value })}
+                    />
+                    <Input
+                        label="平台名称"
+                        placeholder="如: 淘宝, 天猫, 京东"
+                        value={editForm.name || ''}
+                        onChange={e => setEditForm({ ...editForm, name: e.target.value })}
+                    />
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-slate-700">图标</label>
+                        <div className="flex flex-wrap gap-2">
+                            {platformIcons.map(icon => (
+                                <button
+                                    key={icon}
+                                    type="button"
+                                    onClick={() => setEditForm({ ...editForm, icon })}
+                                    className={cn(
+                                        'flex h-10 w-10 items-center justify-center rounded-lg border text-xl transition-colors',
+                                        editForm.icon === icon
+                                            ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500'
+                                            : 'border-slate-200 bg-white hover:border-slate-300'
+                                    )}
+                                >
+                                    {icon}
+                                </button>
+                            ))}
                         </div>
                     </div>
+                    <Input
+                        label="基础费率 (%)"
+                        type="number"
+                        value={String(editForm.baseFeeRate || 0)}
+                        onChange={e => setEditForm({ ...editForm, baseFeeRate: parseFloat(e.target.value) })}
+                    />
+                    <Input
+                        label="排序"
+                        type="number"
+                        value={String(editForm.sortOrder || 0)}
+                        onChange={e => setEditForm({ ...editForm, sortOrder: parseInt(e.target.value) })}
+                    />
+                    <div className="flex gap-6">
+                        <label className="flex cursor-pointer items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={editForm.supportsTkl || false}
+                                onChange={e => setEditForm({ ...editForm, supportsTkl: e.target.checked })}
+                                className="h-4 w-4 rounded border-slate-300"
+                            />
+                            <span className="text-sm">支持淘口令</span>
+                        </label>
+                        <label className="flex cursor-pointer items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={editForm.isActive !== false}
+                                onChange={e => setEditForm({ ...editForm, isActive: e.target.checked })}
+                                className="h-4 w-4 rounded border-slate-300"
+                            />
+                            <span className="text-sm">启用</span>
+                        </label>
+                    </div>
+                    <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                        <Button variant="secondary" onClick={() => setShowModal(false)}>取消</Button>
+                        <Button onClick={handleSave}>保存</Button>
+                    </div>
                 </div>
-            )}
+            </Modal>
         </div>
     );
 }

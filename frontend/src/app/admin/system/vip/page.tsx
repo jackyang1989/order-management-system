@@ -2,6 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../../apiConfig';
+import { cn } from '../../../../lib/utils';
+import { Button } from '../../../../components/ui/button';
+import { Card } from '../../../../components/ui/card';
+import { Input } from '../../../../components/ui/input';
+import { Modal } from '../../../../components/ui/modal';
 
 interface VipLevel {
     id: string;
@@ -85,17 +90,12 @@ export default function VipConfigPage() {
     const handleSave = async () => {
         try {
             const token = localStorage.getItem('adminToken');
-            const url = editingId
-                ? `${BASE_URL}/admin/vip-levels/${editingId}`
-                : `${BASE_URL}/admin/vip-levels`;
+            const url = editingId ? `${BASE_URL}/admin/vip-levels/${editingId}` : `${BASE_URL}/admin/vip-levels`;
             const method = editingId ? 'PUT' : 'POST';
 
             await fetch(url, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify(editForm),
             });
 
@@ -134,135 +134,89 @@ export default function VipConfigPage() {
         }
     };
 
-    const filteredLevels = vipLevels
-        .filter(v => v.type === activeTab)
-        .sort((a, b) => a.level - b.level);
+    const filteredLevels = vipLevels.filter(v => v.type === activeTab).sort((a, b) => a.level - b.level);
+
+    // Color map for VIP card backgrounds (mapping hex to Tailwind classes)
+    const getCardBgClass = (color: string) => {
+        const colorMap: Record<string, string> = {
+            '#1890ff': 'bg-blue-500',
+            '#52c41a': 'bg-green-500',
+            '#faad14': 'bg-amber-500',
+            '#eb2f96': 'bg-pink-500',
+            '#722ed1': 'bg-purple-500',
+            '#13c2c2': 'bg-cyan-500',
+            '#f5222d': 'bg-red-500',
+        };
+        return colorMap[color] || 'bg-blue-500';
+    };
 
     return (
-        <div>
-            {/* 页面标题 */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '24px'
-            }}>
+        <div className="space-y-6">
+            {/* Page Header */}
+            <div className="flex items-center justify-between">
                 <div>
-                    <h2 style={{ margin: 0, fontSize: '20px' }}>VIP等级配置</h2>
-                    <p style={{ margin: '8px 0 0', color: '#666', fontSize: '14px' }}>
-                        配置买手和商家的VIP等级及权益
-                    </p>
+                    <h2 className="text-xl font-semibold">VIP等级配置</h2>
+                    <p className="mt-1 text-sm text-slate-500">配置买手和商家的VIP等级及权益</p>
                 </div>
-                <button
-                    onClick={handleCreate}
-                    style={{
-                        padding: '10px 24px',
-                        background: '#1890ff',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                    }}
-                >
-                    + 添加VIP等级
-                </button>
+                <Button onClick={handleCreate}>+ 添加VIP等级</Button>
             </div>
 
-            {/* Tab切换 */}
-            <div style={{
-                display: 'flex',
-                gap: '0',
-                marginBottom: '20px',
-                background: '#fff',
-                borderRadius: '8px',
-                padding: '4px',
-                width: 'fit-content'
-            }}>
+            {/* Tab Switch */}
+            <div className="inline-flex rounded-lg bg-white p-1">
                 <button
                     onClick={() => setActiveTab('buyer')}
-                    style={{
-                        padding: '10px 32px',
-                        background: activeTab === 'buyer' ? '#1890ff' : 'transparent',
-                        color: activeTab === 'buyer' ? '#fff' : '#666',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: activeTab === 'buyer' ? '500' : 'normal'
-                    }}
+                    className={cn(
+                        'rounded-md px-8 py-2.5 text-sm transition-colors',
+                        activeTab === 'buyer'
+                            ? 'bg-blue-600 font-medium text-white'
+                            : 'text-slate-500 hover:text-slate-700'
+                    )}
                 >
                     👤 买手VIP
                 </button>
                 <button
                     onClick={() => setActiveTab('merchant')}
-                    style={{
-                        padding: '10px 32px',
-                        background: activeTab === 'merchant' ? '#1890ff' : 'transparent',
-                        color: activeTab === 'merchant' ? '#fff' : '#666',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: activeTab === 'merchant' ? '500' : 'normal'
-                    }}
+                    className={cn(
+                        'rounded-md px-8 py-2.5 text-sm transition-colors',
+                        activeTab === 'merchant'
+                            ? 'bg-blue-600 font-medium text-white'
+                            : 'text-slate-500 hover:text-slate-700'
+                    )}
                 >
                     🏪 商家VIP
                 </button>
             </div>
 
-            {/* VIP等级卡片 */}
+            {/* VIP Level Cards */}
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>加载中...</div>
+                <div className="py-16 text-center text-slate-400">加载中...</div>
             ) : (
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                    gap: '20px'
-                }}>
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5">
                     {filteredLevels.map(vip => (
-                        <div key={vip.id} style={{
-                            background: '#fff',
-                            borderRadius: '12px',
-                            overflow: 'hidden',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                            opacity: vip.isActive ? 1 : 0.6,
-                        }}>
-                            {/* 卡片头部 */}
-                            <div style={{
-                                background: vip.color || '#1890ff',
-                                color: '#fff',
-                                padding: '20px',
-                                position: 'relative'
-                            }}>
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '10px',
-                                    right: '10px',
-                                    background: vip.isActive ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.3)',
-                                    padding: '4px 12px',
-                                    borderRadius: '12px',
-                                    fontSize: '12px'
-                                }}>
+                        <Card key={vip.id} className={cn('overflow-hidden p-0', !vip.isActive && 'opacity-60')}>
+                            {/* Card Header */}
+                            <div className={cn('relative p-5 text-white', getCardBgClass(vip.color))}>
+                                <div className={cn(
+                                    'absolute right-2.5 top-2.5 rounded-full px-3 py-1 text-xs',
+                                    vip.isActive ? 'bg-white/20' : 'bg-black/30'
+                                )}>
                                     {vip.isActive ? '已启用' : '已禁用'}
                                 </div>
-                                <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>
-                                    {vip.name}
-                                </div>
-                                <div style={{ fontSize: '14px', opacity: 0.9 }}>
+                                <div className="mb-2 text-2xl font-bold">{vip.name}</div>
+                                <div className="text-sm opacity-90">
                                     等级 {vip.level} · {vip.duration > 0 ? `${vip.duration}天` : '永久'}
                                 </div>
-                                <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '12px' }}>
+                                <div className="mt-3 text-3xl font-bold">
                                     ¥{vip.price}
-                                    {vip.duration > 0 && <span style={{ fontSize: '14px', fontWeight: 'normal' }}>/月</span>}
+                                    {vip.duration > 0 && <span className="text-sm font-normal">/月</span>}
                                 </div>
                             </div>
 
-                            {/* 卡片内容 */}
-                            <div style={{ padding: '20px' }}>
-                                <div style={{ marginBottom: '16px' }}>
-                                    <div style={{ fontWeight: '500', marginBottom: '12px', color: '#333' }}>权益配置</div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: '#666' }}>
+                            {/* Card Body */}
+                            <div className="p-5">
+                                <div className="mb-4">
+                                    <div className="mb-3 font-medium text-slate-700">权益配置</div>
+                                    <div className="space-y-2 text-sm text-slate-500">
                                         {activeTab === 'buyer' ? (
                                             <>
                                                 <div>📋 每日任务: {vip.dailyTaskLimit === 0 ? '无限制' : `${vip.dailyTaskLimit}个`}</div>
@@ -282,276 +236,167 @@ export default function VipConfigPage() {
                                     </div>
                                 </div>
 
-                                {/* 操作按钮 */}
-                                <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
-                                    <button
-                                        onClick={() => handleEdit(vip)}
-                                        style={{
-                                            flex: 1,
-                                            padding: '8px',
-                                            background: '#fff',
-                                            border: '1px solid #d9d9d9',
-                                            borderRadius: '6px',
-                                            cursor: 'pointer',
-                                            fontSize: '13px'
-                                        }}
-                                    >
-                                        编辑
-                                    </button>
-                                    <button
+                                {/* Action Buttons */}
+                                <div className="flex gap-2 border-t border-slate-100 pt-4">
+                                    <Button size="sm" variant="secondary" className="flex-1" onClick={() => handleEdit(vip)}>编辑</Button>
+                                    <Button
+                                        size="sm"
+                                        className={cn(
+                                            'flex-1',
+                                            vip.isActive
+                                                ? 'border border-amber-400 bg-amber-50 text-amber-600 hover:bg-amber-100'
+                                                : 'border border-blue-400 bg-blue-50 text-blue-600 hover:bg-blue-100'
+                                        )}
                                         onClick={() => handleToggle(vip.id)}
-                                        style={{
-                                            flex: 1,
-                                            padding: '8px',
-                                            background: vip.isActive ? '#fff2e8' : '#e6f7ff',
-                                            border: `1px solid ${vip.isActive ? '#ffbb96' : '#91d5ff'}`,
-                                            borderRadius: '6px',
-                                            cursor: 'pointer',
-                                            fontSize: '13px',
-                                            color: vip.isActive ? '#d46b08' : '#1890ff'
-                                        }}
                                     >
                                         {vip.isActive ? '禁用' : '启用'}
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(vip.id)}
-                                        style={{
-                                            padding: '8px 12px',
-                                            background: '#fff',
-                                            border: '1px solid #ff4d4f',
-                                            borderRadius: '6px',
-                                            cursor: 'pointer',
-                                            fontSize: '13px',
-                                            color: '#ff4d4f'
-                                        }}
-                                    >
-                                        删除
-                                    </button>
+                                    </Button>
+                                    <Button size="sm" variant="destructive" onClick={() => handleDelete(vip.id)}>删除</Button>
                                 </div>
                             </div>
-                        </div>
+                        </Card>
                     ))}
                 </div>
             )}
 
-            {/* 编辑弹窗 */}
-            {showModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <div style={{
-                        background: '#fff',
-                        borderRadius: '12px',
-                        width: '600px',
-                        maxHeight: '80vh',
-                        overflow: 'auto'
-                    }}>
-                        <div style={{
-                            padding: '20px 24px',
-                            borderBottom: '1px solid #f0f0f0',
-                            fontWeight: '500',
-                            fontSize: '16px'
-                        }}>
-                            {editingId ? '编辑VIP等级' : '添加VIP等级'}
+            {/* Edit Modal */}
+            <Modal title={editingId ? '编辑VIP等级' : '添加VIP等级'} open={showModal} onClose={() => setShowModal(false)} className="max-w-xl">
+                <div className="max-h-[60vh] space-y-5 overflow-auto">
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input
+                            label="名称"
+                            value={editForm.name || ''}
+                            onChange={e => setEditForm({ ...editForm, name: e.target.value })}
+                        />
+                        <Input
+                            label="等级"
+                            type="number"
+                            value={String(editForm.level || 0)}
+                            onChange={e => setEditForm({ ...editForm, level: parseInt(e.target.value) })}
+                        />
+                        <Input
+                            label="价格 (元)"
+                            type="number"
+                            value={String(editForm.price || 0)}
+                            onChange={e => setEditForm({ ...editForm, price: parseFloat(e.target.value) })}
+                        />
+                        <Input
+                            label="有效期 (天)"
+                            type="number"
+                            value={String(editForm.duration || 0)}
+                            onChange={e => setEditForm({ ...editForm, duration: parseInt(e.target.value) })}
+                        />
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-slate-700">颜色</label>
+                            <input
+                                type="color"
+                                value={editForm.color || '#1890ff'}
+                                onChange={e => setEditForm({ ...editForm, color: e.target.value })}
+                                className="h-10 w-full cursor-pointer rounded-md border border-slate-300"
+                            />
                         </div>
-                        <div style={{ padding: '24px' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>名称</label>
-                                    <input
-                                        value={editForm.name || ''}
-                                        onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-                                        style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '6px' }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>等级</label>
-                                    <input
-                                        type="number"
-                                        value={editForm.level || 0}
-                                        onChange={e => setEditForm({ ...editForm, level: parseInt(e.target.value) })}
-                                        style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '6px' }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>价格 (元)</label>
-                                    <input
-                                        type="number"
-                                        value={editForm.price || 0}
-                                        onChange={e => setEditForm({ ...editForm, price: parseFloat(e.target.value) })}
-                                        style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '6px' }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>有效期 (天)</label>
-                                    <input
-                                        type="number"
-                                        value={editForm.duration || 0}
-                                        onChange={e => setEditForm({ ...editForm, duration: parseInt(e.target.value) })}
-                                        style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '6px' }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>颜色</label>
-                                    <input
-                                        type="color"
-                                        value={editForm.color || '#1890ff'}
-                                        onChange={e => setEditForm({ ...editForm, color: e.target.value })}
-                                        style={{ width: '100%', height: '42px', border: '1px solid #d9d9d9', borderRadius: '6px' }}
-                                    />
-                                </div>
-                                {activeTab === 'buyer' ? (
-                                    <>
-                                        <div>
-                                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>每日任务上限</label>
-                                            <input
-                                                type="number"
-                                                value={editForm.dailyTaskLimit || 0}
-                                                onChange={e => setEditForm({ ...editForm, dailyTaskLimit: parseInt(e.target.value) })}
-                                                placeholder="0表示无限制"
-                                                style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '6px' }}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>佣金加成 (%)</label>
-                                            <input
-                                                type="number"
-                                                value={editForm.commissionBonus || 0}
-                                                onChange={e => setEditForm({ ...editForm, commissionBonus: parseFloat(e.target.value) })}
-                                                style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '6px' }}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>提现折扣 (%)</label>
-                                            <input
-                                                type="number"
-                                                value={editForm.withdrawFeeDiscount || 0}
-                                                onChange={e => setEditForm({ ...editForm, withdrawFeeDiscount: parseFloat(e.target.value) })}
-                                                style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '6px' }}
-                                            />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div>
-                                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>发布任务上限</label>
-                                            <input
-                                                type="number"
-                                                value={editForm.publishTaskLimit || 0}
-                                                onChange={e => setEditForm({ ...editForm, publishTaskLimit: parseInt(e.target.value) })}
-                                                placeholder="0表示无限制"
-                                                style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '6px' }}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>服务费折扣 (%)</label>
-                                            <input
-                                                type="number"
-                                                value={editForm.serviceFeeDiscount || 0}
-                                                onChange={e => setEditForm({ ...editForm, serviceFeeDiscount: parseFloat(e.target.value) })}
-                                                style={{ width: '100%', padding: '10px', border: '1px solid #d9d9d9', borderRadius: '6px' }}
-                                            />
-                                        </div>
-                                    </>
-                                )}
-                            </div>
+                        {activeTab === 'buyer' ? (
+                            <>
+                                <Input
+                                    label="每日任务上限"
+                                    type="number"
+                                    placeholder="0表示无限制"
+                                    value={String(editForm.dailyTaskLimit || 0)}
+                                    onChange={e => setEditForm({ ...editForm, dailyTaskLimit: parseInt(e.target.value) })}
+                                />
+                                <Input
+                                    label="佣金加成 (%)"
+                                    type="number"
+                                    value={String(editForm.commissionBonus || 0)}
+                                    onChange={e => setEditForm({ ...editForm, commissionBonus: parseFloat(e.target.value) })}
+                                />
+                                <Input
+                                    label="提现折扣 (%)"
+                                    type="number"
+                                    value={String(editForm.withdrawFeeDiscount || 0)}
+                                    onChange={e => setEditForm({ ...editForm, withdrawFeeDiscount: parseFloat(e.target.value) })}
+                                />
+                            </>
+                        ) : (
+                            <>
+                                <Input
+                                    label="发布任务上限"
+                                    type="number"
+                                    placeholder="0表示无限制"
+                                    value={String(editForm.publishTaskLimit || 0)}
+                                    onChange={e => setEditForm({ ...editForm, publishTaskLimit: parseInt(e.target.value) })}
+                                />
+                                <Input
+                                    label="服务费折扣 (%)"
+                                    type="number"
+                                    value={String(editForm.serviceFeeDiscount || 0)}
+                                    onChange={e => setEditForm({ ...editForm, serviceFeeDiscount: parseFloat(e.target.value) })}
+                                />
+                            </>
+                        )}
+                    </div>
 
-                            {/* 开关选项 */}
-                            <div style={{ marginTop: '20px', display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-                                {activeTab === 'buyer' ? (
-                                    <>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                            <input
-                                                type="checkbox"
-                                                checked={editForm.canReserveTask || false}
-                                                onChange={e => setEditForm({ ...editForm, canReserveTask: e.target.checked })}
-                                            />
-                                            <span>可预约任务</span>
-                                        </label>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                            <input
-                                                type="checkbox"
-                                                checked={editForm.showVipBadge || false}
-                                                onChange={e => setEditForm({ ...editForm, showVipBadge: e.target.checked })}
-                                            />
-                                            <span>显示VIP徽章</span>
-                                        </label>
-                                    </>
-                                ) : (
-                                    <>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                            <input
-                                                type="checkbox"
-                                                checked={editForm.priorityReview || false}
-                                                onChange={e => setEditForm({ ...editForm, priorityReview: e.target.checked })}
-                                            />
-                                            <span>优先审核</span>
-                                        </label>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                            <input
-                                                type="checkbox"
-                                                checked={editForm.dedicatedSupport || false}
-                                                onChange={e => setEditForm({ ...editForm, dedicatedSupport: e.target.checked })}
-                                            />
-                                            <span>专属客服</span>
-                                        </label>
-                                    </>
-                                )}
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    {/* Toggle Options */}
+                    <div className="flex flex-wrap gap-4">
+                        {activeTab === 'buyer' ? (
+                            <>
+                                <label className="flex cursor-pointer items-center gap-2">
                                     <input
                                         type="checkbox"
-                                        checked={editForm.isActive || false}
-                                        onChange={e => setEditForm({ ...editForm, isActive: e.target.checked })}
+                                        checked={editForm.canReserveTask || false}
+                                        onChange={e => setEditForm({ ...editForm, canReserveTask: e.target.checked })}
+                                        className="h-4 w-4 rounded border-slate-300"
                                     />
-                                    <span>启用</span>
+                                    <span className="text-sm">可预约任务</span>
                                 </label>
-                            </div>
-                        </div>
-                        <div style={{
-                            padding: '16px 24px',
-                            borderTop: '1px solid #f0f0f0',
-                            display: 'flex',
-                            justifyContent: 'flex-end',
-                            gap: '12px'
-                        }}>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                style={{
-                                    padding: '10px 24px',
-                                    background: '#fff',
-                                    border: '1px solid #d9d9d9',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                取消
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                style={{
-                                    padding: '10px 24px',
-                                    background: '#1890ff',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                保存
-                            </button>
-                        </div>
+                                <label className="flex cursor-pointer items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={editForm.showVipBadge || false}
+                                        onChange={e => setEditForm({ ...editForm, showVipBadge: e.target.checked })}
+                                        className="h-4 w-4 rounded border-slate-300"
+                                    />
+                                    <span className="text-sm">显示VIP徽章</span>
+                                </label>
+                            </>
+                        ) : (
+                            <>
+                                <label className="flex cursor-pointer items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={editForm.priorityReview || false}
+                                        onChange={e => setEditForm({ ...editForm, priorityReview: e.target.checked })}
+                                        className="h-4 w-4 rounded border-slate-300"
+                                    />
+                                    <span className="text-sm">优先审核</span>
+                                </label>
+                                <label className="flex cursor-pointer items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={editForm.dedicatedSupport || false}
+                                        onChange={e => setEditForm({ ...editForm, dedicatedSupport: e.target.checked })}
+                                        className="h-4 w-4 rounded border-slate-300"
+                                    />
+                                    <span className="text-sm">专属客服</span>
+                                </label>
+                            </>
+                        )}
+                        <label className="flex cursor-pointer items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={editForm.isActive || false}
+                                onChange={e => setEditForm({ ...editForm, isActive: e.target.checked })}
+                                className="h-4 w-4 rounded border-slate-300"
+                            />
+                            <span className="text-sm">启用</span>
+                        </label>
                     </div>
                 </div>
-            )}
+                <div className="mt-5 flex justify-end gap-3 border-t border-slate-200 pt-4">
+                    <Button variant="secondary" onClick={() => setShowModal(false)}>取消</Button>
+                    <Button onClick={handleSave}>保存</Button>
+                </div>
+            </Modal>
         </div>
     );
 }

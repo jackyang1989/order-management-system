@@ -126,14 +126,21 @@ export default function MenuPermissionPage() {
         setShowModal(true);
     };
 
-    const renderMenuRow = (menu: MenuItem, level: number = 0): React.ReactNode => {
-        // Calculate padding based on nesting level: 16px base + 24px per level
-        const paddingLeft = 16 + level * 24;
+    // Discrete indent classes for tree levels (Tailwind JIT doesn't compile runtime-computed values)
+    const indentClass: Record<number, string> = {
+        0: 'pl-4',
+        1: 'pl-10',
+        2: 'pl-16',
+        3: 'pl-[88px]',
+        4: 'pl-28',
+        5: 'pl-36',
+    };
 
+    const renderMenuRow = (menu: MenuItem, level: number = 0): React.ReactNode => {
         return (
             <React.Fragment key={menu.id}>
                 <tr className="border-b border-slate-100">
-                    <td className={cn('px-4 py-4', `pl-[${paddingLeft}px]`)}>
+                    <td className={cn('py-4 pr-4', indentClass[level] ?? 'pl-36')}>
                         <span className="mr-2">{menu.icon}</span>
                         {menu.name}
                     </td>

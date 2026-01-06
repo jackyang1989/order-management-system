@@ -1,6 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { cn } from '../../../../lib/utils';
+import { Button } from '../../../../components/ui/button';
+import { Card } from '../../../../components/ui/card';
+import { Badge } from '../../../../components/ui/badge';
 
 export default function AdminSystemMenuPage() {
     const [menus] = useState([
@@ -12,45 +16,49 @@ export default function AdminSystemMenuPage() {
     ]);
 
     return (
-        <div>
-            <div style={{ background: '#fff', padding: '16px 20px', borderRadius: '8px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '16px', fontWeight: '500' }}>菜单管理</span>
-                <button style={{ padding: '8px 20px', background: '#1890ff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>+ 添加菜单</button>
-            </div>
+        <div className="space-y-4">
+            <Card className="flex items-center justify-between bg-white">
+                <span className="text-base font-medium">菜单管理</span>
+                <Button>+ 添加菜单</Button>
+            </Card>
 
-            <div style={{ background: '#fff', borderRadius: '8px', overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                        <tr style={{ background: '#fafafa' }}>
-                            <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>图标</th>
-                            <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>名称</th>
-                            <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>路径</th>
-                            <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>排序</th>
-                            <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>状态</th>
-                            <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {menus.map(m => (
-                            <tr key={m.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                <td style={{ padding: '14px 16px', fontSize: '20px' }}>{m.icon}</td>
-                                <td style={{ padding: '14px 16px', fontWeight: '500' }}>{m.name}</td>
-                                <td style={{ padding: '14px 16px', color: '#1890ff', fontFamily: 'monospace' }}>{m.path}</td>
-                                <td style={{ padding: '14px 16px', textAlign: 'center', color: '#666' }}>{m.order}</td>
-                                <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                                    <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '12px', background: m.status === 1 ? '#52c41a20' : '#ff4d4f20', color: m.status === 1 ? '#52c41a' : '#ff4d4f' }}>
-                                        {m.status === 1 ? '已启用' : '已禁用'}
-                                    </span>
-                                </td>
-                                <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                                    <button style={{ padding: '4px 12px', border: '1px solid #1890ff', borderRadius: '4px', background: '#fff', color: '#1890ff', cursor: 'pointer', marginRight: '8px' }}>编辑</button>
-                                    <button style={{ padding: '4px 12px', border: '1px solid #ff4d4f', borderRadius: '4px', background: '#fff', color: '#ff4d4f', cursor: 'pointer' }}>删除</button>
-                                </td>
+            <Card className="overflow-hidden bg-white p-0">
+                <div className="overflow-x-auto">
+                    <table className="min-w-[700px] w-full border-collapse">
+                        <thead>
+                            <tr className="border-b border-slate-100 bg-slate-50">
+                                <th className="px-4 py-3.5 text-left text-sm font-medium">图标</th>
+                                <th className="px-4 py-3.5 text-left text-sm font-medium">名称</th>
+                                <th className="px-4 py-3.5 text-left text-sm font-medium">路径</th>
+                                <th className="px-4 py-3.5 text-center text-sm font-medium">排序</th>
+                                <th className="px-4 py-3.5 text-center text-sm font-medium">状态</th>
+                                <th className="px-4 py-3.5 text-center text-sm font-medium">操作</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            {menus.map(m => (
+                                <tr key={m.id} className="border-b border-slate-100">
+                                    <td className="px-4 py-3.5 text-xl">{m.icon}</td>
+                                    <td className="px-4 py-3.5 font-medium">{m.name}</td>
+                                    <td className="px-4 py-3.5 font-mono text-blue-600">{m.path}</td>
+                                    <td className="px-4 py-3.5 text-center text-slate-500">{m.order}</td>
+                                    <td className="px-4 py-3.5 text-center">
+                                        <Badge variant="soft" color={m.status === 1 ? 'green' : 'red'}>
+                                            {m.status === 1 ? '已启用' : '已禁用'}
+                                        </Badge>
+                                    </td>
+                                    <td className="px-4 py-3.5 text-center">
+                                        <div className="flex justify-center gap-2">
+                                            <Button size="sm" variant="secondary">编辑</Button>
+                                            <Button size="sm" variant="destructive">删除</Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </Card>
         </div>
     );
 }
