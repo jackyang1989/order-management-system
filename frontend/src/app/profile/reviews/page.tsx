@@ -2,6 +2,8 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { cn } from '../../../lib/utils';
+import { ProfileContainer } from '../../../components/ProfileContainer';
 import { isAuthenticated } from '../../../services/authService';
 import {
     fetchUserReviewTasks,
@@ -9,7 +11,6 @@ import {
     ReviewTaskStatus,
     ReviewTaskStatusLabels
 } from '../../../services/reviewTaskService';
-import BottomNav from '../../../components/BottomNav';
 
 function ReviewTasksContent() {
     const router = useRouter();
@@ -24,10 +25,7 @@ function ReviewTasksContent() {
     );
 
     useEffect(() => {
-        if (!isAuthenticated()) {
-            router.push('/login');
-            return;
-        }
+        if (!isAuthenticated()) { router.push('/login'); return; }
         loadTasks();
     }, [router, activeTab]);
 
@@ -37,11 +35,8 @@ function ReviewTasksContent() {
             const result = await fetchUserReviewTasks(activeTab, 1, 50);
             setTasks(result.list);
             setTotal(result.total);
-        } catch (error) {
-            console.error('Load tasks error:', error);
-        } finally {
-            setLoading(false);
-        }
+        } catch (error) { console.error('Load tasks error:', error); }
+        finally { setLoading(false); }
     };
 
     const tabs = [
@@ -51,151 +46,89 @@ function ReviewTasksContent() {
         { key: ReviewTaskStatus.COMPLETED, label: '已完成' },
     ];
 
+    const getStatusStyle = (color: string) => {
+        if (color === '#22c55e' || color === '#10b981') return 'bg-green-50 text-green-500';
+        if (color === '#f59e0b' || color === '#eab308') return 'bg-amber-50 text-amber-500';
+        if (color === '#3b82f6' || color === '#6366f1') return 'bg-blue-50 text-blue-500';
+        return 'bg-slate-100 text-slate-500';
+    };
+
     if (loading) {
         return (
-            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f7' }}>
-                <div style={{ color: '#86868b', fontSize: '14px' }}>加载中...</div>
+            <div className="flex min-h-screen items-center justify-center bg-slate-50">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
             </div>
         );
     }
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            background: '#f5f5f7',
-            paddingBottom: '80px'
-        }}>
+        <div className="min-h-screen bg-slate-50 pb-4">
             {/* Header */}
-            <div style={{
-                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                padding: '20px',
-                color: 'white',
-                textAlign: 'center'
-            }}>
-                <div onClick={() => router.back()} style={{
-                    position: 'absolute',
-                    left: '16px',
-                    top: '20px',
-                    fontSize: '20px',
-                    cursor: 'pointer'
-                }}>←</div>
-                <div style={{ fontSize: '20px', fontWeight: '700' }}>追评任务</div>
-                <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '4px' }}>
-                    完成追评可获得额外佣金
-                </div>
-            </div>
+            <header className="sticky top-0 z-10 flex h-14 items-center border-b border-slate-200 bg-white px-4">
+                <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
+                <h1 className="flex-1 text-base font-medium text-slate-800">追评任务</h1>
+            </header>
 
-            {/* Tab 切换 */}
-            <div style={{
-                display: 'flex',
-                background: 'white',
-                borderBottom: '1px solid #eee',
-                position: 'sticky',
-                top: 0,
-                zIndex: 10
-            }}>
+            {/* Tabs */}
+            <div className="sticky top-14 z-10 flex border-b border-slate-200 bg-white">
                 {tabs.map(tab => (
-                    <div
+                    <button
                         key={tab.key ?? 'all'}
                         onClick={() => setActiveTab(tab.key)}
-                        style={{
-                            flex: 1,
-                            padding: '14px',
-                            textAlign: 'center',
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            cursor: 'pointer',
-                            color: activeTab === tab.key ? '#6366f1' : '#666',
-                            borderBottom: activeTab === tab.key ? '2px solid #6366f1' : '2px solid transparent',
-                            transition: 'all 0.2s'
-                        }}
+                        className={cn(
+                            'flex-1 py-3 text-center text-sm font-medium transition-colors',
+                            activeTab === tab.key ? 'border-b-2 border-blue-500 text-blue-500' : 'text-slate-500'
+                        )}
                     >
                         {tab.label}
-                    </div>
+                    </button>
                 ))}
             </div>
 
-            {/* 任务列表 */}
-            <div style={{ padding: '16px' }}>
+            {/* Task List */}
+            <ProfileContainer className="py-4">
                 {tasks.length === 0 ? (
-                    <div style={{
-                        textAlign: 'center',
-                        padding: '60px 20px',
-                        color: '#999'
-                    }}>
-                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>📝</div>
-                        <div>暂无追评任务</div>
+                    <div className="rounded-xl border border-slate-200 bg-white py-12 text-center shadow-sm">
+                        <div className="mb-3 text-4xl">📝</div>
+                        <div className="text-sm text-slate-400">暂无追评任务</div>
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div className="space-y-3">
                         {tasks.map(task => {
                             const statusInfo = ReviewTaskStatusLabels[task.state];
                             return (
                                 <div
                                     key={task.id}
                                     onClick={() => router.push(`/profile/reviews/${task.id}`)}
-                                    style={{
-                                        background: 'white',
-                                        borderRadius: '12px',
-                                        padding: '16px',
-                                        boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                                        cursor: 'pointer'
-                                    }}
+                                    className="cursor-pointer rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
                                 >
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                    <div className="mb-3 flex items-start justify-between">
                                         <div>
-                                            <div style={{ fontSize: '14px', fontWeight: '600', color: '#333' }}>
-                                                追评任务
-                                            </div>
-                                            <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
-                                                {task.taskNumber}
-                                            </div>
+                                            <div className="font-medium text-slate-800">追评任务</div>
+                                            <div className="mt-0.5 text-xs text-slate-400">{task.taskNumber}</div>
                                         </div>
-                                        <span style={{
-                                            padding: '4px 10px',
-                                            borderRadius: '999px',
-                                            fontSize: '12px',
-                                            fontWeight: '500',
-                                            background: statusInfo.color + '20',
-                                            color: statusInfo.color
-                                        }}>
+                                        <span className={cn('rounded-full px-2.5 py-1 text-xs font-medium', getStatusStyle(statusInfo.color))}>
                                             {statusInfo.text}
                                         </span>
                                     </div>
 
-                                    <div style={{
-                                        display: 'grid',
-                                        gridTemplateColumns: 'repeat(2, 1fr)',
-                                        gap: '8px',
-                                        fontSize: '13px'
-                                    }}>
+                                    <div className="grid grid-cols-2 gap-2 text-sm">
                                         <div>
-                                            <span style={{ color: '#999' }}>佣金：</span>
-                                            <span style={{ color: '#10b981', fontWeight: '600' }}>¥{Number(task.userMoney).toFixed(2)}</span>
+                                            <span className="text-slate-400">佣金：</span>
+                                            <span className="font-medium text-green-500">¥{Number(task.userMoney).toFixed(2)}</span>
                                         </div>
                                         <div>
-                                            <span style={{ color: '#999' }}>任务金额：</span>
-                                            <span style={{ color: '#333' }}>¥{Number(task.money).toFixed(2)}</span>
+                                            <span className="text-slate-400">任务金额：</span>
+                                            <span className="text-slate-700">¥{Number(task.money).toFixed(2)}</span>
                                         </div>
-                                        <div style={{ gridColumn: '1 / -1' }}>
-                                            <span style={{ color: '#999' }}>创建时间：</span>
-                                            <span style={{ color: '#333' }}>{new Date(task.createdAt).toLocaleDateString()}</span>
+                                        <div className="col-span-2">
+                                            <span className="text-slate-400">创建时间：</span>
+                                            <span className="text-slate-700">{new Date(task.createdAt).toLocaleDateString()}</span>
                                         </div>
                                     </div>
 
-                                    {/* 待追评状态的特殊提示 */}
                                     {task.state === ReviewTaskStatus.APPROVED && (
-                                        <div style={{
-                                            marginTop: '12px',
-                                            padding: '10px',
-                                            background: '#eff6ff',
-                                            borderRadius: '8px',
-                                            fontSize: '12px',
-                                            color: '#3b82f6',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '6px'
-                                        }}>
+                                        <div className="mt-3 flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-600">
                                             <span>📢</span>
                                             请尽快完成追评并上传截图
                                         </div>
@@ -207,18 +140,9 @@ function ReviewTasksContent() {
                 )}
 
                 {total > tasks.length && (
-                    <div style={{
-                        textAlign: 'center',
-                        padding: '20px',
-                        color: '#999',
-                        fontSize: '14px'
-                    }}>
-                        共 {total} 条记录
-                    </div>
+                    <div className="py-4 text-center text-sm text-slate-400">共 {total} 条记录</div>
                 )}
-            </div>
-
-            <BottomNav />
+            </ProfileContainer>
         </div>
     );
 }
@@ -226,14 +150,8 @@ function ReviewTasksContent() {
 export default function ReviewTasksPage() {
     return (
         <Suspense fallback={
-            <div style={{
-                minHeight: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: '#f5f5f7'
-            }}>
-                <div style={{ color: '#86868b', fontSize: '14px' }}>加载中...</div>
+            <div className="flex min-h-screen items-center justify-center bg-slate-50">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
             </div>
         }>
             <ReviewTasksContent />
