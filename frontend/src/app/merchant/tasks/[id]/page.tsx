@@ -3,16 +3,16 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { BASE_URL } from '../../../../../apiConfig';
-import { cn } from '../../../../../lib/utils';
-import { Button } from '../../../../../components/ui/button';
-import { Card } from '../../../../../components/ui/card';
-import { Badge } from '../../../../../components/ui/badge';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface TaskDetail { id: string; taskNumber: string; title: string; taskType: number; shopId: string; shopName: string; url: string; mainImage: string; keyword: string; taoWord?: string; goodsPrice: number; count: number; claimedCount: number; completedCount: number; status: number; isFreeShipping: number; isPraise: boolean; praiseType: string; praiseList: string[]; isTimingPublish: boolean; publishTime?: string; isTimingPay: boolean; timingPayTime?: string; isCycleTime: boolean; cycleTime?: number; addReward: number; totalDeposit: number; totalCommission: number; baseServiceFee: number; praiseFee: number; postageMoney: number; marginMoney: number; createdAt: string; updatedAt: string; }
 interface OrderItem { id: string; buynoAccount: string; status: string; productPrice: number; commission: number; createdAt: string; completedAt?: string; }
 
 const TaskTypeMap: Record<number, string> = { 1: '淘宝', 2: '天猫', 3: '京东', 4: '拼多多' };
-const TaskStatusMap: Record<number, { text: string; color: 'amber' | 'green' | 'indigo' | 'red' | 'purple' | 'slate' }> = { 0: { text: '待支付', color: 'amber' }, 1: { text: '进行中', color: 'green' }, 2: { text: '已完成', color: 'indigo' }, 3: { text: '已取消', color: 'red' }, 4: { text: '待审核', color: 'purple' } };
+const TaskStatusMap: Record<number, { text: string; color: 'amber' | 'green' | 'blue' | 'red' | 'slate' }> = { 0: { text: '待支付', color: 'amber' }, 1: { text: '进行中', color: 'green' }, 2: { text: '已完成', color: 'blue' }, 3: { text: '已取消', color: 'red' }, 4: { text: '待审核', color: 'slate' } };
 const OrderStatusMap: Record<string, { text: string; color: 'blue' | 'amber' | 'green' | 'red' | 'slate' }> = { PENDING: { text: '进行中', color: 'blue' }, SUBMITTED: { text: '待审核', color: 'amber' }, APPROVED: { text: '已通过', color: 'green' }, REJECTED: { text: '已驳回', color: 'red' }, COMPLETED: { text: '已完成', color: 'slate' } };
 
 export default function TaskDetailPage() {
@@ -81,7 +81,7 @@ export default function TaskDetailPage() {
                             <div className="min-w-0 flex-1">
                                 <div className="mb-2 text-base font-medium">{task.title}</div>
                                 <div className="mb-2 flex items-center gap-2 text-sm text-slate-500">
-                                    <Badge variant="soft" color="indigo" className="text-xs">{TaskTypeMap[task.taskType] || '未知平台'}</Badge>{task.shopName}
+                                    <Badge variant="soft" color="blue" className="text-xs">{TaskTypeMap[task.taskType] || '未知平台'}</Badge>{task.shopName}
                                 </div>
                                 <div className="mb-2 text-xl font-bold text-red-500">¥{Number(task.goodsPrice).toFixed(2)}</div>
                                 <div className="text-[13px] text-slate-500">关键词: <span className="text-indigo-600">{task.keyword}</span></div>
@@ -104,7 +104,7 @@ export default function TaskDetailPage() {
                         <div>
                             <div className="mb-1.5 flex justify-between text-[13px] text-slate-500"><span>完成进度</span><span>{progress.toFixed(1)}%</span></div>
                             <div className="h-2 overflow-hidden rounded-full bg-slate-200">
-                                <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500" style={{ width: `${progress}%` }} />
+                                <span className="block h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all" {...{ style: { width: `${progress}%` } }} />
                             </div>
                         </div>
                     </Card>

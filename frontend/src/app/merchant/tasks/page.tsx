@@ -3,16 +3,16 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { BASE_URL } from '../../../../apiConfig';
-import { cn } from '../../../../lib/utils';
-import { Button } from '../../../../components/ui/button';
-import { Card } from '../../../../components/ui/card';
-import { Badge } from '../../../../components/ui/badge';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface Task { id: string; taskNumber: string; title: string; taskType: number; goodsPrice: number; count: number; claimedCount: number; totalCommission: number; status: number; createdAt: string; }
 
 const TaskTypeMap: Record<number, string> = { 1: '淘宝', 2: '天猫', 3: '京东', 4: '拼多多' };
-const TaskStatusMap: Record<number, { text: string; color: 'amber' | 'green' | 'indigo' | 'red' | 'purple' | 'slate' }> = {
-    0: { text: '待支付', color: 'amber' }, 1: { text: '进行中', color: 'green' }, 2: { text: '已完成', color: 'indigo' }, 3: { text: '已取消', color: 'red' }, 4: { text: '待审核', color: 'purple' },
+const TaskStatusMap: Record<number, { text: string; color: 'amber' | 'green' | 'blue' | 'red' | 'slate' }> = {
+    0: { text: '待支付', color: 'amber' }, 1: { text: '进行中', color: 'green' }, 2: { text: '已完成', color: 'blue' }, 3: { text: '已取消', color: 'red' }, 4: { text: '待审核', color: 'slate' },
 };
 
 export default function MerchantTasksPage() {
@@ -97,7 +97,7 @@ export default function MerchantTasksPage() {
                                         <td className="px-4 py-4">
                                             <div className="flex items-center gap-2">
                                                 <div className="h-1.5 w-[60px] overflow-hidden rounded-full bg-slate-200">
-                                                    <div className="h-full rounded-full bg-indigo-600" style={{ width: `${task.count > 0 ? (task.claimedCount / task.count) * 100 : 0}%` }} />
+                                                    <span className="block h-full rounded-full bg-indigo-600 transition-all" {...{ style: { width: `${task.count > 0 ? (task.claimedCount / task.count) * 100 : 0}%` } }} />
                                                 </div>
                                                 <span className="text-[13px] text-slate-500">{task.claimedCount}/{task.count}</span>
                                             </div>
