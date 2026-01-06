@@ -1,10 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Table, Card, Select, Button, Tag, Space, Modal, Descriptions, Progress, Image, message, Radio, Spin } from 'antd';
-import { ReloadOutlined, DownloadOutlined, EyeOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
+import { useMemo } from 'react';
 import { BASE_URL } from '../../../../apiConfig';
+import { cn } from '../../../../lib/utils';
+import { toastError, toastSuccess } from '../../../../lib/toast';
+import { Button } from '../../../../components/ui/button';
+import { Card } from '../../../../components/ui/card';
+import { Badge } from '../../../../components/ui/badge';
+import { Select } from '../../../../components/ui/select';
+import { Table, Column } from '../../../../components/ui/table';
+import { Modal } from '../../../../components/ui/modal';
+import { Tabs } from '../../../../components/ui/tabs';
+import { Pagination } from '../../../../components/ui/pagination';
+import { Spinner } from '../../../../components/ui/spinner';
 
 interface Task {
     id: string;
@@ -69,6 +78,15 @@ export default function AdminTasksPage() {
     const [total, setTotal] = useState(0);
     const [exporting, setExporting] = useState(false);
     const [detailModal, setDetailModal] = useState<Task | null>(null);
+
+    const statusOptions = useMemo(
+        () =>
+            Object.entries(statusLabels).map(([k, v]) => ({
+                value: String(k),
+                label: v.text,
+            })),
+        []
+    );
 
     useEffect(() => { loadTasks(); }, [filter, page]);
 
