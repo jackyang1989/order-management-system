@@ -1,17 +1,17 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { BASE_URL } from '../../../../apiConfig';
-import { cn } from '../../../../lib/utils';
-import { toastError, toastSuccess } from '../../../../lib/toast';
-import { Button } from '../../../../components/ui/button';
-import { Card } from '../../../../components/ui/card';
-import { Badge } from '../../../../components/ui/badge';
-import { Select } from '../../../../components/ui/select';
-import { Table, Column } from '../../../../components/ui/table';
-import { Modal } from '../../../../components/ui/modal';
-import { Pagination } from '../../../../components/ui/pagination';
-import { Tabs } from '../../../../components/ui/tabs';
+import { BASE_URL } from '../../../apiConfig';
+import { cn } from '../../../lib/utils';
+import { toastError, toastSuccess } from '../../../lib/toast';
+import { Button } from '../../../components/ui/button';
+import { Card } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Select } from '../../../components/ui/select';
+import { Table, Column } from '../../../components/ui/table';
+import { Modal } from '../../../components/ui/modal';
+import { Pagination } from '../../../components/ui/pagination';
+import { Tabs } from '../../../components/ui/tabs';
 
 interface Task {
     id: string;
@@ -197,7 +197,7 @@ export default function AdminTasksPage() {
                             <div className={cn('h-2 rounded-full', barClass, progressWidthClass(percent))} />
                         </div>
                         <span className="text-xs text-slate-500">
-                            {row.claimedCount} / {row.count}
+                            {row.claimedCount} / {row.count} ({percent}%)
                         </span>
                     </div>
                 );
@@ -245,60 +245,199 @@ export default function AdminTasksPage() {
     ];
 
     return (
-        <div>
-            <Card style={{ marginBottom: 16 }}>
-                <Space wrap>
-                    <span>状态筛选：</span>
-                    <Radio.Group value={filter} onChange={(e) => { setFilter(e.target.value); setPage(1); }} buttonStyle="solid">
-                        <Radio.Button value={undefined}>全部</Radio.Button>
-                        <Radio.Button value={1}>进行中</Radio.Button>
-                        <Radio.Button value={4}>待审核</Radio.Button>
-                        <Radio.Button value={2}>已完成</Radio.Button>
-                        <Radio.Button value={3}>已取消</Radio.Button>
-                    </Radio.Group>
-                    <Button icon={<ReloadOutlined />} onClick={loadTasks}>刷新</Button>
-                    <Button type="primary" icon={<DownloadOutlined />} onClick={handleExport} loading={exporting} style={{ background: '#52c41a' }}>导出Excel</Button>
-                </Space>
+        <div className="space-y-6">
+            <Card className="bg-white">
+                <div className="flex flex-wrap items-center gap-4">
+                    <span className="text-sm font-medium text-slate-700">状态筛选：</span>
+                    <Tabs
+                        value={String(filter ?? 'all')}
+                        onChange={(val) => {
+                            setFilter(val === 'all' ? undefined : Number(val));
+                            setPage(1);
+                        }}
+                        items={[
+                            { key: 'all', label: '全部' },
+                            { key: '1', label: '进行中' },
+                            { key: '4', label: '待审核' },
+                            { key: '2', label: '已完成' },
+                            { key: '3', label: '已取消' },
+                        ]}
+                    />
+                    <div className="ml-auto flex items-center gap-2">
+                        <Button
+                            variant="secondary"
+                            onClick={loadTasks}
+                            className="flex items-center gap-1"
+                        >
+                            <span>🔄</span> 刷新
+                        </Button>
+                        <Button
+                            onClick={handleExport}
+                            loading={exporting}
+                            className="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700"
+                        >
+                            <span>📥</span> 导出Excel
+                        </Button>
+                    </div>
+                </div>
             </Card>
 
-            <Card>
-                <Table columns={columns} dataSource={tasks} rowKey="id" loading={loading} scroll={{ x: 1000 }}
-                    pagination={{ current: page, total, pageSize: 20, onChange: setPage, showTotal: (t) => `共 ${t} 条` }} />
+            <Card className="overflow-hidden bg-white">
+                <Table
+                    columns={columns}
+                    data={tasks}
+                    rowKey={(r) => r.id}
+                    loading={loading}
+                    emptyText="暂无任务数据"
+                />
+                <div className="mt-4 flex justify-end px-6 pb-6">
+                    <Pagination
+                        current={page}
+                        total={total}
+                        pageSize={20}
+                        onChange={setPage}
+                    />
+                </div>
             </Card>
 
-            <Modal title="任务详情" open={!!detailModal} onCancel={() => setDetailModal(null)} width={900} footer={<Button onClick={() => setDetailModal(null)}>关闭</Button>}>
+            <Modal
+                title="任务详情"
+                open={!!detailModal}
+                onClose={() => setDetailModal(null)}
+                className="max-w-4xl"
+            >
                 {detailModal && (
-                    <div style={{ maxHeight: '70vh', overflow: 'auto' }}>
-                        {detailModal.mainImage && <div style={{ textAlign: 'center', marginBottom: 24 }}><Image src={detailModal.mainImage} alt="商品图" style={{ maxWidth: 200, borderRadius: 8 }} /></div>}
-                        <Descriptions title="基本信息" column={3} bordered size="small" style={{ marginBottom: 24 }}>
-                            <Descriptions.Item label="任务编号">{detailModal.taskNumber}</Descriptions.Item>
-                            <Descriptions.Item label="平台">{platformLabels[detailModal.taskType]}</Descriptions.Item>
-                            <Descriptions.Item label="状态"><Tag color={statusLabels[detailModal.status]?.color}>{statusLabels[detailModal.status]?.text}</Tag></Descriptions.Item>
-                            <Descriptions.Item label="标题" span={3}>{detailModal.title}</Descriptions.Item>
-                            <Descriptions.Item label="店铺">{detailModal.shopName || '-'}</Descriptions.Item>
-                            <Descriptions.Item label="关键词">{detailModal.keyword || '-'}</Descriptions.Item>
-                            <Descriptions.Item label="结算方式">{terminalLabels[detailModal.terminal] || '-'}</Descriptions.Item>
-                        </Descriptions>
+                    <div className="max-h-[70vh] overflow-y-auto pr-2">
+                        {/* 顶部主图 */}
+                        {detailModal.mainImage && (
+                            <div className="mb-6 flex justify-center">
+                                <img
+                                    src={detailModal.mainImage}
+                                    alt="商品图"
+                                    className="h-48 rounded-lg object-contain shadow-sm"
+                                />
+                            </div>
+                        )}
 
-                        <Descriptions title="任务进度" column={4} bordered size="small" style={{ marginBottom: 24 }}>
-                            <Descriptions.Item label="总单数"><span style={{ fontSize: 18, fontWeight: 600 }}>{detailModal.count}</span></Descriptions.Item>
-                            <Descriptions.Item label="已领取"><span style={{ fontSize: 18, fontWeight: 600, color: '#1890ff' }}>{detailModal.claimedCount}</span></Descriptions.Item>
-                            <Descriptions.Item label="已完成"><span style={{ fontSize: 18, fontWeight: 600, color: '#52c41a' }}>{detailModal.completedCount || 0}</span></Descriptions.Item>
-                            <Descriptions.Item label="剩余"><span style={{ fontSize: 18, fontWeight: 600, color: '#fa8c16' }}>{detailModal.count - detailModal.claimedCount}</span></Descriptions.Item>
-                        </Descriptions>
+                        {/* 基本信息 */}
+                        <div className="mb-6">
+                            <h3 className="mb-3 text-sm font-semibold text-slate-800 border-l-4 border-primary pl-2">基本信息</h3>
+                            <div className="grid grid-cols-1 gap-4 rounded-lg bg-slate-50 p-4 sm:grid-cols-3">
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">任务编号</div>
+                                    <div className="text-sm font-medium">{detailModal.taskNumber}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">平台</div>
+                                    <div className="text-sm font-medium">{platformLabels[detailModal.taskType]}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">状态</div>
+                                    <div>
+                                        <Badge variant="soft" color={statusLabels[detailModal.status]?.color}>
+                                            {statusLabels[detailModal.status]?.text}
+                                        </Badge>
+                                    </div>
+                                </div>
+                                <div className="space-y-1 sm:col-span-3">
+                                    <div className="text-xs text-slate-500">标题</div>
+                                    <div className="text-sm font-medium">{detailModal.title}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">店铺</div>
+                                    <div className="text-sm font-medium">{detailModal.shopName || '-'}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">关键词</div>
+                                    <div className="text-sm font-medium">{detailModal.keyword || '-'}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-slate-500">结算方式</div>
+                                    <div className="text-sm font-medium">{terminalLabels[detailModal.terminal] || '-'}</div>
+                                </div>
+                            </div>
+                        </div>
 
-                        <Descriptions title="费用信息" column={3} bordered size="small" style={{ marginBottom: 24 }}>
-                            <Descriptions.Item label="商品单价">¥{Number(detailModal.goodsPrice).toFixed(2)}</Descriptions.Item>
-                            <Descriptions.Item label="总押金">¥{Number(detailModal.totalDeposit || 0).toFixed(2)}</Descriptions.Item>
-                            <Descriptions.Item label="总佣金">¥{Number(detailModal.totalCommission || 0).toFixed(2)}</Descriptions.Item>
-                        </Descriptions>
+                        {/* 任务进度 */}
+                        <div className="mb-6">
+                            <h3 className="mb-3 text-sm font-semibold text-slate-800 border-l-4 border-primary pl-2">任务进度</h3>
+                            <div className="grid grid-cols-2 gap-4 rounded-lg bg-slate-50 p-4 sm:grid-cols-4">
+                                <div>
+                                    <div className="text-xs text-slate-500">总单数</div>
+                                    <div className="text-lg font-bold text-slate-800">{detailModal.count}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-slate-500">已领取</div>
+                                    <div className="text-lg font-bold text-blue-600">{detailModal.claimedCount}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-slate-500">已完成</div>
+                                    <div className="text-lg font-bold text-green-600">{detailModal.completedCount || 0}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-slate-500">剩余</div>
+                                    <div className="text-lg font-bold text-amber-500">
+                                        {detailModal.count - detailModal.claimedCount}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                        <Descriptions title="增值服务" column={4} bordered size="small">
-                            <Descriptions.Item label="文字好评"><Tag color={detailModal.isPraise ? 'green' : 'default'}>{detailModal.isPraise ? '是' : '否'}</Tag></Descriptions.Item>
-                            <Descriptions.Item label="图片好评"><Tag color={detailModal.isImgPraise ? 'green' : 'default'}>{detailModal.isImgPraise ? '是' : '否'}</Tag></Descriptions.Item>
-                            <Descriptions.Item label="视频好评"><Tag color={detailModal.isVideoPraise ? 'green' : 'default'}>{detailModal.isVideoPraise ? '是' : '否'}</Tag></Descriptions.Item>
-                            <Descriptions.Item label="包邮"><Tag color={detailModal.isFreeShipping ? 'blue' : 'default'}>{detailModal.isFreeShipping ? '是' : '否'}</Tag></Descriptions.Item>
-                        </Descriptions>
+                        {/* 费用信息 */}
+                        <div className="mb-6">
+                            <h3 className="mb-3 text-sm font-semibold text-slate-800 border-l-4 border-primary pl-2">费用信息</h3>
+                            <div className="grid grid-cols-1 gap-4 rounded-lg bg-slate-50 p-4 sm:grid-cols-3">
+                                <div>
+                                    <div className="text-xs text-slate-500">商品单价</div>
+                                    <div className="text-sm font-medium">¥{Number(detailModal.goodsPrice).toFixed(2)}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-slate-500">总押金</div>
+                                    <div className="text-sm font-medium">¥{Number(detailModal.totalDeposit || 0).toFixed(2)}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-slate-500">总佣金</div>
+                                    <div className="text-sm font-medium">¥{Number(detailModal.totalCommission || 0).toFixed(2)}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 增值服务 */}
+                        <div>
+                            <h3 className="mb-3 text-sm font-semibold text-slate-800 border-l-4 border-primary pl-2">增值服务</h3>
+                            <div className="grid grid-cols-2 gap-4 rounded-lg bg-slate-50 p-4 sm:grid-cols-4">
+                                <div>
+                                    <div className="text-xs text-slate-500">文字好评</div>
+                                    <div className={cn("text-sm font-medium", detailModal.isPraise ? "text-green-600" : "text-slate-400")}>
+                                        {detailModal.isPraise ? '是' : '否'}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-slate-500">图片好评</div>
+                                    <div className={cn("text-sm font-medium", detailModal.isImgPraise ? "text-green-600" : "text-slate-400")}>
+                                        {detailModal.isImgPraise ? '是' : '否'}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-slate-500">视频好评</div>
+                                    <div className={cn("text-sm font-medium", detailModal.isVideoPraise ? "text-green-600" : "text-slate-400")}>
+                                        {detailModal.isVideoPraise ? '是' : '否'}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-slate-500">包邮</div>
+                                    <div className={cn("text-sm font-medium", detailModal.isFreeShipping ? "text-blue-600" : "text-slate-400")}>
+                                        {detailModal.isFreeShipping ? '是' : '否'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-8 flex justify-end">
+                            <Button variant="secondary" onClick={() => setDetailModal(null)}>
+                                关闭
+                            </Button>
+                        </div>
                     </div>
                 )}
             </Modal>

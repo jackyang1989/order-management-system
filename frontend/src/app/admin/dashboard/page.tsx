@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { cn } from '../../../../lib/utils';
-import { BASE_URL } from '../../../../apiConfig';
+import { cn } from '../../../lib/utils';
+import { BASE_URL } from '../../../apiConfig';
 
 interface Stats {
     totalUsers: number;
