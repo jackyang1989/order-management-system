@@ -14,6 +14,9 @@ const TaskTypeMap: Record<number, string> = { 1: '淘宝', 2: '天猫', 3: '京�
 const TaskStatusMap: Record<number, { text: string; color: 'amber' | 'green' | 'blue' | 'red' | 'slate' }> = {
     0: { text: '待支付', color: 'amber' }, 1: { text: '进行中', color: 'green' }, 2: { text: '已完成', color: 'blue' }, 3: { text: '已取消', color: 'red' }, 4: { text: '待审核', color: 'slate' },
 };
+const progressWidthClass = { 0: 'w-0', 5: 'w-[5%]', 10: 'w-[10%]', 15: 'w-[15%]', 20: 'w-[20%]', 25: 'w-[25%]', 30: 'w-[30%]', 35: 'w-[35%]', 40: 'w-[40%]', 45: 'w-[45%]', 50: 'w-[50%]', 55: 'w-[55%]', 60: 'w-[60%]', 65: 'w-[65%]', 70: 'w-[70%]', 75: 'w-[75%]', 80: 'w-[80%]', 85: 'w-[85%]', 90: 'w-[90%]', 95: 'w-[95%]', 100: 'w-full' } as const;
+type PctKey = keyof typeof progressWidthClass;
+const getPct = (claimed: number, total: number): PctKey => Math.max(0, Math.min(100, Math.round((total > 0 ? (claimed / total) * 100 : 0) / 5) * 5)) as PctKey;
 
 export default function MerchantTasksPage() {
     const router = useRouter();
@@ -97,7 +100,7 @@ export default function MerchantTasksPage() {
                                         <td className="px-4 py-4">
                                             <div className="flex items-center gap-2">
                                                 <div className="h-1.5 w-[60px] overflow-hidden rounded-full bg-slate-200">
-                                                    <span className="block h-full rounded-full bg-indigo-600 transition-all" {...{ style: { width: `${task.count > 0 ? (task.claimedCount / task.count) * 100 : 0}%` } }} />
+                                                    <span className={cn('block h-full rounded-full bg-indigo-600 transition-all', progressWidthClass[getPct(task.claimedCount, task.count)])} />
                                                 </div>
                                                 <span className="text-[13px] text-slate-500">{task.claimedCount}/{task.count}</span>
                                             </div>

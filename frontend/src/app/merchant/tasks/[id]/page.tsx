@@ -56,6 +56,10 @@ export default function TaskDetailPage() {
 
     const statusStyle = TaskStatusMap[task.status] || { text: '未知', color: 'slate' as const };
     const progress = task.count > 0 ? (task.completedCount / task.count) * 100 : 0;
+    const pct = Math.max(0, Math.min(100, Math.round(progress / 5) * 5)) as
+        | 0 | 5 | 10 | 15 | 20 | 25 | 30 | 35 | 40 | 45 | 50
+        | 55 | 60 | 65 | 70 | 75 | 80 | 85 | 90 | 95 | 100;
+    const progressWidthClass = { 0: 'w-0', 5: 'w-[5%]', 10: 'w-[10%]', 15: 'w-[15%]', 20: 'w-[20%]', 25: 'w-[25%]', 30: 'w-[30%]', 35: 'w-[35%]', 40: 'w-[40%]', 45: 'w-[45%]', 50: 'w-[50%]', 55: 'w-[55%]', 60: 'w-[60%]', 65: 'w-[65%]', 70: 'w-[70%]', 75: 'w-[75%]', 80: 'w-[80%]', 85: 'w-[85%]', 90: 'w-[90%]', 95: 'w-[95%]', 100: 'w-full' } as const;
     const statCards = [{ value: task.count, label: '总任务数', color: 'text-indigo-600' }, { value: task.claimedCount, label: '已领取', color: 'text-amber-500' }, { value: task.completedCount, label: '已完成', color: 'text-green-500' }, { value: task.count - task.claimedCount, label: '剩余可接', color: 'text-slate-500' }];
 
     return (
@@ -104,7 +108,7 @@ export default function TaskDetailPage() {
                         <div>
                             <div className="mb-1.5 flex justify-between text-[13px] text-slate-500"><span>完成进度</span><span>{progress.toFixed(1)}%</span></div>
                             <div className="h-2 overflow-hidden rounded-full bg-slate-200">
-                                <span className="block h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all" {...{ style: { width: `${progress}%` } }} />
+                                <span className={cn('block h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all', progressWidthClass[pct])} />
                             </div>
                         </div>
                     </Card>
