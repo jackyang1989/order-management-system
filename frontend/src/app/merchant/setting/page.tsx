@@ -1,491 +1,164 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
 import { BASE_URL } from '../../../../apiConfig';
+import { cn } from '../../../lib/utils';
+import { Button } from '../../../components/ui/button';
+import { Card } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Modal } from '../../../components/ui/modal';
 
-interface MerchantInfo {
-    id: string;
-    username: string;
-    phone: string;
-    qq?: string;
-    companyName?: string;
-    businessLicense?: string;
-    contactName?: string;
-    balance: number;
-    silver: number;
-    vip: boolean;
-    vipExpireAt?: string;
-    status: number;
-    createdAt: string;
-}
+interface MerchantInfo { id: string; username: string; phone: string; qq?: string; companyName?: string; businessLicense?: string; contactName?: string; balance: number; silver: number; vip: boolean; vipExpireAt?: string; status: number; createdAt: string; }
 
 export default function MerchantSettingPage() {
     const [merchant, setMerchant] = useState<MerchantInfo | null>(null);
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
-    const [formData, setFormData] = useState({
-        phone: '',
-        qq: '',
-        companyName: '',
-        contactName: '',
-    });
-    const [passwordForm, setPasswordForm] = useState({
-        oldPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-    });
+    const [formData, setFormData] = useState({ phone: '', qq: '', companyName: '', contactName: '' });
+    const [passwordForm, setPasswordForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
 
-    useEffect(() => {
-        fetchMerchantInfo();
-    }, []);
+    useEffect(() => { fetchMerchantInfo(); }, []);
 
     const fetchMerchantInfo = async () => {
         try {
             const token = localStorage.getItem('merchantToken');
-            const res = await fetch(`${BASE_URL}/merchant/profile`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await fetch(`${BASE_URL}/merchant/profile`, { headers: { Authorization: `Bearer ${token}` } });
             const data = await res.json();
-            if (data.success) {
-                setMerchant(data.data);
-                setFormData({
-                    phone: data.data.phone || '',
-                    qq: data.data.qq || '',
-                    companyName: data.data.companyName || '',
-                    contactName: data.data.contactName || '',
-                });
-            }
-        } catch (error) {
-            console.error('获取商家信息失败:', error);
-        } finally {
-            setLoading(false);
-        }
+            if (data.success) { setMerchant(data.data); setFormData({ phone: data.data.phone || '', qq: data.data.qq || '', companyName: data.data.companyName || '', contactName: data.data.contactName || '' }); }
+        } catch (error) { console.error('获取商家信息失败:', error); }
+        finally { setLoading(false); }
     };
 
     const handleSave = async () => {
         try {
             const token = localStorage.getItem('merchantToken');
-            const res = await fetch(`${BASE_URL}/merchant/profile`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(formData),
-            });
+            const res = await fetch(`${BASE_URL}/merchant/profile`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(formData) });
             const data = await res.json();
-            if (data.success) {
-                setMessage({ type: 'success', text: '保存成功' });
-                setEditing(false);
-                fetchMerchantInfo();
-            } else {
-                setMessage({ type: 'error', text: data.message || '保存失败' });
-            }
-        } catch (error) {
-            setMessage({ type: 'error', text: '网络错误' });
-        }
+            if (data.success) { setMessage({ type: 'success', text: '保存成功' }); setEditing(false); fetchMerchantInfo(); }
+            else setMessage({ type: 'error', text: data.message || '保存失败' });
+        } catch { setMessage({ type: 'error', text: '网络错误' }); }
         setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     };
 
     const handleChangePassword = async () => {
-        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-            setMessage({ type: 'error', text: '两次密码输入不一致' });
-            return;
-        }
-        if (passwordForm.newPassword.length < 6) {
-            setMessage({ type: 'error', text: '密码长度至少6位' });
-            return;
-        }
-
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) { setMessage({ type: 'error', text: '两次密码输入不一致' }); return; }
+        if (passwordForm.newPassword.length < 6) { setMessage({ type: 'error', text: '密码长度至少6位' }); return; }
         try {
             const token = localStorage.getItem('merchantToken');
-            const res = await fetch(`${BASE_URL}/merchant/change-password`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    oldPassword: passwordForm.oldPassword,
-                    newPassword: passwordForm.newPassword,
-                }),
-            });
+            const res = await fetch(`${BASE_URL}/merchant/change-password`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ oldPassword: passwordForm.oldPassword, newPassword: passwordForm.newPassword }) });
             const data = await res.json();
-            if (data.success) {
-                setMessage({ type: 'success', text: '密码修改成功' });
-                setShowPasswordModal(false);
-                setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
-            } else {
-                setMessage({ type: 'error', text: data.message || '修改失败' });
-            }
-        } catch (error) {
-            setMessage({ type: 'error', text: '网络错误' });
-        }
+            if (data.success) { setMessage({ type: 'success', text: '密码修改成功' }); setShowPasswordModal(false); setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' }); }
+            else setMessage({ type: 'error', text: data.message || '修改失败' });
+        } catch { setMessage({ type: 'error', text: '网络错误' }); }
         setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     };
 
-    if (loading) {
-        return (
-
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-                加载中...
-            </div>
-        );
-
-    }
+    if (loading) return <div className="flex h-[400px] items-center justify-center text-slate-500">加载中...</div>;
 
     return (
-
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '24px' }}>账户设置</h1>
+        <div className="mx-auto max-w-3xl space-y-6">
+            <h1 className="text-2xl font-bold">账户设置</h1>
 
             {message.text && (
-                <div style={{
-                    padding: '12px 16px',
-                    marginBottom: '16px',
-                    borderRadius: '8px',
-                    background: message.type === 'success' ? '#d1fae5' : '#fee2e2',
-                    color: message.type === 'success' ? '#065f46' : '#991b1b',
-                }}>
-                    {message.text}
-                </div>
+                <div className={cn('rounded-lg px-4 py-3', message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')}>{message.text}</div>
             )}
 
-            {/* 基本信息 */}
-            <div style={{
-                background: '#fff',
-                borderRadius: '12px',
-                padding: '24px',
-                marginBottom: '24px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: '600' }}>基本信息</h2>
+            {/* Basic Info */}
+            <Card className="bg-white p-6 shadow-sm">
+                <div className="mb-5 flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">基本信息</h2>
                     {!editing ? (
-                        <button
-                            onClick={() => setEditing(true)}
-                            style={{
-                                padding: '8px 16px',
-                                background: '#4f46e5',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            编辑
-                        </button>
+                        <Button size="sm" onClick={() => setEditing(true)}>编辑</Button>
                     ) : (
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <button
-                                onClick={() => setEditing(false)}
-                                style={{
-                                    padding: '8px 16px',
-                                    background: '#e5e7eb',
-                                    color: '#374151',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                取消
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                style={{
-                                    padding: '8px 16px',
-                                    background: '#4f46e5',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                保存
-                            </button>
+                        <div className="flex gap-2">
+                            <Button size="sm" variant="secondary" onClick={() => setEditing(false)}>取消</Button>
+                            <Button size="sm" onClick={handleSave}>保存</Button>
                         </div>
                     )}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label style={{ display: 'block', fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
-                            用户名
-                        </label>
-                        <div style={{ padding: '10px', background: '#f3f4f6', borderRadius: '6px', color: '#374151' }}>
-                            {merchant?.username}
-                        </div>
+                        <label className="mb-1 block text-sm text-slate-500">用户名</label>
+                        <div className="rounded-md bg-slate-100 px-3 py-2.5 text-slate-700">{merchant?.username}</div>
                     </div>
-
                     <div>
-                        <label style={{ display: 'block', fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
-                            手机号
-                        </label>
-                        {editing ? (
-                            <input
-                                type="text"
-                                value={formData.phone}
-                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    border: '1px solid #d1d5db',
-                                    borderRadius: '6px',
-                                    boxSizing: 'border-box',
-                                }}
-                            />
-                        ) : (
-                            <div style={{ padding: '10px', background: '#f3f4f6', borderRadius: '6px', color: '#374151' }}>
-                                {merchant?.phone || '-'}
-                            </div>
-                        )}
+                        <label className="mb-1 block text-sm text-slate-500">手机号</label>
+                        {editing ? <Input type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+                            : <div className="rounded-md bg-slate-100 px-3 py-2.5 text-slate-700">{merchant?.phone || '-'}</div>}
                     </div>
-
                     <div>
-                        <label style={{ display: 'block', fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
-                            QQ
-                        </label>
-                        {editing ? (
-                            <input
-                                type="text"
-                                value={formData.qq}
-                                onChange={(e) => setFormData({ ...formData, qq: e.target.value })}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    border: '1px solid #d1d5db',
-                                    borderRadius: '6px',
-                                    boxSizing: 'border-box',
-                                }}
-                            />
-                        ) : (
-                            <div style={{ padding: '10px', background: '#f3f4f6', borderRadius: '6px', color: '#374151' }}>
-                                {merchant?.qq || '-'}
-                            </div>
-                        )}
+                        <label className="mb-1 block text-sm text-slate-500">QQ</label>
+                        {editing ? <Input type="text" value={formData.qq} onChange={e => setFormData({ ...formData, qq: e.target.value })} />
+                            : <div className="rounded-md bg-slate-100 px-3 py-2.5 text-slate-700">{merchant?.qq || '-'}</div>}
                     </div>
-
                     <div>
-                        <label style={{ display: 'block', fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
-                            联系人
-                        </label>
-                        {editing ? (
-                            <input
-                                type="text"
-                                value={formData.contactName}
-                                onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    border: '1px solid #d1d5db',
-                                    borderRadius: '6px',
-                                    boxSizing: 'border-box',
-                                }}
-                            />
-                        ) : (
-                            <div style={{ padding: '10px', background: '#f3f4f6', borderRadius: '6px', color: '#374151' }}>
-                                {merchant?.contactName || '-'}
-                            </div>
-                        )}
+                        <label className="mb-1 block text-sm text-slate-500">联系人</label>
+                        {editing ? <Input type="text" value={formData.contactName} onChange={e => setFormData({ ...formData, contactName: e.target.value })} />
+                            : <div className="rounded-md bg-slate-100 px-3 py-2.5 text-slate-700">{merchant?.contactName || '-'}</div>}
                     </div>
-
-                    <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={{ display: 'block', fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
-                            公司名称
-                        </label>
-                        {editing ? (
-                            <input
-                                type="text"
-                                value={formData.companyName}
-                                onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    border: '1px solid #d1d5db',
-                                    borderRadius: '6px',
-                                    boxSizing: 'border-box',
-                                }}
-                            />
-                        ) : (
-                            <div style={{ padding: '10px', background: '#f3f4f6', borderRadius: '6px', color: '#374151' }}>
-                                {merchant?.companyName || '-'}
-                            </div>
-                        )}
+                    <div className="col-span-2">
+                        <label className="mb-1 block text-sm text-slate-500">公司名称</label>
+                        {editing ? <Input type="text" value={formData.companyName} onChange={e => setFormData({ ...formData, companyName: e.target.value })} />
+                            : <div className="rounded-md bg-slate-100 px-3 py-2.5 text-slate-700">{merchant?.companyName || '-'}</div>}
                     </div>
                 </div>
-            </div>
+            </Card>
 
-            {/* 账户状态 */}
-            <div style={{
-                background: '#fff',
-                borderRadius: '12px',
-                padding: '24px',
-                marginBottom: '24px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            }}>
-                <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px' }}>账户状态</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-                    <div style={{ textAlign: 'center', padding: '16px', background: '#f0fdf4', borderRadius: '8px' }}>
-                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#059669' }}>
-                            ¥{parseFloat(String(merchant?.balance || 0)).toFixed(2)}
-                        </div>
-                        <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>账户余额</div>
+            {/* Account Status */}
+            <Card className="bg-white p-6 shadow-sm">
+                <h2 className="mb-5 text-lg font-semibold">账户状态</h2>
+                <div className="grid grid-cols-3 gap-4">
+                    <div className="rounded-lg bg-green-50 p-4 text-center">
+                        <div className="text-2xl font-bold text-green-600">¥{parseFloat(String(merchant?.balance || 0)).toFixed(2)}</div>
+                        <div className="mt-1 text-sm text-slate-500">账户余额</div>
                     </div>
-                    <div style={{ textAlign: 'center', padding: '16px', background: '#fef3c7', borderRadius: '8px' }}>
-                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#d97706' }}>
-                            {parseFloat(String(merchant?.silver || 0)).toFixed(0)}
-                        </div>
-                        <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>银锭</div>
+                    <div className="rounded-lg bg-amber-50 p-4 text-center">
+                        <div className="text-2xl font-bold text-amber-600">{parseFloat(String(merchant?.silver || 0)).toFixed(0)}</div>
+                        <div className="mt-1 text-sm text-slate-500">银锭</div>
                     </div>
-                    <div style={{ textAlign: 'center', padding: '16px', background: merchant?.vip ? '#ede9fe' : '#f3f4f6', borderRadius: '8px' }}>
-                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: merchant?.vip ? '#7c3aed' : '#9ca3af' }}>
-                            {merchant?.vip ? 'VIP' : '普通'}
-                        </div>
-                        <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>会员状态</div>
+                    <div className={cn('rounded-lg p-4 text-center', merchant?.vip ? 'bg-purple-50' : 'bg-slate-100')}>
+                        <div className={cn('text-2xl font-bold', merchant?.vip ? 'text-purple-600' : 'text-slate-400')}>{merchant?.vip ? 'VIP' : '普通'}</div>
+                        <div className="mt-1 text-sm text-slate-500">会员状态</div>
                     </div>
                 </div>
-            </div>
+            </Card>
 
-            {/* 安全设置 */}
-            <div style={{
-                background: '#fff',
-                borderRadius: '12px',
-                padding: '24px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            }}>
-                <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px' }}>安全设置</h2>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #e5e7eb' }}>
+            {/* Security Settings */}
+            <Card className="bg-white p-6 shadow-sm">
+                <h2 className="mb-5 text-lg font-semibold">安全设置</h2>
+                <div className="flex items-center justify-between border-b border-slate-100 py-3">
                     <div>
-                        <div style={{ fontWeight: '500' }}>登录密码</div>
-                        <div style={{ fontSize: '14px', color: '#6b7280' }}>定期更换密码可以保护账户安全</div>
+                        <div className="font-medium">登录密码</div>
+                        <div className="text-sm text-slate-500">定期更换密码可以保护账户安全</div>
                     </div>
-                    <button
-                        onClick={() => setShowPasswordModal(true)}
-                        style={{
-                            padding: '8px 16px',
-                            background: '#f3f4f6',
-                            color: '#374151',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        修改密码
-                    </button>
+                    <Button variant="secondary" size="sm" onClick={() => setShowPasswordModal(true)}>修改密码</Button>
                 </div>
-            </div>
+            </Card>
 
-            {/* 修改密码弹窗 */}
-            {showPasswordModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                }}>
-                    <div style={{
-                        background: '#fff',
-                        borderRadius: '12px',
-                        padding: '24px',
-                        width: '400px',
-                        maxWidth: '90%',
-                    }}>
-                        <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px' }}>修改密码</h3>
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'block', fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
-                                当前密码
-                            </label>
-                            <input
-                                type="password"
-                                value={passwordForm.oldPassword}
-                                onChange={(e) => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    border: '1px solid #d1d5db',
-                                    borderRadius: '6px',
-                                    boxSizing: 'border-box',
-                                }}
-                            />
-                        </div>
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'block', fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
-                                新密码
-                            </label>
-                            <input
-                                type="password"
-                                value={passwordForm.newPassword}
-                                onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    border: '1px solid #d1d5db',
-                                    borderRadius: '6px',
-                                    boxSizing: 'border-box',
-                                }}
-                            />
-                        </div>
-                        <div style={{ marginBottom: '24px' }}>
-                            <label style={{ display: 'block', fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
-                                确认新密码
-                            </label>
-                            <input
-                                type="password"
-                                value={passwordForm.confirmPassword}
-                                onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    border: '1px solid #d1d5db',
-                                    borderRadius: '6px',
-                                    boxSizing: 'border-box',
-                                }}
-                            />
-                        </div>
-                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                            <button
-                                onClick={() => {
-                                    setShowPasswordModal(false);
-                                    setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
-                                }}
-                                style={{
-                                    padding: '10px 20px',
-                                    background: '#e5e7eb',
-                                    color: '#374151',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                取消
-                            </button>
-                            <button
-                                onClick={handleChangePassword}
-                                style={{
-                                    padding: '10px 20px',
-                                    background: '#4f46e5',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                确认修改
-                            </button>
-                        </div>
+            {/* Password Modal */}
+            <Modal title="修改密码" open={showPasswordModal} onClose={() => { setShowPasswordModal(false); setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' }); }}>
+                <div className="space-y-4">
+                    <div>
+                        <label className="mb-1 block text-sm text-slate-500">当前密码</label>
+                        <Input type="password" value={passwordForm.oldPassword} onChange={e => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })} />
+                    </div>
+                    <div>
+                        <label className="mb-1 block text-sm text-slate-500">新密码</label>
+                        <Input type="password" value={passwordForm.newPassword} onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} />
+                    </div>
+                    <div>
+                        <label className="mb-1 block text-sm text-slate-500">确认新密码</label>
+                        <Input type="password" value={passwordForm.confirmPassword} onChange={e => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} />
                     </div>
                 </div>
-            )}
+                <div className="mt-6 flex justify-end gap-3">
+                    <Button variant="secondary" onClick={() => { setShowPasswordModal(false); setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' }); }}>取消</Button>
+                    <Button onClick={handleChangePassword}>确认修改</Button>
+                </div>
+            </Modal>
         </div>
     );
-
 }
