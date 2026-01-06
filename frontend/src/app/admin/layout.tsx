@@ -169,21 +169,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const currentOpenKey = pathname ? pathToOpenKeys[pathname] : undefined;
     const openKeys = currentOpenKey ? [currentOpenKey] : ['users', 'merchants', 'finance', 'system'];
 
-    const dropdownItems: MenuProps['items'] = [
-        {
-            key: 'profile',
-            icon: <UserOutlined />,
-            label: '个人设置',
-        },
-        {
-            type: 'divider',
-        },
-        {
-            key: 'logout',
-            icon: <LogoutOutlined />,
-            label: '退出登录',
-            onClick: handleLogout,
-        },
+    const dropdownItems = [
+        { key: 'profile', label: '个人设置' },
+        { key: 'logout', label: '退出登录', onClick: handleLogout },
     ];
 
     return (
