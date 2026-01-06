@@ -53,7 +53,7 @@ export function Table<T extends object>({
     );
   }
 
-  if (!data.length) {
+  if (!data || !data.length) {
     return (
       <div className={cn('py-12 text-center text-slate-500', className)}>{emptyText}</div>
     );
