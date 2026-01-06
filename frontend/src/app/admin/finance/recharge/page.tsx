@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../../apiConfig';
+import { cn } from '../../../../lib/utils';
+import { Button } from '../../../../components/ui/button';
+import { Card } from '../../../../components/ui/card';
+import { Badge } from '../../../../components/ui/badge';
 
 interface RechargeRecord {
     id: string;
@@ -16,10 +20,10 @@ interface RechargeRecord {
     paidAt: string;
 }
 
-const statusLabels: Record<number, { text: string; color: string }> = {
-    0: { text: '待支付', color: '#faad14' },
-    1: { text: '已完成', color: '#52c41a' },
-    2: { text: '已取消', color: '#ff4d4f' },
+const statusLabels: Record<number, { text: string; color: 'amber' | 'green' | 'red' }> = {
+    0: { text: '待支付', color: 'amber' },
+    1: { text: '已完成', color: 'green' },
+    2: { text: '已取消', color: 'red' },
 };
 
 const userTypeLabels: Record<string, string> = {
@@ -57,68 +61,74 @@ export default function AdminFinanceRechargePage() {
     };
 
     return (
-        <div>
-            <div style={{ background: '#fff', padding: '16px 20px', borderRadius: '8px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '16px', fontWeight: '500' }}>充值记录</span>
-                <span style={{ color: '#999' }}>共 {total} 条记录</span>
-            </div>
+        <div className="space-y-4">
+            <Card className="flex items-center justify-between bg-white">
+                <span className="text-base font-medium">充值记录</span>
+                <span className="text-slate-400">共 {total} 条记录</span>
+            </Card>
 
-            <div style={{ background: '#fff', borderRadius: '8px', overflow: 'hidden' }}>
+            <Card className="overflow-hidden bg-white p-0">
                 {loading ? (
-                    <div style={{ padding: '48px', textAlign: 'center', color: '#999' }}>加载中...</div>
+                    <div className="py-12 text-center text-slate-400">加载中...</div>
                 ) : records.length === 0 ? (
-                    <div style={{ padding: '48px', textAlign: 'center', color: '#999' }}>暂无充值记录</div>
+                    <div className="py-12 text-center text-slate-400">暂无充值记录</div>
                 ) : (
                     <>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                            <thead>
-                                <tr style={{ background: '#fafafa' }}>
-                                    <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>订单号</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>用户类型</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'right', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>金额</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>支付方式</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'center', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>状态</th>
-                                    <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: '500', borderBottom: '1px solid #f0f0f0' }}>创建时间</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {records.map(r => (
-                                    <tr key={r.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                        <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontSize: '12px' }}>{r.orderNumber}</td>
-                                        <td style={{ padding: '14px 16px', color: '#666' }}>{userTypeLabels[r.userType] || r.userType}</td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'right', color: '#52c41a', fontWeight: '500' }}>¥{Number(r.amount).toFixed(2)}</td>
-                                        <td style={{ padding: '14px 16px', color: '#666' }}>{r.payType}</td>
-                                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                                            <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '12px', background: (statusLabels[r.status]?.color || '#999') + '20', color: statusLabels[r.status]?.color || '#999' }}>
-                                                {statusLabels[r.status]?.text || '未知'}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '14px 16px', color: '#999', fontSize: '13px' }}>{new Date(r.createdAt).toLocaleString('zh-CN')}</td>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-[900px] w-full border-collapse">
+                                <thead>
+                                    <tr className="border-b border-slate-100 bg-slate-50">
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">订单号</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">用户类型</th>
+                                        <th className="px-4 py-3.5 text-right text-sm font-medium">金额</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">支付方式</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium">状态</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">创建时间</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {records.map(r => (
+                                        <tr key={r.id} className="border-b border-slate-100">
+                                            <td className="px-4 py-3.5 font-mono text-xs">{r.orderNumber}</td>
+                                            <td className="px-4 py-3.5 text-slate-500">{userTypeLabels[r.userType] || r.userType}</td>
+                                            <td className="px-4 py-3.5 text-right font-medium text-green-600">¥{Number(r.amount).toFixed(2)}</td>
+                                            <td className="px-4 py-3.5 text-slate-500">{r.payType}</td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                <Badge variant="soft" color={statusLabels[r.status]?.color || 'slate'}>
+                                                    {statusLabels[r.status]?.text || '未知'}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-4 py-3.5 text-xs text-slate-400">{new Date(r.createdAt).toLocaleString('zh-CN')}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
 
-                        <div style={{ padding: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                            <button
+                        <div className="flex items-center justify-end gap-2 p-4">
+                            <Button
+                                size="sm"
+                                variant="secondary"
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
-                                style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #d9d9d9', background: '#fff', cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.5 : 1 }}
+                                className={cn(page === 1 && 'cursor-not-allowed opacity-50')}
                             >
                                 上一页
-                            </button>
-                            <span style={{ padding: '6px 12px', color: '#666' }}>第 {page} 页</span>
-                            <button
+                            </Button>
+                            <span className="px-3 text-sm text-slate-500">第 {page} 页</span>
+                            <Button
+                                size="sm"
+                                variant="secondary"
                                 onClick={() => setPage(p => p + 1)}
                                 disabled={records.length < 20}
-                                style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #d9d9d9', background: '#fff', cursor: records.length < 20 ? 'not-allowed' : 'pointer', opacity: records.length < 20 ? 0.5 : 1 }}
+                                className={cn(records.length < 20 && 'cursor-not-allowed opacity-50')}
                             >
                                 下一页
-                            </button>
+                            </Button>
                         </div>
                     </>
                 )}
-            </div>
+            </Card>
         </div>
     );
 }
