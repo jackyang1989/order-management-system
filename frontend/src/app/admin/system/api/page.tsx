@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../../apiConfig';
+import { cn } from '../../../../lib/utils';
+import { Button } from '../../../../components/ui/button';
+import { Card } from '../../../../components/ui/card';
+import { Input } from '../../../../components/ui/input';
 
 interface ApiConfig {
     key: string;
@@ -199,7 +203,7 @@ export default function ApiConfigPage() {
         setShowPassword(prev => ({ ...prev, [key]: !prev[key] }));
     };
 
-    // 按分类分组
+    // Group configs by category
     const groupedConfigs = {
         '订单侠API': configs.filter(c => c.key.startsWith('dingdanxia')),
         '短信服务': configs.filter(c => c.key.startsWith('sms')),
@@ -209,192 +213,102 @@ export default function ApiConfigPage() {
     };
 
     return (
-        <div>
-            {/* 页面标题 */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '24px'
-            }}>
+        <div className="space-y-6">
+            {/* Page Header */}
+            <div className="flex items-center justify-between">
                 <div>
-                    <h2 style={{ margin: 0, fontSize: '20px' }}>API配置</h2>
-                    <p style={{ margin: '8px 0 0', color: '#666', fontSize: '14px' }}>
-                        配置第三方服务API密钥，请妥善保管
-                    </p>
+                    <h2 className="text-xl font-semibold">API配置</h2>
+                    <p className="mt-1 text-sm text-slate-500">配置第三方服务API密钥，请妥善保管</p>
                 </div>
-                <button
-                    onClick={handleSave}
-                    disabled={loading}
-                    style={{
-                        padding: '10px 24px',
-                        background: '#1890ff',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        fontSize: '14px',
-                        opacity: loading ? 0.7 : 1,
-                    }}
-                >
+                <Button onClick={handleSave} loading={loading}>
                     {loading ? '保存中...' : '保存所有配置'}
-                </button>
+                </Button>
             </div>
 
-            {/* 配置分组 */}
+            {/* Config Groups */}
             {Object.entries(groupedConfigs).map(([groupName, groupConfigs]) => (
-                <div key={groupName} style={{
-                    background: '#fff',
-                    borderRadius: '8px',
-                    marginBottom: '20px',
-                    overflow: 'hidden'
-                }}>
-                    <div style={{
-                        padding: '16px 24px',
-                        borderBottom: '1px solid #f0f0f0',
-                        background: '#fafafa',
-                        fontWeight: '500',
-                        fontSize: '15px'
-                    }}>
+                <Card key={groupName} className="overflow-hidden bg-white">
+                    <div className="border-b border-slate-100 bg-slate-50 px-6 py-4 text-sm font-medium">
                         {groupName}
                     </div>
-                    <div style={{ padding: '24px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            {groupConfigs.map((config, idx) => (
-                                <div key={config.key} style={{
-                                    display: 'flex',
-                                    alignItems: 'flex-start',
-                                    gap: '16px'
-                                }}>
-                                    <div style={{ width: '200px', flexShrink: 0 }}>
-                                        <label style={{
-                                            display: 'block',
-                                            fontWeight: '500',
-                                            marginBottom: '4px',
-                                            fontSize: '14px'
-                                        }}>
-                                            {config.label}
-                                        </label>
-                                        <span style={{ fontSize: '12px', color: '#999' }}>
-                                            {config.description}
-                                        </span>
-                                    </div>
-                                    <div style={{ flex: 1, display: 'flex', gap: '8px' }}>
-                                        <div style={{ position: 'relative', flex: 1 }}>
-                                            <input
-                                                type={config.type === 'password' && !showPassword[config.key] ? 'password' : 'text'}
-                                                value={config.value}
-                                                onChange={e => {
-                                                    const updated = [...configs];
-                                                    const index = updated.findIndex(c => c.key === config.key);
-                                                    updated[index].value = e.target.value;
-                                                    setConfigs(updated);
-                                                }}
-                                                placeholder={`请输入${config.label}`}
-                                                style={{
-                                                    width: '100%',
-                                                    padding: '10px 12px',
-                                                    paddingRight: config.type === 'password' ? '40px' : '12px',
-                                                    border: '1px solid #d9d9d9',
-                                                    borderRadius: '6px',
-                                                    fontSize: '14px',
-                                                    boxSizing: 'border-box'
-                                                }}
-                                            />
-                                            {config.type === 'password' && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => togglePassword(config.key)}
-                                                    style={{
-                                                        position: 'absolute',
-                                                        right: '8px',
-                                                        top: '50%',
-                                                        transform: 'translateY(-50%)',
-                                                        background: 'none',
-                                                        border: 'none',
-                                                        cursor: 'pointer',
-                                                        padding: '4px',
-                                                        fontSize: '16px'
-                                                    }}
-                                                >
-                                                    {showPassword[config.key] ? '🙈' : '👁️'}
-                                                </button>
+                    <div className="flex flex-col gap-5 p-6">
+                        {groupConfigs.map((config) => (
+                            <div key={config.key} className="flex items-start gap-4">
+                                <div className="w-48 flex-shrink-0">
+                                    <label className="mb-1 block text-sm font-medium">{config.label}</label>
+                                    <span className="text-xs text-slate-400">{config.description}</span>
+                                </div>
+                                <div className="flex min-w-0 flex-1 gap-2">
+                                    <div className="relative flex-1">
+                                        <input
+                                            type={config.type === 'password' && !showPassword[config.key] ? 'password' : 'text'}
+                                            value={config.value}
+                                            onChange={e => {
+                                                const updated = [...configs];
+                                                const index = updated.findIndex(c => c.key === config.key);
+                                                updated[index].value = e.target.value;
+                                                setConfigs(updated);
+                                            }}
+                                            placeholder={`请输入${config.label}`}
+                                            className={cn(
+                                                'w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm',
+                                                'focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20',
+                                                config.type === 'password' && 'pr-10'
                                             )}
-                                        </div>
-                                        {config.testable && (
+                                        />
+                                        {config.type === 'password' && (
                                             <button
-                                                onClick={() => handleTest(config.key)}
-                                                disabled={testLoading === config.key}
-                                                style={{
-                                                    padding: '10px 16px',
-                                                    background: '#52c41a',
-                                                    color: '#fff',
-                                                    border: 'none',
-                                                    borderRadius: '6px',
-                                                    cursor: testLoading === config.key ? 'not-allowed' : 'pointer',
-                                                    fontSize: '14px',
-                                                    whiteSpace: 'nowrap',
-                                                    opacity: testLoading === config.key ? 0.7 : 1,
-                                                }}
+                                                type="button"
+                                                onClick={() => togglePassword(config.key)}
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer border-none bg-transparent p-1 text-base"
                                             >
-                                                {testLoading === config.key ? '测试中...' : '测试连接'}
+                                                {showPassword[config.key] ? '🙈' : '👁️'}
                                             </button>
                                         )}
                                     </div>
+                                    {config.testable && (
+                                        <Button
+                                            className="shrink-0 bg-green-600 hover:bg-green-700"
+                                            loading={testLoading === config.key}
+                                            onClick={() => handleTest(config.key)}
+                                        >
+                                            {testLoading === config.key ? '测试中...' : '测试连接'}
+                                        </Button>
+                                    )}
                                 </div>
-                            ))}
-                        </div>
+                            </div>
+                        ))}
                     </div>
-                </div>
+                </Card>
             ))}
 
-            {/* 测试结果提示 */}
+            {/* Test Result Toast */}
             {testResult && (
-                <div style={{
-                    position: 'fixed',
-                    top: '100px',
-                    right: '24px',
-                    padding: '16px 24px',
-                    background: testResult.success ? '#f6ffed' : '#fff2f0',
-                    border: `1px solid ${testResult.success ? '#b7eb8f' : '#ffccc7'}`,
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                    zIndex: 1000,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px'
-                }}>
-                    <span style={{ fontSize: '20px' }}>{testResult.success ? '✅' : '❌'}</span>
-                    <span style={{ color: testResult.success ? '#52c41a' : '#ff4d4f' }}>
+                <div
+                    className={cn(
+                        'fixed right-6 top-24 z-50 flex items-center gap-3 rounded-lg border px-6 py-4 shadow-lg',
+                        testResult.success
+                            ? 'border-green-200 bg-green-50'
+                            : 'border-red-200 bg-red-50'
+                    )}
+                >
+                    <span className="text-xl">{testResult.success ? '✅' : '❌'}</span>
+                    <span className={testResult.success ? 'text-green-600' : 'text-red-500'}>
                         {testResult.message}
                     </span>
                     <button
                         onClick={() => setTestResult(null)}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            fontSize: '16px',
-                            marginLeft: '8px'
-                        }}
+                        className="ml-2 cursor-pointer border-none bg-transparent text-lg"
                     >
                         ×
                     </button>
                 </div>
             )}
 
-            {/* 说明 */}
-            <div style={{
-                background: '#fffbe6',
-                border: '1px solid #ffe58f',
-                borderRadius: '8px',
-                padding: '16px 24px',
-                marginTop: '20px'
-            }}>
-                <h4 style={{ margin: '0 0 8px', color: '#d48806', fontSize: '14px' }}>
-                    ⚠️ 安全提示
-                </h4>
-                <ul style={{ margin: 0, paddingLeft: '20px', color: '#666', fontSize: '13px', lineHeight: '1.8' }}>
+            {/* Security Notice */}
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-6 py-4">
+                <h4 className="mb-2 text-sm font-medium text-amber-700">⚠️ 安全提示</h4>
+                <ul className="list-disc space-y-1 pl-5 text-xs leading-relaxed text-slate-600">
                     <li>API密钥属于敏感信息，请勿泄露给他人</li>
                     <li>建议定期更换API密钥以保障安全</li>
                     <li>修改配置后请点击"保存所有配置"按钮</li>

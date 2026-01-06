@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../../apiConfig';
+import { cn } from '../../../../lib/utils';
+import { Button } from '../../../../components/ui/button';
+import { Card } from '../../../../components/ui/card';
+import { Badge } from '../../../../components/ui/badge';
+import { Input } from '../../../../components/ui/input';
+import { Modal } from '../../../../components/ui/modal';
 
 interface Role {
     id: string;
@@ -52,7 +58,6 @@ export default function RolePage() {
             }
         } catch (error) {
             console.error('加载失败:', error);
-            // 模拟数据
             setRoles([
                 { id: '1', name: '超级管理员', description: '拥有所有权限', permissions: ['*'], status: 1, sort: 1, createdAt: new Date().toISOString(), userCount: 2 },
                 { id: '2', name: '运营管理员', description: '负责日常运营管理', permissions: ['users:view', 'orders:view', 'tasks:view'], status: 1, sort: 2, createdAt: new Date().toISOString(), userCount: 5 },
@@ -76,7 +81,6 @@ export default function RolePage() {
             }
         } catch (error) {
             console.error('加载权限失败:', error);
-            // 模拟数据
             setPermissions([
                 { code: 'dashboard:view', name: '查看仪表盘', module: '仪表盘' },
                 { code: 'users:view', name: '查看买手', module: '买手管理' },
@@ -102,17 +106,12 @@ export default function RolePage() {
         }
         try {
             const token = localStorage.getItem('adminToken');
-            const url = editingRole
-                ? `${BASE_URL}/admin/roles/${editingRole.id}`
-                : `${BASE_URL}/admin/roles`;
+            const url = editingRole ? `${BASE_URL}/admin/roles/${editingRole.id}` : `${BASE_URL}/admin/roles`;
             const method = editingRole ? 'PUT' : 'POST';
 
             await fetch(url, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify(formData),
             });
 
@@ -180,338 +179,163 @@ export default function RolePage() {
     }, {} as Record<string, Permission[]>);
 
     return (
-        <div>
-            {/* 页面标题 */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '24px'
-            }}>
+        <div className="space-y-6">
+            {/* Page Header */}
+            <div className="flex items-center justify-between">
                 <div>
-                    <h2 style={{ margin: 0, fontSize: '20px' }}>角色管理</h2>
-                    <p style={{ margin: '8px 0 0', color: '#666', fontSize: '14px' }}>
-                        管理系统角色和权限分配
-                    </p>
+                    <h2 className="text-xl font-semibold">角色管理</h2>
+                    <p className="mt-1 text-sm text-slate-500">管理系统角色和权限分配</p>
                 </div>
-                <button
-                    onClick={() => {
-                        setEditingRole(null);
-                        setFormData({ name: '', description: '', permissions: [], status: 1, sort: 0 });
-                        setShowModal(true);
-                    }}
-                    style={{
-                        padding: '10px 24px',
-                        background: '#1890ff',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                    }}
-                >
+                <Button onClick={() => {
+                    setEditingRole(null);
+                    setFormData({ name: '', description: '', permissions: [], status: 1, sort: 0 });
+                    setShowModal(true);
+                }}>
                     + 添加角色
-                </button>
+                </Button>
             </div>
 
-            {/* 角色卡片 */}
+            {/* Role Cards */}
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>加载中...</div>
+                <div className="py-16 text-center text-slate-400">加载中...</div>
             ) : roles.length === 0 ? (
-                <div style={{
-                    textAlign: 'center',
-                    padding: '60px',
-                    color: '#999',
-                    background: '#fff',
-                    borderRadius: '8px'
-                }}>
-                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔐</div>
+                <Card className="bg-white py-16 text-center text-slate-400">
+                    <div className="mb-4 text-5xl">🔐</div>
                     <div>暂无角色配置</div>
-                </div>
+                </Card>
             ) : (
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                    gap: '20px'
-                }}>
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
                     {roles.map(role => (
-                        <div key={role.id} style={{
-                            background: '#fff',
-                            borderRadius: '8px',
-                            padding: '20px',
-                            border: role.name === '超级管理员' ? '2px solid #1890ff' : '1px solid #f0f0f0'
-                        }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                        <Card
+                            key={role.id}
+                            className={cn(
+                                'bg-white',
+                                role.name === '超级管理员' && 'ring-2 ring-blue-500'
+                            )}
+                        >
+                            <div className="mb-3 flex items-start justify-between">
                                 <div>
-                                    <h3 style={{ margin: 0, fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <h3 className="flex items-center gap-2 text-base font-medium">
                                         {role.name}
                                         {role.name === '超级管理员' && (
-                                            <span style={{
-                                                fontSize: '12px',
-                                                background: '#1890ff',
-                                                color: '#fff',
-                                                padding: '2px 8px',
-                                                borderRadius: '4px'
-                                            }}>系统</span>
+                                            <span className="rounded bg-blue-600 px-2 py-0.5 text-xs text-white">系统</span>
                                         )}
                                     </h3>
-                                    <p style={{ margin: '8px 0 0', color: '#666', fontSize: '13px' }}>{role.description}</p>
+                                    <p className="mt-1.5 text-xs text-slate-500">{role.description}</p>
                                 </div>
-                                <span style={{
-                                    padding: '4px 12px',
-                                    borderRadius: '12px',
-                                    fontSize: '12px',
-                                    background: role.status === 1 ? '#f6ffed' : '#f5f5f5',
-                                    color: role.status === 1 ? '#52c41a' : '#999'
-                                }}>
+                                <Badge variant="soft" color={role.status === 1 ? 'green' : 'slate'}>
                                     {role.status === 1 ? '启用' : '禁用'}
-                                </span>
+                                </Badge>
                             </div>
 
-                            <div style={{
-                                padding: '12px',
-                                background: '#f9f9f9',
-                                borderRadius: '6px',
-                                marginBottom: '16px',
-                                fontSize: '13px'
-                            }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span style={{ color: '#666' }}>权限数量</span>
-                                    <span style={{ fontWeight: '500' }}>
+                            <div className="mb-4 rounded-md bg-slate-50 p-3 text-sm">
+                                <div className="mb-2 flex justify-between">
+                                    <span className="text-slate-500">权限数量</span>
+                                    <span className="font-medium">
                                         {role.permissions.includes('*') ? '全部权限' : `${role.permissions.length} 项`}
                                     </span>
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ color: '#666' }}>使用人数</span>
-                                    <span style={{ fontWeight: '500' }}>{role.userCount || 0} 人</span>
+                                <div className="flex justify-between">
+                                    <span className="text-slate-500">使用人数</span>
+                                    <span className="font-medium">{role.userCount || 0} 人</span>
                                 </div>
                             </div>
 
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                                <button
-                                    onClick={() => openEdit(role)}
-                                    style={{
-                                        flex: 1,
-                                        padding: '8px',
-                                        background: '#fff',
-                                        border: '1px solid #d9d9d9',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer',
-                                        fontSize: '13px',
-                                    }}
-                                >
-                                    编辑
-                                </button>
+                            <div className="flex gap-2">
+                                <Button size="sm" variant="secondary" className="flex-1" onClick={() => openEdit(role)}>编辑</Button>
                                 {role.name !== '超级管理员' && (
-                                    <button
-                                        onClick={() => handleDelete(role.id)}
-                                        style={{
-                                            flex: 1,
-                                            padding: '8px',
-                                            background: '#fff',
-                                            border: '1px solid #ff4d4f',
-                                            borderRadius: '4px',
-                                            cursor: 'pointer',
-                                            fontSize: '13px',
-                                            color: '#ff4d4f'
-                                        }}
-                                    >
-                                        删除
-                                    </button>
+                                    <Button size="sm" variant="destructive" className="flex-1" onClick={() => handleDelete(role.id)}>删除</Button>
                                 )}
                             </div>
-                        </div>
+                        </Card>
                     ))}
                 </div>
             )}
 
-            {/* 添加/编辑弹窗 */}
-            {showModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <div style={{
-                        background: '#fff',
-                        borderRadius: '12px',
-                        padding: '24px',
-                        width: '640px',
-                        maxWidth: '90%',
-                        maxHeight: '80vh',
-                        overflow: 'auto'
-                    }}>
-                        <h3 style={{ margin: '0 0 24px', fontSize: '18px' }}>
-                            {editingRole ? '编辑角色' : '添加角色'}
-                        </h3>
+            {/* Add/Edit Modal */}
+            <Modal title={editingRole ? '编辑角色' : '添加角色'} open={showModal} onClose={() => setShowModal(false)} className="max-w-xl">
+                <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input
+                            label="角色名称"
+                            placeholder="请输入角色名称"
+                            value={formData.name}
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                        />
+                        <Input
+                            label="排序"
+                            type="number"
+                            value={String(formData.sort)}
+                            onChange={e => setFormData({ ...formData, sort: Number(e.target.value) })}
+                        />
+                    </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>角色名称</label>
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    placeholder="请输入角色名称"
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        border: '1px solid #d9d9d9',
-                                        borderRadius: '6px',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>排序</label>
-                                <input
-                                    type="number"
-                                    value={formData.sort}
-                                    onChange={e => setFormData({ ...formData, sort: Number(e.target.value) })}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        border: '1px solid #d9d9d9',
-                                        borderRadius: '6px',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
-                                />
-                            </div>
-                        </div>
+                    <Input
+                        label="描述"
+                        placeholder="请输入角色描述"
+                        value={formData.description}
+                        onChange={e => setFormData({ ...formData, description: e.target.value })}
+                    />
 
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>描述</label>
-                            <input
-                                type="text"
-                                value={formData.description}
-                                onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                placeholder="请输入角色描述"
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    border: '1px solid #d9d9d9',
-                                    borderRadius: '6px',
-                                    fontSize: '14px',
-                                    boxSizing: 'border-box'
-                                }}
-                            />
-                        </div>
-
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>权限配置</label>
-                            <div style={{
-                                border: '1px solid #d9d9d9',
-                                borderRadius: '6px',
-                                padding: '16px',
-                                maxHeight: '300px',
-                                overflow: 'auto'
-                            }}>
-                                {Object.entries(groupedPermissions).map(([module, perms]) => (
-                                    <div key={module} style={{ marginBottom: '16px' }}>
-                                        <div
-                                            onClick={() => toggleAllPermissions(module)}
-                                            style={{
-                                                fontWeight: '500',
-                                                marginBottom: '8px',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px'
-                                            }}
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={perms.every(p => formData.permissions.includes(p.code))}
-                                                onChange={() => toggleAllPermissions(module)}
-                                            />
-                                            {module}
-                                        </div>
-                                        <div style={{
-                                            display: 'flex',
-                                            flexWrap: 'wrap',
-                                            gap: '8px',
-                                            paddingLeft: '24px'
-                                        }}>
-                                            {perms.map(p => (
-                                                <label
-                                                    key={p.code}
-                                                    style={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: '4px',
-                                                        padding: '4px 8px',
-                                                        background: formData.permissions.includes(p.code) ? '#e6f7ff' : '#f5f5f5',
-                                                        borderRadius: '4px',
-                                                        cursor: 'pointer',
-                                                        fontSize: '13px'
-                                                    }}
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={formData.permissions.includes(p.code)}
-                                                        onChange={() => togglePermission(p.code)}
-                                                    />
-                                                    {p.name}
-                                                </label>
-                                            ))}
-                                        </div>
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">权限配置</label>
+                        <div className="max-h-72 overflow-auto rounded-md border border-slate-300 p-4">
+                            {Object.entries(groupedPermissions).map(([module, perms]) => (
+                                <div key={module} className="mb-4">
+                                    <div
+                                        onClick={() => toggleAllPermissions(module)}
+                                        className="mb-2 flex cursor-pointer items-center gap-2 font-medium"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={perms.every(p => formData.permissions.includes(p.code))}
+                                            onChange={() => toggleAllPermissions(module)}
+                                            className="h-4 w-4 rounded border-slate-300"
+                                        />
+                                        {module}
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div style={{ marginBottom: '24px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                <input
-                                    type="checkbox"
-                                    checked={formData.status === 1}
-                                    onChange={e => setFormData({ ...formData, status: e.target.checked ? 1 : 0 })}
-                                />
-                                启用该角色
-                            </label>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                style={{
-                                    padding: '10px 24px',
-                                    background: '#fff',
-                                    border: '1px solid #d9d9d9',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '14px',
-                                }}
-                            >
-                                取消
-                            </button>
-                            <button
-                                onClick={handleSubmit}
-                                style={{
-                                    padding: '10px 24px',
-                                    background: '#1890ff',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '14px',
-                                }}
-                            >
-                                保存
-                            </button>
+                                    <div className="flex flex-wrap gap-2 pl-6">
+                                        {perms.map(p => (
+                                            <label
+                                                key={p.code}
+                                                className={cn(
+                                                    'flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-sm',
+                                                    formData.permissions.includes(p.code) ? 'bg-blue-50' : 'bg-slate-100'
+                                                )}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={formData.permissions.includes(p.code)}
+                                                    onChange={() => togglePermission(p.code)}
+                                                    className="h-3.5 w-3.5 rounded border-slate-300"
+                                                />
+                                                {p.name}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
+
+                    <div>
+                        <label className="flex cursor-pointer items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={formData.status === 1}
+                                onChange={e => setFormData({ ...formData, status: e.target.checked ? 1 : 0 })}
+                                className="h-4 w-4 rounded border-slate-300"
+                            />
+                            <span className="text-sm">启用该角色</span>
+                        </label>
+                    </div>
+
+                    <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                        <Button variant="secondary" onClick={() => setShowModal(false)}>取消</Button>
+                        <Button onClick={handleSubmit}>保存</Button>
+                    </div>
                 </div>
-            )}
+            </Modal>
         </div>
     );
 }

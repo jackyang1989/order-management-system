@@ -37,10 +37,10 @@ const typeLabels: Record<number, string> = {
     4: '通知公告',
 };
 
-const targetLabels: Record<number, { text: string; color: 'blue' | 'green' | 'purple' }> = {
+const targetLabels: Record<number, { text: string; color: 'blue' | 'green' | 'amber' }> = {
     0: { text: '所有人', color: 'blue' },
     1: { text: '买手', color: 'green' },
-    2: { text: '商家', color: 'purple' },
+    2: { text: '商家', color: 'amber' },
 };
 
 const statusLabels: Record<number, { text: string; color: 'slate' | 'green' | 'red' }> = {

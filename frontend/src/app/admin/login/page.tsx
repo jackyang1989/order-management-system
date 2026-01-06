@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { cn } from '../../../lib/utils';
 
 export default function AdminLoginPage() {
     const router = useRouter();
@@ -51,47 +52,25 @@ export default function AdminLoginPage() {
     };
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px'
-        }}>
-            <div style={{
-                background: '#fff',
-                borderRadius: '12px',
-                padding: '40px',
-                width: '100%',
-                maxWidth: '400px',
-                boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
-            }}>
-                <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#333', marginBottom: '8px' }}>
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 p-5">
+            <div className="w-full max-w-[400px] rounded-xl bg-white p-10 shadow-2xl">
+                <div className="mb-8 text-center">
+                    <div className="mb-2 text-2xl font-bold text-slate-800">
                         管理后台
                     </div>
-                    <div style={{ fontSize: '14px', color: '#999' }}>
+                    <div className="text-sm text-slate-400">
                         订单管理系统 - 管理员登录
                     </div>
                 </div>
 
                 {error && (
-                    <div style={{
-                        background: '#fff2f0',
-                        border: '1px solid #ffccc7',
-                        borderRadius: '6px',
-                        padding: '10px 15px',
-                        marginBottom: '20px',
-                        color: '#ff4d4f',
-                        fontSize: '14px'
-                    }}>
+                    <div className="mb-5 rounded-md border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-500">
                         {error}
                     </div>
                 )}
 
-                <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', color: '#333', fontSize: '14px' }}>
+                <div className="mb-5">
+                    <label className="mb-2 block text-sm text-slate-700">
                         用户名
                     </label>
                     <input
@@ -100,20 +79,12 @@ export default function AdminLoginPage() {
                         onChange={(e) => setUsername(e.target.value)}
                         onKeyPress={handleKeyPress}
                         placeholder="请输入用户名"
-                        style={{
-                            width: '100%',
-                            padding: '12px 15px',
-                            border: '1px solid #d9d9d9',
-                            borderRadius: '6px',
-                            fontSize: '14px',
-                            outline: 'none',
-                            boxSizing: 'border-box'
-                        }}
+                        className="w-full rounded-md border border-slate-300 px-4 py-3 text-sm outline-none transition-colors focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
                     />
                 </div>
 
-                <div style={{ marginBottom: '30px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', color: '#333', fontSize: '14px' }}>
+                <div className="mb-8">
+                    <label className="mb-2 block text-sm text-slate-700">
                         密码
                     </label>
                     <input
@@ -122,37 +93,24 @@ export default function AdminLoginPage() {
                         onChange={(e) => setPassword(e.target.value)}
                         onKeyPress={handleKeyPress}
                         placeholder="请输入密码"
-                        style={{
-                            width: '100%',
-                            padding: '12px 15px',
-                            border: '1px solid #d9d9d9',
-                            borderRadius: '6px',
-                            fontSize: '14px',
-                            outline: 'none',
-                            boxSizing: 'border-box'
-                        }}
+                        className="w-full rounded-md border border-slate-300 px-4 py-3 text-sm outline-none transition-colors focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
                     />
                 </div>
 
                 <button
                     onClick={handleLogin}
                     disabled={loading}
-                    style={{
-                        width: '100%',
-                        padding: '12px',
-                        background: loading ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '6px',
-                        fontSize: '16px',
-                        fontWeight: 'bold',
-                        cursor: loading ? 'not-allowed' : 'pointer'
-                    }}
+                    className={cn(
+                        'w-full rounded-md py-3 text-base font-bold text-white transition-all',
+                        loading
+                            ? 'cursor-not-allowed bg-slate-300'
+                            : 'cursor-pointer bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700'
+                    )}
                 >
                     {loading ? '登录中...' : '登录'}
                 </button>
 
-                <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '12px', color: '#999' }}>
+                <div className="mt-5 text-center text-xs text-slate-400">
                     仅限管理员使用
                 </div>
             </div>

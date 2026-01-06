@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../../apiConfig';
+import { cn } from '../../../../lib/utils';
+import { Button } from '../../../../components/ui/button';
+import { Card } from '../../../../components/ui/card';
+import { Badge } from '../../../../components/ui/badge';
+import { Input } from '../../../../components/ui/input';
+import { Select } from '../../../../components/ui/select';
+import { Modal } from '../../../../components/ui/modal';
 
 interface SensitiveWord {
     id: string;
@@ -54,7 +61,6 @@ export default function SensitiveWordsPage() {
             }
         } catch (error) {
             console.error('加载失败:', error);
-            // 模拟数据
             setWords([
                 { id: '1', word: '测试敏感词1', category: 'general', level: 1, isActive: true, createdAt: new Date().toISOString() },
                 { id: '2', word: '测试敏感词2', category: 'fraud', level: 2, isActive: true, createdAt: new Date().toISOString() },
@@ -168,23 +174,13 @@ export default function SensitiveWordsPage() {
     });
 
     const getLevelBadge = (level: number) => {
-        const styles: Record<number, { bg: string; color: string; text: string }> = {
-            1: { bg: '#e6f7ff', color: '#1890ff', text: '低' },
-            2: { bg: '#fff7e6', color: '#fa8c16', text: '中' },
-            3: { bg: '#fff2f0', color: '#ff4d4f', text: '高' },
+        const variants: Record<number, { color: 'blue' | 'amber' | 'red'; text: string }> = {
+            1: { color: 'blue', text: '低' },
+            2: { color: 'amber', text: '中' },
+            3: { color: 'red', text: '高' },
         };
-        const style = styles[level] || styles[1];
-        return (
-            <span style={{
-                padding: '4px 12px',
-                borderRadius: '12px',
-                fontSize: '12px',
-                background: style.bg,
-                color: style.color
-            }}>
-                {style.text}
-            </span>
-        );
+        const variant = variants[level] || variants[1];
+        return <Badge variant="soft" color={variant.color}>{variant.text}</Badge>;
     };
 
     const getCategoryLabel = (category: string) => {
@@ -192,448 +188,211 @@ export default function SensitiveWordsPage() {
     };
 
     return (
-        <div>
-            {/* 页面标题 */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '24px'
-            }}>
+        <div className="space-y-6">
+            {/* Page Header */}
+            <div className="flex items-center justify-between">
                 <div>
-                    <h2 style={{ margin: 0, fontSize: '20px' }}>敏感词管理</h2>
-                    <p style={{ margin: '8px 0 0', color: '#666', fontSize: '14px' }}>
-                        管理系统敏感词过滤规则
-                    </p>
+                    <h2 className="text-xl font-semibold">敏感词管理</h2>
+                    <p className="mt-1 text-sm text-slate-500">管理系统敏感词过滤规则</p>
                 </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                    <button
-                        onClick={() => setShowBatchModal(true)}
-                        style={{
-                            padding: '10px 24px',
-                            background: '#52c41a',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                        }}
-                    >
+                <div className="flex gap-3">
+                    <Button className="bg-green-600 hover:bg-green-700" onClick={() => setShowBatchModal(true)}>
                         批量导入
-                    </button>
-                    <button
-                        onClick={() => {
-                            setEditingWord(null);
-                            setFormData({ word: '', category: 'general', level: 1, isActive: true });
-                            setShowModal(true);
-                        }}
-                        style={{
-                            padding: '10px 24px',
-                            background: '#1890ff',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                        }}
-                    >
+                    </Button>
+                    <Button onClick={() => {
+                        setEditingWord(null);
+                        setFormData({ word: '', category: 'general', level: 1, isActive: true });
+                        setShowModal(true);
+                    }}>
                         + 添加敏感词
-                    </button>
+                    </Button>
                 </div>
             </div>
 
-            {/* 筛选区域 */}
-            <div style={{
-                background: '#fff',
-                borderRadius: '8px',
-                padding: '20px',
-                marginBottom: '20px',
-                display: 'flex',
-                gap: '16px',
-                flexWrap: 'wrap'
-            }}>
-                <input
-                    type="text"
+            {/* Filter Area */}
+            <Card className="flex flex-wrap items-center gap-4 bg-white">
+                <Input
                     placeholder="搜索敏感词..."
                     value={searchKeyword}
                     onChange={e => setSearchKeyword(e.target.value)}
-                    style={{
-                        padding: '8px 16px',
-                        border: '1px solid #d9d9d9',
-                        borderRadius: '6px',
-                        width: '240px',
-                        fontSize: '14px'
-                    }}
+                    className="w-60"
                 />
-                <select
+                <Select
                     value={categoryFilter}
-                    onChange={e => setCategoryFilter(e.target.value)}
-                    style={{
-                        padding: '8px 16px',
-                        border: '1px solid #d9d9d9',
-                        borderRadius: '6px',
-                        fontSize: '14px'
-                    }}
-                >
-                    <option value="">全部分类</option>
-                    {categories.map(c => (
-                        <option key={c.value} value={c.value}>{c.label}</option>
-                    ))}
-                </select>
+                    onChange={setCategoryFilter}
+                    options={[
+                        { value: '', label: '全部分类' },
+                        ...categories.map(c => ({ value: c.value, label: c.label }))
+                    ]}
+                    className="w-32"
+                />
+            </Card>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-4 gap-5">
+                <Card className="bg-white text-center">
+                    <div className="text-3xl font-bold text-blue-600">{words.length}</div>
+                    <div className="mt-1 text-sm text-slate-500">敏感词总数</div>
+                </Card>
+                <Card className="bg-white text-center">
+                    <div className="text-3xl font-bold text-green-600">{words.filter(w => w.isActive).length}</div>
+                    <div className="mt-1 text-sm text-slate-500">启用中</div>
+                </Card>
+                <Card className="bg-white text-center">
+                    <div className="text-3xl font-bold text-amber-500">{words.filter(w => !w.isActive).length}</div>
+                    <div className="mt-1 text-sm text-slate-500">已禁用</div>
+                </Card>
+                <Card className="bg-white text-center">
+                    <div className="text-3xl font-bold text-red-500">{words.filter(w => w.level === 3).length}</div>
+                    <div className="mt-1 text-sm text-slate-500">高危词汇</div>
+                </Card>
             </div>
 
-            {/* 统计卡片 */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: '20px',
-                marginBottom: '24px'
-            }}>
-                <div style={{
-                    background: '#fff',
-                    borderRadius: '8px',
-                    padding: '20px',
-                    textAlign: 'center'
-                }}>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#1890ff' }}>
-                        {words.length}
-                    </div>
-                    <div style={{ color: '#666', marginTop: '4px', fontSize: '14px' }}>敏感词总数</div>
-                </div>
-                <div style={{
-                    background: '#fff',
-                    borderRadius: '8px',
-                    padding: '20px',
-                    textAlign: 'center'
-                }}>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#52c41a' }}>
-                        {words.filter(w => w.isActive).length}
-                    </div>
-                    <div style={{ color: '#666', marginTop: '4px', fontSize: '14px' }}>启用中</div>
-                </div>
-                <div style={{
-                    background: '#fff',
-                    borderRadius: '8px',
-                    padding: '20px',
-                    textAlign: 'center'
-                }}>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#faad14' }}>
-                        {words.filter(w => !w.isActive).length}
-                    </div>
-                    <div style={{ color: '#666', marginTop: '4px', fontSize: '14px' }}>已禁用</div>
-                </div>
-                <div style={{
-                    background: '#fff',
-                    borderRadius: '8px',
-                    padding: '20px',
-                    textAlign: 'center'
-                }}>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#ff4d4f' }}>
-                        {words.filter(w => w.level === 3).length}
-                    </div>
-                    <div style={{ color: '#666', marginTop: '4px', fontSize: '14px' }}>高危词汇</div>
-                </div>
-            </div>
-
-            {/* 敏感词列表 */}
-            <div style={{
-                background: '#fff',
-                borderRadius: '8px',
-                overflow: 'hidden'
-            }}>
-                <div style={{
-                    padding: '16px 24px',
-                    borderBottom: '1px solid #f0f0f0',
-                    fontWeight: '500',
-                    fontSize: '15px'
-                }}>
+            {/* Word List */}
+            <Card className="overflow-hidden bg-white">
+                <div className="border-b border-slate-100 px-6 py-4 text-sm font-medium">
                     敏感词列表 ({filteredWords.length})
                 </div>
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>加载中...</div>
+                    <div className="py-16 text-center text-slate-400">加载中...</div>
                 ) : filteredWords.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
-                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
+                    <div className="py-16 text-center text-slate-400">
+                        <div className="mb-4 text-5xl">🔍</div>
                         <div>暂无敏感词</div>
                     </div>
                 ) : (
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ background: '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>敏感词</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>分类</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>风险等级</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>状态</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>创建时间</th>
-                                <th style={{ padding: '16px', textAlign: 'center', fontWeight: '500' }}>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredWords.map(word => (
-                                <tr key={word.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                    <td style={{ padding: '16px', fontWeight: '500' }}>{word.word}</td>
-                                    <td style={{ padding: '16px' }}>{getCategoryLabel(word.category)}</td>
-                                    <td style={{ padding: '16px' }}>{getLevelBadge(word.level)}</td>
-                                    <td style={{ padding: '16px' }}>
-                                        <span style={{
-                                            padding: '4px 12px',
-                                            borderRadius: '12px',
-                                            fontSize: '12px',
-                                            background: word.isActive ? '#f6ffed' : '#f5f5f5',
-                                            color: word.isActive ? '#52c41a' : '#999'
-                                        }}>
-                                            {word.isActive ? '启用' : '禁用'}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: '16px', color: '#666', fontSize: '13px' }}>
-                                        {new Date(word.createdAt).toLocaleString('zh-CN')}
-                                    </td>
-                                    <td style={{ padding: '16px', textAlign: 'center' }}>
-                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                                            <button
-                                                onClick={() => handleToggleActive(word)}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    background: word.isActive ? '#fff7e6' : '#f6ffed',
-                                                    border: `1px solid ${word.isActive ? '#ffd591' : '#b7eb8f'}`,
-                                                    borderRadius: '4px',
-                                                    cursor: 'pointer',
-                                                    fontSize: '13px',
-                                                    color: word.isActive ? '#d48806' : '#52c41a'
-                                                }}
-                                            >
-                                                {word.isActive ? '禁用' : '启用'}
-                                            </button>
-                                            <button
-                                                onClick={() => openEdit(word)}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    background: '#fff',
-                                                    border: '1px solid #d9d9d9',
-                                                    borderRadius: '4px',
-                                                    cursor: 'pointer',
-                                                    fontSize: '13px',
-                                                }}
-                                            >
-                                                编辑
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(word.id)}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    background: '#fff',
-                                                    border: '1px solid #ff4d4f',
-                                                    borderRadius: '4px',
-                                                    cursor: 'pointer',
-                                                    fontSize: '13px',
-                                                    color: '#ff4d4f'
-                                                }}
-                                            >
-                                                删除
-                                            </button>
-                                        </div>
-                                    </td>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-[800px] w-full border-collapse">
+                            <thead>
+                                <tr className="border-b border-slate-100 bg-slate-50">
+                                    <th className="px-4 py-4 text-left text-sm font-medium">敏感词</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">分类</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">风险等级</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">状态</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">创建时间</th>
+                                    <th className="px-4 py-4 text-center text-sm font-medium">操作</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
-            </div>
-
-            {/* 添加/编辑弹窗 */}
-            {showModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <div style={{
-                        background: '#fff',
-                        borderRadius: '12px',
-                        padding: '24px',
-                        width: '480px',
-                        maxWidth: '90%'
-                    }}>
-                        <h3 style={{ margin: '0 0 24px', fontSize: '18px' }}>
-                            {editingWord ? '编辑敏感词' : '添加敏感词'}
-                        </h3>
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>敏感词</label>
-                            <input
-                                type="text"
-                                value={formData.word}
-                                onChange={e => setFormData({ ...formData, word: e.target.value })}
-                                placeholder="请输入敏感词"
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    border: '1px solid #d9d9d9',
-                                    borderRadius: '6px',
-                                    fontSize: '14px',
-                                    boxSizing: 'border-box'
-                                }}
-                            />
-                        </div>
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>分类</label>
-                            <select
-                                value={formData.category}
-                                onChange={e => setFormData({ ...formData, category: e.target.value })}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    border: '1px solid #d9d9d9',
-                                    borderRadius: '6px',
-                                    fontSize: '14px'
-                                }}
-                            >
-                                {categories.map(c => (
-                                    <option key={c.value} value={c.value}>{c.label}</option>
+                            </thead>
+                            <tbody>
+                                {filteredWords.map(word => (
+                                    <tr key={word.id} className="border-b border-slate-100">
+                                        <td className="px-4 py-4 font-medium">{word.word}</td>
+                                        <td className="px-4 py-4">{getCategoryLabel(word.category)}</td>
+                                        <td className="px-4 py-4">{getLevelBadge(word.level)}</td>
+                                        <td className="px-4 py-4">
+                                            <Badge variant="soft" color={word.isActive ? 'green' : 'slate'}>
+                                                {word.isActive ? '启用' : '禁用'}
+                                            </Badge>
+                                        </td>
+                                        <td className="px-4 py-4 text-xs text-slate-500">
+                                            {new Date(word.createdAt).toLocaleString('zh-CN')}
+                                        </td>
+                                        <td className="px-4 py-4 text-center">
+                                            <div className="flex justify-center gap-2">
+                                                <Button
+                                                    size="sm"
+                                                    className={cn(
+                                                        word.isActive
+                                                            ? 'border border-amber-400 bg-amber-50 text-amber-600 hover:bg-amber-100'
+                                                            : 'border border-green-400 bg-green-50 text-green-600 hover:bg-green-100'
+                                                    )}
+                                                    onClick={() => handleToggleActive(word)}
+                                                >
+                                                    {word.isActive ? '禁用' : '启用'}
+                                                </Button>
+                                                <Button size="sm" variant="secondary" onClick={() => openEdit(word)}>
+                                                    编辑
+                                                </Button>
+                                                <Button size="sm" variant="destructive" onClick={() => handleDelete(word.id)}>
+                                                    删除
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 ))}
-                            </select>
-                        </div>
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>风险等级</label>
-                            <select
-                                value={formData.level}
-                                onChange={e => setFormData({ ...formData, level: Number(e.target.value) })}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    border: '1px solid #d9d9d9',
-                                    borderRadius: '6px',
-                                    fontSize: '14px'
-                                }}
-                            >
-                                <option value={1}>低</option>
-                                <option value={2}>中</option>
-                                <option value={3}>高</option>
-                            </select>
-                        </div>
-                        <div style={{ marginBottom: '24px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                <input
-                                    type="checkbox"
-                                    checked={formData.isActive}
-                                    onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
-                                />
-                                启用该敏感词
-                            </label>
-                        </div>
-                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                style={{
-                                    padding: '10px 24px',
-                                    background: '#fff',
-                                    border: '1px solid #d9d9d9',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '14px',
-                                }}
-                            >
-                                取消
-                            </button>
-                            <button
-                                onClick={handleSubmit}
-                                style={{
-                                    padding: '10px 24px',
-                                    background: '#1890ff',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '14px',
-                                }}
-                            >
-                                保存
-                            </button>
-                        </div>
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-            )}
+                )}
+            </Card>
 
-            {/* 批量导入弹窗 */}
-            {showBatchModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <div style={{
-                        background: '#fff',
-                        borderRadius: '12px',
-                        padding: '24px',
-                        width: '560px',
-                        maxWidth: '90%'
-                    }}>
-                        <h3 style={{ margin: '0 0 24px', fontSize: '18px' }}>批量导入敏感词</h3>
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                                敏感词列表（每行一个）
-                            </label>
-                            <textarea
-                                value={batchInput}
-                                onChange={e => setBatchInput(e.target.value)}
-                                placeholder="请输入敏感词，每行一个..."
-                                rows={10}
-                                style={{
-                                    width: '100%',
-                                    padding: '12px',
-                                    border: '1px solid #d9d9d9',
-                                    borderRadius: '6px',
-                                    fontSize: '14px',
-                                    resize: 'vertical',
-                                    boxSizing: 'border-box'
-                                }}
+            {/* Add/Edit Modal */}
+            <Modal
+                title={editingWord ? '编辑敏感词' : '添加敏感词'}
+                open={showModal}
+                onClose={() => setShowModal(false)}
+            >
+                <div className="space-y-4">
+                    <Input
+                        label="敏感词"
+                        placeholder="请输入敏感词"
+                        value={formData.word}
+                        onChange={e => setFormData({ ...formData, word: e.target.value })}
+                    />
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">分类</label>
+                        <Select
+                            value={formData.category}
+                            onChange={v => setFormData({ ...formData, category: v })}
+                            options={categories.map(c => ({ value: c.value, label: c.label }))}
+                        />
+                    </div>
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">风险等级</label>
+                        <Select
+                            value={String(formData.level)}
+                            onChange={v => setFormData({ ...formData, level: Number(v) })}
+                            options={[
+                                { value: '1', label: '低' },
+                                { value: '2', label: '中' },
+                                { value: '3', label: '高' },
+                            ]}
+                        />
+                    </div>
+                    <div>
+                        <label className="flex cursor-pointer items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={formData.isActive}
+                                onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
+                                className="h-4 w-4 rounded border-slate-300"
                             />
-                        </div>
-                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                            <button
-                                onClick={() => setShowBatchModal(false)}
-                                style={{
-                                    padding: '10px 24px',
-                                    background: '#fff',
-                                    border: '1px solid #d9d9d9',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '14px',
-                                }}
-                            >
-                                取消
-                            </button>
-                            <button
-                                onClick={handleBatchImport}
-                                style={{
-                                    padding: '10px 24px',
-                                    background: '#52c41a',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '14px',
-                                }}
-                            >
-                                导入
-                            </button>
-                        </div>
+                            <span className="text-sm">启用该敏感词</span>
+                        </label>
+                    </div>
+                    <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                        <Button variant="secondary" onClick={() => setShowModal(false)}>取消</Button>
+                        <Button onClick={handleSubmit}>保存</Button>
                     </div>
                 </div>
-            )}
+            </Modal>
+
+            {/* Batch Import Modal */}
+            <Modal
+                title="批量导入敏感词"
+                open={showBatchModal}
+                onClose={() => setShowBatchModal(false)}
+                className="max-w-lg"
+            >
+                <div className="space-y-4">
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                            敏感词列表（每行一个）
+                        </label>
+                        <textarea
+                            className="w-full resize-y rounded-lg border border-slate-300 px-3 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            rows={10}
+                            placeholder="请输入敏感词，每行一个..."
+                            value={batchInput}
+                            onChange={e => setBatchInput(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                        <Button variant="secondary" onClick={() => setShowBatchModal(false)}>取消</Button>
+                        <Button className="bg-green-600 hover:bg-green-700" onClick={handleBatchImport}>导入</Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }

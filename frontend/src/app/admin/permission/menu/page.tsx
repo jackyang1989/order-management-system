@@ -2,6 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../../apiConfig';
+import { cn } from '../../../../lib/utils';
+import { Button } from '../../../../components/ui/button';
+import { Card } from '../../../../components/ui/card';
+import { Badge } from '../../../../components/ui/badge';
+import { Input } from '../../../../components/ui/input';
+import { Select } from '../../../../components/ui/select';
+import { Modal } from '../../../../components/ui/modal';
 
 interface MenuItem {
     id: string;
@@ -49,10 +56,10 @@ export default function MenuPermissionPage() {
             }
         } catch (error) {
             console.error('加载失败:', error);
-            // 模拟数据
             setMenus([
                 { id: '1', name: '仪表盘', path: '/admin/dashboard', icon: '📊', parentId: null, sort: 1, isActive: true, permission: 'dashboard:view' },
-                { id: '2', name: '买手管理', path: '/admin/users', icon: '👥', parentId: null, sort: 2, isActive: true, permission: 'users:view',
+                {
+                    id: '2', name: '买手管理', path: '/admin/users', icon: '👥', parentId: null, sort: 2, isActive: true, permission: 'users:view',
                     children: [
                         { id: '2-1', name: '买手列表', path: '/admin/users', icon: '📄', parentId: '2', sort: 1, isActive: true, permission: 'users:list' },
                         { id: '2-2', name: '余额记录', path: '/admin/users/balance', icon: '💰', parentId: '2', sort: 2, isActive: true, permission: 'users:balance' },
@@ -72,17 +79,12 @@ export default function MenuPermissionPage() {
     const handleSubmit = async () => {
         try {
             const token = localStorage.getItem('adminToken');
-            const url = editingMenu
-                ? `${BASE_URL}/admin/menus/${editingMenu.id}`
-                : `${BASE_URL}/admin/menus`;
+            const url = editingMenu ? `${BASE_URL}/admin/menus/${editingMenu.id}` : `${BASE_URL}/admin/menus`;
             const method = editingMenu ? 'PUT' : 'POST';
 
             await fetch(url, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify(formData),
             });
 
@@ -125,306 +127,154 @@ export default function MenuPermissionPage() {
     };
 
     const renderMenuRow = (menu: MenuItem, level: number = 0): React.ReactNode => {
+        // Calculate padding based on nesting level: 16px base + 24px per level
+        const paddingLeft = 16 + level * 24;
+
         return (
-            <>
-                <tr key={menu.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                    <td style={{ padding: '16px', paddingLeft: `${16 + level * 24}px` }}>
-                        <span style={{ marginRight: '8px' }}>{menu.icon}</span>
+            <React.Fragment key={menu.id}>
+                <tr className="border-b border-slate-100">
+                    <td className={cn('px-4 py-4', `pl-[${paddingLeft}px]`)}>
+                        <span className="mr-2">{menu.icon}</span>
                         {menu.name}
                     </td>
-                    <td style={{ padding: '16px', color: '#666', fontSize: '13px' }}>{menu.path}</td>
-                    <td style={{ padding: '16px', color: '#999', fontSize: '13px' }}>{menu.permission}</td>
-                    <td style={{ padding: '16px' }}>{menu.sort}</td>
-                    <td style={{ padding: '16px' }}>
-                        <span style={{
-                            padding: '4px 12px',
-                            borderRadius: '12px',
-                            fontSize: '12px',
-                            background: menu.isActive ? '#f6ffed' : '#f5f5f5',
-                            color: menu.isActive ? '#52c41a' : '#999'
-                        }}>
+                    <td className="px-4 py-4 text-xs text-slate-500">{menu.path}</td>
+                    <td className="px-4 py-4 text-xs text-slate-400">{menu.permission}</td>
+                    <td className="px-4 py-4">{menu.sort}</td>
+                    <td className="px-4 py-4">
+                        <Badge variant="soft" color={menu.isActive ? 'green' : 'slate'}>
                             {menu.isActive ? '启用' : '禁用'}
-                        </span>
+                        </Badge>
                     </td>
-                    <td style={{ padding: '16px', textAlign: 'center' }}>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                            <button
-                                onClick={() => openEdit(menu)}
-                                style={{
-                                    padding: '6px 12px',
-                                    background: '#fff',
-                                    border: '1px solid #d9d9d9',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '13px',
-                                }}
-                            >
-                                编辑
-                            </button>
-                            <button
-                                onClick={() => handleDelete(menu.id)}
-                                style={{
-                                    padding: '6px 12px',
-                                    background: '#fff',
-                                    border: '1px solid #ff4d4f',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '13px',
-                                    color: '#ff4d4f'
-                                }}
-                            >
-                                删除
-                            </button>
+                    <td className="px-4 py-4 text-center">
+                        <div className="flex justify-center gap-2">
+                            <Button size="sm" variant="secondary" onClick={() => openEdit(menu)}>编辑</Button>
+                            <Button size="sm" variant="destructive" onClick={() => handleDelete(menu.id)}>删除</Button>
                         </div>
                     </td>
                 </tr>
                 {menu.children?.map(child => renderMenuRow(child, level + 1))}
-            </>
+            </React.Fragment>
         );
     };
 
     const flatMenus = menus.filter(m => !m.parentId);
 
     return (
-        <div>
-            {/* 页面标题 */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '24px'
-            }}>
+        <div className="space-y-6">
+            {/* Page Header */}
+            <div className="flex items-center justify-between">
                 <div>
-                    <h2 style={{ margin: 0, fontSize: '20px' }}>菜单管理</h2>
-                    <p style={{ margin: '8px 0 0', color: '#666', fontSize: '14px' }}>
-                        管理后台菜单结构和权限配置
-                    </p>
+                    <h2 className="text-xl font-semibold">菜单管理</h2>
+                    <p className="mt-1 text-sm text-slate-500">管理后台菜单结构和权限配置</p>
                 </div>
-                <button
-                    onClick={() => {
-                        setEditingMenu(null);
-                        setFormData({ name: '', path: '', icon: '', parentId: '', sort: 0, isActive: true, permission: '' });
-                        setShowModal(true);
-                    }}
-                    style={{
-                        padding: '10px 24px',
-                        background: '#1890ff',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                    }}
-                >
+                <Button onClick={() => {
+                    setEditingMenu(null);
+                    setFormData({ name: '', path: '', icon: '', parentId: '', sort: 0, isActive: true, permission: '' });
+                    setShowModal(true);
+                }}>
                     + 添加菜单
-                </button>
+                </Button>
             </div>
 
-            {/* 菜单列表 */}
-            <div style={{
-                background: '#fff',
-                borderRadius: '8px',
-                overflow: 'hidden'
-            }}>
+            {/* Menu List */}
+            <Card className="overflow-hidden bg-white">
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>加载中...</div>
+                    <div className="py-16 text-center text-slate-400">加载中...</div>
                 ) : menus.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
-                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>📁</div>
+                    <div className="py-16 text-center text-slate-400">
+                        <div className="mb-4 text-5xl">📁</div>
                         <div>暂无菜单配置</div>
                     </div>
                 ) : (
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ background: '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>菜单名称</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>路径</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>权限标识</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>排序</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>状态</th>
-                                <th style={{ padding: '16px', textAlign: 'center', fontWeight: '500' }}>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {flatMenus.map(menu => renderMenuRow(menu))}
-                        </tbody>
-                    </table>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-[900px] w-full border-collapse">
+                            <thead>
+                                <tr className="border-b border-slate-100 bg-slate-50">
+                                    <th className="px-4 py-4 text-left text-sm font-medium">菜单名称</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">路径</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">权限标识</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">排序</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">状态</th>
+                                    <th className="px-4 py-4 text-center text-sm font-medium">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {flatMenus.map(menu => renderMenuRow(menu))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
-            </div>
+            </Card>
 
-            {/* 添加/编辑弹窗 */}
-            {showModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <div style={{
-                        background: '#fff',
-                        borderRadius: '12px',
-                        padding: '24px',
-                        width: '520px',
-                        maxWidth: '90%'
-                    }}>
-                        <h3 style={{ margin: '0 0 24px', fontSize: '18px' }}>
-                            {editingMenu ? '编辑菜单' : '添加菜单'}
-                        </h3>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>菜单名称</label>
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    placeholder="请输入菜单名称"
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        border: '1px solid #d9d9d9',
-                                        borderRadius: '6px',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>图标</label>
-                                <select
-                                    value={formData.icon}
-                                    onChange={e => setFormData({ ...formData, icon: e.target.value })}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        border: '1px solid #d9d9d9',
-                                        borderRadius: '6px',
-                                        fontSize: '14px'
-                                    }}
-                                >
-                                    <option value="">请选择图标</option>
-                                    {iconOptions.map(icon => (
-                                        <option key={icon} value={icon}>{icon}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div style={{ gridColumn: 'span 2' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>路径</label>
-                                <input
-                                    type="text"
-                                    value={formData.path}
-                                    onChange={e => setFormData({ ...formData, path: e.target.value })}
-                                    placeholder="如: /admin/users"
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        border: '1px solid #d9d9d9',
-                                        borderRadius: '6px',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>上级菜单</label>
-                                <select
-                                    value={formData.parentId}
-                                    onChange={e => setFormData({ ...formData, parentId: e.target.value })}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        border: '1px solid #d9d9d9',
-                                        borderRadius: '6px',
-                                        fontSize: '14px'
-                                    }}
-                                >
-                                    <option value="">无（顶级菜单）</option>
-                                    {flatMenus.map(m => (
-                                        <option key={m.id} value={m.id}>{m.icon} {m.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>排序</label>
-                                <input
-                                    type="number"
-                                    value={formData.sort}
-                                    onChange={e => setFormData({ ...formData, sort: Number(e.target.value) })}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        border: '1px solid #d9d9d9',
-                                        borderRadius: '6px',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
-                                />
-                            </div>
-                            <div style={{ gridColumn: 'span 2' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>权限标识</label>
-                                <input
-                                    type="text"
-                                    value={formData.permission}
-                                    onChange={e => setFormData({ ...formData, permission: e.target.value })}
-                                    placeholder="如: users:view"
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        border: '1px solid #d9d9d9',
-                                        borderRadius: '6px',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
-                                />
-                            </div>
-                            <div style={{ gridColumn: 'span 2' }}>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.isActive}
-                                        onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
-                                    />
-                                    启用该菜单
-                                </label>
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                style={{
-                                    padding: '10px 24px',
-                                    background: '#fff',
-                                    border: '1px solid #d9d9d9',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '14px',
-                                }}
-                            >
-                                取消
-                            </button>
-                            <button
-                                onClick={handleSubmit}
-                                style={{
-                                    padding: '10px 24px',
-                                    background: '#1890ff',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '14px',
-                                }}
-                            >
-                                保存
-                            </button>
+            {/* Add/Edit Modal */}
+            <Modal title={editingMenu ? '编辑菜单' : '添加菜单'} open={showModal} onClose={() => setShowModal(false)} className="max-w-lg">
+                <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input
+                            label="菜单名称"
+                            placeholder="请输入菜单名称"
+                            value={formData.name}
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                        />
+                        <div>
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">图标</label>
+                            <Select
+                                value={formData.icon}
+                                onChange={v => setFormData({ ...formData, icon: v })}
+                                options={[{ value: '', label: '请选择图标' }, ...iconOptions.map(icon => ({ value: icon, label: icon }))]}
+                            />
                         </div>
                     </div>
+
+                    <Input
+                        label="路径"
+                        placeholder="如: /admin/users"
+                        value={formData.path}
+                        onChange={e => setFormData({ ...formData, path: e.target.value })}
+                    />
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">上级菜单</label>
+                            <Select
+                                value={formData.parentId}
+                                onChange={v => setFormData({ ...formData, parentId: v })}
+                                options={[{ value: '', label: '无（顶级菜单）' }, ...flatMenus.map(m => ({ value: m.id, label: `${m.icon} ${m.name}` }))]}
+                            />
+                        </div>
+                        <Input
+                            label="排序"
+                            type="number"
+                            value={String(formData.sort)}
+                            onChange={e => setFormData({ ...formData, sort: Number(e.target.value) })}
+                        />
+                    </div>
+
+                    <Input
+                        label="权限标识"
+                        placeholder="如: users:view"
+                        value={formData.permission}
+                        onChange={e => setFormData({ ...formData, permission: e.target.value })}
+                    />
+
+                    <div>
+                        <label className="flex cursor-pointer items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={formData.isActive}
+                                onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
+                                className="h-4 w-4 rounded border-slate-300"
+                            />
+                            <span className="text-sm">启用该菜单</span>
+                        </label>
+                    </div>
+
+                    <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                        <Button variant="secondary" onClick={() => setShowModal(false)}>取消</Button>
+                        <Button onClick={handleSubmit}>保存</Button>
+                    </div>
                 </div>
-            )}
+            </Modal>
         </div>
     );
 }

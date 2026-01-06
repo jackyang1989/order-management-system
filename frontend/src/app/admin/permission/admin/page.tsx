@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../../apiConfig';
+import { cn } from '../../../../lib/utils';
+import { Button } from '../../../../components/ui/button';
+import { Card } from '../../../../components/ui/card';
+import { Badge } from '../../../../components/ui/badge';
+import { Input } from '../../../../components/ui/input';
+import { Select } from '../../../../components/ui/select';
+import { Modal } from '../../../../components/ui/modal';
 
 interface Admin {
     id: string;
@@ -57,7 +64,6 @@ export default function AdminPage() {
             }
         } catch (error) {
             console.error('加载失败:', error);
-            // 模拟数据
             setAdmins([
                 { id: '1', username: 'admin', realName: '超级管理员', phone: '13800138000', email: 'admin@example.com', roleId: '1', roleName: '超级管理员', status: 1, avatar: '', lastLoginAt: new Date().toISOString(), lastLoginIp: '192.168.1.1', createdAt: new Date().toISOString() },
                 { id: '2', username: 'operator', realName: '运营小王', phone: '13800138001', email: 'operator@example.com', roleId: '2', roleName: '运营管理员', status: 1, avatar: '', lastLoginAt: new Date(Date.now() - 3600000).toISOString(), lastLoginIp: '192.168.1.2', createdAt: new Date().toISOString() },
@@ -101,11 +107,8 @@ export default function AdminPage() {
         }
         try {
             const token = localStorage.getItem('adminToken');
-            const url = editingAdmin
-                ? `${BASE_URL}/admin/users/${editingAdmin.id}`
-                : `${BASE_URL}/admin/users`;
+            const url = editingAdmin ? `${BASE_URL}/admin/users/${editingAdmin.id}` : `${BASE_URL}/admin/users`;
             const method = editingAdmin ? 'PUT' : 'POST';
-
             const submitData = { ...formData };
             if (editingAdmin && !submitData.password) {
                 delete (submitData as { password?: string }).password;
@@ -113,10 +116,7 @@ export default function AdminPage() {
 
             await fetch(url, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify(submitData),
             });
 
@@ -149,10 +149,7 @@ export default function AdminPage() {
             const token = localStorage.getItem('adminToken');
             await fetch(`${BASE_URL}/admin/users/${admin.id}/status`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ status: admin.status === 1 ? 0 : 1 }),
             });
             loadAdmins();
@@ -171,10 +168,7 @@ export default function AdminPage() {
             const token = localStorage.getItem('adminToken');
             await fetch(`${BASE_URL}/admin/users/${id}/password`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ password: newPassword }),
             });
             alert('密码重置成功');
@@ -204,429 +198,195 @@ export default function AdminPage() {
     };
 
     return (
-        <div>
-            {/* 页面标题 */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '24px'
-            }}>
+        <div className="space-y-6">
+            {/* Page Header */}
+            <div className="flex items-center justify-between">
                 <div>
-                    <h2 style={{ margin: 0, fontSize: '20px' }}>管理员管理</h2>
-                    <p style={{ margin: '8px 0 0', color: '#666', fontSize: '14px' }}>
-                        管理后台管理员账号
-                    </p>
+                    <h2 className="text-xl font-semibold">管理员管理</h2>
+                    <p className="mt-1 text-sm text-slate-500">管理后台管理员账号</p>
                 </div>
-                <button
-                    onClick={() => {
-                        setEditingAdmin(null);
-                        setFormData({ username: '', password: '', realName: '', phone: '', email: '', roleId: '', status: 1 });
-                        setShowModal(true);
-                    }}
-                    style={{
-                        padding: '10px 24px',
-                        background: '#1890ff',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                    }}
-                >
+                <Button onClick={() => {
+                    setEditingAdmin(null);
+                    setFormData({ username: '', password: '', realName: '', phone: '', email: '', roleId: '', status: 1 });
+                    setShowModal(true);
+                }}>
                     + 添加管理员
-                </button>
+                </Button>
             </div>
 
-            {/* 统计卡片 */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: '20px',
-                marginBottom: '24px'
-            }}>
-                <div style={{
-                    background: '#fff',
-                    borderRadius: '8px',
-                    padding: '20px',
-                    textAlign: 'center'
-                }}>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#1890ff' }}>
-                        {admins.length}
-                    </div>
-                    <div style={{ color: '#666', marginTop: '4px', fontSize: '14px' }}>管理员总数</div>
-                </div>
-                <div style={{
-                    background: '#fff',
-                    borderRadius: '8px',
-                    padding: '20px',
-                    textAlign: 'center'
-                }}>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#52c41a' }}>
-                        {admins.filter(a => a.status === 1).length}
-                    </div>
-                    <div style={{ color: '#666', marginTop: '4px', fontSize: '14px' }}>正常状态</div>
-                </div>
-                <div style={{
-                    background: '#fff',
-                    borderRadius: '8px',
-                    padding: '20px',
-                    textAlign: 'center'
-                }}>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#faad14' }}>
-                        {admins.filter(a => a.status === 0).length}
-                    </div>
-                    <div style={{ color: '#666', marginTop: '4px', fontSize: '14px' }}>已禁用</div>
-                </div>
-                <div style={{
-                    background: '#fff',
-                    borderRadius: '8px',
-                    padding: '20px',
-                    textAlign: 'center'
-                }}>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#722ed1' }}>
-                        {roles.length}
-                    </div>
-                    <div style={{ color: '#666', marginTop: '4px', fontSize: '14px' }}>角色数量</div>
-                </div>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-4 gap-5">
+                <Card className="bg-white text-center">
+                    <div className="text-3xl font-bold text-blue-600">{admins.length}</div>
+                    <div className="mt-1 text-sm text-slate-500">管理员总数</div>
+                </Card>
+                <Card className="bg-white text-center">
+                    <div className="text-3xl font-bold text-green-600">{admins.filter(a => a.status === 1).length}</div>
+                    <div className="mt-1 text-sm text-slate-500">正常状态</div>
+                </Card>
+                <Card className="bg-white text-center">
+                    <div className="text-3xl font-bold text-amber-500">{admins.filter(a => a.status === 0).length}</div>
+                    <div className="mt-1 text-sm text-slate-500">已禁用</div>
+                </Card>
+                <Card className="bg-white text-center">
+                    <div className="text-3xl font-bold text-purple-600">{roles.length}</div>
+                    <div className="mt-1 text-sm text-slate-500">角色数量</div>
+                </Card>
             </div>
 
-            {/* 管理员列表 */}
-            <div style={{
-                background: '#fff',
-                borderRadius: '8px',
-                overflow: 'hidden'
-            }}>
-                <div style={{
-                    padding: '16px 24px',
-                    borderBottom: '1px solid #f0f0f0',
-                    fontWeight: '500',
-                    fontSize: '15px'
-                }}>
-                    管理员列表
-                </div>
+            {/* Admin List */}
+            <Card className="overflow-hidden bg-white">
+                <div className="border-b border-slate-100 px-6 py-4 text-sm font-medium">管理员列表</div>
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>加载中...</div>
+                    <div className="py-16 text-center text-slate-400">加载中...</div>
                 ) : admins.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
-                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>👤</div>
+                    <div className="py-16 text-center text-slate-400">
+                        <div className="mb-4 text-5xl">👤</div>
                         <div>暂无管理员</div>
                     </div>
                 ) : (
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ background: '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>用户名</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>姓名</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>角色</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>手机号</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>状态</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>最后登录</th>
-                                <th style={{ padding: '16px', textAlign: 'center', fontWeight: '500' }}>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {admins.map(admin => (
-                                <tr key={admin.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                    <td style={{ padding: '16px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <div style={{
-                                                width: '36px',
-                                                height: '36px',
-                                                borderRadius: '50%',
-                                                background: '#1890ff',
-                                                color: '#fff',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontWeight: '500',
-                                                fontSize: '14px'
-                                            }}>
-                                                {admin.realName?.[0] || admin.username[0].toUpperCase()}
-                                            </div>
-                                            <span style={{ fontWeight: '500' }}>{admin.username}</span>
-                                        </div>
-                                    </td>
-                                    <td style={{ padding: '16px' }}>{admin.realName || '-'}</td>
-                                    <td style={{ padding: '16px' }}>
-                                        <span style={{
-                                            padding: '4px 12px',
-                                            borderRadius: '12px',
-                                            fontSize: '12px',
-                                            background: admin.roleName === '超级管理员' ? '#e6f7ff' : '#f0f0f0',
-                                            color: admin.roleName === '超级管理员' ? '#1890ff' : '#666'
-                                        }}>
-                                            {admin.roleName}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: '16px', color: '#666', fontSize: '13px' }}>{admin.phone || '-'}</td>
-                                    <td style={{ padding: '16px' }}>
-                                        <span style={{
-                                            padding: '4px 12px',
-                                            borderRadius: '12px',
-                                            fontSize: '12px',
-                                            background: admin.status === 1 ? '#f6ffed' : '#fff2f0',
-                                            color: admin.status === 1 ? '#52c41a' : '#ff4d4f'
-                                        }}>
-                                            {admin.status === 1 ? '正常' : '禁用'}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: '16px', color: '#666', fontSize: '13px' }}>
-                                        <div>{formatDate(admin.lastLoginAt)}</div>
-                                        {admin.lastLoginIp && (
-                                            <div style={{ color: '#999', fontSize: '12px' }}>{admin.lastLoginIp}</div>
-                                        )}
-                                    </td>
-                                    <td style={{ padding: '16px', textAlign: 'center' }}>
-                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                                            <button
-                                                onClick={() => openEdit(admin)}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    background: '#fff',
-                                                    border: '1px solid #d9d9d9',
-                                                    borderRadius: '4px',
-                                                    cursor: 'pointer',
-                                                    fontSize: '13px',
-                                                }}
-                                            >
-                                                编辑
-                                            </button>
-                                            <button
-                                                onClick={() => handleResetPassword(admin.id)}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    background: '#fff',
-                                                    border: '1px solid #faad14',
-                                                    borderRadius: '4px',
-                                                    cursor: 'pointer',
-                                                    fontSize: '13px',
-                                                    color: '#d48806'
-                                                }}
-                                            >
-                                                重置密码
-                                            </button>
-                                            {admin.username !== 'admin' && (
-                                                <>
-                                                    <button
-                                                        onClick={() => handleToggleStatus(admin)}
-                                                        style={{
-                                                            padding: '6px 12px',
-                                                            background: admin.status === 1 ? '#fff7e6' : '#f6ffed',
-                                                            border: `1px solid ${admin.status === 1 ? '#ffd591' : '#b7eb8f'}`,
-                                                            borderRadius: '4px',
-                                                            cursor: 'pointer',
-                                                            fontSize: '13px',
-                                                            color: admin.status === 1 ? '#d48806' : '#52c41a'
-                                                        }}
-                                                    >
-                                                        {admin.status === 1 ? '禁用' : '启用'}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(admin.id)}
-                                                        style={{
-                                                            padding: '6px 12px',
-                                                            background: '#fff',
-                                                            border: '1px solid #ff4d4f',
-                                                            borderRadius: '4px',
-                                                            cursor: 'pointer',
-                                                            fontSize: '13px',
-                                                            color: '#ff4d4f'
-                                                        }}
-                                                    >
-                                                        删除
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
-                                    </td>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-[900px] w-full border-collapse">
+                            <thead>
+                                <tr className="border-b border-slate-100 bg-slate-50">
+                                    <th className="px-4 py-4 text-left text-sm font-medium">用户名</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">姓名</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">角色</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">手机号</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">状态</th>
+                                    <th className="px-4 py-4 text-left text-sm font-medium">最后登录</th>
+                                    <th className="px-4 py-4 text-center text-sm font-medium">操作</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {admins.map(admin => (
+                                    <tr key={admin.id} className="border-b border-slate-100">
+                                        <td className="px-4 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-medium text-white">
+                                                    {admin.realName?.[0] || admin.username[0].toUpperCase()}
+                                                </div>
+                                                <span className="font-medium">{admin.username}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-4">{admin.realName || '-'}</td>
+                                        <td className="px-4 py-4">
+                                            <Badge variant="soft" color={admin.roleName === '超级管理员' ? 'blue' : 'slate'}>
+                                                {admin.roleName}
+                                            </Badge>
+                                        </td>
+                                        <td className="px-4 py-4 text-xs text-slate-500">{admin.phone || '-'}</td>
+                                        <td className="px-4 py-4">
+                                            <Badge variant="soft" color={admin.status === 1 ? 'green' : 'red'}>
+                                                {admin.status === 1 ? '正常' : '禁用'}
+                                            </Badge>
+                                        </td>
+                                        <td className="px-4 py-4 text-xs text-slate-500">
+                                            <div>{formatDate(admin.lastLoginAt)}</div>
+                                            {admin.lastLoginIp && <div className="text-slate-400">{admin.lastLoginIp}</div>}
+                                        </td>
+                                        <td className="px-4 py-4 text-center">
+                                            <div className="flex flex-wrap justify-center gap-2">
+                                                <Button size="sm" variant="secondary" onClick={() => openEdit(admin)}>编辑</Button>
+                                                <Button size="sm" className="border border-amber-400 bg-amber-50 text-amber-600 hover:bg-amber-100" onClick={() => handleResetPassword(admin.id)}>重置密码</Button>
+                                                {admin.username !== 'admin' && (
+                                                    <>
+                                                        <Button
+                                                            size="sm"
+                                                            className={cn(
+                                                                admin.status === 1
+                                                                    ? 'border border-amber-400 bg-amber-50 text-amber-600 hover:bg-amber-100'
+                                                                    : 'border border-green-400 bg-green-50 text-green-600 hover:bg-green-100'
+                                                            )}
+                                                            onClick={() => handleToggleStatus(admin)}
+                                                        >
+                                                            {admin.status === 1 ? '禁用' : '启用'}
+                                                        </Button>
+                                                        <Button size="sm" variant="destructive" onClick={() => handleDelete(admin.id)}>删除</Button>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
-            </div>
+            </Card>
 
-            {/* 添加/编辑弹窗 */}
-            {showModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <div style={{
-                        background: '#fff',
-                        borderRadius: '12px',
-                        padding: '24px',
-                        width: '520px',
-                        maxWidth: '90%'
-                    }}>
-                        <h3 style={{ margin: '0 0 24px', fontSize: '18px' }}>
-                            {editingAdmin ? '编辑管理员' : '添加管理员'}
-                        </h3>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                                    用户名 <span style={{ color: '#ff4d4f' }}>*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.username}
-                                    onChange={e => setFormData({ ...formData, username: e.target.value })}
-                                    placeholder="请输入用户名"
-                                    disabled={!!editingAdmin}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        border: '1px solid #d9d9d9',
-                                        borderRadius: '6px',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box',
-                                        background: editingAdmin ? '#f5f5f5' : '#fff'
-                                    }}
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                                    密码 {!editingAdmin && <span style={{ color: '#ff4d4f' }}>*</span>}
-                                </label>
-                                <input
-                                    type="password"
-                                    value={formData.password}
-                                    onChange={e => setFormData({ ...formData, password: e.target.value })}
-                                    placeholder={editingAdmin ? '留空则不修改' : '请输入密码'}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        border: '1px solid #d9d9d9',
-                                        borderRadius: '6px',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>姓名</label>
-                                <input
-                                    type="text"
-                                    value={formData.realName}
-                                    onChange={e => setFormData({ ...formData, realName: e.target.value })}
-                                    placeholder="请输入姓名"
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        border: '1px solid #d9d9d9',
-                                        borderRadius: '6px',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>角色</label>
-                                <select
-                                    value={formData.roleId}
-                                    onChange={e => setFormData({ ...formData, roleId: e.target.value })}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        border: '1px solid #d9d9d9',
-                                        borderRadius: '6px',
-                                        fontSize: '14px'
-                                    }}
-                                >
-                                    <option value="">请选择角色</option>
-                                    {roles.map(r => (
-                                        <option key={r.id} value={r.id}>{r.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>手机号</label>
-                                <input
-                                    type="text"
-                                    value={formData.phone}
-                                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                    placeholder="请输入手机号"
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        border: '1px solid #d9d9d9',
-                                        borderRadius: '6px',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>邮箱</label>
-                                <input
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                    placeholder="请输入邮箱"
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        border: '1px solid #d9d9d9',
-                                        borderRadius: '6px',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
-                                />
-                            </div>
-                            <div style={{ gridColumn: 'span 2' }}>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.status === 1}
-                                        onChange={e => setFormData({ ...formData, status: e.target.checked ? 1 : 0 })}
-                                    />
-                                    启用该账号
-                                </label>
-                            </div>
+            {/* Add/Edit Modal */}
+            <Modal title={editingAdmin ? '编辑管理员' : '添加管理员'} open={showModal} onClose={() => setShowModal(false)} className="max-w-lg">
+                <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">用户名 <span className="text-red-500">*</span></label>
+                            <Input
+                                placeholder="请输入用户名"
+                                value={formData.username}
+                                onChange={e => setFormData({ ...formData, username: e.target.value })}
+                                disabled={!!editingAdmin}
+                                className={editingAdmin ? 'bg-slate-100' : ''}
+                            />
                         </div>
-
-                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                style={{
-                                    padding: '10px 24px',
-                                    background: '#fff',
-                                    border: '1px solid #d9d9d9',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '14px',
-                                }}
-                            >
-                                取消
-                            </button>
-                            <button
-                                onClick={handleSubmit}
-                                style={{
-                                    padding: '10px 24px',
-                                    background: '#1890ff',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '14px',
-                                }}
-                            >
-                                保存
-                            </button>
+                        <div>
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">密码 {!editingAdmin && <span className="text-red-500">*</span>}</label>
+                            <Input
+                                type="password"
+                                placeholder={editingAdmin ? '留空则不修改' : '请输入密码'}
+                                value={formData.password}
+                                onChange={e => setFormData({ ...formData, password: e.target.value })}
+                            />
                         </div>
                     </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input
+                            label="姓名"
+                            placeholder="请输入姓名"
+                            value={formData.realName}
+                            onChange={e => setFormData({ ...formData, realName: e.target.value })}
+                        />
+                        <div>
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">角色</label>
+                            <Select
+                                value={formData.roleId}
+                                onChange={v => setFormData({ ...formData, roleId: v })}
+                                options={[{ value: '', label: '请选择角色' }, ...roles.map(r => ({ value: r.id, label: r.name }))]}
+                            />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input
+                            label="手机号"
+                            placeholder="请输入手机号"
+                            value={formData.phone}
+                            onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                        />
+                        <Input
+                            label="邮箱"
+                            type="email"
+                            placeholder="请输入邮箱"
+                            value={formData.email}
+                            onChange={e => setFormData({ ...formData, email: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <label className="flex cursor-pointer items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={formData.status === 1}
+                                onChange={e => setFormData({ ...formData, status: e.target.checked ? 1 : 0 })}
+                                className="h-4 w-4 rounded border-slate-300"
+                            />
+                            <span className="text-sm">启用该账号</span>
+                        </label>
+                    </div>
+                    <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                        <Button variant="secondary" onClick={() => setShowModal(false)}>取消</Button>
+                        <Button onClick={handleSubmit}>保存</Button>
+                    </div>
                 </div>
-            )}
+            </Modal>
         </div>
     );
 }
