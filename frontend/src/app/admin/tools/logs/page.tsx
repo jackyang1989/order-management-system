@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../../apiConfig';
+import { cn } from '../../../../lib/utils';
+import { Button } from '../../../../components/ui/button';
+import { Card } from '../../../../components/ui/card';
+import { Badge } from '../../../../components/ui/badge';
+import { Input } from '../../../../components/ui/input';
+import { Select } from '../../../../components/ui/select';
 
 interface OperationLog {
     id: string;
@@ -15,36 +21,36 @@ interface OperationLog {
     createdAt: string;
 }
 
+const modules = [
+    { value: '', label: '全部模块' },
+    { value: 'users', label: '买手管理' },
+    { value: 'merchants', label: '商家管理' },
+    { value: 'tasks', label: '任务管理' },
+    { value: 'orders', label: '订单管理' },
+    { value: 'finance', label: '财务管理' },
+    { value: 'system', label: '系统设置' },
+    { value: 'permission', label: '权限管理' },
+    { value: 'auth', label: '登录认证' },
+];
+
+const moduleColors: Record<string, 'blue' | 'green' | 'amber' | 'red' | 'slate'> = {
+    auth: 'blue',
+    users: 'blue',
+    merchants: 'red',
+    tasks: 'green',
+    orders: 'amber',
+    finance: 'amber',
+    system: 'slate',
+    permission: 'red',
+};
+
 export default function LogsPage() {
     const [logs, setLogs] = useState<OperationLog[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filters, setFilters] = useState({
-        module: '',
-        username: '',
-        startDate: '',
-        endDate: ''
-    });
-    const [pagination, setPagination] = useState({
-        page: 1,
-        limit: 20,
-        total: 0
-    });
+    const [filters, setFilters] = useState({ module: '', username: '', startDate: '', endDate: '' });
+    const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0 });
 
-    const modules = [
-        { value: '', label: '全部模块' },
-        { value: 'users', label: '买手管理' },
-        { value: 'merchants', label: '商家管理' },
-        { value: 'tasks', label: '任务管理' },
-        { value: 'orders', label: '订单管理' },
-        { value: 'finance', label: '财务管理' },
-        { value: 'system', label: '系统设置' },
-        { value: 'permission', label: '权限管理' },
-        { value: 'auth', label: '登录认证' },
-    ];
-
-    useEffect(() => {
-        loadLogs();
-    }, [pagination.page, filters]);
+    useEffect(() => { loadLogs(); }, [pagination.page, filters]);
 
     const loadLogs = async () => {
         setLoading(true);
@@ -80,16 +86,12 @@ export default function LogsPage() {
             const token = localStorage.getItem('adminToken');
             const response = await fetch(`${BASE_URL}/admin/operation-logs/export`, {
                 method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify(filters)
             });
             if (response.ok) {
                 const result = await response.json();
                 if (result.success && result.data) {
-                    // 将数据转换为 CSV 格式下载
                     const csvContent = convertToCSV(result.data);
                     const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8' });
                     const url = window.URL.createObjectURL(blob);
@@ -113,14 +115,7 @@ export default function LogsPage() {
 
     const convertToCSV = (data: OperationLog[]) => {
         const headers = ['操作时间', '操作人', '模块', '操作', '详情', 'IP地址'];
-        const rows = data.map(log => [
-            formatDate(log.createdAt),
-            log.adminUsername,
-            log.module,
-            log.action,
-            log.content,
-            log.ip
-        ]);
+        const rows = data.map(log => [formatDate(log.createdAt), log.adminUsername, log.module, log.action, log.content, log.ip]);
         return [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
     };
 
@@ -146,282 +141,138 @@ export default function LogsPage() {
         }
     };
 
-    const formatDate = (dateStr: string) => {
-        return new Date(dateStr).toLocaleString('zh-CN');
-    };
-
-    const getModuleBadge = (module: string) => {
-        const colors: Record<string, { bg: string; color: string }> = {
-            auth: { bg: '#e6f7ff', color: '#1890ff' },
-            users: { bg: '#f0f5ff', color: '#2f54eb' },
-            merchants: { bg: '#fff0f6', color: '#eb2f96' },
-            tasks: { bg: '#f6ffed', color: '#52c41a' },
-            orders: { bg: '#fff7e6', color: '#fa8c16' },
-            finance: { bg: '#f9f0ff', color: '#722ed1' },
-            system: { bg: '#f5f5f5', color: '#666' },
-            permission: { bg: '#fff2f0', color: '#ff4d4f' },
-        };
-        const style = colors[module] || { bg: '#f5f5f5', color: '#666' };
-        const label = modules.find(m => m.value === module)?.label || module;
-        return (
-            <span style={{
-                padding: '4px 12px',
-                borderRadius: '12px',
-                fontSize: '12px',
-                background: style.bg,
-                color: style.color
-            }}>
-                {label}
-            </span>
-        );
-    };
-
+    const formatDate = (dateStr: string) => new Date(dateStr).toLocaleString('zh-CN');
     const totalPages = Math.ceil(pagination.total / pagination.limit);
 
     return (
-        <div>
-            {/* 页面标题 */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '24px'
-            }}>
+        <div className="space-y-5">
+            {/* Header */}
+            <div className="flex items-center justify-between">
                 <div>
-                    <h2 style={{ margin: 0, fontSize: '20px' }}>操作日志</h2>
-                    <p style={{ margin: '8px 0 0', color: '#666', fontSize: '14px' }}>
-                        查看管理员操作记录
-                    </p>
+                    <h2 className="text-xl font-semibold">操作日志</h2>
+                    <p className="mt-2 text-sm text-slate-500">查看管理员操作记录</p>
                 </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                    <button
-                        onClick={handleExport}
-                        style={{
-                            padding: '10px 24px',
-                            background: '#52c41a',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                        }}
-                    >
-                        导出日志
-                    </button>
-                    <button
-                        onClick={handleClearLogs}
-                        style={{
-                            padding: '10px 24px',
-                            background: '#ff4d4f',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                        }}
-                    >
-                        清理旧日志
-                    </button>
+                <div className="flex gap-3">
+                    <Button className="bg-green-500 hover:bg-green-600" onClick={handleExport}>导出日志</Button>
+                    <Button variant="destructive" onClick={handleClearLogs}>清理旧日志</Button>
                 </div>
             </div>
 
-            {/* 筛选区域 */}
-            <div style={{
-                background: '#fff',
-                borderRadius: '8px',
-                padding: '20px',
-                marginBottom: '20px',
-                display: 'flex',
-                gap: '16px',
-                flexWrap: 'wrap',
-                alignItems: 'flex-end'
-            }}>
+            {/* Filters */}
+            <Card className="flex flex-wrap items-end gap-4 bg-white p-5">
                 <div>
-                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: '#666' }}>模块</label>
-                    <select
+                    <label className="mb-1.5 block text-xs text-slate-500">模块</label>
+                    <Select
                         value={filters.module}
-                        onChange={e => setFilters({ ...filters, module: e.target.value })}
-                        style={{
-                            padding: '8px 16px',
-                            border: '1px solid #d9d9d9',
-                            borderRadius: '6px',
-                            fontSize: '14px',
-                            minWidth: '140px'
-                        }}
-                    >
-                        {modules.map(m => (
-                            <option key={m.value} value={m.value}>{m.label}</option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: '#666' }}>操作人</label>
-                    <input
-                        type="text"
-                        placeholder="用户名"
-                        value={filters.username}
-                        onChange={e => setFilters({ ...filters, username: e.target.value })}
-                        style={{
-                            padding: '8px 16px',
-                            border: '1px solid #d9d9d9',
-                            borderRadius: '6px',
-                            fontSize: '14px',
-                            width: '140px'
-                        }}
+                        onChange={v => setFilters({ ...filters, module: v })}
+                        options={modules}
+                        className="min-w-[140px]"
                     />
                 </div>
                 <div>
-                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: '#666' }}>开始日期</label>
+                    <label className="mb-1.5 block text-xs text-slate-500">操作人</label>
+                    <Input
+                        placeholder="用户名"
+                        value={filters.username}
+                        onChange={e => setFilters({ ...filters, username: e.target.value })}
+                        className="w-36"
+                    />
+                </div>
+                <div>
+                    <label className="mb-1.5 block text-xs text-slate-500">开始日期</label>
                     <input
                         type="date"
                         value={filters.startDate}
                         onChange={e => setFilters({ ...filters, startDate: e.target.value })}
-                        style={{
-                            padding: '8px 16px',
-                            border: '1px solid #d9d9d9',
-                            borderRadius: '6px',
-                            fontSize: '14px'
-                        }}
+                        className="rounded-md border border-slate-200 px-4 py-2 text-sm"
                     />
                 </div>
                 <div>
-                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: '#666' }}>结束日期</label>
+                    <label className="mb-1.5 block text-xs text-slate-500">结束日期</label>
                     <input
                         type="date"
                         value={filters.endDate}
                         onChange={e => setFilters({ ...filters, endDate: e.target.value })}
-                        style={{
-                            padding: '8px 16px',
-                            border: '1px solid #d9d9d9',
-                            borderRadius: '6px',
-                            fontSize: '14px'
-                        }}
+                        className="rounded-md border border-slate-200 px-4 py-2 text-sm"
                     />
                 </div>
-                <button
-                    onClick={() => setFilters({ module: '', username: '', startDate: '', endDate: '' })}
-                    style={{
-                        padding: '8px 16px',
-                        background: '#fff',
-                        border: '1px solid #d9d9d9',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                    }}
-                >
-                    重置
-                </button>
-            </div>
+                <Button variant="secondary" onClick={() => setFilters({ module: '', username: '', startDate: '', endDate: '' })}>重置</Button>
+            </Card>
 
-            {/* 日志列表 */}
-            <div style={{
-                background: '#fff',
-                borderRadius: '8px',
-                overflow: 'hidden'
-            }}>
-                <div style={{
-                    padding: '16px 24px',
-                    borderBottom: '1px solid #f0f0f0',
-                    fontWeight: '500',
-                    fontSize: '15px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                }}>
-                    <span>日志记录</span>
-                    <span style={{ fontSize: '13px', color: '#999', fontWeight: 'normal' }}>
-                        共 {pagination.total} 条记录
-                    </span>
+            {/* Logs Table */}
+            <Card className="overflow-hidden bg-white p-0">
+                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                    <span className="text-sm font-medium">日志记录</span>
+                    <span className="text-xs text-slate-400">共 {pagination.total} 条记录</span>
                 </div>
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>加载中...</div>
+                    <div className="py-16 text-center text-slate-400">加载中...</div>
                 ) : logs.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
-                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
+                    <div className="py-16 text-center text-slate-400">
+                        <div className="mb-4 text-5xl">📋</div>
                         <div>暂无操作日志</div>
                     </div>
                 ) : (
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ background: '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>操作时间</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>操作人</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>模块</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>操作</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>详情</th>
-                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '500' }}>IP地址</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {logs.map(log => (
-                                <tr key={log.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                    <td style={{ padding: '16px', color: '#666', fontSize: '13px' }}>
-                                        {formatDate(log.createdAt)}
-                                    </td>
-                                    <td style={{ padding: '16px', fontWeight: '500' }}>{log.adminUsername}</td>
-                                    <td style={{ padding: '16px' }}>{getModuleBadge(log.module)}</td>
-                                    <td style={{ padding: '16px' }}>{log.action}</td>
-                                    <td style={{ padding: '16px', maxWidth: '300px' }}>
-                                        <div style={{
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            whiteSpace: 'nowrap',
-                                            color: '#666',
-                                            fontSize: '13px'
-                                        }} title={log.content}>
-                                            {log.content}
-                                        </div>
-                                    </td>
-                                    <td style={{ padding: '16px', color: '#999', fontSize: '13px' }}>{log.ip}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
+                    <>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-[1000px] w-full border-collapse">
+                                <thead>
+                                    <tr className="border-b border-slate-100 bg-slate-50">
+                                        <th className="px-4 py-4 text-left text-sm font-medium">操作时间</th>
+                                        <th className="px-4 py-4 text-left text-sm font-medium">操作人</th>
+                                        <th className="px-4 py-4 text-left text-sm font-medium">模块</th>
+                                        <th className="px-4 py-4 text-left text-sm font-medium">操作</th>
+                                        <th className="px-4 py-4 text-left text-sm font-medium">详情</th>
+                                        <th className="px-4 py-4 text-left text-sm font-medium">IP地址</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {logs.map(log => (
+                                        <tr key={log.id} className="border-b border-slate-100">
+                                            <td className="px-4 py-4 text-xs text-slate-500">{formatDate(log.createdAt)}</td>
+                                            <td className="px-4 py-4 font-medium">{log.adminUsername}</td>
+                                            <td className="px-4 py-4">
+                                                <Badge variant="soft" color={moduleColors[log.module] || 'slate'}>
+                                                    {modules.find(m => m.value === log.module)?.label || log.module}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-4 py-4">{log.action}</td>
+                                            <td className="max-w-[300px] px-4 py-4">
+                                                <div className="truncate text-xs text-slate-500" title={log.content}>{log.content}</div>
+                                            </td>
+                                            <td className="px-4 py-4 text-xs text-slate-400">{log.ip}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
 
-                {/* 分页 */}
-                {totalPages > 1 && (
-                    <div style={{
-                        padding: '16px 24px',
-                        borderTop: '1px solid #f0f0f0',
-                        display: 'flex',
-                        justifyContent: 'flex-end',
-                        gap: '8px'
-                    }}>
-                        <button
-                            onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
-                            disabled={pagination.page === 1}
-                            style={{
-                                padding: '6px 12px',
-                                border: '1px solid #d9d9d9',
-                                borderRadius: '4px',
-                                background: '#fff',
-                                cursor: pagination.page === 1 ? 'not-allowed' : 'pointer',
-                                opacity: pagination.page === 1 ? 0.5 : 1
-                            }}
-                        >
-                            上一页
-                        </button>
-                        <span style={{ padding: '6px 12px', color: '#666' }}>
-                            第 {pagination.page} / {totalPages} 页
-                        </span>
-                        <button
-                            onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
-                            disabled={pagination.page >= totalPages}
-                            style={{
-                                padding: '6px 12px',
-                                border: '1px solid #d9d9d9',
-                                borderRadius: '4px',
-                                background: '#fff',
-                                cursor: pagination.page >= totalPages ? 'not-allowed' : 'pointer',
-                                opacity: pagination.page >= totalPages ? 0.5 : 1
-                            }}
-                        >
-                            下一页
-                        </button>
-                    </div>
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-end gap-2 border-t border-slate-100 p-4">
+                                <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                                    disabled={pagination.page === 1}
+                                    className={cn(pagination.page === 1 && 'cursor-not-allowed opacity-50')}
+                                >
+                                    上一页
+                                </Button>
+                                <span className="px-3 text-sm text-slate-500">第 {pagination.page} / {totalPages} 页</span>
+                                <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                                    disabled={pagination.page >= totalPages}
+                                    className={cn(pagination.page >= totalPages && 'cursor-not-allowed opacity-50')}
+                                >
+                                    下一页
+                                </Button>
+                            </div>
+                        )}
+                    </>
                 )}
-            </div>
+            </Card>
         </div>
     );
 }

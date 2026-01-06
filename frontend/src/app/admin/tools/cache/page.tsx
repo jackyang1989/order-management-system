@@ -223,7 +223,7 @@ export default function CachePage() {
             {/* Info Box */}
             <div className="rounded-lg border border-blue-200 bg-blue-50 px-6 py-4">
                 <h4 className="mb-2 text-sm font-medium text-blue-600">💡 缓存说明</h4>
-                <ul className="space-y-1 pl-5 text-xs leading-relaxed text-slate-600" style={{ listStyleType: 'disc' }}>
+                <ul className="list-disc space-y-1 pl-5 text-xs leading-relaxed text-slate-600">
                     <li><strong>系统配置缓存</strong>：存储系统参数，清除后会重新从数据库加载</li>
                     <li><strong>用户/商家信息缓存</strong>：存储用户基本信息，清除后用户需重新加载数据</li>
                     <li><strong>会话缓存</strong>：存储登录状态，清除后所有用户需要重新登录</li>

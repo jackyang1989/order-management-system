@@ -263,7 +263,7 @@ export default function BackupPage() {
             {/* Info Box */}
             <div className="rounded-lg border border-blue-200 bg-blue-50 px-6 py-4">
                 <h4 className="mb-2 text-sm font-medium text-blue-600">💡 备份说明</h4>
-                <ul className="space-y-1 pl-5 text-xs leading-relaxed text-slate-600" style={{ listStyleType: 'disc' }}>
+                <ul className="list-disc space-y-1 pl-5 text-xs leading-relaxed text-slate-600">
                     <li><strong>完整备份</strong>：包含数据库所有表的数据和结构</li>
                     <li><strong>数据备份</strong>：仅包含业务数据（用户、订单、任务等）</li>
                     <li><strong>配置备份</strong>：仅包含系统配置数据</li>
