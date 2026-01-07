@@ -7,45 +7,69 @@ import ProfileContainer from '../../../components/ProfileContainer';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
-import { fetchBuyerAccounts, addBuyerAccount } from '../../../services/userService';
-import { MockBuyerAccount } from '../../../mocks/userMock';
+import {
+    fetchBuyerAccounts as legacyFetch,
+    addBuyerAccount as legacyAdd,
+} from '../../../services/userService';
+import {
+    BuyerAccount,
+    createBuyerAccount,
+    fetchBuyerAccounts,
+} from '../../../services/buyerAccountService';
 
 export default function BindAccountPage() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<'list' | 'add'>('list');
-    const [accounts, setAccounts] = useState<MockBuyerAccount[]>([]);
+    const [accounts, setAccounts] = useState<BuyerAccount[]>([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
     const [form, setForm] = useState({
-        accountName: '',
-        receiverPhone: '',
         platform: '淘宝' as '淘宝' | '京东' | '拼多多',
-        province: '',
-        city: '',
-        fullAddress: '',
-        receiverName: ''
+        accountId: '',
+        accountName: '',
     });
 
     useEffect(() => { loadAccounts(); }, []);
 
     const loadAccounts = async () => {
         setLoading(true);
-        try { const list = await fetchBuyerAccounts(); setAccounts(list); }
-        catch (e) { console.error('Load accounts error:', e); }
-        finally { setLoading(false); }
+        try {
+            const list = await fetchBuyerAccounts();
+            setAccounts(list);
+        } catch (e) {
+            console.error('Load accounts error:', e);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!form.accountName || !form.receiverPhone || !form.fullAddress) { alert('请填写必填信息'); return; }
+        if (!form.accountId || !form.accountName) {
+            alert('请填写必填信息');
+            return;
+        }
         setSubmitting(true);
         try {
-            const res = await addBuyerAccount(form);
-            if (res.success) { alert(res.message); setActiveTab('list'); loadAccounts(); setForm({ accountName: '', receiverPhone: '', platform: '淘宝', province: '', city: '', fullAddress: '', receiverName: '' }); }
-            else { alert(res.message); }
-        } catch (e) { alert('提交失败'); }
-        finally { setSubmitting(false); }
+            const res = await createBuyerAccount({
+                platform: form.platform,
+                accountId: form.accountId,
+                accountName: form.accountName || form.accountId,
+            });
+            if (res.success) {
+                alert(res.message);
+                setActiveTab('list');
+                loadAccounts();
+                setForm({ platform: '淘宝', accountId: '', accountName: '' });
+            } else {
+                alert(res.message);
+            }
+        } catch (e) {
+            alert('提交失败');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -87,14 +111,13 @@ export default function BindAccountPage() {
                                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-xl font-bold text-blue-500">{(acc.accountName || '').charAt(0).toUpperCase()}</div>
                                             <div>
                                                 <div className="font-bold text-slate-800">{acc.accountName}</div>
-                                                <div className="text-xs text-slate-400">{acc.platform} · {acc.receiverPhone}</div>
+                                                <div className="text-xs text-slate-400">{acc.platform}</div>
                                             </div>
                                         </div>
-                                        <Badge variant="soft" color={(acc.status === 'APPROVED' || acc.status === 1) ? 'green' : (acc.status === 'PENDING' || acc.status === 0) ? 'amber' : 'red'}>
-                                            {(acc.status === 'APPROVED' || acc.status === 1) ? '已通过' : (acc.status === 'PENDING' || acc.status === 0) ? '审核中' : '拒绝'}
+                                        <Badge variant="soft" color={acc.status === 'APPROVED' ? 'green' : acc.status === 'PENDING' ? 'amber' : 'red'}>
+                                            {acc.status === 'APPROVED' ? '已通过' : acc.status === 'PENDING' ? '审核中' : acc.status === 'REJECTED' ? '已拒绝' : '已禁用'}
                                         </Badge>
                                     </div>
-                                    <div className="mt-3 text-xs text-slate-500">收货地址: {acc.province}{acc.city}{acc.fullAddress}</div>
                                 </Card>
                             ))
                         )}
