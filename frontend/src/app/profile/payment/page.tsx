@@ -1,212 +1,223 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { cn } from '../../../lib/utils';
-import { toastSuccess, toastError } from '../../../lib/toast';
-import { Card } from '../../../components/ui/card';
-import { Badge } from '../../../components/ui/badge';
-import { Spinner } from '../../../components/ui/spinner';
-import { isAuthenticated } from '../../../services/authService';
-import { fetchBankCards, addBankCard, deleteBankCard, setDefaultBankCard, BankCard } from '../../../services/userService';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { cn } from "../../../lib/utils";
+import { Card } from "../../../components/ui/card";
+import { Badge } from "../../../components/ui/badge";
+import { toastError, toastSuccess } from "../../../lib/toast";
+import { Spinner } from "../../../components/ui/spinner";
+import { Modal } from "../../../components/ui/modal";
+import {
+    BankCard,
+    list as listCards,
+    create as createCard,
+    setDefault,
+    remove,
+} from "../../../services/bankCardService";
 
-export default function PaymentSettingsPage() {
+export default function BankCardPage() {
     const router = useRouter();
-    const [loading, setLoading] = useState(true);
     const [cards, setCards] = useState<BankCard[]>([]);
+    const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [actingId, setActingId] = useState<string | null>(null);
 
     const [form, setForm] = useState({
-        bankName: '', accountName: '', cardNumber: '', phone: '',
-        province: '', city: '', branchName: '', alipayQrCode: '', wechatQrCode: ''
+        bankName: "",
+        cardNo: "",
+        realName: "",
+        isDefault: false,
     });
 
-    useEffect(() => { if (!isAuthenticated()) { router.push('/login'); return; } loadCards(); }, []);
+    useEffect(() => {
+        loadCards();
+    }, []);
 
     const loadCards = async () => {
         setLoading(true);
-        try { const result = await fetchBankCards(); setCards(result); }
-        catch (error) { console.error('Load cards error:', error); }
-        finally { setLoading(false); }
+        try {
+            const list = await listCards();
+            setCards(list);
+        } catch (e: any) {
+            toastError("加载失败: " + e.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleAddCard = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!form.bankName || !form.accountName || !form.cardNumber) { toastError('请填写完整必填信息'); return; }
+        if (!form.bankName || !form.cardNo || !form.realName) {
+            toastError("请填写完整信息");
+            return;
+        }
         setSubmitting(true);
         try {
-            const result = await addBankCard(form);
-            if (result.success) {
-                toastSuccess('银行卡添加成功');
-                setShowAddModal(false);
-                setForm({ bankName: '', accountName: '', cardNumber: '', phone: '', province: '', city: '', branchName: '', alipayQrCode: '', wechatQrCode: '' });
-                loadCards();
-            }
-            else { toastError(result.message || '添加失败'); }
-        } catch (error) { toastError('网络错误'); }
-        finally { setSubmitting(false); }
-    };
-
-    const handleDeleteCard = async (id: string) => {
-        if (!confirm('确定要删除这张银行卡吗？')) return;
-        try {
-            const result = await deleteBankCard(id);
-            if (result.success) { toastSuccess('删除成功'); loadCards(); }
-            else { toastError(result.message); }
-        } catch (error) { toastError('网络错误'); }
+            await createCard(form);
+            toastSuccess("绑定成功");
+            setShowAddModal(false);
+            setForm({ bankName: "", cardNo: "", realName: "", isDefault: false });
+            loadCards();
+        } catch (e: any) {
+            toastError("绑定失败: " + e.message);
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const handleSetDefault = async (id: string) => {
+        setActingId(id);
         try {
-            const result = await setDefaultBankCard(id);
-            if (result.success) { toastSuccess('设置成功'); loadCards(); }
-            else { toastError(result.message); }
-        } catch (error) { toastError('网络错误'); }
+            await setDefault(id);
+            toastSuccess("已设为默认");
+            loadCards();
+        } catch (e: any) {
+            toastError("设置失败: " + e.message);
+        } finally {
+            setActingId(null);
+        }
     };
 
-    const getBankColor = (bankName: string) => {
-        if (bankName.includes('招商')) return 'bg-red-600 shadow-red-100';
-        if (bankName.includes('工商')) return 'bg-rose-700 shadow-rose-100';
-        if (bankName.includes('建设')) return 'bg-blue-800 shadow-blue-100';
-        if (bankName.includes('农业')) return 'bg-emerald-700 shadow-emerald-100';
-        if (bankName.includes('中国银行')) return 'bg-red-800 shadow-red-100';
-        return 'bg-slate-800 shadow-slate-100';
+    const handleDelete = async (id: string) => {
+        if (!confirm("确定要解绑该银行卡吗？")) return;
+        setActingId(id);
+        try {
+            await remove(id);
+            toastSuccess("解绑成功");
+            loadCards();
+        } catch (e: any) {
+            toastError("操作失败: " + e.message);
+        } finally {
+            setActingId(null);
+        }
     };
+
+    if (loading) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
+                <Spinner size="lg" className="text-blue-600" />
+            </div>
+        );
+    }
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] pb-24">
+        <div className="min-h-screen bg-[#F8FAFC] pb-32">
             {/* Header */}
             <header className="sticky top-0 z-20 bg-[#F8FAFC]/80 backdrop-blur-md">
                 <div className="mx-auto flex h-16 max-w-[515px] items-center px-6">
                     <button onClick={() => router.back()} className="mr-4 text-slate-600 transition-transform active:scale-90">
                         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                     </button>
-                    <h1 className="flex-1 text-xl font-bold text-slate-900">银行卡管理</h1>
-                    <button onClick={() => setShowAddModal(true)} className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition active:scale-90">
-                        <span className="text-2xl font-light">+</span>
+                    <h1 className="flex-1 text-xl font-bold text-slate-900">绑卡管理</h1>
+                    <button onClick={() => setShowAddModal(true)} className="group flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-slate-100 transition-all active:scale-95">
+                        <span className="text-xl font-light text-blue-600">+</span>
                     </button>
                 </div>
             </header>
 
-            <div className="mx-auto max-w-[515px] space-y-6 px-4 py-4">
-                {loading ? (
-                    <div className="flex py-20 items-center justify-center">
-                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-                    </div>
-                ) : cards.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 px-8 text-center space-y-6">
-                        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-slate-50 text-4xl shadow-inner">💳</div>
-                        <div>
-                            <h3 className="text-lg font-black text-slate-900">暂未绑定银行卡</h3>
-                            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">提现前请先绑定您的收款账户</p>
-                        </div>
-                        <button onClick={() => setShowAddModal(true)} className="w-full rounded-[24px] bg-blue-600 py-4 text-sm font-black text-white shadow-xl shadow-blue-50 transition active:scale-95">
-                            立即去绑定
+            <div className="mx-auto max-w-[515px] px-4 pt-6 space-y-6">
+                {cards.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20 px-8 text-center">
+                        <div className="flex h-24 w-24 items-center justify-center rounded-[32px] bg-white shadow-xl shadow-slate-100 text-4xl mb-8 font-light italic">🏧</div>
+                        <h3 className="text-lg font-black text-slate-900 tracking-tight">尚未添加银行卡</h3>
+                        <p className="mt-3 text-xs font-medium text-slate-400 leading-relaxed italic">
+                            添加银行卡后即可申请提现<br />资金将安全打入您的实名账户
+                        </p>
+                        <button
+                            onClick={() => setShowAddModal(true)}
+                            className="mt-10 h-14 w-full rounded-[24px] bg-blue-600 text-sm font-black text-white shadow-2xl shadow-blue-100 transition active:scale-95"
+                        >
+                            立即添加银行卡
                         </button>
                     </div>
                 ) : (
                     <div className="space-y-6">
-                        {cards.map(card => (
-                            <div key={card.id} className={cn('relative rounded-[32px] p-8 text-white shadow-2xl transition-all active:scale-[0.98]', getBankColor(card.bankName))}>
-                                <div className="flex items-start justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20 backdrop-blur-md shadow-inner text-2xl font-black">
-                                            {card.bankName.slice(0, 1)}
+                        <div className="px-2">
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">已绑定的收款账户</h3>
+                        </div>
+                        {cards.map(card => {
+                            const acting = actingId === card.id;
+                            const isCCB = card.bankName.includes('建设');
+                            const isICBC = card.bankName.includes('工商');
+                            const isABC = card.bankName.includes('农业');
+
+                            return (
+                                <Card key={card.id}
+                                    className={cn('relative rounded-[32px] border-none p-8 text-white shadow-2xl transition-all active:scale-[0.98] overflow-hidden group',
+                                        isCCB ? 'bg-blue-600 shadow-blue-100' : isICBC ? 'bg-rose-600 shadow-rose-100' : isABC ? 'bg-emerald-600 shadow-emerald-100' : 'bg-slate-800 shadow-slate-200')}>
+                                    <div className="absolute -right-20 -top-20 h-60 w-60 rounded-full bg-white/10 blur-3xl transition-transform group-hover:scale-110" />
+
+                                    <div className="relative z-10 flex items-start justify-between">
+                                        <div className="space-y-1">
+                                            <div className="text-xl font-black tracking-tight">{card.bankName}</div>
+                                            <div className="text-[9px] font-bold uppercase tracking-[0.2em] opacity-60">Debit Card</div>
                                         </div>
-                                        <div>
-                                            <div className="text-lg font-black tracking-tight">{card.bankName}</div>
-                                            <div className="text-[10px] font-bold uppercase tracking-widest opacity-60">储蓄卡</div>
+                                        {card.isDefault && (
+                                            <span className="rounded-full bg-white/20 px-3 py-1 text-[8px] font-black uppercase tracking-widest backdrop-blur-sm">DEFAULT</span>
+                                        )}
+                                    </div>
+
+                                    <div className="relative z-10 mt-12">
+                                        <div className="text-xl font-black tracking-[0.15em] font-mono">
+                                            **** **** **** {card.cardNo.slice(-4)}
+                                        </div>
+                                        <div className="mt-6 flex items-end justify-between">
+                                            <div className="space-y-1">
+                                                <div className="text-[8px] font-bold uppercase tracking-widest opacity-40">Card Holder</div>
+                                                <div className="text-xs font-black uppercase tracking-wider">{card.realName}</div>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                {!card.isDefault && (
+                                                    <button onClick={() => handleSetDefault(card.id)} disabled={acting} className="rounded-full bg-white/10 px-4 py-2 text-[9px] font-black uppercase tracking-widest backdrop-blur-sm transition hover:bg-white/20">设为默认</button>
+                                                )}
+                                                <button onClick={() => handleDelete(card.id)} disabled={acting} className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm transition hover:bg-rose-500/30 text-[10px]">🗑️</button>
+                                            </div>
                                         </div>
                                     </div>
-                                    {card.isDefault && (
-                                        <Badge className="rounded-full bg-white/20 px-3 py-1 text-[9px] font-black uppercase tracking-wider text-white border-none shadow-none backdrop-blur-md">
-                                            Default
-                                        </Badge>
+
+                                    {acting && (
+                                        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/10 backdrop-blur-sm rounded-[32px]">
+                                            <Spinner size="sm" className="text-white" />
+                                        </div>
                                     )}
-                                </div>
-                                <div className="mt-10 mb-8 flex justify-between items-end">
-                                    <div className="text-2xl font-black tracking-[0.15em] font-mono">
-                                        **** **** **** {card.cardNumber.slice(-4)}
-                                    </div>
-                                    <div className="text-right">
-                                        <div className="text-[10px] font-bold uppercase tracking-widest opacity-60">CARD HOLDER</div>
-                                        <div className="text-xs font-black">{card.accountName}</div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-end gap-6 pt-4 border-t border-white/10">
-                                    {!card.isDefault && (
-                                        <button onClick={() => handleSetDefault(card.id)} className="text-[10px] font-black uppercase tracking-widest hover:opacity-80 transition">设为默认</button>
-                                    )}
-                                    <button onClick={() => handleDeleteCard(card.id)} className="text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white transition">移除卡片</button>
-                                </div>
-                            </div>
-                        ))}
+                                </Card>
+                            );
+                        })}
                     </div>
                 )}
-
-                {/* Binding Tips */}
-                <div className="rounded-[24px] bg-amber-50 p-6">
-                    <div className="mb-3 flex items-center gap-2 text-xs font-black text-amber-900">
-                        <span>⚠️</span> 绑定须知
-                    </div>
-                    <ul className="space-y-2 text-[10px] font-bold leading-relaxed text-amber-700/80">
-                        <li className="flex gap-2"><span>•</span>请核对开户行及支行信息，防止提现失败</li>
-                        <li className="flex gap-2"><span>•</span>持卡人姓名必须与实名认证一致</li>
-                        <li className="flex gap-2"><span>•</span>建议绑定主流银行卡以获得更佳到账速度</li>
-                    </ul>
-                </div>
             </div>
 
-            {/* Flat Add Modal */}
-            {showAddModal && (
-                <div className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-900/40 backdrop-blur-sm transition-all duration-300 sm:items-center">
-                    <div className="w-full max-w-[515px] animate-in fade-in slide-in-from-bottom-10 rounded-t-[32px] bg-white p-8 shadow-2xl sm:rounded-[32px]">
-                        <div className="mb-6 text-center">
-                            <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-2xl shadow-inner">🏦</div>
-                            <h3 className="text-xl font-black text-slate-900">添加银行卡</h3>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">请录入真实的账户信息</p>
+            {/* Redesigned Add Modal */}
+            <Modal open={showAddModal} onClose={() => setShowAddModal(false)} title="添加银行卡">
+                <div className="p-8 pb-10">
+                    <form onSubmit={handleAddCard} className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="px-2 text-[10px] font-black uppercase tracking-widest text-slate-400">开户行名称</label>
+                            <input value={form.bankName} onChange={e => setForm({ ...form, bankName: e.target.value })} placeholder="例如：中国建设银行"
+                                className="w-full rounded-[20px] bg-slate-50 px-5 py-4 text-xs font-black text-slate-900 shadow-inner focus:outline-none border-none" />
                         </div>
-                        <form onSubmit={handleAddCard} className="space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="px-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">银行名称 <span className="text-red-500">*</span></label>
-                                    <input className="w-full rounded-[20px] bg-slate-50 px-5 py-4 text-sm font-bold text-slate-900 focus:outline-none shadow-inner" placeholder="如：招商银行" value={form.bankName} onChange={e => setForm(f => ({ ...f, bankName: e.target.value }))} />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="px-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">持卡人姓名 <span className="text-red-500">*</span></label>
-                                    <input className="w-full rounded-[20px] bg-slate-50 px-5 py-4 text-sm font-bold text-slate-900 focus:outline-none shadow-inner" placeholder="姓名" value={form.accountName} onChange={e => setForm(f => ({ ...f, accountName: e.target.value }))} />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="px-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">银行卡号 <span className="text-red-500">*</span></label>
-                                <input className="w-full rounded-[20px] bg-slate-50 px-5 py-4 text-sm font-bold text-slate-900 focus:outline-none shadow-inner" placeholder="请输入银行卡号" value={form.cardNumber} onChange={e => setForm(f => ({ ...f, cardNumber: e.target.value }))} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="px-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">开户省份</label>
-                                    <input className="w-full rounded-[20px] bg-slate-50 px-5 py-4 text-sm font-bold text-slate-900 focus:outline-none shadow-inner" placeholder="省份" value={form.province} onChange={e => setForm(f => ({ ...f, province: e.target.value }))} />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="px-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">开户城市</label>
-                                    <input className="w-full rounded-[20px] bg-slate-50 px-5 py-4 text-sm font-bold text-slate-900 focus:outline-none shadow-inner" placeholder="城市" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="px-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">支行信息 <span className="text-red-500">*</span></label>
-                                <input className="w-full rounded-[20px] bg-slate-50 px-5 py-4 text-sm font-bold text-slate-900 focus:outline-none shadow-inner" placeholder="如：某某支行" value={form.branchName} onChange={e => setForm(f => ({ ...f, branchName: e.target.value }))} />
-                            </div>
-                            <div className="flex gap-4 pt-4">
-                                <button type="button" onClick={() => setShowAddModal(false)} disabled={submitting} className="flex-1 rounded-[20px] bg-slate-50 py-4 text-sm font-bold text-slate-400 transition active:scale-95">取消</button>
-                                <button type="submit" disabled={submitting} className={cn('flex-1 rounded-[20px] py-4 text-sm font-bold text-white shadow-lg shadow-blue-50 transition active:scale-95',
-                                    submitting ? 'bg-slate-200' : 'bg-blue-600 shadow-blue-100')}>
-                                    {submitting ? '处理中...' : '确认绑定'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                        <div className="space-y-2">
+                            <label className="px-2 text-[10px] font-black uppercase tracking-widest text-slate-400">银行卡号</label>
+                            <input value={form.cardNo} onChange={e => setForm({ ...form, cardNo: e.target.value.replace(/\D/g, '') })} placeholder="请输入 16-19 位卡号" maxLength={19}
+                                className="w-full rounded-[20px] bg-slate-50 px-5 py-4 text-xs font-black text-slate-900 shadow-inner focus:outline-none border-none" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="px-2 text-[10px] font-black uppercase tracking-widest text-slate-400">持卡人姓名</label>
+                            <input value={form.realName} onChange={e => setForm({ ...form, realName: e.target.value })} placeholder="必须与银行预留信息一致"
+                                className="w-full rounded-[20px] bg-slate-50 px-5 py-4 text-xs font-black text-slate-900 shadow-inner focus:outline-none border-none" />
+                        </div>
+
+                        <div className="pt-4">
+                            <button type="submit" disabled={submitting}
+                                className="w-full rounded-[24px] bg-blue-600 py-5 text-sm font-black text-white shadow-2xl shadow-blue-100 transition active:scale-95 disabled:opacity-50">
+                                {submitting ? <Spinner size="sm" /> : '立即绑定收款账户'}
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            )}
+            </Modal>
         </div>
     );
 }

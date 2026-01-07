@@ -2,116 +2,77 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { cn } from '../../../../lib/utils';
-import { Card } from '../../../../components/ui/card';
-import { Badge } from '../../../../components/ui/badge';
-import { Spinner } from '../../../../components/ui/spinner';
-import { isAuthenticated } from '../../../../services/authService';
-import {
-    fetchReviewTaskDetail,
-    submitReviewTask,
-    rejectReviewTask,
-    ReviewTask,
-    ReviewTaskPraise,
-    ReviewTaskStatus,
-    ReviewTaskStatusLabels
-} from '../../../../services/reviewTaskService';
+import { cn } from '../../../lib/utils';
+import { Card } from '../../../components/ui/card';
+import { Spinner } from '../../../components/ui/spinner';
+import { toastSuccess, toastError } from '../../../lib/toast';
+import { isAuthenticated } from '../../../services/authService';
+import { fetchReviewTaskById, submitReviewTask, ReviewTask } from '../../../services/userService';
 
-export default function ReviewTaskDetailPage() {
+const STATUS_MAP: Record<string, { label: string; bg: string; textCol: string }> = {
+    WAITING_SUBMIT: { label: '待提交评价', bg: 'bg-amber-100/50', textCol: 'text-amber-600' },
+    WAITING_AUDIT: { label: '审核中', bg: 'bg-blue-50', textCol: 'text-blue-600' },
+    APPROVED: { label: '审核通过', bg: 'bg-blue-600', textCol: 'text-white' },
+    REJECTED: { label: '审核驳回', bg: 'bg-rose-100/50', textCol: 'text-rose-600' },
+};
+
+export default function ReviewDetailPage() {
     const router = useRouter();
-    const params = useParams();
-    const taskId = params.id as string;
-
+    const { id } = useParams();
     const [loading, setLoading] = useState(true);
     const [task, setTask] = useState<ReviewTask | null>(null);
-    const [praises, setPraises] = useState<ReviewTaskPraise[]>([]);
+    const [screenshot, setScreenshot] = useState('');
     const [submitting, setSubmitting] = useState(false);
-    const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-    const [showRejectModal, setShowRejectModal] = useState(false);
-    const [rejectReason, setRejectReason] = useState('');
 
     useEffect(() => {
         if (!isAuthenticated()) { router.push('/login'); return; }
         loadTask();
-    }, [router, taskId]);
+    }, [id]);
 
     const loadTask = async () => {
-        setLoading(true);
         try {
-            const result = await fetchReviewTaskDetail(taskId);
-            if (result) {
-                setTask(result.task);
-                setPraises(result.praises);
-            }
-        } catch (error) { console.error('Load task error:', error); }
-        finally { setLoading(false); }
+            const data = await fetchReviewTaskById(id as string);
+            setTask(data);
+            setScreenshot(data.screenshot || '');
+        } catch (error) { console.error(error); } finally { setLoading(false); }
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (!files) return;
-        const newImages = [...uploadedImages];
-        for (let i = 0; i < files.length && newImages.length < 3; i++) {
-            const url = URL.createObjectURL(files[i]);
-            newImages.push(url);
-        }
-        setUploadedImages(newImages);
-    };
-
-    const handleRemoveImage = (index: number) => {
-        const newImages = [...uploadedImages];
-        newImages.splice(index, 1);
-        setUploadedImages(newImages);
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => setScreenshot(reader.result as string);
+        reader.readAsDataURL(file);
     };
 
     const handleSubmit = async () => {
-        if (uploadedImages.length === 0) { alert('请上传追评截图'); return; }
+        if (!screenshot) { toastError('请上传评价截图'); return; }
         setSubmitting(true);
         try {
-            const result = await submitReviewTask(taskId, uploadedImages);
-            if (result.success) { alert('追评提交成功，等待商家确认'); router.push('/profile/reviews'); }
-            else { alert(result.message); }
-        } catch (error) { alert('提交失败，请稍后重试'); }
-        finally { setSubmitting(false); }
-    };
-
-    const handleReject = async () => {
-        setSubmitting(true);
-        try {
-            const result = await rejectReviewTask(taskId, rejectReason);
-            if (result.success) { alert('已拒绝追评任务'); router.push('/profile/reviews'); }
-            else { alert(result.message); }
-        } catch (error) { alert('操作失败，请稍后重试'); }
-        finally { setSubmitting(false); setShowRejectModal(false); }
+            await submitReviewTask(id as string, screenshot);
+            toastSuccess('提交成功，请等待审核');
+            loadTask();
+        } catch (error: any) {
+            toastError(error.message || '提交失败');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const copyText = (text: string) => {
         navigator.clipboard.writeText(text);
-        alert('复制成功');
+        toastSuccess('已复制到剪贴板');
     };
 
-    const getStatusConfig = (state: ReviewTaskStatus) => {
-        const label = ReviewTaskStatusLabels[state] || { text: '未知' };
-        const configs: Record<string, { bg: string; textCol: string }> = {
-            [ReviewTaskStatus.APPROVED]: { bg: 'bg-emerald-50', textCol: 'text-emerald-600' },
-            [ReviewTaskStatus.UPLOADED]: { bg: 'bg-blue-50', textCol: 'text-blue-600' },
-            [ReviewTaskStatus.REJECTED]: { bg: 'bg-rose-50', textCol: 'text-rose-600' },
-            [ReviewTaskStatus.COMPLETED]: { bg: 'bg-slate-50', textCol: 'text-slate-400' },
-            [ReviewTaskStatus.PAID]: { bg: 'bg-indigo-50', textCol: 'text-indigo-600' },
-        };
-        const conf = configs[state] || { bg: 'bg-slate-50', textCol: 'text-slate-500' };
-        return { text: label.text, ...conf };
-    };
+    if (loading) return (
+        <div className="flex h-screen items-center justify-center bg-[#F8FAFC]">
+            <Spinner size="lg" className="text-blue-600" />
+        </div>
+    );
 
-    if (loading || !task) {
-        return <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]"><Spinner size="lg" className="text-blue-600" /></div>;
-    }
+    if (!task) return null;
 
-    const canSubmit = task.state === ReviewTaskStatus.APPROVED;
-    const textPraises = praises.filter(p => p.type === 1);
-    const imagePraises = praises.filter(p => p.type === 2);
-    const videoPraises = praises.filter(p => p.type === 3);
-    const status = getStatusConfig(task.state);
+    const status = STATUS_MAP[task.status] || STATUS_MAP.WAITING_SUBMIT;
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] pb-32">
@@ -121,181 +82,93 @@ export default function ReviewTaskDetailPage() {
                     <button onClick={() => router.back()} className="mr-4 text-slate-600 transition-transform active:scale-90">
                         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                     </button>
-                    <h1 className="flex-1 text-xl font-bold text-slate-900">追评任务详情</h1>
+                    <h1 className="flex-1 text-xl font-bold text-slate-900">评价任务详情</h1>
                 </div>
             </header>
 
             <div className="mx-auto max-w-[515px] space-y-6 px-4 py-4">
-                {/* ID and Status Overview */}
-                <div className="rounded-[28px] bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+                {/* Status Hero */}
+                <Card className="rounded-[32px] border-none bg-white p-8 shadow-[0_2px_12px_rgba(0,0,0,0.02)] ring-1 ring-slate-100">
                     <div className="flex items-center justify-between">
                         <div className="space-y-1">
-                            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">任务编号</div>
-                            <div className="text-base font-black text-slate-900 tracking-tight">{task.taskNumber}</div>
+                            <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">当前任务状态</div>
+                            <div className={cn('text-xl font-black tracking-tight', status.textCol)}>{status.label}</div>
                         </div>
-                        <div className={cn('rounded-full px-5 py-2 text-[10px] font-black uppercase tracking-widest', status.bg, status.textCol)}>
-                            {status.text}
+                        <div className="text-right space-y-1">
+                            <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">预期奖励</div>
+                            <div className="text-xl font-black text-blue-600 tracking-tight">{task.commission} <span className="text-[10px] uppercase font-bold text-blue-400 italic">Silver</span></div>
                         </div>
-                    </div>
-                </div>
-
-                {/* Earnings Card */}
-                <div className="rounded-[32px] bg-emerald-500/90 p-8 text-white shadow-2xl shadow-emerald-100 flex items-center justify-between">
-                    <div>
-                        <div className="text-[10px] font-bold uppercase tracking-widest text-white/70">预计奖励</div>
-                        <div className="mt-1 flex items-baseline gap-1">
-                            <span className="text-3xl font-black">+{Number(task.userMoney).toFixed(2)}</span>
-                            <span className="text-xs font-bold opacity-80 uppercase tracking-widest">银锭</span>
-                        </div>
-                    </div>
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20 text-3xl">💰</div>
-                </div>
-
-                {/* Requirements */}
-                <Card className="rounded-[32px] border-none bg-white p-8 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-8">
-                    <div className="flex items-center gap-2">
-                        <div className="h-5 w-1.5 rounded-full bg-blue-600" />
-                        <h2 className="text-base font-black text-slate-900">追评要求</h2>
-                    </div>
-
-                    <div className="space-y-6">
-                        {/* Text Reviews */}
-                        {textPraises.map((praise) => (
-                            <div key={praise.id} className="relative rounded-[24px] bg-slate-50 p-6 space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <div className="rounded-full bg-blue-100/50 px-3 py-1 text-[9px] font-black text-blue-600 uppercase tracking-widest">文字评价内容</div>
-                                    <button onClick={() => copyText(praise.content)} className="rounded-full bg-white px-4 py-1.5 text-[10px] font-black text-blue-600 shadow-sm border border-slate-100 transition active:scale-95">一键复制</button>
-                                </div>
-                                <div className="text-sm font-bold text-slate-700 leading-relaxed italic">"{praise.content}"</div>
-                            </div>
-                        ))}
-
-                        {/* Image Reviews */}
-                        {imagePraises.map((praise) => {
-                            let images: string[] = [];
-                            try { images = JSON.parse(praise.content); } catch { images = praise.content.split(','); }
-                            return (
-                                <div key={praise.id} className="space-y-4">
-                                    <div className="rounded-full bg-amber-100/50 px-3 py-1 text-[9px] font-black text-amber-600 uppercase tracking-widest inline-block">追评参考图片</div>
-                                    <div className="grid grid-cols-3 gap-3">
-                                        {images.map((img, i) => (
-                                            <div key={i} className="aspect-square rounded-[20px] overflow-hidden shadow-sm shadow-slate-100 border border-slate-100">
-                                                <img src={img} alt="" className="h-full w-full object-cover" />
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <p className="text-[10px] font-bold text-slate-400 italic px-1">💡 提示：请保存图片后上传到对应的追评位置</p>
-                                </div>
-                            );
-                        })}
-
-                        {/* Video Reviews */}
-                        {videoPraises.map((praise) => (
-                            <div key={praise.id} className="space-y-4">
-                                <div className="rounded-full bg-rose-100/50 px-3 py-1 text-[9px] font-black text-rose-600 uppercase tracking-widest inline-block">追评参考视频</div>
-                                <div className="rounded-[24px] overflow-hidden shadow-lg shadow-slate-200">
-                                    <video src={praise.content} controls className="w-full" />
-                                </div>
-                            </div>
-                        ))}
                     </div>
                 </Card>
 
-                {/* Upload Section */}
-                {canSubmit ? (
-                    <Card className="rounded-[32px] border-none bg-white p-8 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-6">
-                        <div className="flex items-center gap-2">
-                            <div className="h-5 w-1.5 rounded-full bg-blue-600" />
-                            <h2 className="text-base font-black text-slate-900">提交作业</h2>
+                {/* Requirements Section */}
+                <div className="space-y-4">
+                    <h3 className="px-2 text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">任务要求</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="rounded-[24px] bg-slate-50 p-6 space-y-3">
+                            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">评价字数</div>
+                            <div className="text-lg font-black text-slate-900 tracking-tight">{task.wordCount || '不限'} <span className="text-[10px] font-bold text-slate-400">字以上</span></div>
                         </div>
-                        <div className="grid grid-cols-3 gap-4">
-                            {uploadedImages.map((img, idx) => (
-                                <div key={idx} className="relative aspect-square">
-                                    <img src={img} alt="" className="h-full w-full rounded-[20px] object-cover shadow-lg" />
-                                    <button onClick={() => handleRemoveImage(idx)} className="absolute -right-2 -top-2 h-6 w-6 flex items-center justify-center rounded-full bg-rose-500 text-white shadow-xl transition active:scale-90">×</button>
-                                </div>
-                            ))}
-                            {uploadedImages.length < 3 && (
-                                <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-[20px] border-2 border-dashed border-slate-200 bg-slate-50 text-slate-300 transition hover:bg-slate-100 active:scale-95">
-                                    <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
-                                    <span className="text-3xl font-light mb-1">+</span>
-                                    <span className="text-[10px] font-bold uppercase tracking-widest">上传截图</span>
-                                </label>
-                            )}
+                        <div className="rounded-[24px] bg-slate-50 p-6 space-y-3">
+                            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">图片/视频</div>
+                            <div className="flex gap-2">
+                                {task.requireImage && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[8px] font-black text-blue-600 border border-blue-100">需带图</span>}
+                                {task.requireVideo && <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[8px] font-black text-indigo-600 border border-indigo-100">需视频</span>}
+                                {!task.requireImage && !task.requireVideo && <span className="text-[10px] font-bold text-slate-400">无需媒体</span>}
+                            </div>
                         </div>
-                        <p className="text-[10px] font-bold text-slate-400 italic px-1">请上传已经追评成功的应用截图（最少 1 张，最多 3 张）</p>
-                    </Card>
-                ) : task.img && (
-                    <Card className="rounded-[32px] border-none bg-white p-8 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-6">
-                        <div className="flex items-center gap-2">
-                            <div className="h-5 w-1.5 rounded-full bg-slate-300" />
-                            <h2 className="text-base font-black text-slate-900">已提交的凭证</h2>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
-                            {(() => {
-                                let images: string[] = [];
-                                try { images = JSON.parse(task.img); } catch { images = task.img.split(','); }
-                                return images.map((img, i) => (
-                                    <div key={i} className="aspect-square rounded-[20px] overflow-hidden shadow-sm border border-slate-50">
-                                        <img src={img} alt="" className="h-full w-full object-cover" />
-                                    </div>
-                                ));
-                            })()}
-                        </div>
-                    </Card>
-                )}
-
-                {/* Guidelines */}
-                <div className="rounded-[24px] bg-amber-50 p-6">
-                    <div className="mb-3 flex items-center gap-2 text-xs font-black text-amber-900">
-                        <span>ℹ️</span> 注意事项
                     </div>
-                    <ul className="space-y-2 text-[10px] font-bold leading-relaxed text-amber-700/80">
-                        <li className="flex gap-2"><span>•</span>请严格按照商家提供的文案或图片进行追评</li>
-                        <li className="flex gap-2"><span>•</span>禁止出现与商品无关或其他违规诱导性词语</li>
-                        <li className="flex gap-2"><span>•</span>审核通过后奖金将实时充值到您的资金账户</li>
-                    </ul>
+
+                    <Card className="rounded-[32px] border-none bg-white p-8 shadow-[0_2px_12px_rgba(0,0,0,0.02)] space-y-6">
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">推荐评语 (五星好评)</h4>
+                                <button onClick={() => copyText(task.content)} className="text-[10px] font-black text-blue-600 uppercase tracking-widest">一键拷贝</button>
+                            </div>
+                            <div className="rounded-[24px] bg-slate-50 p-6 text-sm font-bold text-slate-600 leading-relaxed italic border border-slate-100">
+                                {task.content || '暂无特定评语要求，请自由发挥且保证五星好评。'}
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+
+                {/* Submission Area */}
+                <div className="space-y-4">
+                    <h3 className="px-2 text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 text-center">评价反馈上传</h3>
+                    <div className="relative overflow-hidden rounded-[40px] bg-white p-8 shadow-xl shadow-slate-100 ring-1 ring-slate-100 text-center flex flex-col items-center justify-center min-h-[320px]">
+                        {screenshot ? (
+                            <div className="relative group w-full h-full flex items-center justify-center">
+                                <img src={screenshot} alt="Review Screenshot" className="max-h-[300px] w-auto rounded-[24px] shadow-2xl transition-transform group-hover:scale-[1.02]" />
+                                {task.status === 'WAITING_SUBMIT' && (
+                                    <button onClick={() => setScreenshot('')} className="absolute -top-4 -right-4 h-10 w-10 rounded-full bg-rose-500 text-white shadow-xl flex items-center justify-center transition active:scale-95">×</button>
+                                )}
+                            </div>
+                        ) : (
+                            <label className="cursor-pointer flex flex-col items-center justify-center p-12 group">
+                                <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                                <div className="h-20 w-20 rounded-[28px] bg-blue-50 flex items-center justify-center text-3xl shadow-inner transition-transform group-hover:scale-110">📸</div>
+                                <div className="mt-6 text-sm font-black text-slate-900 tracking-tight">上传评价截图</div>
+                                <div className="mt-2 text-[10px] font-bold text-slate-300 uppercase tracking-widest italic">请确认图片清晰可见且包含评价内容</div>
+                            </label>
+                        )}
+
+                        {task.status === 'REJECTED' && (
+                            <div className="mt-8 rounded-[20px] bg-rose-50 p-5 border border-rose-100/50">
+                                <div className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-1">驳回原因</div>
+                                <div className="text-[10px] font-bold text-rose-900/60 leading-relaxed italic">{task.rejectReason || '图片不符合要求'}</div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
-            {/* Bottom Actions */}
-            {canSubmit && (
-                <div className="fixed bottom-0 left-1/2 z-30 w-full max-w-[515px] -translate-x-1/2 bg-white/80 p-6 backdrop-blur-xl border-t border-slate-50">
-                    <div className="flex gap-4">
-                        <button onClick={() => setShowRejectModal(true)} disabled={submitting}
-                            className="flex-1 rounded-[24px] bg-slate-50 py-5 text-sm font-black text-rose-500 shadow-sm transition active:scale-95 disabled:opacity-50">
-                            放弃任务
-                        </button>
-                        <button onClick={handleSubmit} disabled={submitting || uploadedImages.length === 0}
-                            className={cn('flex-[2] rounded-[24px] py-5 text-sm font-black text-white shadow-2xl transition active:scale-95',
-                                submitting || uploadedImages.length === 0 ? 'bg-slate-200 shadow-none' : 'bg-blue-600 shadow-blue-50')}>
-                            {submitting ? '提交中...' : '确认并提交追评'}
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {/* Reject Modal */}
-            {showRejectModal && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-6">
-                    <div className="w-full max-w-sm rounded-[32px] bg-white p-8 shadow-2xl animate-in zoom-in-95">
-                        <div className="mb-6 text-center">
-                            <h3 className="text-xl font-black text-slate-900">确认拒绝该任务？</h3>
-                            <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">拒绝后无法撤回，且可能影响信用等级</p>
-                        </div>
-                        <textarea
-                            value={rejectReason}
-                            onChange={e => setRejectReason(e.target.value)}
-                            placeholder="请输入拒绝原因（选填）"
-                            className="h-32 w-full rounded-[20px] bg-slate-50 p-5 text-sm font-bold text-slate-900 focus:outline-none shadow-inner border-none mb-6"
-                        />
-                        <div className="flex gap-4">
-                            <button onClick={() => setShowRejectModal(false)} className="flex-1 rounded-[20px] bg-slate-50 py-4 text-sm font-black text-slate-400 transition active:scale-95">取消</button>
-                            <button onClick={handleReject} disabled={submitting} className="flex-1 rounded-[20px] bg-rose-500 py-4 text-sm font-black text-white shadow-lg shadow-rose-50 transition active:scale-95 disabled:opacity-50">
-                                {submitting ? '处理中...' : '确认拒绝'}
-                            </button>
-                        </div>
-                    </div>
+            {/* Bottom Action */}
+            {task.status === 'WAITING_SUBMIT' && (
+                <div className="fixed bottom-0 left-1/2 z-30 w-full max-w-[515px] -translate-x-1/2 bg-white/80 p-8 backdrop-blur-xl border-t border-slate-50">
+                    <button onClick={handleSubmit} disabled={submitting || !screenshot}
+                        className="w-full rounded-[28px] bg-blue-600 py-6 text-sm font-black text-white shadow-2xl shadow-blue-100 transition active:scale-95 disabled:opacity-50">
+                        {submitting ? <Spinner size="sm" /> : '立即提交审核'}
+                    </button>
                 </div>
             )}
         </div>
