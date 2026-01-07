@@ -40,122 +40,142 @@ export default function ProfilePage() {
     };
 
     if (loading) {
-        return <div className="flex min-h-screen items-center justify-center bg-slate-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" /></div>;
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-slate-50">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+            </div>
+        );
     }
 
     const menuItems = [
-        { icon: '📁', label: '买号管理', href: '/profile/bind' },
-        { icon: '🏦', label: '银行卡管理', href: '/profile/payment' },
-        { icon: '📊', label: '资金记录', href: '/profile/records' },
-        { icon: '💰', label: '提现中心', href: '/profile/withdraw' },
-        { icon: '👥', label: '邀请好友', href: '/invite' },
-        { icon: '⚙️', label: '个人设置', href: '/profile/settings' },
+        { icon: '📁', label: '买号管理', href: '/profile/bind', desc: '管理绑定的买号' },
+        { icon: '🏦', label: '银行卡管理', href: '/profile/payment', desc: '提现账户设置' },
+        { icon: '📊', label: '资金记录', href: '/profile/records', desc: '每一笔钱都有迹可循' },
+        { icon: '💰', label: '提现中心', href: '/profile/withdraw', desc: '快速提取收益' },
+        { icon: '👥', label: '邀请好友', href: '/invite', desc: '邀请返现赚不停' },
+        { icon: '⚙️', label: '个人设置', href: '/profile/settings', desc: '基本信息与安全' },
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50 pb-20">
-            {/* Header */}
-            <header className="sticky top-0 z-10 mx-auto max-w-[515px] border-b border-slate-200 bg-white">
-                <div className="flex h-14 items-center justify-between px-4">
-                    <h1 className="text-base font-medium text-slate-800">个人中心</h1>
-                    <div className="flex gap-2">
-                        <Button variant="ghost" size="sm" className="text-blue-500 hover:bg-blue-50" onClick={() => router.push('/tasks/continue')}>继续任务</Button>
-                        <Button variant="ghost" size="sm" className="text-slate-500">通知</Button>
+        <div className="min-h-screen bg-[#F8FAFC] pb-24">
+            {/* Minimal Header */}
+            <header className="sticky top-0 z-10 mx-auto max-w-[515px] bg-[#F8FAFC]/80 backdrop-blur-md">
+                <div className="flex h-16 items-center justify-between px-6">
+                    <h1 className="text-xl font-bold text-slate-900">个人中心</h1>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => router.push('/tasks/continue')}
+                            className="flex h-9 items-center rounded-full bg-blue-600 px-4 text-xs font-bold text-white transition-transform active:scale-95"
+                        >
+                            继续任务
+                        </button>
                     </div>
                 </div>
             </header>
 
-            <div>
-                {/* User Info Card */}
-                <div className="px-4 pt-4">
-                    <Card className="flex items-center gap-4 border-slate-200 p-5 shadow-sm">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-2xl">👤</div>
+            <div className="mx-auto max-w-[515px] space-y-6 px-4">
+                {/* Profile Section */}
+                <div className="relative overflow-hidden rounded-[24px] bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+                    <div className="flex items-center gap-5">
+                        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-blue-50 text-4xl shadow-inner">
+                            👤
+                        </div>
                         <div className="flex-1">
-                            <h2 className="text-lg font-bold text-slate-800">{profile?.username || '用户'}</h2>
-                            <p className="text-xs text-slate-400">{profile?.phone}</p>
-                            <div className="mt-1 flex gap-2">
-                                <Badge variant="solid" className={cn('px-2 py-0', profile?.vip ? 'bg-amber-500 text-white' : 'bg-slate-200 text-slate-500')}>
+                            <h2 className="text-2xl font-black text-slate-900">{profile?.username || '用户'}</h2>
+                            <p className="mt-0.5 text-sm font-medium text-slate-400">{profile?.phone}</p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                                <span className={cn(
+                                    "inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider",
+                                    profile?.vip ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
+                                )}>
                                     {profile?.vip ? 'VIP会员' : '普通用户'}
-                                </Badge>
-                                <span className="text-xs text-slate-400">经验值: {profile?.experience || 0}</span>
+                                </span>
+                                <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-[10px] font-bold text-blue-600">
+                                    经验值: {profile?.experience || 0}
+                                </span>
                             </div>
                         </div>
-                    </Card>
-                </div>
-
-                {/* Balance Cards */}
-                <div className="grid grid-cols-2 gap-3 p-4">
-                    <Card className="border-slate-200 p-4 shadow-sm">
-                        <div className="text-xs text-slate-500">本金余额</div>
-                        <div className="mt-1 text-xl font-bold text-slate-800">¥{Number(profile?.balance || 0).toFixed(2)}</div>
-                        <div className="mt-1 text-[10px] text-slate-400">冻结: ¥{Number(profile?.frozenBalance || 0).toFixed(2)}</div>
-                        <Button className="mt-3 h-8 w-full bg-blue-500 text-xs hover:bg-blue-600" onClick={() => router.push('/profile/withdraw')}>提现</Button>
-                    </Card>
-                    <Card className="border-slate-200 p-4 shadow-sm">
-                        <div className="text-xs text-slate-500">银锭余额</div>
-                        <div className="mt-1 text-xl font-bold text-slate-800">{Number(profile?.silver || 0).toFixed(2)}</div>
-                        <div className="mt-1 text-[10px] text-slate-400">冻结: {Number(profile?.frozenSilver || 0).toFixed(2)}</div>
-                        <Button className="mt-3 h-8 w-full bg-blue-500 text-xs hover:bg-blue-600" onClick={() => router.push('/profile/withdraw')}>提现</Button>
-                    </Card>
-                </div>
-
-                {/* Stats */}
-                <div className="mx-4 flex justify-between rounded-xl border border-slate-200 bg-white py-4 shadow-sm">
-                    <div className="flex-1 text-center">
-                        <div className="text-base font-bold text-blue-500">{Number(profile?.totalEarned || 0).toFixed(2)}</div>
-                        <div className="text-[10px] text-slate-400">累计赚取银锭</div>
-                    </div>
-                    <div className="flex-1 border-x border-slate-100 text-center">
-                        <div className="text-base font-bold text-amber-500">{Number(profile?.pendingReward || 0).toFixed(2)}</div>
-                        <div className="text-[10px] text-slate-400">待商家发放</div>
-                    </div>
-                    <div className="flex-1 text-center">
-                        <div className="text-base font-bold text-slate-500">{Number(profile?.frozenSilver || 0).toFixed(2)}</div>
-                        <div className="text-[10px] text-slate-400">冻结银锭</div>
                     </div>
                 </div>
 
-                {/* Silver Value Hint */}
-                <div className="mx-4 mt-2 text-right text-[10px] text-slate-400">
-                    * 当前银锭折合现金: <span className="font-medium text-slate-600">¥{Number(profile?.silver || 0).toFixed(2)}</span>
-                </div>
-
-                {/* Quick Access */}
-                <div className="p-4">
-                    <Card className="border-slate-200 p-4 shadow-sm">
-                        <div className="mb-3 text-sm font-medium text-slate-700">快捷入口</div>
-                        <div className="flex gap-2">
-                            {['本金记录', '银锭记录', '提现记录', '会员记录'].map((tab, i) => (
-                                <button key={i} className="rounded-lg bg-slate-50 px-3 py-1.5 text-xs text-slate-600 active:bg-slate-100" onClick={() => {
-                                    if (i === 0) router.push('/profile/records?tab=balance');
-                                    if (i === 1) router.push('/profile/records?tab=silver');
-                                    if (i === 2) router.push('/profile/records?tab=withdraw');
-                                    if (i === 3) router.push('/profile/vip?tab=records');
-                                }}>
-                                    {tab}
-                                </button>
-                            ))}
+                {/* Main Assets - Clean Flat Blocks */}
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col rounded-[24px] bg-blue-600 p-5 text-white shadow-lg shadow-blue-100">
+                        <span className="text-xs font-bold opacity-80 uppercase">本金余额</span>
+                        <div className="mt-2 flex items-baseline gap-1">
+                            <span className="text-sm font-bold opacity-80">¥</span>
+                            <span className="text-2xl font-black tracking-tight">{Number(profile?.balance || 0).toFixed(2)}</span>
                         </div>
-                    </Card>
+                        <div className="mt-auto pt-4 flex items-center justify-between">
+                            <span className="text-[10px] font-medium opacity-70">冻结: ¥{Number(profile?.frozenBalance || 0).toFixed(2)}</span>
+                            <button
+                                onClick={() => router.push('/profile/withdraw')}
+                                className="h-7 rounded-lg bg-white/20 px-3 text-[10px] font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/30"
+                            >
+                                提现
+                            </button>
+                        </div>
+                    </div>
+                    <div className="flex flex-col rounded-[24px] bg-emerald-500 p-5 text-white shadow-lg shadow-emerald-100">
+                        <span className="text-xs font-bold opacity-80 uppercase">银锭余额</span>
+                        <div className="mt-2 flex items-baseline gap-1">
+                            <span className="text-2xl font-black tracking-tight">{Number(profile?.silver || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="mt-auto pt-4 flex items-center justify-between">
+                            <span className="text-[10px] font-medium opacity-70">冻结: {Number(profile?.frozenSilver || 0).toFixed(2)}</span>
+                            <button
+                                onClick={() => router.push('/profile/withdraw')}
+                                className="h-7 rounded-lg bg-white/20 px-3 text-[10px] font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/30"
+                            >
+                                提现
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Menu List */}
-                <div className="px-4 pb-4">
-                    <Card className="divide-y divide-slate-100 border-slate-200 shadow-sm">
-                        {menuItems.map((item, i) => (
-                            <div key={i} className="flex cursor-pointer items-center justify-between p-4 active:bg-slate-50" onClick={() => router.push(item.href)}>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-lg">{item.icon}</span>
-                                    <span className="text-sm text-slate-700">{item.label}</span>
-                                </div>
-                                <span className="text-slate-300">›</span>
-                            </div>
-                        ))}
-                    </Card>
+                {/* Earnings Summary */}
+                <Card className="rounded-[24px] border-none bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+                    <div className="flex divide-x divide-slate-50">
+                        <div className="flex-1 px-4 text-center">
+                            <div className="text-lg font-black text-slate-900">{Number(profile?.totalEarned || 0).toFixed(2)}</div>
+                            <div className="mt-1 text-[10px] font-bold text-slate-400 uppercase">累计赚取银锭</div>
+                        </div>
+                        <div className="flex-1 px-4 text-center">
+                            <div className="text-lg font-black text-amber-500">{Number(profile?.pendingReward || 0).toFixed(2)}</div>
+                            <div className="mt-1 text-[10px] font-bold text-slate-400 uppercase">待商家发放</div>
+                        </div>
+                        <div className="flex-1 px-4 text-center">
+                            <div className="text-lg font-black text-indigo-500">{Number(profile?.frozenSilver || 0).toFixed(2)}</div>
+                            <div className="mt-1 text-[10px] font-bold text-slate-400 uppercase">冻结银锭</div>
+                        </div>
+                    </div>
+                </Card>
 
-                    <Button variant="ghost" className="mt-6 w-full text-red-500 hover:bg-red-50 hover:text-red-600" onClick={() => { logout(); router.push('/login'); }}>
+                {/* Action Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                    {menuItems.map((item, i) => (
+                        <button
+                            key={i}
+                            onClick={() => router.push(item.href)}
+                            className="group flex flex-col items-start rounded-[24px] bg-white p-5 text-left shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] active:scale-[0.98]"
+                        >
+                            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 text-2xl transition-colors group-hover:bg-blue-50">
+                                {item.icon}
+                            </div>
+                            <span className="text-sm font-bold text-slate-900">{item.label}</span>
+                            <span className="mt-1 text-[10px] font-medium text-slate-400">{item.desc}</span>
+                        </button>
+                    ))}
+                </div>
+
+                {/* Danger Zone */}
+                <div className="pt-4">
+                    <button
+                        onClick={() => { logout(); router.push('/login'); }}
+                        className="flex w-full items-center justify-center rounded-[20px] bg-red-50 py-4 text-sm font-bold text-red-500 transition-colors hover:bg-red-100"
+                    >
                         退出登录
-                    </Button>
+                    </button>
                 </div>
             </div>
 
