@@ -403,28 +403,31 @@ export class OrdersService {
 
     // ============ P0 风控校验 ============
 
-    // 1. 15分钟防刷校验：接单后15分钟内禁止提交第一步
-    if (submitStepDto.step === 1) {
+    // 获取当前步骤信息
+    const currentStepData = order.stepData.find(
+      (s) => s.step === submitStepDto.step,
+    );
+    const isPaymentStep = currentStepData?.title === '下单截图';
+
+    // 1. 接单时间限制校验：付款步骤需要接单后5分钟才能提交（原版：mobile 5分钟，PC 10分钟）
+    if (isPaymentStep) {
       const orderCreatedAt = new Date(order.createdAt);
       const now = new Date();
       const minutesSinceCreation =
         (now.getTime() - orderCreatedAt.getTime()) / (1000 * 60);
 
-      if (minutesSinceCreation < 15) {
-        const remainingMinutes = Math.ceil(15 - minutesSinceCreation);
+      // 原版限制是5分钟（移动端）或10分钟（PC端），这里统一使用5分钟
+      const MIN_WAIT_MINUTES = 5;
+      if (minutesSinceCreation < MIN_WAIT_MINUTES) {
+        const remainingMinutes = Math.ceil(MIN_WAIT_MINUTES - minutesSinceCreation);
         throw new BadRequestException(
-          `防刷机制：接单后需等待15分钟才能提交第一步，请${remainingMinutes}分钟后再试`,
+          `请认真完成任务：接单后需等待${MIN_WAIT_MINUTES}分钟才能提交付款步骤，请${remainingMinutes}分钟后再试`,
         );
       }
+    }
 
-      // P1+: 3分钟最短任务时间校验（防止脚本秒单）
-      if (minutesSinceCreation < 3) {
-        throw new BadRequestException(
-          '请认真完成任务环节，提交过快（3分钟内）将被拦截',
-        );
-      }
-
-      // P1+: 订单侠商品链接/淘口令核对
+    // 2. 第一步商品链接/淘口令核对
+    if (submitStepDto.step === 1) {
       if (submitStepDto.inputData?.goodsLink) {
         const task = await this.tasksService.findOne(order.taskId);
         if (task?.taobaoId) {
@@ -441,7 +444,7 @@ export class OrdersService {
       }
     }
 
-    // 2. 隔天任务校验：次日16:40后才允许提交
+    // 3. 隔天任务校验：次日16:40后才允许提交
     const task = await this.tasksService.findOne(order.taskId);
     if (task?.isNextDay) {
       const orderCreatedAt = new Date(order.createdAt);
@@ -457,7 +460,7 @@ export class OrdersService {
       }
     }
 
-    // 3. 本金误差校验：如果用户填写了"实际支付金额"，检查误差是否在±100元内
+    // 4. 本金误差校验：如果用户填写了"实际支付金额"，检查误差是否在±100元内
     if (submitStepDto.inputData?.actualPayment !== undefined) {
       const actualPayment = Number(submitStepDto.inputData.actualPayment);
       const expectedPrincipal = Number(order.productPrice);
