@@ -11,6 +11,7 @@ import {
     BuyerAccount,
     list as listAccounts,
     create as createAccount,
+    MAX_ACCOUNTS_PER_PLATFORM,
 } from "../../../services/buyerAccountService";
 
 export default function BindAccountPage() {
@@ -24,8 +25,6 @@ export default function BindAccountPage() {
         accountId: "",
         accountName: "",
     });
-
-    const boundCount = useMemo(() => accounts.length, [accounts]);
 
     useEffect(() => {
         loadAccounts();
@@ -43,12 +42,22 @@ export default function BindAccountPage() {
         }
     };
 
-    const handleAdd = async (e: React.FormEvent) => {
+    const platformCount = useMemo(() => {
+        const map = new Map<string, number>();
+        accounts.forEach(a => map.set(a.platform, (map.get(a.platform) || 0) + 1));
+        return map.get(form.platform) || 0;
+    }, [accounts, form.platform]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const accountId = form.accountId.trim();
         const accountName = (form.accountName || accountId).trim();
         if (!form.platform || !accountId) {
             toastError("请填写必填信息");
+            return;
+        }
+        if (platformCount >= MAX_ACCOUNTS_PER_PLATFORM) {
+            toastError(`每个平台最多绑定 ${MAX_ACCOUNTS_PER_PLATFORM} 个买号`);
             return;
         }
         setSubmitting(true);
@@ -83,13 +92,13 @@ export default function BindAccountPage() {
                         {loading ? (
                             <div className="flex items-center gap-2"><Spinner size="sm" /> 加载中...</div>
                         ) : (
-                            <div>{boundCount} 个</div>
+                            <div>{accounts.length} 个</div>
                         )}
                     </div>
                 </Card>
 
                 <Card className="border-slate-200 p-5 shadow-sm">
-                    <form onSubmit={handleAdd} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="mb-1 block text-xs text-slate-500">选择平台 <span className="text-red-500">*</span></label>
                             <select
@@ -120,7 +129,15 @@ export default function BindAccountPage() {
                                 onChange={e => setForm(f => ({ ...f, accountName: e.target.value }))}
                             />
                         </div>
-                        <Button type="submit" loading={submitting} className="mt-2 w-full bg-blue-500 py-6 text-base font-medium hover:bg-blue-600">
+                        {platformCount >= MAX_ACCOUNTS_PER_PLATFORM && (
+                            <div className="text-xs text-red-500">该平台已绑定 {platformCount} 个，已达上限</div>
+                        )}
+                        <Button
+                            type="submit"
+                            loading={submitting}
+                            disabled={platformCount >= MAX_ACCOUNTS_PER_PLATFORM || submitting}
+                            className="mt-2 w-full bg-blue-500 py-6 text-base font-medium hover:bg-blue-600"
+                        >
                             提交申请
                         </Button>
                     </form>

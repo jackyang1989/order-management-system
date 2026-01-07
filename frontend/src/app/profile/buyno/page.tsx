@@ -1,28 +1,26 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '../../../components/ui/button';
-import { Card } from '../../../components/ui/card';
-import { Badge } from '../../../components/ui/badge';
-import { isAuthenticated } from '../../../services/authService';
-import { toastError, toastSuccess } from '../../../lib/toast';
-import { Spinner } from '../../../components/ui/spinner';
-import Empty from '../../../components/ui/empty';
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "../../../components/ui/button";
+import { Card } from "../../../components/ui/card";
+import { Badge } from "../../../components/ui/badge";
+import { toastError, toastSuccess } from "../../../lib/toast";
+import { Spinner } from "../../../components/ui/spinner";
+import Empty from "../../../components/ui/empty";
 import {
     BuyerAccount,
     list as listAccounts,
     setDefault,
     setStatus,
     remove,
-    MAX_ACCOUNTS_PER_PLATFORM,
-} from '../../../services/buyerAccountService';
+} from "../../../services/buyerAccountService";
 
 const STATUS_TEXT: Record<string, string> = {
-    PENDING: '审核中',
-    APPROVED: '已通过',
-    REJECTED: '已拒绝',
-    DISABLED: '已禁用',
+    PENDING: "审核中",
+    APPROVED: "已通过",
+    REJECTED: "已拒绝",
+    DISABLED: "已禁用",
 };
 
 export default function BuynoPage() {
@@ -32,14 +30,7 @@ export default function BuynoPage() {
     const [error, setError] = useState<string | null>(null);
     const [actingId, setActingId] = useState<string | null>(null);
 
-    const platformCounts = useMemo(() => {
-        const map = new Map<string, number>();
-        accounts.forEach(a => map.set(a.platform, (map.get(a.platform) || 0) + 1));
-        return map;
-    }, [accounts]);
-
     useEffect(() => {
-        if (!isAuthenticated()) { router.push('/login'); return; }
         loadAccounts();
     }, []);
 
@@ -50,136 +41,148 @@ export default function BuynoPage() {
             const list = await listAccounts();
             setAccounts(list);
         } catch (e: any) {
-            setError(e?.message || '加载失败');
+            setError(e?.message || "加载失败");
         } finally {
             setLoading(false);
         }
     };
-        setSubmitting(true);
+
+    const handleSetDefault = async (id: string, status: string) => {
+        if (status !== "APPROVED") {
+            toastError("仅已通过的买号可设为默认");
+            return;
+        }
+        setActingId(id);
         try {
-            const token = getToken();
-            const res = await fetch(`${BASE_URL}/mobile/my/addbuyno`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(form),
-            });
-            const data = await res.json();
-            if (data.code === 1) {
-                toastSuccess(data.msg || '提交成功');
-                setTimeout(() => {
-                    if (data.url) router.push(data.url);
-                    else {
-                        setActiveTab('list');
-                        loadAccounts();
-                        setForm({
-                            wwid: '', name: '', mobile: '', province: '', city: '', area: '', address: '',
-                            alipayName: '', img3: null, img4: null,
-                        });
-                    }
-                }, 3000);
-            } else {
-                toastError(data.msg || '提交失败');
-            }
-        } catch (error) {
-            toastError('网络错误，请重试');
+            await setDefault(id);
+            toastSuccess("已设为默认");
+            await loadAccounts();
+        } catch (e: any) {
+            toastError(e?.message || "设置失败");
         } finally {
-            setSubmitting(false);
+            setActingId(null);
         }
     };
 
+    const handleToggleStatus = async (id: string, status: string) => {
+        setActingId(id);
+        try {
+            const next = status === "APPROVED" ? "DISABLED" : "APPROVED";
+            await setStatus(id, next as any);
+            toastSuccess(next === "APPROVED" ? "已启用" : "已禁用");
+            await loadAccounts();
+        } catch (e: any) {
+            toastError(e?.message || "操作失败");
+        } finally {
+            setActingId(null);
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm("确定要删除该买号吗？")) return;
+        setActingId(id);
+        try {
+            await remove(id);
+            toastSuccess("删除成功");
+            await loadAccounts();
+        } catch (e: any) {
+            toastError(e?.message || "删除失败");
+        } finally {
+            setActingId(null);
+        }
+    };
+
+    const renderStatus = (status: string) => {
+        const color = status === "APPROVED" ? "green" : status === "PENDING" ? "amber" : "red";
+        return <Badge variant="soft" color={color}>{STATUS_TEXT[status] || status}</Badge>;
+    };
+
     if (loading) {
-        return <div className="flex min-h-screen items-center justify-center bg-slate-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" /></div>;
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-slate-50">
+                <Spinner size="lg" />
+            </div>
+        );
     }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-slate-50 pb-20">
+                <div className="mx-auto max-w-[515px] px-4 py-10">
+                    <Empty
+                        title="加载失败"
+                        description={error}
+                        action={<Button onClick={loadAccounts}>重试</Button>}
+                    />
+                </div>
+            </div>
+        );
+    }
+
+    const isEmpty = accounts.length === 0;
 
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
-            {/* Header */}
             <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
                 <div className="mx-auto flex h-14 max-w-[515px] items-center px-4">
                     <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
-                    <h1 className="flex-1 text-base font-medium text-slate-800">买号添加</h1>
+                    <h1 className="flex-1 text-base font-medium text-slate-800">买号管理</h1>
                 </div>
             </header>
 
-            <div className="mx-auto max-w-[515px] px-4 py-4">
-                {/* Tabs */}
-                <div className="mb-4 flex rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
-                    {[{ key: 'list', label: '买号信息' }, { key: 'add', label: '添加账号' }].map(tab => (
-                        <button key={tab.key} onClick={() => setActiveTab(tab.key as any)}
-                            className={cn('flex-1 rounded-md py-2 text-center text-sm font-medium transition-colors', activeTab === tab.key ? 'bg-blue-500 text-white' : 'text-slate-500')}>
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
-
-                {activeTab === 'list' ? (
-                    <div className="space-y-4">
-                        {accounts.length === 0 ? (
-                            <div className="rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center text-slate-400">
-                                <div className="mb-3 text-4xl">🛒</div>
-                                <p className="text-sm">暂无买号信息</p>
-                                <Button className="mt-4 bg-blue-500" onClick={() => setActiveTab('add')}>立即添加</Button>
-                            </div>
-                        ) : (
-                            accounts.map(acc => (
-                                <Card key={acc.id} className="border-slate-200 p-4 shadow-sm">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-xl font-bold text-blue-500">{acc.wwid.charAt(0).toUpperCase()}</div>
-                                            <div>
-                                                <div className="font-bold text-slate-800">{acc.wwid}</div>
-                                                <div className="text-xs text-slate-400">{acc.mobile}</div>
-                                            </div>
-                                        </div>
-                                        <Badge variant="soft" color={acc.state === '1' ? 'green' : acc.state === '0' ? 'amber' : 'red'}>
-                                            {acc.status_text}
-                                        </Badge>
-                                    </div>
-                                    <div className="mt-3 text-xs text-slate-500">收货地址: {acc.address}</div>
-                                    {acc.is_default === 1 && <div className="mt-2 text-[10px] font-medium text-blue-500">默认买号</div>}
-                                </Card>
-                            ))
-                        )}
-                    </div>
+            <div className="mx-auto max-w-[515px] px-4 py-4 space-y-4">
+                {isEmpty ? (
+                    <Empty
+                        title="暂无买号"
+                        description="去绑定一个买号开始使用吧"
+                        action={<Button onClick={() => router.push('/profile/bind')}>去绑定</Button>}
+                    />
                 ) : (
-                    <Card className="border-slate-200 p-5 shadow-sm">
-                        <form onSubmit={handleAdd} className="space-y-4">
-                            <div>
-                                <label className="mb-1 block text-xs text-slate-500">旺旺ID <span className="text-red-500">*</span></label>
-                                <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500 focus:outline-none" placeholder="淘宝用户名/旺旺号" value={form.wwid} onChange={e => setForm(f => ({ ...f, wwid: e.target.value }))} />
-                            </div>
-                            <div>
-                                <label className="mb-1 block text-xs text-slate-500">手机号码 <span className="text-red-500">*</span></label>
-                                <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500 focus:outline-none" placeholder="账号关联手机号" value={form.mobile} onChange={e => setForm(f => ({ ...f, mobile: e.target.value }))} />
-                            </div>
-                            <div className="grid grid-cols-3 gap-2">
-                                <div>
-                                    <label className="mb-1 block text-xs text-slate-500">省份</label>
-                                    <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 focus:border-blue-500" placeholder="省" value={form.province} onChange={e => setForm(f => ({ ...f, province: e.target.value }))} />
+                    accounts.map(acc => {
+                        const displayName = acc.accountName || acc.accountId;
+                        const working = actingId === acc.id;
+                        return (
+                            <Card key={acc.id} className="border-slate-200 p-4 shadow-sm">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="space-y-1">
+                                        <div className="text-sm font-semibold text-slate-800">{displayName}</div>
+                                        <div className="text-xs text-slate-500">平台：{acc.platform}</div>
+                                        <div className="text-xs text-slate-400">账号ID：{acc.accountId}</div>
+                                        {acc.isDefault && <div className="text-[11px] text-blue-600">默认买号</div>}
+                                    </div>
+                                    <div className="flex flex-col items-end gap-2">
+                                        {renderStatus(acc.status)}
+                                        <div className="flex gap-2 text-xs">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                disabled={working || acc.status !== 'APPROVED'}
+                                                onClick={() => handleSetDefault(acc.id, acc.status)}
+                                            >
+                                                {working && actingId === acc.id ? '...' : '设默认'}
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                disabled={working}
+                                                onClick={() => handleToggleStatus(acc.id, acc.status)}
+                                            >
+                                                {working && actingId === acc.id ? '...' : acc.status === 'APPROVED' ? '禁用' : '启用'}
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="destructive"
+                                                disabled={working}
+                                                onClick={() => handleDelete(acc.id)}
+                                            >
+                                                {working && actingId === acc.id ? '...' : '删除'}
+                                            </Button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="mb-1 block text-xs text-slate-500">城市</label>
-                                    <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 focus:border-blue-500" placeholder="市" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} />
-                                </div>
-                                <div>
-                                    <label className="mb-1 block text-xs text-slate-500">地区</label>
-                                    <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 focus:border-blue-500" placeholder="区" value={form.area} onChange={e => setForm(f => ({ ...f, area: e.target.value }))} />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="mb-1 block text-xs text-slate-500">详细收货地址 <span className="text-red-500">*</span></label>
-                                <textarea className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500 focus:outline-none" placeholder="建议复制淘宝收货地址" rows={3} value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
-                            </div>
-                            <div>
-                                <label className="mb-1 block text-xs text-slate-500">支付宝账号姓名</label>
-                                <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="请填写支付宝实名" value={form.alipayName} onChange={e => setForm(f => ({ ...f, alipayName: e.target.value }))} />
-                            </div>
-                            <div className="rounded-lg bg-blue-50 p-3 text-xs text-blue-700">
-                                💡 请确保买号信息真实有效，以免影响任务审核和返款。
-                            </div>
-                            <Button type="submit" loading={submitting} className="mt-2 w-full bg-blue-500 py-6 text-base font-medium hover:bg-blue-600">提交申请</Button>
-                        </form>
-                    </Card>
+                            </Card>
+                        );
+                    })
                 )}
             </div>
         </div>
