@@ -816,36 +816,59 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
 
                                 {/* 核对输入 */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                    <div style={{ display: 'flex', gap: '10px' }}>
-                                        <input
-                                            type="text"
-                                            value={item.input}
-                                            onChange={(e) => updateGoodsInput(index, 'input', e.target.value)}
-                                            placeholder="请输入商品链接"
-                                            style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
-                                        />
-                                        <button
-                                            onClick={() => hedui(item.input, item.goods_id)}
-                                            style={{ background: '#409eff', color: 'white', border: 'none', borderRadius: '4px', padding: '0 10px' }}
-                                        >
-                                            核对
-                                        </button>
-                                    </div>
-                                    {adminLimitSwitch === 1 && (
+                                    {/* 商品链接核对 */}
+                                    <div>
+                                        <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>商品链接核对：</div>
                                         <div style={{ display: 'flex', gap: '10px' }}>
                                             <input
                                                 type="text"
-                                                value={item.inputnum}
-                                                onChange={(e) => updateGoodsInput(index, 'inputnum', e.target.value)}
-                                                placeholder="请输入核对数字"
+                                                value={item.input}
+                                                onChange={(e) => updateGoodsInput(index, 'input', e.target.value)}
+                                                placeholder="长按商品标题-复制链接，粘贴核对"
                                                 style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
                                             />
                                             <button
-                                                onClick={() => heduinum(item.inputnum, item.goods_id)}
-                                                style={{ background: '#409eff', color: 'white', border: 'none', borderRadius: '4px', padding: '0 10px' }}
+                                                onClick={() => hedui(item.input, item.goods_id)}
+                                                style={{ background: '#409eff', color: 'white', border: 'none', borderRadius: '4px', padding: '0 15px' }}
                                             >
                                                 核对
                                             </button>
+                                        </div>
+                                    </div>
+                                    {/* 商品口令核对 */}
+                                    {adminLimitSwitch === 1 && (
+                                        <div>
+                                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>商品口令核对：</div>
+                                            {item.goods_spec && (
+                                                <div style={{
+                                                    fontSize: '12px',
+                                                    color: '#f56c6c',
+                                                    marginBottom: '5px',
+                                                    padding: '8px',
+                                                    background: '#fff5f5',
+                                                    borderRadius: '4px'
+                                                }}>
+                                                    口令提示：<span style={{ fontWeight: 'bold' }}>{item.goods_spec}</span>
+                                                </div>
+                                            )}
+                                            <div style={{ display: 'flex', gap: '10px' }}>
+                                                <input
+                                                    type="text"
+                                                    value={item.inputnum}
+                                                    onChange={(e) => updateGoodsInput(index, 'inputnum', e.target.value)}
+                                                    placeholder="请输入商品详情页的完整口令"
+                                                    style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                                                />
+                                                <button
+                                                    onClick={() => heduinum(item.inputnum, item.goods_id)}
+                                                    style={{ background: '#409eff', color: 'white', border: 'none', borderRadius: '4px', padding: '0 15px' }}
+                                                >
+                                                    核对
+                                                </button>
+                                            </div>
+                                            <div style={{ fontSize: '11px', color: '#999', marginTop: '5px' }}>
+                                                商家要求：请在商品详情页找到包含上述文字的完整口令并输入。
+                                            </div>
                                         </div>
                                     )}
                                 </div>

@@ -17,7 +17,7 @@ import { Roles } from '../auth/roles.decorator';
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
 export class OrdersController {
-  constructor(private ordersService: OrdersService) {}
+  constructor(private ordersService: OrdersService) { }
 
   // ============ 管理员端订单管理 ============
 
@@ -76,9 +76,19 @@ export class OrdersController {
         message: '无权访问此订单',
       };
     }
+
+    // Security: Mask checkPassword in response, never expose original
+    const responseOrder: any = { ...order };
+    if (responseOrder.task?.checkPassword) {
+      responseOrder.maskedPassword = this.ordersService.maskPassword(
+        responseOrder.task.checkPassword,
+      );
+      delete responseOrder.task.checkPassword;
+    }
+
     return {
       success: true,
-      data: order,
+      data: responseOrder,
     };
   }
 
