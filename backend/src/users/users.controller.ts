@@ -171,4 +171,17 @@ export class UsersController {
     const result = await this.usersService.sendSmsCode(body.phone, body.type);
     return result;
   }
+
+  // P1: 本金转银锭
+  @Post('convert-balance-to-silver')
+  async convertBalanceToSilver(
+    @Request() req,
+    @Body() body: { amount: number },
+  ) {
+    const result = await this.usersService.convertBalanceToSilver(
+      req.user.userId,
+      body.amount,
+    );
+    return result;
+  }
 }

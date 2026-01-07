@@ -660,4 +660,71 @@ export class UsersService {
     user.vipExpireAt = newExpire;
     await this.usersRepository.save(user);
   }
+
+  /**
+   * 本金转银锭 (1:1 兑换)
+   * P1: 原子事务 + 双向流水
+   */
+  async convertBalanceToSilver(
+    userId: string,
+    amount: number,
+  ): Promise<{ success: boolean; message: string }> {
+    if (amount <= 0) {
+      return { success: false, message: '转换金额必须大于0' };
+    }
+
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      return { success: false, message: '用户不存在' };
+    }
+
+    if (Number(user.balance) < amount) {
+      return { success: false, message: '本金余额不足' };
+    }
+
+    // 原子事务
+    const queryRunner = this.usersRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // 1. 扣除本金
+      user.balance = Number(user.balance) - amount;
+      // 2. 增加银锭
+      user.silver = Number(user.silver) + amount;
+      await queryRunner.manager.save(user);
+
+      // 3. 记录本金扣除流水
+      await queryRunner.manager.save(
+        queryRunner.manager.create(FundRecord, {
+          userId,
+          type: FundType.PRINCIPAL,
+          action: FundAction.OUT,
+          amount,
+          balance: user.balance,
+          description: '本金转银锭',
+        }),
+      );
+
+      // 4. 记录银锭增加流水
+      await queryRunner.manager.save(
+        queryRunner.manager.create(FundRecord, {
+          userId,
+          type: FundType.SILVER,
+          action: FundAction.IN,
+          amount,
+          balance: user.silver,
+          description: '本金转入银锭',
+        }),
+      );
+
+      await queryRunner.commitTransaction();
+      return { success: true, message: `成功将${amount}元本金转换为${amount}银锭` };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      return { success: false, message: '转换失败，请重试' };
+    } finally {
+      await queryRunner.release();
+    }
+  }
 }

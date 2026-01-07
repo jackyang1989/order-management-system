@@ -196,9 +196,9 @@ export class BuyerAccountsService {
       }
     }
 
-    // 检查星级限价
-    const priceLimit =
-      BuyerAccountsService.STAR_PRICE_LIMITS[account.star] || 100;
+    // P1: 从动态配置读取星级限价
+    const starPriceLimits = await this.systemConfigService.getStarPriceLimits();
+    const priceLimit = starPriceLimits[account.star] || 100;
     if (productPrice > priceLimit) {
       return {
         eligible: false,
@@ -248,12 +248,7 @@ export class BuyerAccountsService {
 
   /**
    * 增加买号的月度任务计数，并检查是否需要自动升级星级
-   *
-   * - 完成 < 30 单: 1星
-   * - 完成 30-59 单: 2星
-   * - 完成 60-89 单: 3星
-   * - 完成 90-119 单: 4星
-   * - 完成 >= 120 单: 5星
+   * P1: 升星阶梯从动态配置读取
    */
   async incrementMonthlyTaskCount(buyerAccountId: string): Promise<void> {
     const account = await this.buyerAccountsRepository.findOne({
@@ -267,20 +262,16 @@ export class BuyerAccountsService {
       // 累计总任务数（用于星级升级判断）
       account.totalTaskCount = (account.totalTaskCount || 0) + 1;
 
-      // 自动升级星级
+      // P1: 从动态配置读取升星阶梯
+      const starThresholds = await this.systemConfigService.getStarThresholds();
       const totalTasks = account.totalTaskCount;
-      let newStar = account.star;
+      let newStar = 1; // 默认1星
 
-      if (totalTasks >= 120) {
-        newStar = 5;
-      } else if (totalTasks >= 90) {
-        newStar = 4;
-      } else if (totalTasks >= 60) {
-        newStar = 3;
-      } else if (totalTasks >= 30) {
-        newStar = 2;
-      } else {
-        newStar = 1;
+      // 按阶梯判断应达到的星级 (thresholds: {2:30, 3:60, 4:90, 5:120})
+      for (const [star, threshold] of Object.entries(starThresholds)) {
+        if (totalTasks >= threshold) {
+          newStar = Math.max(newStar, parseInt(star, 10));
+        }
       }
 
       // 只升级不降级
@@ -372,7 +363,7 @@ export class BuyerAccountsService {
 
     if (approved) {
       // P0-2: 新人VIP奖励
-      // 如果是用户首个通过审核的买号，自动赠送7天VIP (System config default)
+      // 如果是用户首个通过审核的买号，自动赠送VIP (P1: 天数从配置读取)
       // 检查该用户是否已有APPROVED的买号
       const approvedCount = await this.buyerAccountsRepository.count({
         where: {
@@ -383,8 +374,9 @@ export class BuyerAccountsService {
 
       // 如果之前没有APPROVED的买号，说明是首个
       if (approvedCount === 0) {
-        // 赠送7天VIP
-        await this.usersService.grantVip(account.userId, 7);
+        // P1: 从动态配置读取VIP天数
+        const vipDays = await this.systemConfigService.getFirstAccountVipDays();
+        await this.usersService.grantVip(account.userId, vipDays);
       }
 
       account.status = BuyerAccountStatus.APPROVED;
