@@ -416,6 +416,29 @@ export class OrdersService {
           `防刷机制：接单后需等待15分钟才能提交第一步，请${remainingMinutes}分钟后再试`,
         );
       }
+
+      // P1+: 3分钟最短任务时间校验（防止脚本秒单）
+      if (minutesSinceCreation < 3) {
+        throw new BadRequestException(
+          '请认真完成任务环节，提交过快（3分钟内）将被拦截',
+        );
+      }
+
+      // P1+: 订单侠商品链接/淘口令核对
+      if (submitStepDto.inputData?.goodsLink) {
+        const task = await this.tasksService.findOne(order.taskId);
+        if (task?.taobaoId) {
+          const validationResult = await this.dingdanxiaService.validateGoodsLink(
+            submitStepDto.inputData.goodsLink,
+            task.taobaoId,
+          );
+          if (!validationResult.valid) {
+            throw new BadRequestException(
+              `商品核对失败，请确保进入了正确的店铺。${validationResult.error || ''}`,
+            );
+          }
+        }
+      }
     }
 
     // 2. 隔天任务校验：次日16:40后才允许提交
