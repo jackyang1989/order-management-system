@@ -405,7 +405,7 @@ export class UsersService {
       totalInvited: allInvitees.length,
       pendingOrders: pendingOrdersCount,
       submittedOrders: submittedOrdersCount,
-      experience: user.experience || 0, // [NEW] Added experience
+      experience: totalCompletedTasks, // [FIXED] Map experience to total completed tasks as per legacy system
 
       // [NEW] Fields for dashboard alignment
       allObtainReward: totalEarnedSilver, // $all_obtain_reward

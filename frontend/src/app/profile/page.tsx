@@ -91,7 +91,7 @@ export default function ProfilePage() {
                                     {profile?.vip ? 'VIP会员' : '普通用户'}
                                 </span>
                                 <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-[10px] font-bold text-blue-600">
-                                    经验值: {profile?.experience || 0}
+                                    累计完成: {profile?.experience || 0}
                                 </span>
                             </div>
                         </div>
