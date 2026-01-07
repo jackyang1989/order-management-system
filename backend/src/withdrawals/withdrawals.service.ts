@@ -415,7 +415,7 @@ export class WithdrawalsService {
         withdrawal.remark = reviewDto.remark;
 
         if (
-          reviewDto.status === WithdrawalStatus.APPROVED ||
+          reviewDto.status === WithdrawalStatus.APPROVED_PENDING_TRANSFER ||
           reviewDto.status === WithdrawalStatus.COMPLETED
         ) {
           // 审核通过：从冻结余额扣除

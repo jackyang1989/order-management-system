@@ -16,10 +16,10 @@ import {
 } from 'class-validator';
 
 export enum MerchantWithdrawalStatus {
-  PENDING = 0, // 待审核
-  APPROVED = 1, // 已通过
-  REJECTED = 2, // 已拒绝
-  COMPLETED = 3, // 已完成（已打款）
+  PENDING = 0,                    // 待审核
+  APPROVED_PENDING_TRANSFER = 1,  // 已审核待转账
+  REJECTED = 2,                   // 已拒绝
+  COMPLETED = 3,                  // 已完成（已打款）
 }
 
 export enum MerchantWithdrawalType {

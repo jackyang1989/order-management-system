@@ -200,7 +200,7 @@ export class MerchantWithdrawalsService {
         withdrawal.remark = reviewDto.remark;
 
         if (
-          reviewDto.status === MerchantWithdrawalStatus.APPROVED ||
+          reviewDto.status === MerchantWithdrawalStatus.APPROVED_PENDING_TRANSFER ||
           reviewDto.status === MerchantWithdrawalStatus.COMPLETED
         ) {
           // 审核通过：从冻结余额扣除

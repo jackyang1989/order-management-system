@@ -252,7 +252,7 @@ export class AdminService {
     adminId?: string,
   ): Promise<Withdrawal | null> {
     const status = approved
-      ? WithdrawalStatus.APPROVED
+      ? WithdrawalStatus.APPROVED_PENDING_TRANSFER
       : WithdrawalStatus.REJECTED;
     return this.withdrawalsService.review(id, { status, remark }, adminId || 'admin');
   }
@@ -273,7 +273,7 @@ export class AdminService {
         });
         if (withdrawal) {
           withdrawal.status = approved
-            ? WithdrawalStatus.APPROVED
+            ? WithdrawalStatus.APPROVED_PENDING_TRANSFER
             : WithdrawalStatus.REJECTED;
           if (remark) withdrawal.remark = remark;
           await this.withdrawalsRepository.save(withdrawal);

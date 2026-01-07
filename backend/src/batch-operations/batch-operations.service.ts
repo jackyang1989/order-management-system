@@ -49,7 +49,7 @@ export class BatchOperationsService {
     private orderLogsService: OrderLogsService,
     private messagesService: MessagesService,
     private financeRecordsService: FinanceRecordsService,
-  ) {}
+  ) { }
 
   // ============ 批量发货 ============
 
@@ -1097,7 +1097,7 @@ export class BatchOperationsService {
 
             if (action === 'approve') {
               // 审核通过: state = 0 -> state = 1
-              withdrawal.status = WithdrawalStatus.APPROVED;
+              withdrawal.status = WithdrawalStatus.APPROVED_PENDING_TRANSFER;
             } else {
               // 审核拒绝: state = 0 -> state = 2
               withdrawal.status = WithdrawalStatus.REJECTED;
@@ -1204,7 +1204,7 @@ export class BatchOperationsService {
 
               if (action === 'approve') {
                 // 审核通过: state = 0 -> state = 1
-                withdrawal.status = MerchantWithdrawalStatus.APPROVED;
+                withdrawal.status = MerchantWithdrawalStatus.APPROVED_PENDING_TRANSFER;
               } else {
                 // 审核拒绝: state = 0 -> state = 2
                 withdrawal.status = MerchantWithdrawalStatus.REJECTED;
@@ -1314,7 +1314,7 @@ export class BatchOperationsService {
             }
 
             // 2. 验证状态: 必须为 APPROVED (1)
-            if (withdrawal.status !== WithdrawalStatus.APPROVED) {
+            if (withdrawal.status !== WithdrawalStatus.APPROVED_PENDING_TRANSFER) {
               return {
                 success: false,
                 message: `提现记录 ${id} 状态不正确`,
@@ -1445,7 +1445,7 @@ export class BatchOperationsService {
               }
 
               // 2. 验证状态: 必须为 APPROVED (1)
-              if (withdrawal.status !== MerchantWithdrawalStatus.APPROVED) {
+              if (withdrawal.status !== MerchantWithdrawalStatus.APPROVED_PENDING_TRANSFER) {
                 return {
                   success: false,
                   message: `提现记录 ${id} 状态不正确`,
