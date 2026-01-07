@@ -1,45 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { cn } from '../../../lib/utils';
-import { toastSuccess, toastError } from '../../../lib/toast';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
-import { isAuthenticated, getToken } from '../../../services/authService';
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
-
-interface BuynoItem {
-    id: string;
-    wwid: string;
-    mobile: string;
-    address: string;
-    is_default: number;
-    state: string;
-    status_text: string;
-}
+import { isAuthenticated } from '../../../services/authService';
+import {
+    BuyerAccount,
+    fetchBuyerAccounts,
+    setDefaultBuyerAccount,
+    toggleBuyerAccountStatus,
+    deleteBuyerAccount,
+} from '../../../services/buyerAccountService';
 
 export default function BuynoPage() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<'list' | 'add'>('list');
-    const [accounts, setAccounts] = useState<BuynoItem[]>([]);
+    const [accounts, setAccounts] = useState<BuyerAccount[]>([]);
     const [loading, setLoading] = useState(true);
-    const [submitting, setSubmitting] = useState(false);
-
-    const [form, setForm] = useState({
-        wwid: '',
-        name: '',
-        mobile: '',
-        province: '',
-        city: '',
-        area: '',
-        address: '',
-        alipayName: '',
-        img3: null as any,
-        img4: null as any,
-    });
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!isAuthenticated()) { router.push('/login'); return; }
@@ -48,13 +27,13 @@ export default function BuynoPage() {
 
     const loadAccounts = async () => {
         setLoading(true);
+        setError(null);
         try {
-            const token = getToken();
-            const res = await fetch(`${BASE_URL}/mobile/my/buynolist`, { headers: { 'Authorization': `Bearer ${token}` } });
-            const data = await res.json();
-            if (data.code === 1) setAccounts(data.data || []);
-        } catch (e) {
+            const list = await fetchBuyerAccounts(true);
+            setAccounts(list);
+        } catch (e: any) {
             console.error('Load accounts error:', e);
+            setError(e?.message || '加载失败');
         } finally {
             setLoading(false);
         }

@@ -8,10 +8,6 @@ import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
 import {
-    fetchBuyerAccounts as legacyFetch,
-    addBuyerAccount as legacyAdd,
-} from '../../../services/userService';
-import {
     BuyerAccount,
     createBuyerAccount,
     fetchBuyerAccounts,
@@ -134,26 +130,12 @@ export default function BindAccountPage() {
                                 </select>
                             </div>
                             <div>
-                                <label className="mb-1 block text-xs text-slate-500">账号/旺旺ID <span className="text-red-500">*</span></label>
-                                <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800" placeholder="账号用户名/ID" value={form.accountName} onChange={e => setForm(f => ({ ...f, accountName: e.target.value }))} />
+                                <label className="mb-1 block text-xs text-slate-500">账号ID <span className="text-red-500">*</span></label>
+                                <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800" placeholder="账号唯一标识" value={form.accountId} onChange={e => setForm(f => ({ ...f, accountId: e.target.value }))} />
                             </div>
                             <div>
-                                <label className="mb-1 block text-xs text-slate-500">收货手机号 <span className="text-red-500">*</span></label>
-                                <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800" placeholder="收货关联手机号" value={form.receiverPhone} onChange={e => setForm(f => ({ ...f, receiverPhone: e.target.value }))} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="mb-1 block text-xs text-slate-500">省份</label>
-                                    <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800" placeholder="省份" value={form.province} onChange={e => setForm(f => ({ ...f, province: e.target.value }))} />
-                                </div>
-                                <div>
-                                    <label className="mb-1 block text-xs text-slate-500">城市</label>
-                                    <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800" placeholder="城市" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="mb-1 block text-xs text-slate-500">详细收货地址 <span className="text-red-500">*</span></label>
-                                <textarea className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800" placeholder="收货详细地址" rows={3} value={form.fullAddress} onChange={e => setForm(f => ({ ...f, fullAddress: e.target.value }))} />
+                                <label className="mb-1 block text-xs text-slate-500">展示名称</label>
+                                <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800" placeholder="用于列表展示，默认同账号ID" value={form.accountName} onChange={e => setForm(f => ({ ...f, accountName: e.target.value }))} />
                             </div>
                             <Button type="submit" loading={submitting} className="mt-2 w-full bg-blue-500 py-6 text-base font-medium hover:bg-blue-600">提交申请</Button>
                         </form>
