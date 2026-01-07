@@ -6,6 +6,7 @@ import { cn } from '../../../lib/utils';
 import { toastSuccess, toastError } from '../../../lib/toast';
 import ProfileContainer from '../../../components/ProfileContainer';
 import { Modal } from '../../../components/ui/modal';
+import { Card } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { isAuthenticated, getToken } from '../../../services/authService';
 import {
