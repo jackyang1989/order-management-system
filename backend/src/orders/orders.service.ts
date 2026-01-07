@@ -409,19 +409,21 @@ export class OrdersService {
     );
     const isPaymentStep = currentStepData?.title === '下单截图';
 
-    // 1. 接单时间限制校验：付款步骤需要接单后5分钟才能提交（原版：mobile 5分钟，PC 10分钟）
+    // 1. 接单时间限制校验：付款步骤需要接单后至少15分钟才能提交
+    // 原版规则：总浏览时间低于15分钟无法提交订单（移动端5分钟，PC端10分钟，但实际前端提示15分钟）
     if (isPaymentStep) {
       const orderCreatedAt = new Date(order.createdAt);
       const now = new Date();
       const minutesSinceCreation =
         (now.getTime() - orderCreatedAt.getTime()) / (1000 * 60);
 
-      // 原版限制是5分钟（移动端）或10分钟（PC端），这里统一使用5分钟
-      const MIN_WAIT_MINUTES = 5;
-      if (minutesSinceCreation < MIN_WAIT_MINUTES) {
-        const remainingMinutes = Math.ceil(MIN_WAIT_MINUTES - minutesSinceCreation);
+      // 原版要求：总浏览时间低于15分钟无法提交订单
+      // 主商品8分钟 + 副商品5分钟 + 其他商品2分钟 = 至少15分钟
+      const MIN_BROWSE_MINUTES = 15;
+      if (minutesSinceCreation < MIN_BROWSE_MINUTES) {
+        const remainingMinutes = Math.ceil(MIN_BROWSE_MINUTES - minutesSinceCreation);
         throw new BadRequestException(
-          `请认真完成任务：接单后需等待${MIN_WAIT_MINUTES}分钟才能提交付款步骤，请${remainingMinutes}分钟后再试`,
+          `请认真完成任务：总浏览时间需满足${MIN_BROWSE_MINUTES}分钟要求，还需${remainingMinutes}分钟后才能提交付款步骤`,
         );
       }
     }
@@ -437,7 +439,7 @@ export class OrdersService {
           );
           if (!validationResult.valid) {
             throw new BadRequestException(
-              `商品核对失败，请确保进入了正确的店铺。${validationResult.error || ''}`,
+              `商品核对失败，请输入正确的链接或口令。${validationResult.error || ''}`,
             );
           }
         }

@@ -1,4 +1,4 @@
-claude重构版用户中心深度审计报告
+根据claude重构版用户中心深度审计报告
 ## 一、总体对比
 
 | 维度  | 原版 (tfkz.com) | 重构版 (order-management-system) |
@@ -398,7 +398,7 @@ async updateStarLevel(buynoId: string) {
 ## 七、细节功能缺失
 1. 任务步骤提交限制
 原版:
-❌ 接单后15分钟内不能提交第一步 (Task.php ten_cant_time 检查)
+❌ 接单后15分钟内不能提交 (Task.php ten_cant_time 检查)
 ❌ 定时任务需在指定时间点才能操作
 ❌ 隔天任务当天不能提交
 重构版: 只有基础步骤提交，缺少时间限制
