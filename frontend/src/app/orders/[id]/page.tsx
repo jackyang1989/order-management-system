@@ -173,7 +173,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             {/* Content */}
             <div className="p-3">
                 {/* Task Info Card */}
-                <div className="mb-3 overflow-hidden rounded-xl bg-white shadow-sm">
+                <div className="mb-3 overflow-hidden rounded-xl bg-white">
                     <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5">
                         <span className="text-sm font-semibold text-red-500">任务信息</span>
                         <div className="flex gap-3">
@@ -249,7 +249,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
                 {/* Task Progress Card */}
                 {taskData2 && (
-                    <div className="mb-3 overflow-hidden rounded-xl bg-white shadow-sm">
+                    <div className="mb-3 overflow-hidden rounded-xl bg-white">
                         <div className="border-b border-slate-100 px-4 py-3.5">
                             <span className="text-sm font-semibold text-red-500">任务进度</span>
                         </div>
@@ -389,7 +389,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
             {/* Action Bar */}
             {taskData && (
-                <div className="fixed bottom-16 left-0 right-0 border-t border-slate-200 bg-white p-3 shadow-lg">
+                <div className="fixed bottom-16 left-0 right-0 border-t border-slate-200 bg-white p-3">
                     <div className="mx-auto flex max-w-[515px] justify-center gap-3">
                         {/* 待下单状态 - 可取消 */}
                         {taskData.taskType === '待下单' && (

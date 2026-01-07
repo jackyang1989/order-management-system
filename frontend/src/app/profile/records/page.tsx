@@ -8,7 +8,6 @@ import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
 import { isAuthenticated } from '../../../services/authService';
 import { fetchFundRecords, fetchWithdrawals, FundRecord, Withdrawal } from '../../../services/userService';
-import { Spinner } from '../../../components/ui/spinner';
 
 function RecordsContent() {
     const router = useRouter();
@@ -38,45 +37,39 @@ function RecordsContent() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] pb-24">
+        <div className="min-h-screen bg-slate-50 pb-4">
             {/* Header */}
-            <header className="sticky top-0 z-10 bg-[#F8FAFC]/80 backdrop-blur-md">
-                <div className="mx-auto flex h-16 max-w-[515px] items-center px-6">
-                    <button onClick={() => router.back()} className="mr-4 text-slate-600 active:scale-95 transition-transform">
-                        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                    </button>
-                    <h1 className="flex-1 text-xl font-bold text-slate-900">资金记录</h1>
+            <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
+                <div className="mx-auto flex h-14 max-w-[515px] items-center px-4">
+                    <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
+                    <h1 className="flex-1 text-base font-medium text-slate-800">资金记录</h1>
                 </div>
             </header>
 
             <ProfileContainer className="py-4">
                 {/* Tabs */}
-                <div className="mb-6 flex w-full gap-2 rounded-full bg-slate-100 p-1.5 ring-1 ring-slate-200/50">
-                    {[{ key: 'balance', label: '本金' }, { key: 'silver', label: '银锭' }, { key: 'withdraw', label: '提现' }].map((tab) => (
+                <div className="mb-4 grid w-full grid-cols-3 gap-1 rounded-lg bg-slate-200 p-1">
+                    {[{ key: 'balance', label: '本金记录' }, { key: 'silver', label: '银锭记录' }, { key: 'withdraw', label: '提现记录' }].map((tab) => (
                         <button key={tab.key} type="button" onClick={() => setActiveTab(tab.key as any)}
-                            className={cn('flex-1 rounded-full py-2.5 text-center text-[10px] font-black uppercase tracking-widest transition-all',
-                                activeTab === tab.key ? 'bg-white text-slate-900 shadow-sm shadow-slate-900/5' : 'text-slate-400 hover:text-slate-600')}>
+                            className={cn('w-full rounded-md py-2 text-center text-sm font-medium transition-colors', activeTab === tab.key ? 'bg-white text-slate-800' : 'text-slate-500')}>
                             {tab.label}
                         </button>
                     ))}
                 </div>
 
                 {/* List Content */}
-                <div className="space-y-4">
+                <div className="space-y-3">
                     {loading ? (
-                        <div className="py-20 flex justify-center"><Spinner size="lg" className="text-blue-600" /></div>
+                        <div className="py-12 text-center text-slate-400">加载中...</div>
                     ) : activeTab === 'withdraw' ? (
                         withdrawals.length === 0 ? (
-                            <div className="rounded-[24px] bg-white p-12 text-center shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
-                                <div className="text-3xl mb-4">📭</div>
-                                <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">No records found</div>
-                            </div>
+                            <div className="rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center text-slate-400">暂无提现记录</div>
                         ) : (
                             withdrawals.map(r => (
-                                <Card key={r.id} className="flex items-center justify-between border-none bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] rounded-[24px]">
-                                    <div className="space-y-1">
-                                        <div className="text-sm font-black text-slate-900 tabular-nums">¥{Number(r.amount).toFixed(2)}</div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date(r.createdAt).toLocaleString('zh-CN')}</div>
+                                <Card key={r.id} className="flex items-center justify-between border-slate-200 p-4">
+                                    <div>
+                                        <div className="font-medium text-slate-800">¥{Number(r.amount).toFixed(2)}</div>
+                                        <div className="mt-1 text-xs text-slate-400">{new Date(r.createdAt).toLocaleString('zh-CN')}</div>
                                     </div>
                                     {getStatusBadge(r.status)}
                                 </Card>
@@ -84,22 +77,19 @@ function RecordsContent() {
                         )
                     ) : (
                         fundRecords.length === 0 ? (
-                            <div className="rounded-[24px] bg-white p-12 text-center shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
-                                <div className="text-3xl mb-4">📭</div>
-                                <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">No records found</div>
-                            </div>
+                            <div className="rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center text-slate-400">暂无资金变动记录</div>
                         ) : (
                             fundRecords.map(r => (
-                                <Card key={r.id} className="flex items-center justify-between border-none bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] rounded-[24px]">
-                                    <div className="flex-1 space-y-1">
-                                        <div className="flex items-center justify-between">
-                                            <span className={cn('text-sm font-black tabular-nums', r.action === 'in' ? 'text-emerald-500' : 'text-rose-500')}>
+                                <Card key={r.id} className="flex items-center justify-between border-slate-200 p-4">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className={cn('text-lg font-bold', r.action === 'in' ? 'text-green-500' : 'text-red-500')}>
                                                 {r.action === 'in' ? '+' : '-'}{r.amount.toFixed(2)}
                                             </span>
-                                            <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">BAL: {r.balance.toFixed(2)}</span>
+                                            <span className="text-xs text-slate-400">余额: {r.balance.toFixed(2)}</span>
                                         </div>
-                                        <div className="text-xs font-bold text-slate-600 tracking-tight leading-relaxed">{r.description}</div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest line-clamp-1">{new Date(r.createdAt).toLocaleString('zh-CN')}</div>
+                                        <div className="mt-1 text-sm text-slate-600">{r.description}</div>
+                                        <div className="mt-1 text-[10px] text-slate-400">{new Date(r.createdAt).toLocaleString('zh-CN')}</div>
                                     </div>
                                 </Card>
                             ))
@@ -113,7 +103,7 @@ function RecordsContent() {
 
 export default function FundRecordsPage() {
     return (
-        <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]"><Spinner size="lg" className="text-blue-600" /></div>}>
+        <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-slate-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" /></div>}>
             <RecordsContent />
         </Suspense>
     );

@@ -65,18 +65,18 @@ function ImageUploader({
             <div className="relative">
                 {value ? (
                     <div className="relative inline-block">
-                        <img src={value} alt={config.label} className="h-24 w-24 rounded-[18px] border-none shadow-sm object-cover" />
+                        <img src={value} alt={config.label} className="h-24 w-24 rounded-lg border border-slate-200 object-cover" />
                         <button
                             type="button"
                             onClick={() => onChange('')}
-                            className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-xs text-white shadow-lg active:scale-95 transition-transform"
+                            className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white"
                         >
                             ×
                         </button>
                     </div>
                 ) : (
-                    <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-[20px] border-2 border-dashed border-slate-200 bg-slate-50/50 text-slate-400 hover:border-blue-400 hover:text-blue-500 transition-colors">
-                        {uploading ? <Spinner size="sm" /> : (<><span className="text-2xl font-light">+</span><span className="text-[10px] font-bold uppercase tracking-widest mt-1">UPLOAD</span></>)}
+                    <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400 hover:border-blue-400 hover:text-blue-500">
+                        {uploading ? <Spinner size="sm" /> : (<><span className="text-2xl">+</span><span className="text-xs">上传图片</span></>)}
                         <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
                     </label>
                 )}
@@ -259,54 +259,48 @@ export default function EditBuynoPage({ params }: { params: Promise<{ id: string
 
     if (loading) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
-                <Spinner size="lg" className="text-blue-600" />
+            <div className="flex min-h-screen items-center justify-center bg-slate-50">
+                <Spinner size="lg" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] pb-20">
-            <header className="sticky top-0 z-10 bg-[#F8FAFC]/80 backdrop-blur-md">
-                <div className="mx-auto flex h-16 max-w-[515px] items-center px-6">
-                    <button onClick={() => router.back()} className="mr-4 text-slate-600 active:scale-95 transition-transform">
-                        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                    </button>
-                    <h1 className="flex-1 text-xl font-bold text-slate-900">编辑买号</h1>
+        <div className="min-h-screen bg-slate-50 pb-20">
+            <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
+                <div className="mx-auto flex h-14 max-w-[515px] items-center px-4">
+                    <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
+                    <h1 className="flex-1 text-base font-medium text-slate-800">编辑买号</h1>
                 </div>
             </header>
 
             <div className="mx-auto max-w-[515px] space-y-4 px-4 py-4">
                 {/* 账号信息 (不可编辑) */}
-                <Card className="rounded-[24px] border-none bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
-                    <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{platformConfig.accountLabel}</span>
-                        <span className="text-sm font-black text-slate-900">{account?.platformAccount}</span>
+                <Card className="border-slate-200 p-4">
+                    <div className="flex items-center justify-between text-sm">
+                        <span className="text-slate-500">{platformConfig.accountLabel}</span>
+                        <span className="font-medium text-slate-800">{account?.platformAccount}</span>
                     </div>
-                    <div className="mt-4 flex items-center justify-between pt-4 border-t border-slate-50">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">平台</span>
-                        <span className="text-sm font-black text-slate-600">{account?.platform}</span>
+                    <div className="mt-2 flex items-center justify-between text-sm">
+                        <span className="text-slate-500">平台</span>
+                        <span className="text-slate-600">{account?.platform}</span>
                     </div>
                 </Card>
 
                 {/* 动态温馨提示 */}
-                <div className="rounded-[24px] bg-amber-50/50 p-6 border border-amber-100/50">
-                    <div className="mb-3 flex items-center gap-2 text-xs font-black text-amber-700 uppercase tracking-widest leading-none">
-                        <span className="h-2 w-2 rounded-full bg-amber-500" />
-                        温馨提示 • {platformConfig.name}
+                <div className="rounded-lg bg-amber-50 p-3">
+                    <div className="mb-2 flex items-center gap-1 text-sm font-medium text-amber-600">
+                        ⚠️ 温馨提示 - {platformConfig.name}
                     </div>
-                    <div className="space-y-2 text-[10px] font-bold text-amber-800/60 leading-relaxed uppercase tracking-wide">
+                    <div className="space-y-1 text-xs text-slate-600 leading-relaxed">
                         {platformConfig.tips.map((tip, i) => (
-                            <p key={i} className="flex gap-2">
-                                <span className="opacity-40 italic font-black">{String(i + 1).padStart(2, '0')}</span>
-                                {tip}
-                            </p>
+                            <p key={i}>{i + 1}. {tip}</p>
                         ))}
                     </div>
                 </div>
 
                 {/* 编辑表单 */}
-                <Card className="rounded-[24px] border-none bg-white p-8 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+                <Card className="border-slate-200 p-5">
                     <form onSubmit={handleSubmit} className="space-y-5">
                         {/* 常用登录地 */}
                         {platformConfig.hasLoginLocation && (
@@ -437,8 +431,8 @@ export default function EditBuynoPage({ params }: { params: Promise<{ id: string
                         )}
 
                         <Button type="submit" loading={submitting} disabled={submitting}
-                            className="mt-4 w-full rounded-[20px] bg-slate-900 py-8 text-sm font-black uppercase tracking-[0.2em] text-white shadow-2xl transition-transform active:scale-95">
-                            保存修改并提交
+                            className="mt-2 w-full bg-blue-500 py-6 text-base font-medium hover:bg-blue-600">
+                            保存修改
                         </Button>
                     </form>
                 </Card>

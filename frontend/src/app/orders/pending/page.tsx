@@ -91,7 +91,7 @@ export default function PendingOrdersPage() {
                         {orders.map((order) => (
                             <div
                                 key={order.id}
-                                className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"
+                                className="rounded-2xl border border-slate-100 bg-white p-5"
                             >
                                 {/* Task Header */}
                                 <div className="mb-4 flex items-center justify-between">

@@ -103,7 +103,7 @@ export default function TasksPage() {
 
             <div className="px-4 pb-24 pt-4">
                 {/* Filters */}
-                <div className="mx-4 mt-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="mx-4 mt-4 rounded-xl border border-slate-200 bg-white p-4">
                     <div className="mb-3">
                         <div className="mb-1.5 text-xs text-slate-500">选择买号</div>
                         <select value={value2} onChange={(e) => selectChange(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
@@ -139,13 +139,13 @@ export default function TasksPage() {
                     {loading ? (
                         <div className="rounded-xl bg-white py-12 text-center text-slate-400">加载中...</div>
                     ) : tasks.length === 0 ? (
-                        <div className="rounded-xl border border-slate-200 bg-white py-12 text-center shadow-sm">
+                        <div className="rounded-xl border border-slate-200 bg-white py-12 text-center">
                             <div className="mb-3 text-4xl">📋</div>
                             <div className="text-sm text-slate-400">暂无数据</div>
                         </div>
                     ) : (
                         tasks.map((task, index) => (
-                            <div key={task.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <div key={task.id} className="rounded-xl border border-slate-200 bg-white p-4">
                                 <div className="mb-2 flex justify-between text-sm text-slate-500">
                                     <span>ID：<span className="text-slate-700">{task.rand_num}</span></span>
                                     <span>商家：<span className="text-slate-700">{task.seller_name?.substring(0, 4)}...</span></span>

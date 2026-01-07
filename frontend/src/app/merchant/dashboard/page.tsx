@@ -51,7 +51,7 @@ export default function MerchantDashboard() {
     }
 
     const StatCard = ({ title, value, icon, colorKey }: { title: string; value: string | number; icon: string; colorKey: string }) => (
-        <Card className="bg-white p-6 shadow-sm">
+        <Card className="bg-white p-6">
             <div className="flex items-center justify-between">
                 <div>
                     <div className="mb-2 text-sm text-slate-500">{title}</div>
@@ -65,12 +65,12 @@ export default function MerchantDashboard() {
     return (
         <div className="space-y-6">
             {/* Welcome Banner */}
-            <div className="flex items-center justify-between rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-500 px-10 py-8 text-white shadow-lg">
+            <div className="flex items-center justify-between rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-500 px-10 py-8 text-white">
                 <div>
                     <h2 className="mb-2 text-2xl font-bold">欢迎回来，{merchant?.username || merchant?.companyName || '商家'} 👋</h2>
                     <p className="text-sm opacity-90">今天是 {new Date().toLocaleDateString('zh-CN')}，准备好处理新订单了吗？</p>
                 </div>
-                <Button onClick={() => router.push('/merchant/tasks/new')} className="flex items-center gap-2 bg-white font-semibold text-indigo-500 shadow hover:bg-slate-50">
+                <Button onClick={() => router.push('/merchant/tasks/new')} className="flex items-center gap-2 bg-white font-semibold text-indigo-500 hover:bg-slate-50">
                     <span>+</span> 发布新任务
                 </Button>
             </div>
@@ -85,7 +85,7 @@ export default function MerchantDashboard() {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-2 gap-5">
-                <Card className="bg-white p-6 shadow-sm">
+                <Card className="bg-white p-6">
                     <div className="mb-4 flex items-center justify-between">
                         <h3 className="font-semibold text-slate-800">最近任务</h3>
                         <span onClick={() => router.push('/merchant/tasks')} className="cursor-pointer text-sm text-indigo-600">查看全部 →</span>
@@ -93,7 +93,7 @@ export default function MerchantDashboard() {
                     <div className="py-10 text-center text-sm text-slate-500">暂无任务，点击上方按钮发布新任务</div>
                 </Card>
 
-                <Card className="bg-white p-6 shadow-sm">
+                <Card className="bg-white p-6">
                     <div className="mb-4 flex items-center justify-between">
                         <h3 className="font-semibold text-slate-800">待审核订单</h3>
                         <span onClick={() => router.push('/merchant/orders')} className="cursor-pointer text-sm text-indigo-600">查看全部 →</span>

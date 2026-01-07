@@ -67,7 +67,7 @@ export default function MerchantHelpPage() {
                     { icon: '📢', title: '公告通知', desc: '最新动态', action: () => alert('公告功能开发中') },
                     { icon: '💬', title: '意见反馈', desc: '提交建议', action: () => alert('反馈功能开发中') },
                 ].map((item, idx) => (
-                    <div key={idx} onClick={item.action} className="cursor-pointer rounded-xl border border-slate-200 bg-white p-5 text-center transition-all hover:shadow-md">
+                    <div key={idx} onClick={item.action} className="cursor-pointer rounded-xl border border-slate-200 bg-white p-5 text-center transition-all">
                         <div className="mb-2 text-3xl">{item.icon}</div>
                         <div className="mb-1 font-semibold">{item.title}</div>
                         <div className="text-xs text-slate-500">{item.desc}</div>

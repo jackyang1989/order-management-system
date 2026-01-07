@@ -43,11 +43,11 @@ export default function MerchantTasksPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold text-slate-800">任务管理</h1>
-                <Button onClick={() => router.push('/merchant/tasks/new')} className="flex items-center gap-1.5 shadow-sm"><span className="text-lg">+</span>发布任务</Button>
+                <Button onClick={() => router.push('/merchant/tasks/new')} className="flex items-center gap-1.5"><span className="text-lg">+</span>发布任务</Button>
             </div>
 
             {/* Filter Bar */}
-            <Card className="flex items-center gap-4 bg-white px-5 py-4 shadow-sm">
+            <Card className="flex items-center gap-4 bg-white px-5 py-4">
                 <div className="flex items-center gap-2">
                     <span className="text-sm text-slate-500">状态:</span>
                     <select value={filter.status} onChange={e => setFilter({ ...filter, status: e.target.value })} className="rounded-md border border-slate-200 px-3 py-2 text-sm">
@@ -66,7 +66,7 @@ export default function MerchantTasksPage() {
             </Card>
 
             {/* Task Table */}
-            <Card className="overflow-hidden bg-white shadow-sm">
+            <Card className="overflow-hidden bg-white">
                 {loading ? (
                     <div className="py-16 text-center text-slate-500">加载中...</div>
                 ) : tasks.length === 0 ? (

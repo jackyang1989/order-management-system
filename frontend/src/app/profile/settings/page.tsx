@@ -5,10 +5,9 @@ import { useRouter } from 'next/navigation';
 import { cn } from '../../../lib/utils';
 import { toastSuccess, toastError } from '../../../lib/toast';
 import ProfileContainer from '../../../components/ProfileContainer';
+import { Card } from '../../../components/ui/card';
 import { Modal } from '../../../components/ui/modal';
 import { Button } from '../../../components/ui/button';
-import { Card } from '../../../components/ui/card';
-import { Spinner } from '../../../components/ui/spinner';
 import { isAuthenticated, getToken } from '../../../services/authService';
 import {
     fetchUserProfile,
@@ -179,38 +178,33 @@ export default function ProfileSettingsPage() {
         }
     };
 
-    if (loading) return <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]"><Spinner size="lg" className="text-blue-600" /></div>;
+    if (loading) return <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" /></div>;
 
     const maskedPhone = userInfo.mobile ? userInfo.mobile.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '未绑定';
 
-    const SectionHeader = ({ title, sub }: { title: string; sub?: string }) => (
-        <div className="mb-4 px-2 flex items-baseline justify-between">
-            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{title}</div>
-            {sub && <div className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">{sub}</div>}
-        </div>
+    const SectionHeader = ({ title }: { title: string }) => (
+        <div className="mb-3 px-2 text-xs font-bold uppercase tracking-wider text-slate-400">{title}</div>
     );
 
     const InfoRow = ({ label, value, action, onClick, showArrow }: { label: string; value: string; action?: () => void; onClick?: () => void; showArrow?: boolean }) => (
         <div
-            className={cn(
-                "group flex items-center px-8 py-6 transition-all",
-                (onClick || action) ? 'cursor-pointer active:bg-slate-50/50' : ''
-            )}
-            onClick={onClick || action}
+            className={`flex items-center px-4 py-4 ${onClick ? 'cursor-pointer active:bg-slate-50' : ''}`}
+            onClick={onClick}
         >
-            <div className="flex-1 space-y-0.5">
-                <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</div>
-                <div className={cn(
-                    "text-sm font-black tracking-tight",
-                    onClick ? 'text-blue-600' : 'text-slate-900'
-                )}>
-                    {value}{showArrow && ' ›'}
-                </div>
-            </div>
-            {(onClick || action) && (
-                <div className="ml-4 flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-slate-300 transition-colors group-hover:bg-blue-50 group-hover:text-blue-500">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
-                </div>
+            <span className="flex-1 text-sm font-semibold text-slate-500">{label}</span>
+            <span className={cn(
+                "text-sm font-bold",
+                onClick ? 'text-blue-600' : 'text-slate-900'
+            )}>
+                {value}{showArrow && ' ›'}
+            </span>
+            {action && (
+                <button
+                    onClick={(e) => { e.stopPropagation(); action(); }}
+                    className="ml-4 rounded-xl bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-600 transition-colors hover:bg-blue-100"
+                >
+                    修改
+                </button>
             )}
         </div>
     );
@@ -234,26 +228,19 @@ export default function ProfileSettingsPage() {
                 </div>
             </header>
 
-            <div className="mx-auto max-w-[515px] space-y-10 px-6 py-8">
+            <div className="mx-auto max-w-[515px] space-y-8 px-4 py-6">
                 {/* User Info Card */}
-                <div className="rounded-[40px] bg-white p-10 shadow-[0_4px_24px_rgba(0,0,0,0.04)] text-center border-none">
-                    <div className="mx-auto mb-6 flex h-32 w-32 items-center justify-center rounded-full bg-slate-50 text-5xl shadow-inner border-4 border-white">
+                <div className="rounded-[32px] bg-white p-8 text-center">
+                    <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-slate-50 text-4xl">
                         👤
                     </div>
-                    <div className="space-y-1">
-                        <h2 className="text-3xl font-black text-slate-900 tracking-tight">{userInfo.username}</h2>
-                        <div className="flex items-center justify-center gap-2">
-                            <span className={cn('rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest', userInfo.vip ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400')}>
-                                {userInfo.vip ? 'VIP MEMBER' : 'PRO USER'}
-                            </span>
-                        </div>
-                    </div>
+                    <h2 className="text-2xl font-black text-slate-900">{userInfo.username}</h2>
                 </div>
 
                 {/* Personal Section */}
                 <div>
-                    <SectionHeader title="个人信息" sub="PERSONAL INFO" />
-                    <Card className="divide-y divide-slate-50/50 overflow-hidden rounded-[32px] border-none shadow-[0_2px_24px_rgba(0,0,0,0.03)] bg-white">
+                    <SectionHeader title="个人信息" />
+                    <Card className="divide-y divide-slate-50 overflow-hidden rounded-[24px] border-none">
                         <InfoRow label="用户名" value={userInfo.username} />
                         <InfoRow label="手机号" value={maskedPhone} action={() => setShowPhoneModal(true)} />
                         <InfoRow label="QQ号" value={userInfo.qq || '未绑定'} />
@@ -262,12 +249,12 @@ export default function ProfileSettingsPage() {
 
                 {/* Membership Section */}
                 <div>
-                    <SectionHeader title="会员信息" sub="MEMBERSHIP" />
-                    <Card className="divide-y divide-slate-50/50 overflow-hidden rounded-[32px] border-none shadow-[0_2px_24px_rgba(0,0,0,0.03)] bg-white">
-                        <InfoRow label="会员状态" value={userInfo.vip ? 'VIP MEMBERSHIP' : 'REGULAR MEMBER'} />
+                    <SectionHeader title="会员信息" />
+                    <Card className="divide-y divide-slate-50 overflow-hidden rounded-[24px] border-none">
+                        <InfoRow label="会员状态" value={userInfo.vip ? 'VIP会员' : '普通会员'} />
                         <InfoRow
                             label="开通/续费"
-                            value={userInfo.vip ? 'EXTEND MEMBERSHIP' : 'UPGRADE NOW'}
+                            value={userInfo.vip ? '续费' : '立即开通'}
                             onClick={() => router.push('/profile/vip')}
                             showArrow={true}
                         />
@@ -277,92 +264,95 @@ export default function ProfileSettingsPage() {
 
                 {/* Security Section */}
                 <div>
-                    <SectionHeader title="安全设置" sub="SECURITY" />
-                    <Card className="divide-y divide-slate-50/50 overflow-hidden rounded-[32px] border-none shadow-[0_2px_24px_rgba(0,0,0,0.03)] bg-white">
-                        <InfoRow label="登陆密码" value="••••••••" action={() => setShowPasswordModal(true)} />
-                        <InfoRow label="支付密码" value="••••••••" action={() => setShowPayPwdModal(true)} />
+                    <SectionHeader title="安全设置" />
+                    <Card className="divide-y divide-slate-50 overflow-hidden rounded-[24px] border-none">
+                        <InfoRow label="登陆密码" value="********" action={() => setShowPasswordModal(true)} />
+                        <InfoRow label="支付密码" value="********" action={() => setShowPayPwdModal(true)} />
                     </Card>
                 </div>
             </div>
 
             {/* Flat-styled Modals */}
-            <Modal title="修改手机号" open={showPhoneModal} onClose={() => setShowPhoneModal(false)} className="rounded-[40px] p-10">
-                <div className="space-y-6 py-4">
-                    <div className="space-y-2">
-                        <label className="px-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">原手机号码</label>
-                        <input className="w-full rounded-[16px] border-none bg-slate-50 px-6 py-4 text-sm font-black text-slate-400 shadow-inner" value={phoneForm.oldPhoneNum} readOnly />
+            <Modal title="修改手机号" open={showPhoneModal} onClose={() => setShowPhoneModal(false)}>
+                <div className="space-y-5 px-1 py-1">
+                    <div className="space-y-1.5">
+                        <label className="ml-1 text-[11px] font-bold uppercase tracking-tight text-slate-400">原手机号码</label>
+                        <input className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold text-slate-400" value={phoneForm.oldPhoneNum} readOnly />
                     </div>
-                    <div className="space-y-2">
-                        <label className="px-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">支付密码 <span className="text-rose-500">*</span></label>
-                        <input type="password" className="w-full rounded-[16px] border-none bg-slate-50 px-6 py-4 text-sm font-black text-slate-900 shadow-inner focus:ring-2 focus:ring-blue-500/20" placeholder="请输入支付密码" value={phoneForm.zhifuPassWord} onChange={e => setPhoneForm(p => ({ ...p, zhifuPassWord: e.target.value }))} />
+                    <div className="space-y-1.5">
+                        <label className="ml-1 text-[11px] font-bold uppercase tracking-tight text-slate-400">支付密码</label>
+                        <input type="password" className="w-full rounded-2xl border-2 border-slate-50 bg-white px-4 py-3 text-sm font-bold text-slate-900 focus:border-blue-600 focus:outline-none" placeholder="请输入支付密码" value={phoneForm.zhifuPassWord} onChange={e => setPhoneForm(p => ({ ...p, zhifuPassWord: e.target.value }))} />
                     </div>
-                    <div className="space-y-2">
-                        <label className="px-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">新手机号码 <span className="text-rose-500">*</span></label>
-                        <input className="w-full rounded-[16px] border-none bg-slate-50 px-6 py-4 text-sm font-black text-slate-900 shadow-inner focus:ring-2 focus:ring-blue-500/20" placeholder="请输入新手机号" value={phoneForm.newPhoneNum} onChange={e => setPhoneForm(p => ({ ...p, newPhoneNum: e.target.value }))} />
+                    <div className="space-y-1.5">
+                        <label className="ml-1 text-[11px] font-bold uppercase tracking-tight text-slate-400">新手机号码</label>
+                        <input className="w-full rounded-2xl border-2 border-slate-50 bg-white px-4 py-3 text-sm font-bold text-slate-900 focus:border-blue-600 focus:outline-none" placeholder="请输入新手机号" value={phoneForm.newPhoneNum} onChange={e => setPhoneForm(p => ({ ...p, newPhoneNum: e.target.value }))} />
                     </div>
-                    <div className="space-y-2">
-                        <label className="px-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">验证码 <span className="text-rose-500">*</span></label>
-                        <div className="flex gap-3">
-                            <input className="flex-1 rounded-[16px] border-none bg-slate-50 px-6 py-4 text-sm font-black text-slate-900 shadow-inner focus:ring-2 focus:ring-blue-500/20" placeholder="验证码" value={phoneForm.newYzmNum} onChange={e => setPhoneForm(p => ({ ...p, newYzmNum: e.target.value }))} />
-                            <Button disabled={yzmDisabled} onClick={() => sendYzm(1)} className={cn('rounded-[16px] px-8 py-7 text-[10px] font-black uppercase tracking-widest transition active:scale-95 transition-all', yzmDisabled ? 'bg-slate-100 text-slate-300' : 'bg-slate-900 text-white shadow-lg shadow-slate-900/10')}>
+                    <div className="space-y-1.5">
+                        <label className="ml-1 text-[11px] font-bold uppercase tracking-tight text-slate-400">验证码</label>
+                        <div className="flex gap-2">
+                            <input className="flex-1 rounded-2xl border-2 border-slate-50 bg-white px-4 py-3 text-sm font-bold text-slate-900 focus:border-blue-600 focus:outline-none" placeholder="验证码" value={phoneForm.newYzmNum} onChange={e => setPhoneForm(p => ({ ...p, newYzmNum: e.target.value }))} />
+                            <button disabled={yzmDisabled} onClick={() => sendYzm(1)} className={cn('rounded-2xl px-5 text-sm font-black transition active:scale-95', yzmDisabled ? 'bg-slate-50 text-slate-300' : 'bg-slate-900 text-white')}>
                                 {yzmMsg}
-                            </Button>
+                            </button>
                         </div>
                     </div>
-                    <div className="pt-6">
-                        <Button disabled={submitting} onClick={phoneBtnActive} className="w-full rounded-[20px] bg-slate-900 py-8 text-[11px] font-black uppercase tracking-[0.2em] text-white shadow-2xl transition-all active:scale-95 disabled:bg-slate-200">CONFIRM CHANGES</Button>
+                    <div className="flex gap-3 pt-4">
+                        <button onClick={() => setShowPhoneModal(false)} className="flex-1 rounded-[20px] bg-slate-50 py-4 text-sm font-bold text-slate-500">取消</button>
+                        <button disabled={submitting} onClick={phoneBtnActive} className="flex-1 rounded-[20px] bg-blue-600 py-4 text-sm font-bold text-white disabled:opacity-50">确定</button>
                     </div>
                 </div>
             </Modal>
 
-            <Modal title="修改登陆密码" open={showPasswordModal} onClose={() => setShowPasswordModal(false)} className="rounded-[40px] p-10">
-                <div className="space-y-6 py-4">
-                    <div className="space-y-2">
-                        <label className="px-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">原登陆密码 <span className="text-rose-500">*</span></label>
-                        <input type="password" placeholder="请输入原密码" className="w-full rounded-[16px] border-none bg-slate-50 px-6 py-4 text-sm font-black text-slate-900 shadow-inner focus:ring-2 focus:ring-blue-500/20" value={passwordForm.oldPassWord} onChange={e => setPasswordForm(p => ({ ...p, oldPassWord: e.target.value }))} />
+            <Modal title="修改登陆密码" open={showPasswordModal} onClose={() => setShowPasswordModal(false)}>
+                <div className="space-y-5 px-1 py-1">
+                    <div className="space-y-1.5">
+                        <label className="ml-1 text-[11px] font-bold uppercase tracking-tight text-slate-400">原登陆密码</label>
+                        <input type="password" placeholder="请输入原密码" className="w-full rounded-2xl border-2 border-slate-50 bg-white px-4 py-3 text-sm font-bold text-slate-900 focus:border-blue-600 focus:outline-none" value={passwordForm.oldPassWord} onChange={e => setPasswordForm(p => ({ ...p, oldPassWord: e.target.value }))} />
                     </div>
-                    <div className="space-y-2">
-                        <label className="px-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">新登陆密码 <span className="text-rose-500">*</span></label>
-                        <input type="password" placeholder="请输入新密码" className="w-full rounded-[16px] border-none bg-slate-50 px-6 py-4 text-sm font-black text-slate-900 shadow-inner focus:ring-2 focus:ring-blue-500/20" value={passwordForm.newPassWord} onChange={e => setPasswordForm(p => ({ ...p, newPassWord: e.target.value }))} />
+                    <div className="space-y-1.5">
+                        <label className="ml-1 text-[11px] font-bold uppercase tracking-tight text-slate-400">新登陆密码</label>
+                        <input type="password" placeholder="请输入新密码" className="w-full rounded-2xl border-2 border-slate-50 bg-white px-4 py-3 text-sm font-bold text-slate-900 focus:border-blue-600 focus:outline-none" value={passwordForm.newPassWord} onChange={e => setPasswordForm(p => ({ ...p, newPassWord: e.target.value }))} />
                     </div>
-                    <div className="space-y-2">
-                        <label className="px-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">确认新密码 <span className="text-rose-500">*</span></label>
-                        <input type="password" placeholder="请确认新密码" className="w-full rounded-[16px] border-none bg-slate-50 px-6 py-4 text-sm font-black text-slate-900 shadow-inner focus:ring-2 focus:ring-blue-500/20" value={passwordForm.queRenPassWord} onChange={e => setPasswordForm(p => ({ ...p, queRenPassWord: e.target.value }))} />
+                    <div className="space-y-1.5">
+                        <label className="ml-1 text-[11px] font-bold uppercase tracking-tight text-slate-400">确认新密码</label>
+                        <input type="password" placeholder="请确认新密码" className="w-full rounded-2xl border-2 border-slate-50 bg-white px-4 py-3 text-sm font-bold text-slate-900 focus:border-blue-600 focus:outline-none" value={passwordForm.queRenPassWord} onChange={e => setPasswordForm(p => ({ ...p, queRenPassWord: e.target.value }))} />
                     </div>
-                    <div className="bg-amber-50/50 rounded-2xl p-4 border border-amber-100/50">
-                        <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest leading-relaxed text-center">Currently validated by password. For SMS validation, contact support.</p>
+                    <div className="space-y-1.5 text-center">
+                        <p className="text-[10px] font-medium text-slate-400">目前暂时通过原密码验证，如需手机验证请联系客服</p>
                     </div>
-                    <div className="pt-4">
-                        <Button disabled={submitting} onClick={editBtnActive} className="w-full rounded-[20px] bg-slate-900 py-8 text-[11px] font-black uppercase tracking-[0.2em] text-white shadow-2xl transition-all active:scale-95 disabled:bg-slate-200">UPDATE PASSWORD</Button>
+                    <div className="flex gap-3 pt-2">
+                        <button onClick={() => setShowPasswordModal(false)} className="flex-1 rounded-[20px] bg-slate-50 py-4 text-sm font-bold text-slate-500">取消</button>
+                        <button disabled={submitting} onClick={editBtnActive} className="flex-1 rounded-[20px] bg-blue-600 py-4 text-sm font-bold text-white disabled:opacity-50">确定</button>
                     </div>
                 </div>
             </Modal>
 
-            <Modal title="修改支付密码" open={showPayPwdModal} onClose={() => setShowPayPwdModal(false)} className="rounded-[40px] p-10">
-                <div className="space-y-6 py-4">
-                    <div className="space-y-2">
-                        <label className="px-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">新支付密码 <span className="text-rose-500">*</span></label>
-                        <input type="password" placeholder="6位数字密码" className="w-full rounded-[16px] border-none bg-slate-50 px-6 py-4 text-sm font-black text-slate-900 shadow-inner focus:ring-2 focus:ring-blue-500/20" value={payPwdForm.newZhiFuPassWord} onChange={e => setPayPwdForm(p => ({ ...p, newZhiFuPassWord: e.target.value }))} />
+            <Modal title="修改支付密码" open={showPayPwdModal} onClose={() => setShowPayPwdModal(false)}>
+                <div className="space-y-5 px-1 py-1">
+                    <div className="space-y-1.5">
+                        <label className="ml-1 text-[11px] font-bold uppercase tracking-tight text-slate-400">新支付密码</label>
+                        <input type="password" placeholder="6位数字密码" className="w-full rounded-2xl border-2 border-slate-50 bg-white px-4 py-3 text-sm font-bold text-slate-900 focus:border-blue-600 focus:outline-none" value={payPwdForm.newZhiFuPassWord} onChange={e => setPayPwdForm(p => ({ ...p, newZhiFuPassWord: e.target.value }))} />
                     </div>
-                    <div className="space-y-2">
-                        <label className="px-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">确认支付密码 <span className="text-rose-500">*</span></label>
-                        <input type="password" placeholder="请确认新密码" className="w-full rounded-[16px] border-none bg-slate-50 px-6 py-4 text-sm font-black text-slate-900 shadow-inner focus:ring-2 focus:ring-blue-500/20" value={payPwdForm.queRenZhiFuPassWord} onChange={e => setPayPwdForm(p => ({ ...p, queRenZhiFuPassWord: e.target.value }))} />
+                    <div className="space-y-1.5">
+                        <label className="ml-1 text-[11px] font-bold uppercase tracking-tight text-slate-400">确认新密码</label>
+                        <input type="password" placeholder="请确认新密码" className="w-full rounded-2xl border-2 border-slate-50 bg-white px-4 py-3 text-sm font-bold text-slate-900 focus:border-blue-600 focus:outline-none" value={payPwdForm.queRenZhiFuPassWord} onChange={e => setPayPwdForm(p => ({ ...p, queRenZhiFuPassWord: e.target.value }))} />
                     </div>
-                    <div className="space-y-2">
-                        <label className="px-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">手机号码</label>
-                        <input className="w-full rounded-[16px] border-none bg-slate-50 px-6 py-4 text-sm font-black text-slate-400 shadow-inner" value={payPwdForm.phoneNum} readOnly />
+                    <div className="space-y-1.5">
+                        <label className="ml-1 text-[11px] font-bold uppercase tracking-tight text-slate-400">手机号码</label>
+                        <input className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold text-slate-400" value={payPwdForm.phoneNum} readOnly />
                     </div>
-                    <div className="space-y-2">
-                        <label className="px-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">验证码 <span className="text-rose-500">*</span></label>
-                        <div className="flex gap-3">
-                            <input className="flex-1 rounded-[16px] border-none bg-slate-50 px-6 py-4 text-sm font-black text-slate-900 shadow-inner focus:ring-2 focus:ring-blue-500/20" placeholder="验证码" value={payPwdForm.yzmNum} onChange={e => setPayPwdForm(p => ({ ...p, yzmNum: e.target.value }))} />
-                            <Button disabled={yzmDisabled3} onClick={() => sendYzm(3)} className={cn('rounded-[16px] px-8 py-7 text-[10px] font-black uppercase tracking-widest transition active:scale-95 transition-all', yzmDisabled3 ? 'bg-slate-100 text-slate-300' : 'bg-slate-900 text-white shadow-lg shadow-slate-900/10')}>
+                    <div className="space-y-1.5">
+                        <label className="ml-1 text-[11px] font-bold uppercase tracking-tight text-slate-400">验证码</label>
+                        <div className="flex gap-2">
+                            <input className="flex-1 rounded-2xl border-2 border-slate-50 bg-white px-4 py-3 text-sm font-bold text-slate-900 focus:border-blue-600 focus:outline-none" placeholder="验证码" value={payPwdForm.yzmNum} onChange={e => setPayPwdForm(p => ({ ...p, yzmNum: e.target.value }))} />
+                            <button disabled={yzmDisabled3} onClick={() => sendYzm(3)} className={cn('rounded-2xl px-5 text-sm font-black transition active:scale-95', yzmDisabled3 ? 'bg-slate-50 text-slate-300' : 'bg-slate-900 text-white')}>
                                 {yzmMsg3}
-                            </Button>
+                            </button>
                         </div>
                     </div>
-                    <div className="pt-6">
-                        <Button disabled={submitting} onClick={zhiFuBtnActive} className="w-full rounded-[20px] bg-slate-900 py-8 text-[11px] font-black uppercase tracking-[0.2em] text-white shadow-2xl transition-all active:scale-95 disabled:bg-slate-200">UPDATE PAY PASSWORD</Button>
+                    <div className="flex gap-3 pt-4">
+                        <button onClick={() => setShowPayPwdModal(false)} className="flex-1 rounded-[20px] bg-slate-50 py-4 text-sm font-bold text-slate-500">取消</button>
+                        <button disabled={submitting} onClick={zhiFuBtnActive} className="flex-1 rounded-[20px] bg-blue-600 py-4 text-sm font-bold text-white disabled:opacity-50">确定</button>
                     </div>
                 </div>
             </Modal>

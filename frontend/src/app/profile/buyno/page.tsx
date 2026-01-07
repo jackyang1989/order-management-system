@@ -99,8 +99,8 @@ export default function BuynoPage() {
 
     if (loading) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
-                <Spinner size="lg" className="text-blue-600" />
+            <div className="flex min-h-screen items-center justify-center bg-slate-50">
+                <Spinner size="lg" />
             </div>
         );
     }
@@ -122,13 +122,11 @@ export default function BuynoPage() {
     const isEmpty = accounts.length === 0;
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] pb-40">
-            <header className="sticky top-0 z-10 bg-[#F8FAFC]/80 backdrop-blur-md">
-                <div className="mx-auto flex h-16 max-w-[515px] items-center px-6">
-                    <button onClick={() => router.back()} className="mr-4 text-slate-600 active:scale-95 transition-transform">
-                        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                    </button>
-                    <h1 className="flex-1 text-xl font-bold text-slate-900">买号管理</h1>
+        <div className="min-h-screen bg-slate-50 pb-20">
+            <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
+                <div className="mx-auto flex h-14 max-w-[515px] items-center px-4">
+                    <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
+                    <h1 className="flex-1 text-base font-medium text-slate-800">买号管理</h1>
                 </div>
             </header>
 
@@ -144,36 +142,51 @@ export default function BuynoPage() {
                         const displayName = acc.platformAccount;
                         const working = actingId === acc.id;
                         return (
-                            <Card key={acc.id} className="rounded-[24px] border-none bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
-                                <div className="flex items-center gap-4">
-                                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 text-2xl shadow-inner border border-white">
-                                        {acc.platform === '淘宝' ? '🛍️' : acc.platform === '京东' ? '🐶' : acc.platform === '拼多多' ? '🍎' : '👤'}
+                            <Card key={acc.id} className="border-slate-200 p-4">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="space-y-1">
+                                        <div className="text-sm font-semibold text-slate-800">{displayName}</div>
+                                        <div className="text-xs text-slate-500">平台：{acc.platform}</div>
+                                        <div className="text-xs text-slate-400">淘宝账号：{displayName}</div>
+                                        {acc.isDefault && <div className="text-[11px] text-blue-600">默认买号</div>}
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="text-sm font-black text-slate-900 tracking-tight flex items-center gap-2">
-                                            {displayName}
-                                            {acc.isDefault && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[8px] font-black text-blue-600 uppercase tracking-widest">DEFAULT</span>}
+                                    <div className="flex flex-col items-end gap-2">
+                                        {renderStatus(acc.status)}
+                                        <div className="flex flex-wrap justify-end gap-2 text-xs">
+                                            <Button
+                                                size="sm"
+                                                variant="secondary"
+                                                disabled={working}
+                                                onClick={() => router.push(`/profile/buyno/edit/${acc.id}`)}
+                                            >
+                                                编辑
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="secondary"
+                                                disabled={working || acc.status !== 'APPROVED'}
+                                                onClick={() => handleSetDefault(acc.id, acc.status)}
+                                            >
+                                                {working && actingId === acc.id ? '...' : '设默认'}
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="secondary"
+                                                disabled={working}
+                                                onClick={() => handleToggleStatus(acc.id, acc.status)}
+                                            >
+                                                {working && actingId === acc.id ? '...' : acc.status === 'APPROVED' ? '禁用' : '启用'}
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="destructive"
+                                                disabled={working}
+                                                onClick={() => handleDelete(acc.id)}
+                                            >
+                                                {working && actingId === acc.id ? '...' : '删除'}
+                                            </Button>
                                         </div>
-                                        <div className="mt-0.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">ID: {acc.id.slice(0, 8)} • {acc.platform}</div>
                                     </div>
-                                    <div>{renderStatus(acc.status)}</div>
-                                </div>
-
-                                <div className="mt-6 flex flex-wrap gap-2 pt-5 border-t border-slate-50">
-                                    <Button size="sm" variant="secondary" disabled={working} onClick={() => router.push(`/profile/buyno/edit/${acc.id}`)}
-                                        className="h-9 rounded-full px-4 text-[10px] font-black uppercase tracking-widest">编辑</Button>
-                                    <Button size="sm" variant="secondary" disabled={working || acc.status !== 'APPROVED'} onClick={() => handleSetDefault(acc.id, acc.status)}
-                                        className="h-9 rounded-full px-4 text-[10px] font-black uppercase tracking-widest">
-                                        {working && actingId === acc.id ? '...' : '设默认'}
-                                    </Button>
-                                    <Button size="sm" variant="secondary" disabled={working} onClick={() => handleToggleStatus(acc.id, acc.status)}
-                                        className="h-9 rounded-full px-4 text-[10px] font-black uppercase tracking-widest">
-                                        {working && actingId === acc.id ? '...' : acc.status === 'APPROVED' ? '禁用' : '启用'}
-                                    </Button>
-                                    <Button size="sm" variant="destructive" disabled={working} onClick={() => handleDelete(acc.id)}
-                                        className="h-9 rounded-full px-4 text-[10px] font-black uppercase tracking-widest">
-                                        {working && actingId === acc.id ? '...' : '删除'}
-                                    </Button>
                                 </div>
                             </Card>
                         );
@@ -182,9 +195,11 @@ export default function BuynoPage() {
             </div>
 
             {/* Fixed Bottom Button */}
-            <div className="fixed bottom-0 left-1/2 z-10 w-full max-w-[515px] -translate-x-1/2 bg-white/80 p-8 backdrop-blur-xl">
-                <Button className="w-full rounded-[24px] bg-slate-900 py-8 text-sm font-black uppercase tracking-widest text-white shadow-2xl transition-transform active:scale-95"
-                    onClick={() => router.push('/profile/bind')}>
+            <div className="fixed bottom-0 left-1/2 z-10 w-full max-w-[515px] -translate-x-1/2 border-t border-slate-200 bg-white p-4">
+                <Button
+                    className="w-full bg-blue-500 py-6 text-base font-medium hover:bg-blue-600"
+                    onClick={() => router.push('/profile/bind')}
+                >
                     绑定新买号
                 </Button>
             </div>

@@ -196,7 +196,7 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                 </div>
 
                 {testData.map((item, index) => (
-                    <div key={index} className="mb-3 rounded-xl bg-white p-4 shadow-sm">
+                    <div key={index} className="mb-3 rounded-xl bg-white p-4">
                         <div className="mb-2.5 flex justify-between text-xs">
                             <span className="text-slate-500">任务编号：</span>
                             <span className="text-slate-800">{item.taskBianHao}</span>

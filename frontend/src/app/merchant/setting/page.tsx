@@ -66,7 +66,7 @@ export default function MerchantSettingPage() {
             )}
 
             {/* Basic Info */}
-            <Card className="bg-white p-6 shadow-sm">
+            <Card className="bg-white p-6">
                 <div className="mb-5 flex items-center justify-between">
                     <h2 className="text-lg font-semibold">基本信息</h2>
                     {!editing ? (
@@ -108,7 +108,7 @@ export default function MerchantSettingPage() {
             </Card>
 
             {/* Account Status */}
-            <Card className="bg-white p-6 shadow-sm">
+            <Card className="bg-white p-6">
                 <h2 className="mb-5 text-lg font-semibold">账户状态</h2>
                 <div className="grid grid-cols-3 gap-4">
                     <div className="rounded-lg bg-green-50 p-4 text-center">
@@ -127,7 +127,7 @@ export default function MerchantSettingPage() {
             </Card>
 
             {/* Security Settings */}
-            <Card className="bg-white p-6 shadow-sm">
+            <Card className="bg-white p-6">
                 <h2 className="mb-5 text-lg font-semibold">安全设置</h2>
                 <div className="flex items-center justify-between border-b border-slate-100 py-3">
                     <div>

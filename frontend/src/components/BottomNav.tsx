@@ -72,12 +72,12 @@ export default function BottomNav() {
     };
 
     return (
-        <div className="fixed inset-x-0 bottom-0 z-50 mx-auto flex h-16 w-full max-w-[515px] border-x border-t border-slate-200 bg-white shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+        <div className="fixed inset-x-0 bottom-0 z-50 mx-auto flex h-16 w-full max-w-[515px] border-x border-t border-slate-200 bg-white">
             {navItems.map((item) => (
                 <div key={item.key} className="relative flex-1">
                     {/* Popup Menu */}
                     {activeNav === item.key && item.subItems && (
-                        <div className="absolute bottom-16 left-1/2 w-32 -translate-x-1/2 rounded-lg border border-slate-200 bg-white text-center shadow-lg">
+                        <div className="absolute bottom-16 left-1/2 w-32 -translate-x-1/2 rounded-lg border border-slate-200 bg-white text-center">
                             {item.subItems.map((sub, idx) => (
                                 <Link
                                     key={sub.href}

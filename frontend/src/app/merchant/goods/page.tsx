@@ -79,7 +79,7 @@ export default function GoodsPage() {
             </div>
 
             {/* Content */}
-            <Card className="bg-white p-6 shadow-sm">
+            <Card className="bg-white p-6">
                 {loading ? (
                     <div className="text-slate-500">加载中...</div>
                 ) : goodsList.length === 0 ? (

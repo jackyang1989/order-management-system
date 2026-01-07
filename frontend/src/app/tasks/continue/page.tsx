@@ -82,7 +82,7 @@ export default function ContinueTasksPage() {
                         <p className="mt-4 text-sm text-slate-400 font-medium">全力加载中...</p>
                     </div>
                 ) : error ? (
-                    <div className="flex flex-col items-center justify-center rounded-3xl bg-white px-6 py-12 text-center shadow-sm">
+                    <div className="flex flex-col items-center justify-center rounded-3xl bg-white px-6 py-12 text-center">
                         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-500">
                             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -91,13 +91,13 @@ export default function ContinueTasksPage() {
                         <p className="mb-6 text-sm text-slate-500">{error}</p>
                         <button
                             onClick={loadData}
-                            className="rounded-2xl bg-blue-600 px-8 py-3 text-sm font-bold text-white shadow-lg shadow-blue-200 active:scale-95 transition-transform"
+                            className="rounded-2xl bg-blue-600 px-8 py-3 text-sm font-bold text-white active:scale-95 transition-transform"
                         >
                             重新加载
                         </button>
                     </div>
                 ) : tasks.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center rounded-3xl bg-white px-6 py-16 text-center shadow-sm">
+                    <div className="flex flex-col items-center justify-center rounded-3xl bg-white px-6 py-16 text-center">
                         <div className="relative mb-6">
                             <div className="absolute inset-0 animate-ping rounded-full bg-blue-100 opacity-20" />
                             <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 text-blue-500">
@@ -110,7 +110,7 @@ export default function ContinueTasksPage() {
                         <p className="mt-2 text-sm text-slate-400">目前没有正在进行的任务，去大厅看看吧</p>
                         <button
                             onClick={() => router.push('/tasks')}
-                            className="mt-8 rounded-2xl bg-blue-600 px-10 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200 active:scale-95 transition-transform"
+                            className="mt-8 rounded-2xl bg-blue-600 px-10 py-3.5 text-sm font-bold text-white active:scale-95 transition-transform"
                         >
                             立即接单
                         </button>
@@ -120,7 +120,7 @@ export default function ContinueTasksPage() {
                         {tasks.map((task) => (
                             <div
                                 key={task.id}
-                                className="group relative overflow-hidden rounded-[24px] bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)]"
+                                className="group relative overflow-hidden rounded-[24px] bg-white p-5 transition-all"
                             >
                                 {/* Platform Badge */}
                                 <div className="absolute top-0 right-0 overflow-hidden rounded-bl-2xl">
@@ -158,7 +158,7 @@ export default function ContinueTasksPage() {
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => router.push(`/orders/${task.id}/execute`)}
-                                            className="rounded-xl bg-blue-600 px-6 py-2.5 text-[13px] font-bold text-white shadow-lg shadow-blue-100 active:scale-95 transition-transform"
+                                            className="rounded-xl bg-blue-600 px-6 py-2.5 text-[13px] font-bold text-white active:scale-95 transition-transform"
                                         >
                                             继续任务
                                         </button>

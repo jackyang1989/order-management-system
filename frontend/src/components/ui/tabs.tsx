@@ -35,7 +35,7 @@ export function Tabs({ items, value, onChange, size = 'md', className }: TabsPro
             'flex-1 rounded-lg font-medium transition-colors',
             sizes[size],
             value === item.key
-              ? 'bg-white text-slate-900 shadow-sm'
+              ? 'bg-white text-slate-900'
               : 'text-slate-500 hover:text-slate-700',
             item.disabled && 'cursor-not-allowed text-slate-400 hover:text-slate-400'
           )}

@@ -266,13 +266,13 @@ function OrdersPageContent() {
                     {loading ? (
                         <div className="rounded-xl bg-white py-12 text-center text-slate-400">加载中...</div>
                     ) : orders.length === 0 ? (
-                        <div className="rounded-xl border border-slate-200 bg-white py-12 text-center shadow-sm">
+                        <div className="rounded-xl border border-slate-200 bg-white py-12 text-center">
                             <div className="mb-3 text-4xl">📦</div>
                             <div className="text-sm text-slate-400">暂无订单</div>
                         </div>
                     ) : (
                         orders.map((order) => (
-                            <div key={order.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                            <div key={order.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
                                 {/* Order Header */}
                                 <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
                                     <div className="flex items-center gap-3">

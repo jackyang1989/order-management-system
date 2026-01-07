@@ -75,9 +75,9 @@ export default function ProfilePage() {
 
             <div className="mx-auto max-w-[515px] space-y-6 px-4">
                 {/* Profile Section */}
-                <div className="relative overflow-hidden rounded-[24px] bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+                <div className="relative overflow-hidden rounded-[24px] bg-white p-6">
                     <div className="flex items-center gap-5">
-                        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-blue-50 text-4xl shadow-inner">
+                        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-blue-50 text-4xl">
                             👤
                         </div>
                         <div className="flex-1">
@@ -100,7 +100,7 @@ export default function ProfilePage() {
 
                 {/* Main Assets - Clean Flat Blocks */}
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col rounded-[24px] bg-blue-600 p-5 text-white shadow-lg shadow-blue-100">
+                    <div className="flex flex-col rounded-[24px] bg-blue-600 p-5 text-white">
                         <span className="text-xs font-bold opacity-80 uppercase">本金余额</span>
                         <div className="mt-2 flex items-baseline gap-1">
                             <span className="text-sm font-bold opacity-80">¥</span>
@@ -116,7 +116,7 @@ export default function ProfilePage() {
                             </button>
                         </div>
                     </div>
-                    <div className="flex flex-col rounded-[24px] bg-emerald-500 p-5 text-white shadow-lg shadow-emerald-100">
+                    <div className="flex flex-col rounded-[24px] bg-emerald-500 p-5 text-white">
                         <span className="text-xs font-bold opacity-80 uppercase">银锭余额</span>
                         <div className="mt-2 flex items-baseline gap-1">
                             <span className="text-2xl font-black tracking-tight">{Number(profile?.silver || 0).toFixed(2)}</span>
@@ -134,7 +134,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Earnings Summary */}
-                <Card className="rounded-[24px] border-none bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+                <Card className="rounded-[24px] border-none bg-white p-5">
                     <div className="flex divide-x divide-slate-50">
                         <div className="flex-1 px-4 text-center">
                             <div className="text-lg font-black text-slate-900">{Number(profile?.totalEarned || 0).toFixed(2)}</div>
@@ -157,7 +157,7 @@ export default function ProfilePage() {
                         <button
                             key={i}
                             onClick={() => router.push(item.href)}
-                            className="group flex flex-col items-start rounded-[24px] bg-white p-5 text-left shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] active:scale-[0.98]"
+                            className="group flex flex-col items-start rounded-[24px] bg-white p-5 text-left transition-all active:scale-[0.98]"
                         >
                             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 text-2xl transition-colors group-hover:bg-blue-50">
                                 {item.icon}

@@ -43,7 +43,7 @@ export default function MerchantLoginPage() {
 
     return (
         <div className="flex min-h-screen w-full items-center justify-center bg-slate-100 p-0">
-            <div className="flex min-h-[550px] w-[900px] max-w-[95%] overflow-hidden rounded-2xl bg-white shadow-lg">
+            <div className="flex min-h-[550px] w-[900px] max-w-[95%] overflow-hidden rounded-2xl bg-white">
                 {/* Left Panel */}
                 <div className="flex w-[450px] min-w-[450px] flex-col justify-center bg-gradient-to-br from-indigo-500 to-purple-600 px-10 py-16 text-white">
                     <div className="mb-5 text-6xl">🏪</div>
@@ -69,8 +69,8 @@ export default function MerchantLoginPage() {
 
                     {/* Toggle Tabs */}
                     <div className="mb-6 flex rounded-lg bg-slate-100 p-1">
-                        <button onClick={() => { setIsLogin(true); setError(''); }} className={cn('flex-1 rounded-md py-2.5 text-sm font-medium transition-all', isLogin ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500')}>登录</button>
-                        <button onClick={() => { setIsLogin(false); setError(''); }} className={cn('flex-1 rounded-md py-2.5 text-sm font-medium transition-all', !isLogin ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500')}>注册</button>
+                        <button onClick={() => { setIsLogin(true); setError(''); }} className={cn('flex-1 rounded-md py-2.5 text-sm font-medium transition-all', isLogin ? 'bg-white text-indigo-600' : 'text-slate-500')}>登录</button>
+                        <button onClick={() => { setIsLogin(false); setError(''); }} className={cn('flex-1 rounded-md py-2.5 text-sm font-medium transition-all', !isLogin ? 'bg-white text-indigo-600' : 'text-slate-500')}>注册</button>
                     </div>
 
                     {/* Error Message */}
