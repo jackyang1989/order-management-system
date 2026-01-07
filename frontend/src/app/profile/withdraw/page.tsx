@@ -30,6 +30,7 @@ export default function WithdrawPage() {
     const [captcha, setCaptcha] = useState('');
     const [payPassword, setPayPassword] = useState('');
     const [withdrawData, setWithdrawData] = useState<{ amount: number; type: string } | null>(null);
+    const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>({});
 
     const feeRate = 0.05;
     const minWithdraw = 10;
@@ -38,7 +39,7 @@ export default function WithdrawPage() {
         if (!isAuthenticated()) { router.push('/login'); return; }
         loadData();
         loadCaptcha();
-    }, [router]);
+    }, [router, dateRange]);
 
     const loadCaptcha = async () => {
         try {
@@ -55,7 +56,7 @@ export default function WithdrawPage() {
             const cards = await fetchBankCards();
             setBankCards(cards);
             if (cards.length > 0) { const defaultCard = cards.find(c => c.isDefault) || cards[0]; setSelectedCard(defaultCard.id); }
-            const withdrawals = await fetchWithdrawals();
+            const withdrawals = await fetchWithdrawals(dateRange.from, dateRange.to);
             setRecords(withdrawals);
         } catch (error) { console.error('Load data error:', error); } finally { setLoading(false); }
     };
@@ -300,20 +301,44 @@ export default function WithdrawPage() {
 
                 {activeTab === 'records' && (
                     <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                        {records.length === 0 ? (
-                            <div className="py-12 text-center text-slate-400">暂无提现记录</div>
-                        ) : (
-                            <div className="divide-y divide-slate-100">
-                                {records.map(r => (
-                                    <div key={r.id} className="flex items-center justify-between p-4">
-                                        <div>
-                                            <div className="font-medium text-slate-800">¥{Number(r.amount).toFixed(2)}</div>
-                                            <div className="mt-0.5 text-xs text-slate-400">{new Date(r.createdAt).toLocaleString('zh-CN')}</div>
-                                        </div>
-                                        {getStatusBadge(r.status)}
+                        {activeTab === 'records' && (
+                            <>
+                                <div className="flex items-center justify-end space-x-2 border-b border-slate-100 p-4">
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="date"
+                                            className="rounded border border-slate-200 px-2 py-1 text-sm outline-none focus:border-blue-500"
+                                            value={dateRange.from || ''}
+                                            onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
+                                        />
+                                        <span className="text-slate-400">-</span>
+                                        <input
+                                            type="date"
+                                            className="rounded border border-slate-200 px-2 py-1 text-sm outline-none focus:border-blue-500"
+                                            value={dateRange.to || ''}
+                                            onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
+                                        />
                                     </div>
-                                ))}
-                            </div>
+                                </div>
+                                {records.length === 0 ? (
+                                    <div className="py-12 text-center text-slate-400">暂无提现记录</div>
+                                ) : (
+                                    <div className="divide-y divide-slate-100">
+                                        {records.map(r => (
+                                            <div key={r.id} className="flex items-center justify-between p-4">
+                                                <div>
+                                                    <div className="font-medium text-slate-800">¥{Number(r.amount).toFixed(2)}</div>
+                                                    <div className="mt-0.5 text-xs text-slate-400">{new Date(r.createdAt).toLocaleString('zh-CN')}</div>
+                                                </div>
+                                                <div className="text-right">
+                                                    {getStatusBadge(r.status)}
+                                                    {r.remark && <div className="mt-0.5 text-xs text-red-400">{r.remark}</div>}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 )}

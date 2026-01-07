@@ -2,10 +2,11 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { cn } from '../../lib/utils';
-import { isAuthenticated } from '../../services/authService';
-import { fetchVipPackages, fetchVipStatus, fetchVipRecords, purchaseVip, fetchUserBalanceForVip, VipPackage, VipStatus, VipPurchase, PaymentMethod } from '../../services/vipService';
-import BottomNav from '../../components/BottomNav';
+import { cn } from '../../../lib/utils';
+import { isAuthenticated } from '../../../services/authService';
+import { fetchVipPackages, fetchVipStatus, fetchVipRecords, purchaseVip, fetchUserBalanceForVip, VipPackage, VipStatus, VipPurchase, PaymentMethod } from '../../../services/vipService';
+import { VIP_TIPS } from '../../../constants/platformConfig';
+import BottomNav from '../../../components/BottomNav';
 
 const mockPackages: VipPackage[] = [
     { id: '1', name: '月度VIP', days: 30, price: 30, discountPrice: 19.9, description: '适合新手体验', benefits: ['专属任务优先领取', '佣金提升10%', '免费提现次数+2'] },
@@ -167,9 +168,9 @@ function VipContent() {
                             <div className="rounded-lg bg-amber-50 p-3 text-xs text-amber-700 leading-relaxed">
                                 <div className="mb-1 font-medium">温馨提示</div>
                                 <ul className="list-disc pl-4 space-y-0.5">
-                                    <li>VIP权益开通后立即生效</li>
-                                    <li>已开通VIP续费时间将自动叠加</li>
-                                    <li>虚拟商品一经开通不支持退款</li>
+                                    {VIP_TIPS.map((tip, index) => (
+                                        <li key={index}>{tip}</li>
+                                    ))}
                                 </ul>
                             </div>
                         </div>

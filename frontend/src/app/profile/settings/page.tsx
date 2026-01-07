@@ -8,8 +8,13 @@ import ProfileContainer from '../../../components/ProfileContainer';
 import { Modal } from '../../../components/ui/modal';
 import { Button } from '../../../components/ui/button';
 import { isAuthenticated, getToken } from '../../../services/authService';
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
+import {
+    fetchUserProfile,
+    sendProfileSmsCode,
+    changePassword,
+    changePayPassword,
+    changePhone
+} from '../../../services/userService';
 
 export default function ProfileSettingsPage() {
     const router = useRouter();
@@ -39,35 +44,39 @@ export default function ProfileSettingsPage() {
 
     const loadUserInfo = async () => {
         try {
-            const token = getToken();
-            const res = await fetch(`${BASE_URL}/user/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
-            const data = await res.json();
-            if (data.code === 1 && data.data) {
+            const data = await fetchUserProfile();
+            if (data) {
                 setUserInfo({
-                    username: data.data.username,
-                    mobile: data.data.phone,
-                    qq: data.data.qq,
-                    vip: data.data.vip,
-                    vipExpireAt: data.data.vipExpireAt
+                    username: data.username,
+                    mobile: data.phone,
+                    qq: data.qq || '',
+                    vip: data.vip,
+                    vipExpireAt: data.vipExpireAt || ''
                 });
-                setPhoneForm(p => ({ ...p, oldPhoneNum: data.data.phone }));
-                setPasswordForm(p => ({ ...p, phoneNum: data.data.phone }));
-                setPayPwdForm(p => ({ ...p, phoneNum: data.data.phone }));
+                setPhoneForm(p => ({ ...p, oldPhoneNum: data.phone }));
+                setPasswordForm(p => ({ ...p, phoneNum: data.phone }));
+                setPayPwdForm(p => ({ ...p, phoneNum: data.phone }));
             }
-        } catch (e) { console.error('Load user info error:', e); }
-        finally { setLoading(false); }
+        } catch (e) {
+            console.error('Load user info error:', e);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const sendYzm = async (type: number) => {
         const phone = type === 1 ? phoneForm.newPhoneNum : (type === 2 ? passwordForm.phoneNum : payPwdForm.phoneNum);
         if (!phone) { toastError('请输入手机号'); return; }
+
+        const typeMap: Record<number, 'change_phone' | 'change_password' | 'change_pay_password'> = {
+            1: 'change_phone',
+            2: 'change_password',
+            3: 'change_pay_password'
+        };
+
         try {
-            const res = await fetch(`${BASE_URL}/sms/send`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mobile: phone, type }),
-            });
-            const data = await res.json();
-            if (data.code === 1) {
+            const result = await sendProfileSmsCode(phone, typeMap[type]);
+            if (result.success) {
                 toastSuccess('验证码已发送');
                 let count = 60;
                 const setter = type === 1 ? setYzmMsg : (type === 2 ? setYzmMsg2 : setYzmMsg3);
@@ -78,74 +87,122 @@ export default function ProfileSettingsPage() {
                     setter(`${count}s`);
                     if (count <= 0) { clearInterval(timer); setter('重新获取'); disabler(false); }
                 }, 1000);
-            } else { toastError(data.msg); }
-        } catch (e) { toastError('发送失败'); }
+            } else {
+                toastError(result.message);
+            }
+        } catch (e) {
+            toastError('发送失败');
+        }
     };
 
     const phoneBtnActive = async () => {
         if (!phoneForm.zhifuPassWord) { toastError('支付密码不能为空'); return; }
         if (!phoneForm.newPhoneNum) { toastError('新手机号不能为空'); return; }
         if (!phoneForm.newYzmNum) { toastError('验证码不能为空'); return; }
+
         setSubmitting(true);
         try {
-            const response = await fetch(`${BASE_URL}/mobile/my/editphone`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-                body: JSON.stringify({ oldphone: phoneForm.oldPhoneNum, pay_pwd: phoneForm.zhifuPassWord, mobile: phoneForm.newPhoneNum, dxyzm: phoneForm.newYzmNum }),
+            const result = await changePhone({
+                oldPhone: phoneForm.oldPhoneNum,
+                payPassword: phoneForm.zhifuPassWord,
+                newPhone: phoneForm.newPhoneNum,
+                smsCode: phoneForm.newYzmNum
             });
-            const data = await response.json();
-            if (data.code === 1) { toastSuccess(data.msg); setTimeout(() => { data.url ? router.push(data.url) : (setShowPhoneModal(false), loadUserInfo()); }, 2000); }
-            else { toastError(data.msg); }
-        } catch (error) { toastError('网络错误'); }
-        finally { setSubmitting(false); }
+            if (result.success) {
+                toastSuccess(result.message);
+                setTimeout(() => {
+                    setShowPhoneModal(false);
+                    loadUserInfo();
+                }, 2000);
+            } else {
+                toastError(result.message);
+            }
+        } catch (error) {
+            toastError('网络错误');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const editBtnActive = async () => {
         if (!passwordForm.oldPassWord) { toastError('原登录密码不能为空'); return; }
         if (!passwordForm.newPassWord) { toastError('新登录密码不能为空'); return; }
         if (passwordForm.newPassWord !== passwordForm.queRenPassWord) { toastError('两次密码不一致'); return; }
+
         setSubmitting(true);
         try {
-            const response = await fetch(`${BASE_URL}/mobile/my/edit_login_pwd`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-                body: JSON.stringify({ oldpwd: passwordForm.oldPassWord, newpwd: passwordForm.newPassWord, mobile: passwordForm.phoneNum, dxyzm: passwordForm.newYzmNum }),
+            const result = await changePassword({
+                oldPassword: passwordForm.oldPassWord,
+                newPassword: passwordForm.newPassWord
             });
-            const data = await response.json();
-            if (data.code === 1) { toastSuccess(data.msg); setTimeout(() => { data.url ? router.push(data.url) : setShowPasswordModal(false); }, 2000); }
-            else { toastError(data.msg); }
-        } catch (error) { toastError('网络错误'); }
-        finally { setSubmitting(false); }
+            if (result.success) {
+                toastSuccess(result.message);
+                setTimeout(() => {
+                    setShowPasswordModal(false);
+                }, 2000);
+            } else {
+                toastError(result.message);
+            }
+        } catch (error) {
+            toastError('网络错误');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const zhiFuBtnActive = async () => {
         if (!payPwdForm.newZhiFuPassWord) { toastError('新支付密码不能为空'); return; }
         if (payPwdForm.newZhiFuPassWord.length !== 6) { toastError('支付密码必须为6位数字'); return; }
         if (payPwdForm.newZhiFuPassWord !== payPwdForm.queRenZhiFuPassWord) { toastError('两次密码不一致'); return; }
+
         setSubmitting(true);
         try {
-            const response = await fetch(`${BASE_URL}/mobile/my/edit_pay_pwd`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-                body: JSON.stringify({ pay_pwd: payPwdForm.newZhiFuPassWord, mobile: payPwdForm.phoneNum, dxyzm: payPwdForm.yzmNum }),
+            const result = await changePayPassword({
+                newPayPassword: payPwdForm.newZhiFuPassWord,
+                phone: payPwdForm.phoneNum,
+                smsCode: payPwdForm.yzmNum
             });
-            const data = await response.json();
-            if (data.code === 1) { toastSuccess(data.msg); setTimeout(() => { data.url ? router.push(data.url) : setShowPayPwdModal(false); }, 2000); }
-            else { toastError(data.msg); }
-        } catch (error) { toastError('网络错误'); }
-        finally { setSubmitting(false); }
+            if (result.success) {
+                toastSuccess(result.message);
+                setTimeout(() => {
+                    setShowPayPwdModal(false);
+                }, 2000);
+            } else {
+                toastError(result.message);
+            }
+        } catch (error) {
+            toastError('网络错误');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     if (loading) return <div className="flex min-h-screen items-center justify-center bg-slate-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" /></div>;
 
     const maskedPhone = userInfo.mobile ? userInfo.mobile.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '未绑定';
 
-    const InfoRow = ({ label, value, action }: { label: string; value: string; action?: () => void }) => (
-        <div className="flex items-center border-b border-slate-100 px-4 py-3.5">
+    const InfoRow = ({ label, value, action, onClick, showArrow }: { label: string; value: string; action?: () => void; onClick?: () => void; showArrow?: boolean }) => (
+        <div
+            className={`flex items-center border-b border-slate-100 px-4 py-3.5 ${onClick ? 'cursor-pointer active:bg-slate-50' : ''}`}
+            onClick={onClick}
+        >
             <span className="w-20 text-sm text-slate-500">{label}</span>
-            <span className="flex-1 text-right text-sm text-slate-800">{value}</span>
+            <span className={`flex-1 text-right text-sm ${onClick ? 'text-blue-500' : 'text-slate-800'}`}>
+                {value}{showArrow && ' >'}
+            </span>
             {action && (
-                <button onClick={action} className="ml-3 rounded border border-blue-500 px-3 py-1 text-xs text-blue-500">修改</button>
+                <button onClick={(e) => { e.stopPropagation(); action(); }} className="ml-3 rounded border border-blue-500 px-3 py-1 text-xs text-blue-500">修改</button>
             )}
         </div>
     );
+
+    // Format VIP expiry date
+    const formatVipExpiry = () => {
+        if (!userInfo.vip) return '未开通';
+        if (!userInfo.vipExpireAt) return '永久有效';
+        const date = new Date(userInfo.vipExpireAt);
+        return date.toISOString().split('T')[0]; // YYYY-MM-DD
+    };
 
     return (
         <div className="min-h-screen bg-slate-50 pb-10">
@@ -175,9 +232,14 @@ export default function ProfileSettingsPage() {
                 {/* VIP Info */}
                 <div className="mb-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                     <div className="border-b border-slate-100 bg-slate-50 px-4 py-2 text-xs font-medium text-slate-500">会员信息</div>
-                    <InfoRow label="会员状态" value={userInfo.vip ? 'VIP会员' : '不是会员'} />
-                    <InfoRow label="开通/续费" value="请联系客服" />
-                    <InfoRow label="到期时间" value={userInfo.vipExpireAt || '-'} />
+                    <InfoRow label="会员状态" value={userInfo.vip ? 'VIP会员' : '普通会员'} />
+                    <InfoRow
+                        label="开通/续费"
+                        value={userInfo.vip ? '续费' : '立即开通'}
+                        onClick={() => router.push('/profile/vip')}
+                        showArrow={true}
+                    />
+                    <InfoRow label="到期时间" value={formatVipExpiry()} />
                 </div>
 
                 {/* Security Settings */}

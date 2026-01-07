@@ -387,6 +387,70 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
             )}
 
+            {/* Action Bar */}
+            {taskData && (
+                <div className="fixed bottom-16 left-0 right-0 border-t border-slate-200 bg-white p-3 shadow-lg">
+                    <div className="mx-auto flex max-w-[515px] justify-center gap-3">
+                        {/* 待下单状态 - 可取消 */}
+                        {taskData.taskType === '待下单' && (
+                            <button
+                                onClick={() => {
+                                    if (confirm('确定要取消此任务吗？')) {
+                                        // TODO: Call cancel API
+                                        alertError('取消功能开发中');
+                                    }
+                                }}
+                                className="flex-1 rounded-lg border border-red-500 px-4 py-2.5 text-sm font-medium text-red-500 active:bg-red-50"
+                            >
+                                取消任务
+                            </button>
+                        )}
+
+                        {/* 待上传截图状态 */}
+                        {taskData.taskType === '待上传截图' && (
+                            <button
+                                onClick={() => router.push(`/orders/${id}/receive`)}
+                                className="flex-1 rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white active:bg-blue-600"
+                            >
+                                上传截图
+                            </button>
+                        )}
+
+                        {/* 待确认收货状态 */}
+                        {taskData.taskType === '待确认收货' && (
+                            <button
+                                onClick={() => {
+                                    if (confirm('确定已收到货物？')) {
+                                        // TODO: Call confirm receive API
+                                        alertError('确认收货功能开发中');
+                                    }
+                                }}
+                                className="flex-1 rounded-lg bg-green-500 px-4 py-2.5 text-sm font-medium text-white active:bg-green-600"
+                            >
+                                确认收货
+                            </button>
+                        )}
+
+                        {/* 待追评状态 - 上传追评截图 */}
+                        {taskData.taskType === '待追评' && (
+                            <button
+                                onClick={() => router.push(`/orders/${id}/receive?type=zhuiping`)}
+                                className="flex-1 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-medium text-white active:bg-amber-600"
+                            >
+                                上传追评截图
+                            </button>
+                        )}
+
+                        {/* 已完成/已取消状态 - 无操作 */}
+                        {(taskData.taskType === '已完成' || taskData.taskType === '已取消') && (
+                            <div className="flex-1 rounded-lg bg-slate-100 px-4 py-2.5 text-center text-sm font-medium text-slate-400">
+                                {taskData.taskType === '已完成' ? '任务已完成' : '任务已取消'}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
             <BottomNav />
         </div>
     );

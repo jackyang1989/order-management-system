@@ -22,7 +22,7 @@ const navItems: NavItem[] = [
             { label: '基本信息', href: '/profile/settings' },
             { label: '收款账户', href: '/profile/payment' },
             { label: '买号管理', href: '/profile/bind' },
-            { label: '会员VIP', href: '/vip' },
+            { label: '会员VIP', href: '/profile/vip' },
         ],
     },
     {
@@ -31,7 +31,7 @@ const navItems: NavItem[] = [
         icon: '📋',
         highlight: true,
         subItems: [
-            { label: '继续任务', href: '/orders?status=PENDING' },
+            { label: '继续任务', href: '/tasks/continue' },
             { label: '任务领取', href: '/tasks' },
             { label: '任务管理', href: '/orders' },
         ],

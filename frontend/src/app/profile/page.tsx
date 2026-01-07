@@ -18,11 +18,19 @@ export default function ProfilePage() {
     useEffect(() => {
         if (!isAuthenticated()) { router.push('/login'); return; }
         loadProfile();
+
+        const onFocus = () => loadProfile();
+        window.addEventListener('focus', onFocus);
+        return () => window.removeEventListener('focus', onFocus);
     }, [router]);
 
     const loadProfile = async () => {
         try {
             const data = await fetchUserProfile();
+            if (!data && !isAuthenticated()) {
+                router.push('/login');
+                return;
+            }
             setProfile(data);
         } catch (error) {
             console.error('Failed to load profile:', error);
@@ -51,7 +59,7 @@ export default function ProfilePage() {
                 <div className="flex h-14 items-center justify-between px-4">
                     <h1 className="text-base font-medium text-slate-800">个人中心</h1>
                     <div className="flex gap-2">
-                        <Button variant="ghost" size="sm" className="text-blue-500 hover:bg-blue-50" onClick={() => router.push('/tasks')}>继续任务</Button>
+                        <Button variant="ghost" size="sm" className="text-blue-500 hover:bg-blue-50" onClick={() => router.push('/tasks/continue')}>继续任务</Button>
                         <Button variant="ghost" size="sm" className="text-slate-500">通知</Button>
                     </div>
                 </div>
@@ -94,17 +102,22 @@ export default function ProfilePage() {
                 {/* Stats */}
                 <div className="mx-4 flex justify-between rounded-xl border border-slate-200 bg-white py-4 shadow-sm">
                     <div className="flex-1 text-center">
-                        <div className="text-base font-bold text-blue-500">{profile?.totalEarned || 0}</div>
+                        <div className="text-base font-bold text-blue-500">{Number(profile?.totalEarned || 0).toFixed(2)}</div>
                         <div className="text-[10px] text-slate-400">累计赚取银锭</div>
                     </div>
                     <div className="flex-1 border-x border-slate-100 text-center">
-                        <div className="text-base font-bold text-blue-500">0</div>
-                        <div className="text-[10px] text-slate-400">邀请人数</div>
+                        <div className="text-base font-bold text-amber-500">{Number(profile?.pendingReward || 0).toFixed(2)}</div>
+                        <div className="text-[10px] text-slate-400">待商家发放</div>
                     </div>
                     <div className="flex-1 text-center">
-                        <div className="text-base font-bold text-blue-500">0</div>
-                        <div className="text-[10px] text-slate-400">邀请奖励</div>
+                        <div className="text-base font-bold text-slate-500">{Number(profile?.frozenSilver || 0).toFixed(2)}</div>
+                        <div className="text-[10px] text-slate-400">冻结银锭</div>
                     </div>
+                </div>
+
+                {/* Silver Value Hint */}
+                <div className="mx-4 mt-2 text-right text-[10px] text-slate-400">
+                    * 当前银锭折合现金: <span className="font-medium text-slate-600">¥{Number(profile?.silver || 0).toFixed(2)}</span>
                 </div>
 
                 {/* Quick Access */}
@@ -117,7 +130,7 @@ export default function ProfilePage() {
                                     if (i === 0) router.push('/profile/records?tab=balance');
                                     if (i === 1) router.push('/profile/records?tab=silver');
                                     if (i === 2) router.push('/profile/records?tab=withdraw');
-                                    if (i === 3) router.push('/profile/vip-record');
+                                    if (i === 3) router.push('/profile/vip?tab=records');
                                 }}>
                                     {tab}
                                 </button>

@@ -104,14 +104,26 @@ export class WithdrawalsService {
     };
   }
 
-  async findAllByUser(userId: string): Promise<Withdrawal[]> {
-    return this.withdrawalsRepository.find({
-      where: [
-        { userId },
-        { ownerId: userId, ownerType: WithdrawalOwnerType.BUYER },
-      ],
-      order: { createdAt: 'DESC' },
-    });
+  async findAllByUser(userId: string, startDate?: string, endDate?: string): Promise<Withdrawal[]> {
+    const queryBuilder = this.withdrawalsRepository.createQueryBuilder('w')
+      .where('(w.userId = :userId OR (w.ownerId = :userId AND w.ownerType = :ownerType))', {
+        userId,
+        ownerType: WithdrawalOwnerType.BUYER
+      });
+
+    if (startDate) {
+      queryBuilder.andWhere('w.createdAt >= :startDate', { startDate: new Date(startDate) });
+    }
+
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      queryBuilder.andWhere('w.createdAt <= :endDate', { endDate: end });
+    }
+
+    return queryBuilder
+      .orderBy('w.createdAt', 'DESC')
+      .getMany();
   }
 
   /**
@@ -502,27 +514,39 @@ export class WithdrawalsService {
   async findAll(
     page: number = 1,
     limit: number = 20,
-    filters?: { status?: WithdrawalStatus; userId?: string },
+    filters?: { status?: WithdrawalStatus; userId?: string; startDate?: string; endDate?: string },
   ): Promise<{
     data: Withdrawal[];
     total: number;
     page: number;
     limit: number;
   }> {
-    const where: any = {};
+    const queryBuilder = this.withdrawalsRepository.createQueryBuilder('w');
+
     if (filters?.status !== undefined) {
-      where.status = filters.status;
-    }
-    if (filters?.userId) {
-      where.userId = filters.userId;
+      queryBuilder.andWhere('w.status = :status', { status: filters.status });
     }
 
-    const [data, total] = await this.withdrawalsRepository.findAndCount({
-      where,
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+    if (filters?.userId) {
+      queryBuilder.andWhere('w.userId = :userId', { userId: filters.userId });
+    }
+
+    if (filters?.startDate) {
+      queryBuilder.andWhere('w.createdAt >= :startDate', { startDate: new Date(filters.startDate) });
+    }
+
+    if (filters?.endDate) {
+      // End date should include the full day
+      const end = new Date(filters.endDate);
+      end.setHours(23, 59, 59, 999);
+      queryBuilder.andWhere('w.createdAt <= :endDate', { endDate: end });
+    }
+
+    const [data, total] = await queryBuilder
+      .orderBy('w.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
 
     return { data, total, page, limit };
   }

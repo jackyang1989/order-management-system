@@ -27,6 +27,8 @@ export enum OrderStatus {
   COMPLETED = 'COMPLETED', // 已完成 (state=1)
   CANCELLED = 'CANCELLED', // 已取消 (state=2)
   REFUNDED = 'REFUNDED', // 已退款
+  APPEAL_PENDING = 'APPEAL_PENDING', // 申诉处理中 (Legacy 7)
+  ADDITIONAL_REVIEW = 'ADDITIONAL_REVIEW', // 商家要求追加评论 (Legacy 9)
 }
 
 // 发货状态

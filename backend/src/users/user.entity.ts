@@ -129,6 +129,9 @@ export class User {
   @Column({ type: 'varchar', length: 10, nullable: true })
   lastVipCheckAt: string; // 最后VIP检查日期 (YYYY-MM-DD)，用于避免每天重复降级
 
+  @Column({ type: 'int', default: 0 })
+  experience: number; // 经验值
+
   @CreateDateColumn()
   createdAt: Date;
 

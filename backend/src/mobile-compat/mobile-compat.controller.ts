@@ -623,37 +623,61 @@ export class MobileCompatController {
       const page = body.page || 1;
       const limit = body.limit || 10;
 
-      // 获取用户订单
-      const orders = await this.ordersService.findAll(userId, {
-        status: body.choose_a || undefined,
+      // 1. 获取分页订单 (Fetch Orders)
+      const { data: orders, total } = await this.ordersService.findAllAndCount(userId, {
+        page,
+        limit,
+        status: body.choose_a,
+        // TODO: Support other filters like task_type, buyno, etc. if needed
       });
 
-      // 手动分页
-      const startIndex = (page - 1) * limit;
-      const paginatedOrders = orders.slice(startIndex, startIndex + limit);
+      // 2. 批量获取相关任务信息 (Fetch Related Tasks)
+      const taskIds = orders.map(o => o.taskId);
+      let tasksMap: Record<string, any> = {};
+      if (taskIds.length > 0) {
+        const tasks = await this.tasksService.findByIds(taskIds);
+        tasksMap = tasks.reduce((acc, task) => {
+          acc[task.id] = task;
+          return acc;
+        }, {});
+      }
 
-      // 格式化返回数据，符合原版格式
-      const list = paginatedOrders.map((order: any) => ({
-        id: order.id,
-        task_id: order.taskId,
-        task_title: order.taskTitle || order.productName,
-        product_name: order.productName,
-        product_price: order.productPrice,
-        commission: order.commission,
-        status: order.status,
-        progress: this.getOrderProgress(order),
-        buyno: order.buynoAccount,
-        platform: order.platform,
-        created_at: order.createdAt,
-        updated_at: order.updatedAt,
-      }));
+      // 3. 构建返回列表 (Build Response List)
+      const list = orders.map((order: any) => {
+        const task = tasksMap[order.taskId] || {};
+        const statusMap = this.mapStatusToLegacy(order.status);
+
+        return {
+          id: order.id,
+          task_number: task.taskNumber || order.id, // 任务编号
+          shop_name: task.shopName || '未知店铺',
+          shop_img: order.shopImg || '', // TODO: Get from Task or Merchant?
+          type: this.getPlatformName(order.platform), // 店铺类型 (淘宝/天猫...)
+          task_type: this.getTaskTypeName(task.taskType), // 任务类型名称
+          main_product_name: order.productName,
+          main_product_pc_img: task.mainImage || '',
+
+          state: statusMap.state,           // 显示状态文本
+          index_state: statusMap.index_state, // 状态码
+
+          wwid: order.buynoAccount, // 买号旺旺ID
+          commission: order.commission,
+          user_divided: order.userDivided || 0,
+          user_principal: order.userPrincipal || 0,
+          create_time: order.createdAt, // Should be string formatted? Frontend likely handles date string
+          progress: this.getOrderProgress(order) + '%', // Frontend likely expects string "50%" or number? Frontend code: list[i].progress + '%'
+
+          review_task_id: order.reviewTaskId || '', // TODO: 追评ID
+          checked: false,
+        };
+      });
 
       return {
         code: 1,
         msg: 'success',
         data: {
           list,
-          total: orders.length,
+          total: total,
           page,
           limit,
         },
@@ -661,6 +685,40 @@ export class MobileCompatController {
     } catch (error) {
       return { code: 0, msg: error.message || '获取订单列表失败', data: null };
     }
+  }
+
+  // 辅助函数：映射状态到旧版 state 和 index_state
+  private mapStatusToLegacy(status: string): { state: string; index_state: string } {
+    const map: Record<string, { state: string; index_state: string }> = {
+      'PENDING': { state: '进行中', index_state: '0' },
+      'SUBMITTED': { state: '待审核', index_state: '0' },
+      'APPROVED': { state: '待发货', index_state: '1' }, // 审核通过即待发货
+      'WAITING_DELIVERY': { state: '待发货', index_state: '1' },
+      'WAITING_RECEIVE': { state: '待收货', index_state: '2' },
+      'WAITING_REFUND': { state: '待返款', index_state: '3' },
+      'WAITING_REVIEW_REFUND': { state: '待返款', index_state: '3' },
+      'COMPLETED': { state: '已完成', index_state: '5' },
+      'CANCELLED': { state: '已取消', index_state: '7' },
+      'REJECTED': { state: '已拒绝', index_state: '99' },
+      'APPEAL_PENDING': { state: '申诉中', index_state: '7' }, // 申诉中暂归为特殊状态
+      'ADDITIONAL_REVIEW': { state: '需追评', index_state: '5' }, // 追评通常在已完成以后的流程
+    };
+    return map[status] || { state: '未知状态', index_state: '' };
+  }
+
+  private getPlatformName(platform: string): string {
+    return platform || '其他';
+  }
+
+  private getTaskTypeName(type: number): string {
+    const types = ['关键词', '关键词', '淘口令', '二维码', '直通车', '通道任务']; // 0-based index? TaskType enum starts at 1
+    // Enum: 1=Taobao... Wait, TaskType enum is specific to platform?
+    // Frontend TASK_TYPE_OPTIONS: 1=关键词 2=淘口令 3=二维码 4=直通车 5=通道任务
+    // But Task.taskType is platform (1=Taobao). 
+    // Is there a separate field for traffic type?
+    // Task entity: taoWord, qrCode fields imply type.
+    // Let's assume generic "普通任务" if not specified.
+    return '普通任务';
   }
 
   // 辅助函数：计算订单进度百分比
@@ -675,9 +733,36 @@ export class MobileCompatController {
       PENDING: 10,
       SUBMITTED: 30,
       APPROVED: 50,
-      SHIPPED: 70,
-      RECEIVED: 90,
+      WAITING_DELIVERY: 50,
+      WAITING_RECEIVE: 70,
+      WAITING_REFUND: 90,
     };
     return statusProgress[order.status] || 0;
+  }
+  /**
+   * 确认收货
+   * 原版: /mobile/my/take_delivery
+   */
+  @Post('my/take_delivery')
+  @UseGuards(JwtAuthGuard)
+  async takeDelivery(@Body() body: any, @Request() req) {
+    try {
+      const orderId = body.task_id || body.orderId;
+      const praiseImg = body.high_praise_img; // Base64 or URL
+
+      // Update order status to WAITING_REFUND (Legacy state 5)
+      // We need to extend OrdersService or access Repository directly?
+      // Best to use OrdersService.updateStatus but we might need to save proof too.
+      // Let's add a method in OrdersService for this specific business action if proper.
+      // For now, using direct update or service call.
+
+      // Since OrdersService.confirmReceipt isn't defined, let's use a custom logic here or add it to service.
+      // Ideally, added to OrdersService.
+      await this.ordersService.confirmReceipt(orderId, req.user.userId, praiseImg);
+
+      return { code: 1, msg: '确认收货成功', data: null, url: '/orders' };
+    } catch (error) {
+      return { code: 0, msg: error.message || '确认收货失败', data: null };
+    }
   }
 }

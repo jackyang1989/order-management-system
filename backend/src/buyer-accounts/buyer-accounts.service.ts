@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not } from 'typeorm';
 import {
   BuyerAccount,
   BuyerAccountStatus,
@@ -51,16 +51,19 @@ export class BuyerAccountsService {
     userId: string,
     createDto: CreateBuyerAccountDto,
   ): Promise<BuyerAccount> {
-    // 检查账号名是否已存在 (全局唯一性校验，防止重复绑定)
+    // 检查 同一用户 + 同一平台 + 同一账号 唯一性
+    // 允许: 同一账号在不同平台绑定
+    // 禁止: 同一用户在同一平台重复绑定同一账号
     const existing = await this.buyerAccountsRepository.findOne({
       where: {
+        userId,
         platform: createDto.platform || BuyerAccountPlatform.TAOBAO,
         platformAccount: createDto.platformAccount,
-        status: BuyerAccountStatus.APPROVED, // 只检查已审核通过的，防止误拦
+        status: Not(BuyerAccountStatus.DELETED),
       },
     });
     if (existing) {
-      throw new BadRequestException('该买号已存在');
+      throw new BadRequestException('该平台下此账号已绑定');
     }
 
     const buyerAccount = this.buyerAccountsRepository.create({

@@ -6,6 +6,7 @@ import {
   Request,
   Query,
   Body,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UsersService } from './users.service';
@@ -13,7 +14,7 @@ import { UsersService } from './users.service';
 @Controller('user')
 @UseGuards(JwtAuthGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Get('buyer-accounts')
   async getBuyerAccounts(@Request() req) {
@@ -27,6 +28,9 @@ export class UsersController {
   @Get('profile')
   async getProfile(@Request() req) {
     const user = await this.usersService.findOne(req.user.userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
     // 同时获取统计数据
     const stats = await this.usersService.getProfileStats(req.user.userId);
     const balanceOverview = await this.usersService.getBalanceOverview(

@@ -49,7 +49,7 @@ interface AreaData {
 }
 
 // ===================== 主组件 =====================
-export default function TaskStepPage({ params }: { params: Promise<{ id: string }> }) {
+export default function OrderExecutePage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const { id } = use(params);
 
@@ -160,7 +160,7 @@ export default function TaskStepPage({ params }: { params: Promise<{ id: string 
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
-                body: JSON.stringify({ id }),
+                body: JSON.stringify({ id }), // 这里的 id 是 orderId
             });
             const res = await response.json();
 
@@ -559,7 +559,7 @@ export default function TaskStepPage({ params }: { params: Promise<{ id: string 
                 zIndex: 100,
             }}>
                 <div onClick={() => router.back()} style={{ fontSize: '20px', cursor: 'pointer', width: '30px' }}>‹</div>
-                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>任务大厅</div>
+                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>任务执行</div>
                 <div style={{ width: '30px' }}></div>
             </div>
 
@@ -804,108 +804,57 @@ export default function TaskStepPage({ params }: { params: Promise<{ id: string 
                         </div>
 
                         {tableData2.map((item, index) => (
-                            <div key={index} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
-                                <div style={{ fontSize: '13px', color: '#666', lineHeight: '1.8' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>店铺名称:</span><span>{item.dianpuName?.substring(0, 1)}...</span>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>商品名称:</span><span>{item.productName?.substring(0, 1)}...</span>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>商品类型:</span><span>{item.type}</span>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>商品价格:</span><span>{item.buy_price?.toString().substring(0, 1)}...</span>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>颜色尺码:</span><span>{mainProductFilter1} {mainProductFilter2}</span>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>购买件数:</span><span>{item.buy_num}</span>
+                            <div key={index} style={{ marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '15px' }}>
+                                <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                    <img src={item.img} alt="商品" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontSize: '13px', color: '#333' }}>{item.productName}</div>
+                                        <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>店铺：{item.dianpuName}</div>
+                                        <div style={{ fontSize: '12px', color: '#f56c6c', marginTop: '5px' }}>¥{item.buy_price} x {item.buy_num}</div>
                                     </div>
                                 </div>
 
-                                {/* 商品图片 */}
-                                {item.img && (
-                                    <div style={{ marginTop: '10px' }}>
-                                        <span style={{ fontSize: '13px', color: '#666' }}>商品图片：</span>
-                                        <img
-                                            src={item.img}
-                                            alt="商品图"
-                                            style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', cursor: 'pointer' }}
-                                            onClick={() => setPreviewImage(item.img)}
-                                        />
-                                    </div>
-                                )}
-
-                                {/* 商品链接核对 */}
-                                <div style={{ marginTop: '10px' }}>
-                                    <div style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>商品链接核对：</div>
-                                    <div style={{ display: 'flex', gap: '5px' }}>
+                                {/* 核对输入 */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    <div style={{ display: 'flex', gap: '10px' }}>
                                         <input
                                             type="text"
                                             value={item.input}
                                             onChange={(e) => updateGoodsInput(index, 'input', e.target.value)}
                                             placeholder="请输入商品链接"
-                                            style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '13px' }}
+                                            style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
                                         />
                                         <button
                                             onClick={() => hedui(item.input, item.goods_id)}
-                                            style={{ background: '#409eff', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}
+                                            style={{ background: '#409eff', color: 'white', border: 'none', borderRadius: '4px', padding: '0 10px' }}
                                         >
                                             核对
                                         </button>
                                     </div>
-                                </div>
-
-                                {/* 商品口令核对 */}
-                                {adminLimitSwitch === 1 && (
-                                    <div style={{ marginTop: '10px' }}>
-                                        <div style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>商品口令核对：</div>
-                                        <div style={{ display: 'flex', gap: '5px' }}>
+                                    {adminLimitSwitch === 1 && (
+                                        <div style={{ display: 'flex', gap: '10px' }}>
                                             <input
                                                 type="text"
                                                 value={item.inputnum}
                                                 onChange={(e) => updateGoodsInput(index, 'inputnum', e.target.value)}
-                                                placeholder="请输入商品口令"
-                                                style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '13px' }}
+                                                placeholder="请输入核对数字"
+                                                style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
                                             />
                                             <button
                                                 onClick={() => heduinum(item.inputnum, item.goods_id)}
-                                                style={{ background: '#409eff', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}
+                                                style={{ background: '#409eff', color: 'white', border: 'none', borderRadius: '4px', padding: '0 10px' }}
                                             >
                                                 核对
                                             </button>
                                         </div>
-                                    </div>
-                                )}
-
-                                {/* 口令提示 */}
-                                {item.goods_spec && (
-                                    <div style={{ marginTop: '5px', fontSize: '12px', color: '#f56c6c' }}>
-                                        商品口令提示：{item.goods_spec}
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
                         ))}
-
-                        {/* 核对说明 */}
-                        <div style={{ fontSize: '12px', color: '#999', marginTop: '10px', padding: '10px', background: '#f5f5f5', borderRadius: '4px' }}>
-                            {adminLimitSwitch === 1 ? (
-                                <>
-                                    <p>链接与口令核对提示：</p>
-                                    <p>商品链接核对：找到宝贝进店浏览后，长按商品名称-复制链接，粘贴到输入框核对。</p>
-                                    <p>商品口令核对：根据口令提示在商品详情页找到与提示相符的文字填写进输入框进行核对(忽略文字间的标点符号)，口令提示里有几个星号就代表隐藏了几个字，需要将未隐藏的字和隐藏的字一起输入核对，链接和口令核对正确即可继续完成任务。</p>
-                                </>
-                            ) : (
-                                <p>注：商品链接核对是找到宝贝进店浏览后，长按商品标题-复制链接，粘贴到输入框核对，链接核对正确即可继续做任务。</p>
-                            )}
-                        </div>
                     </div>
 
-                    {/* 肆：浏览收藏 */}
-                    <div style={{ background: '#fff', borderRadius: '8px', padding: '15px', marginBottom: '10px' }}>
+                    {/* 肆：收藏/加购 */}
+                    <div style={{ background: '#fff', borderRadius: '8px', padding: '15px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
                             <span style={{
                                 background: '#409eff',
@@ -919,12 +868,12 @@ export default function TaskStepPage({ params }: { params: Promise<{ id: string 
                                 marginRight: '10px',
                                 fontSize: '12px',
                             }}>肆</span>
-                            <span style={{ fontWeight: 'bold' }}>浏览收藏</span>
+                            <span style={{ fontWeight: 'bold' }}>收藏/加购/聊天</span>
                         </div>
                         <div style={{ fontSize: '13px', color: '#666', lineHeight: '1.8' }}>
-                            <p>1. 主商品自上到底浏览时间不少于8分钟，并点推荐（随便选3个选项）、收藏，然后加购商家指定的颜色尺码(若未指定，请加购自己日常穿着的尺码)；</p>
-                            <p>2. 副商品自上到底浏览时间不少于5分钟，并点推荐（随便选3个选项）、收藏，然后加购商家指定的颜色尺码(若未指定，请加购自己日常穿着的尺码)。</p>
-                            <p>3. 上传宝贝收藏页面截图(路径:我的淘宝-收藏)：</p>
+                            <p>1. 分别浏览主/副宝贝深度验证；</p>
+                            <p>2. 对目标商品进行收藏；</p>
+                            <p>3. 上传收藏页面的截图：</p>
                         </div>
                         <div style={{ marginTop: '10px' }}>
                             <input
@@ -944,13 +893,33 @@ export default function TaskStepPage({ params }: { params: Promise<{ id: string 
                                 </div>
                             )}
                         </div>
-                        <div style={{ fontSize: '12px', color: '#999', marginTop: '10px' }}>
-                            注: 截图里需要能看到收藏的主商品和副商品。
+                        <div style={{ marginTop: '15px' }}>
+                            <p style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>商品链接(主)：</p>
+                            <input
+                                type="text"
+                                value={inputValue3}
+                                onChange={(e) => setInputValue3(e.target.value)}
+                                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                        </div>
+                        <div style={{ marginTop: '10px' }}>
+                            <p style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>商品链接(副)：</p>
+                            <input
+                                type="text"
+                                value={inputValue4}
+                                onChange={(e) => setInputValue4(e.target.value)}
+                                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
                         </div>
                     </div>
+                </div>
+            )}
 
-                    {/* 伍：店铺浏览 */}
-                    <div style={{ background: '#fff', borderRadius: '8px', padding: '15px' }}>
+            {/* ===================== 第三步 ===================== */}
+            {active === 3 && (
+                <div style={{ margin: '10px' }}>
+                    {/* 伍：提交订单 */}
+                    <div style={{ background: '#fff', borderRadius: '8px', padding: '15px', marginBottom: '10px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
                             <span style={{
                                 background: '#409eff',
@@ -964,128 +933,85 @@ export default function TaskStepPage({ params }: { params: Promise<{ id: string 
                                 marginRight: '10px',
                                 fontSize: '12px',
                             }}>伍</span>
-                            <span style={{ fontWeight: 'bold' }}>店铺浏览</span>
+                            <span style={{ fontWeight: 'bold' }}>提交订单</span>
                         </div>
-                        <div style={{ fontSize: '13px', color: '#666', lineHeight: '1.8' }}>
-                            <p>1. 进入店铺首页并订阅店铺；</p>
-                            <p>2. 在店铺内随便浏览2-3款与主副款不同的商品，每款浏览2分钟后，长按商品标题复制商品链接放入下面输入框。</p>
+                        <div style={{ fontSize: '13px', color: '#666', lineHeight: '1.8', marginBottom: '15px' }}>
+                            <p>1. 核对收货地址信息，确认无误后下单付款；</p>
+                            <p>2. 将付款后的订单详情截图上传；</p>
+                            <p>3. 填写订单号和实际付款金额。</p>
                         </div>
-                        <div style={{ marginTop: '15px' }}>
-                            <div style={{ marginBottom: '10px' }}>
-                                <span style={{ fontSize: '13px', color: '#666' }}>3. 商品链接1：</span>
-                                <input
-                                    type="text"
-                                    value={inputValue3}
-                                    onChange={(e) => setInputValue3(e.target.value)}
-                                    placeholder="请输入内容"
-                                    style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', marginTop: '5px' }}
-                                />
+
+                        {/* 收货地址 */}
+                        <div style={{ marginBottom: '15px', padding: '10px', background: '#f9f9f9', borderRadius: '4px' }}>
+                            <p style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '5px' }}>收货信息：</p>
+                            <p style={{ fontSize: '13px', color: '#333' }}>{receiverAddress}</p>
+                            <div style={{ marginTop: '10px' }}>
+                                <label style={{ fontSize: '13px', display: 'flex', alignItems: 'center' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={threeRadio === '2'}
+                                        onChange={(e) => setThreeRadio(e.target.checked ? '2' : '1')}
+                                        style={{ marginRight: '5px' }}
+                                    />
+                                    修改收货地址
+                                </label>
                             </div>
-                            <div>
-                                <span style={{ fontSize: '13px', color: '#666' }}>4. 商品链接2：</span>
-                                <input
-                                    type="text"
-                                    value={inputValue4}
-                                    onChange={(e) => setInputValue4(e.target.value)}
-                                    placeholder="请输入内容"
-                                    style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', marginTop: '5px' }}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* ===================== 第三步 ===================== */}
-            {active === 3 && (
-                <div style={{ margin: '10px' }}>
-                    {/* 核对订单商品 */}
-                    <div style={{ background: '#fff', borderRadius: '8px', padding: '15px', marginBottom: '10px' }}>
-                        <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#f56c6c', marginBottom: '15px' }}>
-                            核对订单商品(滑动查看)
-                        </div>
-                        <div style={{ overflowX: 'auto' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', minWidth: '400px' }}>
-                                <thead>
-                                    <tr style={{ background: '#f5f5f5' }}>
-                                        <th style={{ padding: '8px', border: '1px solid #ddd' }}>#</th>
-                                        <th style={{ padding: '8px', border: '1px solid #ddd' }}>店铺名称</th>
-                                        <th style={{ padding: '8px', border: '1px solid #ddd' }}>商品标题</th>
-                                        <th style={{ padding: '8px', border: '1px solid #ddd' }}>单价</th>
-                                        <th style={{ padding: '8px', border: '1px solid #ddd' }}>购买数量</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {tableData3.length > 0 ? tableData3.map((item, index) => (
-                                        <tr key={index}>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>{item.id}</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{item.dianpuName}</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{item.productName}</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>{item.price}</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>{item.count}</td>
-                                        </tr>
-                                    )) : (
-                                        <tr>
-                                            <td colSpan={5} style={{ padding: '20px', border: '1px solid #ddd', textAlign: 'center', color: '#999' }}>暂无内容</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    {/* 填写订单信息 */}
-                    <div style={{ background: '#fff', borderRadius: '8px', padding: '15px' }}>
-                        <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#f56c6c', marginBottom: '15px' }}>
-                            填写订单信息并提交
+                            {threeRadio === '2' && (
+                                <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    <input
+                                        type="text"
+                                        value={inputPerson}
+                                        onChange={(e) => setInputPerson(e.target.value)}
+                                        placeholder="收货人"
+                                        style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                                    />
+                                    <input
+                                        type="text"
+                                        value={inputMobile}
+                                        onChange={(e) => setInputMobile(e.target.value)}
+                                        placeholder="手机号"
+                                        style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                                    />
+                                    <input
+                                        type="text"
+                                        value={inputStreet}
+                                        onChange={(e) => setInputStreet(e.target.value)}
+                                        placeholder="详细地址"
+                                        style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                                    />
+                                </div>
+                            )}
                         </div>
 
-                        {/* 温馨提示 */}
-                        <div style={{ background: '#f0f9ff', padding: '12px', borderRadius: '4px', marginBottom: '15px', fontSize: '12px', color: '#409eff' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                                <span style={{ marginRight: '5px' }}>ℹ</span>
-                                <span style={{ fontWeight: 'bold' }}>温馨提示</span>
-                            </div>
-                            <p>1. 请使用<span style={{ color: 'red' }}>{userBuynoWangwang}</span>下单和付款，付款完毕后请填写您的实付金额和订单号。</p>
-                            <p>2. 只能使用银行借记卡或支付宝付款，<span style={{ color: 'red' }}>不可使用信用卡、花呗付款，也不可使用村淘(农村淘宝)、淘宝客和返利平台下单，提交后会进行审核一旦发现订单退款和买号降权处理。</span></p>
-                        </div>
-
-                        {/* 订单号 */}
+                        {/* 订单信息输入 */}
                         <div style={{ marginBottom: '15px' }}>
-                            <p style={{ fontSize: '13px', color: '#333', marginBottom: '5px' }}>1. 填写当前订单信息:</p>
-                            <p style={{ fontSize: '12px', color: '#f56c6c', marginBottom: '10px' }}>*如任务商品拍下后产生2个订单号，请将2个订单号同时填写到下方，两个订单号中间用减号&apos;-&apos;隔开。</p>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <span style={{ fontSize: '13px', color: '#666', whiteSpace: 'nowrap' }}>订单编号：</span>
-                                <input
-                                    type="text"
-                                    value={inputValue7}
-                                    onChange={(e) => setInputValue7(e.target.value)}
-                                    placeholder="请输入订单号"
-                                    style={{ flex: 1, padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
-                                />
-                            </div>
+                            <p style={{ fontSize: '13px', marginBottom: '5px' }}>订单编号：</p>
+                            <input
+                                type="text"
+                                value={inputValue7}
+                                onChange={(e) => setInputValue7(e.target.value)}
+                                placeholder="请输入订单编号"
+                                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
                         </div>
-
-                        {/* 付款金额 */}
                         <div style={{ marginBottom: '15px' }}>
-                            <p style={{ fontSize: '13px', color: '#333', marginBottom: '5px' }}>2. 填写实际付款金额:</p>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <span style={{ fontSize: '13px', color: '#666', whiteSpace: 'nowrap' }}>付款金额：</span>
+                            <p style={{ fontSize: '13px', marginBottom: '5px' }}>实际付款金额：</p>
+                            <div style={{ display: 'flex', gap: '10px' }}>
                                 <input
                                     type="number"
                                     value={inputNumber}
                                     onChange={(e) => setInputNumber(e.target.value)}
                                     onBlur={inputchange}
-                                    placeholder="请输入付款金额"
+                                    placeholder="请输入金额"
                                     style={{ flex: 1, padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
                                 />
                             </div>
-                            <p style={{ fontSize: '12px', color: '#f56c6c', marginTop: '5px' }}>*实际付款金额不得超过或者小于订单金额100元。</p>
+                            <p style={{ fontSize: '12px', color: '#f56c6c', marginTop: '5px' }}>*实际金额必须在误差范围内，否则无法提交</p>
                         </div>
 
                         {/* 订单截图 */}
-                        <div style={{ marginBottom: '15px' }}>
-                            <p style={{ fontSize: '13px', color: '#333', marginBottom: '5px' }}>3. 订单详情截图上传:</p>
+                        <div>
+                            <p style={{ fontSize: '13px', marginBottom: '5px' }}>订单详情截图：</p>
                             <input
                                 type="file"
                                 accept="image/*"
@@ -1102,83 +1028,12 @@ export default function TaskStepPage({ params }: { params: Promise<{ id: string 
                                     />
                                 </div>
                             )}
-                            <p style={{ fontSize: '12px', color: '#f56c6c', marginTop: '5px' }}>*禁止修改截图上的付款金额，所有优惠后台可见。</p>
                         </div>
-
-                        {/* 收货人信息 */}
-                        <div style={{ marginBottom: '15px' }}>
-                            <p style={{ fontSize: '13px', color: '#333', marginBottom: '10px' }}>4. 收货人信息：<span style={{ color: 'red' }}>{receiverAddress}</span></p>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                    <input
-                                        type="radio"
-                                        name="address"
-                                        value="1"
-                                        checked={threeRadio === '1'}
-                                        onChange={(e) => setThreeRadio(e.target.value)}
-                                        style={{ marginRight: '8px' }}
-                                    />
-                                    <span style={{ fontSize: '13px', color: threeRadio === '1' ? '#409eff' : '#666' }}>确认下单时是以上收货人信息</span>
-                                </label>
-                                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                    <input
-                                        type="radio"
-                                        name="address"
-                                        value="2"
-                                        checked={threeRadio === '2'}
-                                        onChange={(e) => setThreeRadio(e.target.value)}
-                                        style={{ marginRight: '8px' }}
-                                    />
-                                    <span style={{ fontSize: '13px', color: threeRadio === '2' ? '#409eff' : '#666' }}>不是以上内容，我要修改成实际下单人的收货信息</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        {/* 修改收货地址 */}
-                        {threeRadio === '2' && (
-                            <div style={{ background: '#f9f9f9', padding: '15px', borderRadius: '4px' }}>
-                                <div style={{ marginBottom: '10px' }}>
-                                    <span style={{ fontSize: '13px', color: '#666' }}>所在地区：</span>
-                                    <span>{area.province} {area.city} {area.region}</span>
-                                </div>
-                                <div style={{ marginBottom: '10px' }}>
-                                    <span style={{ fontSize: '13px', color: '#666' }}>详细地址：</span>
-                                    <input
-                                        type="text"
-                                        value={inputStreet}
-                                        onChange={(e) => setInputStreet(e.target.value)}
-                                        placeholder="请输入内容"
-                                        style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', marginTop: '5px' }}
-                                    />
-                                </div>
-                                <div style={{ marginBottom: '10px' }}>
-                                    <span style={{ fontSize: '13px', color: '#666' }}>收货人姓名：</span>
-                                    <input
-                                        type="text"
-                                        value={inputPerson}
-                                        onChange={(e) => setInputPerson(e.target.value)}
-                                        placeholder="请输入内容"
-                                        style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', marginTop: '5px' }}
-                                    />
-                                </div>
-                                <div>
-                                    <span style={{ fontSize: '13px', color: '#666' }}>手机号：</span>
-                                    <input
-                                        type="text"
-                                        value={inputMobile}
-                                        onChange={(e) => setInputMobile(e.target.value)}
-                                        placeholder="请输入内容"
-                                        maxLength={11}
-                                        style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', marginTop: '5px' }}
-                                    />
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
             )}
 
-            {/* 底部按钮 */}
+            {/* 底部操作栏 */}
             <div style={{
                 position: 'fixed',
                 bottom: 0,
@@ -1186,22 +1041,19 @@ export default function TaskStepPage({ params }: { params: Promise<{ id: string 
                 right: 0,
                 background: '#fff',
                 padding: '10px 15px',
-                borderTop: '1px solid #ddd',
+                borderTop: '1px solid #eee',
                 display: 'flex',
-                gap: '10px',
+                justifyContent: 'space-between',
             }}>
                 <button
                     onClick={prev}
                     disabled={active === 1}
                     style={{
-                        flex: 1,
-                        padding: '12px',
-                        background: active === 1 ? '#ddd' : '#409eff',
-                        color: 'white',
-                        border: 'none',
+                        padding: '10px 30px',
+                        background: active === 1 ? '#f5f5f5' : '#fff',
+                        border: '1px solid #ddd',
+                        color: active === 1 ? '#ccc' : '#666',
                         borderRadius: '4px',
-                        fontSize: '15px',
-                        fontWeight: 'bold',
                         cursor: active === 1 ? 'not-allowed' : 'pointer',
                     }}
                 >
@@ -1211,22 +1063,19 @@ export default function TaskStepPage({ params }: { params: Promise<{ id: string 
                     onClick={next}
                     disabled={submitting}
                     style={{
-                        flex: 1,
-                        padding: '12px',
+                        padding: '10px 30px',
                         background: submitting ? '#a0cfff' : '#409eff',
-                        color: 'white',
                         border: 'none',
+                        color: 'white',
                         borderRadius: '4px',
-                        fontSize: '15px',
-                        fontWeight: 'bold',
                         cursor: submitting ? 'not-allowed' : 'pointer',
                     }}
                 >
-                    {submitting ? '提交中...' : '下一步'}
+                    {active === 3 ? (submitting ? '提交中...' : '提交任务') : '下一步'}
                 </button>
             </div>
 
-            {/* 图片预览弹层 */}
+            {/* 图片预览 Modal */}
             {previewImage && (
                 <div
                     style={{
@@ -1236,10 +1085,10 @@ export default function TaskStepPage({ params }: { params: Promise<{ id: string 
                         right: 0,
                         bottom: 0,
                         background: 'rgba(0,0,0,0.8)',
+                        zIndex: 1000,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        zIndex: 1000,
                     }}
                     onClick={() => setPreviewImage(null)}
                 >

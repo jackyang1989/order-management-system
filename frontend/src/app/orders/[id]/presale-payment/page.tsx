@@ -24,7 +24,7 @@ interface TaskData {
 }
 
 // ===================== 主组件 =====================
-export default function WkPage({ params }: { params: Promise<{ id: string }> }) {
+export default function PresalePaymentPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const { id } = use(params);
 

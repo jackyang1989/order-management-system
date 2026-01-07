@@ -18,7 +18,7 @@ export class ExcelService {
     private orderRepository: Repository<Order>,
     @InjectRepository(Task)
     private taskRepository: Repository<Task>,
-  ) {}
+  ) { }
 
   // ============ 导出功能 ============
 
@@ -306,6 +306,8 @@ export class ExcelService {
       [OrderStatus.COMPLETED]: '已完成',
       [OrderStatus.CANCELLED]: '已取消',
       [OrderStatus.REFUNDED]: '已退款',
+      [OrderStatus.APPEAL_PENDING]: '申诉处理中',
+      [OrderStatus.ADDITIONAL_REVIEW]: '商家要求追加评论',
     };
     return statusMap[status] || status;
   }

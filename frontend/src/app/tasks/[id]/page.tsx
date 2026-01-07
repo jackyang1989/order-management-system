@@ -58,10 +58,10 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
         setSubmitting(true);
         try {
-            const success = await createOrder(task.id, buyerAccount);
-            if (success) {
+            const result = await createOrder(task.id, buyerAccount);
+            if (result && result.orderId) {
                 alert('领取成功！立即开始任务');
-                router.push(`/task/${task.id}/step`);
+                router.push(`/orders/${result.orderId}/execute`);
             } else {
                 alert('领取失败，请稍后重试');
             }

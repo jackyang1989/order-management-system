@@ -15,7 +15,7 @@ import { CreateWithdrawalDto, WithdrawalType } from './withdrawal.entity';
 @Controller('withdrawals')
 @UseGuards(JwtAuthGuard)
 export class WithdrawalsController {
-  constructor(private withdrawalsService: WithdrawalsService) {}
+  constructor(private withdrawalsService: WithdrawalsService) { }
 
   @Get()
   async findAll(@Request() req) {
@@ -64,6 +64,15 @@ export class WithdrawalsController {
       success: true,
       data: result,
     };
+  }
+
+  @Get('my')
+  async findAllByUser(
+    @Request() req,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.withdrawalsService.findAllByUser(req.user.userId, startDate, endDate);
   }
 
   @Get(':id')

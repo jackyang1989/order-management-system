@@ -186,10 +186,14 @@ export interface WithdrawalStats {
 }
 
 // 获取提现记录
-export const fetchWithdrawals = async (): Promise<Withdrawal[]> => {
+export const fetchWithdrawals = async (startDate?: string, endDate?: string): Promise<Withdrawal[]> => {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${BASE_URL}/withdrawals`, {
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+
+        const response = await fetch(`${BASE_URL}/withdrawals/my?${params.toString()}`, {
             headers: token ? { 'Authorization': `Bearer ${token}` } : {}
         });
         if (!response.ok) throw new Error('Failed to fetch withdrawals');
@@ -356,13 +360,100 @@ export const fetchUserProfile = async (): Promise<UserProfile | null> => {
     try {
         const token = localStorage.getItem('token');
         const response = await fetch(`${BASE_URL}/user/profile`, {
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+            cache: 'no-store'
         });
-        if (!response.ok) throw new Error('Failed to fetch user profile');
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                console.warn('[UserService] Unauthorized - clearing token');
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                return null; // Return null instead of throwing
+            }
+            throw new Error(`Failed to fetch user profile: ${response.status}`);
+        }
+
         const res = await response.json();
         return res.data || null;
     } catch (error) {
         console.error('Fetch user profile error:', error);
         return null;
+    }
+};
+
+// 发送个人中心相关验证码
+export const sendProfileSmsCode = async (phone: string, type: 'change_phone' | 'change_password' | 'change_pay_password'): Promise<{ success: boolean; message: string }> => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${BASE_URL}/user/send-sms`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
+            body: JSON.stringify({ phone, type })
+        });
+        const result = await response.json();
+        return { success: response.ok, message: result.message || (response.ok ? '发送成功' : '发送失败') };
+    } catch (error) {
+        return { success: false, message: '网络错误' };
+    }
+};
+
+// 修改登录密码
+export const changePassword = async (data: { oldPassword: string; newPassword: string }): Promise<{ success: boolean; message: string }> => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${BASE_URL}/user/change-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        return { success: response.ok, message: result.message || (response.ok ? '修改成功' : '修改失败') };
+    } catch (error) {
+        return { success: false, message: '网络错误' };
+    }
+};
+
+// 修改支付密码
+export const changePayPassword = async (data: { newPayPassword: string; phone: string; smsCode: string }): Promise<{ success: boolean; message: string }> => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${BASE_URL}/user/change-pay-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        return { success: response.ok, message: result.message || (response.ok ? '修改成功' : '修改失败') };
+    } catch (error) {
+        return { success: false, message: '网络错误' };
+    }
+};
+
+// 修改手机号
+export const changePhone = async (data: { oldPhone: string; payPassword: string; newPhone: string; smsCode: string }): Promise<{ success: boolean; message: string }> => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${BASE_URL}/user/change-phone`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        return { success: response.ok, message: result.message || (response.ok ? '修改成功' : '修改失败') };
+    } catch (error) {
+        return { success: false, message: '网络错误' };
     }
 };

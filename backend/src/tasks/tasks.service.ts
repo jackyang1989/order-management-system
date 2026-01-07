@@ -25,7 +25,7 @@ export class TasksService implements OnModuleInit {
     @Inject(forwardRef(() => MerchantsService))
     private merchantsService: MerchantsService,
     private dataSource: DataSource,
-  ) {}
+  ) { }
 
   // 初始化时插入种子数据
   async onModuleInit() {
@@ -148,6 +148,14 @@ export class TasksService implements OnModuleInit {
     }
 
     return queryBuilder.orderBy('task.createdAt', 'DESC').getMany();
+  }
+
+  async findByIds(ids: string[]): Promise<Task[]> {
+    if (!ids || ids.length === 0) return [];
+    return this.tasksRepository
+      .createQueryBuilder('task')
+      .where('task.id IN (:...ids)', { ids })
+      .getMany();
   }
 
   async findOne(id: string): Promise<Task | null> {

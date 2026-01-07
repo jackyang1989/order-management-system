@@ -20,6 +20,13 @@ export interface UserProfileStats {
   totalInvited: number; // 总邀请人数
   pendingOrders: number; // 进行中订单数
   submittedOrders: number; // 待审核订单数
+  experience: number; // 经验值
+
+  // Legacy mapping fields
+  allObtainReward: number; // $all_obtain_reward
+  waitShopIssue: number; // $wait_shop_issue
+  freezeReward: number; // $freeze_reward
+  silverCny: number; // Silver to CNY value
 }
 
 @Injectable()
@@ -34,7 +41,7 @@ export class UsersService {
     private fundRecordRepository: Repository<FundRecord>,
     @InjectRepository(Order)
     private ordersRepository: Repository<Order>,
-  ) {}
+  ) { }
 
   async findAll(): Promise<User[]> {
     const users = await this.usersRepository.find();
@@ -398,6 +405,13 @@ export class UsersService {
       totalInvited: allInvitees.length,
       pendingOrders: pendingOrdersCount,
       submittedOrders: submittedOrdersCount,
+      experience: user.experience || 0, // [NEW] Added experience
+
+      // [NEW] Fields for dashboard alignment
+      allObtainReward: totalEarnedSilver, // $all_obtain_reward
+      waitShopIssue: pendingMerchantSilver, // $wait_shop_issue
+      freezeReward: frozenSilver, // $freeze_reward
+      silverCny: silverToYuan, // Real-time value
     };
   }
 

@@ -32,6 +32,7 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
     const [testData, setTestData] = useState<ProductInfo[]>([]);
     const [dialogVisible, setDialogVisible] = useState(false);
     const [localFile, setLocalFile] = useState<{ file: File; content: string } | null>(null);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     const alertSuccess = useCallback((msg: string) => { alert(msg); }, []);
     const alertError = useCallback((msg: string) => { alert(msg); }, []);
@@ -148,9 +149,7 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
             if (data.code === 1) {
                 setDialogVisible(false);
                 alertSuccess(data.msg || '确认收货成功');
-                setTimeout(() => {
-                    router.push(data.url || '/orders');
-                }, 3000);
+                router.push('/orders'); // Redirect to order list
             } else {
                 alertError(data.msg || '操作失败');
             }
@@ -305,7 +304,8 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                                     <img
                                         src={localFile.content}
                                         alt="预览"
-                                        className="h-20 w-20 rounded object-cover"
+                                        className="h-20 w-20 cursor-pointer rounded object-cover"
+                                        onClick={() => setPreviewImage(localFile.content)}
                                     />
                                     <button
                                         onClick={handleRemove}
@@ -339,6 +339,20 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                             </button>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* Full-Size Image Preview Modal */}
+            {previewImage && (
+                <div
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80"
+                    onClick={() => setPreviewImage(null)}
+                >
+                    <img
+                        src={previewImage}
+                        alt="大图预览"
+                        className="max-h-[90%] max-w-[90%] object-contain"
+                    />
                 </div>
             )}
 

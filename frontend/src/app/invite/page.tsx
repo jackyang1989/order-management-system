@@ -105,7 +105,7 @@ export default function InvitePage() {
                 </div>
 
                 {/* Tabs */}
-                <div className="mx-4 mt-4 flex border-b border-slate-200 bg-white rounded-t-xl overflow-hidden">
+                <div className="mt-4 flex border-b border-slate-200 bg-white rounded-t-xl overflow-hidden">
                     {tabs.map(tab => (
                         <button key={tab.key} onClick={() => setActiveTab(tab.key as 'invite' | 'records' | 'tasks')}
                             className={cn('flex-1 py-3 text-center text-sm font-medium', activeTab === tab.key ? 'border-b-2 border-blue-500 text-blue-500' : 'text-slate-500')}>
@@ -115,7 +115,7 @@ export default function InvitePage() {
                 </div>
 
                 {/* Content */}
-                <div className="mx-4 rounded-b-xl border border-t-0 border-slate-200 bg-white p-4 shadow-sm">
+                <div className="rounded-b-xl border border-t-0 border-slate-200 bg-white p-4 shadow-sm">
                     {activeTab === 'invite' && (
                         <div className="space-y-4">
                             <div className="text-sm text-slate-600 leading-relaxed">

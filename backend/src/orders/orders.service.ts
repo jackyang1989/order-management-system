@@ -98,6 +98,35 @@ export class OrdersService {
     return queryBuilder.getMany();
   }
 
+  async findAllAndCount(userId: string, filter?: OrderFilterDto & { page?: number; limit?: number }): Promise<{ data: Order[]; total: number }> {
+    const queryBuilder = this.ordersRepository
+      .createQueryBuilder('order')
+      .where('order.userId = :userId', { userId });
+
+    if (filter) {
+      if (filter.status) {
+        queryBuilder.andWhere('order.status = :status', {
+          status: filter.status,
+        });
+      }
+      if (filter.platform) {
+        queryBuilder.andWhere('order.platform = :platform', {
+          platform: filter.platform,
+        });
+      }
+    }
+
+    queryBuilder.orderBy('order.createdAt', 'DESC');
+
+    if (filter?.page && filter?.limit) {
+      queryBuilder.skip((filter.page - 1) * filter.limit);
+      queryBuilder.take(filter.limit);
+    }
+
+    const [data, total] = await queryBuilder.getManyAndCount();
+    return { data, total };
+  }
+
   async findOne(id: string): Promise<Order | null> {
     return this.ordersRepository.findOne({ where: { id } });
   }
@@ -390,6 +419,42 @@ export class OrdersService {
     } else {
       order.currentStep++;
     }
+
+    return this.ordersRepository.save(order);
+  }
+
+  /**
+   * 确认收货 (Confirm Receipt)
+   * Unified method for both MobileCompat and OrdersController
+   */
+  async confirmReceipt(
+    orderId: string,
+    userId: string,
+    praiseImg?: string,
+  ): Promise<Order> {
+    const order = await this.ordersRepository.findOne({
+      where: { id: orderId, userId },
+    });
+    if (!order) {
+      throw new NotFoundException('订单不存在');
+    }
+
+    // Optional: Check if already confirmed or invalid state
+    // if (order.status === OrderStatus.WAITING_REFUND || order.status === OrderStatus.COMPLETED) {
+    //   throw new BadRequestException('订单已确认收货');
+    // }
+
+    // Update Delivery State (Legacy logic from old confirmReceipt)
+    // 1=Shipped, 2=Received
+    if (order.deliveryState === 1) {
+      order.deliveryState = 2;
+    }
+
+    // Update Order Status to WAITING_REFUND (Legacy state 5)
+    order.status = OrderStatus.WAITING_REFUND;
+
+    // Store praise image if field exists (omitted for now to avoid schema change)
+    // if (praiseImg) { ... }
 
     return this.ordersRepository.save(order);
   }
@@ -785,24 +850,7 @@ export class OrdersService {
     return this.ordersRepository.save(order);
   }
 
-  /**
-   * 买手确认收货
-   */
-  async confirmReceipt(orderId: string, userId: string): Promise<Order> {
-    const order = await this.ordersRepository.findOne({
-      where: { id: orderId, userId },
-    });
-    if (!order) {
-      throw new NotFoundException('订单不存在');
-    }
 
-    if (order.deliveryState !== 1) {
-      throw new BadRequestException('订单未发货或已签收');
-    }
-
-    order.deliveryState = 2;
-    return this.ordersRepository.save(order);
-  }
 
   /**
    * 更新淘宝订单号

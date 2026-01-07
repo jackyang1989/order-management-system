@@ -193,6 +193,16 @@ export default function BuynoPage() {
                     })
                 )}
             </div>
+
+            {/* Fixed Bottom Button */}
+            <div className="fixed bottom-0 left-1/2 z-10 w-full max-w-[515px] -translate-x-1/2 border-t border-slate-200 bg-white p-4">
+                <Button
+                    className="w-full bg-blue-500 py-6 text-base font-medium hover:bg-blue-600"
+                    onClick={() => router.push('/profile/bind')}
+                >
+                    绑定新买号
+                </Button>
+            </div>
         </div>
     );
 }

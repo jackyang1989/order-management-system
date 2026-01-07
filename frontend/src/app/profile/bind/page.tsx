@@ -7,10 +7,8 @@ import { Card } from "../../../components/ui/card";
 import { toastError, toastSuccess } from "../../../lib/toast";
 import { Spinner } from "../../../components/ui/spinner";
 import {
-    list as listAccounts,
     create as createAccount,
     sendSmsCode,
-    MAX_ACCOUNTS_PER_PLATFORM,
     CreateBuyerAccountInput,
 } from "../../../services/buyerAccountService";
 import { getProvinces, getCities, getDistricts } from "../../../data/chinaRegions";
@@ -64,12 +62,12 @@ function ImageUploader({
             </div>
             <div className="relative">
                 {value ? (
-                    <div className="relative">
+                    <div className="relative inline-block">
                         <img src={value} alt={config.label} className="h-24 w-24 rounded-lg border border-slate-200 object-cover" />
                         <button
                             type="button"
                             onClick={() => onChange('')}
-                            className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white"
+                            className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white shadow-sm"
                         >
                             ×
                         </button>
@@ -100,8 +98,6 @@ function ImageUploader({
 
 export default function BindAccountPage() {
     const router = useRouter();
-    const [accountCount, setAccountCount] = useState(0);
-    const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [smsCountdown, setSmsCountdown] = useState(0);
 
@@ -149,27 +145,11 @@ export default function BindAccountPage() {
     };
 
     useEffect(() => {
-        loadAccounts();
-    }, []);
-
-    useEffect(() => {
         if (smsCountdown > 0) {
             const timer = setTimeout(() => setSmsCountdown(smsCountdown - 1), 1000);
             return () => clearTimeout(timer);
         }
     }, [smsCountdown]);
-
-    const loadAccounts = async () => {
-        setLoading(true);
-        try {
-            const list = await listAccounts();
-            setAccountCount(list.length);
-        } catch (e: any) {
-            toastError(e?.message || '加载失败');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleSendSms = async () => {
         if (!form.buyerPhone || form.buyerPhone.length !== 11) {
@@ -219,10 +199,11 @@ export default function BindAccountPage() {
             toastError(error);
             return;
         }
-        if (accountCount >= MAX_ACCOUNTS_PER_PLATFORM * 3) { // 假设3个平台
-            toastError('买号总数已达上限');
+        if (error) {
+            toastError(error);
             return;
         }
+
         setSubmitting(true);
         try {
             await createAccount({
@@ -248,31 +229,19 @@ export default function BindAccountPage() {
     const addressDistricts = form.province && form.city ? getDistricts(form.province, form.city) : [];
     const platformList = getPlatformList();
 
-    if (loading) {
-        return (
-            <div className="flex min-h-screen items-center justify-center bg-slate-50">
-                <Spinner size="lg" />
-            </div>
-        );
-    }
+
 
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
             <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
                 <div className="mx-auto flex h-14 max-w-[515px] items-center px-4">
-                    <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
+                    <button onClick={() => router.push('/profile/buyno')} className="mr-4 text-slate-600">←</button>
                     <h1 className="flex-1 text-base font-medium text-slate-800">绑定买号</h1>
                 </div>
             </header>
 
             <div className="mx-auto max-w-[515px] space-y-4 px-4 py-4">
-                {/* 已绑定数量 */}
-                <Card className="border-slate-200 p-4 shadow-sm">
-                    <div className="flex items-center justify-between text-sm text-slate-600">
-                        <span>已绑定买号</span>
-                        <span>{accountCount} 个</span>
-                    </div>
-                </Card>
+                {/* 动态温馨提示 */}
 
                 {/* 动态温馨提示 */}
                 <div className="rounded-lg bg-amber-50 p-3">
