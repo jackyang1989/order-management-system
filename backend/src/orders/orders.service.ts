@@ -401,6 +401,52 @@ export class OrdersService {
       throw new BadRequestException('步骤顺序错误');
     }
 
+    // ============ P0 风控校验 ============
+
+    // 1. 15分钟防刷校验：接单后15分钟内禁止提交第一步
+    if (submitStepDto.step === 1) {
+      const orderCreatedAt = new Date(order.createdAt);
+      const now = new Date();
+      const minutesSinceCreation =
+        (now.getTime() - orderCreatedAt.getTime()) / (1000 * 60);
+
+      if (minutesSinceCreation < 15) {
+        const remainingMinutes = Math.ceil(15 - minutesSinceCreation);
+        throw new BadRequestException(
+          `防刷机制：接单后需等待15分钟才能提交第一步，请${remainingMinutes}分钟后再试`,
+        );
+      }
+    }
+
+    // 2. 隔天任务校验：次日16:40后才允许提交
+    const task = await this.tasksService.findOne(order.taskId);
+    if (task?.isNextDay) {
+      const orderCreatedAt = new Date(order.createdAt);
+      const nextDay = new Date(orderCreatedAt);
+      nextDay.setDate(nextDay.getDate() + 1);
+      nextDay.setHours(16, 40, 0, 0);
+
+      const now = new Date();
+      if (now < nextDay) {
+        throw new BadRequestException(
+          `隔天任务：需次日16:40后才能提交，请于 ${nextDay.toLocaleString('zh-CN')} 后操作`,
+        );
+      }
+    }
+
+    // 3. 本金误差校验：如果用户填写了"实际支付金额"，检查误差是否在±100元内
+    if (submitStepDto.inputData?.actualPayment !== undefined) {
+      const actualPayment = Number(submitStepDto.inputData.actualPayment);
+      const expectedPrincipal = Number(order.productPrice);
+      const deviation = Math.abs(actualPayment - expectedPrincipal);
+
+      if (deviation > 100) {
+        throw new BadRequestException(
+          `实际支付金额与任务本金误差超过100元（任务本金: ${expectedPrincipal}元, 填写金额: ${actualPayment}元），请核对后重新提交`,
+        );
+      }
+    }
+
     // 更新步骤数据
     const stepIndex = order.stepData.findIndex(
       (s) => s.step === submitStepDto.step,
