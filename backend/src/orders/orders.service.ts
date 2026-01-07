@@ -45,6 +45,22 @@ export class OrdersService {
     private dataSource: DataSource,
   ) { }
 
+  /**
+   * 智能遮罩口令
+   * 6-10字: 保留前2后2 "布朗博士防胀气奶瓶" → "布朗博****奶瓶"
+   * 4-5字: 保留首尾各1 "防胀气奶瓶" → "防***瓶"
+   */
+  maskPassword(password: string): string {
+    if (!password) return '';
+    const len = password.length;
+    if (len >= 6) {
+      return password.slice(0, 2) + '*'.repeat(len - 4) + password.slice(-2);
+    } else if (len >= 4) {
+      return password.slice(0, 1) + '*'.repeat(len - 2) + password.slice(-1);
+    }
+    return '*'.repeat(len);
+  }
+
   // ============ 管理员端方法 ============
 
   async findAllAdmin(filter: {
@@ -442,6 +458,15 @@ export class OrdersService {
               `商品核对失败，请输入正确的链接或口令。${validationResult.error || ''}`,
             );
           }
+        }
+      }
+
+      // P1+: 商品口令核对
+      const taskForPassword = await this.tasksService.findOne(order.taskId);
+      if (taskForPassword?.isPasswordEnabled && taskForPassword?.checkPassword) {
+        const userPasswordInput = submitStepDto.inputData?.passwordInput;
+        if (!userPasswordInput || userPasswordInput !== taskForPassword.checkPassword) {
+          throw new BadRequestException('商品口令核对不正确，请重新在详情页寻找');
         }
       }
     }

@@ -167,6 +167,10 @@ export class SystemGlobalConfig {
   @Column({ type: 'int', default: 7 })
   firstAccountVipDays: number;
 
+  // 商品口令核对全局开关
+  @Column({ default: false })
+  passwordCheckEnabled: boolean;
+
   @UpdateDateColumn()
   updatedAt: Date;
 }

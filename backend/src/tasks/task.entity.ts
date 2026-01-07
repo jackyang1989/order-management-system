@@ -207,6 +207,13 @@ export class Task {
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   wkPrice: number; // 尾款
 
+  // --- 商品口令核对 ---
+  @Column({ default: false })
+  isPasswordEnabled: boolean; // 是否启用口令验证
+
+  @Column({ length: 20, nullable: true })
+  checkPassword: string; // 商品口令 (4-10字)
+
   // --- 审核相关 ---
   @Column({ type: 'timestamp', nullable: true })
   examineTime: Date; // 审核时间
