@@ -1,125 +1,137 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '../../../lib/utils';
+import ProfileContainer from '../../../components/ProfileContainer';
 import { Card } from '../../../components/ui/card';
-import { Spinner } from '../../../components/ui/spinner';
+import { Badge } from '../../../components/ui/badge';
+import { Button } from '../../../components/ui/button';
 import { isAuthenticated } from '../../../services/authService';
-import { fetchReviewTasks, ReviewTask } from '../../../services/userService';
+import { fetchUserReviewTasks, ReviewTask, ReviewTaskStatus, ReviewTaskStatusLabels } from '../../../services/reviewTaskService';
 
-const STATUS_MAP: Record<string, { label: string; bg: string; textCol: string }> = {
-    WAITING_SUBMIT: { label: '待提交', bg: 'bg-amber-100/50', textCol: 'text-amber-600' },
-    WAITING_AUDIT: { label: '待审核', bg: 'bg-blue-50', textCol: 'text-blue-600' },
-    APPROVED: { label: '已通过', bg: 'bg-blue-600', textCol: 'text-white' },
-    REJECTED: { label: '未通过', bg: 'bg-rose-100/50', textCol: 'text-rose-600' },
-};
-
-export default function ReviewsPage() {
+function ReviewsContent() {
     const router = useRouter();
-    const [loading, setLoading] = useState(true);
-    const [tasks, setTasks] = useState<ReviewTask[]>([]);
-    const [activeTab, setActiveTab] = useState<string>('ALL');
+    const searchParams = useSearchParams();
+    const initialTab = searchParams.get('tab') as 'pending' | 'submitted' | 'completed' | null;
 
-    useEffect(() => {
-        if (!isAuthenticated()) { router.push('/login'); return; }
-        loadTasks();
-    }, [router]);
+    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<'pending' | 'submitted' | 'completed'>(initialTab || 'pending');
+    const [tasks, setTasks] = useState<ReviewTask[]>([]);
+
+    useEffect(() => { if (!isAuthenticated()) { router.push('/login'); return; } loadTasks(); }, [activeTab]);
 
     const loadTasks = async () => {
         setLoading(true);
         try {
-            const data = await fetchReviewTasks();
-            setTasks(data);
-        } catch (error) { console.error(error); } finally { setLoading(false); }
+            // Mapping UI tabs to backend states
+            // pending: 审核通过待追评 (APPROVED)
+            // submitted: 已上传待确认 (UPLOADED) or 已拒绝 (REJECTED) / 买手拒接 (BUYER_REJECTED)
+            // completed: 已完成 (COMPLETED)
+
+            const result = await fetchUserReviewTasks();
+            const list = result.list || [];
+
+            const filtered = list.filter((t: ReviewTask) => {
+                if (activeTab === 'pending') return t.state === ReviewTaskStatus.APPROVED;
+                if (activeTab === 'submitted') return t.state === ReviewTaskStatus.UPLOADED || t.state === ReviewTaskStatus.REJECTED || t.state === ReviewTaskStatus.PAID;
+                if (activeTab === 'completed') return t.state === ReviewTaskStatus.COMPLETED;
+                return true;
+            });
+            setTasks(filtered);
+        } catch (error) { console.error('Load review tasks error:', error); }
+        finally { setLoading(false); }
     };
 
-    const filteredTasks = tasks.filter(t => {
-        if (activeTab === 'ALL') return true;
-        return t.status === activeTab;
-    });
-
-    if (loading) return (
-        <div className="flex h-screen items-center justify-center bg-[#F8FAFC]">
-            <Spinner size="lg" className="text-blue-600" />
-        </div>
-    );
+    const getStatusBadge = (state: ReviewTaskStatus) => {
+        const label = ReviewTaskStatusLabels[state] || { text: '未知', color: '#6b7280' };
+        // Map status to tailwind color classes
+        const colorMap: Record<string, string> = {
+            'pending': 'bg-amber-100 text-amber-600',
+            'submitted': 'bg-blue-100 text-blue-600',
+            'rejected': 'bg-red-100 text-red-600',
+            'approved': 'bg-green-100 text-green-600',
+        };
+        return <Badge variant="soft" className={colorMap[state] || 'bg-slate-100 text-slate-600'}>{label.text}</Badge>;
+    };
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] pb-32">
+        <div className="min-h-screen bg-slate-50 pb-4">
             {/* Header */}
-            <header className="sticky top-0 z-20 bg-[#F8FAFC]/80 backdrop-blur-md">
-                <div className="mx-auto flex h-16 max-w-[515px] items-center px-6">
-                    <button onClick={() => router.back()} className="mr-4 text-slate-600 transition-transform active:scale-90">
-                        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                    </button>
-                    <h1 className="flex-1 text-xl font-bold text-slate-900">评价管理</h1>
+            <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
+                <div className="mx-auto flex h-14 max-w-[515px] items-center px-4">
+                    <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
+                    <h1 className="flex-1 text-base font-medium text-slate-800">评价任务</h1>
                 </div>
             </header>
 
-            <div className="mx-auto max-w-[515px] space-y-6 px-4 py-4">
+            <ProfileContainer className="py-4">
                 {/* Tabs */}
-                <div className="flex w-full overflow-x-auto gap-2 rounded-[24px] bg-slate-100/50 p-1.5 ring-1 ring-slate-200/50 no-scrollbar">
-                    {['ALL', 'WAITING_SUBMIT', 'WAITING_AUDIT', 'APPROVED', 'REJECTED'].map((tab) => (
-                        <button key={tab} onClick={() => setActiveTab(tab)}
-                            className={cn('whitespace-nowrap rounded-[20px] px-5 py-3 text-[10px] font-black uppercase tracking-widest transition-all shrink-0',
-                                activeTab === tab ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400')}>
-                            {tab === 'ALL' ? '全部' : STATUS_MAP[tab]?.label}
+                <div className="mb-4 grid w-full grid-cols-3 gap-1 rounded-lg bg-slate-200 p-1 shadow-sm">
+                    {[{ key: 'pending', label: '待处理' }, { key: 'submitted', label: '进行中' }, { key: 'completed', label: '已完成' }].map((tab) => (
+                        <button key={tab.key} onClick={() => setActiveTab(tab.key as any)}
+                            className={cn('w-full rounded-md py-2 text-center text-sm font-medium transition-colors', activeTab === tab.key ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500')}>
+                            {tab.label}
                         </button>
                     ))}
                 </div>
 
-                {/* Tasks List */}
+                {/* Task List */}
                 <div className="space-y-4">
-                    {filteredTasks.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-32 text-center">
-                            <div className="text-4xl opacity-10 mb-4 italic">🎭</div>
-                            <h3 className="text-sm font-black text-slate-300 uppercase tracking-widest">暂无相关评价任务</h3>
+                    {loading ? (
+                        <div className="py-12 text-center text-slate-400">加载中...</div>
+                    ) : tasks.length === 0 ? (
+                        <div className="rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center text-slate-400">
+                            <div className="mb-3 text-4xl">📝</div>
+                            <p className="text-sm">暂无评价任务</p>
                         </div>
                     ) : (
-                        filteredTasks.map((task) => {
-                            const status = STATUS_MAP[task.status] || STATUS_MAP.WAITING_SUBMIT;
-                            return (
-                                <Card key={task.id} onClick={() => router.push(`/profile/reviews/${task.id}`)}
-                                    className="group relative overflow-hidden rounded-[32px] border-none bg-white p-7 shadow-[0_2px_12px_rgba(0,0,0,0.02)] ring-1 ring-slate-100 transition-all hover:bg-slate-50 active:scale-[0.98]">
-
-                                    <div className="flex items-start justify-between">
-                                        <div className="space-y-4">
-                                            <div className="flex items-baseline gap-2">
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-300 italic">No.</span>
-                                                <span className="text-sm font-black text-slate-900 uppercase tracking-tighter">{task.orderNo.slice(-12)}</span>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">评价佣金</div>
-                                                <div className="flex items-baseline gap-1">
-                                                    <span className="text-2xl font-black text-blue-600 tracking-tight">{task.commission}</span>
-                                                    <span className="text-[10px] font-black text-blue-400 uppercase italic">Silver</span>
-                                                </div>
-                                            </div>
+                        tasks.map(task => (
+                            <Card key={task.id} className="overflow-hidden border-slate-200 shadow-sm">
+                                <div className="flex gap-3 p-4">
+                                    <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-50">
+                                        {task.img ? <img src={task.img} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-2xl">📦</div>}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <h3 className="truncate text-sm font-medium text-slate-800">任务 ID: {task.taskNumber}</h3>
+                                            {getStatusBadge(task.state)}
                                         </div>
-                                        <div className={cn('rounded-full px-4 py-1.5 text-[9px] font-black uppercase tracking-widest transition-colors',
-                                            status.bg.startsWith('bg-blue-600') ? 'shadow-lg shadow-blue-50' : '',
-                                            status.bg, status.textCol)}>
-                                            {status.label}
+                                        <div className="mt-1 flex items-center justify-between text-xs text-slate-400">
+                                            <span>订单号: {task.taobaoOrderNumber}</span>
+                                            <span className="font-bold text-amber-500">奖励: {task.userMoney} 银锭</span>
                                         </div>
                                     </div>
-
-                                    <div className="mt-8 flex items-center justify-between border-t border-slate-50 pt-5">
-                                        <div className="flex items-center gap-2">
-                                            <div className="h-2 w-2 rounded-full bg-slate-200 group-hover:bg-blue-400 transition-colors" />
-                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">{new Date(task.createdAt).toLocaleDateString()}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                                            <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest">查看详情</span>
-                                            <svg className="h-3 w-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
-                                        </div>
-                                    </div>
-                                </Card>
-                            );
-                        })
+                                </div>
+                                <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-4 py-3">
+                                    <span className="text-[10px] text-slate-400">发布日期: {new Date(task.createdAt).toLocaleDateString()}</span>
+                                    {task.state === ReviewTaskStatus.APPROVED && <Button size="sm" className="bg-blue-500 hover:bg-blue-600 h-8" onClick={() => router.push(`/orders/reviews/${task.id}`)}>去评价</Button>}
+                                    {task.state === ReviewTaskStatus.REJECTED && <Button size="sm" variant="ghost" className="h-8 border border-red-200 text-red-500 hover:bg-red-50" onClick={() => router.push(`/orders/reviews/${task.id}`)}>查看原因</Button>}
+                                    {(task.state === ReviewTaskStatus.UPLOADED || task.state === ReviewTaskStatus.COMPLETED) && <button className="text-xs text-blue-500" onClick={() => router.push(`/orders/reviews/${task.id}`)}>查看详情</button>}
+                                </div>
+                            </Card>
+                        ))
                     )}
                 </div>
-            </div>
+
+                <div className="mt-6 rounded-lg bg-blue-50 p-4 text-xs text-blue-700 leading-relaxed shadow-sm">
+                    <div className="mb-2 font-bold flex items-center gap-1">📋 任务指引</div>
+                    <ul className="list-disc pl-4 space-y-1">
+                        <li>请在规定时间内完成评价任务。</li>
+                        <li>评价内容必须真实有效，禁止刷好评。</li>
+                        <li>带图/视频评价请确保拍摄清晰，符合产品特征。</li>
+                        <li>商家审核通过后，奖励将自动发放至您的银锭余额。</li>
+                    </ul>
+                </div>
+            </ProfileContainer>
         </div>
+    );
+}
+
+export default function ReviewsPage() {
+    return (
+        <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-slate-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" /></div>}>
+            <ReviewsContent />
+        </Suspense>
     );
 }
