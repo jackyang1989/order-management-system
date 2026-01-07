@@ -151,6 +151,22 @@ export class SystemGlobalConfig {
   @Column({ default: false })
   dingdanxiaEnabled: boolean; // 订单侠启用状态
 
+  // ============ P1: 动态业务配置 ============
+
+  // 买号升星阶梯配置 (完成X单升级到N星)
+  // JSON格式: {"2":30,"3":60,"4":90,"5":120} 表示30单升2星，60单升3星...
+  @Column({ type: 'text', default: '{"2":30,"3":60,"4":90,"5":120}' })
+  starThresholds: string;
+
+  // 买号星级限价配置 (N星最高可接X元任务)
+  // JSON格式: {"1":100,"2":500,"3":1000,"4":2000,"5":99999}
+  @Column({ type: 'text', default: '{"1":100,"2":500,"3":1000,"4":2000,"5":99999}' })
+  starPriceLimits: string;
+
+  // 首个买号审核通过赠送VIP天数
+  @Column({ type: 'int', default: 7 })
+  firstAccountVipDays: number;
+
   @UpdateDateColumn()
   updatedAt: Date;
 }

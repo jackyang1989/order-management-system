@@ -633,4 +633,31 @@ export class UsersService {
     await this.checkAndResetMonthlyTaskCount(user);
     return user.monthlyTaskCount || 0;
   }
+
+  /**
+   * 赠送VIP (叠加时长)
+   */
+  async grantVip(userId: string, days: number): Promise<void> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const now = new Date();
+    let newExpire: Date;
+
+    if (user.vip && user.vipExpireAt && new Date(user.vipExpireAt) > now) {
+      // 如果已是VIP且未过期，在原到期时间上叠加
+      newExpire = new Date(user.vipExpireAt);
+      newExpire.setDate(newExpire.getDate() + days);
+    } else {
+      // 否则从当前时间开始计算
+      newExpire = new Date();
+      newExpire.setDate(newExpire.getDate() + days);
+    }
+
+    user.vip = true;
+    user.vipExpireAt = newExpire;
+    await this.usersRepository.save(user);
+  }
 }

@@ -30,4 +30,40 @@ export class SystemConfigService {
     }
     return this.configRepo.save(config);
   }
+
+  // ============ P1: 动态配置获取方法 ============
+
+  /**
+   * 获取买号升星阶梯配置
+   * @returns Record<star, requiredTasks> e.g. {2:30, 3:60, 4:90, 5:120}
+   */
+  async getStarThresholds(): Promise<Record<number, number>> {
+    const config = await this.getGlobalConfig();
+    try {
+      return JSON.parse(config.starThresholds || '{"2":30,"3":60,"4":90,"5":120}');
+    } catch {
+      return { 2: 30, 3: 60, 4: 90, 5: 120 };
+    }
+  }
+
+  /**
+   * 获取买号星级限价配置
+   * @returns Record<star, maxPrice> e.g. {1:100, 2:500, 3:1000, 4:2000, 5:99999}
+   */
+  async getStarPriceLimits(): Promise<Record<number, number>> {
+    const config = await this.getGlobalConfig();
+    try {
+      return JSON.parse(config.starPriceLimits || '{"1":100,"2":500,"3":1000,"4":2000,"5":99999}');
+    } catch {
+      return { 1: 100, 2: 500, 3: 1000, 4: 2000, 5: 99999 };
+    }
+  }
+
+  /**
+   * 获取首个买号审核通过赠送VIP天数
+   */
+  async getFirstAccountVipDays(): Promise<number> {
+    const config = await this.getGlobalConfig();
+    return config.firstAccountVipDays || 7;
+  }
 }
