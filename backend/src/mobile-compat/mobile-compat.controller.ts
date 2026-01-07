@@ -309,7 +309,7 @@ export class MobileCompatController {
       const order = await this.ordersService.create(req.user.userId, {
         taskId: body.taskId || body.task_id,
         buynoId: buynoId,
-        buynoAccount: buyerAccount.accountName,
+        buynoAccount: buyerAccount.platformAccount,
       });
       return { code: 1, msg: '领取成功', data: order };
     } catch (error) {

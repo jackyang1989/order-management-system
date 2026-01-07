@@ -186,7 +186,7 @@ export class OrdersService {
     // 2.3 黑名单校验
     const isBlacklisted = await this.merchantBlacklistService.isBlacklisted(
       task.merchantId,
-      buyerAccount.accountName,
+      buyerAccount.platformAccount,
     );
     if (isBlacklisted) {
       throw new BadRequestException('当前买号已被商家拉黑，无法接取此任务');

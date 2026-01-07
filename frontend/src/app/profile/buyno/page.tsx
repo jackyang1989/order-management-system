@@ -7,7 +7,7 @@ import { Card } from "../../../components/ui/card";
 import { Badge } from "../../../components/ui/badge";
 import { toastError, toastSuccess } from "../../../lib/toast";
 import { Spinner } from "../../../components/ui/spinner";
-import Empty from "../../../components/ui/empty";
+import { Empty } from "../../../components/ui/empty";
 import {
     BuyerAccount,
     list as listAccounts,
@@ -139,7 +139,7 @@ export default function BuynoPage() {
                     />
                 ) : (
                     accounts.map(acc => {
-                        const displayName = acc.accountName || acc.accountId;
+                        const displayName = acc.platformAccount;
                         const working = actingId === acc.id;
                         return (
                             <Card key={acc.id} className="border-slate-200 p-4 shadow-sm">
@@ -147,15 +147,23 @@ export default function BuynoPage() {
                                     <div className="space-y-1">
                                         <div className="text-sm font-semibold text-slate-800">{displayName}</div>
                                         <div className="text-xs text-slate-500">平台：{acc.platform}</div>
-                                        <div className="text-xs text-slate-400">账号ID：{acc.accountId}</div>
+                                        <div className="text-xs text-slate-400">淘宝账号：{displayName}</div>
                                         {acc.isDefault && <div className="text-[11px] text-blue-600">默认买号</div>}
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
                                         {renderStatus(acc.status)}
-                                        <div className="flex gap-2 text-xs">
+                                        <div className="flex flex-wrap justify-end gap-2 text-xs">
                                             <Button
                                                 size="sm"
-                                                variant="outline"
+                                                variant="secondary"
+                                                disabled={working}
+                                                onClick={() => router.push(`/profile/buyno/edit/${acc.id}`)}
+                                            >
+                                                编辑
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="secondary"
                                                 disabled={working || acc.status !== 'APPROVED'}
                                                 onClick={() => handleSetDefault(acc.id, acc.status)}
                                             >
@@ -163,7 +171,7 @@ export default function BuynoPage() {
                                             </Button>
                                             <Button
                                                 size="sm"
-                                                variant="outline"
+                                                variant="secondary"
                                                 disabled={working}
                                                 onClick={() => handleToggleStatus(acc.id, acc.status)}
                                             >

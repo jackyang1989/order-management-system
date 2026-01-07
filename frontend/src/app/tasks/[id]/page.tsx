@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchTasks } from '../../../services/taskService';
+import { fetchTaskList } from '../../../services/taskService';
 import { createOrder } from '../../../services/orderService';
 import { fetchBuyerAccounts } from '../../../services/userService';
 import { MockTask } from '../../../mocks/taskMock';
@@ -36,7 +36,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
     const loadTask = async () => {
         setLoading(true);
-        const result = await fetchTasks();
+        const result = await fetchTaskList();
         const found = result.list.find(t => t.id === id);
         if (found) {
             setTask(found);
