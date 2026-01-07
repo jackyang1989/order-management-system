@@ -39,6 +39,9 @@ export const SYSTEM_CONFIG_FALLBACK = {
   // 接单间隔时间（分钟）
   TASK_INTERVAL_MINUTES: 5,
 
+  // P1: 邀请解锁阈值（完成多少单才能解锁邀请功能）
+  INVITATION_NUM: 10,
+
   // 新用户免费VIP时长配置key
   CONFIG_KEYS: {
     USER_VIP_TIME: 'user_vip_time',

@@ -103,13 +103,62 @@ export class BuyerAccountsService {
     id: string,
     userId: string,
     updateDto: UpdateBuyerAccountDto,
-  ): Promise<BuyerAccount> {
+  ): Promise<BuyerAccount & { addressPending?: boolean }> {
     const account = await this.buyerAccountsRepository.findOne({
       where: { id, userId },
     });
 
     if (!account) {
       throw new NotFoundException('买号不存在');
+    }
+
+    // P1: 地址风控 - 检测是否修改地址相关字段
+    const addressFields = ['province', 'city', 'district', 'buyerName', 'buyerPhone', 'fullAddress'];
+    const isAddressChange = addressFields.some(
+      (field) => updateDto[field as keyof UpdateBuyerAccountDto] !== undefined &&
+        updateDto[field as keyof UpdateBuyerAccountDto] !== account[field as keyof BuyerAccount]
+    );
+
+    if (isAddressChange) {
+      // 检查并重置月度计数
+      const now = new Date();
+      const currentMonth = `${now.getFullYear()}-${now.getMonth() + 1}`;
+      const resetMonth = account.addressModResetDate
+        ? `${new Date(account.addressModResetDate).getFullYear()}-${new Date(account.addressModResetDate).getMonth() + 1}`
+        : null;
+
+      if (resetMonth !== currentMonth) {
+        account.monthlyAddressModCount = 0;
+        account.addressModResetDate = now;
+      }
+
+      const MONTHLY_ADDRESS_LIMIT = 5;
+
+      if (account.monthlyAddressModCount >= MONTHLY_ADDRESS_LIMIT) {
+        // 超限：保存待审核的地址修改
+        const pendingChange: Record<string, any> = {};
+        addressFields.forEach((field) => {
+          if (updateDto[field as keyof UpdateBuyerAccountDto] !== undefined) {
+            pendingChange[field] = updateDto[field as keyof UpdateBuyerAccountDto];
+            delete updateDto[field as keyof UpdateBuyerAccountDto];
+          }
+        });
+
+        account.pendingAddressChange = JSON.stringify(pendingChange);
+        await this.buyerAccountsRepository.save(account);
+
+        // 应用非地址字段的更新
+        Object.assign(account, updateDto);
+        const savedAccount = await this.buyerAccountsRepository.save(account);
+
+        return {
+          ...savedAccount,
+          addressPending: true,
+        } as BuyerAccount & { addressPending: boolean };
+      }
+
+      // 未超限：正常更新并增加计数
+      account.monthlyAddressModCount += 1;
     }
 
     Object.assign(account, updateDto);
@@ -474,5 +523,55 @@ export class BuyerAccountsService {
     }
 
     return { success, failed };
+  }
+
+  /**
+   * P1: 管理员审批待处理的地址修改
+   */
+  async approveAddressChange(
+    buyerAccountId: string,
+    approved: boolean,
+  ): Promise<BuyerAccount> {
+    const account = await this.buyerAccountsRepository.findOne({
+      where: { id: buyerAccountId },
+    });
+
+    if (!account) {
+      throw new NotFoundException('买号不存在');
+    }
+
+    if (!account.pendingAddressChange) {
+      throw new BadRequestException('没有待审核的地址修改');
+    }
+
+    if (approved) {
+      const pendingChange = JSON.parse(account.pendingAddressChange);
+      Object.assign(account, pendingChange);
+    }
+
+    account.pendingAddressChange = undefined;
+    return this.buyerAccountsRepository.save(account);
+  }
+
+  /**
+   * P1: 获取有待审核地址修改的买号列表
+   */
+  async getPendingAddressChanges(
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{
+    data: BuyerAccount[];
+    total: number;
+  }> {
+    const [data, total] = await this.buyerAccountsRepository.findAndCount({
+      where: { pendingAddressChange: Not('') },
+      order: { updatedAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    // Filter out null values (TypeORM doesn't distinguish well between null and empty string)
+    const filtered = data.filter((a) => a.pendingAddressChange);
+    return { data: filtered, total: filtered.length };
   }
 }

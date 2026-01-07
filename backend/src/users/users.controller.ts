@@ -184,4 +184,14 @@ export class UsersController {
     );
     return result;
   }
+
+  // P1: 获取邀请状态（是否解锁邀请功能）
+  @Get('invite-status')
+  async getInviteStatus(@Request() req) {
+    const result = await this.usersService.getInviteStatus(req.user.userId);
+    return {
+      success: true,
+      data: result,
+    };
+  }
 }

@@ -727,4 +727,50 @@ export class UsersService {
       await queryRunner.release();
     }
   }
+
+  /**
+   * P1: 获取邀请状态（是否解锁邀请功能）
+   * 需要完成 invitationNum 单才能解锁
+   */
+  async getInviteStatus(userId: string): Promise<{
+    totalCompletedOrders: number;
+    invitationUnlockThreshold: number;
+    isUnlocked: boolean;
+    referralCode: string;
+    referralLink: string;
+  }> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      return {
+        totalCompletedOrders: 0,
+        invitationUnlockThreshold: 999,
+        isUnlocked: false,
+        referralCode: '',
+        referralLink: '',
+      };
+    }
+
+    // 获取用户完成的订单数
+    const completedOrders = await this.ordersRepository.count({
+      where: {
+        userId,
+        status: OrderStatus.COMPLETED,
+      },
+    });
+
+    // 获取邀请解锁阈值配置 (默认10单)
+    const invitationNum = SYSTEM_CONFIG_FALLBACK.INVITATION_NUM || 10;
+
+    const isUnlocked = completedOrders >= invitationNum;
+
+    return {
+      totalCompletedOrders: completedOrders,
+      invitationUnlockThreshold: invitationNum,
+      isUnlocked,
+      referralCode: user.invitationCode || '',
+      referralLink: isUnlocked
+        ? `https://example.com/register?ref=${user.invitationCode}`
+        : '',
+    };
+  }
 }

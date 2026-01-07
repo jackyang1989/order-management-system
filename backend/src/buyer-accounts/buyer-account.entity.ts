@@ -123,6 +123,16 @@ export class BuyerAccount {
   @Column({ type: 'text', nullable: true })
   rejectReason?: string; // 拒绝原因
 
+  // P1: 地址风控 - 月度修改次数限制
+  @Column({ type: 'int', default: 0 })
+  monthlyAddressModCount: number; // 当月地址修改次数
+
+  @Column({ type: 'date', nullable: true })
+  addressModResetDate: Date; // 地址修改计数重置日期
+
+  @Column({ type: 'text', nullable: true })
+  pendingAddressChange?: string; // 待审核的地址修改 (JSON)
+
   @CreateDateColumn()
   createdAt: Date;
 
