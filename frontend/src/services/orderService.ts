@@ -1,157 +1,108 @@
 import { BASE_URL } from '../../apiConfig';
-import { mockOrders, MockOrder } from '../mocks/orderMock';
 
-const USE_MOCK = false;
+export type OrderStatus = 'PENDING' | 'SUBMITTED' | 'COMPLETED' | 'CANCELLED' | string;
 
-// 获取我的订单
-export const fetchMyOrders = async (status?: string): Promise<MockOrder[]> => {
-    if (USE_MOCK) {
-        console.log('[OrderService] Fetching mock orders, status:', status);
-        await new Promise(resolve => setTimeout(resolve, 500));
+export interface OrderSummary {
+    id: string;
+    taskId: string;
+    taskTitle: string;
+    shopName: string;
+    platform: string;
+    productPrice: number;
+    commission: number;
+    userDivided: number;
+    status: OrderStatus;
+    currentStep?: number;
+    totalSteps?: number;
+    endingTime?: string;
+}
 
-        if (status && status !== 'all') {
-            return mockOrders.filter(o => o.status === status);
-        }
-        return mockOrders;
-    }
-
-    try {
-        const url = status && status !== 'all' ? `${BASE_URL}/orders?status=${status}` : `${BASE_URL}/orders`;
-        const token = localStorage.getItem('token');
-        const response = await fetch(url, {
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-        });
-        const res = await response.json();
-        return res.data || [];
-    } catch (error) {
-        console.error('Fetch orders error:', error);
-        return [];
-    }
+const authHeader = () => {
+    if (typeof localStorage === 'undefined') return {};
+    const token = localStorage.getItem('token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-// 获取订单详情
-export const fetchOrderDetail = async (id: string): Promise<MockOrder | null> => {
-    if (USE_MOCK) {
-        await new Promise(resolve => setTimeout(resolve, 400));
-        return mockOrders.find(o => o.id === id) || null;
+const normalize = (raw: any): OrderSummary => ({
+    id: raw?.id,
+    taskId: raw?.taskId,
+    taskTitle: raw?.taskTitle || raw?.productName || '任务',
+    shopName: raw?.shopName || raw?.merchantName || '-',
+    platform: raw?.platform || raw?.taskType || '-',
+    productPrice: Number(raw?.productPrice) || 0,
+    commission: Number(raw?.commission) || 0,
+    userDivided: Number(raw?.userDivided) || 0,
+    status: raw?.status || 'PENDING',
+    currentStep: raw?.currentStep,
+    totalSteps: raw?.totalSteps,
+    endingTime: raw?.endingTime,
+});
+
+export async function listOrders(status?: OrderStatus): Promise<OrderSummary[]> {
+    const params = status ? `?status=${encodeURIComponent(status)}` : '';
+    const res = await fetch(`${BASE_URL}/orders${params}`, { headers: { ...authHeader() } });
+    const data = await res.json();
+    if (!res.ok || data?.success === false) {
+        throw new Error(data?.message || '获取订单失败');
     }
+    const list = Array.isArray(data?.data) ? data.data : [];
+    return list.map(normalize);
+}
 
-    try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${BASE_URL}/orders/${id}`, {
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-        });
-        const res = await response.json();
-        return res.data || null;
-    } catch (error) {
-        return null;
+export async function fetchOrderDetail(id: string): Promise<OrderSummary> {
+    const res = await fetch(`${BASE_URL}/orders/${id}`, { headers: { ...authHeader() } });
+    const data = await res.json();
+    if (!res.ok || data?.success === false || !data?.data) {
+        throw new Error(data?.message || '获取订单详情失败');
     }
-};
+    return normalize(data.data);
+}
 
-// 创建订单（领取任务）
-export const createOrder = async (taskId: string, buyerAccount: string): Promise<{ success: boolean; orderId?: string }> => {
-    if (USE_MOCK) {
-        console.log('[OrderService] Mock create order:', taskId, buyerAccount);
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-        const newOrderId = `new_order_${Date.now()}`;
-        // Push a new mock order to the list
-        mockOrders.unshift({
-            id: newOrderId,
-            taskNumber: `T${Date.now()}`,
-            shopName: '新接店铺',
-            status: 'PENDING',
-            statusLabel: '进行中',
-            commission: 8.00,
-            principal: 100.00,
-            userDivided: 0,
-            goodsPrice: 100.00,
-            buyerAccount: buyerAccount,
-            taskType: 'KEYWORD',
-            keyword: '系统分配关键词',
-            taskStep: 1,
-            endingTime: new Date(Date.now() + 3600000).toISOString(),
-            createdAt: new Date().toISOString()
-        });
-
-        return { success: true, orderId: newOrderId };
+export async function createOrder(taskId: string, buynoId: string): Promise<{ orderId: string }> {
+    const res = await fetch(`${BASE_URL}/orders`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...authHeader(),
+        },
+        body: JSON.stringify({ taskId, buynoId }),
+    });
+    const data = await res.json();
+    if (!res.ok || data?.success === false) {
+        throw new Error(data?.message || '领取任务失败');
     }
+    return { orderId: data?.data?.id || data?.data?.orderId };
+}
 
-    try {
-        const response = await fetch(`${BASE_URL}/orders`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                ...(localStorage.getItem('token') ? { 'Authorization': `Bearer ${localStorage.getItem('token')}` } : {})
-            },
-            body: JSON.stringify({ taskId, buyerAccount })
-        });
-        const res = await response.json();
-        if (response.ok && res.code === 1) {
-             // 假设后端返回 data.id 或 data.orderId
-             return { success: true, orderId: res.data?.id || res.data?.orderId };
+export async function submitOrderStep(orderId: string, step: number, payload: Record<string, any>): Promise<void> {
+    const formData = new FormData();
+    formData.append('step', String(step));
+    Object.entries(payload || {}).forEach(([k, v]) => {
+        if (v === undefined || v === null) return;
+        if (v instanceof File) {
+            formData.append(k, v);
+        } else {
+            formData.append(k, String(v));
         }
-        return { success: false };
-    } catch (error) {
-        return { success: false };
+    });
+    const res = await fetch(`${BASE_URL}/orders/${orderId}/submit-step`, {
+        method: 'POST',
+        headers: { ...authHeader() },
+        body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok || data?.success === false) {
+        throw new Error(data?.message || '提交失败');
     }
 }
 
-// 提交步骤
-export const submitOrderStep = async (orderId: string, step: number, data: any): Promise<{ success: boolean; message: string }> => {
-    if (USE_MOCK) {
-        console.log('[OrderService] Mock submit step:', step, 'for order:', orderId);
-        console.log('Submission Data:', data);
-        if (data instanceof FormData) {
-            console.log('Files included:', [...data.entries()]);
-        }
-        await new Promise(resolve => setTimeout(resolve, 800));
-        return { success: true, message: '提交成功' };
+export async function cancelOrder(orderId: string): Promise<void> {
+    const res = await fetch(`${BASE_URL}/orders/${orderId}/cancel`, {
+        method: 'POST',
+        headers: { ...authHeader() },
+    });
+    const data = await res.json();
+    if (!res.ok || data?.success === false) {
+        throw new Error(data?.message || '取消失败');
     }
-
-    try {
-        const formData = new FormData();
-        formData.append('step', String(step));
-
-        // If data is just a plain object, append its keys. If it's ALREADY FormData, that's different logic.
-        // But the frontend usually keeps 'data' as state object { file: File, text: ... }
-        // So let's construct FormData here.
-        Object.entries(data).forEach(([key, value]) => {
-            if (value instanceof File) {
-                formData.append(key, value);
-            } else if (value !== null && value !== undefined) {
-                formData.append(key, String(value));
-            }
-        });
-
-        const response = await fetch(`${BASE_URL}/orders/${orderId}/step`, {
-            method: 'POST',
-            headers: localStorage.getItem('token') ? { 'Authorization': `Bearer ${localStorage.getItem('token')}` } : {},
-            // headers: { 'Content-Type': 'multipart/form-data' }, // Should NOT set this manually for FormData
-            body: formData
-        });
-        return response.json();
-    } catch (error) {
-        return { success: false, message: '提交失败' };
-    }
-};
-
-// 取消订单
-export const cancelOrder = async (orderId: string): Promise<{ success: boolean; message: string }> => {
-    if (USE_MOCK) {
-        console.log('[OrderService] Mock cancel order:', orderId);
-        await new Promise(resolve => setTimeout(resolve, 600));
-        return { success: true, message: '订单已取消' };
-    }
-
-    try {
-        const response = await fetch(`${BASE_URL}/orders/${orderId}/cancel`, {
-            method: 'POST',
-            headers: localStorage.getItem('token') ? { 'Authorization': `Bearer ${localStorage.getItem('token')}` } : {}
-        });
-
-        return response.json();
-    } catch (error) {
-        return { success: false, message: '取消失败' };
-    }
-};
+}
