@@ -49,7 +49,7 @@ export function Modal({
     >
       <div
         className={cn(
-          'relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl',
+          'relative w-full max-w-lg rounded-2xl bg-white p-6',
           'max-h-[90vh] overflow-auto',
           className
         )}

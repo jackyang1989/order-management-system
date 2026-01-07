@@ -53,7 +53,7 @@ export default function AdminLoginPage() {
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 p-5">
-            <div className="w-full max-w-[400px] rounded-xl bg-white p-10 shadow-2xl">
+            <div className="w-full max-w-[400px] rounded-xl bg-white p-10">
                 <div className="mb-8 text-center">
                     <div className="mb-2 text-2xl font-bold text-slate-800">
                         管理后台

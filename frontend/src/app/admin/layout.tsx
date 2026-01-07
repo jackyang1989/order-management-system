@@ -290,7 +290,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 )}
             >
                 {/* Header */}
-                <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6 shadow-sm">
+                <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6">
                     <button
                         onClick={() => setCollapsed(!collapsed)}
                         className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
@@ -317,7 +317,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         </button>
 
                         {showDropdown && (
-                            <div className="absolute right-0 top-full mt-1 w-40 rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+                            <div className="absolute right-0 top-full mt-1 w-40 rounded-lg border border-slate-200 bg-white py-1">
                                 <button
                                     onClick={() => {
                                         router.push('/admin/profile');

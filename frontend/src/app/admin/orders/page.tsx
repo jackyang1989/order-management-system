@@ -350,13 +350,13 @@ export default function AdminOrdersPage() {
                                 <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-slate-800">截图凭证</h3>
                                 <div className="flex flex-wrap gap-3">
                                     {detailModal.keywordImg && (
-                                        <img src={detailModal.keywordImg} alt="关键词截图" className="h-24 w-24 rounded-lg object-cover shadow-sm" />
+                                        <img src={detailModal.keywordImg} alt="关键词截图" className="h-24 w-24 rounded-lg object-cover" />
                                     )}
                                     {detailModal.orderDetailImg && (
-                                        <img src={detailModal.orderDetailImg} alt="订单详情" className="h-24 w-24 rounded-lg object-cover shadow-sm" />
+                                        <img src={detailModal.orderDetailImg} alt="订单详情" className="h-24 w-24 rounded-lg object-cover" />
                                     )}
                                     {detailModal.receiveImg && (
-                                        <img src={detailModal.receiveImg} alt="收货截图" className="h-24 w-24 rounded-lg object-cover shadow-sm" />
+                                        <img src={detailModal.receiveImg} alt="收货截图" className="h-24 w-24 rounded-lg object-cover" />
                                     )}
                                 </div>
                             </div>

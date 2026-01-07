@@ -314,7 +314,7 @@ export default function AdminTasksPage() {
                                 <img
                                     src={detailModal.mainImage}
                                     alt="商品图"
-                                    className="h-48 rounded-lg object-contain shadow-sm"
+                                    className="h-48 rounded-lg object-contain"
                                 />
                             </div>
                         )}

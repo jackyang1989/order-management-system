@@ -77,7 +77,7 @@ export default function AdminDashboardPage() {
     return (
         <div className="space-y-6">
             {/* 欢迎卡片 */}
-            <div className="rounded-xl bg-gradient-to-r from-primary to-blue-700 px-8 py-6 text-white shadow-lg">
+            <div className="rounded-xl bg-gradient-to-r from-primary to-blue-700 px-8 py-6 text-white">
                 <h2 className="mb-2 text-xl font-semibold">欢迎回来，管理员</h2>
                 <p className="text-white/85">
                     今日新增用户 <strong>{stats?.todayUsers || 0}</strong> 人，新增订单 <strong>{stats?.todayOrders || 0}</strong> 单
@@ -89,7 +89,7 @@ export default function AdminDashboardPage() {
                 {statCards.map((item, idx) => (
                     <div
                         key={idx}
-                        className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+                        className="rounded-xl border border-slate-200 bg-white p-5 transition-shadow"
                     >
                         <div className="flex items-center gap-3">
                             <div className={cn('flex h-10 w-10 items-center justify-center rounded-lg text-xl', item.bgColor)}>
@@ -107,7 +107,7 @@ export default function AdminDashboardPage() {
             {/* 快捷操作区 */}
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
                 {/* 待处理事项 */}
-                <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div className="rounded-xl border border-slate-200 bg-white">
                     <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
                         <h3 className="font-medium text-slate-800">待处理事项</h3>
                         <span className="text-lg">📈</span>
@@ -137,7 +137,7 @@ export default function AdminDashboardPage() {
                 </div>
 
                 {/* 今日数据 */}
-                <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div className="rounded-xl border border-slate-200 bg-white">
                     <div className="border-b border-slate-100 px-5 py-4">
                         <h3 className="font-medium text-slate-800">今日数据</h3>
                     </div>
@@ -155,7 +155,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* 快捷入口 */}
-            <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="rounded-xl border border-slate-200 bg-white">
                 <div className="border-b border-slate-100 px-5 py-4">
                     <h3 className="font-medium text-slate-800">快捷入口</h3>
                 </div>

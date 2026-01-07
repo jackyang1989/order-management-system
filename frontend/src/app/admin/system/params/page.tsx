@@ -127,7 +127,7 @@ export default function AdminSystemParamsPage() {
                                         >
                                             <span
                                                 className={cn(
-                                                    'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200',
+                                                    'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white ring-0 transition duration-200',
                                                     config[item.key] ? 'translate-x-5' : 'translate-x-0'
                                                 )}
                                             />

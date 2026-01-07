@@ -145,7 +145,7 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
                 )}
             >
                 {/* Header */}
-                <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6 shadow-sm">
+                <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => setCollapsed(!collapsed)}
@@ -192,7 +192,7 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
                         </button>
 
                         {showDropdown && (
-                            <div className="absolute right-0 top-full mt-1 w-40 rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+                            <div className="absolute right-0 top-full mt-1 w-40 rounded-lg border border-slate-200 bg-white py-1">
                                 <button
                                     onClick={() => {
                                         router.push('/merchant/setting');

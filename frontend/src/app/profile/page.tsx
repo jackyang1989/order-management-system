@@ -134,7 +134,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Earnings Summary */}
-                <Card className="rounded-[24px] border-none bg-white p-5">
+                <Card className="rounded-[24px] border-none bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                     <div className="flex divide-x divide-slate-50">
                         <div className="flex-1 px-4 text-center">
                             <div className="text-lg font-black text-slate-900">{Number(profile?.totalEarned || 0).toFixed(2)}</div>

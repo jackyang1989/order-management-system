@@ -286,7 +286,7 @@ export default function ApiConfigPage() {
             {testResult && (
                 <div
                     className={cn(
-                        'fixed right-6 top-24 z-50 flex items-center gap-3 rounded-lg border px-6 py-4 shadow-lg',
+                        'fixed right-6 top-24 z-50 flex items-center gap-3 rounded-lg border px-6 py-4',
                         testResult.success
                             ? 'border-green-200 bg-green-50'
                             : 'border-red-200 bg-red-50'

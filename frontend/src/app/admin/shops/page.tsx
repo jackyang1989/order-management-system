@@ -74,7 +74,7 @@ export default function AdminShopsPage() {
                 <Button onClick={loadShops}>刷新</Button>
             </div>
 
-            <Card className="overflow-hidden bg-white p-0 shadow-sm">
+            <Card className="overflow-hidden bg-white p-0">
                 <div className="overflow-x-auto">
                     <table className="min-w-[1000px] w-full border-collapse">
                         <thead>
