@@ -1,24 +1,42 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
 import { isAuthenticated } from '../../../services/authService';
+import { toastError, toastSuccess } from '../../../lib/toast';
+import { Spinner } from '../../../components/ui/spinner';
+import Empty from '../../../components/ui/empty';
 import {
     BuyerAccount,
-    fetchBuyerAccounts,
-    setDefaultBuyerAccount,
-    toggleBuyerAccountStatus,
-    deleteBuyerAccount,
+    list as listAccounts,
+    setDefault,
+    setStatus,
+    remove,
+    MAX_ACCOUNTS_PER_PLATFORM,
 } from '../../../services/buyerAccountService';
+
+const STATUS_TEXT: Record<string, string> = {
+    PENDING: '审核中',
+    APPROVED: '已通过',
+    REJECTED: '已拒绝',
+    DISABLED: '已禁用',
+};
 
 export default function BuynoPage() {
     const router = useRouter();
     const [accounts, setAccounts] = useState<BuyerAccount[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [actingId, setActingId] = useState<string | null>(null);
+
+    const platformCounts = useMemo(() => {
+        const map = new Map<string, number>();
+        accounts.forEach(a => map.set(a.platform, (map.get(a.platform) || 0) + 1));
+        return map;
+    }, [accounts]);
 
     useEffect(() => {
         if (!isAuthenticated()) { router.push('/login'); return; }
@@ -29,19 +47,14 @@ export default function BuynoPage() {
         setLoading(true);
         setError(null);
         try {
-            const list = await fetchBuyerAccounts(true);
+            const list = await listAccounts();
             setAccounts(list);
         } catch (e: any) {
-            console.error('Load accounts error:', e);
             setError(e?.message || '加载失败');
         } finally {
             setLoading(false);
         }
     };
-
-    const handleAdd = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!form.wwid || !form.mobile || !form.address) { toastError('请填写必填信息'); return; }
         setSubmitting(true);
         try {
             const token = getToken();

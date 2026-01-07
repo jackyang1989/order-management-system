@@ -1,40 +1,43 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { cn } from '../../../lib/utils';
-import ProfileContainer from '../../../components/ProfileContainer';
-import { Button } from '../../../components/ui/button';
-import { Card } from '../../../components/ui/card';
-import { Badge } from '../../../components/ui/badge';
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import ProfileContainer from "../../../components/ProfileContainer";
+import { Button } from "../../../components/ui/button";
+import { Card } from "../../../components/ui/card";
+import { toastError, toastSuccess } from "../../../lib/toast";
+import { Spinner } from "../../../components/ui/spinner";
 import {
     BuyerAccount,
-    createBuyerAccount,
-    fetchBuyerAccounts,
-} from '../../../services/buyerAccountService';
+    list as listAccounts,
+    create as createAccount,
+} from "../../../services/buyerAccountService";
 
 export default function BindAccountPage() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<'list' | 'add'>('list');
     const [accounts, setAccounts] = useState<BuyerAccount[]>([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
     const [form, setForm] = useState({
-        platform: '淘宝' as '淘宝' | '京东' | '拼多多',
-        accountId: '',
-        accountName: '',
+        platform: "淘宝" as "淘宝" | "京东" | "拼多多",
+        accountId: "",
+        accountName: "",
     });
 
-    useEffect(() => { loadAccounts(); }, []);
+    const boundCount = useMemo(() => accounts.length, [accounts]);
+
+    useEffect(() => {
+        loadAccounts();
+    }, []);
 
     const loadAccounts = async () => {
         setLoading(true);
         try {
-            const list = await fetchBuyerAccounts();
+            const list = await listAccounts();
             setAccounts(list);
-        } catch (e) {
-            console.error('Load accounts error:', e);
+        } catch (e: any) {
+            toastError(e?.message || "加载失败");
         } finally {
             setLoading(false);
         }
@@ -42,27 +45,23 @@ export default function BindAccountPage() {
 
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!form.accountId || !form.accountName) {
-            alert('请填写必填信息');
+        const accountId = form.accountId.trim();
+        const accountName = (form.accountName || accountId).trim();
+        if (!form.platform || !accountId) {
+            toastError("请填写必填信息");
             return;
         }
         setSubmitting(true);
         try {
-            const res = await createBuyerAccount({
+            await createAccount({
                 platform: form.platform,
-                accountId: form.accountId,
-                accountName: form.accountName || form.accountId,
+                accountId,
+                accountName,
             });
-            if (res.success) {
-                alert(res.message);
-                setActiveTab('list');
-                loadAccounts();
-                setForm({ platform: '淘宝', accountId: '', accountName: '' });
-            } else {
-                alert(res.message);
-            }
-        } catch (e) {
-            alert('提交失败');
+            toastSuccess("提交成功，等待审核");
+            router.push("/profile/buyno");
+        } catch (e: any) {
+            toastError(e?.message || "提交失败");
         } finally {
             setSubmitting(false);
         }
@@ -70,77 +69,62 @@ export default function BindAccountPage() {
 
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
-            {/* Header */}
             <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
                 <div className="mx-auto flex h-14 max-w-[515px] items-center px-4">
                     <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
-                    <h1 className="flex-1 text-base font-medium text-slate-800">买号管理</h1>
+                    <h1 className="flex-1 text-base font-medium text-slate-800">绑定买号</h1>
                 </div>
             </header>
 
-            <ProfileContainer className="py-4">
-                {/* Tabs */}
-                <div className="mb-4 flex rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
-                    {[{ key: 'list', label: '账号列表' }, { key: 'add', label: '添加账号' }].map(tab => (
-                        <button key={tab.key} onClick={() => setActiveTab(tab.key as any)}
-                            className={cn('flex-1 rounded-md py-2 text-center text-sm font-medium transition-colors', activeTab === tab.key ? 'bg-blue-500 text-white' : 'text-slate-500')}>
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
-
-                {activeTab === 'list' ? (
-                    <div className="space-y-4">
+            <ProfileContainer className="py-4 space-y-4">
+                <Card className="border-slate-200 p-4 shadow-sm">
+                    <div className="flex items-center justify-between text-sm text-slate-600">
+                        <div>已绑定买号</div>
                         {loading ? (
-                            <div className="py-12 text-center text-slate-400">加载中...</div>
-                        ) : accounts.length === 0 ? (
-                            <div className="rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center text-slate-400">
-                                <div className="mb-3 text-4xl">🛒</div>
-                                <p className="text-sm">暂未绑定买号</p>
-                                <Button className="mt-4 bg-blue-500" onClick={() => setActiveTab('add')}>立即添加</Button>
-                            </div>
+                            <div className="flex items-center gap-2"><Spinner size="sm" /> 加载中...</div>
                         ) : (
-                            accounts.map(acc => (
-                                <Card key={acc.id} className="border-slate-200 p-4 shadow-sm">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-xl font-bold text-blue-500">{(acc.accountName || '').charAt(0).toUpperCase()}</div>
-                                            <div>
-                                                <div className="font-bold text-slate-800">{acc.accountName}</div>
-                                                <div className="text-xs text-slate-400">{acc.platform}</div>
-                                            </div>
-                                        </div>
-                                        <Badge variant="soft" color={acc.status === 'APPROVED' ? 'green' : acc.status === 'PENDING' ? 'amber' : 'red'}>
-                                            {acc.status === 'APPROVED' ? '已通过' : acc.status === 'PENDING' ? '审核中' : acc.status === 'REJECTED' ? '已拒绝' : '已禁用'}
-                                        </Badge>
-                                    </div>
-                                </Card>
-                            ))
+                            <div>{boundCount} 个</div>
                         )}
                     </div>
-                ) : (
-                    <Card className="border-slate-200 p-5 shadow-sm">
-                        <form onSubmit={handleAdd} className="space-y-4">
-                            <div>
-                                <label className="mb-1 block text-xs text-slate-500">选择平台 <span className="text-red-500">*</span></label>
-                                <select className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800" value={form.platform} onChange={e => setForm(f => ({ ...f, platform: e.target.value as any }))}>
-                                    <option value="淘宝">淘宝</option>
-                                    <option value="京东">京东</option>
-                                    <option value="拼多多">拼多多</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="mb-1 block text-xs text-slate-500">账号ID <span className="text-red-500">*</span></label>
-                                <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800" placeholder="账号唯一标识" value={form.accountId} onChange={e => setForm(f => ({ ...f, accountId: e.target.value }))} />
-                            </div>
-                            <div>
-                                <label className="mb-1 block text-xs text-slate-500">展示名称</label>
-                                <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800" placeholder="用于列表展示，默认同账号ID" value={form.accountName} onChange={e => setForm(f => ({ ...f, accountName: e.target.value }))} />
-                            </div>
-                            <Button type="submit" loading={submitting} className="mt-2 w-full bg-blue-500 py-6 text-base font-medium hover:bg-blue-600">提交申请</Button>
-                        </form>
-                    </Card>
-                )}
+                </Card>
+
+                <Card className="border-slate-200 p-5 shadow-sm">
+                    <form onSubmit={handleAdd} className="space-y-4">
+                        <div>
+                            <label className="mb-1 block text-xs text-slate-500">选择平台 <span className="text-red-500">*</span></label>
+                            <select
+                                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
+                                value={form.platform}
+                                onChange={e => setForm(f => ({ ...f, platform: e.target.value as any }))}
+                            >
+                                <option value="淘宝">淘宝</option>
+                                <option value="京东">京东</option>
+                                <option value="拼多多">拼多多</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="mb-1 block text-xs text-slate-500">账号ID <span className="text-red-500">*</span></label>
+                            <input
+                                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
+                                placeholder="账号唯一标识"
+                                value={form.accountId}
+                                onChange={e => setForm(f => ({ ...f, accountId: e.target.value }))}
+                            />
+                        </div>
+                        <div>
+                            <label className="mb-1 block text-xs text-slate-500">展示名称</label>
+                            <input
+                                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
+                                placeholder="用于列表展示，默认同账号ID"
+                                value={form.accountName}
+                                onChange={e => setForm(f => ({ ...f, accountName: e.target.value }))}
+                            />
+                        </div>
+                        <Button type="submit" loading={submitting} className="mt-2 w-full bg-blue-500 py-6 text-base font-medium hover:bg-blue-600">
+                            提交申请
+                        </Button>
+                    </form>
+                </Card>
             </ProfileContainer>
         </div>
     );

@@ -1,18 +1,43 @@
 import { BASE_URL } from '../../apiConfig';
 
-export type BuyerAccountStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'DISABLED';
+export type BuyerAccountStatus = 'PENDING' | 'APPROVED' | 'DISABLED' | 'REJECTED';
 
 export interface BuyerAccount {
     id: string;
     platform: '淘宝' | '京东' | '拼多多';
-    accountId: string;      // 账号唯一标识
-    accountName: string;    // 展示名称，可与 accountId 相同
+    accountId: string;
+    accountName: string;
     status: BuyerAccountStatus;
     isDefault: boolean;
 }
 
-// NOTE: 后端当前无默认/启用禁用接口，临时内存模拟 CRUD。
-// TODO: replace with real API endpoint when backend adds default/status endpoints.
+// TODO: read from system config
+export const MAX_ACCOUNTS_PER_PLATFORM = 3;
+
+const authHeader = () => {
+    if (typeof localStorage === 'undefined') return {};
+    const token = localStorage.getItem('token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+const mapStatus = (s: number | string): BuyerAccountStatus => {
+    if (s === 1 || s === 'APPROVED') return 'APPROVED';
+    if (s === 2 || s === 'REJECTED') return 'REJECTED';
+    if (s === 3 || s === 'DISABLED' || s === 'DELETED') return 'DISABLED';
+    return 'PENDING';
+};
+
+const mapOut = (raw: any): BuyerAccount => ({
+    id: raw.id,
+    platform: raw.platform,
+    accountId: raw.accountName,
+    accountName: raw.accountName,
+    status: mapStatus(raw.status),
+    isDefault: Boolean(raw.isDefault),
+});
+
+// TODO: switch to real API when backend provides default/status endpoints
+const useMock = true;
 let mockStore: BuyerAccount[] = [
     {
         id: 'ba_mock_1',
@@ -32,82 +57,76 @@ let mockStore: BuyerAccount[] = [
     },
 ];
 
-const useMock = false;
-
-const authHeader = () => {
-    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null;
-    return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
-export async function fetchBuyerAccounts(all = true): Promise<BuyerAccount[]> {
+export async function list(): Promise<BuyerAccount[]> {
     if (useMock) {
+        // TODO: replace with real API endpoint
         return [...mockStore];
     }
-    const res = await fetch(`${BASE_URL}/buyer-accounts${all ? '?all=1' : ''}`, {
+    const res = await fetch(`${BASE_URL}/buyer-accounts?all=1`, {
         headers: { ...authHeader() },
     });
     if (!res.ok) throw new Error('获取买号失败');
     const data = await res.json();
-    // 后端字段 accountName 映射到 accountId/accountName
-    return (data.data || []).map((item: any) => ({
-        id: item.id,
-        platform: item.platform,
-        accountId: item.accountName,
-        accountName: item.accountName,
-        status: item.status === 3 ? 'DISABLED' : item.status === 1 ? 'APPROVED' : item.status === 2 ? 'REJECTED' : 'PENDING',
-        isDefault: Boolean(item.isDefault),
-    }));
+    return (data.data || []).map(mapOut);
 }
 
-export async function createBuyerAccount(payload: {
-    platform: BuyerAccount['platform'];
-    accountId: string;
-    accountName: string;
-}): Promise<{ success: boolean; message: string }> {
+export async function create(input: { platform: string; accountId: string; accountName?: string }): Promise<void> {
     if (useMock) {
+        // TODO: replace with real API endpoint
         const id = `ba_mock_${Date.now()}`;
-        mockStore.push({ id, ...payload, status: 'PENDING', isDefault: mockStore.length === 0 });
-        return { success: true, message: '提交成功，等待审核' };
+        const account: BuyerAccount = {
+            id,
+            platform: input.platform as any,
+            accountId: input.accountId,
+            accountName: input.accountName || input.accountId,
+            status: 'PENDING',
+            isDefault: mockStore.length === 0,
+        };
+        mockStore.push(account);
+        return;
     }
     const res = await fetch(`${BASE_URL}/buyer-accounts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeader() },
         body: JSON.stringify({
-            platform: payload.platform,
-            accountName: payload.accountId,
+            platform: input.platform,
+            accountName: input.accountId,
         }),
     });
     const data = await res.json();
-    return { success: res.ok, message: data.message || (res.ok ? '提交成功' : '提交失败') };
+    if (!res.ok) throw new Error(data?.message || '提交失败');
 }
 
-export async function setDefaultBuyerAccount(id: string): Promise<{ success: boolean; message: string }> {
+export async function setDefault(id: string): Promise<void> {
     if (useMock) {
+        // TODO: replace with real API endpoint
         mockStore = mockStore.map(acc => ({ ...acc, isDefault: acc.id === id }));
-        return { success: true, message: '已设为默认' };
+        return;
     }
     // TODO: replace with real API endpoint `/buyer-accounts/:id/default`
-    return { success: false, message: '未提供默认接口，请后端补充 /buyer-accounts/:id/default' };
+    throw new Error('未提供设默认买号接口');
 }
 
-export async function toggleBuyerAccountStatus(id: string, enable: boolean): Promise<{ success: boolean; message: string }> {
+export async function setStatus(id: string, status: BuyerAccountStatus): Promise<void> {
     if (useMock) {
-        mockStore = mockStore.map(acc => acc.id === id ? { ...acc, status: enable ? 'APPROVED' : 'DISABLED' } : acc);
-        return { success: true, message: enable ? '已启用' : '已禁用' };
+        // TODO: replace with real API endpoint
+        mockStore = mockStore.map(acc => acc.id === id ? { ...acc, status } : acc);
+        return;
     }
     // TODO: replace with real API endpoint `/buyer-accounts/:id/status`
-    return { success: false, message: '未提供启用/禁用接口，请后端补充 /buyer-accounts/:id/status' };
+    throw new Error('未提供启用/禁用买号接口');
 }
 
-export async function deleteBuyerAccount(id: string): Promise<{ success: boolean; message: string }> {
+export async function remove(id: string): Promise<void> {
     if (useMock) {
+        // TODO: replace with real API endpoint
         mockStore = mockStore.filter(acc => acc.id !== id);
-        return { success: true, message: '已删除' };
+        return;
     }
     const res = await fetch(`${BASE_URL}/buyer-accounts/${id}`, {
         method: 'DELETE',
         headers: { ...authHeader() },
     });
     const data = await res.json();
-    return { success: res.ok, message: data.message || (res.ok ? '删除成功' : '删除失败') };
+    if (!res.ok) throw new Error(data?.message || '删除失败');
 }
