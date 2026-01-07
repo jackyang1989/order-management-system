@@ -41,7 +41,7 @@ export class MobileCompatController {
     private bankCardsService: BankCardsService,
     private smsService: SmsService,
     private authService: AuthService,
-  ) {}
+  ) { }
 
   // ============ /mobile/my/* 用户中心 ============
 
@@ -263,13 +263,13 @@ export class MobileCompatController {
    * 获取任务列表
    * 原版: /mobile/task/index
    */
-  @Get('task/index')
+  @Post('task/index')
   @UseGuards(JwtAuthGuard)
-  async taskIndex(@Query() query: any) {
+  async taskIndex(@Body() body: any) {
     try {
       const result = await this.tasksService.findAll({
-        taskType: query.type,
-        search: query.keyword,
+        taskType: body.task_type || body.taskType,
+        search: body.keyword,
       });
       return {
         code: 1,
