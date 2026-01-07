@@ -5,14 +5,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
-  ManyToOne,
-  JoinColumn,
 } from 'typeorm';
 import {
   IsString,
   IsNotEmpty,
   IsOptional,
-  IsNumber,
   IsEnum,
 } from 'class-validator';
 
@@ -41,55 +38,69 @@ export class BuyerAccount {
   @Column({ type: 'varchar', length: 20, default: BuyerAccountPlatform.TAOBAO })
   platform: BuyerAccountPlatform;
 
-  @Column({ length: 100 })
-  accountName: string; // 淘宝账号/旺旺ID
+  // 平台账号（原accountName/旺旺ID）
+  @Column({ name: 'accountName', length: 100 })
+  platformAccount: string;
 
+  // 常用登录地省（原wangwangProvince）
+  @Column({ name: 'wangwangProvince', length: 100, nullable: true })
+  loginProvince?: string;
+
+  // 常用登录地市（原wangwangCity）
+  @Column({ name: 'wangwangCity', length: 100, nullable: true })
+  loginCity?: string;
+
+  // 收货地址省
   @Column({ length: 50, nullable: true })
-  province?: string; // 地址省份
+  province?: string;
 
+  // 收货地址市
   @Column({ length: 50, nullable: true })
-  city?: string; // 地址城市
+  city?: string;
 
+  // 收货地址区县
   @Column({ length: 50, nullable: true })
-  district?: string; // 地址区县
+  district?: string;
 
-  @Column({ length: 100, nullable: true })
-  receiverName?: string; // 收货人姓名
+  // 收货人姓名（原receiverName）
+  @Column({ name: 'receiverName', length: 100, nullable: true })
+  buyerName?: string;
 
-  @Column({ length: 20, nullable: true })
-  receiverPhone?: string; // 收货人手机
+  // 收货人手机（原receiverPhone）
+  @Column({ name: 'receiverPhone', length: 20, nullable: true })
+  buyerPhone?: string;
 
+  // 详细地址
   @Column({ type: 'text', nullable: true })
-  fullAddress?: string; // 完整地址
+  fullAddress?: string;
 
-  @Column({ length: 50, nullable: true })
-  alipayName?: string; // 支付宝认证姓名
+  // 实名认证姓名（原alipayName）
+  @Column({ name: 'alipayName', length: 50, nullable: true })
+  realName?: string;
 
+  // 淘宝档案截图（原archiveImage）
+  @Column({ name: 'archiveImage', type: 'text', nullable: true })
+  profileImg?: string;
+
+  // 淘气值截图（原ipImage）
+  @Column({ name: 'ipImage', type: 'text', nullable: true })
+  creditImg?: string;
+
+  // 支付宝认证截图（原alipayImage）
+  @Column({ name: 'alipayImage', type: 'text', nullable: true })
+  payAuthImg?: string;
+
+  // 芝麻信用截图（原zhimaImage）
+  @Column({ name: 'zhimaImage', type: 'text', nullable: true })
+  scoreImg?: string;
+
+  // 身份证截图（保留）
   @Column({ type: 'text', nullable: true })
-  idCardImage?: string; // 身份证正面截图
-
-  @Column({ type: 'text', nullable: true })
-  alipayImage?: string; // 支付宝认证截图
-
-  @Column({ type: 'text', nullable: true })
-  archiveImage?: string; // 旺旺档案截图
-
-  @Column({ type: 'text', nullable: true })
-  ipImage?: string; // IP地址截图/淘气值截图
-
-  @Column({ type: 'text', nullable: true })
-  zhimaImage?: string; // 芝麻信用截图
-
-  // 旺旺地址 (用于验证IP一致性)
-  @Column({ length: 100, nullable: true })
-  wangwangProvince?: string; // 旺旺地址省
-
-  @Column({ length: 100, nullable: true })
-  wangwangCity?: string; // 旺旺地址市
+  idCardImage?: string;
 
   // 收货地址备注
   @Column({ type: 'text', nullable: true })
-  addressRemark?: string; // 收货地址信息备注
+  addressRemark?: string;
 
   @Column({ default: 1 })
   star: number; // 星级 (1-5)
@@ -127,43 +138,43 @@ export class CreateBuyerAccountDto {
 
   @IsString()
   @IsNotEmpty()
-  accountName: string;
+  platformAccount: string; // 平台账号（淘宝账号）
 
   @IsString()
   @IsOptional()
-  province?: string;
+  loginProvince?: string; // 常用登录省
 
   @IsString()
   @IsOptional()
-  city?: string;
+  loginCity?: string; // 常用登录市
 
   @IsString()
   @IsOptional()
-  district?: string;
+  province?: string; // 收货省
 
   @IsString()
   @IsOptional()
-  receiverName?: string;
+  city?: string; // 收货市
 
   @IsString()
   @IsOptional()
-  receiverPhone?: string;
+  district?: string; // 收货区
 
   @IsString()
   @IsOptional()
-  fullAddress?: string;
+  buyerName?: string; // 收货人姓名
 
   @IsString()
   @IsOptional()
-  alipayName?: string;
+  buyerPhone?: string; // 收货人手机
 
   @IsString()
   @IsOptional()
-  wangwangProvince?: string; // 旺旺地址省
+  fullAddress?: string; // 详细地址
 
   @IsString()
   @IsOptional()
-  wangwangCity?: string; // 旺旺地址市
+  realName?: string; // 实名认证姓名
 
   @IsString()
   @IsOptional()
@@ -171,23 +182,23 @@ export class CreateBuyerAccountDto {
 
   @IsString()
   @IsOptional()
+  profileImg?: string; // 淘宝档案截图
+
+  @IsString()
+  @IsOptional()
+  creditImg?: string; // 淘气值截图
+
+  @IsString()
+  @IsOptional()
+  payAuthImg?: string; // 支付宝认证截图
+
+  @IsString()
+  @IsOptional()
+  scoreImg?: string; // 芝麻信用截图
+
+  @IsString()
+  @IsOptional()
   idCardImage?: string; // 身份证截图
-
-  @IsString()
-  @IsOptional()
-  alipayImage?: string; // 支付宝认证截图
-
-  @IsString()
-  @IsOptional()
-  archiveImage?: string; // 旺旺档案截图
-
-  @IsString()
-  @IsOptional()
-  ipImage?: string; // 淘气值截图
-
-  @IsString()
-  @IsOptional()
-  zhimaImage?: string; // 芝麻信用截图
 
   @IsString()
   @IsOptional()
@@ -197,6 +208,14 @@ export class CreateBuyerAccountDto {
 export class UpdateBuyerAccountDto {
   @IsString()
   @IsOptional()
+  loginProvince?: string;
+
+  @IsString()
+  @IsOptional()
+  loginCity?: string;
+
+  @IsString()
+  @IsOptional()
   province?: string;
 
   @IsString()
@@ -209,11 +228,11 @@ export class UpdateBuyerAccountDto {
 
   @IsString()
   @IsOptional()
-  receiverName?: string;
+  buyerName?: string;
 
   @IsString()
   @IsOptional()
-  receiverPhone?: string;
+  buyerPhone?: string;
 
   @IsString()
   @IsOptional()
@@ -221,15 +240,7 @@ export class UpdateBuyerAccountDto {
 
   @IsString()
   @IsOptional()
-  alipayName?: string;
-
-  @IsString()
-  @IsOptional()
-  wangwangProvince?: string;
-
-  @IsString()
-  @IsOptional()
-  wangwangCity?: string;
+  realName?: string;
 
   @IsString()
   @IsOptional()
@@ -237,23 +248,23 @@ export class UpdateBuyerAccountDto {
 
   @IsString()
   @IsOptional()
+  profileImg?: string;
+
+  @IsString()
+  @IsOptional()
+  creditImg?: string;
+
+  @IsString()
+  @IsOptional()
+  payAuthImg?: string;
+
+  @IsString()
+  @IsOptional()
+  scoreImg?: string;
+
+  @IsString()
+  @IsOptional()
   idCardImage?: string;
-
-  @IsString()
-  @IsOptional()
-  alipayImage?: string;
-
-  @IsString()
-  @IsOptional()
-  archiveImage?: string;
-
-  @IsString()
-  @IsOptional()
-  ipImage?: string;
-
-  @IsString()
-  @IsOptional()
-  zhimaImage?: string;
 
   @IsString()
   @IsOptional()

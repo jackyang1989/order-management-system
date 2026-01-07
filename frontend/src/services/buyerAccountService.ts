@@ -5,10 +5,60 @@ export type BuyerAccountStatus = 'PENDING' | 'APPROVED' | 'DISABLED' | 'REJECTED
 export interface BuyerAccount {
     id: string;
     platform: '淘宝' | '京东' | '拼多多';
-    accountId: string;
-    accountName: string;
+    platformAccount: string;
+    loginProvince?: string;
+    loginCity?: string;
+    province?: string;
+    city?: string;
+    district?: string;
+    buyerName?: string;
+    buyerPhone?: string;
+    fullAddress?: string;
+    realName?: string;
+    profileImg?: string;
+    creditImg?: string;
+    payAuthImg?: string;
+    scoreImg?: string;
     status: BuyerAccountStatus;
     isDefault: boolean;
+    star?: number;
+    rejectReason?: string;
+}
+
+export interface CreateBuyerAccountInput {
+    platform: string;
+    platformAccount: string;
+    loginProvince?: string;
+    loginCity?: string;
+    province?: string;
+    city?: string;
+    district?: string;
+    buyerName?: string;
+    buyerPhone?: string;
+    fullAddress?: string;
+    realName?: string;
+    profileImg?: string;
+    creditImg?: string;
+    payAuthImg?: string;
+    scoreImg?: string;
+    smsCode?: string;
+}
+
+export interface UpdateBuyerAccountInput {
+    loginProvince?: string;
+    loginCity?: string;
+    province?: string;
+    city?: string;
+    district?: string;
+    buyerName?: string;
+    buyerPhone?: string;
+    fullAddress?: string;
+    realName?: string;
+    profileImg?: string;
+    creditImg?: string;
+    payAuthImg?: string;
+    scoreImg?: string;
+    smsCode?: string;
 }
 
 // TODO: read from system config
@@ -51,25 +101,77 @@ export async function list(): Promise<BuyerAccount[]> {
     const items: BuyerAccount[] = (data.data || []).map((raw: any) => ({
         id: raw.id,
         platform: raw.platform,
-        accountId: raw.accountName,
-        accountName: raw.accountName,
+        platformAccount: raw.platformAccount || raw.accountName,
+        loginProvince: raw.loginProvince || raw.wangwangProvince,
+        loginCity: raw.loginCity || raw.wangwangCity,
+        province: raw.province,
+        city: raw.city,
+        district: raw.district,
+        buyerName: raw.buyerName || raw.receiverName,
+        buyerPhone: raw.buyerPhone || raw.receiverPhone,
+        fullAddress: raw.fullAddress,
+        realName: raw.realName || raw.alipayName,
+        profileImg: raw.profileImg || raw.archiveImage,
+        creditImg: raw.creditImg || raw.ipImage,
+        payAuthImg: raw.payAuthImg || raw.alipayImage,
+        scoreImg: raw.scoreImg || raw.zhimaImage,
         status: mapStatus(raw.status),
         isDefault: Boolean(raw.isDefault),
+        star: raw.star,
+        rejectReason: raw.rejectReason,
     }));
     return applyOverrides(items);
 }
 
-export async function create(input: { platform: string; accountId: string; accountName?: string }): Promise<void> {
+export async function getOne(id: string): Promise<BuyerAccount | null> {
+    const res = await fetch(`${BASE_URL}/buyer-accounts/${id}`, {
+        headers: { ...authHeader() },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const raw = data.data || data;
+    return {
+        id: raw.id,
+        platform: raw.platform,
+        platformAccount: raw.platformAccount || raw.accountName,
+        loginProvince: raw.loginProvince || raw.wangwangProvince,
+        loginCity: raw.loginCity || raw.wangwangCity,
+        province: raw.province,
+        city: raw.city,
+        district: raw.district,
+        buyerName: raw.buyerName || raw.receiverName,
+        buyerPhone: raw.buyerPhone || raw.receiverPhone,
+        fullAddress: raw.fullAddress,
+        realName: raw.realName || raw.alipayName,
+        profileImg: raw.profileImg || raw.archiveImage,
+        creditImg: raw.creditImg || raw.ipImage,
+        payAuthImg: raw.payAuthImg || raw.alipayImage,
+        scoreImg: raw.scoreImg || raw.zhimaImage,
+        status: mapStatus(raw.status),
+        isDefault: Boolean(raw.isDefault),
+        star: raw.star,
+        rejectReason: raw.rejectReason,
+    };
+}
+
+export async function create(input: CreateBuyerAccountInput): Promise<void> {
     const res = await fetch(`${BASE_URL}/buyer-accounts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeader() },
-        body: JSON.stringify({
-            platform: input.platform,
-            accountName: input.accountId,
-        }),
+        body: JSON.stringify(input),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data?.message || '提交失败');
+}
+
+export async function update(id: string, input: UpdateBuyerAccountInput): Promise<void> {
+    const res = await fetch(`${BASE_URL}/buyer-accounts/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...authHeader() },
+        body: JSON.stringify(input),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.message || '更新失败');
 }
 
 export async function remove(id: string): Promise<void> {
@@ -94,4 +196,15 @@ export async function setDefault(id: string): Promise<void> {
 export async function setStatus(id: string, status: BuyerAccountStatus): Promise<void> {
     // TODO: replace with real API endpoint
     overrideMap[id] = { ...(overrideMap[id] || {}), status };
+}
+
+// SMS 验证码
+export async function sendSmsCode(phone: string): Promise<void> {
+    const res = await fetch(`${BASE_URL}/sms/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeader() },
+        body: JSON.stringify({ phone, type: 'bind_buyno' }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.message || '发送失败');
 }

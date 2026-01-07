@@ -18,7 +18,7 @@ export class BuyerAccountsService {
   constructor(
     @InjectRepository(BuyerAccount)
     private buyerAccountsRepository: Repository<BuyerAccount>,
-  ) {}
+  ) { }
 
   async findAllByUser(
     userId: string,
@@ -32,10 +32,10 @@ export class BuyerAccountsService {
     return this.buyerAccountsRepository.find({
       where: includeAll
         ? [
-            { userId, status: BuyerAccountStatus.PENDING },
-            { userId, status: BuyerAccountStatus.APPROVED },
-            { userId, status: BuyerAccountStatus.REJECTED },
-          ]
+          { userId, status: BuyerAccountStatus.PENDING },
+          { userId, status: BuyerAccountStatus.APPROVED },
+          { userId, status: BuyerAccountStatus.REJECTED },
+        ]
         : where,
       order: { createdAt: 'DESC' },
     });
@@ -55,7 +55,7 @@ export class BuyerAccountsService {
     const existing = await this.buyerAccountsRepository.findOne({
       where: {
         platform: createDto.platform || BuyerAccountPlatform.TAOBAO,
-        accountName: createDto.accountName,
+        platformAccount: createDto.platformAccount,
         status: BuyerAccountStatus.APPROVED, // 只检查已审核通过的，防止误拦
       },
     });
@@ -66,25 +66,25 @@ export class BuyerAccountsService {
     const buyerAccount = this.buyerAccountsRepository.create({
       userId,
       platform: createDto.platform || BuyerAccountPlatform.TAOBAO,
-      accountName: createDto.accountName,
+      platformAccount: createDto.platformAccount,
       province: createDto.province,
       city: createDto.city,
       district: createDto.district,
-      receiverName: createDto.receiverName,
-      receiverPhone: createDto.receiverPhone,
+      buyerName: createDto.buyerName,
+      buyerPhone: createDto.buyerPhone,
       fullAddress: createDto.fullAddress,
-      alipayName: createDto.alipayName,
-      // 旺旺登陆地
-      wangwangProvince: createDto.wangwangProvince,
-      wangwangCity: createDto.wangwangCity,
+      realName: createDto.realName,
+      // 常用登陆地
+      loginProvince: createDto.loginProvince,
+      loginCity: createDto.loginCity,
       // 收货地址备注
       addressRemark: createDto.addressRemark,
       // 图片字段
       idCardImage: createDto.idCardImage,
-      alipayImage: createDto.alipayImage,
-      archiveImage: createDto.archiveImage,
-      ipImage: createDto.ipImage,
-      zhimaImage: createDto.zhimaImage,
+      payAuthImg: createDto.payAuthImg,
+      profileImg: createDto.profileImg,
+      creditImg: createDto.creditImg,
+      scoreImg: createDto.scoreImg,
       status: BuyerAccountStatus.PENDING, // 改为待审核，需管理员审核
       star: 1, // 初始1星
     });
