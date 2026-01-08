@@ -104,7 +104,7 @@ export class GoodsService {
       shopId: dto.shopId,
       name: dto.name,
       link: dto.link,
-      taobaoId: dto.taobaoId,
+      platformProductId: dto.platformProductId,
       verifyCode: dto.verifyCode,
       pcImg: dto.pcImg,
       specName: dto.specName,
@@ -188,15 +188,15 @@ export class GoodsService {
         return { success: false, message: '商品不存在' };
       }
 
-      // 3. 如果提供了链接，提取淘宝ID
+      // 3. 如果提供了链接，提取平台商品ID
       if (dto.link) {
         try {
           const url = new URL(dto.link);
-          const taobaoId = url.searchParams.get('id');
-          if (!taobaoId) {
+          const productId = url.searchParams.get('id');
+          if (!productId) {
             return { success: false, message: '商品链接不正确' };
           }
-          goods.taobaoId = taobaoId;
+          goods.platformProductId = productId;
           goods.link = dto.link;
         } catch {
           return { success: false, message: '商品链接不正确' };

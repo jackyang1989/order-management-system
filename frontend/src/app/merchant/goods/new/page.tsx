@@ -14,7 +14,7 @@ export default function NewGoodsPage() {
     const router = useRouter();
     const [shops, setShops] = useState<Shop[]>([]);
     const [loading, setLoading] = useState(false);
-    const [form, setForm] = useState<CreateGoodsDto>({ shopId: '', name: '', link: '', taobaoId: '', verifyCode: '', specName: '', specValue: '', price: 0, num: 1, showPrice: 0 });
+    const [form, setForm] = useState<CreateGoodsDto>({ shopId: '', name: '', link: '', platformProductId: '', verifyCode: '', specName: '', specValue: '', price: 0, num: 1, showPrice: 0 });
 
     useEffect(() => { loadShops(); }, []);
 
@@ -64,10 +64,10 @@ export default function NewGoodsPage() {
                         <Input type="text" value={form.link} onChange={e => handleChange('link', e.target.value)} placeholder="请输入商品链接或淘口令" />
                     </div>
 
-                    {/* Taobao ID */}
+                    {/* Platform Product ID */}
                     <div>
-                        <label className="mb-2 block font-medium">淘宝商品ID</label>
-                        <Input type="text" value={form.taobaoId} onChange={e => handleChange('taobaoId', e.target.value)} placeholder="可从商品链接自动解析" />
+                        <label className="mb-2 block font-medium">平台商品ID</label>
+                        <Input type="text" value={form.platformProductId} onChange={e => handleChange('platformProductId', e.target.value)} placeholder="可从商品链接自动解析" />
                     </div>
 
                     {/* Verify Code */}

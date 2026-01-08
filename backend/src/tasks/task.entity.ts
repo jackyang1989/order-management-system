@@ -86,7 +86,7 @@ export class Task {
   taoWord: string; // 淘口令
 
   @Column({ nullable: true })
-  taobaoId: string; // 淘宝商品ID（用于核对）
+  platformProductId: string; // 平台商品ID（用于核对，原taobaoId）
 
   @Column({ nullable: true })
   qrCode: string; // 二维码URL

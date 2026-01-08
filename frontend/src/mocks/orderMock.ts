@@ -38,7 +38,7 @@ export interface MockOrder {
     platformOrderNumber?: string;  // 平台订单号
     platformRefundTime?: string; // 平台返款时间
     productPrice?: number;       // 商品价格
-    taobaoId?: string;           // 商品淘宝ID
+    platformProductId?: string;           // 平台商品ID
 }
 
 export const mockOrders: MockOrder[] = [

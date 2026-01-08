@@ -183,7 +183,7 @@ export default function AdminTasksReviewsPage() {
                                 <thead>
                                     <tr className="border-b border-slate-100 bg-slate-50">
                                         <th className="px-4 py-3.5 text-left text-sm font-medium">任务编号</th>
-                                        <th className="px-4 py-3.5 text-left text-sm font-medium">淘宝订单号</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">平台订单号</th>
                                         <th className="px-4 py-3.5 text-right text-sm font-medium">任务金额</th>
                                         <th className="px-4 py-3.5 text-right text-sm font-medium">买手佣金</th>
                                         <th className="px-4 py-3.5 text-center text-sm font-medium">状态</th>

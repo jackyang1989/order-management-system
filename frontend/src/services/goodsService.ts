@@ -10,7 +10,7 @@ export interface Goods {
     };
     name: string;
     link?: string;
-    taobaoId?: string;
+    platformProductId?: string;
     verifyCode?: string;
     pcImg?: string; // JSON数组
     specName?: string;
@@ -28,7 +28,7 @@ export interface CreateGoodsDto {
     shopId: string;
     name: string;
     link?: string;
-    taobaoId?: string;
+    platformProductId?: string;
     verifyCode?: string;
     pcImg?: string;
     specName?: string;
@@ -42,7 +42,7 @@ export interface CreateGoodsDto {
 export interface UpdateGoodsDto {
     name?: string;
     link?: string;
-    taobaoId?: string;
+    platformProductId?: string;
     verifyCode?: string;
     pcImg?: string;
     specName?: string;

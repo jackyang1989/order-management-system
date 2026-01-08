@@ -224,3 +224,51 @@ export const ORDER_RECEIVE_TIPS = [
     '未按指定文字、照片、视频好评将扣除本次任务的银锭(佣金)。',
     '评价环节若胡乱评价、复制店内他人评价、评价与商品不符、中差评、低星评分等恶劣评价行为，买号将永久拉黑。'
 ];
+
+// ============ 任务平台类型配置（与后端 TaskType 枚举对应）============
+export enum TaskType {
+    TAOBAO = 1,
+    TMALL = 2,
+    JD = 3,
+    PDD = 4,
+    DOUYIN = 5,
+    KUAISHOU = 6,
+}
+
+// 平台类型到名称的映射
+export const TASK_TYPE_NAMES: Record<number, string> = {
+    [TaskType.TAOBAO]: '淘宝',
+    [TaskType.TMALL]: '天猫',
+    [TaskType.JD]: '京东',
+    [TaskType.PDD]: '拼多多',
+    [TaskType.DOUYIN]: '抖音',
+    [TaskType.KUAISHOU]: '快手',
+};
+
+// 获取平台名称
+export function getTaskTypeName(taskType: number): string {
+    return TASK_TYPE_NAMES[taskType] || '其他';
+}
+
+// 任务平台列表（用于发布任务等场景）
+export interface TaskPlatformOption {
+    id: number;
+    name: string;
+    icon: string;
+    platformCode: string; // 对应店铺platform字段
+}
+
+export const TASK_PLATFORMS: TaskPlatformOption[] = [
+    { id: TaskType.TAOBAO, name: '淘宝', icon: '🟠', platformCode: 'TAOBAO' },
+    { id: TaskType.TMALL, name: '天猫', icon: '🔴', platformCode: 'TMALL' },
+    { id: TaskType.JD, name: '京东', icon: '🔴', platformCode: 'JD' },
+    { id: TaskType.PDD, name: '拼多多', icon: '🟢', platformCode: 'PDD' },
+    { id: TaskType.DOUYIN, name: '抖音', icon: '📱', platformCode: 'DOUYIN' },
+    { id: TaskType.KUAISHOU, name: '快手', icon: '📱', platformCode: 'KUAISHOU' },
+];
+
+// 根据任务类型获取店铺平台代码
+export function getShopPlatformCode(taskType: number): string {
+    const platform = TASK_PLATFORMS.find(p => p.id === taskType);
+    return platform?.platformCode || 'OTHER';
+}

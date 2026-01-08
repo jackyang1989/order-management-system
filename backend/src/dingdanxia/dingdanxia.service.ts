@@ -5,7 +5,7 @@ import { SystemConfig } from '../system-config/system-config.entity';
 
 export interface TklQueryResult {
   success: boolean;
-  numIid?: string; // 商品ID (taobaoId)
+  numIid?: string; // 商品ID (platformProductId)
   title?: string; // 商品标题
   pictUrl?: string; // 商品图片
   shopName?: string; // 店铺名称

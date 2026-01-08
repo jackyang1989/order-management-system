@@ -29,7 +29,7 @@ interface Task {
     mainImage: string;
     keyword: string;
     taoWord: string;
-    taobaoId: string;
+    platformProductId: string;
     qrCode: string;
     remark: string;
     merchantId: string;

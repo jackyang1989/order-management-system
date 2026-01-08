@@ -11,6 +11,7 @@ import { Modal } from '../../../components/ui/modal';
 import { Button } from '../../../components/ui/button';
 import { isAuthenticated, getCurrentUser } from '../../../services/authService';
 import { fetchBankCards, fetchWithdrawals, createWithdrawal, BankCard, Withdrawal } from '../../../services/userService';
+import { fetchSystemConfig, getWithdrawFeeRate } from '../../../services/systemConfigService';
 import { BASE_URL } from '../../../../apiConfig';
 
 export default function WithdrawPage() {
@@ -32,14 +33,23 @@ export default function WithdrawPage() {
     const [withdrawData, setWithdrawData] = useState<{ amount: number; type: string } | null>(null);
     const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>({});
 
-    const feeRate = 0.05;
-    const minWithdraw = 10;
+    const [feeRate, setFeeRate] = useState(0.05);
+    const [minWithdraw, setMinWithdraw] = useState(10);
 
     useEffect(() => {
         if (!isAuthenticated()) { router.push('/login'); return; }
+        loadSystemConfig();
         loadData();
         loadCaptcha();
     }, [router, dateRange]);
+
+    const loadSystemConfig = async () => {
+        const config = await fetchSystemConfig();
+        if (config) {
+            setFeeRate(getWithdrawFeeRate(config));
+            setMinWithdraw(Number(config.userMinMoney) || 10);
+        }
+    };
 
     const loadCaptcha = async () => {
         try {

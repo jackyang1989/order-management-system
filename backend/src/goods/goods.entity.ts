@@ -44,7 +44,7 @@ export class Goods {
   link: string; // 商品链接
 
   @Column({ nullable: true })
-  taobaoId: string; // 淘宝商品ID
+  platformProductId: string; // 平台商品ID（原taobaoId）
 
   @Column({ length: 20, nullable: true })
   verifyCode: string; // 核对口令
@@ -85,7 +85,7 @@ export class CreateGoodsDto {
   shopId: string;
   name: string;
   link?: string;
-  taobaoId?: string;
+  platformProductId?: string;
   verifyCode?: string;
   pcImg?: string; // JSON数组字符串
   specName?: string;
@@ -99,7 +99,7 @@ export class CreateGoodsDto {
 export class UpdateGoodsDto {
   name?: string;
   link?: string;
-  taobaoId?: string;
+  platformProductId?: string;
   verifyCode?: string;
   pcImg?: string;
   specName?: string;

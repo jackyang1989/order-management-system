@@ -1,12 +1,24 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { TaskFormData } from './types';
 import { cn } from '../../../../../lib/utils';
 import { Button } from '../../../../../components/ui/button';
+import { fetchSystemConfig, getPraiseFees } from '../../../../../services/systemConfigService';
 
 interface StepProps { data: TaskFormData; onChange: (data: Partial<TaskFormData>) => void; onPrev: () => void; onNext: () => void; }
 
 export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: StepProps) {
+    const [praiseFees, setPraiseFees] = useState({ text: 2, image: 4, video: 10 });
+
+    useEffect(() => {
+        loadSystemConfig();
+    }, []);
+
+    const loadSystemConfig = async () => {
+        const config = await fetchSystemConfig();
+        setPraiseFees(getPraiseFees(config));
+    };
 
     const ensurePraiseArrays = (count: number) => { let newList = [...data.praiseList]; if (newList.length !== count) newList = Array(count).fill(''); return newList; };
 
@@ -18,7 +30,7 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
             praiseImgList: (type === 'image' || type === 'video') ? Array(count).fill([]).map((_, i) => data.praiseImgList?.[i] || []) : [],
             praiseVideoList: type === 'video' ? Array(count).fill('').map((_, i) => data.praiseVideoList?.[i] || '') : [],
         };
-        let fee = 0; switch (type) { case 'text': fee = 2.0; break; case 'image': fee = 4.0; break; case 'video': fee = 10.0; break; }
+        let fee = 0; switch (type) { case 'text': fee = praiseFees.text; break; case 'image': fee = praiseFees.image; break; case 'video': fee = praiseFees.video; break; }
         resetData.praiseFee = fee; onChange(resetData);
     };
 
@@ -51,7 +63,7 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
 
     const handleRemoveVideo = (index: number) => { const newVideoList = [...(data.praiseVideoList || [])]; newVideoList[index] = ''; onChange({ praiseVideoList: newVideoList }); };
 
-    const praiseOptions = [{ type: 'none', label: '默认好评', desc: '不强制内容', fee: 0 }, { type: 'text', label: '文字好评', desc: '指定好评内容', fee: 2 }, { type: 'image', label: '图文好评', desc: '指定图片+文字', fee: 4 }, { type: 'video', label: '视频好评', desc: '指定视频+文字', fee: 10 }];
+    const praiseOptions = [{ type: 'none', label: '默认好评', desc: '不强制内容', fee: 0 }, { type: 'text', label: '文字好评', desc: '指定好评内容', fee: praiseFees.text }, { type: 'image', label: '图文好评', desc: '指定图片+文字', fee: praiseFees.image }, { type: 'video', label: '视频好评', desc: '指定视频+文字', fee: praiseFees.video }];
 
     return (
         <div className="p-6">

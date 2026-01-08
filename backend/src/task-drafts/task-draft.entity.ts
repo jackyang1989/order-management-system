@@ -48,7 +48,7 @@ export class TaskDraft {
     goodsLink: string;
 
     @Column({ nullable: true })
-    taobaoId: string;  // 从订单侠 API 解析出的商品ID
+    platformProductId: string;  // 从订单侠 API 解析出的平台商品ID
 
     @Column({ nullable: true })
     goodsImage: string;

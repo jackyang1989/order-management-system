@@ -16,14 +16,14 @@ export default function EditGoodsPage({ params }: { params: Promise<{ id: string
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [goods, setGoods] = useState<Goods | null>(null);
-    const [form, setForm] = useState<UpdateGoodsDto>({ name: '', link: '', taobaoId: '', verifyCode: '', specName: '', specValue: '', price: 0, num: 1, showPrice: 0 });
+    const [form, setForm] = useState<UpdateGoodsDto>({ name: '', link: '', platformProductId: '', verifyCode: '', specName: '', specValue: '', price: 0, num: 1, showPrice: 0 });
 
     useEffect(() => { loadData(); }, [resolvedParams.id]);
 
     const loadData = async () => {
         const [goodsData, shopsData] = await Promise.all([fetchGoodsById(resolvedParams.id), fetchShops()]);
         setShops(shopsData);
-        if (goodsData) { setGoods(goodsData); setForm({ name: goodsData.name, link: goodsData.link || '', taobaoId: goodsData.taobaoId || '', verifyCode: goodsData.verifyCode || '', specName: goodsData.specName || '', specValue: goodsData.specValue || '', price: goodsData.price, num: goodsData.num, showPrice: goodsData.showPrice }); }
+        if (goodsData) { setGoods(goodsData); setForm({ name: goodsData.name, link: goodsData.link || '', platformProductId: goodsData.platformProductId || '', verifyCode: goodsData.verifyCode || '', specName: goodsData.specName || '', specValue: goodsData.specValue || '', price: goodsData.price, num: goodsData.num, showPrice: goodsData.showPrice }); }
         setLoading(false);
     };
 
@@ -78,10 +78,10 @@ export default function EditGoodsPage({ params }: { params: Promise<{ id: string
                         <Input type="text" value={form.link} onChange={e => handleChange('link', e.target.value)} placeholder="请输入商品链接或淘口令" />
                     </div>
 
-                    {/* Taobao ID */}
+                    {/* Platform Product ID */}
                     <div>
-                        <label className="mb-2 block font-medium">淘宝商品ID</label>
-                        <Input type="text" value={form.taobaoId} onChange={e => handleChange('taobaoId', e.target.value)} placeholder="可从商品链接自动解析" />
+                        <label className="mb-2 block font-medium">平台商品ID</label>
+                        <Input type="text" value={form.platformProductId} onChange={e => handleChange('platformProductId', e.target.value)} placeholder="可从商品链接自动解析" />
                     </div>
 
                     {/* Verify Code */}

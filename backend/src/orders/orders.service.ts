@@ -463,10 +463,10 @@ export class OrdersService {
     if (submitStepDto.step === 1) {
       if (submitStepDto.inputData?.goodsLink) {
         const task = await this.tasksService.findOne(order.taskId);
-        if (task?.taobaoId) {
+        if (task?.platformProductId) {
           const validationResult = await this.dingdanxiaService.validateGoodsLink(
             submitStepDto.inputData.goodsLink,
-            task.taobaoId,
+            task.platformProductId,
           );
           if (!validationResult.valid) {
             throw new BadRequestException(
@@ -1288,15 +1288,15 @@ export class OrdersService {
       return { valid: false, error: '任务不存在' };
     }
 
-    // 如果任务没有设置 taobaoId，则跳过验证
-    if (!task.taobaoId) {
+    // 如果任务没有设置 platformProductId，则跳过验证
+    if (!task.platformProductId) {
       return { valid: true };
     }
 
     // 调用订单侠 API 验证
     const result = await this.dingdanxiaService.validateGoodsLink(
       goodsLink,
-      task.taobaoId,
+      task.platformProductId,
     );
 
     return result;

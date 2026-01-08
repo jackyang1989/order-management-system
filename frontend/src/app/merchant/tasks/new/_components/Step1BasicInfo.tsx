@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { TaskFormData, TaskType } from './types';
 import { fetchShops, Shop } from '../../../../../services/shopService';
+import { TASK_PLATFORMS, getShopPlatformCode } from '../../../../../constants/platformConfig';
 import { cn } from '../../../../../lib/utils';
 import { Button } from '../../../../../components/ui/button';
 import { Input } from '../../../../../components/ui/input';
@@ -22,11 +23,9 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     const handleShopChange = (shopId: string) => { const selectedShop = shops.find(s => s.id === shopId); if (selectedShop) onChange({ shopId: selectedShop.id, shopName: selectedShop.shopName }); else onChange({ shopId: '', shopName: '' }); };
     const handleFetchInfo = () => { if (!data.url) return; onChange({ title: '示例商品标题 - ' + (data.url.length > 10 ? data.url.substring(0, 10) : '未知'), mainImage: 'https://via.placeholder.com/150', goodsPrice: 99.00 }); };
 
-    const platformMap: { [key: number]: string } = { 1: 'TAOBAO', 2: 'TMALL', 3: 'JD', 4: 'PDD' };
-    const filteredShops = shops.filter(s => s.platform === platformMap[data.taskType] || s.platform === 'OTHER');
+    const platformCode = getShopPlatformCode(data.taskType);
+    const filteredShops = shops.filter(s => s.platform === platformCode || s.platform === 'OTHER');
     const isNextDisabled = !data.shopId || !data.url || !data.title || data.goodsPrice <= 0 || data.count <= 0;
-
-    const platforms = [{ id: 1, name: '淘宝', icon: '🟠' }, { id: 2, name: '天猫', icon: '🔴' }, { id: 3, name: '京东', icon: '🔴' }, { id: 4, name: '拼多多', icon: '🟢' }];
 
     return (
         <div className="p-6">
@@ -35,8 +34,8 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
             {/* Platform Selection */}
             <div className="mb-6">
                 <label className="mb-2 block text-sm font-medium text-slate-700">发布平台</label>
-                <div className="flex gap-4">
-                    {platforms.map(p => (
+                <div className="flex flex-wrap gap-4">
+                    {TASK_PLATFORMS.map(p => (
                         <div key={p.id} onClick={() => handlePlatformChange(p.id)} className={cn('flex cursor-pointer items-center gap-2 rounded-lg border px-6 py-3 transition-all', data.taskType === p.id ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 bg-white')}>
                             <span>{p.icon}</span>
                             <span className={cn(data.taskType === p.id ? 'font-semibold text-indigo-600' : 'text-slate-700')}>{p.name}</span>
