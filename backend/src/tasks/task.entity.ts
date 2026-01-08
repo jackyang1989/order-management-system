@@ -306,10 +306,10 @@ export class Task {
 export class CreateTaskDto {
   taskType: number;
   title: string;
-  url: string;
+  url?: string;
   price?: number;
   count: number;
-  shopName: string;
+  shopName?: string;
   keyword?: string;
   mainImage?: string;
   goodsPrice: number;
@@ -344,6 +344,10 @@ export class CreateTaskDto {
   // 口令验证
   isPasswordEnabled?: boolean; // 是否开启口令验证
   checkPassword?: string; // 商品口令 (4-10字)
+
+  // 批量导入相关字段
+  extraCommission?: number; // 额外佣金
+  remark?: string; // 备注
 }
 
 export class TaskFilterDto {

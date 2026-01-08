@@ -9,7 +9,12 @@ import {
   Request,
   Inject,
   forwardRef,
+  Res,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type { Response } from 'express';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto, ClaimTaskDto, TaskFilterDto } from './task.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -114,5 +119,53 @@ export class TasksController {
     }
 
     return claimResult;
+  }
+
+  // ============ 商家端批量导入 ============
+
+  /**
+   * 下载导入模板
+   */
+  @Get('import/template')
+  async downloadTemplate(@Res() res: Response) {
+    const buffer = this.tasksService.getImportTemplate();
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=task_import_template.xlsx');
+    res.send(buffer);
+  }
+
+  /**
+   * 批量导入任务
+   */
+  @Post('import')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async batchImport(
+    @UploadedFile() file: Express.Multer.File,
+    @Request() req,
+  ) {
+    if (!file) {
+      return {
+        success: false,
+        message: '请上传Excel文件',
+      };
+    }
+
+    try {
+      const result = await this.tasksService.batchImportFromExcel(
+        req.user.userId,
+        file.buffer,
+      );
+      return {
+        success: true,
+        message: `导入完成：成功${result.success}条，失败${result.failed}条`,
+        data: result,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
   }
 }

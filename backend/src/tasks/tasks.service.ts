@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
+import * as XLSX from 'xlsx';
 import {
   Task,
   TaskStatus,
@@ -434,5 +435,145 @@ export class TasksService implements OnModuleInit {
     await this.tasksRepository.update(taskId, {
       receiptTime: new Date(),
     });
+  }
+
+  // ============ Excel批量导入任务 ============
+
+  /**
+   * 解析Excel文件并批量创建任务
+   * 支持的列: 标题, 关键词, 商品价格, 数量, 平台(淘宝/天猫/京东/拼多多), 额外佣金, 店铺名, 备注
+   */
+  async batchImportFromExcel(
+    merchantId: string,
+    fileBuffer: Buffer,
+  ): Promise<{
+    success: number;
+    failed: number;
+    errors: { row: number; error: string }[];
+    tasks: Task[];
+  }> {
+    // 解析Excel
+    const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const rows: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+    if (rows.length < 2) {
+      throw new BadRequestException('Excel文件为空或缺少数据行');
+    }
+
+    // 第一行是表头
+    const headers = rows[0] as string[];
+    const dataRows = rows.slice(1);
+
+    // 列索引映射
+    const columnMap: Record<string, number> = {};
+    const expectedColumns = ['标题', '关键词', '商品价格', '数量', '平台', '额外佣金', '店铺名', '备注'];
+    headers.forEach((header, index) => {
+      const normalizedHeader = String(header).trim();
+      if (expectedColumns.includes(normalizedHeader)) {
+        columnMap[normalizedHeader] = index;
+      }
+    });
+
+    // 验证必需列
+    const requiredColumns = ['标题', '商品价格', '数量'];
+    for (const col of requiredColumns) {
+      if (columnMap[col] === undefined) {
+        throw new BadRequestException(`Excel缺少必需列: ${col}`);
+      }
+    }
+
+    // 平台类型映射
+    const platformTypeMap: Record<string, TaskType> = {
+      '淘宝': TaskType.TAOBAO,
+      '天猫': TaskType.TMALL,
+      '京东': TaskType.JD,
+      '拼多多': TaskType.PDD,
+    };
+
+    const results: {
+      success: number;
+      failed: number;
+      errors: { row: number; error: string }[];
+      tasks: Task[];
+    } = {
+      success: 0,
+      failed: 0,
+      errors: [],
+      tasks: [],
+    };
+
+    // 逐行处理
+    for (let i = 0; i < dataRows.length; i++) {
+      const row = dataRows[i];
+      const rowNumber = i + 2; // Excel行号（从1开始，加上表头行）
+
+      try {
+        const title = String(row[columnMap['标题']] || '').trim();
+        const keyword = columnMap['关键词'] !== undefined ? String(row[columnMap['关键词']] || '').trim() : '';
+        const goodsPrice = parseFloat(row[columnMap['商品价格']]) || 0;
+        const count = parseInt(row[columnMap['数量']]) || 1;
+        const platformStr = columnMap['平台'] !== undefined ? String(row[columnMap['平台']] || '淘宝').trim() : '淘宝';
+        const extraCommission = columnMap['额外佣金'] !== undefined ? parseFloat(row[columnMap['额外佣金']]) || 0 : 0;
+        const shopName = columnMap['店铺名'] !== undefined ? String(row[columnMap['店铺名']] || '').trim() : '';
+        const remark = columnMap['备注'] !== undefined ? String(row[columnMap['备注']] || '').trim() : '';
+
+        // 验证必填字段
+        if (!title) {
+          throw new Error('标题不能为空');
+        }
+        if (goodsPrice <= 0) {
+          throw new Error('商品价格必须大于0');
+        }
+        if (count <= 0) {
+          throw new Error('数量必须大于0');
+        }
+
+        const taskType = platformTypeMap[platformStr] || TaskType.TAOBAO;
+
+        // 创建任务DTO
+        const createTaskDto: CreateTaskDto = {
+          title,
+          keyword: keyword || title,
+          goodsPrice,
+          count,
+          taskType,
+          extraCommission,
+          shopName,
+          remark,
+        };
+
+        // 调用已有的创建方法
+        const task = await this.createAndPay(createTaskDto, merchantId);
+        results.tasks.push(task);
+        results.success++;
+      } catch (error) {
+        results.failed++;
+        results.errors.push({
+          row: rowNumber,
+          error: error.message,
+        });
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * 生成导入模板
+   */
+  getImportTemplate(): Buffer {
+    const headers = ['标题', '关键词', '商品价格', '数量', '平台', '额外佣金', '店铺名', '备注'];
+    const sampleData = [
+      ['夏季连衣裙', '连衣裙 夏季', 128, 10, '淘宝', 0, '示例店铺', '示例备注'],
+      ['运动鞋男', '运动鞋 透气', 299, 5, '京东', 2, '', ''],
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...sampleData]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, '任务导入模板');
+
+    return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
   }
 }

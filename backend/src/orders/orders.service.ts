@@ -382,6 +382,12 @@ export class OrdersService {
       status: OrderStatus.PENDING,
       endingTime,
       silverPrepay: SILVER_PREPAY, // 记录押金金额
+      // 预售任务字段
+      isPresale: !!task.isPresale,
+      yfPrice: Number(task.yfPrice || 0),
+      wkPrice: Number(task.wkPrice || 0),
+      okYf: false,
+      okWk: false,
     });
 
     const savedOrder = await this.ordersRepository.save(newOrder);
@@ -1525,5 +1531,189 @@ export class OrdersService {
       .andWhere('order.completedAt >= :today', { today })
       .andWhere('order.completedAt < :tomorrow', { tomorrow })
       .getCount();
+  }
+
+  // ============ 预售任务流程 ============
+
+  /**
+   * 确认支付定金（买手操作）
+   * 预售任务第一阶段：买手付定金
+   */
+  async confirmPresaleDeposit(
+    orderId: string,
+    userId: string,
+    depositScreenshot?: string,
+  ): Promise<Order> {
+    const order = await this.ordersRepository.findOne({
+      where: { id: orderId, userId },
+    });
+    if (!order) {
+      throw new NotFoundException('订单不存在');
+    }
+
+    if (!order.isPresale) {
+      throw new BadRequestException('该订单不是预售任务');
+    }
+
+    if (order.okYf) {
+      throw new BadRequestException('定金已确认，请勿重复操作');
+    }
+
+    if (order.status !== OrderStatus.PENDING) {
+      throw new BadRequestException('订单状态不允许操作');
+    }
+
+    order.okYf = true;
+    if (depositScreenshot) {
+      // 可以将截图存储到 stepData 或专门字段
+      order.stepData = [
+        ...(order.stepData || []),
+        {
+          step: 0,
+          title: '定金截图',
+          description: '预售定金支付截图',
+          submitted: true,
+          submittedAt: new Date(),
+          screenshot: depositScreenshot,
+        },
+      ];
+    }
+
+    const savedOrder = await this.ordersRepository.save(order);
+
+    // 通知商家：定金已付
+    try {
+      const task = await this.tasksService.findOne(order.taskId);
+      if (task) {
+        await this.messagesService.sendOrderMessage(
+          task.merchantId,
+          MessageUserType.MERCHANT,
+          order.id,
+          '预售定金已付',
+          `订单「${order.taskTitle}」的买手已支付定金${order.yfPrice}元，请等待尾款。`,
+        );
+      }
+    } catch (e) {
+      // 消息发送失败不影响主流程
+    }
+
+    return savedOrder;
+  }
+
+  /**
+   * 确认支付尾款（买手操作）
+   * 预售任务第二阶段：买手付尾款
+   */
+  async confirmPresaleFinal(
+    orderId: string,
+    userId: string,
+    finalScreenshot?: string,
+  ): Promise<Order> {
+    const order = await this.ordersRepository.findOne({
+      where: { id: orderId, userId },
+    });
+    if (!order) {
+      throw new NotFoundException('订单不存在');
+    }
+
+    if (!order.isPresale) {
+      throw new BadRequestException('该订单不是预售任务');
+    }
+
+    if (!order.okYf) {
+      throw new BadRequestException('请先确认支付定金');
+    }
+
+    if (order.okWk) {
+      throw new BadRequestException('尾款已确认，请勿重复操作');
+    }
+
+    if (order.status !== OrderStatus.PENDING) {
+      throw new BadRequestException('订单状态不允许操作');
+    }
+
+    order.okWk = true;
+    if (finalScreenshot) {
+      order.stepData = [
+        ...(order.stepData || []),
+        {
+          step: -1,
+          title: '尾款截图',
+          description: '预售尾款支付截图',
+          submitted: true,
+          submittedAt: new Date(),
+          screenshot: finalScreenshot,
+        },
+      ];
+    }
+
+    const savedOrder = await this.ordersRepository.save(order);
+
+    // 通知商家：尾款已付
+    try {
+      const task = await this.tasksService.findOne(order.taskId);
+      if (task) {
+        await this.messagesService.sendOrderMessage(
+          task.merchantId,
+          MessageUserType.MERCHANT,
+          order.id,
+          '预售尾款已付',
+          `订单「${order.taskTitle}」的买手已支付尾款${order.wkPrice}元，总计${Number(order.yfPrice) + Number(order.wkPrice)}元，请注意发货。`,
+        );
+      }
+    } catch (e) {
+      // 消息发送失败不影响主流程
+    }
+
+    return savedOrder;
+  }
+
+  /**
+   * 获取预售订单状态
+   */
+  async getPresaleStatus(orderId: string, userId: string): Promise<{
+    isPresale: boolean;
+    yfPrice: number;
+    wkPrice: number;
+    totalPrice: number;
+    okYf: boolean;
+    okWk: boolean;
+    stage: 'waiting_deposit' | 'waiting_final' | 'completed' | 'not_presale';
+  }> {
+    const order = await this.ordersRepository.findOne({
+      where: { id: orderId, userId },
+    });
+    if (!order) {
+      throw new NotFoundException('订单不存在');
+    }
+
+    if (!order.isPresale) {
+      return {
+        isPresale: false,
+        yfPrice: 0,
+        wkPrice: 0,
+        totalPrice: Number(order.productPrice),
+        okYf: false,
+        okWk: false,
+        stage: 'not_presale',
+      };
+    }
+
+    let stage: 'waiting_deposit' | 'waiting_final' | 'completed' = 'waiting_deposit';
+    if (order.okYf && order.okWk) {
+      stage = 'completed';
+    } else if (order.okYf) {
+      stage = 'waiting_final';
+    }
+
+    return {
+      isPresale: true,
+      yfPrice: Number(order.yfPrice),
+      wkPrice: Number(order.wkPrice),
+      totalPrice: Number(order.yfPrice) + Number(order.wkPrice),
+      okYf: order.okYf,
+      okWk: order.okWk,
+      stage,
+    };
   }
 }

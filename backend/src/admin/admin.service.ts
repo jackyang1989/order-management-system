@@ -573,7 +573,7 @@ export class AdminService {
       .createQueryBuilder('f')
       .select('SUM(f.amount)', 'total')
       .where('f.createdAt BETWEEN :start AND :end', { start: todayStart, end: todayEnd })
-      .andWhere('f.financeType = :type', { type: FinanceType.RECHARGE })
+      .andWhere('f.financeType IN (:...types)', { types: [FinanceType.BUYER_RECHARGE, FinanceType.BUYER_RECHARGE_SILVER, FinanceType.MERCHANT_RECHARGE] })
       .getRawOne();
 
     // 今日提现金额
@@ -589,7 +589,7 @@ export class AdminService {
       .createQueryBuilder('f')
       .select('SUM(f.amount)', 'total')
       .where('f.createdAt BETWEEN :start AND :end', { start: todayStart, end: todayEnd })
-      .andWhere('f.financeType = :type', { type: FinanceType.COMMISSION })
+      .andWhere('f.financeType = :type', { type: FinanceType.BUYER_TASK_COMMISSION })
       .getRawOne();
 
     // 待处理提现
@@ -711,7 +711,7 @@ export class AdminService {
   }
 }
 
-interface BusinessMetrics {
+export interface BusinessMetrics {
   orderCount: number;
   completedOrders: number;
   totalAmount: number;

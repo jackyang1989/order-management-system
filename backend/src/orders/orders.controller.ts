@@ -305,4 +305,81 @@ export class OrdersController {
       };
     }
   }
+
+  // ============ 预售任务接口 ============
+
+  /**
+   * 获取预售订单状态
+   */
+  @Get(':id/presale-status')
+  async getPresaleStatus(@Param('id') id: string, @Request() req) {
+    try {
+      const status = await this.ordersService.getPresaleStatus(id, req.user.userId);
+      return {
+        success: true,
+        data: status,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
+  /**
+   * 确认支付定金
+   */
+  @Post(':id/presale/confirm-deposit')
+  async confirmPresaleDeposit(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() body: { screenshot?: string },
+  ) {
+    try {
+      const order = await this.ordersService.confirmPresaleDeposit(
+        id,
+        req.user.userId,
+        body.screenshot,
+      );
+      return {
+        success: true,
+        message: '定金已确认',
+        data: order,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
+  /**
+   * 确认支付尾款
+   */
+  @Post(':id/presale/confirm-final')
+  async confirmPresaleFinal(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() body: { screenshot?: string },
+  ) {
+    try {
+      const order = await this.ordersService.confirmPresaleFinal(
+        id,
+        req.user.userId,
+        body.screenshot,
+      );
+      return {
+        success: true,
+        message: '尾款已确认',
+        data: order,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
 }
