@@ -6,11 +6,12 @@ import {
   HelpCenterController,
   HelpCenterAdminController,
 } from './help-center.controller';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([HelpArticle])],
+  imports: [TypeOrmModule.forFeature([HelpArticle]), AuthModule],
   controllers: [HelpCenterController, HelpCenterAdminController],
   providers: [HelpCenterService],
   exports: [HelpCenterService],
 })
-export class HelpCenterModule {}
+export class HelpCenterModule { }

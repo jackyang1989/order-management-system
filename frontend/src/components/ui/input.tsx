@@ -17,29 +17,29 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="mb-1.5 block text-sm font-medium text-slate-700">
+          <label htmlFor={inputId} className="mb-1.5 block text-[13px] font-medium text-[#3b4559]">
             {label}
           </label>
         )}
         <div className="relative flex items-center">
-          {leading && <span className="absolute left-3 text-slate-400">{leading}</span>}
+          {leading && <span className="absolute left-3 text-[#94a3b8]">{leading}</span>}
           <input
             ref={ref}
             id={inputId}
             className={cn(
-              'w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400',
-              'focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20',
-              'disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500',
+              'w-full rounded-lg border border-[#e5eaef] bg-white px-3.5 py-2.5 text-[14px] text-[#3b4559] placeholder:text-[#94a3b8]',
+              'transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20',
+              'disabled:cursor-not-allowed disabled:bg-[#f6f8fb] disabled:text-[#7c889a]',
               leading && 'pl-10',
               trailing && 'pr-10',
-              error && 'border-red-500 focus:border-red-500 focus:ring-red-500/20',
+              error && 'border-danger-400 focus:border-danger-400 focus:ring-danger-400/20',
               className
             )}
             {...props}
           />
-          {trailing && <span className="absolute right-3 text-slate-400">{trailing}</span>}
+          {trailing && <span className="absolute right-3 text-[#94a3b8]">{trailing}</span>}
         </div>
-        {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+        {error && <p className="mt-1.5 text-[13px] text-danger-400">{error}</p>}
       </div>
     );
   }

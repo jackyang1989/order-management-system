@@ -4,12 +4,16 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { BASE_URL } from '../../../../apiConfig';
 import { Button } from '../../../components/ui/button';
-import { Card } from '../../../components/ui/card';
 
 interface MerchantStats { balance: number; frozenBalance: number; totalTasks: number; activeTasks: number; completedOrders: number; }
 interface Merchant { id: string; username: string; phone: string; companyName: string; balance: number; frozenBalance: number; }
 
-const colorMap: Record<string, string> = { green: 'bg-green-100', yellow: 'bg-amber-100', blue: 'bg-blue-100', pink: 'bg-pink-100' };
+const colorMap: Record<string, { bg: string; text: string }> = {
+    green: { bg: 'bg-success-50', text: 'text-success-500' },
+    yellow: { bg: 'bg-warning-50', text: 'text-warning-500' },
+    blue: { bg: 'bg-primary-50', text: 'text-primary-600' },
+    pink: { bg: 'bg-[#fff0f6]', text: 'text-[#d6336c]' },
+};
 
 export default function MerchantDashboard() {
     const router = useRouter();
@@ -44,39 +48,42 @@ export default function MerchantDashboard() {
             <div className="flex min-h-[400px] items-center justify-center">
                 <div className="text-center">
                     <div className="mb-3 text-4xl">🏪</div>
-                    <div className="text-slate-500">加载数据中...</div>
+                    <div className="text-[14px] text-[#7c889a]">加载数据中...</div>
                 </div>
             </div>
         );
     }
 
-    const StatCard = ({ title, value, icon, colorKey }: { title: string; value: string | number; icon: string; colorKey: string }) => (
-        <Card className="bg-white p-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <div className="mb-2 text-sm text-slate-500">{title}</div>
-                    <div className="text-3xl font-bold text-slate-800">{value}</div>
+    const StatCard = ({ title, value, icon, colorKey }: { title: string; value: string | number; icon: string; colorKey: string }) => {
+        const colors = colorMap[colorKey] || { bg: 'bg-[#f6f8fb]', text: 'text-[#5a6577]' };
+        return (
+            <div className="overflow-hidden rounded-xl border border-[#e5eaef] bg-white p-5 shadow-card transition-shadow hover:shadow-soft">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <div className="mb-1.5 text-[13px] text-[#7c889a]">{title}</div>
+                        <div className={`text-2xl font-bold ${colors.text}`}>{value}</div>
+                    </div>
+                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl text-xl ${colors.bg}`}>{icon}</div>
                 </div>
-                <div className={`flex h-14 w-14 items-center justify-center rounded-xl text-2xl ${colorMap[colorKey] || 'bg-slate-100'}`}>{icon}</div>
             </div>
-        </Card>
-    );
+        );
+    };
 
     return (
         <div className="space-y-6">
             {/* Welcome Banner */}
-            <div className="flex items-center justify-between rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-500 px-10 py-8 text-white">
+            <div className="flex items-center justify-between overflow-hidden rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 px-10 py-8 text-white shadow-soft">
                 <div>
-                    <h2 className="mb-2 text-2xl font-bold">欢迎回来，{merchant?.username || merchant?.companyName || '商家'} 👋</h2>
-                    <p className="text-sm opacity-90">今天是 {new Date().toLocaleDateString('zh-CN')}，准备好处理新订单了吗？</p>
+                    <h2 className="mb-2 text-xl font-semibold">欢迎回来，{merchant?.username || merchant?.companyName || '商家'}</h2>
+                    <p className="text-[14px] text-white/80">今天是 {new Date().toLocaleDateString('zh-CN')}，准备好处理新订单了吗？</p>
                 </div>
-                <Button onClick={() => router.push('/merchant/tasks/new')} className="flex items-center gap-2 bg-white font-semibold text-indigo-500 hover:bg-slate-50">
+                <Button onClick={() => router.push('/merchant/tasks/new')} className="flex items-center gap-2 bg-white font-medium text-primary-600 shadow-sm hover:bg-[#f6f8fb]">
                     <span>+</span> 发布新任务
                 </Button>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard title="账户余额" value={`¥${(stats?.balance || 0).toFixed(2)}`} icon="💰" colorKey="green" />
                 <StatCard title="冻结金额" value={`¥${(stats?.frozenBalance || 0).toFixed(2)}`} icon="🔒" colorKey="yellow" />
                 <StatCard title="发布任务" value={stats?.totalTasks || 0} icon="📋" colorKey="blue" />
@@ -84,22 +91,22 @@ export default function MerchantDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-2 gap-5">
-                <Card className="bg-white p-6">
-                    <div className="mb-4 flex items-center justify-between">
-                        <h3 className="font-semibold text-slate-800">最近任务</h3>
-                        <span onClick={() => router.push('/merchant/tasks')} className="cursor-pointer text-sm text-indigo-600">查看全部 →</span>
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                <div className="overflow-hidden rounded-xl border border-[#e5eaef] bg-white shadow-card">
+                    <div className="flex items-center justify-between border-b border-[#e5eaef] px-6 py-4">
+                        <h3 className="text-[15px] font-semibold text-[#3b4559]">最近任务</h3>
+                        <span onClick={() => router.push('/merchant/tasks')} className="cursor-pointer text-[13px] text-primary-600 hover:text-primary-700">查看全部 →</span>
                     </div>
-                    <div className="py-10 text-center text-sm text-slate-500">暂无任务，点击上方按钮发布新任务</div>
-                </Card>
+                    <div className="px-6 py-12 text-center text-[14px] text-[#7c889a]">暂无任务，点击上方按钮发布新任务</div>
+                </div>
 
-                <Card className="bg-white p-6">
-                    <div className="mb-4 flex items-center justify-between">
-                        <h3 className="font-semibold text-slate-800">待审核订单</h3>
-                        <span onClick={() => router.push('/merchant/orders')} className="cursor-pointer text-sm text-indigo-600">查看全部 →</span>
+                <div className="overflow-hidden rounded-xl border border-[#e5eaef] bg-white shadow-card">
+                    <div className="flex items-center justify-between border-b border-[#e5eaef] px-6 py-4">
+                        <h3 className="text-[15px] font-semibold text-[#3b4559]">待审核订单</h3>
+                        <span onClick={() => router.push('/merchant/orders')} className="cursor-pointer text-[13px] text-primary-600 hover:text-primary-700">查看全部 →</span>
                     </div>
-                    <div className="py-10 text-center text-sm text-slate-500">暂无待审核订单</div>
-                </Card>
+                    <div className="px-6 py-12 text-center text-[14px] text-[#7c889a]">暂无待审核订单</div>
+                </div>
             </div>
         </div>
     );

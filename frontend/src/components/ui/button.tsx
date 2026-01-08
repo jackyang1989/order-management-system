@@ -4,7 +4,7 @@ import { forwardRef, ButtonHTMLAttributes, ReactNode } from 'react';
 import { cn } from '../../lib/utils';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'destructive';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'destructive' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   children?: ReactNode;
@@ -13,19 +13,20 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', loading, disabled, children, ...props }, ref) => {
     const baseStyles =
-      'inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';
+      'inline-flex items-center justify-center font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';
 
     const variants: Record<string, string> = {
-      primary: 'bg-primary text-white hover:bg-blue-700 focus:ring-primary',
-      secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200 focus:ring-slate-400',
-      ghost: 'bg-transparent text-slate-700 hover:bg-slate-100 focus:ring-slate-400',
-      destructive: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+      primary: 'bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500 shadow-sm',
+      secondary: 'bg-[#f6f8fb] text-[#3b4559] hover:bg-[#eef1f6] focus:ring-[#94a3b8] border border-[#e5eaef]',
+      ghost: 'bg-transparent text-[#5a6577] hover:bg-[#f6f8fb] hover:text-[#3b4559] focus:ring-[#94a3b8]',
+      destructive: 'bg-danger-400 text-white hover:bg-danger-500 focus:ring-danger-400 shadow-sm',
+      outline: 'bg-white text-primary-500 border border-primary-500 hover:bg-primary-50 focus:ring-primary-500',
     };
 
     const sizes: Record<string, string> = {
-      sm: 'h-8 px-3 text-sm rounded-md',
-      md: 'h-10 px-4 text-sm rounded-lg',
-      lg: 'h-12 px-6 text-base rounded-xl',
+      sm: 'h-8 px-3 text-[13px] rounded-lg gap-1.5',
+      md: 'h-10 px-4 text-[14px] rounded-lg gap-2',
+      lg: 'h-12 px-6 text-[15px] rounded-xl gap-2',
     };
 
     return (
@@ -37,7 +38,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {loading && (
           <svg
-            className="mr-2 h-4 w-4 animate-spin"
+            className="h-4 w-4 animate-spin"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

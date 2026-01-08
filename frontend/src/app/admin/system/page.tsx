@@ -317,7 +317,7 @@ export default function AdminSystemPage() {
     if (loading) {
         return (
             <div className="flex h-64 items-center justify-center">
-                <div className="text-slate-500">加载配置中...</div>
+                <div className="text-[#7c889a]">加载配置中...</div>
             </div>
         );
     }
@@ -325,10 +325,10 @@ export default function AdminSystemPage() {
     if (error && !config) {
         return (
             <div className="flex h-64 flex-col items-center justify-center gap-4">
-                <div className="text-red-500">{error}</div>
+                <div className="text-danger-400">{error}</div>
                 <button
                     onClick={loadConfig}
-                    className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                    className="rounded-lg bg-primary-500 px-4 py-2 text-white hover:bg-primary-600"
                 >
                     重试
                 </button>
@@ -339,26 +339,26 @@ export default function AdminSystemPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between rounded-lg bg-white px-6 py-4">
-                <span className="text-lg font-medium">系统配置管理</span>
+            <div className="flex items-center justify-between overflow-hidden rounded-xl border border-[#e5eaef] bg-white px-6 py-4 shadow-card">
+                <span className="text-[15px] font-semibold text-[#3b4559]">系统配置管理</span>
                 <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="cursor-pointer rounded bg-blue-500 px-5 py-2 text-white hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="cursor-pointer rounded-lg bg-primary-500 px-5 py-2.5 text-[14px] font-medium text-white shadow-sm transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     {saving ? '保存中...' : '保存配置'}
                 </button>
             </div>
 
             {error && (
-                <div className="rounded-lg bg-red-50 p-4 text-red-600">{error}</div>
+                <div className="rounded-xl border border-danger-100 bg-danger-50 p-4 text-[14px] text-danger-500">{error}</div>
             )}
 
             {/* 平台开关配置 - 放在最前面 */}
-            <div className="overflow-hidden rounded-lg bg-white">
-                <div className="border-b border-slate-100 px-6 py-4">
-                    <span className="text-base font-medium">平台开关配置</span>
-                    <span className="ml-2 text-xs text-slate-400">控制全站显示的平台，关闭后该平台在用户端、商家端均不可见</span>
+            <div className="overflow-hidden rounded-xl border border-[#e5eaef] bg-white shadow-card">
+                <div className="border-b border-[#e5eaef] px-6 py-4">
+                    <span className="text-[15px] font-semibold text-[#3b4559]">平台开关配置</span>
+                    <span className="ml-2 text-[12px] text-[#7c889a]">控制全站显示的平台，关闭后该平台在用户端、商家端均不可见</span>
                 </div>
                 <div className="p-6">
                     <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5">
@@ -369,24 +369,24 @@ export default function AdminSystemPage() {
                                 <div
                                     key={platform.id}
                                     onClick={() => togglePlatform(platform.id)}
-                                    className={`cursor-pointer rounded-lg border-2 p-4 text-center transition-all ${
+                                    className={`cursor-pointer rounded-xl border-2 p-4 text-center transition-all ${
                                         isEnabled
-                                            ? 'border-blue-500 bg-blue-50'
-                                            : 'border-slate-200 bg-slate-50 opacity-60'
+                                            ? 'border-primary-500 bg-primary-50'
+                                            : 'border-[#e5eaef] bg-[#f6f8fb] opacity-60'
                                     }`}
                                 >
                                     <div className="mb-2 text-2xl">{platform.icon}</div>
-                                    <div className={`text-sm font-medium ${isEnabled ? 'text-blue-700' : 'text-slate-500'}`}>
+                                    <div className={`text-[13px] font-medium ${isEnabled ? 'text-primary-600' : 'text-[#7c889a]'}`}>
                                         {platform.name}
                                     </div>
-                                    <div className={`mt-1 text-xs ${isEnabled ? 'text-green-600' : 'text-slate-400'}`}>
+                                    <div className={`mt-1 text-[11px] ${isEnabled ? 'text-success-500' : 'text-[#94a3b8]'}`}>
                                         {isEnabled ? '已启用' : '已关闭'}
                                     </div>
                                 </div>
                             );
                         })}
                     </div>
-                    <div className="mt-4 text-xs text-slate-400">
+                    <div className="mt-4 text-[12px] text-[#7c889a]">
                         提示：关闭平台后，用户无法绑定该平台买号、商家无法发布该平台任务、任务大厅不显示该平台任务
                     </div>
                 </div>
@@ -394,9 +394,9 @@ export default function AdminSystemPage() {
 
             {/* Config Groups */}
             {configGroups.map(group => (
-                <div key={group.title} className="overflow-hidden rounded-lg bg-white">
-                    <div className="border-b border-slate-100 px-6 py-4">
-                        <span className="text-base font-medium">{group.title}</span>
+                <div key={group.title} className="overflow-hidden rounded-xl border border-[#e5eaef] bg-white shadow-card">
+                    <div className="border-b border-[#e5eaef] px-6 py-4">
+                        <span className="text-[15px] font-semibold text-[#3b4559]">{group.title}</span>
                     </div>
                     <div className="p-6">
                         <div className="grid grid-cols-2 gap-6">
@@ -407,22 +407,22 @@ export default function AdminSystemPage() {
             ))}
 
             {/* System Info */}
-            <div className="rounded-lg bg-white p-6">
-                <h3 className="mb-4 text-base font-medium">系统信息</h3>
+            <div className="overflow-hidden rounded-xl border border-[#e5eaef] bg-white p-6 shadow-card">
+                <h3 className="mb-4 text-[15px] font-semibold text-[#3b4559]">系统信息</h3>
                 <div className="grid grid-cols-3 gap-4">
-                    <div className="rounded-md bg-slate-50 p-4">
-                        <div className="mb-1 text-xs text-slate-500">系统版本</div>
-                        <div className="font-medium">v2.0.0</div>
+                    <div className="rounded-xl bg-[#f6f8fb] p-4">
+                        <div className="mb-1 text-[12px] text-[#7c889a]">系统版本</div>
+                        <div className="text-[14px] font-medium text-[#3b4559]">v2.0.0</div>
                     </div>
-                    <div className="rounded-md bg-slate-50 p-4">
-                        <div className="mb-1 text-xs text-slate-500">配置更新时间</div>
-                        <div className="font-medium">
+                    <div className="rounded-xl bg-[#f6f8fb] p-4">
+                        <div className="mb-1 text-[12px] text-[#7c889a]">配置更新时间</div>
+                        <div className="text-[14px] font-medium text-[#3b4559]">
                             {config?.updatedAt ? new Date(config.updatedAt).toLocaleString('zh-CN') : '-'}
                         </div>
                     </div>
-                    <div className="rounded-md bg-slate-50 p-4">
-                        <div className="mb-1 text-xs text-slate-500">服务器时间</div>
-                        <div className="font-medium">{new Date().toLocaleString('zh-CN')}</div>
+                    <div className="rounded-xl bg-[#f6f8fb] p-4">
+                        <div className="mb-1 text-[12px] text-[#7c889a]">服务器时间</div>
+                        <div className="text-[14px] font-medium text-[#3b4559]">{new Date().toLocaleString('zh-CN')}</div>
                     </div>
                 </div>
             </div>

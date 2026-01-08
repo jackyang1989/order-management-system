@@ -1,19 +1,39 @@
 @import "tailwindcss";
 
 @theme {
-    --color-primary: #2563eb;
-    --color-success: #10b981;
-    --color-background: #f8fafc;
-    --color-foreground: #0f172a;
-    --color-muted: #64748b;
-    --color-border: #e2e8f0;
+    --color-primary: #5a6fe8;
+    --color-primary-50: #f0f3ff;
+    --color-primary-100: #e4e9fe;
+    --color-primary-200: #ccd5fd;
+    --color-primary-500: #5a6fe8;
+    --color-primary-600: #4556d9;
+    --color-primary-700: #3944c1;
+
+    --color-success: #3bb77e;
+    --color-success-50: #edfdf6;
+    --color-success-100: #d3fae7;
+
+    --color-warning: #f5a623;
+    --color-warning-50: #fefaec;
+    --color-warning-100: #fdf2ce;
+
+    --color-danger: #e8594f;
+    --color-danger-50: #fef3f2;
+    --color-danger-100: #fee4e2;
+
+    --color-background: #f6f8fb;
+    --color-foreground: #3b4559;
+    --color-muted: #7c889a;
+    --color-border: #e5eaef;
 
     --radius-md: 0.5rem;
     --radius-lg: 0.75rem;
     --radius-xl: 1rem;
+    --radius-2xl: 1.25rem;
 
-    --shadow-card: none;
-    --shadow-soft: none;
+    --shadow-card: 0 1px 3px rgba(59, 69, 89, 0.04), 0 1px 2px rgba(59, 69, 89, 0.06);
+    --shadow-soft: 0 4px 16px rgba(59, 69, 89, 0.08);
+    --shadow-hover: 0 8px 24px rgba(59, 69, 89, 0.12);
 }
 
 /* Explicit max-width utilities for profile pages */
@@ -36,4 +56,26 @@ body {
 
 body {
     margin: 0;
+    color: #3b4559;
+    background-color: #f6f8fb;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar for sidebar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(90, 111, 232, 0.2);
+    border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(90, 111, 232, 0.3);
 }

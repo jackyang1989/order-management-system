@@ -38,10 +38,10 @@ export function Select({
         disabled={disabled}
         onChange={(event) => onChange?.(event.target.value)}
         className={cn(
-          'w-full appearance-none rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900',
-          'focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20',
-          'disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500',
-          !value && 'text-slate-400'
+          'w-full appearance-none rounded-lg border border-[#e5eaef] bg-white px-3.5 py-2.5 text-[14px] text-[#3b4559]',
+          'transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20',
+          'disabled:cursor-not-allowed disabled:bg-[#f6f8fb] disabled:text-[#7c889a]',
+          !value && 'text-[#94a3b8]'
         )}
       >
         <option value="" disabled>
@@ -53,7 +53,7 @@ export function Select({
           </option>
         ))}
       </select>
-      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
+      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[#94a3b8]">
         <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
           <path
             fillRule="evenodd"

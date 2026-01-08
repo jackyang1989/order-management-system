@@ -183,38 +183,40 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     }, [currentOpenKey]);
 
     return (
-        <div className="flex min-h-screen overflow-x-hidden bg-slate-100">
+        <div className="flex min-h-screen overflow-x-hidden bg-[#f6f8fb]">
             {/* Sidebar */}
             <aside
                 className={cn(
-                    'fixed left-0 top-0 z-40 h-screen overflow-y-auto bg-slate-900 transition-all duration-200',
-                    collapsed ? 'w-20' : 'w-64'
+                    'custom-scrollbar fixed left-0 top-0 z-40 h-screen overflow-y-auto border-r border-[#e5eaef] bg-white transition-all duration-200',
+                    collapsed ? 'w-[72px]' : 'w-[240px]'
                 )}
             >
                 {/* Logo */}
                 <div
                     className={cn(
-                        'flex h-16 items-center border-b border-white/10',
-                        collapsed ? 'justify-center' : 'px-6'
+                        'flex h-16 items-center border-b border-[#e5eaef]',
+                        collapsed ? 'justify-center' : 'px-5'
                     )}
                 >
-                    <span className="text-2xl">🛡️</span>
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-100">
+                        <span className="text-lg">🛡️</span>
+                    </div>
                     {!collapsed && (
-                        <span className="ml-3 text-lg font-semibold text-white">
+                        <span className="ml-3 text-[15px] font-semibold text-[#3b4559]">
                             管理后台
                         </span>
                     )}
                 </div>
 
                 {/* Menu */}
-                <nav className="py-4">
+                <nav className="p-3">
                     {menuItems.map((item) => {
                         const hasChildren = item.children && item.children.length > 0;
                         const isOpen = openSections.includes(item.key);
                         const isActive = pathname === item.key;
 
                         return (
-                            <div key={item.key}>
+                            <div key={item.key} className="mb-1">
                                 <button
                                     onClick={() => {
                                         if (hasChildren) {
@@ -224,21 +226,21 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                         }
                                     }}
                                     className={cn(
-                                        'flex w-full items-center px-6 py-3 text-left text-sm transition-colors',
+                                        'flex w-full items-center rounded-lg px-3 py-2.5 text-left text-[14px] transition-all',
                                         isActive
-                                            ? 'bg-primary text-white'
-                                            : 'text-slate-300 hover:bg-slate-800 hover:text-white',
+                                            ? 'bg-primary-50 text-primary-600 font-medium'
+                                            : 'text-[#5a6577] hover:bg-[#f6f8fb] hover:text-[#3b4559]',
                                         collapsed && 'justify-center px-0'
                                     )}
                                 >
-                                    <span className="text-lg">{item.icon}</span>
+                                    <span className="text-[17px]">{item.icon}</span>
                                     {!collapsed && (
                                         <>
                                             <span className="ml-3 flex-1">{item.label}</span>
                                             {hasChildren && (
                                                 <svg
                                                     className={cn(
-                                                        'h-4 w-4 transition-transform',
+                                                        'h-4 w-4 text-[#94a3b8] transition-transform',
                                                         isOpen && 'rotate-180'
                                                     )}
                                                     fill="none"
@@ -259,16 +261,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
                                 {/* Sub menu */}
                                 {hasChildren && isOpen && !collapsed && (
-                                    <div className="bg-slate-950/50">
+                                    <div className="ml-3 mt-1 border-l border-[#e5eaef] pl-4">
                                         {item.children?.map((child) => (
                                             <button
                                                 key={child.key}
                                                 onClick={() => handleMenuClick(child.key)}
                                                 className={cn(
-                                                    'block w-full py-2.5 pl-14 pr-6 text-left text-sm transition-colors',
+                                                    'block w-full rounded-md py-2 pl-2 pr-3 text-left text-[13px] transition-all',
                                                     pathname === child.key
-                                                        ? 'bg-primary/20 text-primary'
-                                                        : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                                                        ? 'bg-primary-50 font-medium text-primary-600'
+                                                        : 'text-[#7c889a] hover:bg-[#f6f8fb] hover:text-[#3b4559]'
                                                 )}
                                             >
                                                 {child.label}
@@ -286,20 +288,20 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <div
                 className={cn(
                     'flex flex-1 flex-col transition-all duration-200',
-                    collapsed ? 'ml-20' : 'ml-64'
+                    collapsed ? 'ml-[72px]' : 'ml-[240px]'
                 )}
             >
                 {/* Header */}
-                <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6">
+                <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#e5eaef] bg-white px-6">
                     <button
                         onClick={() => setCollapsed(!collapsed)}
-                        className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
+                        className="flex h-9 w-9 items-center justify-center rounded-lg text-[#7c889a] transition-colors hover:bg-[#f6f8fb] hover:text-[#3b4559]"
                     >
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             {collapsed ? (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
                             ) : (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h8m-8 6h16" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h8m-8 6h16" />
                             )}
                         </svg>
                     </button>
@@ -308,33 +310,36 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     <div className="relative">
                         <button
                             onClick={() => setShowDropdown(!showDropdown)}
-                            className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-slate-100"
+                            className="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-[#f6f8fb]"
                         >
-                            <span className="text-sm text-slate-600">欢迎, {admin?.username}</span>
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-white">
+                            <span className="text-[14px] text-[#5a6577]">欢迎, {admin?.username}</span>
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-[13px] font-medium text-primary-600">
                                 {admin?.username?.charAt(0).toUpperCase() || 'A'}
                             </div>
                         </button>
 
                         {showDropdown && (
-                            <div className="absolute right-0 top-full mt-1 w-40 rounded-lg border border-slate-200 bg-white py-1">
+                            <div className="absolute right-0 top-full mt-2 w-44 overflow-hidden rounded-xl border border-[#e5eaef] bg-white shadow-soft">
                                 <button
                                     onClick={() => {
                                         router.push('/admin/profile');
                                         setShowDropdown(false);
                                     }}
-                                    className="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-[14px] text-[#5a6577] transition-colors hover:bg-[#f6f8fb] hover:text-[#3b4559]"
                                 >
-                                    个人设置
+                                    <span>⚙️</span>
+                                    <span>个人设置</span>
                                 </button>
+                                <div className="border-t border-[#e5eaef]" />
                                 <button
                                     onClick={() => {
                                         handleLogout();
                                         setShowDropdown(false);
                                     }}
-                                    className="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-[14px] text-[#5a6577] transition-colors hover:bg-[#f6f8fb] hover:text-[#3b4559]"
                                 >
-                                    退出登录
+                                    <span>🚪</span>
+                                    <span>退出登录</span>
                                 </button>
                             </div>
                         )}
