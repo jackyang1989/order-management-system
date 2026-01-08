@@ -1,23 +1,52 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { TaskFormData, TaskType } from './types';
 import { fetchShops, Shop } from '../../../../../services/shopService';
-import { TASK_PLATFORMS, getShopPlatformCode } from '../../../../../constants/platformConfig';
+import { getShopPlatformCode } from '../../../../../constants/platformConfig';
+import { fetchEnabledPlatforms, PlatformData } from '../../../../../services/systemConfigService';
 import { cn } from '../../../../../lib/utils';
 import { Button } from '../../../../../components/ui/button';
 import { Input } from '../../../../../components/ui/input';
 import { Select } from '../../../../../components/ui/select';
+
+// 平台代码到任务类型ID的映射
+const PLATFORM_CODE_TO_TASK_TYPE: Record<string, number> = {
+    'taobao': 1,
+    'tmall': 2,
+    'jd': 3,
+    'pdd': 4,
+    'douyin': 5,
+    'kuaishou': 6,
+    'xhs': 7,
+    'xianyu': 8,
+    '1688': 9,
+};
 
 interface StepProps { data: TaskFormData; onChange: (data: Partial<TaskFormData>) => void; onNext: () => void; }
 
 export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     const [shops, setShops] = useState<Shop[]>([]);
     const [loadingShops, setLoadingShops] = useState(true);
+    const [platforms, setPlatforms] = useState<PlatformData[]>([]);
+    const [loadingPlatforms, setLoadingPlatforms] = useState(true);
 
-    useEffect(() => { loadShops(); }, []);
+    useEffect(() => { loadShops(); loadPlatforms(); }, []);
 
     const loadShops = async () => { setLoadingShops(true); const shopList = await fetchShops(); setShops(shopList.filter(s => s.status === 1)); setLoadingShops(false); };
+    const loadPlatforms = async () => { setLoadingPlatforms(true); const list = await fetchEnabledPlatforms(); setPlatforms(list); setLoadingPlatforms(false); };
+
+    // 将后端平台数据转换为任务平台格式
+    const taskPlatforms = useMemo(() => {
+        return platforms
+            .filter(p => PLATFORM_CODE_TO_TASK_TYPE[p.code])
+            .map(p => ({
+                id: PLATFORM_CODE_TO_TASK_TYPE[p.code],
+                name: p.name,
+                icon: p.icon || '🛒',
+                platformCode: p.code.toUpperCase(),
+            }));
+    }, [platforms]);
 
     const handlePlatformChange = (type: number) => { onChange({ taskType: type, shopId: '', shopName: '' }); };
     const handleShopChange = (shopId: string) => { const selectedShop = shops.find(s => s.id === shopId); if (selectedShop) onChange({ shopId: selectedShop.id, shopName: selectedShop.shopName }); else onChange({ shopId: '', shopName: '' }); };
@@ -35,7 +64,9 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
             <div className="mb-6">
                 <label className="mb-2 block text-sm font-medium text-slate-700">发布平台</label>
                 <div className="flex flex-wrap gap-4">
-                    {TASK_PLATFORMS.map(p => (
+                    {loadingPlatforms ? (
+                        <div className="text-slate-400">加载平台中...</div>
+                    ) : taskPlatforms.map(p => (
                         <div key={p.id} onClick={() => handlePlatformChange(p.id)} className={cn('flex cursor-pointer items-center gap-2 rounded-lg border px-6 py-3 transition-all', data.taskType === p.id ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 bg-white')}>
                             <span>{p.icon}</span>
                             <span className={cn(data.taskType === p.id ? 'font-semibold text-indigo-600' : 'text-slate-700')}>{p.name}</span>

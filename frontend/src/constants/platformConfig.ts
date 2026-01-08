@@ -179,6 +179,69 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
             { key: 'profileImg', label: '小红书个人主页截图', example: '/examples/xhs-profile.jpg', required: true }
         ]
     },
+
+    // 别名映射 - 后端使用 xhs，前端配置使用 xiaohongshu
+    xhs: {
+        id: 'xhs',
+        name: '小红书',
+        accountLabel: '小红书号',
+        accountPlaceholder: '请输入小红书号',
+        hasLoginLocation: false,
+        hasAddress: true,
+        hasRealName: true,
+        hasSmsVerification: true,
+        tips: [
+            '小红书号需实名认证',
+            '账号需绑定手机号'
+        ],
+        requiredImages: [
+            { key: 'profileImg', label: '小红书个人主页截图', example: '/examples/xhs-profile.jpg', required: true }
+        ]
+    },
+
+    // 别名映射 - 后端使用 1688，前端配置使用 ali1688
+    '1688': {
+        id: '1688',
+        name: '1688',
+        accountLabel: '1688账号',
+        accountPlaceholder: '请输入1688账号',
+        hasLoginLocation: false,
+        hasAddress: true,
+        hasRealName: true,
+        hasSmsVerification: true,
+        tips: [
+            '1688账号需企业认证或个人认证',
+            '收货地址需真实有效'
+        ],
+        requiredImages: [
+            { key: 'profileImg', label: '1688账号主页截图', example: '/examples/1688-profile.jpg', required: true },
+            { key: 'payAuthImg', label: '认证截图', example: '/examples/1688-auth.jpg', required: true }
+        ]
+    },
+
+    // 添加天猫平台配置
+    tmall: {
+        id: 'tmall',
+        name: '天猫',
+        accountLabel: '天猫账号',
+        accountPlaceholder: '请输入您的天猫账号',
+        hasLoginLocation: true,
+        hasAddress: true,
+        hasRealName: true,
+        hasSmsVerification: true,
+        tips: [
+            '天猫账号必须与常用登录地一致，否则审核不通过',
+            '收货地址需真实有效，用于商家发货',
+            '所有截图需清晰完整，模糊或不完整将被拒绝',
+            '审核通过后方可使用该买号接单'
+        ],
+        requiredImages: [
+            { key: 'profileImg', label: '账号主页截图', example: '/examples/tmall-profile.jpg', required: true },
+            { key: 'creditImg', label: '淘气值截图', example: '/examples/taoqi-score.jpg', required: true },
+            { key: 'payAuthImg', label: '支付宝实名截图', example: '/examples/alipay-auth.jpg', required: true },
+            { key: 'scoreImg', label: '芝麻信用截图', example: '/examples/zhima-credit.jpg', required: true }
+        ]
+    },
 };
 
 // 获取平台列表 (用于下拉选择)

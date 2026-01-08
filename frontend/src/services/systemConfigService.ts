@@ -53,10 +53,26 @@ export interface SystemGlobalConfig {
     updatedAt: string;
 }
 
+// 平台数据接口
+export interface PlatformData {
+    id: string;
+    code: string;
+    name: string;
+    icon: string;
+    color: string;
+    baseFeeRate: number;
+    supportsTkl: boolean;
+    sortOrder: number;
+}
+
 // 缓存系统配置
 let cachedConfig: SystemGlobalConfig | null = null;
 let cacheTimestamp = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5分钟缓存
+
+// 缓存平台列表
+let cachedPlatforms: PlatformData[] | null = null;
+let platformsCacheTimestamp = 0;
 
 export async function fetchSystemConfig(): Promise<SystemGlobalConfig | null> {
     const now = Date.now();
@@ -75,9 +91,31 @@ export async function fetchSystemConfig(): Promise<SystemGlobalConfig | null> {
     }
 }
 
+/**
+ * 从后端获取启用的平台列表
+ */
+export async function fetchEnabledPlatforms(): Promise<PlatformData[]> {
+    const now = Date.now();
+    if (cachedPlatforms && (now - platformsCacheTimestamp) < CACHE_DURATION) {
+        return cachedPlatforms;
+    }
+
+    try {
+        const response = await api.get<{ data: PlatformData[] }>('/platforms');
+        cachedPlatforms = response.data?.data || [];
+        platformsCacheTimestamp = now;
+        return cachedPlatforms;
+    } catch (error) {
+        console.error('获取平台列表失败:', error);
+        return cachedPlatforms || []; // 返回缓存的平台列表（如果有）
+    }
+}
+
 export function clearConfigCache(): void {
     cachedConfig = null;
     cacheTimestamp = 0;
+    cachedPlatforms = null;
+    platformsCacheTimestamp = 0;
 }
 
 // 解析好评费用

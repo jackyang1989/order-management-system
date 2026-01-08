@@ -9,6 +9,7 @@ import { CommissionRateController } from './commission-rate.controller';
 import { Platform } from './platform.entity';
 import { PlatformService } from './platform.service';
 import { PlatformController } from './platform.controller';
+import { PlatformPublicController } from './platform-public.controller';
 import { DeliveryWarehouse } from './delivery-warehouse.entity';
 import { DeliveryWarehouseService } from './delivery-warehouse.service';
 import { DeliveryWarehouseController } from './delivery-warehouse.controller';
@@ -32,6 +33,7 @@ import { VipLevelController } from './vip-level.controller';
         AdminConfigController,
         CommissionRateController,
         PlatformController,
+        PlatformPublicController,
         DeliveryWarehouseController,
         VipLevelController,
         // VipPublicController 已合并到 VipController (vip模块)

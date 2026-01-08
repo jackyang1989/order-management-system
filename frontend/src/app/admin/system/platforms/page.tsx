@@ -35,7 +35,7 @@ export default function PlatformsPage() {
         setLoading(true);
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`${BASE_URL}/admin/platforms?includeInactive=true`, {
+            const response = await fetch(`${BASE_URL}/admin/platforms?activeOnly=false`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (response.ok) {
@@ -89,12 +89,13 @@ export default function PlatformsPage() {
         }
     };
 
-    const handleToggle = async (id: string) => {
+    const handleToggle = async (id: string, currentState: boolean) => {
         try {
             const token = localStorage.getItem('adminToken');
             await fetch(`${BASE_URL}/admin/platforms/${id}/toggle`, {
-                method: 'POST',
-                headers: { Authorization: `Bearer ${token}` },
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ isActive: !currentState }),
             });
             loadPlatforms();
         } catch (error) {
@@ -176,7 +177,7 @@ export default function PlatformsPage() {
                                                             ? 'border border-amber-400 bg-amber-50 text-amber-600 hover:bg-amber-100'
                                                             : 'border border-blue-400 bg-blue-50 text-blue-600 hover:bg-blue-100'
                                                     )}
-                                                    onClick={() => handleToggle(platform.id)}
+                                                    onClick={() => handleToggle(platform.id, platform.isActive)}
                                                 >
                                                     {platform.isActive ? '禁用' : '启用'}
                                                 </Button>

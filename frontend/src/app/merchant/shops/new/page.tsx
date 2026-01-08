@@ -8,60 +8,36 @@ import { Button } from '../../../../components/ui/button';
 import { Card } from '../../../../components/ui/card';
 import { Input } from '../../../../components/ui/input';
 import { Select } from '../../../../components/ui/select';
-import { fetchSystemConfig, getEnabledPlatforms } from '../../../../services/systemConfigService';
+import { fetchEnabledPlatforms, PlatformData } from '../../../../services/systemConfigService';
 import { getProvinces, getCities, getDistricts } from '../../../../data/chinaRegions';
-
-// 平台ID到platformCode的映射
-const PLATFORM_ID_TO_CODE: Record<string, string> = {
-    'taobao': 'TAOBAO',
-    'tmall': 'TMALL',
-    'jd': 'JD',
-    'pdd': 'PDD',
-    'douyin': 'DOUYIN',
-    'kuaishou': 'KUAISHOU',
-};
-
-// 平台ID到中文名的映射
-const PLATFORM_ID_TO_NAME: Record<string, string> = {
-    'taobao': '淘宝',
-    'tmall': '天猫',
-    'jd': '京东',
-    'pdd': '拼多多',
-    'douyin': '抖音',
-    'kuaishou': '快手',
-};
 
 export default function NewShopPage() {
     const router = useRouter();
     const [submitting, setSubmitting] = useState(false);
-    const [enabledPlatformIds, setEnabledPlatformIds] = useState<string[]>(['taobao']);
-    const [formData, setFormData] = useState({ platform: 'TAOBAO', shopName: '', accountName: '', contactName: '', mobile: '', url: '', province: '', city: '', district: '', detailAddress: '', screenshot: null as File | null });
+    const [platforms, setPlatforms] = useState<PlatformData[]>([]);
+    const [formData, setFormData] = useState({ platform: '', shopName: '', accountName: '', contactName: '', mobile: '', url: '', province: '', city: '', district: '', detailAddress: '', screenshot: null as File | null });
     const [mobileError, setMobileError] = useState('');
 
     // 加载启用的平台列表
     useEffect(() => {
-        const loadEnabledPlatforms = async () => {
-            const config = await fetchSystemConfig();
-            const enabled = getEnabledPlatforms(config);
-            setEnabledPlatformIds(enabled);
-            // 如果当前平台不在启用列表中，切换到第一个启用的平台
-            const currentPlatformId = Object.entries(PLATFORM_ID_TO_CODE).find(([_, code]) => code === formData.platform)?.[0];
-            if (currentPlatformId && !enabled.includes(currentPlatformId) && enabled.length > 0) {
-                setFormData(prev => ({ ...prev, platform: PLATFORM_ID_TO_CODE[enabled[0]] || 'TAOBAO' }));
+        const loadPlatforms = async () => {
+            const platformList = await fetchEnabledPlatforms();
+            setPlatforms(platformList);
+            // 设置默认平台为第一个
+            if (platformList.length > 0 && !formData.platform) {
+                setFormData(prev => ({ ...prev, platform: platformList[0].code.toUpperCase() }));
             }
         };
-        loadEnabledPlatforms();
+        loadPlatforms();
     }, []);
 
     // 根据启用平台生成选项
     const platformOptions = useMemo(() => {
-        return enabledPlatformIds
-            .filter(id => PLATFORM_ID_TO_CODE[id])
-            .map(id => ({
-                value: PLATFORM_ID_TO_CODE[id],
-                label: PLATFORM_ID_TO_NAME[id] || id,
-            }));
-    }, [enabledPlatformIds]);
+        return platforms.map(p => ({
+            value: p.code.toUpperCase(),
+            label: p.name,
+        }));
+    }, [platforms]);
 
     const validateMobile = (mobile: string) => {
         const mobileRegex = /^1[3-9]\d{9}$/;

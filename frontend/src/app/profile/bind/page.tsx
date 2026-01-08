@@ -12,8 +12,8 @@ import {
     CreateBuyerAccountInput,
 } from "../../../services/buyerAccountService";
 import { getProvinces, getCities, getDistricts } from "../../../data/chinaRegions";
-import { PLATFORM_CONFIG, getPlatformList, PlatformConfig, PlatformImageConfig, getFilteredPlatformList } from "../../../constants/platformConfig";
-import { fetchSystemConfig, getEnabledPlatforms } from "../../../services/systemConfigService";
+import { PLATFORM_CONFIG, PlatformConfig, PlatformImageConfig } from "../../../constants/platformConfig";
+import { fetchEnabledPlatforms, PlatformData } from "../../../services/systemConfigService";
 
 // 图片上传组件
 function ImageUploader({
@@ -101,24 +101,25 @@ export default function BindAccountPage() {
     const router = useRouter();
     const [submitting, setSubmitting] = useState(false);
     const [smsCountdown, setSmsCountdown] = useState(0);
-    const [enabledPlatformIds, setEnabledPlatformIds] = useState<string[]>(['taobao']);
+    const [platforms, setPlatforms] = useState<PlatformData[]>([]);
     const [platformListLoaded, setPlatformListLoaded] = useState(false);
 
     // 加载启用的平台列表
     useEffect(() => {
-        const loadEnabledPlatforms = async () => {
-            const config = await fetchSystemConfig();
-            const enabled = getEnabledPlatforms(config);
-            setEnabledPlatformIds(enabled);
+        const loadPlatforms = async () => {
+            const platformList = await fetchEnabledPlatforms();
+            setPlatforms(platformList);
             setPlatformListLoaded(true);
         };
-        loadEnabledPlatforms();
+        loadPlatforms();
     }, []);
 
-    // 获取平台列表并使用第一个作为默认值（根据启用平台过滤）
+    // 获取平台列表（过滤出有配置的平台）
     const platformList = useMemo(() => {
-        return getFilteredPlatformList(enabledPlatformIds);
-    }, [enabledPlatformIds]);
+        return platforms
+            .filter(p => PLATFORM_CONFIG[p.code])
+            .map(p => ({ id: p.code, name: p.name }));
+    }, [platforms]);
     const defaultPlatformId = platformList[0]?.id || 'taobao';
     const defaultPlatformName = platformList[0]?.name || '淘宝';
 
@@ -126,7 +127,7 @@ export default function BindAccountPage() {
     const [selectedPlatformId, setSelectedPlatformId] = useState(defaultPlatformId);
 
     const platformConfig = useMemo<PlatformConfig>(() => {
-        return PLATFORM_CONFIG[selectedPlatformId] || PLATFORM_CONFIG[defaultPlatformId];
+        return PLATFORM_CONFIG[selectedPlatformId] || PLATFORM_CONFIG[defaultPlatformId] || PLATFORM_CONFIG['taobao'];
     }, [selectedPlatformId, defaultPlatformId]);
 
     // 图片状态 (动态key)
@@ -154,12 +155,13 @@ export default function BindAccountPage() {
     // 当平台列表加载完成后，如果当前选中的平台不在启用列表中，切换到第一个启用的平台
     useEffect(() => {
         if (platformListLoaded && platformList.length > 0) {
-            if (!enabledPlatformIds.includes(selectedPlatformId)) {
+            const enabledIds = platformList.map(p => p.id);
+            if (!enabledIds.includes(selectedPlatformId)) {
                 setSelectedPlatformId(platformList[0].id);
                 setForm(prev => ({ ...prev, platform: platformList[0].name }));
             }
         }
-    }, [platformListLoaded, platformList, enabledPlatformIds, selectedPlatformId]);
+    }, [platformListLoaded, platformList, selectedPlatformId]);
 
     const updateImage = useCallback((key: string, value: string) => {
         setImages(prev => ({ ...prev, [key]: value }));
