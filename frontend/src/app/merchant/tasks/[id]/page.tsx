@@ -43,7 +43,7 @@ export default function TaskDetailPage() {
         catch { alert('网络错误'); } finally { setCancelling(false); }
     };
 
-    if (loading) return <div className="flex h-[400px] items-center justify-center text-slate-500">加载中...</div>;
+    if (loading) return <div className="flex h-[400px] items-center justify-center text-[#6b7280]">加载中...</div>;
 
     if (!task) {
         return (

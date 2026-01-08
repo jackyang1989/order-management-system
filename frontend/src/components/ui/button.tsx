@@ -13,20 +13,20 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', loading, disabled, children, ...props }, ref) => {
     const baseStyles =
-      'inline-flex items-center justify-center font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';
+      'inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-100 disabled:pointer-events-none';
 
     const variants: Record<string, string> = {
-      primary: 'bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500 shadow-sm',
-      secondary: 'bg-[#f6f8fb] text-[#3b4559] hover:bg-[#eef1f6] focus:ring-[#94a3b8] border border-[#e5eaef]',
-      ghost: 'bg-transparent text-[#5a6577] hover:bg-[#f6f8fb] hover:text-[#3b4559] focus:ring-[#94a3b8]',
-      destructive: 'bg-danger-400 text-white hover:bg-danger-500 focus:ring-danger-400 shadow-sm',
-      outline: 'bg-white text-primary-500 border border-primary-500 hover:bg-primary-50 focus:ring-primary-500',
+      primary: 'bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500 disabled:bg-[#d1d5db] disabled:text-[#9ca3af]',
+      secondary: 'bg-white text-primary-500 border border-primary-500 hover:bg-primary-50 focus:ring-primary-500 disabled:border-[#d1d5db] disabled:text-[#9ca3af] disabled:bg-white',
+      ghost: 'bg-transparent text-primary-500 hover:text-primary-600 focus:ring-primary-500',
+      destructive: 'bg-danger-400 text-white hover:bg-danger-500 focus:ring-danger-400 disabled:bg-[#d1d5db] disabled:text-[#9ca3af]',
+      outline: 'bg-white text-primary-500 border border-primary-500 hover:bg-primary-50 focus:ring-primary-500 disabled:border-[#d1d5db] disabled:text-[#9ca3af] disabled:bg-white',
     };
 
     const sizes: Record<string, string> = {
-      sm: 'h-8 px-3 text-[13px] rounded-lg gap-1.5',
-      md: 'h-10 px-4 text-[14px] rounded-lg gap-2',
-      lg: 'h-12 px-6 text-[15px] rounded-xl gap-2',
+      sm: 'h-9 px-3 text-[13px] rounded-md gap-1.5',
+      md: 'h-9 px-4 text-[14px] rounded-md gap-2',
+      lg: 'h-9 px-6 text-[15px] rounded-md gap-2',
     };
 
     return (

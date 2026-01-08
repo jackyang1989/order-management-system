@@ -44,12 +44,12 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#3b4559]/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#111827]/40"
       onClick={closeOnOverlay ? onClose : undefined}
     >
       <div
         className={cn(
-          'relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-soft',
+          'relative w-full max-w-lg rounded-md border border-[#e5e7eb] bg-white p-6',
           'max-h-[90vh] overflow-auto',
           className
         )}

@@ -24,7 +24,7 @@ export function Tabs({ items, value, onChange, size = 'md', className }: TabsPro
   };
 
   return (
-    <div className={cn('flex w-full items-center gap-2 rounded-xl bg-[#f6f8fb] p-1', className)}>
+    <div className={cn('flex w-full items-center gap-2 rounded-md border border-[#e5e7eb] bg-[#f9fafb] p-1', className)}>
       {items.map((item) => (
         <button
           key={item.key}
@@ -35,7 +35,7 @@ export function Tabs({ items, value, onChange, size = 'md', className }: TabsPro
             'flex-1 rounded-lg font-medium transition-colors',
             sizes[size],
             value === item.key
-              ? 'bg-white text-[#3b4559] shadow-sm'
+              ? 'bg-white text-[#3b4559] border border-[#e5e7eb]'
               : 'text-[#7c889a] hover:text-[#5a6577]',
             item.disabled && 'cursor-not-allowed text-[#94a3b8] hover:text-[#94a3b8]'
           )}

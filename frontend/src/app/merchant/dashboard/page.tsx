@@ -9,10 +9,10 @@ interface MerchantStats { balance: number; frozenBalance: number; totalTasks: nu
 interface Merchant { id: string; username: string; phone: string; companyName: string; balance: number; frozenBalance: number; }
 
 const colorMap: Record<string, { bg: string; text: string }> = {
-    green: { bg: 'bg-success-50', text: 'text-success-500' },
-    yellow: { bg: 'bg-warning-50', text: 'text-warning-500' },
-    blue: { bg: 'bg-primary-50', text: 'text-primary-600' },
-    pink: { bg: 'bg-[#fff0f6]', text: 'text-[#d6336c]' },
+    green: { bg: 'bg-[#f9fafb]', text: 'text-[#6b7280]' },
+    yellow: { bg: 'bg-[#f9fafb]', text: 'text-[#6b7280]' },
+    blue: { bg: 'bg-[#f9fafb]', text: 'text-primary-600' },
+    pink: { bg: 'bg-[#f9fafb]', text: 'text-[#6b7280]' },
 };
 
 export default function MerchantDashboard() {
@@ -55,15 +55,15 @@ export default function MerchantDashboard() {
     }
 
     const StatCard = ({ title, value, icon, colorKey }: { title: string; value: string | number; icon: string; colorKey: string }) => {
-        const colors = colorMap[colorKey] || { bg: 'bg-[#f6f8fb]', text: 'text-[#5a6577]' };
+        const colors = colorMap[colorKey] || { bg: 'bg-[#f9fafb]', text: 'text-[#6b7280]' };
         return (
-            <div className="overflow-hidden rounded-xl border border-[#e5eaef] bg-white p-5 shadow-card transition-shadow hover:shadow-soft">
+            <div className="overflow-hidden rounded-md border border-[#e5e7eb] bg-white p-5">
                 <div className="flex items-center justify-between">
                     <div>
-                        <div className="mb-1.5 text-[13px] text-[#7c889a]">{title}</div>
+                        <div className="mb-1.5 text-[13px] text-[#6b7280]">{title}</div>
                         <div className={`text-2xl font-bold ${colors.text}`}>{value}</div>
                     </div>
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl text-xl ${colors.bg}`}>{icon}</div>
+                    <div className={`flex h-12 w-12 items-center justify-center rounded-md text-xl ${colors.bg}`}>{icon}</div>
                 </div>
             </div>
         );
@@ -72,12 +72,12 @@ export default function MerchantDashboard() {
     return (
         <div className="space-y-6">
             {/* Welcome Banner */}
-            <div className="flex items-center justify-between overflow-hidden rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 px-10 py-8 text-white shadow-soft">
+            <div className="flex items-center justify-between overflow-hidden rounded-md border border-[#e5e7eb] bg-white px-8 py-6 text-[#3b4559]">
                 <div>
                     <h2 className="mb-2 text-xl font-semibold">欢迎回来，{merchant?.username || merchant?.companyName || '商家'}</h2>
-                    <p className="text-[14px] text-white/80">今天是 {new Date().toLocaleDateString('zh-CN')}，准备好处理新订单了吗？</p>
+                    <p className="text-[14px] text-[#6b7280]">今天是 {new Date().toLocaleDateString('zh-CN')}，准备好处理新订单了吗？</p>
                 </div>
-                <Button onClick={() => router.push('/merchant/tasks/new')} className="flex items-center gap-2 bg-white font-medium text-primary-600 shadow-sm hover:bg-[#f6f8fb]">
+                <Button onClick={() => router.push('/merchant/tasks/new')} className="flex items-center gap-2">
                     <span>+</span> 发布新任务
                 </Button>
             </div>
@@ -92,20 +92,20 @@ export default function MerchantDashboard() {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                <div className="overflow-hidden rounded-xl border border-[#e5eaef] bg-white shadow-card">
-                    <div className="flex items-center justify-between border-b border-[#e5eaef] px-6 py-4">
+                <div className="overflow-hidden rounded-md border border-[#e5e7eb] bg-white">
+                    <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 py-4">
                         <h3 className="text-[15px] font-semibold text-[#3b4559]">最近任务</h3>
                         <span onClick={() => router.push('/merchant/tasks')} className="cursor-pointer text-[13px] text-primary-600 hover:text-primary-700">查看全部 →</span>
                     </div>
-                    <div className="px-6 py-12 text-center text-[14px] text-[#7c889a]">暂无任务，点击上方按钮发布新任务</div>
+                    <div className="flex min-h-[220px] items-center justify-center px-6 text-center text-[14px] text-[#6b7280]">暂无任务，点击上方按钮发布新任务</div>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-[#e5eaef] bg-white shadow-card">
-                    <div className="flex items-center justify-between border-b border-[#e5eaef] px-6 py-4">
+                <div className="overflow-hidden rounded-md border border-[#e5e7eb] bg-white">
+                    <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 py-4">
                         <h3 className="text-[15px] font-semibold text-[#3b4559]">待审核订单</h3>
                         <span onClick={() => router.push('/merchant/orders')} className="cursor-pointer text-[13px] text-primary-600 hover:text-primary-700">查看全部 →</span>
                     </div>
-                    <div className="px-6 py-12 text-center text-[14px] text-[#7c889a]">暂无待审核订单</div>
+                    <div className="flex min-h-[220px] items-center justify-center px-6 text-center text-[14px] text-[#6b7280]">暂无待审核订单</div>
                 </div>
             </div>
         </div>

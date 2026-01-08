@@ -14,9 +14,9 @@ export interface CardProps {
 
 export function Card({ children, title, description, actions, className, noPadding }: CardProps) {
   return (
-    <div className={cn('overflow-hidden rounded-xl border border-[#e5eaef] bg-white shadow-card', className)}>
+    <div className={cn('overflow-hidden rounded-md border border-[#e5e7eb] bg-white', className)}>
       {(title || description || actions) && (
-        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#e5eaef] px-6 py-4">
+        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#e5e7eb] px-6 py-4">
           <div className="min-w-0">
             {title && <h3 className="text-[15px] font-semibold text-[#3b4559]">{title}</h3>}
             {description && <p className="mt-1 text-[13px] text-[#7c889a]">{description}</p>}
