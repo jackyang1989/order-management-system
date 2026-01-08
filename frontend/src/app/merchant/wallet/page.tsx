@@ -14,7 +14,7 @@ interface TransactionRecord { id: string; type: 'deposit' | 'withdraw' | 'freeze
 interface WalletStats { balance: number; frozenBalance: number; silver: number; }
 interface BankCard { id: string; bankName: string; cardNumber: string; accountName: string; isDefault: boolean; status: number; }
 
-const typeColorMap: Record<string, string> = { deposit: 'bg-green-100', withdraw: 'bg-red-100', freeze: 'bg-amber-100', unfreeze: 'bg-blue-100', deduct: 'bg-red-100' };
+const typeColorMap: Record<string, string> = { deposit: 'bg-[#f9fafb] border border-[#e5e7eb]', withdraw: 'bg-[#f9fafb] border border-[#e5e7eb]', freeze: 'bg-[#f9fafb] border border-[#e5e7eb]', unfreeze: 'bg-[#f9fafb] border border-[#e5e7eb]', deduct: 'bg-[#f9fafb] border border-[#e5e7eb]' };
 const typeIconMap: Record<string, string> = { deposit: '💰', withdraw: '💸', freeze: '🔒', unfreeze: '🔓', deduct: '📤' };
 
 export default function MerchantWalletPage() {
@@ -214,52 +214,54 @@ export default function MerchantWalletPage() {
         <div className="space-y-6">
             {/* Balance Cards */}
             <div className="grid grid-cols-3 gap-5">
-                <div className="rounded-2xl bg-gradient-to-br from-green-600 to-green-500 p-6 text-white">
-                    <div className="mb-2 text-sm opacity-90">可用余额</div>
-                    <div className="mb-4 text-3xl font-bold">¥{Number(stats.balance).toFixed(2)}</div>
+                <div className="rounded-md border border-[#e5e7eb] bg-white p-6">
+                    <div className="mb-2 text-sm text-[#6b7280]">可用余额</div>
+                    <div className="mb-4 text-3xl font-bold text-primary-600">¥{Number(stats.balance).toFixed(2)}</div>
                     <div className="flex gap-3">
-                        <button onClick={openRecharge} className="flex-1 rounded-lg bg-white/20 py-2.5 text-sm font-medium">充值</button>
-                        <button onClick={openWithdraw} className="flex-1 rounded-lg border border-white/30 bg-transparent py-2.5 text-sm font-medium">提现</button>
+                        <button onClick={openRecharge} className="h-9 flex-1 rounded-md border border-[#e5e7eb] bg-white text-sm font-medium text-primary-500 hover:bg-[#eff6ff]">充值</button>
+                        <button onClick={openWithdraw} className="h-9 flex-1 rounded-md border border-primary-500 bg-white text-sm font-medium text-primary-500 hover:bg-[#eff6ff]">提现</button>
                     </div>
                 </div>
 
-                <Card className="bg-white p-6">
-                    <div className="mb-2 text-sm text-slate-500">冻结金额</div>
-                    <div className="mb-2 text-3xl font-bold text-amber-500">¥{Number(stats.frozenBalance).toFixed(2)}</div>
-                    <div className="text-xs text-slate-400">用于发布中的任务押金</div>
+                <Card className="bg-white" noPadding>
+                    <div className="px-6 py-5">
+                        <div className="mb-2 text-sm text-[#6b7280]">冻结金额</div>
+                        <div className="mb-2 text-3xl font-bold text-warning-500">¥{Number(stats.frozenBalance).toFixed(2)}</div>
+                        <div className="text-xs text-[#9ca3af]">用于发布中的任务押金</div>
+                    </div>
                 </Card>
 
-                <div className="rounded-2xl bg-gradient-to-br from-purple-600 to-purple-400 p-6 text-white">
-                    <div className="mb-2 text-sm opacity-90">银锭余额</div>
-                    <div className="mb-4 text-3xl font-bold">{Number(stats.silver).toFixed(2)}</div>
-                    <button onClick={openSilver} className="w-full rounded-lg bg-white/20 py-2.5 text-sm font-medium">充值银锭</button>
+                <div className="rounded-md border border-[#e5e7eb] bg-white p-6">
+                    <div className="mb-2 text-sm text-[#6b7280]">银锭余额</div>
+                    <div className="mb-4 text-3xl font-bold text-primary-600">{Number(stats.silver).toFixed(2)}</div>
+                    <button onClick={openSilver} className="h-9 w-full rounded-md border border-[#e5e7eb] bg-white text-sm font-medium text-primary-500 hover:bg-[#eff6ff]">充值银锭</button>
                 </div>
             </div>
 
             {/* Transaction History */}
-            <Card className="overflow-hidden bg-white p-0">
-                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
+            <Card className="overflow-hidden bg-white" noPadding>
+                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#e5e7eb] px-6 py-4">
                     <h2 className="text-lg font-semibold">资金流水</h2>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                         {(['all', 'balance', 'silver'] as const).map(tab => (
-                            <button key={tab} onClick={() => setActiveTab(tab)} className={cn('rounded-md px-3.5 py-1.5 text-sm', activeTab === tab ? 'bg-indigo-500 text-white' : 'bg-slate-100 text-slate-600')}>{tab === 'all' ? '全部' : tab === 'balance' ? '余额' : '银锭'}</button>
+                            <button key={tab} onClick={() => setActiveTab(tab)} className={cn('h-9 rounded-md border px-3.5 text-sm', activeTab === tab ? 'border-primary-500 bg-primary-500 text-white' : 'border-[#e5e7eb] bg-white text-[#6b7280] hover:bg-[#f9fafb]')}>{tab === 'all' ? '全部' : tab === 'balance' ? '余额' : '银锭'}</button>
                         ))}
-                        <div className="ml-3 flex gap-2">
-                            <button onClick={() => openExport('balance')} className="rounded-md bg-green-500 px-3 py-1.5 text-sm text-white hover:bg-green-600">导出押金</button>
-                            <button onClick={() => openExport('silver')} className="rounded-md bg-purple-500 px-3 py-1.5 text-sm text-white hover:bg-purple-600">导出银锭</button>
+                        <div className="ml-2 flex gap-2">
+                            <button onClick={() => openExport('balance')} className="h-9 rounded-md border border-[#e5e7eb] bg-white px-3 text-sm text-primary-500 hover:bg-[#eff6ff]">导出押金</button>
+                            <button onClick={() => openExport('silver')} className="h-9 rounded-md border border-[#e5e7eb] bg-white px-3 text-sm text-primary-500 hover:bg-[#eff6ff]">导出银锭</button>
                         </div>
                     </div>
                 </div>
 
-                {loading ? <div className="py-12 text-center text-slate-500">加载中...</div>
-                    : filteredTransactions.length === 0 ? <div className="py-12 text-center text-slate-500">暂无记录</div>
+                {loading ? <div className="flex min-h-[200px] items-center justify-center text-[#6b7280]">加载中...</div>
+                    : filteredTransactions.length === 0 ? <div className="flex min-h-[200px] items-center justify-center text-[#6b7280]">暂无记录</div>
                         : <div>{filteredTransactions.map((tx, idx) => (
-                            <div key={tx.id} className={cn('flex items-center justify-between px-6 py-4', idx < filteredTransactions.length - 1 && 'border-b border-slate-100')}>
+                            <div key={tx.id} className={cn('flex items-center justify-between px-6 py-4', idx < filteredTransactions.length - 1 && 'border-b border-[#e5e7eb]')}>
                                 <div className="flex items-center gap-4">
-                                    <div className={cn('flex h-10 w-10 items-center justify-center rounded-xl text-lg', typeColorMap[tx.type])}>{typeIconMap[tx.type]}</div>
-                                    <div><div className="mb-0.5 text-sm font-medium text-slate-800">{tx.memo}</div><div className="text-xs text-slate-400">{new Date(tx.createdAt).toLocaleString('zh-CN')} · {tx.balanceType === 'balance' ? '余额' : '银锭'}</div></div>
+                                    <div className={cn('flex h-10 w-10 items-center justify-center rounded-md text-lg', typeColorMap[tx.type])}>{typeIconMap[tx.type]}</div>
+                                    <div><div className="mb-0.5 text-sm font-medium text-[#3b4559]">{tx.memo}</div><div className="text-xs text-[#9ca3af]">{new Date(tx.createdAt).toLocaleString('zh-CN')} · {tx.balanceType === 'balance' ? '余额' : '银锭'}</div></div>
                                 </div>
-                                <div className={cn('text-base font-semibold', tx.amount > 0 ? 'text-green-600' : 'text-red-500')}>{tx.amount > 0 ? '+' : ''}{tx.balanceType === 'balance' ? '¥' : ''}{tx.amount.toFixed(2)}</div>
+                                <div className={cn('text-base font-semibold', tx.amount > 0 ? 'text-success-600' : 'text-danger-400')}>{tx.amount > 0 ? '+' : ''}{tx.balanceType === 'balance' ? '¥' : ''}{tx.amount.toFixed(2)}</div>
                             </div>
                         ))}</div>
                 }
@@ -270,27 +272,27 @@ export default function MerchantWalletPage() {
                 {step === 'input' ? (
                     <div className="space-y-5">
                         <div>
-                            <label className="mb-2 block text-sm text-slate-500">{silverModal ? '充值数量' : withdrawModal ? '提现金额' : '充值金额'}</label>
+                            <label className="mb-2 block text-sm text-[#6b7280]">{silverModal ? '充值数量' : withdrawModal ? '提现金额' : '充值金额'}</label>
                             <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder={silverModal ? '请输入银锭数量' : withdrawModal ? '最低100元' : '请输入金额'} disabled={isLoading} />
-                            {withdrawModal && <div className="mt-1 text-xs text-slate-400">可用余额: ¥{Number(stats.balance).toFixed(2)}</div>}
+                            {withdrawModal && <div className="mt-1 text-xs text-[#9ca3af]">可用余额: ¥{Number(stats.balance).toFixed(2)}</div>}
                         </div>
 
                         {silverModal && (
                             <div>
-                                <label className="mb-2 block text-sm text-slate-500">支付方式</label>
+                                <label className="mb-2 block text-sm text-[#6b7280]">支付方式</label>
                                 <div className="flex gap-3">
-                                    <button onClick={() => setPaymentType('alipay')} className={cn('flex-1 rounded-lg border-2 py-3 text-sm', paymentType === 'alipay' ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200')}>支付宝支付</button>
-                                    <button onClick={() => setPaymentType('balance')} className={cn('flex-1 rounded-lg border-2 py-3 text-sm', paymentType === 'balance' ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200')}>余额支付</button>
+                                    <button onClick={() => setPaymentType('alipay')} className={cn('flex-1 rounded-md border px-3 py-2 text-sm', paymentType === 'alipay' ? 'border-primary-500 bg-primary-50' : 'border-[#e5e7eb] bg-white')}>支付宝支付</button>
+                                    <button onClick={() => setPaymentType('balance')} className={cn('flex-1 rounded-md border px-3 py-2 text-sm', paymentType === 'balance' ? 'border-primary-500 bg-primary-50' : 'border-[#e5e7eb] bg-white')}>余额支付</button>
                                 </div>
-                                {paymentType === 'balance' && <div className="mt-1 text-xs text-slate-400">可用余额: ¥{Number(stats.balance).toFixed(2)}</div>}
+                                {paymentType === 'balance' && <div className="mt-1 text-xs text-[#9ca3af]">可用余额: ¥{Number(stats.balance).toFixed(2)}</div>}
                             </div>
                         )}
 
                         {withdrawModal && (
                             <div>
-                                <label className="mb-2 block text-sm text-slate-500">提现到银行卡</label>
+                                <label className="mb-2 block text-sm text-[#6b7280]">提现到银行卡</label>
                                 {bankCards.filter(c => c.status === 1).length === 0 ? (
-                                    <div className="rounded-lg bg-red-50 p-4 text-center text-sm text-red-600">暂无可用银行卡，请先添加银行卡并等待审核通过</div>
+                                    <div className="rounded-md border border-[#e5e7eb] bg-[#f9fafb] p-4 text-center text-sm text-[#6b7280]">暂无可用银行卡，请先添加银行卡并等待审核通过</div>
                                 ) : (
                                     <Select value={selectedBankCardId} onChange={v => setSelectedBankCardId(v)} options={bankCards.filter(c => c.status === 1).map(card => ({ value: card.id, label: `${card.bankName} - ${card.cardNumber.slice(-4)} (${card.accountName})` }))} />
                                 )}
@@ -306,16 +308,16 @@ export default function MerchantWalletPage() {
                     </div>
                 ) : (
                     <div className="text-center">
-                        <div className="mb-4 text-sm text-slate-500">请使用支付宝扫码支付</div>
-                        <div className="mx-auto mb-3 flex h-[200px] w-[200px] flex-col items-center justify-center rounded-lg border border-slate-200 bg-slate-100">
+                        <div className="mb-4 text-sm text-[#6b7280]">请使用支付宝扫码支付</div>
+                        <div className="mx-auto mb-3 flex h-[200px] w-[200px] flex-col items-center justify-center rounded-md border border-[#e5e7eb] bg-[#f9fafb]">
                             <div className="mb-2 text-5xl">📱</div>
-                            <div className="text-xs text-slate-400">扫码支付</div>
+                            <div className="text-xs text-[#9ca3af]">扫码支付</div>
                         </div>
-                        <div className="mb-2 text-xs text-slate-500">订单号: {orderNumber}</div>
-                        <div className="mb-6 text-2xl font-bold text-green-600">¥{parseFloat(amount || '0').toFixed(2)}</div>
+                        <div className="mb-2 text-xs text-[#6b7280]">订单号: {orderNumber}</div>
+                        <div className="mb-6 text-2xl font-bold text-primary-600">¥{parseFloat(amount || '0').toFixed(2)}</div>
                         <div className="flex justify-center gap-3">
                             <Button variant="secondary" onClick={closeModal} disabled={isLoading}>取消支付</Button>
-                            <Button onClick={confirmPayment} disabled={isLoading} className="bg-green-500 hover:bg-green-600">{isLoading ? '确认中...' : '我已支付'}</Button>
+                            <Button onClick={confirmPayment} disabled={isLoading}>{isLoading ? '确认中...' : '我已支付'}</Button>
                         </div>
                     </div>
                 )}
@@ -324,15 +326,15 @@ export default function MerchantWalletPage() {
             {/* Export Modal */}
             <Modal title={exportType === 'balance' ? '导出押金流水' : '导出银锭流水'} open={exportModal} onClose={() => setExportModal(false)}>
                 <div className="space-y-5">
-                    <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-700">
+                    <div className="rounded-md border border-[#e5e7eb] bg-[#f9fafb] p-3 text-sm text-[#6b7280]">
                         最多支持导出31天的数据
                     </div>
                     <div>
-                        <label className="mb-2 block text-sm text-slate-500">开始日期</label>
+                        <label className="mb-2 block text-sm text-[#6b7280]">开始日期</label>
                         <Input type="date" value={exportStartDate} onChange={e => setExportStartDate(e.target.value)} />
                     </div>
                     <div>
-                        <label className="mb-2 block text-sm text-slate-500">结束日期</label>
+                        <label className="mb-2 block text-sm text-[#6b7280]">结束日期</label>
                         <Input type="date" value={exportEndDate} onChange={e => setExportEndDate(e.target.value)} />
                     </div>
                     <div className="flex justify-end gap-3 pt-2">

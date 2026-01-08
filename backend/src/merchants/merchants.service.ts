@@ -299,6 +299,79 @@ export class MerchantsService {
     };
   }
 
+  // 获取推荐信息
+  async getReferralInfo(id: string): Promise<{
+    referralCode: string;
+    referralLink: string;
+    stats: {
+      totalReferrals: number;
+      activeReferrals: number;
+      totalEarnings: number;
+      pendingEarnings: number;
+    };
+    records: Array<{
+      id: string;
+      username: string;
+      registerTime: string;
+      status: 'active' | 'inactive';
+      totalOrders: number;
+      commission: number;
+    }>;
+  }> {
+    const merchant = await this.merchantsRepository.findOne({ where: { id } });
+    if (!merchant) {
+      return {
+        referralCode: '',
+        referralLink: '',
+        stats: { totalReferrals: 0, activeReferrals: 0, totalEarnings: 0, pendingEarnings: 0 },
+        records: [],
+      };
+    }
+
+    // 如果没有邀请码，生成一个
+    let inviteCode = (merchant as any).inviteCode;
+    if (!inviteCode) {
+      inviteCode = this.generateInviteCode();
+      (merchant as any).inviteCode = inviteCode;
+      await this.merchantsRepository.save(merchant);
+    }
+
+    // 查询被推荐的商家
+    const referredMerchants = await this.merchantsRepository.find({
+      where: { referrerId: id } as any,
+    });
+
+    const records = referredMerchants.map(m => ({
+      id: m.id,
+      username: m.username,
+      registerTime: m.createdAt.toISOString().split('T')[0],
+      status: (m.status === MerchantStatus.APPROVED ? 'active' : 'inactive') as 'active' | 'inactive',
+      totalOrders: 0,
+      commission: 0,
+    }));
+
+    return {
+      referralCode: inviteCode,
+      referralLink: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/merchant/register?ref=${inviteCode}`,
+      stats: {
+        totalReferrals: referredMerchants.length,
+        activeReferrals: referredMerchants.filter(m => m.status === MerchantStatus.APPROVED).length,
+        totalEarnings: 0,
+        pendingEarnings: 0,
+      },
+      records,
+    };
+  }
+
+  private generateInviteCode(): string {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 8; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  }
+
   // ============ Admin Operations ============
 
   async banMerchant(id: string, reason: string): Promise<Merchant> {

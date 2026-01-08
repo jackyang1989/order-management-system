@@ -70,7 +70,7 @@ export default function MerchantVipPage() {
         finally { setPurchasing(false); }
     };
 
-    if (loading) return <div className="flex h-[400px] items-center justify-center text-slate-500">加载中...</div>;
+    if (loading) return <div className="flex h-[400px] items-center justify-center text-[#6b7280]">加载中...</div>;
 
     const benefits = [{ icon: '💰', title: '服务费折扣', desc: '最高6折优惠' }, { icon: '⚡', title: '优先审核', desc: '任务优先处理' }, { icon: '👨‍💼', title: '专属客服', desc: '1对1服务' }, { icon: '📊', title: '数据报表', desc: '详细数据分析' }];
     const faqs = [{ q: 'VIP会员可以退款吗？', a: 'VIP会员服务一经开通，不支持退款，请谨慎购买。' }, { q: '续费会自动延长有效期吗？', a: '是的，续费后有效期会在原有基础上延长。' }, { q: '如何联系专属客服？', a: '开通VIP后，可在帮助中心找到专属客服联系方式。' }];
@@ -78,15 +78,15 @@ export default function MerchantVipPage() {
     return (
         <div className="space-y-8">
             {/* VIP Status Banner */}
-            <div className={cn('rounded-2xl p-8 text-white', vipInfo?.isVip ? 'bg-gradient-to-br from-amber-500 to-amber-600' : 'bg-gradient-to-br from-slate-500 to-slate-600')}>
+            <div className={cn('rounded-md border border-[#e5e7eb] bg-white p-6 text-[#3b4559]')}>
                 <div className="flex items-center justify-between">
                     <div>
-                        <div className="mb-2 text-sm opacity-90">当前会员状态</div>
-                        <div className="mb-2 text-3xl font-bold">{vipInfo?.isVip ? `VIP ${vipInfo.vipLevel || 1} 会员` : '普通用户'}</div>
-                        {vipInfo?.isVip && vipInfo.vipExpireAt && <div className="text-sm opacity-90">到期时间: {new Date(vipInfo.vipExpireAt).toLocaleDateString('zh-CN')}（剩余 {vipInfo.vipDaysLeft} 天）</div>}
-                        {!vipInfo?.isVip && <div className="text-sm opacity-90">开通VIP享受更多特权</div>}
+                        <div className="mb-2 text-sm text-[#6b7280]">当前会员状态</div>
+                        <div className="mb-2 text-2xl font-semibold">{vipInfo?.isVip ? `VIP ${vipInfo.vipLevel || 1} 会员` : '普通用户'}</div>
+                        {vipInfo?.isVip && vipInfo.vipExpireAt && <div className="text-sm text-[#6b7280]">到期时间: {new Date(vipInfo.vipExpireAt).toLocaleDateString('zh-CN')}（剩余 {vipInfo.vipDaysLeft} 天）</div>}
+                        {!vipInfo?.isVip && <div className="text-sm text-[#6b7280]">开通VIP享受更多特权</div>}
                     </div>
-                    <div className="text-6xl">{vipInfo?.isVip ? '👑' : '⭐'}</div>
+                    <div className="text-5xl">{vipInfo?.isVip ? '👑' : '⭐'}</div>
                 </div>
             </div>
 
@@ -95,10 +95,12 @@ export default function MerchantVipPage() {
                 <h2 className="mb-4 text-xl font-semibold">VIP专属特权</h2>
                 <div className="grid grid-cols-4 gap-4">
                     {benefits.map((b, idx) => (
-                        <Card key={idx} className="bg-white p-5 text-center">
-                            <div className="mb-3 text-3xl">{b.icon}</div>
-                            <div className="mb-1 font-semibold">{b.title}</div>
-                            <div className="text-xs text-slate-500">{b.desc}</div>
+                        <Card key={idx} className="bg-white p-5 text-center" noPadding>
+                            <div className="px-5 py-4">
+                                <div className="mb-3 text-3xl">{b.icon}</div>
+                                <div className="mb-1 font-semibold">{b.title}</div>
+                                <div className="text-xs text-[#6b7280]">{b.desc}</div>
+                            </div>
                         </Card>
                     ))}
                 </div>
@@ -109,40 +111,44 @@ export default function MerchantVipPage() {
                 <h2 className="mb-4 text-xl font-semibold">{vipInfo?.isVip ? '续费套餐' : '开通套餐'}</h2>
                 <div className="grid grid-cols-3 gap-5">
                     {packages.map(plan => (
-                        <Card key={plan.id} className={cn('relative bg-white p-6', plan.recommended ? 'border-2 border-amber-500' : '')}>
-                            {plan.recommended && <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-500 px-4 py-1 text-xs font-medium text-white">推荐</div>}
-                            <div className="mb-5 text-center">
-                                <div className="mb-2 text-lg font-semibold">{plan.name}</div>
-                                <div className="flex items-baseline justify-center gap-1">
-                                    <span className="text-sm text-red-500">¥</span>
-                                    <span className="text-4xl font-bold text-red-500">{plan.price}</span>
-                                </div>
-                                <div className="text-xs text-slate-400 line-through">原价 ¥{plan.originalPrice}</div>
-                            </div>
-                            <div className="mb-5">
-                                {plan.benefits.map((b, idx) => (
-                                    <div key={idx} className={cn('flex items-center gap-2 py-2', idx < plan.benefits.length - 1 && 'border-b border-slate-100')}>
-                                        <span className="text-green-500">✓</span>
-                                        <span className="text-sm text-slate-700">{b}</span>
+                        <Card key={plan.id} className={cn('relative bg-white', plan.recommended ? 'border-2 border-primary-500' : '')} noPadding>
+                            {plan.recommended && <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-md border border-primary-500 bg-white px-3 py-1 text-xs font-medium text-primary-600">推荐</div>}
+                            <div className="px-6 py-5">
+                                <div className="mb-5 text-center">
+                                    <div className="mb-2 text-lg font-semibold">{plan.name}</div>
+                                    <div className="flex items-baseline justify-center gap-1">
+                                        <span className="text-sm text-danger-400">¥</span>
+                                        <span className="text-4xl font-bold text-danger-400">{plan.price}</span>
                                     </div>
-                                ))}
+                                    <div className="text-xs text-[#9ca3af] line-through">原价 ¥{plan.originalPrice}</div>
+                                </div>
+                                <div className="mb-5">
+                                    {plan.benefits.map((b, idx) => (
+                                        <div key={idx} className={cn('flex items-center gap-2 py-2', idx < plan.benefits.length - 1 && 'border-b border-[#e5e7eb]')}>
+                                            <span className="text-success-600">✓</span>
+                                            <span className="text-sm text-[#6b7280]">{b}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <Button onClick={() => openPaymentModal(plan)} disabled={purchasing} className="w-full">{vipInfo?.isVip ? '立即续费' : '立即开通'}</Button>
                             </div>
-                            <Button onClick={() => openPaymentModal(plan)} disabled={purchasing} className={cn('w-full', plan.recommended ? 'bg-amber-500 hover:bg-amber-600' : 'bg-indigo-600 hover:bg-indigo-700')}>{vipInfo?.isVip ? '立即续费' : '立即开通'}</Button>
                         </Card>
                     ))}
                 </div>
             </div>
 
             {/* FAQ */}
-            <Card className="bg-white p-6">
-                <h2 className="mb-4 text-lg font-semibold">常见问题</h2>
-                <div className="space-y-3">
-                    {faqs.map((faq, idx) => (
-                        <div key={idx} className={cn('py-3', idx < faqs.length - 1 && 'border-b border-slate-100')}>
-                            <div className="mb-1 font-medium">{faq.q}</div>
-                            <div className="text-sm text-slate-500">{faq.a}</div>
-                        </div>
-                    ))}
+            <Card className="bg-white" noPadding>
+                <div className="px-6 py-5">
+                    <h2 className="mb-4 text-lg font-semibold">常见问题</h2>
+                    <div className="space-y-3">
+                        {faqs.map((faq, idx) => (
+                            <div key={idx} className={cn('py-3', idx < faqs.length - 1 && 'border-b border-[#e5e7eb]')}>
+                                <div className="mb-1 font-medium">{faq.q}</div>
+                                <div className="text-sm text-[#6b7280]">{faq.a}</div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </Card>
 
@@ -150,22 +156,22 @@ export default function MerchantVipPage() {
             <Modal title={`购买 ${selectedPackage?.name || ''}`} open={showPaymentModal} onClose={() => { setShowPaymentModal(false); setSelectedPackage(null); }}>
                 {selectedPackage && (
                     <>
-                        <div className="mb-5 rounded-lg bg-slate-50 p-4">
-                            <div className="mb-2 flex justify-between"><span className="text-slate-500">套餐时长</span><span className="font-medium">{selectedPackage.duration}天</span></div>
-                            <div className="flex justify-between"><span className="text-slate-500">应付金额</span><span className="text-xl font-bold text-red-500">¥{selectedPackage.price}</span></div>
+                        <div className="mb-5 rounded-md border border-[#e5e7eb] bg-[#f9fafb] p-4">
+                            <div className="mb-2 flex justify-between"><span className="text-[#6b7280]">套餐时长</span><span className="font-medium">{selectedPackage.duration}天</span></div>
+                            <div className="flex justify-between"><span className="text-[#6b7280]">应付金额</span><span className="text-xl font-bold text-danger-400">¥{selectedPackage.price}</span></div>
                         </div>
                         <div className="mb-5">
-                            <label className="mb-3 block text-sm font-medium text-slate-700">选择支付方式</label>
+                            <label className="mb-3 block text-sm font-medium text-[#6b7280]">选择支付方式</label>
                             <div className="flex flex-col gap-2.5">
                                 {(['alipay', 'balance', 'silver'] as const).map(method => (
-                                    <button key={method} onClick={() => setPaymentMethod(method)} className={cn('flex items-center justify-between rounded-lg border-2 px-4 py-3.5 text-left', paymentMethod === method ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 bg-white')}>
+                                    <button key={method} onClick={() => setPaymentMethod(method)} className={cn('flex items-center justify-between rounded-md border px-4 py-3 text-left', paymentMethod === method ? 'border-primary-500 bg-primary-50' : 'border-[#e5e7eb] bg-white')}>
                                         <span>{method === 'alipay' ? '支付宝支付' : method === 'balance' ? `余额支付 (¥${Number(vipInfo?.balance || 0).toFixed(2)})` : `银锭支付 (${Number(vipInfo?.silver || 0).toFixed(0)})`}</span>
-                                        {paymentMethod === method && <span className="text-indigo-600">✓</span>}
+                                        {paymentMethod === method && <span className="text-primary-600">✓</span>}
                                     </button>
                                 ))}
                             </div>
-                            {paymentMethod === 'balance' && (vipInfo?.balance || 0) < selectedPackage.price && <div className="mt-2 text-xs text-red-500">余额不足，请先充值</div>}
-                            {paymentMethod === 'silver' && (vipInfo?.silver || 0) < selectedPackage.price && <div className="mt-2 text-xs text-red-500">银锭不足，请先充值</div>}
+                            {paymentMethod === 'balance' && (vipInfo?.balance || 0) < selectedPackage.price && <div className="mt-2 text-xs text-danger-400">余额不足，请先充值</div>}
+                            {paymentMethod === 'silver' && (vipInfo?.silver || 0) < selectedPackage.price && <div className="mt-2 text-xs text-danger-400">银锭不足，请先充值</div>}
                         </div>
                         <div className="flex gap-3">
                             <Button variant="secondary" onClick={() => { setShowPaymentModal(false); setSelectedPackage(null); }} disabled={purchasing} className="flex-1">取消</Button>

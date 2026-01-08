@@ -47,8 +47,8 @@ export default function TaskDetailPage() {
 
     if (!task) {
         return (
-            <div className="py-16 text-center">
-                <div className="mb-4 text-5xl">📋</div><div className="mb-5 text-slate-500">任务不存在</div>
+            <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
+                <div className="mb-4 text-5xl">📋</div><div className="mb-5 text-[#6b7280]">任务不存在</div>
                 <Button onClick={() => router.push('/merchant/tasks')}>返回列表</Button>
             </div>
         );
@@ -60,17 +60,17 @@ export default function TaskDetailPage() {
         | 0 | 5 | 10 | 15 | 20 | 25 | 30 | 35 | 40 | 45 | 50
         | 55 | 60 | 65 | 70 | 75 | 80 | 85 | 90 | 95 | 100;
     const progressWidthClass = { 0: 'w-0', 5: 'w-[5%]', 10: 'w-[10%]', 15: 'w-[15%]', 20: 'w-[20%]', 25: 'w-[25%]', 30: 'w-[30%]', 35: 'w-[35%]', 40: 'w-[40%]', 45: 'w-[45%]', 50: 'w-[50%]', 55: 'w-[55%]', 60: 'w-[60%]', 65: 'w-[65%]', 70: 'w-[70%]', 75: 'w-[75%]', 80: 'w-[80%]', 85: 'w-[85%]', 90: 'w-[90%]', 95: 'w-[95%]', 100: 'w-full' } as const;
-    const statCards = [{ value: task.count, label: '总任务数', color: 'text-indigo-600' }, { value: task.claimedCount, label: '已领取', color: 'text-amber-500' }, { value: task.completedCount, label: '已完成', color: 'text-green-500' }, { value: task.count - task.claimedCount, label: '剩余可接', color: 'text-slate-500' }];
+    const statCards = [{ value: task.count, label: '总任务数', color: 'text-primary-600' }, { value: task.claimedCount, label: '已领取', color: 'text-warning-500' }, { value: task.completedCount, label: '已完成', color: 'text-success-600' }, { value: task.count - task.claimedCount, label: '剩余可接', color: 'text-[#6b7280]' }];
 
     return (
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => router.push('/merchant/tasks')} className="flex items-center gap-1.5 rounded-lg bg-slate-100 px-4 py-2 hover:bg-slate-200">← 返回列表</button>
+                    <button onClick={() => router.push('/merchant/tasks')} className="flex h-9 items-center gap-1.5 rounded-md border border-[#e5e7eb] bg-white px-4 text-[13px] text-primary-500 hover:bg-[#eff6ff]">← 返回列表</button>
                     <h1 className="text-2xl font-bold">任务详情</h1>
                 </div>
-                <Badge variant="soft" color={statusStyle.color} className="rounded-full px-4 py-1.5 text-sm font-medium">{statusStyle.text}</Badge>
+                <Badge variant="soft" color={statusStyle.color} className="px-4 py-1.5 text-sm font-medium">{statusStyle.text}</Badge>
             </div>
 
             {/* Main Content */}
@@ -78,66 +78,70 @@ export default function TaskDetailPage() {
                 {/* Left Column (2/3) */}
                 <div className="col-span-2 space-y-6">
                     {/* Product Info */}
-                    <Card className="bg-white p-6">
-                        <h2 className="mb-5 text-base font-semibold">商品信息</h2>
-                        <div className="flex gap-5">
-                            {task.mainImage && <img src={task.mainImage} alt="" className="h-[120px] w-[120px] rounded-lg border border-slate-200 object-cover" />}
-                            <div className="min-w-0 flex-1">
-                                <div className="mb-2 text-base font-medium">{task.title}</div>
-                                <div className="mb-2 flex items-center gap-2 text-sm text-slate-500">
-                                    <Badge variant="soft" color="blue" className="text-xs">{TaskTypeMap[task.taskType] || '未知平台'}</Badge>{task.shopName}
+                    <Card className="bg-white" noPadding>
+                        <div className="px-6 py-5">
+                            <h2 className="mb-5 text-base font-semibold">商品信息</h2>
+                            <div className="flex gap-4">
+                                {task.mainImage && <img src={task.mainImage} alt="" className="h-[120px] w-[120px] rounded-md border border-[#e5e7eb] object-cover" />}
+                                <div className="min-w-0 flex-1">
+                                    <div className="mb-2 text-base font-medium">{task.title}</div>
+                                    <div className="mb-2 flex items-center gap-2 text-sm text-[#6b7280]">
+                                        <Badge variant="soft" color="blue" className="text-xs">{TaskTypeMap[task.taskType] || '未知平台'}</Badge>{task.shopName}
+                                    </div>
+                                    <div className="mb-2 text-xl font-bold text-danger-400">¥{Number(task.goodsPrice).toFixed(2)}</div>
+                                    <div className="text-[13px] text-[#6b7280]">关键词: <span className="text-primary-600">{task.keyword}</span></div>
+                                    {task.url && <a href={task.url} target="_blank" rel="noopener noreferrer" className="text-[13px] text-primary-500">查看商品链接 →</a>}
                                 </div>
-                                <div className="mb-2 text-xl font-bold text-red-500">¥{Number(task.goodsPrice).toFixed(2)}</div>
-                                <div className="text-[13px] text-slate-500">关键词: <span className="text-indigo-600">{task.keyword}</span></div>
-                                {task.url && <a href={task.url} target="_blank" rel="noopener noreferrer" className="text-[13px] text-blue-500">查看商品链接 →</a>}
-                            </div>
+                        </div>
                         </div>
                     </Card>
 
                     {/* Task Progress */}
-                    <Card className="bg-white p-6">
-                        <h2 className="mb-5 text-base font-semibold">任务进度</h2>
-                        <div className="mb-5 grid grid-cols-4 gap-4">
-                            {statCards.map((stat, i) => (
-                                <div key={i} className="rounded-lg bg-slate-50 p-4 text-center">
-                                    <div className={cn('text-2xl font-bold', stat.color)}>{stat.value}</div>
-                                    <div className="mt-1 text-xs text-slate-500">{stat.label}</div>
+                    <Card className="bg-white" noPadding>
+                        <div className="px-6 py-5">
+                            <h2 className="mb-5 text-base font-semibold">任务进度</h2>
+                            <div className="mb-5 grid grid-cols-4 gap-4">
+                                {statCards.map((stat, i) => (
+                                    <div key={i} className="rounded-md border border-[#e5e7eb] bg-[#f9fafb] p-4 text-center">
+                                        <div className={cn('text-2xl font-bold', stat.color)}>{stat.value}</div>
+                                        <div className="mt-1 text-xs text-[#6b7280]">{stat.label}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div>
+                                <div className="mb-1.5 flex justify-between text-[13px] text-[#6b7280]"><span>完成进度</span><span>{progress.toFixed(1)}%</span></div>
+                                <div className="h-2 overflow-hidden rounded-full bg-[#e5e7eb]">
+                                    <span className={cn('block h-full rounded-full bg-primary-500 transition-all', progressWidthClass[pct])} />
                                 </div>
-                            ))}
-                        </div>
-                        <div>
-                            <div className="mb-1.5 flex justify-between text-[13px] text-slate-500"><span>完成进度</span><span>{progress.toFixed(1)}%</span></div>
-                            <div className="h-2 overflow-hidden rounded-full bg-slate-200">
-                                <span className={cn('block h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all', progressWidthClass[pct])} />
                             </div>
                         </div>
                     </Card>
 
                     {/* Orders List */}
-                    <Card className="overflow-hidden bg-white">
-                        <div className="border-b border-slate-200 px-6 py-4"><h2 className="text-base font-semibold">关联订单 ({orders.length})</h2></div>
+                    <Card className="overflow-hidden bg-white" noPadding>
+                        <div className="border-b border-[#e5e7eb] px-6 py-4"><h2 className="text-base font-semibold">关联订单 ({orders.length})</h2></div>
                         {orders.length === 0 ? (
-                            <div className="py-10 text-center text-slate-500">暂无订单</div>
+                            <div className="flex min-h-[180px] items-center justify-center text-[#6b7280]">暂无订单</div>
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="min-w-[600px] w-full border-collapse">
                                     <thead>
-                                        <tr className="border-b border-slate-200 bg-slate-50">
-                                            <th className="px-4 py-3 text-left text-[13px] text-slate-500">买号</th>
-                                            <th className="px-4 py-3 text-left text-[13px] text-slate-500">金额</th>
-                                            <th className="px-4 py-3 text-left text-[13px] text-slate-500">状态</th>
-                                            <th className="px-4 py-3 text-left text-[13px] text-slate-500">时间</th>
+                                        <tr className="border-b border-[#e5e7eb] bg-[#f9fafb]">
+                                            <th className="px-4 py-3 text-left text-[13px] text-[#6b7280]">买号</th>
+                                            <th className="px-4 py-3 text-left text-[13px] text-[#6b7280]">金额</th>
+                                            <th className="px-4 py-3 text-left text-[13px] text-[#6b7280]">状态</th>
+                                            <th className="px-4 py-3 text-left text-[13px] text-[#6b7280]">时间</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {orders.map(order => {
                                             const orderStatus = OrderStatusMap[order.status] || { text: order.status, color: 'slate' as const };
                                             return (
-                                                <tr key={order.id} className="border-b border-slate-100">
+                                                <tr key={order.id} className="border-b border-[#e5e7eb]">
                                                     <td className="px-4 py-3.5 text-sm">{order.buynoAccount}</td>
-                                                    <td className="px-4 py-3.5"><div className="font-medium">¥{Number(order.productPrice).toFixed(2)}</div><div className="text-xs text-green-500">佣金 ¥{Number(order.commission).toFixed(2)}</div></td>
+                                                    <td className="px-4 py-3.5"><div className="font-medium">¥{Number(order.productPrice).toFixed(2)}</div><div className="text-xs text-success-600">佣金 ¥{Number(order.commission).toFixed(2)}</div></td>
                                                     <td className="px-4 py-3.5"><Badge variant="soft" color={orderStatus.color}>{orderStatus.text}</Badge></td>
-                                                    <td className="px-4 py-3.5 text-[13px] text-slate-500">{new Date(order.createdAt).toLocaleString('zh-CN')}</td>
+                                                    <td className="px-4 py-3.5 text-[13px] text-[#6b7280]">{new Date(order.createdAt).toLocaleString('zh-CN')}</td>
                                                 </tr>
                                             );
                                         })}
@@ -151,36 +155,40 @@ export default function TaskDetailPage() {
                 {/* Right Column (1/3) */}
                 <div className="space-y-6">
                     {/* Task Info */}
-                    <Card className="bg-white p-6">
-                        <h2 className="mb-5 text-base font-semibold">任务信息</h2>
-                        <div className="grid gap-3 text-sm">
-                            <div className="flex justify-between"><span className="text-slate-500">任务编号</span><span className="font-mono text-indigo-600">{task.taskNumber}</span></div>
-                            <div className="flex justify-between"><span className="text-slate-500">创建时间</span><span>{new Date(task.createdAt).toLocaleString('zh-CN')}</span></div>
-                            <div className="flex justify-between"><span className="text-slate-500">包邮</span><span>{task.isFreeShipping === 1 ? '是' : '否'}</span></div>
-                            <div className="flex justify-between"><span className="text-slate-500">好评要求</span><span>{task.isPraise ? (task.praiseType === 'text' ? '文字好评' : task.praiseType === 'image' ? '图片好评' : '视频好评') : '无'}</span></div>
-                            {task.addReward > 0 && <div className="flex justify-between"><span className="text-slate-500">额外奖励</span><span className="text-amber-500">+¥{task.addReward}/单</span></div>}
+                    <Card className="bg-white" noPadding>
+                        <div className="px-6 py-5">
+                            <h2 className="mb-5 text-base font-semibold">任务信息</h2>
+                            <div className="grid gap-3 text-sm">
+                                <div className="flex justify-between"><span className="text-[#6b7280]">任务编号</span><span className="font-mono text-primary-600">{task.taskNumber}</span></div>
+                                <div className="flex justify-between"><span className="text-[#6b7280]">创建时间</span><span>{new Date(task.createdAt).toLocaleString('zh-CN')}</span></div>
+                                <div className="flex justify-between"><span className="text-[#6b7280]">包邮</span><span>{task.isFreeShipping === 1 ? '是' : '否'}</span></div>
+                                <div className="flex justify-between"><span className="text-[#6b7280]">好评要求</span><span>{task.isPraise ? (task.praiseType === 'text' ? '文字好评' : task.praiseType === 'image' ? '图片好评' : '视频好评') : '无'}</span></div>
+                                {task.addReward > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">额外奖励</span><span className="text-warning-500">+¥{task.addReward}/单</span></div>}
+                            </div>
                         </div>
                     </Card>
 
                     {/* Fee Breakdown */}
-                    <Card className="bg-white p-6">
-                        <h2 className="mb-5 text-base font-semibold">费用明细</h2>
-                        <div className="grid gap-2.5 text-sm">
-                            <div className="flex justify-between"><span className="text-slate-500">商品本金 × {task.count}</span><span>¥{(task.goodsPrice * task.count).toFixed(2)}</span></div>
-                            <div className="flex justify-between"><span className="text-slate-500">基础服务费</span><span>¥{(task.baseServiceFee * task.count).toFixed(2)}</span></div>
-                            {task.praiseFee > 0 && <div className="flex justify-between"><span className="text-slate-500">好评费用</span><span>¥{(task.praiseFee * task.count).toFixed(2)}</span></div>}
-                            {task.postageMoney > 0 && <div className="flex justify-between"><span className="text-slate-500">邮费</span><span>¥{task.postageMoney.toFixed(2)}</span></div>}
-                            {task.marginMoney > 0 && <div className="flex justify-between"><span className="text-slate-500">保证金</span><span>¥{task.marginMoney.toFixed(2)}</span></div>}
-                            <div className="mt-1.5 border-t border-slate-200 pt-2.5">
-                                <div className="flex justify-between font-semibold"><span>押金总计</span><span className="text-indigo-600">¥{task.totalDeposit.toFixed(2)}</span></div>
-                                <div className="mt-1.5 flex justify-between font-semibold"><span>佣金总计</span><span className="text-red-500">¥{task.totalCommission.toFixed(2)}</span></div>
+                    <Card className="bg-white" noPadding>
+                        <div className="px-6 py-5">
+                            <h2 className="mb-5 text-base font-semibold">费用明细</h2>
+                            <div className="grid gap-2.5 text-sm">
+                                <div className="flex justify-between"><span className="text-[#6b7280]">商品本金 × {task.count}</span><span>¥{(task.goodsPrice * task.count).toFixed(2)}</span></div>
+                                <div className="flex justify-between"><span className="text-[#6b7280]">基础服务费</span><span>¥{(task.baseServiceFee * task.count).toFixed(2)}</span></div>
+                                {task.praiseFee > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">好评费用</span><span>¥{(task.praiseFee * task.count).toFixed(2)}</span></div>}
+                                {task.postageMoney > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">邮费</span><span>¥{task.postageMoney.toFixed(2)}</span></div>}
+                                {task.marginMoney > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">保证金</span><span>¥{task.marginMoney.toFixed(2)}</span></div>}
+                                <div className="mt-1.5 border-t border-[#e5e7eb] pt-2.5">
+                                    <div className="flex justify-between font-semibold"><span>押金总计</span><span className="text-primary-600">¥{task.totalDeposit.toFixed(2)}</span></div>
+                                    <div className="mt-1.5 flex justify-between font-semibold"><span>佣金总计</span><span className="text-danger-400">¥{task.totalCommission.toFixed(2)}</span></div>
+                                </div>
                             </div>
                         </div>
                     </Card>
 
                     {/* Actions */}
                     {task.status === 1 && task.claimedCount === 0 && (
-                        <button onClick={handleCancel} disabled={cancelling} className={cn('w-full rounded-lg border border-red-500 bg-white px-3 py-3 font-medium text-red-500 hover:bg-red-50', cancelling && 'cursor-not-allowed opacity-70')}>{cancelling ? '取消中...' : '取消任务'}</button>
+                        <button onClick={handleCancel} disabled={cancelling} className={cn('h-9 w-full rounded-md border border-danger-400 bg-white px-3 text-danger-400 hover:bg-[#fef2f2]', cancelling && 'cursor-not-allowed opacity-70')}>{cancelling ? '取消中...' : '取消任务'}</button>
                     )}
                 </div>
             </div>

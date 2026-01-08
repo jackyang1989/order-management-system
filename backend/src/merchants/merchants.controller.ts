@@ -118,6 +118,17 @@ export class MerchantsController {
     };
   }
 
+  @Get('referral-info')
+  @UseGuards(JwtAuthGuard)
+  async getReferralInfo(@Request() req) {
+    const merchantId = req.user.merchantId;
+    const data = await this.merchantsService.getReferralInfo(merchantId);
+    return {
+      success: true,
+      data,
+    };
+  }
+
   // ========== 余额操作 ==========
 
   @Post('recharge')
