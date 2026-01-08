@@ -74,6 +74,14 @@ export class Merchant {
   @Column({ name: 'pay_password', nullable: true })
   payPassword: string;
 
+  // 邀请码
+  @Column({ name: 'invite_code', nullable: true, unique: true })
+  inviteCode: string;
+
+  // 推荐人ID
+  @Column({ name: 'referrer_id', nullable: true })
+  referrerId: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
