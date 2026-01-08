@@ -154,7 +154,7 @@ export default function GoodsPage() {
                 <div className="space-y-4">
                     <div>
                         <label className="mb-2 block text-sm text-slate-700">所属店铺</label>
-                        <Select value={formData.shopId} onChange={v => setFormData({ ...formData, shopId: v })} options={[{ value: '', label: '请选择店铺' }, ...shops.map(shop => ({ value: shop.id, label: `${shop.shopName} (${shop.platform})` }))]} />
+                        <Select value={formData.shopId} onChange={v => setFormData({ ...formData, shopId: v })} placeholder="请选择店铺" options={shops.map(shop => ({ value: shop.id, label: `${shop.shopName} (${shop.platform})` }))} />
                     </div>
                     <div>
                         <label className="mb-2 block text-sm text-slate-700">商品标题</label>

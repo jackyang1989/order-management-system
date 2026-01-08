@@ -8,6 +8,7 @@ import { Button } from '../../../../../components/ui/button';
 import { Card } from '../../../../../components/ui/card';
 import { Input } from '../../../../../components/ui/input';
 import { Select } from '../../../../../components/ui/select';
+import { getProvinces, getCities, getDistricts } from '../../../../../data/chinaRegions';
 
 export default function EditShopPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
@@ -81,9 +82,26 @@ export default function EditShopPage({ params }: { params: Promise<{ id: string 
                     <div>
                         <label className="mb-2 block font-medium">发货地址</label>
                         <div className="mb-3 grid grid-cols-3 gap-3">
-                            <Input placeholder="省" value={formData.province || ''} onChange={e => setFormData({ ...formData, province: e.target.value })} />
-                            <Input placeholder="市" value={formData.city || ''} onChange={e => setFormData({ ...formData, city: e.target.value })} />
-                            <Input placeholder="区" value={formData.district || ''} onChange={e => setFormData({ ...formData, district: e.target.value })} />
+                            <Select
+                                value={formData.province || ''}
+                                onChange={v => setFormData({ ...formData, province: v, city: '', district: '' })}
+                                placeholder="请选择省份"
+                                options={getProvinces()}
+                            />
+                            <Select
+                                value={formData.city || ''}
+                                onChange={v => setFormData({ ...formData, city: v, district: '' })}
+                                placeholder="请选择城市"
+                                options={formData.province ? getCities(formData.province) : []}
+                                disabled={!formData.province}
+                            />
+                            <Select
+                                value={formData.district || ''}
+                                onChange={v => setFormData({ ...formData, district: v })}
+                                placeholder="请选择区县"
+                                options={formData.province && formData.city ? getDistricts(formData.province, formData.city) : []}
+                                disabled={!formData.city}
+                            />
                         </div>
                         <Input placeholder="详细地址" value={formData.detailAddress || ''} onChange={e => setFormData({ ...formData, detailAddress: e.target.value })} />
                     </div>
