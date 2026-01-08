@@ -141,8 +141,8 @@ export class SystemGlobalConfig {
   @Column({ type: 'text', nullable: true })
   limitMobile: string; // 禁止注册手机号列表（逗号分隔）
 
-  @Column({ type: 'int', default: 0 })
-  invitationNum: number; // 买手邀请链接要求数量
+  @Column({ type: 'int', default: 10 })
+  invitationNum: number; // 邀请解锁阈值（完成多少单才能解锁邀请功能）
 
   // ============ 第三方 API 配置 ============
   @Column({ length: 128, nullable: true })
@@ -170,6 +170,20 @@ export class SystemGlobalConfig {
   // 商品口令核对全局开关
   @Column({ default: false })
   passwordCheckEnabled: boolean;
+
+  // ============ P1: 邀请奖励配置 ============
+
+  // 每单邀请奖励银锭数
+  @Column({ type: 'int', default: 1 })
+  inviteRewardAmount: number;
+
+  // 单个被邀请人最大贡献单数（超出不再发放奖励）
+  @Column({ type: 'int', default: 10 })
+  inviteMaxOrders: number;
+
+  // 活跃判定天数（双方超过此天数未做任务则暂停奖励）
+  @Column({ type: 'int', default: 30 })
+  inviteExpiryDays: number;
 
   @UpdateDateColumn()
   updatedAt: Date;

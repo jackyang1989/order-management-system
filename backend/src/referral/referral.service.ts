@@ -33,13 +33,7 @@ import {
 export class ReferralService {
   private readonly logger = new Logger(ReferralService.name);
 
-  // 里程碑奖励配置（本月完成任务数 -> 奖励银锭）
-  static readonly MILESTONE_REWARDS: Record<number, number> = {
-    50: 10, // 完成50单奖励10银锭
-    100: 25, // 完成100单奖励25银锭
-    150: 45, // 完成150单奖励45银锭
-    200: 70, // 完成200单奖励70银锭
-  };
+  // P1: 里程碑奖励已删除，改为简化的每单1银锭（上限10单）模式
 
   constructor(
     @InjectRepository(ReferralReward)
@@ -53,7 +47,7 @@ export class ReferralService {
     @InjectRepository(UserInvite)
     private userInviteRepository: Repository<UserInvite>,
     private dataSource: DataSource,
-  ) {}
+  ) { }
 
   // ============ 系统配置获取 ============
 
@@ -148,81 +142,25 @@ export class ReferralService {
       // 5.2 检查被推荐人活跃状态（当前正在完成任务，所以会更新lastTaskAt）
       // 这里不需要检查buyer的lastTaskAt，因为他刚完成任务
 
-      // 6. 获取配置参数
+      // 6. 获取配置参数 (P1简化版)
       const rewardPerOrder = await this.getConfig(
-        'referral_reward_per_order',
+        'invite_reward_amount',
         1,
       );
-      const maxCount = await this.getConfig('referral_max_count', 5);
-      const maxAmount = await this.getConfig('referral_max_amount', 5);
-      const lifetimeMaxAmount = await this.getConfig(
-        'referral_lifetime_max_amount',
-        1000,
-      );
+      const maxOrdersPerInvitee = await this.getConfig('invite_max_orders', 10);
 
-      // 7. 双上限校验 - 查询今日已发放记录
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-
-      const todayRewards = await queryRunner.manager
-        .createQueryBuilder(ReferralReward, 'r')
-        .where('r.userId = :referrerId', { referrerId: buyer.referrerId })
-        .andWhere('r.referredUserId = :buyerId', { buyerId })
-        .andWhere('r.type = :type', { type: ReferralRewardType.BUYER_ORDER })
-        .andWhere('r.createdAt >= :today', { today })
-        .andWhere('r.createdAt < :tomorrow', { tomorrow })
-        .getMany();
-
-      const todayCount = todayRewards.length;
-      const todayAmount = todayRewards.reduce(
-        (sum, r) => sum + Number(r.amount),
-        0,
-      );
-
-      // 7.1 每日次数上限检查
-      if (todayCount >= maxCount) {
+      // 7. P1简化: 检查该被邀请人已贡献的单数是否达到上限
+      const earnedCount = inviteRecord?.earnedCount || 0;
+      if (earnedCount >= maxOrdersPerInvitee) {
         this.logger.log(
-          `今日奖励次数已达上限 ${maxCount}，不发放: ${buyer.referrerId} <- ${buyerId}`,
+          `被邀请人 ${buyerId} 已贡献 ${earnedCount} 单，达到上限 ${maxOrdersPerInvitee}，不再发放奖励`,
         );
         await queryRunner.rollbackTransaction();
         return false;
       }
 
-      // 7.2 每日金额上限检查
-      if (todayAmount >= maxAmount) {
-        this.logger.log(
-          `今日奖励金额已达上限 ${maxAmount}，不发放: ${buyer.referrerId} <- ${buyerId}`,
-        );
-        await queryRunner.rollbackTransaction();
-        return false;
-      }
-
-      // 8. 终身上限校验
-      const lifetimeEarned = inviteRecord
-        ? Number(inviteRecord.earnedAmount)
-        : 0;
-      if (lifetimeEarned >= lifetimeMaxAmount) {
-        this.logger.log(
-          `终身奖励已达上限 ${lifetimeMaxAmount}，不发放: ${buyer.referrerId} <- ${buyerId}`,
-        );
-        await queryRunner.rollbackTransaction();
-        return false;
-      }
-
-      // 9. 计算实际奖励金额（不超过各上限）
-      let actualReward = rewardPerOrder;
-
-      // 确保不超过每日金额上限
-      if (todayAmount + actualReward > maxAmount) {
-        actualReward = maxAmount - todayAmount;
-      }
-
-      // 确保不超过终身上限
-      if (lifetimeEarned + actualReward > lifetimeMaxAmount) {
-        actualReward = lifetimeMaxAmount - lifetimeEarned;
-      }
+      // 8. 计算实际奖励金额
+      const actualReward = rewardPerOrder;
 
       if (actualReward <= 0) {
         await queryRunner.rollbackTransaction();
@@ -400,63 +338,7 @@ export class ReferralService {
     this.logger.log('已重置所有用户今日推荐奖励统计');
   }
 
-  // ============ 里程碑奖励 ============
-
-  /**
-   * 检查并发放里程碑奖励
-   */
-  async checkAndGrantMilestoneReward(
-    buyerId: string,
-    monthlyTaskCount: number,
-    orderId: string,
-  ): Promise<void> {
-    const buyer = await this.userRepository.findOne({ where: { id: buyerId } });
-    if (!buyer || !buyer.referrerId) return;
-
-    const milestoneReward = ReferralService.MILESTONE_REWARDS[monthlyTaskCount];
-    if (!milestoneReward) return; // 不是里程碑数字
-
-    const referrer = await this.userRepository.findOne({
-      where: { id: buyer.referrerId },
-    });
-    if (!referrer) return;
-
-    // 创建里程碑奖励记录
-    const reward = this.rewardRepository.create({
-      userId: buyer.referrerId,
-      referredUserId: buyerId,
-      type: ReferralRewardType.MILESTONE,
-      amount: milestoneReward,
-      status: ReferralRewardStatus.PAID,
-      relatedOrderId: orderId,
-      remark: `推荐的买手${buyer.username}本月完成${monthlyTaskCount}单,额外奖励${milestoneReward}银锭`,
-      paidAt: new Date(),
-    });
-    await this.rewardRepository.save(reward);
-
-    // 更新推荐人银锭
-    referrer.silver = Number(referrer.silver) + milestoneReward;
-    referrer.reward = Number(referrer.reward || 0) + milestoneReward;
-    await this.userRepository.save(referrer);
-
-    // 记录财务流水
-    const financeRecord = this.financeRecordRepository.create({
-      userId: buyer.referrerId,
-      userType: FinanceUserType.BUYER,
-      moneyType: FinanceMoneyType.SILVER,
-      financeType: FinanceType.REWARD,
-      amount: milestoneReward,
-      balanceAfter: referrer.silver,
-      memo: `推荐的买手${buyer.username}本月完成${monthlyTaskCount}单,额外奖励${milestoneReward}银锭`,
-      relatedId: reward.id,
-      relatedType: 'milestone_reward',
-    });
-    await this.financeRecordRepository.save(financeRecord);
-
-    this.logger.log(
-      `里程碑奖励: ${buyer.referrerId} 获得 ${milestoneReward} 银锭 (${buyer.username} 完成 ${monthlyTaskCount} 单)`,
-    );
-  }
+  // P1: 里程碑奖励方法已删除，改为简化的每单1银锭（上限10单）
 
   // ============ 注册推荐奖励 ============
 

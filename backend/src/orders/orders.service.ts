@@ -810,12 +810,7 @@ export class OrdersService {
             // 检查并恢复可能熔断的推荐关系
             await this.referralService.checkAndRestoreBond(userId);
 
-            // 检查里程碑奖励
-            await this.referralService.checkAndGrantMilestoneReward(
-              userId,
-              monthlyCount,
-              orderId,
-            );
+            // P1: 里程碑奖励已删除，改为每单1银锭（上限10单）
           } catch (err) {
             // 推荐奖励发放失败不影响订单完成
             console.error('推荐奖励发放失败:', err);
