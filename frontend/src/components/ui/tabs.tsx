@@ -19,12 +19,12 @@ export interface TabsProps {
 
 export function Tabs({ items, value, onChange, size = 'md', className }: TabsProps) {
   const sizes: Record<string, string> = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-sm',
+    sm: 'px-3 py-1.5 text-[13px]',
+    md: 'px-4 py-2 text-[14px]',
   };
 
   return (
-    <div className={cn('flex w-full items-center gap-2 rounded-xl bg-slate-100 p-1', className)}>
+    <div className={cn('flex w-full items-center gap-2 rounded-xl bg-[#f6f8fb] p-1', className)}>
       {items.map((item) => (
         <button
           key={item.key}
@@ -35,9 +35,9 @@ export function Tabs({ items, value, onChange, size = 'md', className }: TabsPro
             'flex-1 rounded-lg font-medium transition-colors',
             sizes[size],
             value === item.key
-              ? 'bg-white text-slate-900'
-              : 'text-slate-500 hover:text-slate-700',
-            item.disabled && 'cursor-not-allowed text-slate-400 hover:text-slate-400'
+              ? 'bg-white text-[#3b4559] shadow-sm'
+              : 'text-[#7c889a] hover:text-[#5a6577]',
+            item.disabled && 'cursor-not-allowed text-[#94a3b8] hover:text-[#94a3b8]'
           )}
         >
           {item.label}

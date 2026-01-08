@@ -39,7 +39,7 @@ export function Table<T extends object>({
 
   if (loading) {
     return (
-      <div className={cn('flex items-center justify-center py-12 text-slate-500', className)}>
+      <div className={cn('flex items-center justify-center py-12 text-[#7c889a]', className)}>
         <svg className="mr-2 h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path
@@ -55,19 +55,19 @@ export function Table<T extends object>({
 
   if (!data || !data.length) {
     return (
-      <div className={cn('py-12 text-center text-slate-500', className)}>{emptyText}</div>
+      <div className={cn('py-12 text-center text-[#7c889a]', className)}>{emptyText}</div>
     );
   }
 
   const selectedSet = new Set(selectedKeys);
 
   return (
-    <div className={cn('overflow-hidden rounded-xl border border-slate-200 bg-white', className)}>
-      <table className="w-full border-collapse text-sm">
+    <div className={cn('overflow-hidden rounded-xl border border-[#e5eaef] bg-white', className)}>
+      <table className="w-full border-collapse text-[14px]">
         <thead>
-          <tr className="border-b border-slate-200 bg-slate-50">
+          <tr className="border-b border-[#e5eaef] bg-[#f6f8fb]">
             {selectable && (
-              <th className="w-10 px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+              <th className="w-10 px-3 py-3.5 text-left text-[12px] font-semibold uppercase tracking-wider text-[#7c889a]">
                 <span className="sr-only">选择</span>
               </th>
             )}
@@ -75,7 +75,7 @@ export function Table<T extends object>({
               <th
                 key={col.key}
                 className={cn(
-                  'px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500',
+                  'px-4 py-3.5 text-left text-[12px] font-semibold uppercase tracking-wider text-[#7c889a]',
                   col.className
                 )}
               >
@@ -90,12 +90,12 @@ export function Table<T extends object>({
             const disabled = getRowDisabled?.(row) ?? false;
             const checked = selectedSet.has(key);
             return (
-              <tr key={key} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+              <tr key={key} className="border-b border-[#e5eaef] last:border-0 transition-colors hover:bg-[#f6f8fb]">
                 {selectable && (
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-3.5">
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/20"
+                      className="h-4 w-4 rounded border-[#e5eaef] text-primary-500 focus:ring-primary-500/20"
                       disabled={disabled}
                       checked={checked}
                       onChange={(event) => {
@@ -112,7 +112,7 @@ export function Table<T extends object>({
                   </td>
                 )}
                 {columns.map((col) => (
-                  <td key={col.key} className={cn('px-4 py-3 text-slate-700', col.className)}>
+                  <td key={col.key} className={cn('px-4 py-3.5 text-[#3b4559]', col.className)}>
                     {col.render ? col.render(row, idx) : ((row as Record<string, unknown>)[col.key] as ReactNode)}
                   </td>
                 ))}

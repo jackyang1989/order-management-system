@@ -25,7 +25,7 @@ export function Pagination({ current, total, pageSize = 10, onChange, className 
       />
       {pages.map((page, index) =>
         page === '...' ? (
-          <span key={`ellipsis-${index}`} className="px-2 text-sm text-slate-400">
+          <span key={`ellipsis-${index}`} className="px-2 text-[13px] text-[#94a3b8]">
             ...
           </span>
         ) : (
@@ -42,7 +42,7 @@ export function Pagination({ current, total, pageSize = 10, onChange, className 
         onClick={() => onChange(safeCurrent + 1)}
         disabled={safeCurrent >= totalPages}
       />
-      <span className="text-sm text-slate-500">
+      <span className="text-[13px] text-[#7c889a]">
         共 {totalPages} 页
       </span>
     </div>
@@ -66,12 +66,12 @@ function PageButton({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        'rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors',
-        'focus:outline-none focus:ring-2 focus:ring-primary/20',
+        'rounded-lg border px-3 py-1.5 text-[13px] font-medium transition-colors',
+        'focus:outline-none focus:ring-2 focus:ring-primary-500/20',
         disabled
-          ? 'cursor-not-allowed border-slate-200 text-slate-300'
-          : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50',
-        active && 'border-primary bg-primary text-white hover:bg-blue-700'
+          ? 'cursor-not-allowed border-[#e5eaef] text-[#94a3b8]'
+          : 'border-[#e5eaef] text-[#5a6577] hover:border-[#d0d7e0] hover:bg-[#f6f8fb]',
+        active && 'border-primary-500 bg-primary-500 text-white hover:bg-primary-600'
       )}
     >
       {label}

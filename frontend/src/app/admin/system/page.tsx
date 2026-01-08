@@ -266,12 +266,12 @@ export default function AdminSystemPage() {
                             type="checkbox"
                             checked={Boolean(value)}
                             onChange={e => handleChange(field.key, e.target.checked)}
-                            className="h-4 w-4 rounded border-slate-300"
+                            className="h-4 w-4 rounded border-[#e5eaef] text-primary-500 focus:ring-primary-500"
                         />
-                        <span className="text-sm text-slate-700">{field.label}</span>
+                        <span className="text-[13px] text-[#3b4559]">{field.label}</span>
                     </label>
                     {field.description && (
-                        <span className="text-xs text-slate-400">{field.description}</span>
+                        <span className="text-[12px] text-[#94a3b8]">{field.description}</span>
                     )}
                 </div>
             );
@@ -280,15 +280,15 @@ export default function AdminSystemPage() {
         if (field.type === 'textarea') {
             return (
                 <div key={field.key} className="flex flex-col gap-2">
-                    <label className="text-sm text-slate-500">{field.label}</label>
+                    <label className="text-[13px] font-medium text-[#3b4559]">{field.label}</label>
                     <textarea
                         value={String(value ?? '')}
                         onChange={e => handleChange(field.key, e.target.value)}
-                        className="min-h-[80px] resize-y rounded border border-slate-300 px-3 py-2.5 text-sm font-mono"
+                        className="min-h-[80px] resize-y rounded-lg border border-[#e5eaef] bg-white px-3.5 py-2.5 font-mono text-[13px] text-[#3b4559] transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                         rows={3}
                     />
                     {field.description && (
-                        <span className="text-xs text-slate-400">{field.description}</span>
+                        <span className="text-[12px] text-[#94a3b8]">{field.description}</span>
                     )}
                 </div>
             );
@@ -296,7 +296,7 @@ export default function AdminSystemPage() {
 
         return (
             <div key={field.key} className="flex flex-col gap-2">
-                <label className="text-sm text-slate-500">{field.label}</label>
+                <label className="text-[13px] font-medium text-[#3b4559]">{field.label}</label>
                 <input
                     type={field.type}
                     value={value as string | number ?? ''}
@@ -304,11 +304,11 @@ export default function AdminSystemPage() {
                         const val = field.type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value;
                         handleChange(field.key, val);
                     }}
-                    className="rounded border border-slate-300 px-3 py-2.5 text-sm"
+                    className="rounded-lg border border-[#e5eaef] bg-white px-3.5 py-2.5 text-[14px] text-[#3b4559] transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                     step={field.type === 'number' ? 'any' : undefined}
                 />
                 {field.description && (
-                    <span className="text-xs text-slate-400">{field.description}</span>
+                    <span className="text-[12px] text-[#94a3b8]">{field.description}</span>
                 )}
             </div>
         );
