@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AdminGuard } from '../auth/admin.guard';
 import {
   MessageFilterDto,
   MessageUserType,
@@ -152,7 +153,7 @@ export class MessagesController {
    * 获取所有消息模板
    */
   @Get('admin/templates')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminGuard)
   async findAllTemplates() {
     const templates = await this.messagesService.findAllTemplates();
     return { success: true, data: templates };
@@ -162,7 +163,7 @@ export class MessagesController {
    * 创建消息模板
    */
   @Post('admin/templates')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminGuard)
   async createTemplate(@Body() createDto: CreateTemplateDto) {
     const template = await this.messagesService.createTemplate(createDto);
     return { success: true, message: '模板创建成功', data: template };
@@ -172,7 +173,7 @@ export class MessagesController {
    * 更新消息模板
    */
   @Put('admin/templates/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminGuard)
   async updateTemplate(
     @Param('id') id: string,
     @Body() updateDto: Partial<CreateTemplateDto>,
@@ -188,7 +189,7 @@ export class MessagesController {
    * 删除消息模板
    */
   @Delete('admin/templates/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminGuard)
   async deleteTemplate(@Param('id') id: string) {
     const result = await this.messagesService.deleteTemplate(id);
     if (!result) {
@@ -201,7 +202,7 @@ export class MessagesController {
    * 初始化默认模板
    */
   @Post('admin/templates/init')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminGuard)
   async initTemplates() {
     await this.messagesService.initDefaultTemplates();
     return { success: true, message: '默认模板初始化成功' };

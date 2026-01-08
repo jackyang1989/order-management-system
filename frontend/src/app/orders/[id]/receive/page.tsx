@@ -209,6 +209,30 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                             <span className="text-slate-500">任务类型：</span>
                             <span className="text-slate-800">{item.type}</span>
                         </div>
+                        {item.maiHao && (
+                            <div className="mb-2.5 flex justify-between text-xs">
+                                <span className="text-slate-500">执行买号：</span>
+                                <span className="text-slate-800">{item.maiHao}</span>
+                            </div>
+                        )}
+                        {item.price && (
+                            <div className="mb-2.5 flex justify-between text-xs">
+                                <span className="text-slate-500">垫付本金：</span>
+                                <span className="font-medium text-blue-600">¥{item.price}</span>
+                            </div>
+                        )}
+                        {item.kuaiDi && (
+                            <div className="mb-2.5 flex justify-between text-xs">
+                                <span className="text-slate-500">快递公司：</span>
+                                <span className="text-slate-800">{item.kuaiDi}</span>
+                            </div>
+                        )}
+                        {item.danHao && (
+                            <div className="mb-2.5 flex justify-between text-xs">
+                                <span className="text-slate-500">物流单号：</span>
+                                <span className="text-slate-800 font-mono">{item.danHao}</span>
+                            </div>
+                        )}
                         <div className="mb-2.5 flex justify-between text-xs">
                             <span className="text-slate-500">商品标题：</span>
                             <span className="min-w-0 flex-1 truncate text-right text-slate-800">{item.title}</span>
@@ -235,15 +259,20 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                             <div className="mb-3">
                                 <span className="mr-2 text-xs font-semibold text-slate-800">照片好评：</span>
                                 <div className="mt-2 flex flex-wrap gap-2">
-                                    {item.img.split(',').filter(Boolean).map((imgUrl, idx) => (
-                                        <img
-                                            key={idx}
-                                            src={imgUrl.startsWith('http') ? imgUrl : `https://b--d.oss-cn-guangzhou.aliyuncs.com${imgUrl}`}
-                                            alt="好评图片"
-                                            className="h-[60px] w-[60px] rounded object-cover"
-                                        />
-                                    ))}
+                                    {item.img.split(',').filter(Boolean).map((imgUrl, idx) => {
+                                        const fullUrl = imgUrl.startsWith('http') ? imgUrl : `https://b--d.oss-cn-guangzhou.aliyuncs.com${imgUrl}`;
+                                        return (
+                                            <img
+                                                key={idx}
+                                                src={fullUrl}
+                                                alt="好评图片"
+                                                className="h-[60px] w-[60px] cursor-pointer rounded object-cover hover:opacity-80"
+                                                onClick={() => setPreviewImage(fullUrl)}
+                                            />
+                                        );
+                                    })}
                                 </div>
+                                <p className="mt-1 text-xs text-slate-400">点击图片可放大预览，长按保存</p>
                             </div>
                         )}
 

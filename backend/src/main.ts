@@ -112,6 +112,16 @@ async function bootstrap() {
   const port = process.env.PORT ?? 6006;
   await app.listen(port);
 
+  // ============================================================
+  // 7. SEED DATA - Initialize default data on first run
+  // ============================================================
+  try {
+    const dataSource = app.get(DataSource);
+    await runSeeds(dataSource);
+  } catch (error) {
+    logger.warn(`Seed data initialization skipped: ${error.message}`);
+  }
+
   logger.log(`🚀 Server running on http://localhost:${port}`);
   logger.log(`📦 Environment: ${process.env.NODE_ENV || 'development'}`);
   logger.log(`🔒 CORS: ${allowedOrigins.join(', ')}`);
