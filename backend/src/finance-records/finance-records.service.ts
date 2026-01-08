@@ -624,4 +624,150 @@ export class FinanceRecordsService {
       relatedType: 'withdrawal',
     });
   }
+
+  // ============ 导出功能 ============
+
+  /**
+   * 获取财务类型文字描述
+   */
+  getFinanceTypeText(type: FinanceType): string {
+    const map: Record<number, string> = {
+      [FinanceType.BUYER_RECHARGE]: '充值押金',
+      [FinanceType.BUYER_RECHARGE_SILVER]: '充值银锭',
+      [FinanceType.BUYER_WITHDRAW]: '提现',
+      [FinanceType.BUYER_WITHDRAW_SILVER]: '银锭提现',
+      [FinanceType.BUYER_BALANCE_TO_SILVER]: '本金转银锭',
+      [FinanceType.BUYER_TASK_PREPAY]: '做单垫付',
+      [FinanceType.BUYER_TASK_REFUND]: '任务返款',
+      [FinanceType.BUYER_TASK_COMMISSION]: '任务佣金',
+      [FinanceType.BUYER_INVITE_REWARD]: '邀请奖励',
+      [FinanceType.BUYER_ADMIN_ADD]: '管理员充值',
+      [FinanceType.BUYER_ADMIN_DEDUCT]: '管理员扣除',
+      [FinanceType.BUYER_TASK_SILVER_REFUND]: '返还银锭押金',
+      [FinanceType.BUYER_WITHDRAW_REJECT]: '拒绝提现退款',
+      [FinanceType.BUYER_TASK_CANCEL_SILVER]: '取消任务扣除银锭',
+      [FinanceType.BUYER_REGISTER_GIFT]: '注册赠送',
+      [FinanceType.MERCHANT_RECHARGE]: '充值押金',
+      [FinanceType.MERCHANT_RECHARGE_SILVER]: '充值银锭',
+      [FinanceType.MERCHANT_WITHDRAW]: '本金提现',
+      [FinanceType.MERCHANT_WITHDRAW_SILVER]: '银锭提现',
+      [FinanceType.MERCHANT_TASK_FREEZE]: '发布任务冻结',
+      [FinanceType.MERCHANT_TASK_UNFREEZE]: '任务取消解冻',
+      [FinanceType.MERCHANT_TASK_SETTLE]: '任务结算',
+      [FinanceType.MERCHANT_TASK_FEE]: '任务服务费',
+      [FinanceType.MERCHANT_TASK_REFUND]: '任务退款',
+      [FinanceType.MERCHANT_ADMIN_ADD]: '管理员充值',
+      [FinanceType.MERCHANT_ADMIN_DEDUCT]: '管理员扣除',
+      [FinanceType.REVIEW_TASK_PAY_BALANCE]: '追评任务支付(押金)',
+      [FinanceType.REVIEW_TASK_PAY_SILVER]: '追评任务支付(银锭)',
+      [FinanceType.REVIEW_TASK_CANCEL_REFUND]: '取消追评退回',
+      [FinanceType.REVIEW_TASK_COMMISSION]: '追评任务佣金',
+      [FinanceType.REVIEW_TASK_REJECT_REFUND]: '拒绝追评退回',
+      [FinanceType.REWARD]: '奖励',
+      [FinanceType.REFUND]: '退款',
+    };
+    return map[type] || '其他';
+  }
+
+  /**
+   * 导出商家押金流水（用于生成CSV）
+   */
+  async exportMerchantBalanceRecords(
+    merchantId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<{
+    data: Array<{
+      amount: number;
+      financeType: string;
+      balanceAfter: number;
+      memo: string;
+      createdAt: string;
+    }>;
+  }> {
+    // 验证时间范围不超过31天
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffDays = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+    if (diffDays > 31) {
+      throw new Error('最多下载时间区间为31天');
+    }
+
+    const records = await this.financeRecordRepository
+      .createQueryBuilder('fr')
+      .where('fr.userId = :merchantId', { merchantId })
+      .andWhere('fr.userType = :userType', {
+        userType: FinanceUserType.MERCHANT,
+      })
+      .andWhere('fr.moneyType = :moneyType', {
+        moneyType: FinanceMoneyType.BALANCE,
+      })
+      .andWhere('fr.createdAt BETWEEN :startDate AND :endDate', {
+        startDate: start,
+        endDate: end,
+      })
+      .orderBy('fr.createdAt', 'DESC')
+      .getMany();
+
+    return {
+      data: records.map((r) => ({
+        amount: Number(r.amount),
+        financeType: this.getFinanceTypeText(r.financeType),
+        balanceAfter: Number(r.balanceAfter),
+        memo: r.memo || '',
+        createdAt: r.createdAt.toISOString().replace('T', ' ').substring(0, 19),
+      })),
+    };
+  }
+
+  /**
+   * 导出商家银锭流水（用于生成CSV）
+   */
+  async exportMerchantSilverRecords(
+    merchantId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<{
+    data: Array<{
+      amount: number;
+      financeType: string;
+      balanceAfter: number;
+      memo: string;
+      createdAt: string;
+    }>;
+  }> {
+    // 验证时间范围不超过31天
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffDays = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+    if (diffDays > 31) {
+      throw new Error('最多下载时间区间为31天');
+    }
+
+    const records = await this.financeRecordRepository
+      .createQueryBuilder('fr')
+      .where('fr.userId = :merchantId', { merchantId })
+      .andWhere('fr.userType = :userType', {
+        userType: FinanceUserType.MERCHANT,
+      })
+      .andWhere('fr.moneyType = :moneyType', {
+        moneyType: FinanceMoneyType.SILVER,
+      })
+      .andWhere('fr.createdAt BETWEEN :startDate AND :endDate', {
+        startDate: start,
+        endDate: end,
+      })
+      .orderBy('fr.createdAt', 'DESC')
+      .getMany();
+
+    return {
+      data: records.map((r) => ({
+        amount: Number(r.amount),
+        financeType: this.getFinanceTypeText(r.financeType),
+        balanceAfter: Number(r.balanceAfter),
+        memo: r.memo || '',
+        createdAt: r.createdAt.toISOString().replace('T', ' ').substring(0, 19),
+      })),
+    };
+  }
 }

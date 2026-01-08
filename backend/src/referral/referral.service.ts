@@ -442,6 +442,39 @@ export class ReferralService {
   }
 
   /**
+   * 获取用户的推荐奖励记录（分页 + 类型筛选）
+   */
+  async getUserRewardsPaginated(
+    userId: string,
+    page = 1,
+    limit = 20,
+    type?: ReferralRewardType,
+  ): Promise<{
+    list: ReferralReward[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const queryBuilder = this.rewardRepository
+      .createQueryBuilder('reward')
+      .leftJoinAndSelect('reward.referredUser', 'referredUser')
+      .where('reward.userId = :userId', { userId });
+
+    if (type !== undefined) {
+      queryBuilder.andWhere('reward.type = :type', { type });
+    }
+
+    const total = await queryBuilder.getCount();
+    const list = await queryBuilder
+      .orderBy('reward.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    return { list, total, page, limit };
+  }
+
+  /**
    * 获取推荐的用户列表
    */
   async getReferredUsers(userId: string): Promise<User[]> {

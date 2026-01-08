@@ -15,7 +15,6 @@ interface BankCard { id: string; bankName: string; cardNumber: string; accountNa
 
 const typeColorMap: Record<string, string> = { deposit: 'bg-green-100', withdraw: 'bg-red-100', freeze: 'bg-amber-100', unfreeze: 'bg-blue-100', deduct: 'bg-red-100' };
 const typeIconMap: Record<string, string> = { deposit: '💰', withdraw: '💸', freeze: '🔒', unfreeze: '🔓', deduct: '📤' };
-const typeTextMap: Record<string, string> = { deposit: '充值', withdraw: '提现', freeze: '冻结', unfreeze: '解冻', deduct: '扣款' };
 
 export default function MerchantWalletPage() {
     const [stats, setStats] = useState<WalletStats>({ balance: 0, frozenBalance: 0, silver: 0 });
@@ -24,6 +23,13 @@ export default function MerchantWalletPage() {
     const [loading, setLoading] = useState(true);
     const [bankCards, setBankCards] = useState<BankCard[]>([]);
     const [selectedBankCardId, setSelectedBankCardId] = useState<string>('');
+
+    // 导出相关状态
+    const [exportModal, setExportModal] = useState(false);
+    const [exportType, setExportType] = useState<'balance' | 'silver'>('balance');
+    const [exportStartDate, setExportStartDate] = useState('');
+    const [exportEndDate, setExportEndDate] = useState('');
+    const [exporting, setExporting] = useState(false);
 
     useEffect(() => { loadStats(); loadTransactions(); loadBankCards(); }, []);
 
@@ -79,6 +85,53 @@ export default function MerchantWalletPage() {
     const openSilver = () => { setSilverModal(true); setStep('input'); setAmount(''); setPaymentType('alipay'); };
     const openWithdraw = () => { setWithdrawModal(true); setStep('input'); setAmount(''); };
     const closeModal = () => { setRechargeModal(false); setWithdrawModal(false); setSilverModal(false); setAmount(''); setStep('input'); setIsLoading(false); setQrCodeUrl(''); setOrderNumber(''); };
+
+    // 导出功能
+    const openExport = (type: 'balance' | 'silver') => {
+        setExportType(type);
+        const end = new Date();
+        const start = new Date();
+        start.setDate(start.getDate() - 7);
+        setExportStartDate(start.toISOString().split('T')[0]);
+        setExportEndDate(end.toISOString().split('T')[0]);
+        setExportModal(true);
+    };
+
+    const handleExport = async () => {
+        if (!exportStartDate || !exportEndDate) { alert('请选择导出时间范围'); return; }
+        const start = new Date(exportStartDate);
+        const end = new Date(exportEndDate);
+        const diffDays = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+        if (diffDays > 31) { alert('最多下载时间区间为31天'); return; }
+        if (diffDays < 0) { alert('结束日期不能早于开始日期'); return; }
+
+        const token = localStorage.getItem('merchantToken');
+        if (!token) { alert('请先登录'); return; }
+
+        setExporting(true);
+        try {
+            const url = exportType === 'balance'
+                ? `${BASE_URL}/finance-records/merchant/balance/export?startDate=${exportStartDate}&endDate=${exportEndDate}`
+                : `${BASE_URL}/finance-records/merchant/silver/export?startDate=${exportStartDate}&endDate=${exportEndDate}`;
+
+            const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!res.ok) { const errorText = await res.text(); throw new Error(errorText || '导出失败'); }
+
+            const blob = await res.blob();
+            const filename = exportType === 'balance' ? `押金财务导出表_${exportStartDate}_${exportEndDate}.csv` : `银锭财务导出表_${exportStartDate}_${exportEndDate}.csv`;
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+
+            setExportModal(false);
+            alert('导出成功！');
+        } catch (e: any) { alert(e.message || '导出失败'); }
+        finally { setExporting(false); }
+    };
 
     const handleRecharge = async () => {
         const token = localStorage.getItem('merchantToken');
@@ -178,10 +231,14 @@ export default function MerchantWalletPage() {
             <Card className="overflow-hidden bg-white p-0">
                 <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
                     <h2 className="text-lg font-semibold">资金流水</h2>
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2">
                         {(['all', 'balance', 'silver'] as const).map(tab => (
                             <button key={tab} onClick={() => setActiveTab(tab)} className={cn('rounded-md px-3.5 py-1.5 text-sm', activeTab === tab ? 'bg-indigo-500 text-white' : 'bg-slate-100 text-slate-600')}>{tab === 'all' ? '全部' : tab === 'balance' ? '余额' : '银锭'}</button>
                         ))}
+                        <div className="ml-3 flex gap-2">
+                            <button onClick={() => openExport('balance')} className="rounded-md bg-green-500 px-3 py-1.5 text-sm text-white hover:bg-green-600">导出押金</button>
+                            <button onClick={() => openExport('silver')} className="rounded-md bg-purple-500 px-3 py-1.5 text-sm text-white hover:bg-purple-600">导出银锭</button>
+                        </div>
                     </div>
                 </div>
 
@@ -253,6 +310,29 @@ export default function MerchantWalletPage() {
                         </div>
                     </div>
                 )}
+            </Modal>
+
+            {/* Export Modal */}
+            <Modal title={exportType === 'balance' ? '导出押金流水' : '导出银锭流水'} open={exportModal} onClose={() => setExportModal(false)}>
+                <div className="space-y-5">
+                    <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-700">
+                        最多支持导出31天的数据
+                    </div>
+                    <div>
+                        <label className="mb-2 block text-sm text-slate-500">开始日期</label>
+                        <Input type="date" value={exportStartDate} onChange={e => setExportStartDate(e.target.value)} />
+                    </div>
+                    <div>
+                        <label className="mb-2 block text-sm text-slate-500">结束日期</label>
+                        <Input type="date" value={exportEndDate} onChange={e => setExportEndDate(e.target.value)} />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-2">
+                        <Button variant="secondary" onClick={() => setExportModal(false)} disabled={exporting}>取消</Button>
+                        <Button onClick={handleExport} disabled={exporting} className={exporting ? 'cursor-not-allowed opacity-70' : ''}>
+                            {exporting ? '导出中...' : '确认导出'}
+                        </Button>
+                    </div>
+                </div>
             </Modal>
         </div>
     );

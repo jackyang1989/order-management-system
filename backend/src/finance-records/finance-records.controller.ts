@@ -1,4 +1,5 @@
-import { Controller, Get, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Request, Res, BadRequestException } from '@nestjs/common';
+import { Response } from 'express';
 import { FinanceRecordsService } from './finance-records.service';
 import {
   FinanceRecordFilterDto,
@@ -65,6 +66,107 @@ export class FinanceRecordsController {
       filter,
     );
     return { success: true, ...result };
+  }
+
+  // ============ 商家端导出 ============
+  @Get('merchant/balance/export')
+  async exportMerchantBalanceRecords(
+    @Request() req,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Res() res: Response,
+  ) {
+    if (!startDate || !endDate) {
+      throw new BadRequestException('请选择导出时间范围');
+    }
+
+    try {
+      const merchantId = req.user.sub;
+      const result =
+        await this.financeRecordsService.exportMerchantBalanceRecords(
+          merchantId,
+          startDate,
+          endDate,
+        );
+
+      // 生成CSV内容
+      const headers = ['金额', '财务类型', '账户余额', '财务描述', '财务写入时间'];
+      const csvContent = [
+        headers.join(','),
+        ...result.data.map((r) =>
+          [
+            r.amount,
+            `"${r.financeType}"`,
+            r.balanceAfter,
+            `"${r.memo.replace(/"/g, '""')}"`,
+            r.createdAt,
+          ].join(','),
+        ),
+      ].join('\n');
+
+      // 添加BOM以支持中文
+      const bom = '\uFEFF';
+      const filename = encodeURIComponent(`押金财务导出表_${startDate}_${endDate}.csv`);
+
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${filename}"`,
+      );
+      res.send(bom + csvContent);
+    } catch (error) {
+      throw new BadRequestException(error.message || '导出失败');
+    }
+  }
+
+  @Get('merchant/silver/export')
+  async exportMerchantSilverRecords(
+    @Request() req,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Res() res: Response,
+  ) {
+    if (!startDate || !endDate) {
+      throw new BadRequestException('请选择导出时间范围');
+    }
+
+    try {
+      const merchantId = req.user.sub;
+      const result =
+        await this.financeRecordsService.exportMerchantSilverRecords(
+          merchantId,
+          startDate,
+          endDate,
+        );
+
+      // 生成CSV内容
+      const headers = ['金额', '财务类型', '账户余额', '财务描述', '财务写入时间'];
+      const csvContent = [
+        headers.join(','),
+        ...result.data.map((r) =>
+          [
+            r.amount,
+            `"${r.financeType}"`,
+            r.balanceAfter,
+            `"${r.memo.replace(/"/g, '""')}"`,
+            r.createdAt,
+          ].join(','),
+        ),
+      ].join('\n');
+
+      // 添加BOM以支持中文
+      const bom = '\uFEFF';
+      const filename = encodeURIComponent(`银锭财务导出表_${startDate}_${endDate}.csv`);
+
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${filename}"`,
+      );
+      res.send(bom + csvContent);
+    } catch (error) {
+      throw new BadRequestException(error.message || '导出失败');
+    }
   }
 
   // ============ 管理后台 ============
