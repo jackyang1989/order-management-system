@@ -464,6 +464,24 @@ export const DEFAULT_CONFIGS = [
     valueType: 'boolean',
   },
 
+  // 邀请设置
+  {
+    key: 'merchant_invite_enabled',
+    value: 'false',
+    group: 'commission',
+    label: '启用商家邀请功能',
+    valueType: 'boolean',
+    description: '是否允许用户邀请商家入驻',
+  },
+  {
+    key: 'invite_unlock_threshold',
+    value: '10',
+    group: 'commission',
+    label: '邀请解锁门槛（完成任务数）',
+    valueType: 'number',
+    description: '用户完成多少单任务后可解锁邀请功能',
+  },
+
   // 系统设置
   {
     key: 'site_name',
