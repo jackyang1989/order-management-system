@@ -67,37 +67,37 @@ export default function MerchantBlacklistPage() {
             {/* List */}
             <Card className="bg-white p-6">
                 {loading ? (
-                    <div className="py-10 text-center text-slate-500">加载中...</div>
+                    <div className="py-10 text-center text-[#f9fafb]0">加载中...</div>
                 ) : blacklist.length === 0 ? (
-                    <div className="py-10 text-center text-slate-400">暂无黑名单记录</div>
+                    <div className="py-10 text-center text-[#9ca3af]">暂无黑名单记录</div>
                 ) : (
                     <>
                         <div className="overflow-x-auto">
                             <table className="min-w-[700px] w-full border-collapse">
                                 <thead>
-                                    <tr className="bg-slate-50">
-                                        <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">买号</th>
-                                        <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">类型</th>
-                                        <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">结束时间</th>
-                                        <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">原因</th>
-                                        <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">添加时间</th>
-                                        <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">操作</th>
+                                    <tr className="bg-[#f9fafb]">
+                                        <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">买号</th>
+                                        <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">类型</th>
+                                        <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">结束时间</th>
+                                        <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">原因</th>
+                                        <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">添加时间</th>
+                                        <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {blacklist.map(item => (
-                                        <tr key={item.id} className="border-b border-slate-100">
+                                        <tr key={item.id} className="border-b border-[#f3f4f6]">
                                             <td className="px-4 py-4 font-medium">{item.accountName}</td>
                                             <td className="px-4 py-4">
                                                 <Badge variant="solid" color={item.type === BlacklistType.PERMANENT ? 'red' : 'amber'}>
                                                     {item.type === BlacklistType.PERMANENT ? '永久拉黑' : '限时拉黑'}
                                                 </Badge>
                                             </td>
-                                            <td className="px-4 py-4 text-sm text-slate-400">
+                                            <td className="px-4 py-4 text-sm text-[#9ca3af]">
                                                 {item.type === BlacklistType.TEMPORARY && item.endTime ? new Date(item.endTime).toLocaleString() : '-'}
                                             </td>
                                             <td className="px-4 py-4 text-sm">{item.reason || '-'}</td>
-                                            <td className="px-4 py-4 text-sm text-slate-400">{new Date(item.createdAt).toLocaleDateString()}</td>
+                                            <td className="px-4 py-4 text-sm text-[#9ca3af]">{new Date(item.createdAt).toLocaleDateString()}</td>
                                             <td className="px-4 py-4">
                                                 <button onClick={() => handleDelete(item.id)} className="text-sm text-red-500 hover:underline">移除</button>
                                             </td>
@@ -110,9 +110,9 @@ export default function MerchantBlacklistPage() {
                         {/* Pagination */}
                         {totalPages > 1 && (
                             <div className="mt-6 flex items-center justify-center gap-2">
-                                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className={cn('rounded border border-slate-200 px-4 py-2', page === 1 ? 'cursor-not-allowed bg-slate-100' : 'bg-white')}>上一页</button>
+                                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className={cn('rounded border border-[#e5e7eb] px-4 py-2', page === 1 ? 'cursor-not-allowed bg-[#f3f4f6]' : 'bg-white')}>上一页</button>
                                 <span className="px-4">{page} / {totalPages} (共 {total} 条)</span>
-                                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className={cn('rounded border border-slate-200 px-4 py-2', page === totalPages ? 'cursor-not-allowed bg-slate-100' : 'bg-white')}>下一页</button>
+                                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className={cn('rounded border border-[#e5e7eb] px-4 py-2', page === totalPages ? 'cursor-not-allowed bg-[#f3f4f6]' : 'bg-white')}>下一页</button>
                             </div>
                         )}
                     </>
@@ -138,7 +138,7 @@ export default function MerchantBlacklistPage() {
                     )}
                     <div>
                         <label className="mb-2 block text-sm">拉黑原因</label>
-                        <textarea value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} placeholder="可选填写拉黑原因" className="min-h-[80px] w-full resize-y rounded-md border border-slate-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none" />
+                        <textarea value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} placeholder="可选填写拉黑原因" className="min-h-[80px] w-full resize-y rounded-md border border-[#e5e7eb] px-3 py-2.5 text-sm focus:border-primary-500 focus:outline-none" />
                     </div>
                 </div>
                 <div className="mt-6 flex justify-end gap-3">

@@ -74,7 +74,7 @@ export default function MerchantRecommendPage() {
 
     if (loading) {
         return (
-            <div className="flex h-[400px] items-center justify-center text-slate-500">
+            <div className="flex h-[400px] items-center justify-center text-[#f9fafb]0">
                 <Spinner size="lg" />
                 <span className="ml-2">加载中...</span>
             </div>
@@ -83,7 +83,7 @@ export default function MerchantRecommendPage() {
 
     if (error) {
         return (
-            <div className="flex h-[400px] flex-col items-center justify-center text-slate-500">
+            <div className="flex h-[400px] flex-col items-center justify-center text-[#f9fafb]0">
                 <div className="mb-4 text-red-500">{error}</div>
                 <Button onClick={() => { setError(null); setLoading(true); loadData(); }}>重试</Button>
             </div>
@@ -107,8 +107,8 @@ export default function MerchantRecommendPage() {
                         <div className="mb-4 text-sm opacity-90">每成功推荐一位商家，可获得其服务费的 10% 作为奖励</div>
                         {referralCode ? (
                             <div className="flex items-center gap-3">
-                                <div className="rounded-lg bg-white/20 px-5 py-3 font-mono text-base tracking-wider">{referralCode}</div>
-                                <Button onClick={() => copyToClipboard(referralCode)} className="bg-white font-medium text-green-600 hover:bg-slate-50">{copied ? '已复制!' : '复制邀请码'}</Button>
+                                <div className="rounded-md bg-white/20 px-5 py-3 font-mono text-base tracking-wider">{referralCode}</div>
+                                <Button onClick={() => copyToClipboard(referralCode)} className="bg-white font-medium text-green-600 hover:bg-[#f9fafb]">{copied ? '已复制!' : '复制邀请码'}</Button>
                             </div>
                         ) : (
                             <div className="text-sm opacity-80">暂无邀请码</div>
@@ -124,7 +124,7 @@ export default function MerchantRecommendPage() {
                     <Card key={idx} className="bg-white p-5">
                         <div className="flex items-start justify-between">
                             <div>
-                                <div className="mb-2 text-sm text-slate-500">{stat.label}</div>
+                                <div className="mb-2 text-sm text-[#f9fafb]0">{stat.label}</div>
                                 <div className={cn('text-2xl font-bold', statColorMap[stat.colorKey])}>{stat.value}</div>
                             </div>
                             <div className="text-3xl">{stat.icon}</div>
@@ -139,8 +139,8 @@ export default function MerchantRecommendPage() {
                     <h2 className="mb-4 text-lg font-semibold">分享推广</h2>
                     <div className="flex items-center gap-4">
                         <div className="flex-1">
-                            <div className="mb-2 text-sm text-slate-500">推广链接</div>
-                            <div className="break-all rounded-lg bg-slate-100 px-4 py-3 text-sm text-slate-700">{referralLink}</div>
+                            <div className="mb-2 text-sm text-[#f9fafb]0">推广链接</div>
+                            <div className="break-all rounded-md bg-[#f3f4f6] px-4 py-3 text-sm text-[#374151]">{referralLink}</div>
                         </div>
                         <Button onClick={() => copyToClipboard(referralLink)}>复制链接</Button>
                     </div>
@@ -149,11 +149,11 @@ export default function MerchantRecommendPage() {
 
             {/* Referral Records */}
             <Card className="overflow-hidden bg-white p-0">
-                <div className="border-b border-slate-100 px-6 py-5">
+                <div className="border-b border-[#f3f4f6] px-6 py-5">
                     <h2 className="text-lg font-semibold">邀请记录</h2>
                 </div>
                 {records.length === 0 ? (
-                    <div className="py-16 text-center text-slate-500">
+                    <div className="py-16 text-center text-[#f9fafb]0">
                         <div className="mb-4 text-5xl">📭</div>
                         <div>暂无邀请记录</div>
                         <div className="mt-2 text-sm">快去分享邀请码给好友吧！</div>
@@ -162,19 +162,19 @@ export default function MerchantRecommendPage() {
                     <div className="overflow-x-auto">
                         <table className="min-w-[600px] w-full border-collapse">
                             <thead>
-                                <tr className="border-b border-slate-100 bg-slate-50">
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-500">用户</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-500">注册时间</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-500">状态</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-500">订单数</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-500">贡献佣金</th>
+                                <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
+                                    <th className="px-4 py-3 text-left text-sm font-medium text-[#f9fafb]0">用户</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium text-[#f9fafb]0">注册时间</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium text-[#f9fafb]0">状态</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium text-[#f9fafb]0">订单数</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium text-[#f9fafb]0">贡献佣金</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {records.map(record => (
-                                    <tr key={record.id} className="border-b border-slate-100">
+                                    <tr key={record.id} className="border-b border-[#f3f4f6]">
                                         <td className="px-4 py-4 font-medium">{record.username}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-500">{record.registerTime}</td>
+                                        <td className="px-4 py-4 text-sm text-[#f9fafb]0">{record.registerTime}</td>
                                         <td className="px-4 py-4">
                                             <Badge variant="soft" color={record.status === 'active' ? 'green' : 'slate'}>{record.status === 'active' ? '活跃' : '不活跃'}</Badge>
                                         </td>
@@ -189,7 +189,7 @@ export default function MerchantRecommendPage() {
             </Card>
 
             {/* Rules */}
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
+            <div className="rounded-md border border-amber-200 bg-amber-50 p-5">
                 <h3 className="mb-3 font-semibold text-amber-800">推荐规则</h3>
                 <ul className="list-inside list-disc space-y-1 text-sm leading-relaxed text-amber-800">
                     <li>被推荐人通过您的邀请码注册并完成首单后，推荐关系生效</li>

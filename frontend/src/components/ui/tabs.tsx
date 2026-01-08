@@ -32,7 +32,7 @@ export function Tabs({ items, value, onChange, size = 'md', className }: TabsPro
           disabled={item.disabled}
           onClick={() => onChange(item.key)}
           className={cn(
-            'flex-1 rounded-lg font-medium transition-colors',
+            'flex-1 rounded-md font-medium transition-colors',
             sizes[size],
             value === item.key
               ? 'bg-white text-[#3b4559] border border-[#e5e7eb]'

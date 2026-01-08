@@ -24,9 +24,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const sizes: Record<string, string> = {
-      sm: 'h-9 px-3 text-[13px] rounded-md gap-1.5',
-      md: 'h-9 px-4 text-[14px] rounded-md gap-2',
-      lg: 'h-9 px-6 text-[15px] rounded-md gap-2',
+      sm: 'h-[36px] px-3 text-[13px] rounded-md gap-1.5',
+      md: 'h-[36px] px-4 text-[14px] rounded-md gap-2',
+      lg: 'h-[36px] px-6 text-[15px] rounded-md gap-2',
     };
 
     return (

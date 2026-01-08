@@ -131,13 +131,13 @@ export default function NewShopPage() {
                     {/* Screenshot Upload */}
                     <div>
                         <label className="mb-2 block font-medium">店铺后台截图 (验证用)</label>
-                        <div onClick={() => document.getElementById('screenshot-upload')?.click()} className="cursor-pointer rounded border border-dashed border-slate-300 bg-slate-50 p-5 text-center hover:border-slate-400">
+                        <div onClick={() => document.getElementById('screenshot-upload')?.click()} className="cursor-pointer rounded border border-dashed border-[#d1d5db] bg-[#f9fafb] p-5 text-center hover:border-[#9ca3af]">
                             {formData.screenshot ? (
                                 <div className="text-sm text-green-500">已选择: {formData.screenshot.name}</div>
                             ) : (
                                 <>
-                                    <div className="mb-2 text-2xl text-slate-400">📷</div>
-                                    <div className="text-sm text-slate-500">点击上传店铺后台截图</div>
+                                    <div className="mb-2 text-2xl text-[#9ca3af]">📷</div>
+                                    <div className="text-sm text-[#f9fafb]0">点击上传店铺后台截图</div>
                                 </>
                             )}
                             <input id="screenshot-upload" type="file" accept="image/*" className="hidden" onChange={e => { if (e.target.files?.[0]) setFormData({ ...formData, screenshot: e.target.files[0] }); }} />

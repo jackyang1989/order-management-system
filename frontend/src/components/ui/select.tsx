@@ -38,10 +38,10 @@ export function Select({
         disabled={disabled}
         onChange={(event) => onChange?.(event.target.value)}
         className={cn(
-          'w-full appearance-none rounded-lg border border-[#e5eaef] bg-white px-3.5 py-2.5 text-[14px] text-[#3b4559]',
+          'w-full appearance-none rounded-md border border-[#e5e7eb] bg-white px-3 py-2 text-[14px] text-[#3b4559]',
           'transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20',
-          'disabled:cursor-not-allowed disabled:bg-[#f6f8fb] disabled:text-[#7c889a]',
-          !value && 'text-[#94a3b8]'
+          'disabled:cursor-not-allowed disabled:bg-[#f9fafb] disabled:text-[#6b7280]',
+          !value && 'text-[#9ca3af]'
         )}
       >
         <option value="" disabled>

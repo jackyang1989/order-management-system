@@ -94,12 +94,12 @@ export default function NewGoodsPage() {
                     <div>
                         <label className="mb-2 block font-medium">所属店铺 <span className="text-red-500">*</span></label>
                         {shopsLoading ? (
-                            <div className="flex items-center gap-2 text-sm text-slate-500">
+                            <div className="flex items-center gap-2 text-sm text-[#f9fafb]0">
                                 <Spinner size="sm" />
                                 <span>加载店铺中...</span>
                             </div>
                         ) : shops.length === 0 ? (
-                            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
+                            <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
                                 暂无可用店铺，请先<button onClick={() => router.push('/merchant/shops/new')} className="text-blue-500 underline">绑定店铺</button>
                             </div>
                         ) : (
@@ -122,7 +122,7 @@ export default function NewGoodsPage() {
                     <div>
                         <label className="mb-2 block font-medium">商品链接/淘口令</label>
                         <Input type="text" value={form.link || ''} onChange={e => handleChange('link', e.target.value)} placeholder="请输入商品链接或淘口令" />
-                        <div className="mt-1.5 text-xs text-slate-500">可粘贴商品链接或淘口令，系统将自动解析商品信息</div>
+                        <div className="mt-1.5 text-xs text-[#f9fafb]0">可粘贴商品链接或淘口令，系统将自动解析商品信息</div>
                     </div>
 
                     {/* Platform Product ID */}
@@ -135,7 +135,7 @@ export default function NewGoodsPage() {
                     <div>
                         <label className="mb-2 block font-medium">核对口令</label>
                         <Input type="text" value={form.verifyCode || ''} onChange={e => handleChange('verifyCode', e.target.value)} placeholder="请输入核对口令" maxLength={10} />
-                        <div className="mt-1.5 text-xs text-slate-500">请输入不超过10个字的核对口令，必须是商品详情页有的文字。买手做任务时需在详情页找到此口令进行核对。</div>
+                        <div className="mt-1.5 text-xs text-[#f9fafb]0">请输入不超过10个字的核对口令，必须是商品详情页有的文字。买手做任务时需在详情页找到此口令进行核对。</div>
                     </div>
 
                     {/* Product Image Upload */}
@@ -144,7 +144,7 @@ export default function NewGoodsPage() {
                         <div className="relative">
                             {form.pcImg ? (
                                 <div className="relative inline-block">
-                                    <img src={form.pcImg} alt="商品主图" className="h-32 w-32 rounded-lg border border-slate-200 object-cover" />
+                                    <img src={form.pcImg} alt="商品主图" className="h-32 w-32 rounded-md border border-[#e5e7eb] object-cover" />
                                     <button
                                         type="button"
                                         onClick={() => handleChange('pcImg', '')}
@@ -154,7 +154,7 @@ export default function NewGoodsPage() {
                                     </button>
                                 </div>
                             ) : (
-                                <label className="flex h-32 w-32 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400 transition-colors hover:border-blue-400 hover:text-blue-500">
+                                <label className="flex h-32 w-32 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-[#d1d5db] bg-[#f9fafb] text-[#9ca3af] transition-colors hover:border-blue-400 hover:text-blue-500">
                                     {uploading ? (
                                         <Spinner size="sm" />
                                     ) : (
@@ -167,7 +167,7 @@ export default function NewGoodsPage() {
                                 </label>
                             )}
                         </div>
-                        <div className="mt-1.5 text-xs text-slate-500">建议上传800x800以上的正方形商品图</div>
+                        <div className="mt-1.5 text-xs text-[#f9fafb]0">建议上传800x800以上的正方形商品图</div>
                     </div>
 
                     {/* Price Row */}

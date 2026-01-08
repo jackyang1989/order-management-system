@@ -42,10 +42,10 @@ export default function MerchantLoginPage() {
     };
 
     return (
-        <div className="flex min-h-screen w-full items-center justify-center bg-slate-100 p-0">
+        <div className="flex min-h-screen w-full items-center justify-center bg-[#f3f4f6] p-0">
             <div className="flex min-h-[550px] w-[900px] max-w-[95%] overflow-hidden rounded-2xl bg-white">
                 {/* Left Panel */}
-                <div className="flex w-[450px] min-w-[450px] flex-col justify-center bg-gradient-to-br from-indigo-500 to-purple-600 px-10 py-16 text-white">
+                <div className="flex w-[450px] min-w-[450px] flex-col justify-center bg-gradient-to-br from-primary-500 to-purple-600 px-10 py-16 text-white">
                     <div className="mb-5 text-6xl">🏪</div>
                     <h1 className="mb-4 text-3xl font-bold">商家工作台</h1>
                     <p className="leading-relaxed opacity-90">
@@ -63,18 +63,18 @@ export default function MerchantLoginPage() {
                 {/* Right Panel - Form */}
                 <div className="flex-1 p-12">
                     <div className="mb-8">
-                        <h2 className="mb-2 text-2xl font-bold text-slate-800">{isLogin ? '欢迎回来' : '注册账号'}</h2>
-                        <p className="text-sm text-slate-500">{isLogin ? '登录您的商家账号' : '创建新的商家账号'}</p>
+                        <h2 className="mb-2 text-2xl font-bold text-[#3b4559]">{isLogin ? '欢迎回来' : '注册账号'}</h2>
+                        <p className="text-sm text-[#f9fafb]0">{isLogin ? '登录您的商家账号' : '创建新的商家账号'}</p>
                     </div>
 
                     {/* Toggle Tabs */}
-                    <div className="mb-6 flex rounded-lg bg-slate-100 p-1">
-                        <button onClick={() => { setIsLogin(true); setError(''); }} className={cn('flex-1 rounded-md py-2.5 text-sm font-medium transition-all', isLogin ? 'bg-white text-indigo-600' : 'text-slate-500')}>登录</button>
-                        <button onClick={() => { setIsLogin(false); setError(''); }} className={cn('flex-1 rounded-md py-2.5 text-sm font-medium transition-all', !isLogin ? 'bg-white text-indigo-600' : 'text-slate-500')}>注册</button>
+                    <div className="mb-6 flex rounded-md bg-[#f3f4f6] p-1">
+                        <button onClick={() => { setIsLogin(true); setError(''); }} className={cn('flex-1 rounded-md py-2.5 text-sm font-medium transition-all', isLogin ? 'bg-white text-primary-600' : 'text-[#f9fafb]0')}>登录</button>
+                        <button onClick={() => { setIsLogin(false); setError(''); }} className={cn('flex-1 rounded-md py-2.5 text-sm font-medium transition-all', !isLogin ? 'bg-white text-primary-600' : 'text-[#f9fafb]0')}>注册</button>
                     </div>
 
                     {/* Error Message */}
-                    {error && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>}
+                    {error && <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>}
 
                     {/* Form Fields */}
                     {isLogin ? (
@@ -95,7 +95,7 @@ export default function MerchantLoginPage() {
                     )}
 
                     <div className="mt-6 text-center">
-                        <span onClick={() => router.push('/login')} className="cursor-pointer text-sm text-indigo-600">← 我是买手，去买手登录</span>
+                        <span onClick={() => router.push('/login')} className="cursor-pointer text-sm text-primary-600">← 我是买手，去买手登录</span>
                     </div>
                 </div>
             </div>

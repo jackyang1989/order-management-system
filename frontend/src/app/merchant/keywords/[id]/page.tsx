@@ -56,7 +56,7 @@ export default function KeywordDetailPage({ params }: { params: Promise<{ id: st
         else alert(res.message);
     };
 
-    if (loading) return <div className="py-6 text-center text-slate-500">加载中...</div>;
+    if (loading) return <div className="py-6 text-center text-[#f9fafb]0">加载中...</div>;
 
     if (!scheme) {
         return (
@@ -86,7 +86,7 @@ export default function KeywordDetailPage({ params }: { params: Promise<{ id: st
             {/* Keywords Table */}
             <Card className="bg-white p-6">
                 {details.length === 0 ? (
-                    <div className="py-10 text-center text-slate-400">
+                    <div className="py-10 text-center text-[#9ca3af]">
                         <div className="mb-4">暂无关键词</div>
                         <button onClick={handleAdd} className="text-blue-500 hover:underline">立即添加</button>
                     </div>
@@ -94,18 +94,18 @@ export default function KeywordDetailPage({ params }: { params: Promise<{ id: st
                     <div className="overflow-x-auto">
                         <table className="min-w-[700px] w-full border-collapse">
                             <thead>
-                                <tr className="bg-slate-50">
-                                    <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">关键词</th>
-                                    <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">终端</th>
-                                    <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">价格区间</th>
-                                    <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">筛选条件</th>
-                                    <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">发货地</th>
-                                    <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">操作</th>
+                                <tr className="bg-[#f9fafb]">
+                                    <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">关键词</th>
+                                    <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">终端</th>
+                                    <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">价格区间</th>
+                                    <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">筛选条件</th>
+                                    <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">发货地</th>
+                                    <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">操作</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {details.map(detail => (
-                                    <tr key={detail.id} className="border-b border-slate-100">
+                                    <tr key={detail.id} className="border-b border-[#f3f4f6]">
                                         <td className="px-4 py-4 font-medium">{detail.keyword}</td>
                                         <td className="px-4 py-4">
                                             <Badge variant="soft" color={detail.terminal === KeywordTerminal.PC ? 'blue' : 'green'}>
@@ -113,10 +113,10 @@ export default function KeywordDetailPage({ params }: { params: Promise<{ id: st
                                             </Badge>
                                         </td>
                                         <td className="px-4 py-4 text-sm">
-                                            {detail.minPrice || detail.maxPrice ? <span>¥{detail.minPrice} - ¥{detail.maxPrice}</span> : <span className="text-slate-400">不限</span>}
+                                            {detail.minPrice || detail.maxPrice ? <span>¥{detail.minPrice} - ¥{detail.maxPrice}</span> : <span className="text-[#9ca3af]">不限</span>}
                                         </td>
                                         <td className="px-4 py-4 text-sm">
-                                            {detail.filter || detail.sort ? <span>{detail.filter} {detail.sort}</span> : <span className="text-slate-400">-</span>}
+                                            {detail.filter || detail.sort ? <span>{detail.filter} {detail.sort}</span> : <span className="text-[#9ca3af]">-</span>}
                                         </td>
                                         <td className="px-4 py-4 text-sm">{detail.province || '-'}</td>
                                         <td className="px-4 py-4">

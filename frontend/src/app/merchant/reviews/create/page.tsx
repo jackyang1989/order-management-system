@@ -101,7 +101,7 @@ function CreateReviewContent() {
         finally { setSubmitting(false); }
     };
 
-    if (loading) return <div className="py-12 text-center text-slate-500">加载中...</div>;
+    if (loading) return <div className="py-12 text-center text-[#f9fafb]0">加载中...</div>;
 
     if (error) {
         return (
@@ -120,17 +120,17 @@ function CreateReviewContent() {
             {/* Header */}
             <div className="mb-6">
                 <h1 className="text-xl font-bold">发布追评任务</h1>
-                <p className="mt-2 text-sm text-slate-500">为已完成的订单发布追评任务，买手完成追评后可获得佣金</p>
+                <p className="mt-2 text-sm text-[#f9fafb]0">为已完成的订单发布追评任务，买手完成追评后可获得佣金</p>
             </div>
 
             {/* Order Info */}
             <Card className="bg-white p-5">
                 <h2 className="mb-4 text-base font-semibold">订单信息</h2>
                 <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div><span className="text-slate-500">商品名称：</span>{order?.productName}</div>
-                    <div><span className="text-slate-500">买号：</span>{order?.buynoAccount}</div>
-                    <div><span className="text-slate-500">平台订单号：</span>{order?.platformOrderNumber || '-'}</div>
-                    <div><span className="text-slate-500">完成时间：</span>{order?.completedAt ? new Date(order.completedAt).toLocaleString('zh-CN') : '-'}</div>
+                    <div><span className="text-[#f9fafb]0">商品名称：</span>{order?.productName}</div>
+                    <div><span className="text-[#f9fafb]0">买号：</span>{order?.buynoAccount}</div>
+                    <div><span className="text-[#f9fafb]0">平台订单号：</span>{order?.platformOrderNumber || '-'}</div>
+                    <div><span className="text-[#f9fafb]0">完成时间：</span>{order?.completedAt ? new Date(order.completedAt).toLocaleString('zh-CN') : '-'}</div>
                 </div>
             </Card>
 
@@ -138,7 +138,7 @@ function CreateReviewContent() {
             <Card className="bg-white p-5">
                 <h2 className="mb-4 text-base font-semibold">追评内容设置</h2>
                 {goodsSettings.map((goods, idx) => (
-                    <div key={goods.goodsId} className="mb-4 rounded-lg bg-slate-50 p-4">
+                    <div key={goods.goodsId} className="mb-4 rounded-md bg-[#f9fafb] p-4">
                         <div className="mb-4 font-medium">{goods.goodsName}</div>
 
                         {/* Text Review */}
@@ -153,7 +153,7 @@ function CreateReviewContent() {
                                     value={goods.praiseContent}
                                     onChange={(e) => updateGoodsSetting(idx, 'praiseContent', e.target.value)}
                                     placeholder="请输入追评文字内容..."
-                                    className="h-24 w-full resize-none rounded-lg border border-slate-200 p-3 text-sm"
+                                    className="h-24 w-full resize-none rounded-md border border-[#e5e7eb] p-3 text-sm"
                                 />
                             )}
                         </div>
@@ -165,7 +165,7 @@ function CreateReviewContent() {
                                 <span className="font-medium">图片追评</span>
                                 <span className="text-sm text-green-600">+{REVIEW_PRICE.IMAGE}元</span>
                             </label>
-                            {goods.isImgPraise && <div className="text-sm text-slate-500">图片上传功能需要集成OSS（暂未实现）</div>}
+                            {goods.isImgPraise && <div className="text-sm text-[#f9fafb]0">图片上传功能需要集成OSS（暂未实现）</div>}
                         </div>
 
                         {/* Video Review */}
@@ -175,7 +175,7 @@ function CreateReviewContent() {
                                 <span className="font-medium">视频追评</span>
                                 <span className="text-sm text-green-600">+{REVIEW_PRICE.VIDEO}元</span>
                             </label>
-                            {goods.isVideoPraise && <div className="text-sm text-slate-500">视频上传功能需要集成OSS（暂未实现）</div>}
+                            {goods.isVideoPraise && <div className="text-sm text-[#f9fafb]0">视频上传功能需要集成OSS（暂未实现）</div>}
                         </div>
                     </div>
                 ))}
@@ -186,8 +186,8 @@ function CreateReviewContent() {
                 <h2 className="mb-4 text-base font-semibold">费用汇总</h2>
                 <div className="flex items-center justify-between">
                     <div>
-                        <div className="text-sm text-slate-500">追评费用</div>
-                        <div className="mt-1 text-xs text-slate-400">买手获得50%佣金</div>
+                        <div className="text-sm text-[#f9fafb]0">追评费用</div>
+                        <div className="mt-1 text-xs text-[#9ca3af]">买手获得50%佣金</div>
                     </div>
                     <div className="text-3xl font-bold text-red-500">¥{total.toFixed(2)}</div>
                 </div>
@@ -210,7 +210,7 @@ function CreateReviewContent() {
 
 export default function CreateReviewPage() {
     return (
-        <Suspense fallback={<div className="py-12 text-center text-slate-500">加载中...</div>}>
+        <Suspense fallback={<div className="py-12 text-center text-[#f9fafb]0">加载中...</div>}>
             <CreateReviewContent />
         </Suspense>
     );

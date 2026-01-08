@@ -72,12 +72,12 @@ export default function BottomNav() {
     };
 
     return (
-        <div className="fixed inset-x-0 bottom-0 z-50 mx-auto flex h-16 w-full max-w-[515px] border-x border-t border-slate-200 bg-white">
+        <div className="fixed inset-x-0 bottom-0 z-50 mx-auto flex h-16 w-full max-w-[515px] border-x border-t border-[#e5e7eb] bg-white">
             {navItems.map((item) => (
                 <div key={item.key} className="relative flex-1">
                     {/* Popup Menu */}
                     {activeNav === item.key && item.subItems && (
-                        <div className="absolute bottom-16 left-1/2 w-32 -translate-x-1/2 rounded-lg border border-slate-200 bg-white text-center">
+                        <div className="absolute bottom-16 left-1/2 w-32 -translate-x-1/2 rounded-md border border-[#e5e7eb] bg-white text-center">
                             {item.subItems.map((sub, idx) => (
                                 <Link
                                     key={sub.href}
@@ -85,8 +85,8 @@ export default function BottomNav() {
                                     onClick={() => setActiveNav(null)}
                                     className={cn(
                                         'block px-3 py-3 text-sm no-underline',
-                                        pathname.startsWith(sub.href.split('?')[0]) ? 'text-blue-500 font-medium' : 'text-slate-600',
-                                        idx < item.subItems!.length - 1 && 'border-b border-slate-100'
+                                        pathname.startsWith(sub.href.split('?')[0]) ? 'text-blue-500 font-medium' : 'text-[#4b5563]',
+                                        idx < item.subItems!.length - 1 && 'border-b border-[#f3f4f6]'
                                     )}
                                 >
                                     {sub.label}
@@ -101,7 +101,7 @@ export default function BottomNav() {
                             'flex h-full cursor-pointer flex-col items-center justify-center gap-1',
                             item.highlight
                                 ? 'bg-blue-500 text-white'
-                                : (activeNav === item.key || isActive(item) ? 'text-blue-500' : 'text-slate-500')
+                                : (activeNav === item.key || isActive(item) ? 'text-blue-500' : 'text-[#f9fafb]0')
                         )}
                     >
                         <span className="text-xl">{item.icon}</span>

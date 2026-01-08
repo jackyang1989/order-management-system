@@ -122,7 +122,7 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
                                 key={item.key}
                                 onClick={() => handleMenuClick(item.key)}
                                 className={cn(
-                                    'mb-1 flex w-full items-center rounded-lg px-3 py-2.5 text-left text-[14px] transition-all',
+                                    'mb-1 flex w-full items-center rounded-md px-3 py-2.5 text-left text-[14px] transition-all',
                                     isActive
                                         ? 'bg-primary-50 font-medium text-primary-600'
                                         : 'text-[#5a6577] hover:bg-[#f9fafb] hover:text-[#3b4559]',

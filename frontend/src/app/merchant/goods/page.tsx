@@ -102,30 +102,30 @@ export default function GoodsPage() {
             {/* Content */}
             <Card className="bg-white p-6">
                 {loading ? (
-                    <div className="text-slate-500">加载中...</div>
+                    <div className="text-[#f9fafb]0">加载中...</div>
                 ) : goodsList.length === 0 ? (
-                    <div className="py-10 text-center text-slate-400">暂无商品</div>
+                    <div className="py-10 text-center text-[#9ca3af]">暂无商品</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="min-w-[800px] w-full border-collapse">
                             <thead>
-                                <tr className="border-b border-slate-100 text-left">
-                                    <th className="px-4 py-4 text-sm font-medium text-slate-500">主图</th>
-                                    <th className="px-4 py-4 text-sm font-medium text-slate-500">商品标题</th>
-                                    <th className="px-4 py-4 text-sm font-medium text-slate-500">店铺</th>
-                                    <th className="px-4 py-4 text-sm font-medium text-slate-500">价格</th>
-                                    <th className="px-4 py-4 text-sm font-medium text-slate-500">核对口令</th>
-                                    <th className="px-4 py-4 text-sm font-medium text-slate-500">操作</th>
+                                <tr className="border-b border-[#f3f4f6] text-left">
+                                    <th className="px-4 py-4 text-sm font-medium text-[#f9fafb]0">主图</th>
+                                    <th className="px-4 py-4 text-sm font-medium text-[#f9fafb]0">商品标题</th>
+                                    <th className="px-4 py-4 text-sm font-medium text-[#f9fafb]0">店铺</th>
+                                    <th className="px-4 py-4 text-sm font-medium text-[#f9fafb]0">价格</th>
+                                    <th className="px-4 py-4 text-sm font-medium text-[#f9fafb]0">核对口令</th>
+                                    <th className="px-4 py-4 text-sm font-medium text-[#f9fafb]0">操作</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {goodsList.map(goods => {
                                     const shop = shops.find(s => s.id === goods.shopId);
                                     return (
-                                        <tr key={goods.id} className="border-b border-slate-100">
+                                        <tr key={goods.id} className="border-b border-[#f3f4f6]">
                                             <td className="px-4 py-4">
                                                 {goods.pcImg ? <img src={goods.pcImg} alt={goods.name} className="h-[60px] w-[60px] rounded object-cover" />
-                                                    : <div className="h-[60px] w-[60px] rounded bg-slate-100" />}
+                                                    : <div className="h-[60px] w-[60px] rounded bg-[#f3f4f6]" />}
                                             </td>
                                             <td className="px-4 py-4">
                                                 <div className="mb-1 font-medium">{goods.name}</div>
@@ -135,7 +135,7 @@ export default function GoodsPage() {
                                                 {shop ? <Badge variant="soft" color="blue">{shop.shopName}</Badge> : '-'}
                                             </td>
                                             <td className="px-4 py-4 font-bold text-red-500">¥{goods.price}</td>
-                                            <td className="px-4 py-4 text-sm text-slate-500">{goods.verifyCode || '-'}</td>
+                                            <td className="px-4 py-4 text-sm text-[#f9fafb]0">{goods.verifyCode || '-'}</td>
                                             <td className="px-4 py-4">
                                                 <button onClick={() => openEdit(goods)} className="mr-3 text-sm text-blue-500 hover:underline">编辑</button>
                                                 <button onClick={() => handleDelete(goods.id)} className="text-sm text-red-500 hover:underline">删除</button>
@@ -153,36 +153,36 @@ export default function GoodsPage() {
             <Modal title={editingGoods ? '编辑商品' : '新增商品'} open={isModalOpen} onClose={closeModal}>
                 <div className="space-y-4">
                     <div>
-                        <label className="mb-2 block text-sm text-slate-700">所属店铺</label>
+                        <label className="mb-2 block text-sm text-[#374151]">所属店铺</label>
                         <Select value={formData.shopId} onChange={v => setFormData({ ...formData, shopId: v })} placeholder="请选择店铺" options={shops.map(shop => ({ value: shop.id, label: `${shop.shopName} (${shop.platform})` }))} />
                     </div>
                     <div>
-                        <label className="mb-2 block text-sm text-slate-700">商品标题</label>
+                        <label className="mb-2 block text-sm text-[#374151]">商品标题</label>
                         <Input type="text" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} placeholder="请输入商品标题" />
                     </div>
                     <div>
-                        <label className="mb-2 block text-sm text-slate-700">商品链接</label>
+                        <label className="mb-2 block text-sm text-[#374151]">商品链接</label>
                         <Input type="text" value={formData.url} onChange={e => setFormData({ ...formData, url: e.target.value })} placeholder="请输入商品链接" />
                     </div>
                     <div>
-                        <label className="mb-2 block text-sm text-slate-700">商品价格</label>
+                        <label className="mb-2 block text-sm text-[#374151]">商品价格</label>
                         <Input type="number" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} placeholder="0.00" />
                     </div>
                     <div>
-                        <label className="mb-2 block text-sm text-slate-700">核对口令</label>
+                        <label className="mb-2 block text-sm text-[#374151]">核对口令</label>
                         <Input type="text" value={formData.verifyCode} onChange={e => setFormData({ ...formData, verifyCode: e.target.value })} placeholder="请输入核对口令" maxLength={10} />
-                        <div className="mt-1.5 text-xs text-slate-500">不超过10个字，买手做任务时需在详情页找到此口令进行核对</div>
+                        <div className="mt-1.5 text-xs text-[#f9fafb]0">不超过10个字，买手做任务时需在详情页找到此口令进行核对</div>
                     </div>
                     <div>
-                        <label className="mb-2 block text-sm text-slate-700">商品主图</label>
+                        <label className="mb-2 block text-sm text-[#374151]">商品主图</label>
                         <div className="relative">
                             {formData.mainImage ? (
                                 <div className="relative inline-block">
-                                    <img src={formData.mainImage} alt="商品主图" className="h-24 w-24 rounded-lg border border-slate-200 object-cover" />
+                                    <img src={formData.mainImage} alt="商品主图" className="h-24 w-24 rounded-md border border-[#e5e7eb] object-cover" />
                                     <button type="button" onClick={() => setFormData({ ...formData, mainImage: '' })} className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white hover:bg-red-600">×</button>
                                 </div>
                             ) : (
-                                <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400 transition-colors hover:border-blue-400 hover:text-blue-500">
+                                <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-[#d1d5db] bg-[#f9fafb] text-[#9ca3af] transition-colors hover:border-blue-400 hover:text-blue-500">
                                     {uploading ? <Spinner size="sm" /> : <><span className="text-2xl">+</span><span className="text-xs">上传主图</span></>}
                                     <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                                 </label>

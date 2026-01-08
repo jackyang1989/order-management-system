@@ -58,18 +58,18 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
 
     return (
         <div className="p-6">
-            <h2 className="mb-6 text-lg font-bold text-slate-800">第一步：填写基础任务信息</h2>
+            <h2 className="mb-6 text-lg font-bold text-[#3b4559]">第一步：填写基础任务信息</h2>
 
             {/* Platform Selection */}
             <div className="mb-6">
-                <label className="mb-2 block text-sm font-medium text-slate-700">发布平台</label>
+                <label className="mb-2 block text-sm font-medium text-[#374151]">发布平台</label>
                 <div className="flex flex-wrap gap-4">
                     {loadingPlatforms ? (
-                        <div className="text-slate-400">加载平台中...</div>
+                        <div className="text-[#9ca3af]">加载平台中...</div>
                     ) : taskPlatforms.map(p => (
-                        <div key={p.id} onClick={() => handlePlatformChange(p.id)} className={cn('flex cursor-pointer items-center gap-2 rounded-lg border px-6 py-3 transition-all', data.taskType === p.id ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 bg-white')}>
+                        <div key={p.id} onClick={() => handlePlatformChange(p.id)} className={cn('flex cursor-pointer items-center gap-2 rounded-md border px-6 py-3 transition-all', data.taskType === p.id ? 'border-primary-500 bg-primary-50' : 'border-[#e5e7eb] bg-white')}>
                             <span>{p.icon}</span>
-                            <span className={cn(data.taskType === p.id ? 'font-semibold text-indigo-600' : 'text-slate-700')}>{p.name}</span>
+                            <span className={cn(data.taskType === p.id ? 'font-semibold text-primary-600' : 'text-[#374151]')}>{p.name}</span>
                         </div>
                     ))}
                 </div>
@@ -78,29 +78,29 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
             {/* Shop Selection & URL */}
             <div className="mb-6 grid grid-cols-2 gap-6">
                 <div>
-                    <label className="mb-2 block text-sm text-slate-700">选择店铺</label>
+                    <label className="mb-2 block text-sm text-[#374151]">选择店铺</label>
                     {loadingShops ? (
-                        <div className="px-3 py-2.5 text-slate-400">加载中...</div>
+                        <div className="px-3 py-2.5 text-[#9ca3af]">加载中...</div>
                     ) : filteredShops.length === 0 ? (
-                        <div className="rounded-md bg-amber-50 px-3 py-2.5 text-sm text-amber-600">⚠️ 暂无该平台已审核通过的店铺，请先到 <a href="/merchant/shops" className="text-indigo-600">店铺管理</a> 绑定店铺。</div>
+                        <div className="rounded-md bg-amber-50 px-3 py-2.5 text-sm text-amber-600">⚠️ 暂无该平台已审核通过的店铺，请先到 <a href="/merchant/shops" className="text-primary-600">店铺管理</a> 绑定店铺。</div>
                     ) : (
                         <Select value={data.shopId} onChange={handleShopChange} options={[{ value: '', label: '请选择店铺...' }, ...filteredShops.map(shop => ({ value: shop.id, label: `${shop.shopName} (${shop.accountName})` }))]} />
                     )}
                 </div>
                 <div>
-                    <label className="mb-2 block text-sm text-slate-700">商品链接</label>
+                    <label className="mb-2 block text-sm text-[#374151]">商品链接</label>
                     <div className="flex gap-2">
                         <Input type="text" value={data.url} onChange={e => onChange({ url: e.target.value })} placeholder="粘贴商品链接/口令" className="flex-1" />
-                        <button onClick={handleFetchInfo} className="rounded-md border border-slate-300 bg-slate-100 px-4 text-slate-600 hover:bg-slate-200">获取</button>
+                        <button onClick={handleFetchInfo} className="rounded-md border border-[#d1d5db] bg-[#f3f4f6] px-4 text-[#4b5563] hover:bg-[#e5e7eb]">获取</button>
                     </div>
                 </div>
             </div>
 
             {/* Product Info */}
-            <div className="mb-6 rounded-lg border border-slate-200 bg-slate-50 p-5">
+            <div className="mb-6 rounded-md border border-[#e5e7eb] bg-[#f9fafb] p-5">
                 <div className="flex gap-6">
-                    <div className="flex h-[100px] w-[100px] items-center justify-center overflow-hidden rounded-lg bg-slate-200">
-                        {data.mainImage ? <img src={data.mainImage} alt="Main" className="h-full w-full object-cover" /> : <span className="text-2xl text-slate-400">📷</span>}
+                    <div className="flex h-[100px] w-[100px] items-center justify-center overflow-hidden rounded-md bg-[#e5e7eb]">
+                        {data.mainImage ? <img src={data.mainImage} alt="Main" className="h-full w-full object-cover" /> : <span className="text-2xl text-[#9ca3af]">📷</span>}
                     </div>
                     <div className="min-w-0 flex-1">
                         <div className="mb-4">
@@ -123,18 +123,18 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
 
             {/* Count */}
             <div className="mb-8">
-                <label className="mb-2 block text-sm text-slate-700">发布任务数量</label>
+                <label className="mb-2 block text-sm text-[#374151]">发布任务数量</label>
                 <div className="flex items-center gap-3">
-                    <button onClick={() => onChange({ count: Math.max(1, data.count - 1) })} className="flex h-8 w-8 items-center justify-center rounded border border-slate-300 bg-white">-</button>
+                    <button onClick={() => onChange({ count: Math.max(1, data.count - 1) })} className="flex h-8 w-8 items-center justify-center rounded border border-[#d1d5db] bg-white">-</button>
                     <Input type="number" value={String(data.count)} onChange={e => onChange({ count: parseInt(e.target.value) || 1 })} className="w-20 text-center" />
-                    <button onClick={() => onChange({ count: data.count + 1 })} className="flex h-8 w-8 items-center justify-center rounded border border-slate-300 bg-white">+</button>
-                    <span className="text-sm text-slate-500">单</span>
+                    <button onClick={() => onChange({ count: data.count + 1 })} className="flex h-8 w-8 items-center justify-center rounded border border-[#d1d5db] bg-white">+</button>
+                    <span className="text-sm text-[#f9fafb]0">单</span>
                 </div>
             </div>
 
             {/* Footer Action */}
-            <div className="flex justify-end border-t border-slate-200 pt-6">
-                <Button onClick={onNext} disabled={isNextDisabled} className={cn(isNextDisabled && 'cursor-not-allowed bg-slate-400')}>下一步</Button>
+            <div className="flex justify-end border-t border-[#e5e7eb] pt-6">
+                <Button onClick={onNext} disabled={isNextDisabled} className={cn(isNextDisabled && 'cursor-not-allowed bg-[#9ca3af]')}>下一步</Button>
             </div>
         </div>
     );

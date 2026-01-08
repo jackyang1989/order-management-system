@@ -41,27 +41,27 @@ export default function MerchantShopsPage() {
             {/* Content */}
             <Card className="bg-white p-6">
                 {loading ? (
-                    <div className="text-slate-500">加载中...</div>
+                    <div className="text-[#f9fafb]0">加载中...</div>
                 ) : shops.length === 0 ? (
-                    <div className="py-10 text-center text-slate-400">暂无绑定店铺</div>
+                    <div className="py-10 text-center text-[#9ca3af]">暂无绑定店铺</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="min-w-[700px] w-full border-collapse">
                             <thead>
-                                <tr className="bg-slate-50">
-                                    <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">平台</th>
-                                    <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">店铺名称</th>
-                                    <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">店铺账号</th>
-                                    <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">发件人</th>
-                                    <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">状态</th>
-                                    <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">操作</th>
+                                <tr className="bg-[#f9fafb]">
+                                    <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">平台</th>
+                                    <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">店铺名称</th>
+                                    <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">店铺账号</th>
+                                    <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">发件人</th>
+                                    <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">状态</th>
+                                    <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">操作</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {shops.map(shop => {
                                     const status = statusMap[shop.status] || { text: '未知', color: 'slate' as const };
                                     return (
-                                        <tr key={shop.id} className="border-b border-slate-100">
+                                        <tr key={shop.id} className="border-b border-[#f3f4f6]">
                                             <td className="px-4 py-4 text-sm">{shop.platform}</td>
                                             <td className="px-4 py-4 text-sm">{shop.shopName}</td>
                                             <td className="px-4 py-4 text-sm">{shop.accountName}</td>

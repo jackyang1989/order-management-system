@@ -12,7 +12,7 @@ export interface TagProps {
 
 export function Tag({ children, tone = 'neutral', size = 'md', className }: TagProps) {
   const tones: Record<string, string> = {
-    neutral: 'bg-slate-100 text-slate-700',
+    neutral: 'bg-[#f3f4f6] text-[#374151]',
     success: 'bg-emerald-50 text-emerald-700',
     warning: 'bg-amber-50 text-amber-700',
     danger: 'bg-red-50 text-red-700',

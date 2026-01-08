@@ -61,22 +61,22 @@ export default function NewTaskPage() {
     return (
         <div>
             {/* Steps Progress */}
-            <div className="mb-2 border-b border-slate-200 bg-white px-8 py-6">
+            <div className="mb-2 border-b border-[#e5e7eb] bg-white px-8 py-6">
                 <div className="mx-auto flex max-w-[800px] items-center">
                     {steps.map((s, i) => (
                         <div key={s.num} className={cn('flex items-center', i === 2 ? 'flex-none' : 'flex-1')}>
                             <div className={cn('flex items-center gap-2', step >= s.num ? 'opacity-100' : 'opacity-40')}>
-                                <div className={cn('flex h-8 w-8 items-center justify-center rounded-full font-bold', step >= s.num ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-500')}>{s.num}</div>
-                                <div className={cn('text-slate-800', step >= s.num ? 'font-semibold' : 'font-normal')}>{s.label}</div>
+                                <div className={cn('flex h-8 w-8 items-center justify-center rounded-full font-bold', step >= s.num ? 'bg-primary-600 text-white' : 'bg-[#e5e7eb] text-[#f9fafb]0')}>{s.num}</div>
+                                <div className={cn('text-[#3b4559]', step >= s.num ? 'font-semibold' : 'font-normal')}>{s.label}</div>
                             </div>
-                            {i < 2 && <div className={cn('mx-4 h-0.5 flex-1', step > s.num ? 'bg-indigo-600' : 'bg-slate-200')} />}
+                            {i < 2 && <div className={cn('mx-4 h-0.5 flex-1', step > s.num ? 'bg-primary-600' : 'bg-[#e5e7eb]')} />}
                         </div>
                     ))}
                 </div>
             </div>
 
             {/* Content */}
-            <div className="mx-auto my-6 min-h-[600px] max-w-[1000px] rounded-xl bg-white">
+            <div className="mx-auto my-6 min-h-[600px] max-w-[1000px] rounded-md bg-white">
                 {step === 1 && <Step1BasicInfo data={data} onChange={handleDataChange} onNext={() => setStep(2)} />}
                 {step === 2 && <Step2ValueAdded data={data} onChange={handleDataChange} onPrev={() => setStep(1)} onNext={() => setStep(3)} />}
                 {step === 3 && <Step3Payment data={data} merchant={merchant} onPrev={() => setStep(2)} onSubmit={handleSubmit} loading={loading} />}

@@ -15,8 +15,8 @@ export default function LayoutWrapper({ children }: { children: ReactNode }) {
 
     // 买手端使用移动端容器限制
     return (
-        <div className="relative mx-auto min-h-screen w-full max-w-[515px] bg-white ring-1 ring-slate-200">
-            <div className="min-h-screen w-full bg-slate-50">
+        <div className="relative mx-auto min-h-screen w-full max-w-[515px] bg-white ring-1 ring-[#e5e7eb]">
+            <div className="min-h-screen w-full bg-[#f9fafb]">
                 {children}
             </div>
         </div>

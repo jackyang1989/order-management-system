@@ -66,7 +66,7 @@ function PageButton({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        'rounded-lg border px-3 py-1.5 text-[13px] font-medium transition-colors',
+        'rounded-md border px-3 py-1.5 text-[13px] font-medium transition-colors',
         'focus:outline-none focus:ring-2 focus:ring-primary-500/20',
         disabled
           ? 'cursor-not-allowed border-[#e5eaef] text-[#94a3b8]'

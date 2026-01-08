@@ -45,7 +45,7 @@ export default function MerchantHelpPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 p-8 text-center text-white">
+            <div className="rounded-2xl bg-gradient-to-br from-primary-500 to-purple-600 p-8 text-center text-white">
                 <div className="mb-2 text-3xl font-bold">帮助中心</div>
                 <div className="mb-6 text-sm opacity-90">有任何问题？我们随时为您解答</div>
                 <div className="mx-auto max-w-[500px]">
@@ -67,10 +67,10 @@ export default function MerchantHelpPage() {
                     { icon: '📢', title: '公告通知', desc: '最新动态', action: () => alert('公告功能开发中') },
                     { icon: '💬', title: '意见反馈', desc: '提交建议', action: () => alert('反馈功能开发中') },
                 ].map((item, idx) => (
-                    <div key={idx} onClick={item.action} className="cursor-pointer rounded-xl border border-slate-200 bg-white p-5 text-center transition-all">
+                    <div key={idx} onClick={item.action} className="cursor-pointer rounded-md border border-[#e5e7eb] bg-white p-5 text-center transition-all">
                         <div className="mb-2 text-3xl">{item.icon}</div>
                         <div className="mb-1 font-semibold">{item.title}</div>
-                        <div className="text-xs text-slate-500">{item.desc}</div>
+                        <div className="text-xs text-[#f9fafb]0">{item.desc}</div>
                     </div>
                 ))}
             </div>
@@ -78,14 +78,14 @@ export default function MerchantHelpPage() {
             {/* FAQ Section */}
             <Card className="overflow-hidden bg-white p-0">
                 {/* Category Tabs */}
-                <div className="flex flex-wrap gap-2 border-b border-slate-100 px-5 py-4">
+                <div className="flex flex-wrap gap-2 border-b border-[#f3f4f6] px-5 py-4">
                     {categories.map(cat => (
                         <button
                             key={cat}
                             onClick={() => setActiveCategory(cat)}
                             className={cn(
                                 'rounded-full px-4 py-2 text-sm transition-colors',
-                                activeCategory === cat ? 'bg-indigo-500 font-medium text-white' : 'bg-slate-100 text-slate-600'
+                                activeCategory === cat ? 'bg-primary-500 font-medium text-white' : 'bg-[#f3f4f6] text-[#4b5563]'
                             )}
                         >
                             {cat}
@@ -96,23 +96,23 @@ export default function MerchantHelpPage() {
                 {/* FAQ List */}
                 <div>
                     {filteredFaqs.length === 0 ? (
-                        <div className="py-16 text-center text-slate-500">
+                        <div className="py-16 text-center text-[#f9fafb]0">
                             <div className="mb-4 text-5xl">🔍</div>
                             <div>未找到相关问题</div>
                             <div className="mt-2 text-sm">请尝试其他关键词或联系客服</div>
                         </div>
                     ) : (
                         filteredFaqs.map((faq, idx) => (
-                            <div key={idx} className={cn(idx < filteredFaqs.length - 1 && 'border-b border-slate-100')}>
-                                <div onClick={() => setExpandedId(expandedId === idx ? null : idx)} className={cn('flex cursor-pointer items-center justify-between px-5 py-4', expandedId === idx && 'bg-slate-50')}>
+                            <div key={idx} className={cn(idx < filteredFaqs.length - 1 && 'border-b border-[#f3f4f6]')}>
+                                <div onClick={() => setExpandedId(expandedId === idx ? null : idx)} className={cn('flex cursor-pointer items-center justify-between px-5 py-4', expandedId === idx && 'bg-[#f9fafb]')}>
                                     <div className="flex items-center gap-3">
-                                        <span className="rounded bg-indigo-100 px-2 py-0.5 text-xs text-indigo-600">{faq.category}</span>
+                                        <span className="rounded bg-primary-100 px-2 py-0.5 text-xs text-primary-600">{faq.category}</span>
                                         <span className="font-medium">{faq.question}</span>
                                     </div>
-                                    <span className={cn('text-slate-400 transition-transform', expandedId === idx && 'rotate-180')}>▼</span>
+                                    <span className={cn('text-[#9ca3af] transition-transform', expandedId === idx && 'rotate-180')}>▼</span>
                                 </div>
                                 {expandedId === idx && (
-                                    <div className="bg-slate-50 px-5 pb-4 text-sm leading-relaxed text-slate-600">{faq.answer}</div>
+                                    <div className="bg-[#f9fafb] px-5 pb-4 text-sm leading-relaxed text-[#4b5563]">{faq.answer}</div>
                                 )}
                             </div>
                         ))
@@ -124,24 +124,24 @@ export default function MerchantHelpPage() {
             <Modal title="联系客服" open={showContactModal} onClose={() => setShowContactModal(false)}>
                 <div className="text-center">
                     <div className="mb-4 text-5xl">👨‍💼</div>
-                    <p className="mb-6 text-slate-500">请通过以下方式联系我们</p>
+                    <p className="mb-6 text-[#f9fafb]0">请通过以下方式联系我们</p>
 
                     <div className="mb-6 space-y-3">
-                        <div className="flex items-center gap-3 rounded-lg bg-slate-100 p-3">
+                        <div className="flex items-center gap-3 rounded-md bg-[#f3f4f6] p-3">
                             <span className="text-xl">📱</span>
-                            <div className="text-left"><div className="text-xs text-slate-500">客服电话</div><div className="font-medium">400-123-4567</div></div>
+                            <div className="text-left"><div className="text-xs text-[#f9fafb]0">客服电话</div><div className="font-medium">400-123-4567</div></div>
                         </div>
-                        <div className="flex items-center gap-3 rounded-lg bg-slate-100 p-3">
+                        <div className="flex items-center gap-3 rounded-md bg-[#f3f4f6] p-3">
                             <span className="text-xl">💬</span>
-                            <div className="text-left"><div className="text-xs text-slate-500">QQ客服</div><div className="font-medium">12345678</div></div>
+                            <div className="text-left"><div className="text-xs text-[#f9fafb]0">QQ客服</div><div className="font-medium">12345678</div></div>
                         </div>
-                        <div className="flex items-center gap-3 rounded-lg bg-slate-100 p-3">
+                        <div className="flex items-center gap-3 rounded-md bg-[#f3f4f6] p-3">
                             <span className="text-xl">📧</span>
-                            <div className="text-left"><div className="text-xs text-slate-500">邮箱</div><div className="font-medium">support@example.com</div></div>
+                            <div className="text-left"><div className="text-xs text-[#f9fafb]0">邮箱</div><div className="font-medium">support@example.com</div></div>
                         </div>
                     </div>
 
-                    <div className="mb-5 text-xs text-slate-400">工作时间：周一至周五 9:00-18:00</div>
+                    <div className="mb-5 text-xs text-[#9ca3af]">工作时间：周一至周五 9:00-18:00</div>
                     <Button onClick={() => setShowContactModal(false)} className="w-full">关闭</Button>
                 </div>
             </Modal>
