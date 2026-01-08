@@ -8,6 +8,7 @@ import { cn } from '../../../../../lib/utils';
 import { Button } from '../../../../../components/ui/button';
 import { Card } from '../../../../../components/ui/card';
 import { Input } from '../../../../../components/ui/input';
+import { Spinner } from '../../../../../components/ui/spinner';
 
 export default function EditGoodsPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = use(params);
@@ -15,19 +16,62 @@ export default function EditGoodsPage({ params }: { params: Promise<{ id: string
     const [shops, setShops] = useState<Shop[]>([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [goods, setGoods] = useState<Goods | null>(null);
-    const [form, setForm] = useState<UpdateGoodsDto>({ name: '', link: '', platformProductId: '', verifyCode: '', specName: '', specValue: '', price: 0, num: 1, showPrice: 0 });
+    const [form, setForm] = useState<UpdateGoodsDto>({
+        name: '',
+        link: '',
+        platformProductId: '',
+        verifyCode: '',
+        pcImg: '',
+        price: 0,
+        num: 1,
+        showPrice: 0
+    });
 
     useEffect(() => { loadData(); }, [resolvedParams.id]);
 
     const loadData = async () => {
         const [goodsData, shopsData] = await Promise.all([fetchGoodsById(resolvedParams.id), fetchShops()]);
         setShops(shopsData);
-        if (goodsData) { setGoods(goodsData); setForm({ name: goodsData.name, link: goodsData.link || '', platformProductId: goodsData.platformProductId || '', verifyCode: goodsData.verifyCode || '', specName: goodsData.specName || '', specValue: goodsData.specValue || '', price: goodsData.price, num: goodsData.num, showPrice: goodsData.showPrice }); }
+        if (goodsData) {
+            setGoods(goodsData);
+            setForm({
+                name: goodsData.name,
+                link: goodsData.link || '',
+                platformProductId: goodsData.platformProductId || '',
+                verifyCode: goodsData.verifyCode || '',
+                pcImg: goodsData.pcImg || '',
+                price: goodsData.price,
+                num: goodsData.num,
+                showPrice: goodsData.showPrice
+            });
+        }
         setLoading(false);
     };
 
     const handleChange = (field: keyof UpdateGoodsDto, value: string | number) => setForm(prev => ({ ...prev, [field]: value }));
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploading(true);
+        try {
+            const reader = new FileReader();
+            reader.onload = () => {
+                handleChange('pcImg', reader.result as string);
+                setUploading(false);
+            };
+            reader.onerror = () => {
+                alert('图片读取失败');
+                setUploading(false);
+            };
+            reader.readAsDataURL(file);
+        } catch {
+            alert('图片上传失败');
+            setUploading(false);
+        }
+    };
 
     const handleSubmit = async () => {
         if (!form.name?.trim()) { alert('请输入商品名称'); return; }
@@ -74,21 +118,54 @@ export default function EditGoodsPage({ params }: { params: Promise<{ id: string
 
                     {/* Link */}
                     <div>
-                        <label className="mb-2 block font-medium">商品链接</label>
-                        <Input type="text" value={form.link} onChange={e => handleChange('link', e.target.value)} placeholder="请输入商品链接或淘口令" />
+                        <label className="mb-2 block font-medium">商品链接/淘口令</label>
+                        <Input type="text" value={form.link || ''} onChange={e => handleChange('link', e.target.value)} placeholder="请输入商品链接或淘口令" />
+                        <div className="mt-1.5 text-xs text-slate-500">可粘贴商品链接或淘口令，系统将自动解析商品信息</div>
                     </div>
 
                     {/* Platform Product ID */}
                     <div>
                         <label className="mb-2 block font-medium">平台商品ID</label>
-                        <Input type="text" value={form.platformProductId} onChange={e => handleChange('platformProductId', e.target.value)} placeholder="可从商品链接自动解析" />
+                        <Input type="text" value={form.platformProductId || ''} onChange={e => handleChange('platformProductId', e.target.value)} placeholder="可从商品链接自动解析" />
                     </div>
 
                     {/* Verify Code */}
                     <div>
                         <label className="mb-2 block font-medium">核对口令</label>
-                        <Input type="text" value={form.verifyCode} onChange={e => handleChange('verifyCode', e.target.value)} placeholder="请输入核对口令" maxLength={10} />
+                        <Input type="text" value={form.verifyCode || ''} onChange={e => handleChange('verifyCode', e.target.value)} placeholder="请输入核对口令" maxLength={10} />
                         <div className="mt-1.5 text-xs text-slate-500">请输入不超过10个字的核对口令，必须是商品详情页有的文字。买手做任务时需在详情页找到此口令进行核对。</div>
+                    </div>
+
+                    {/* Product Image Upload */}
+                    <div>
+                        <label className="mb-2 block font-medium">商品主图</label>
+                        <div className="relative">
+                            {form.pcImg ? (
+                                <div className="relative inline-block">
+                                    <img src={form.pcImg} alt="商品主图" className="h-32 w-32 rounded-lg border border-slate-200 object-cover" />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleChange('pcImg', '')}
+                                        className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-sm text-white hover:bg-red-600"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ) : (
+                                <label className="flex h-32 w-32 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400 transition-colors hover:border-blue-400 hover:text-blue-500">
+                                    {uploading ? (
+                                        <Spinner size="sm" />
+                                    ) : (
+                                        <>
+                                            <span className="text-3xl">+</span>
+                                            <span className="text-xs">上传主图</span>
+                                        </>
+                                    )}
+                                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                                </label>
+                            )}
+                        </div>
+                        <div className="mt-1.5 text-xs text-slate-500">建议上传800x800以上的正方形商品图</div>
                     </div>
 
                     {/* Price Row */}
@@ -104,18 +181,6 @@ export default function EditGoodsPage({ params }: { params: Promise<{ id: string
                         <div>
                             <label className="mb-2 block font-medium">展示价格</label>
                             <Input type="number" value={String(form.showPrice)} onChange={e => handleChange('showPrice', e.target.value)} placeholder="默认同单价" min={0} step={0.01} />
-                        </div>
-                    </div>
-
-                    {/* Spec Row */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="mb-2 block font-medium">规格名</label>
-                            <Input type="text" value={form.specName} onChange={e => handleChange('specName', e.target.value)} placeholder="如：颜色" />
-                        </div>
-                        <div>
-                            <label className="mb-2 block font-medium">规格值</label>
-                            <Input type="text" value={form.specValue} onChange={e => handleChange('specValue', e.target.value)} placeholder="如：红色" />
                         </div>
                     </div>
                 </div>

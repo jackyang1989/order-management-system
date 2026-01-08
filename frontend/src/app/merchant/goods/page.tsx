@@ -9,17 +9,19 @@ import { Input } from '../../../components/ui/input';
 import { Select } from '../../../components/ui/select';
 import { Modal } from '../../../components/ui/modal';
 import { Badge } from '../../../components/ui/badge';
+import { Spinner } from '../../../components/ui/spinner';
 
-interface Goods { id: string; shopId: string; title: string; mainImage: string; price: number; url: string; specName: string; specValue: string; platform: string; }
+interface Goods { id: string; shopId: string; title: string; mainImage: string; price: number; url: string; verifyCode?: string; platform: string; }
 interface Shop { id: string; name: string; platform: string; }
 
 export default function GoodsPage() {
     const [goodsList, setGoodsList] = useState<Goods[]>([]);
     const [shops, setShops] = useState<Shop[]>([]);
     const [loading, setLoading] = useState(true);
+    const [uploading, setUploading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingGoods, setEditingGoods] = useState<Goods | null>(null);
-    const [formData, setFormData] = useState({ shopId: '', title: '', mainImage: '', price: '', url: '', specName: '', specValue: '' });
+    const [formData, setFormData] = useState({ shopId: '', title: '', mainImage: '', price: '', url: '', verifyCode: '' });
 
     useEffect(() => { fetchShops(); fetchGoods(); }, []);
 
@@ -61,14 +63,24 @@ export default function GoodsPage() {
             const method = editingGoods ? 'PUT' : 'POST';
             const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ ...formData, price: Number(formData.price) }) });
             const json = await res.json();
-            if (json.success) { alert(editingGoods ? '更新成功' : '创建成功'); setIsModalOpen(false); setEditingGoods(null); setFormData({ shopId: '', title: '', mainImage: '', price: '', url: '', specName: '', specValue: '' }); fetchGoods(); }
+            if (json.success) { alert(editingGoods ? '更新成功' : '创建成功'); setIsModalOpen(false); setEditingGoods(null); setFormData({ shopId: '', title: '', mainImage: '', price: '', url: '', verifyCode: '' }); fetchGoods(); }
             else alert(json.message || '操作失败');
         } catch (error) { console.error('Submit failed:', error); }
     };
 
-    const openEdit = (goods: Goods) => { setEditingGoods(goods); setFormData({ shopId: goods.shopId, title: goods.title, mainImage: goods.mainImage, price: goods.price.toString(), url: goods.url, specName: goods.specName || '', specValue: goods.specValue || '' }); setIsModalOpen(true); };
-    const openAdd = () => { setEditingGoods(null); setFormData({ shopId: shops.length > 0 ? shops[0].id : '', title: '', mainImage: '', price: '', url: '', specName: '', specValue: '' }); setIsModalOpen(true); };
-    const closeModal = () => { setIsModalOpen(false); setEditingGoods(null); setFormData({ shopId: '', title: '', mainImage: '', price: '', url: '', specName: '', specValue: '' }); };
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploading(true);
+        const reader = new FileReader();
+        reader.onload = () => { setFormData(prev => ({ ...prev, mainImage: reader.result as string })); setUploading(false); };
+        reader.onerror = () => { alert('图片读取失败'); setUploading(false); };
+        reader.readAsDataURL(file);
+    };
+
+    const openEdit = (goods: Goods) => { setEditingGoods(goods); setFormData({ shopId: goods.shopId, title: goods.title, mainImage: goods.mainImage, price: goods.price.toString(), url: goods.url, verifyCode: goods.verifyCode || '' }); setIsModalOpen(true); };
+    const openAdd = () => { setEditingGoods(null); setFormData({ shopId: shops.length > 0 ? shops[0].id : '', title: '', mainImage: '', price: '', url: '', verifyCode: '' }); setIsModalOpen(true); };
+    const closeModal = () => { setIsModalOpen(false); setEditingGoods(null); setFormData({ shopId: '', title: '', mainImage: '', price: '', url: '', verifyCode: '' }); };
 
     return (
         <div className="space-y-6">
@@ -93,7 +105,7 @@ export default function GoodsPage() {
                                     <th className="px-4 py-4 text-sm font-medium text-slate-500">商品标题</th>
                                     <th className="px-4 py-4 text-sm font-medium text-slate-500">店铺</th>
                                     <th className="px-4 py-4 text-sm font-medium text-slate-500">价格</th>
-                                    <th className="px-4 py-4 text-sm font-medium text-slate-500">规格</th>
+                                    <th className="px-4 py-4 text-sm font-medium text-slate-500">核对口令</th>
                                     <th className="px-4 py-4 text-sm font-medium text-slate-500">操作</th>
                                 </tr>
                             </thead>
@@ -114,7 +126,7 @@ export default function GoodsPage() {
                                                 {shop ? <Badge variant="soft" color="blue">{shop.name}</Badge> : '-'}
                                             </td>
                                             <td className="px-4 py-4 font-bold text-red-500">¥{goods.price}</td>
-                                            <td className="px-4 py-4 text-sm text-slate-500">{goods.specName ? `${goods.specName}: ${goods.specValue}` : '-'}</td>
+                                            <td className="px-4 py-4 text-sm text-slate-500">{goods.verifyCode || '-'}</td>
                                             <td className="px-4 py-4">
                                                 <button onClick={() => openEdit(goods)} className="mr-3 text-sm text-blue-500 hover:underline">编辑</button>
                                                 <button onClick={() => handleDelete(goods.id)} className="text-sm text-red-500 hover:underline">删除</button>
@@ -147,20 +159,26 @@ export default function GoodsPage() {
                         <label className="mb-2 block text-sm text-slate-700">商品价格</label>
                         <Input type="number" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} placeholder="0.00" />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="mb-2 block text-sm text-slate-700">规格名称 (选填)</label>
-                            <Input type="text" value={formData.specName} onChange={e => setFormData({ ...formData, specName: e.target.value })} placeholder="例如：颜色" />
-                        </div>
-                        <div>
-                            <label className="mb-2 block text-sm text-slate-700">规格值 (选填)</label>
-                            <Input type="text" value={formData.specValue} onChange={e => setFormData({ ...formData, specValue: e.target.value })} placeholder="例如：红色" />
-                        </div>
+                    <div>
+                        <label className="mb-2 block text-sm text-slate-700">核对口令</label>
+                        <Input type="text" value={formData.verifyCode} onChange={e => setFormData({ ...formData, verifyCode: e.target.value })} placeholder="请输入核对口令" maxLength={10} />
+                        <div className="mt-1.5 text-xs text-slate-500">不超过10个字，买手做任务时需在详情页找到此口令进行核对</div>
                     </div>
                     <div>
-                        <label className="mb-2 block text-sm text-slate-700">主图链接</label>
-                        <Input type="text" value={formData.mainImage} onChange={e => setFormData({ ...formData, mainImage: e.target.value })} placeholder="请输入图片URL" />
-                        {formData.mainImage && <div className="mt-2"><img src={formData.mainImage} alt="Preview" className="h-[100px] w-[100px] rounded object-cover" /></div>}
+                        <label className="mb-2 block text-sm text-slate-700">商品主图</label>
+                        <div className="relative">
+                            {formData.mainImage ? (
+                                <div className="relative inline-block">
+                                    <img src={formData.mainImage} alt="商品主图" className="h-24 w-24 rounded-lg border border-slate-200 object-cover" />
+                                    <button type="button" onClick={() => setFormData({ ...formData, mainImage: '' })} className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white hover:bg-red-600">×</button>
+                                </div>
+                            ) : (
+                                <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400 transition-colors hover:border-blue-400 hover:text-blue-500">
+                                    {uploading ? <Spinner size="sm" /> : <><span className="text-2xl">+</span><span className="text-xs">上传主图</span></>}
+                                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                                </label>
+                            )}
+                        </div>
                     </div>
                 </div>
                 <div className="mt-6 flex justify-end gap-3">

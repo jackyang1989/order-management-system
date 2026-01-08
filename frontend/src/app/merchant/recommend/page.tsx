@@ -6,9 +6,23 @@ import { cn } from '../../../lib/utils';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
+import { Spinner } from '../../../components/ui/spinner';
 
-interface ReferralStats { totalReferrals: number; activeReferrals: number; totalEarnings: number; pendingEarnings: number; }
-interface ReferralRecord { id: string; username: string; registerTime: string; status: 'active' | 'inactive'; totalOrders: number; commission: number; }
+interface ReferralStats {
+    totalReferrals: number;
+    activeReferrals: number;
+    totalEarnings: number;
+    pendingEarnings: number;
+}
+
+interface ReferralRecord {
+    id: string;
+    username: string;
+    registerTime: string;
+    status: 'active' | 'inactive';
+    totalOrders: number;
+    commission: number;
+}
 
 const statColorMap: Record<string, string> = { blue: 'text-blue-500', green: 'text-green-500', amber: 'text-amber-500', purple: 'text-purple-500' };
 
@@ -16,27 +30,65 @@ export default function MerchantRecommendPage() {
     const [stats, setStats] = useState<ReferralStats>({ totalReferrals: 0, activeReferrals: 0, totalEarnings: 0, pendingEarnings: 0 });
     const [records, setRecords] = useState<ReferralRecord[]>([]);
     const [referralCode, setReferralCode] = useState('');
+    const [referralLink, setReferralLink] = useState('');
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => { loadData(); }, []);
 
     const loadData = async () => {
         const token = localStorage.getItem('merchantToken');
-        if (!token) return;
+        if (!token) {
+            setError('请先登录');
+            setLoading(false);
+            return;
+        }
         try {
-            const res = await fetch(`${BASE_URL}/merchant/referral-info`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const res = await fetch(`${BASE_URL}/merchant/referral-info`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
             const json = await res.json();
-            if (json.success) { setStats(json.data.stats || stats); setRecords(json.data.records || []); setReferralCode(json.data.referralCode || ''); }
-            else { setReferralCode('MERCHANT_' + Math.random().toString(36).substring(2, 8).toUpperCase()); setStats({ totalReferrals: 12, activeReferrals: 8, totalEarnings: 2580, pendingEarnings: 320 }); setRecords([{ id: '1', username: '用户A***', registerTime: '2024-12-20', status: 'active', totalOrders: 15, commission: 450 }, { id: '2', username: '用户B***', registerTime: '2024-12-18', status: 'active', totalOrders: 8, commission: 240 }, { id: '3', username: '用户C***', registerTime: '2024-12-15', status: 'inactive', totalOrders: 3, commission: 90 }]); }
-        } catch { setReferralCode('MERCHANT_' + Math.random().toString(36).substring(2, 8).toUpperCase()); setStats({ totalReferrals: 12, activeReferrals: 8, totalEarnings: 2580, pendingEarnings: 320 }); }
-        finally { setLoading(false); }
+            if (json.success && json.data) {
+                setStats(json.data.stats || { totalReferrals: 0, activeReferrals: 0, totalEarnings: 0, pendingEarnings: 0 });
+                setRecords(json.data.records || []);
+                setReferralCode(json.data.referralCode || '');
+                setReferralLink(json.data.referralLink || '');
+            } else {
+                setError(json.message || '获取数据失败');
+            }
+        } catch (err) {
+            console.error('加载推荐数据失败:', err);
+            setError('网络错误，请稍后重试');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const copyToClipboard = (text: string) => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); };
-    const referralLink = `https://example.com/register?ref=${referralCode}`;
+    const copyToClipboard = (text: string) => {
+        if (!text) return;
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
 
-    if (loading) return <div className="flex h-[400px] items-center justify-center text-slate-500">加载中...</div>;
+    if (loading) {
+        return (
+            <div className="flex h-[400px] items-center justify-center text-slate-500">
+                <Spinner size="lg" />
+                <span className="ml-2">加载中...</span>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex h-[400px] flex-col items-center justify-center text-slate-500">
+                <div className="mb-4 text-red-500">{error}</div>
+                <Button onClick={() => { setError(null); setLoading(true); loadData(); }}>重试</Button>
+            </div>
+        );
+    }
 
     const statItems = [
         { label: '累计邀请', value: stats.totalReferrals, icon: '👥', colorKey: 'blue' },
@@ -53,10 +105,14 @@ export default function MerchantRecommendPage() {
                     <div>
                         <div className="mb-2 text-2xl font-bold">邀请好友，共享收益</div>
                         <div className="mb-4 text-sm opacity-90">每成功推荐一位商家，可获得其服务费的 10% 作为奖励</div>
-                        <div className="flex items-center gap-3">
-                            <div className="rounded-lg bg-white/20 px-5 py-3 font-mono text-base tracking-wider">{referralCode}</div>
-                            <Button onClick={() => copyToClipboard(referralCode)} className="bg-white font-medium text-green-600 hover:bg-slate-50">{copied ? '已复制!' : '复制邀请码'}</Button>
-                        </div>
+                        {referralCode ? (
+                            <div className="flex items-center gap-3">
+                                <div className="rounded-lg bg-white/20 px-5 py-3 font-mono text-base tracking-wider">{referralCode}</div>
+                                <Button onClick={() => copyToClipboard(referralCode)} className="bg-white font-medium text-green-600 hover:bg-slate-50">{copied ? '已复制!' : '复制邀请码'}</Button>
+                            </div>
+                        ) : (
+                            <div className="text-sm opacity-80">暂无邀请码</div>
+                        )}
                     </div>
                     <div className="text-7xl">🎁</div>
                 </div>
@@ -78,23 +134,18 @@ export default function MerchantRecommendPage() {
             </div>
 
             {/* Share Options */}
-            <Card className="bg-white p-6">
-                <h2 className="mb-4 text-lg font-semibold">分享推广</h2>
-                <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                        <div className="mb-2 text-sm text-slate-500">推广链接</div>
-                        <div className="break-all rounded-lg bg-slate-100 px-4 py-3 text-sm text-slate-700">{referralLink}</div>
+            {referralLink && (
+                <Card className="bg-white p-6">
+                    <h2 className="mb-4 text-lg font-semibold">分享推广</h2>
+                    <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                            <div className="mb-2 text-sm text-slate-500">推广链接</div>
+                            <div className="break-all rounded-lg bg-slate-100 px-4 py-3 text-sm text-slate-700">{referralLink}</div>
+                        </div>
+                        <Button onClick={() => copyToClipboard(referralLink)}>复制链接</Button>
                     </div>
-                    <Button onClick={() => copyToClipboard(referralLink)}>复制链接</Button>
-                </div>
-                <div className="mt-5 flex gap-3">
-                    {[{ name: '微信', icon: '💬', color: 'green' }, { name: 'QQ', icon: '🐧', color: 'blue' }, { name: '微博', icon: '📢', color: 'red' }].map((platform, idx) => (
-                        <button key={idx} onClick={() => alert(`分享到${platform.name}（模拟）`)} className={cn('flex items-center gap-2 rounded-lg border px-5 py-2.5 font-medium', platform.color === 'green' && 'border-green-200 bg-green-50 text-green-600', platform.color === 'blue' && 'border-blue-200 bg-blue-50 text-blue-600', platform.color === 'red' && 'border-red-200 bg-red-50 text-red-600')}>
-                            <span>{platform.icon}</span><span>分享到{platform.name}</span>
-                        </button>
-                    ))}
-                </div>
-            </Card>
+                </Card>
+            )}
 
             {/* Referral Records */}
             <Card className="overflow-hidden bg-white p-0">

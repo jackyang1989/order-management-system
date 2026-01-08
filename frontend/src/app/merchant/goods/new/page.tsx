@@ -9,22 +9,67 @@ import { Button } from '../../../../components/ui/button';
 import { Card } from '../../../../components/ui/card';
 import { Input } from '../../../../components/ui/input';
 import { Select } from '../../../../components/ui/select';
+import { Spinner } from '../../../../components/ui/spinner';
 
 export default function NewGoodsPage() {
     const router = useRouter();
     const [shops, setShops] = useState<Shop[]>([]);
     const [loading, setLoading] = useState(false);
-    const [form, setForm] = useState<CreateGoodsDto>({ shopId: '', name: '', link: '', platformProductId: '', verifyCode: '', specName: '', specValue: '', price: 0, num: 1, showPrice: 0 });
+    const [shopsLoading, setShopsLoading] = useState(true);
+    const [uploading, setUploading] = useState(false);
+    const [form, setForm] = useState<CreateGoodsDto>({
+        shopId: '',
+        name: '',
+        link: '',
+        platformProductId: '',
+        verifyCode: '',
+        pcImg: '',
+        price: 0,
+        num: 1,
+        showPrice: 0
+    });
 
     useEffect(() => { loadShops(); }, []);
 
     const loadShops = async () => {
-        const data = await fetchShops();
-        setShops(data.filter(s => s.status === 1));
-        if (data.length > 0 && data[0].status === 1) setForm(prev => ({ ...prev, shopId: data[0].id }));
+        setShopsLoading(true);
+        try {
+            const data = await fetchShops();
+            // status 1 means approved/active; use Number() to handle string/number mismatch from API
+            const activeShops = data.filter(s => Number(s.status) === 1);
+            setShops(activeShops);
+            if (activeShops.length > 0) {
+                setForm(prev => ({ ...prev, shopId: activeShops[0].id }));
+            }
+        } catch (error) {
+            console.error('加载店铺失败:', error);
+        } finally {
+            setShopsLoading(false);
+        }
     };
 
     const handleChange = (field: keyof CreateGoodsDto, value: string | number) => setForm(prev => ({ ...prev, [field]: value }));
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploading(true);
+        try {
+            const reader = new FileReader();
+            reader.onload = () => {
+                handleChange('pcImg', reader.result as string);
+                setUploading(false);
+            };
+            reader.onerror = () => {
+                alert('图片读取失败');
+                setUploading(false);
+            };
+            reader.readAsDataURL(file);
+        } catch {
+            alert('图片上传失败');
+            setUploading(false);
+        }
+    };
 
     const handleSubmit = async () => {
         if (!form.shopId) { alert('请选择店铺'); return; }
@@ -48,8 +93,23 @@ export default function NewGoodsPage() {
                     {/* Shop */}
                     <div>
                         <label className="mb-2 block font-medium">所属店铺 <span className="text-red-500">*</span></label>
-                        <Select value={form.shopId} onChange={v => handleChange('shopId', v)} options={[{ value: '', label: '请选择店铺' }, ...shops.map(shop => ({ value: shop.id, label: shop.shopName }))]} />
-                        {shops.length === 0 && <div className="mt-1 text-xs text-red-500">暂无可用店铺，请先绑定店铺</div>}
+                        {shopsLoading ? (
+                            <div className="flex items-center gap-2 text-sm text-slate-500">
+                                <Spinner size="sm" />
+                                <span>加载店铺中...</span>
+                            </div>
+                        ) : shops.length === 0 ? (
+                            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
+                                暂无可用店铺，请先<button onClick={() => router.push('/merchant/shops/new')} className="text-blue-500 underline">绑定店铺</button>
+                            </div>
+                        ) : (
+                            <Select
+                                value={form.shopId}
+                                onChange={v => handleChange('shopId', v)}
+                                placeholder="请选择店铺"
+                                options={shops.map(shop => ({ value: shop.id, label: shop.shopName }))}
+                            />
+                        )}
                     </div>
 
                     {/* Name */}
@@ -60,21 +120,54 @@ export default function NewGoodsPage() {
 
                     {/* Link */}
                     <div>
-                        <label className="mb-2 block font-medium">商品链接</label>
-                        <Input type="text" value={form.link} onChange={e => handleChange('link', e.target.value)} placeholder="请输入商品链接或淘口令" />
+                        <label className="mb-2 block font-medium">商品链接/淘口令</label>
+                        <Input type="text" value={form.link || ''} onChange={e => handleChange('link', e.target.value)} placeholder="请输入商品链接或淘口令" />
+                        <div className="mt-1.5 text-xs text-slate-500">可粘贴商品链接或淘口令，系统将自动解析商品信息</div>
                     </div>
 
                     {/* Platform Product ID */}
                     <div>
                         <label className="mb-2 block font-medium">平台商品ID</label>
-                        <Input type="text" value={form.platformProductId} onChange={e => handleChange('platformProductId', e.target.value)} placeholder="可从商品链接自动解析" />
+                        <Input type="text" value={form.platformProductId || ''} onChange={e => handleChange('platformProductId', e.target.value)} placeholder="可从商品链接自动解析" />
                     </div>
 
                     {/* Verify Code */}
                     <div>
                         <label className="mb-2 block font-medium">核对口令</label>
-                        <Input type="text" value={form.verifyCode} onChange={e => handleChange('verifyCode', e.target.value)} placeholder="请输入核对口令" maxLength={10} />
+                        <Input type="text" value={form.verifyCode || ''} onChange={e => handleChange('verifyCode', e.target.value)} placeholder="请输入核对口令" maxLength={10} />
                         <div className="mt-1.5 text-xs text-slate-500">请输入不超过10个字的核对口令，必须是商品详情页有的文字。买手做任务时需在详情页找到此口令进行核对。</div>
+                    </div>
+
+                    {/* Product Image Upload */}
+                    <div>
+                        <label className="mb-2 block font-medium">商品主图</label>
+                        <div className="relative">
+                            {form.pcImg ? (
+                                <div className="relative inline-block">
+                                    <img src={form.pcImg} alt="商品主图" className="h-32 w-32 rounded-lg border border-slate-200 object-cover" />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleChange('pcImg', '')}
+                                        className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-sm text-white hover:bg-red-600"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ) : (
+                                <label className="flex h-32 w-32 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400 transition-colors hover:border-blue-400 hover:text-blue-500">
+                                    {uploading ? (
+                                        <Spinner size="sm" />
+                                    ) : (
+                                        <>
+                                            <span className="text-3xl">+</span>
+                                            <span className="text-xs">上传主图</span>
+                                        </>
+                                    )}
+                                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                                </label>
+                            )}
+                        </div>
+                        <div className="mt-1.5 text-xs text-slate-500">建议上传800x800以上的正方形商品图</div>
                     </div>
 
                     {/* Price Row */}
@@ -92,23 +185,11 @@ export default function NewGoodsPage() {
                             <Input type="number" value={String(form.showPrice)} onChange={e => handleChange('showPrice', e.target.value)} placeholder="默认同单价" min={0} step={0.01} />
                         </div>
                     </div>
-
-                    {/* Spec Row */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="mb-2 block font-medium">规格名</label>
-                            <Input type="text" value={form.specName} onChange={e => handleChange('specName', e.target.value)} placeholder="如：颜色" />
-                        </div>
-                        <div>
-                            <label className="mb-2 block font-medium">规格值</label>
-                            <Input type="text" value={form.specValue} onChange={e => handleChange('specValue', e.target.value)} placeholder="如：红色" />
-                        </div>
-                    </div>
                 </div>
 
                 {/* Footer */}
                 <div className="mt-8 flex gap-4">
-                    <Button onClick={handleSubmit} disabled={loading} className={cn(loading && 'cursor-not-allowed opacity-70')}>{loading ? '提交中...' : '保存商品'}</Button>
+                    <Button onClick={handleSubmit} disabled={loading || shopsLoading || shops.length === 0} className={cn((loading || shopsLoading || shops.length === 0) && 'cursor-not-allowed opacity-70')}>{loading ? '提交中...' : '保存商品'}</Button>
                     <Button variant="secondary" onClick={() => router.back()}>取消</Button>
                 </div>
             </Card>
