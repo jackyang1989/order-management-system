@@ -335,7 +335,73 @@ export const fetchFundRecords = async (query?: FundRecordQuery): Promise<{ list:
     }
 };
 
+// 导出资金记录为 Excel (CSV 格式)
+export const exportFundRecordsToExcel = async (type?: 'principal' | 'silver'): Promise<void> => {
+    try {
+        const token = localStorage.getItem('token');
+        const params = new URLSearchParams();
+        if (type) params.append('type', type);
+        params.append('pageSize', '10000'); // 获取所有记录
+
+        const response = await fetch(`${BASE_URL}/user/fund-records?${params.toString()}`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!response.ok) throw new Error('Failed to fetch fund records');
+        const res = await response.json();
+        const records: FundRecord[] = res.data?.list || [];
+
+        if (records.length === 0) {
+            throw new Error('没有可导出的记录');
+        }
+
+        // 生成 CSV 内容
+        const typeLabel = type === 'principal' ? '本金' : type === 'silver' ? '银锭' : '全部';
+        const headers = ['时间', '类型', '收支', '金额', '余额', '描述'];
+        const rows = records.map(r => [
+            new Date(r.createdAt).toLocaleString('zh-CN'),
+            r.type === 'principal' ? '本金' : '银锭',
+            r.action === 'in' ? '收入' : '支出',
+            r.amount.toFixed(2),
+            r.balance.toFixed(2),
+            r.description
+        ]);
+
+        // 添加 BOM 以支持中文
+        const BOM = '\uFEFF';
+        const csvContent = BOM + [headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join('\n');
+
+        // 创建下载
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `资金记录_${typeLabel}_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Export fund records error:', error);
+        throw error;
+    }
+};
+
 // ========== 用户资料 ==========
+
+export interface UserProfileStats {
+    totalPaidPrincipal: number;     // 累计垫付本金
+    monthlyRemainingTasks: number;  // 本月剩余任务数
+    totalCompletedTasks: number;    // 累计完成任务数
+    totalEarnedSilver: number;      // 累计赚取银锭
+    pendingMerchantSilver: number;  // 待商家发放银锭
+    frozenSilver: number;           // 冻结的银锭
+    silverToYuan: number;           // 银锭折现金额
+    todayInvited: number;           // 今日邀请人数
+    totalInvited: number;           // 总邀请人数
+    pendingOrders: number;          // 进行中订单数
+    submittedOrders: number;        // 待审核订单数
+    experience: number;             // 经验值
+}
 
 export interface UserProfile {
     id: string;
@@ -353,6 +419,7 @@ export interface UserProfile {
     pendingReward: number;  // 待发放
     experience: number;     // 经验值
     createdAt: string;
+    stats?: UserProfileStats;  // 扩展统计数据
 }
 
 // 获取用户资料

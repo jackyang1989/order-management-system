@@ -7,7 +7,8 @@ import ProfileContainer from '../../../components/ProfileContainer';
 import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
 import { isAuthenticated } from '../../../services/authService';
-import { fetchFundRecords, fetchWithdrawals, FundRecord, Withdrawal } from '../../../services/userService';
+import { fetchFundRecords, fetchWithdrawals, exportFundRecordsToExcel, FundRecord, Withdrawal } from '../../../services/userService';
+import { toastSuccess, toastError } from '../../../lib/toast';
 
 function RecordsContent() {
     const router = useRouter();
@@ -18,6 +19,23 @@ function RecordsContent() {
     const [activeTab, setActiveTab] = useState<'balance' | 'silver' | 'withdraw'>(initialTab || 'balance');
     const [fundRecords, setFundRecords] = useState<FundRecord[]>([]);
     const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
+    const [exporting, setExporting] = useState(false);
+
+    const handleExport = async () => {
+        if (activeTab === 'withdraw') {
+            toastError('提现记录暂不支持导出');
+            return;
+        }
+        setExporting(true);
+        try {
+            await exportFundRecordsToExcel(activeTab === 'balance' ? 'principal' : 'silver');
+            toastSuccess('导出成功');
+        } catch (error: any) {
+            toastError(error?.message || '导出失败');
+        } finally {
+            setExporting(false);
+        }
+    };
 
     useEffect(() => { if (!isAuthenticated()) { router.push('/login'); return; } loadData(); }, [activeTab]);
 
@@ -43,6 +61,15 @@ function RecordsContent() {
                 <div className="mx-auto flex h-14 max-w-[515px] items-center px-4">
                     <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
                     <h1 className="flex-1 text-base font-medium text-slate-800">资金记录</h1>
+                    {activeTab !== 'withdraw' && (
+                        <button
+                            onClick={handleExport}
+                            disabled={exporting || loading}
+                            className="text-sm font-medium text-blue-500 disabled:text-slate-400"
+                        >
+                            {exporting ? '导出中...' : '导出'}
+                        </button>
+                    )}
                 </div>
             </header>
 

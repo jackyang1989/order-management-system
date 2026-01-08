@@ -52,6 +52,7 @@ import { MobileCompatModule } from './mobile-compat/mobile-compat.module';
 import { CaptchaModule } from './captcha/captcha.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { InviteModule } from './invite/invite.module';
+import { HelpCenterModule } from './help-center/help-center.module';
 
 // ============ 显式实体引入（禁止使用通配符加载）============
 // admin-config
@@ -148,6 +149,8 @@ import { FundRecord } from './users/fund-record.entity';
 import { VipPackage, VipPurchase, RechargeOrder } from './vip/vip.entity';
 // withdrawals
 import { Withdrawal } from './withdrawals/withdrawal.entity';
+// help-center
+import { HelpArticle } from './help-center/help-article.entity';
 
 // 所有实体的显式列表
 const ENTITIES = [
@@ -246,6 +249,8 @@ const ENTITIES = [
   RechargeOrder,
   // withdrawals
   Withdrawal,
+  // help-center
+  HelpArticle,
 ];
 
 @Module({
@@ -325,6 +330,7 @@ const ENTITIES = [
     CaptchaModule,
     ReviewsModule,
     InviteModule,
+    HelpCenterModule,
   ],
   controllers: [AppController],
   providers: [

@@ -8,11 +8,13 @@ import { JwtStrategy } from './jwt.strategy';
 import { AdminGuard } from './admin.guard';
 import { UsersModule } from '../users/users.module';
 import { User } from '../users/user.entity';
+import { SmsModule } from '../sms/sms.module';
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
+    SmsModule,
     TypeOrmModule.forFeature([User]), // P1-1: 用于JwtStrategy中的VIP过期检查
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'order-mgmt-jwt-secret-2026',

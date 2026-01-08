@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan, LessThan } from 'typeorm';
 import {
@@ -9,9 +9,11 @@ import {
   SendSmsCodeDto,
   VerifySmsCodeDto,
 } from './sms.entity';
+import { AdminConfigService } from '../admin-config/admin-config.service';
 
 @Injectable()
 export class SmsService {
+  private readonly logger = new Logger(SmsService.name);
   // 验证码有效期（分钟）
   private readonly CODE_EXPIRE_MINUTES = 5;
   // 同一手机号发送间隔（秒）
@@ -24,6 +26,7 @@ export class SmsService {
     private codeRepository: Repository<SmsCode>,
     @InjectRepository(SmsLog)
     private logRepository: Repository<SmsLog>,
+    private configService: AdminConfigService,
   ) { }
 
   /**
@@ -31,6 +34,34 @@ export class SmsService {
    */
   private generateCode(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  /**
+   * 获取短信模板内容
+   */
+  private getSmsTemplate(type: SmsCodeType, code: string): string {
+    const sign = this.configService.getValue('sms_sign') || '任务系统';
+    let template: string;
+
+    switch (type) {
+      case SmsCodeType.LOGIN:
+        template = this.configService.getValue('sms_template_login') || '您的登录验证码是{code}，5分钟内有效。';
+        break;
+      case SmsCodeType.REGISTER:
+        template = this.configService.getValue('sms_template_register') || '您的注册验证码是{code}，5分钟内有效。';
+        break;
+      case SmsCodeType.CHANGE_PHONE:
+        template = this.configService.getValue('sms_template_change_phone') || '您的手机号变更验证码是{code}，5分钟内有效。';
+        break;
+      case SmsCodeType.CHANGE_PASSWORD:
+      case SmsCodeType.CHANGE_PAY_PASSWORD:
+        template = this.configService.getValue('sms_template_change_password') || '您的密码重置验证码是{code}，5分钟内有效。';
+        break;
+      default:
+        template = '您的验证码是{code}，5分钟内有效。';
+    }
+
+    return `【${sign}】${template.replace('{code}', code)}`;
   }
 
   /**
@@ -45,6 +76,22 @@ export class SmsService {
     expireAt?: Date;
   }> {
     const { phone, type } = dto;
+
+    // 检查短信服务是否启用
+    const smsEnabled = this.configService.getBooleanValue('sms_enabled', false);
+    if (!smsEnabled) {
+      // 短信未启用时，模拟发送成功
+      this.logger.warn(`[SMS] 短信服务未启用，模拟发送验证码到 ${phone}`);
+      const code = this.generateCode();
+      const expireAt = new Date();
+      expireAt.setMinutes(expireAt.getMinutes() + this.CODE_EXPIRE_MINUTES);
+
+      await this.codeRepository.save(
+        this.codeRepository.create({ phone, code, type, expireAt, ip }),
+      );
+
+      return { success: true, message: '验证码已发送(测试模式)', expireAt };
+    }
 
     // 检查发送频率
     const lastSend = await this.codeRepository.findOne({
@@ -95,9 +142,9 @@ export class SmsService {
     });
     await this.codeRepository.save(smsCode);
 
-    // 调用短信服务发送（这里模拟发送）
-    const content = `【订单管理系统】您的验证码是${code}，${this.CODE_EXPIRE_MINUTES}分钟内有效。`;
-    const sendResult = await this.doSendSms(phone, content, type, ip);
+    // 获取短信内容
+    const content = this.getSmsTemplate(type, code);
+    const sendResult = await this.doSendSms(phone, content, code, type);
 
     // 记录发送日志
     await this.logRepository.save(
@@ -115,7 +162,7 @@ export class SmsService {
     if (!sendResult.success) {
       return {
         success: false,
-        message: '短信发送失败，请稍后重试',
+        message: sendResult.errorMsg || '短信发送失败，请稍后重试',
       };
     }
 
@@ -127,31 +174,156 @@ export class SmsService {
   }
 
   /**
-   * 实际发送短信（模拟）
-   * 实际项目中对接阿里云、腾讯云等短信服务
+   * 实际发送短信
+   * 支持短信宝和阿里云两种服务商
    */
   private async doSendSms(
     phone: string,
     content: string,
-    type: string,
-    ip?: string,
+    code: string,
+    type: SmsCodeType,
   ): Promise<{
     success: boolean;
     msgId?: string;
     errorMsg?: string;
   }> {
-    // 模拟发送成功
-    // 实际项目中替换为真实的短信API调用
-    console.log(`[SMS] 发送短信到 ${phone}: ${content}`);
+    const provider = this.configService.getValue('sms_provider') || 'smsbao';
 
-    // 模拟 95% 成功率
-    const success = Math.random() > 0.05;
+    this.logger.log(`[SMS] 使用 ${provider} 发送短信到 ${phone}`);
 
-    return {
-      success,
-      msgId: success ? `MSG_${Date.now()}` : undefined,
-      errorMsg: success ? undefined : '短信网关繁忙',
-    };
+    try {
+      if (provider === 'aliyun') {
+        return await this.sendViaAliyun(phone, code);
+      } else {
+        return await this.sendViaSmsbao(phone, content);
+      }
+    } catch (error) {
+      this.logger.error(`[SMS] 发送失败: ${error.message}`);
+      return {
+        success: false,
+        errorMsg: error.message || '短信发送异常',
+      };
+    }
+  }
+
+  /**
+   * 通过短信宝发送短信
+   */
+  private async sendViaSmsbao(
+    phone: string,
+    content: string,
+  ): Promise<{ success: boolean; msgId?: string; errorMsg?: string }> {
+    const username = this.configService.getValue('smsbao_username');
+    const password = this.configService.getValue('smsbao_password');
+
+    if (!username || !password) {
+      return { success: false, errorMsg: '短信宝配置不完整' };
+    }
+
+    try {
+      // 短信宝 API: http://api.smsbao.com/sms?u=用户名&p=密码MD5&m=手机号&c=内容
+      const url = `http://api.smsbao.com/sms?u=${encodeURIComponent(username)}&p=${password}&m=${phone}&c=${encodeURIComponent(content)}`;
+
+      const response = await fetch(url);
+      const result = await response.text();
+
+      // 短信宝返回码: 0=成功, 其他=失败
+      const statusCodes: Record<string, string> = {
+        '0': '发送成功',
+        '30': '密码错误',
+        '40': '账号不存在',
+        '41': 'IP禁止',
+        '42': '账号过期',
+        '43': '余额不足',
+        '50': '内容含敏感词',
+        '51': '手机号格式错误',
+      };
+
+      if (result === '0') {
+        return { success: true, msgId: `SMSBAO_${Date.now()}` };
+      }
+
+      return {
+        success: false,
+        errorMsg: statusCodes[result] || `短信宝错误码: ${result}`,
+      };
+    } catch (error) {
+      return { success: false, errorMsg: `短信宝请求失败: ${error.message}` };
+    }
+  }
+
+  /**
+   * 通过阿里云发送短信
+   */
+  private async sendViaAliyun(
+    phone: string,
+    code: string,
+  ): Promise<{ success: boolean; msgId?: string; errorMsg?: string }> {
+    const accessKeyId = this.configService.getValue('aliyun_sms_access_key');
+    const accessKeySecret = this.configService.getValue('aliyun_sms_access_secret');
+    const signName = this.configService.getValue('aliyun_sms_sign_name');
+    const templateCode = this.configService.getValue('aliyun_sms_template_code');
+
+    if (!accessKeyId || !accessKeySecret || !signName || !templateCode) {
+      return { success: false, errorMsg: '阿里云短信配置不完整' };
+    }
+
+    try {
+      // 阿里云短信 API 签名计算
+      const params: Record<string, string> = {
+        AccessKeyId: accessKeyId,
+        Action: 'SendSms',
+        Format: 'JSON',
+        PhoneNumbers: phone,
+        RegionId: 'cn-hangzhou',
+        SignName: signName,
+        SignatureMethod: 'HMAC-SHA1',
+        SignatureNonce: Math.random().toString(36).substring(2),
+        SignatureVersion: '1.0',
+        TemplateCode: templateCode,
+        TemplateParam: JSON.stringify({ code }),
+        Timestamp: new Date().toISOString().replace(/\.\d{3}/, ''),
+        Version: '2017-05-25',
+      };
+
+      // 按字母排序参数
+      const sortedKeys = Object.keys(params).sort();
+      const canonicalizedQueryString = sortedKeys
+        .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+        .join('&');
+
+      // 构造签名字符串
+      const stringToSign = `GET&${encodeURIComponent('/')}&${encodeURIComponent(canonicalizedQueryString)}`;
+
+      // HMAC-SHA1 签名
+      const crypto = require('crypto');
+      const signature = crypto
+        .createHmac('sha1', accessKeySecret + '&')
+        .update(stringToSign)
+        .digest('base64');
+
+      params.Signature = signature;
+
+      // 发起请求
+      const queryString = Object.keys(params)
+        .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+        .join('&');
+
+      const url = `https://dysmsapi.aliyuncs.com/?${queryString}`;
+      const response = await fetch(url);
+      const result = await response.json();
+
+      if (result.Code === 'OK') {
+        return { success: true, msgId: result.BizId };
+      }
+
+      return {
+        success: false,
+        errorMsg: result.Message || `阿里云错误: ${result.Code}`,
+      };
+    } catch (error) {
+      return { success: false, errorMsg: `阿里云请求失败: ${error.message}` };
+    }
   }
 
   /**
@@ -163,8 +335,9 @@ export class SmsService {
   }> {
     const { phone, code, type } = dto;
 
-    // Backdoor for testing
-    if (code === '123456') {
+    // Backdoor for testing (当短信未启用时)
+    const smsEnabled = this.configService.getBooleanValue('sms_enabled', false);
+    if (!smsEnabled && code === '123456') {
       return { success: true, message: '通过' };
     }
 
@@ -206,6 +379,12 @@ export class SmsService {
     code: string,
     type: SmsCodeType,
   ): Promise<boolean> {
+    // 测试模式下 123456 永远有效
+    const smsEnabled = this.configService.getBooleanValue('sms_enabled', false);
+    if (!smsEnabled && code === '123456') {
+      return true;
+    }
+
     const smsCode = await this.codeRepository.findOne({
       where: {
         phone,

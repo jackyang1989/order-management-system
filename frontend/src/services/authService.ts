@@ -77,6 +77,64 @@ export const sendSmsCode = async (phone: string): Promise<{ success: boolean; me
     }
 };
 
+// 发送登录验证码
+export const sendLoginCode = async (phone: string): Promise<{ success: boolean; message: string }> => {
+    if (USE_MOCK) {
+        console.log('[AuthService] Mock login SMS sent to:', phone);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return { success: true, message: '验证码已发送 (Mock: 123456)' };
+    }
+
+    try {
+        const response = await fetch(`${BASE_URL}/auth/send-login-code`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            return { success: false, message: data.message || '发送失败' };
+        }
+        return data;
+    } catch (error) {
+        return { success: false, message: '发送失败' };
+    }
+};
+
+// 短信验证码登录
+export const smsLogin = async (phone: string, code: string): Promise<LoginResult> => {
+    if (USE_MOCK) {
+        console.log('[AuthService] Mock SMS login:', phone, code);
+        await new Promise(resolve => setTimeout(resolve, 800));
+        if (code === '123456') {
+            const user = mockUsers.find(u => u.phone === phone);
+            if (user) {
+                return {
+                    success: true,
+                    message: '登录成功',
+                    data: { accessToken: 'mock-jwt-token-' + user.id, user }
+                };
+            }
+        }
+        return { success: false, message: '验证码错误' };
+    }
+
+    try {
+        const response = await fetch(`${BASE_URL}/auth/sms-login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, code })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            return { success: false, message: data.message || '登录失败' };
+        }
+        return data;
+    } catch (error) {
+        return { success: false, message: '网络错误' };
+    }
+};
+
 // 注册
 export const register = async (data: {
     phone: string;

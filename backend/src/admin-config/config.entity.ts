@@ -390,25 +390,13 @@ export const DEFAULT_CONFIGS = [
 
   // 短信设置
   {
-    key: 'sms_username',
-    value: '',
+    key: 'sms_provider',
+    value: 'smsbao',
     group: 'sms',
-    label: '短信账号',
+    label: '短信服务商',
     valueType: 'string',
-  },
-  {
-    key: 'sms_password',
-    value: '',
-    group: 'sms',
-    label: '短信密码',
-    valueType: 'string',
-  },
-  {
-    key: 'sms_sign',
-    value: '',
-    group: 'sms',
-    label: '短信签名',
-    valueType: 'string',
+    options: '[{"value":"smsbao","label":"短信宝"},{"value":"aliyun","label":"阿里云"}]',
+    description: '选择使用的短信服务商',
   },
   {
     key: 'sms_enabled',
@@ -416,6 +404,90 @@ export const DEFAULT_CONFIGS = [
     group: 'sms',
     label: '启用短信验证',
     valueType: 'boolean',
+  },
+  // 短信宝配置
+  {
+    key: 'smsbao_username',
+    value: '',
+    group: 'sms',
+    label: '短信宝用户名',
+    valueType: 'string',
+  },
+  {
+    key: 'smsbao_password',
+    value: '',
+    group: 'sms',
+    label: '短信宝密码',
+    valueType: 'string',
+    description: '需要填写MD5加密后的密码',
+  },
+  // 阿里云短信配置
+  {
+    key: 'aliyun_sms_access_key',
+    value: '',
+    group: 'sms',
+    label: '阿里云AccessKeyId',
+    valueType: 'string',
+  },
+  {
+    key: 'aliyun_sms_access_secret',
+    value: '',
+    group: 'sms',
+    label: '阿里云AccessKeySecret',
+    valueType: 'string',
+  },
+  {
+    key: 'aliyun_sms_sign_name',
+    value: '',
+    group: 'sms',
+    label: '阿里云短信签名',
+    valueType: 'string',
+  },
+  {
+    key: 'aliyun_sms_template_code',
+    value: '',
+    group: 'sms',
+    label: '阿里云验证码模板ID',
+    valueType: 'string',
+    description: '阿里云短信模板Code',
+  },
+  // 短信内容模板
+  {
+    key: 'sms_sign',
+    value: '任务系统',
+    group: 'sms',
+    label: '短信签名',
+    valueType: 'string',
+    description: '短信宝使用的签名，阿里云使用aliyun_sms_sign_name',
+  },
+  {
+    key: 'sms_template_login',
+    value: '您的登录验证码是{code}，5分钟内有效。',
+    group: 'sms',
+    label: '登录验证码模板',
+    valueType: 'string',
+    description: '短信宝使用，{code}会被替换为验证码',
+  },
+  {
+    key: 'sms_template_register',
+    value: '您的注册验证码是{code}，5分钟内有效。',
+    group: 'sms',
+    label: '注册验证码模板',
+    valueType: 'string',
+  },
+  {
+    key: 'sms_template_change_phone',
+    value: '您的手机号变更验证码是{code}，5分钟内有效。',
+    group: 'sms',
+    label: '换绑手机验证码模板',
+    valueType: 'string',
+  },
+  {
+    key: 'sms_template_change_password',
+    value: '您的密码重置验证码是{code}，5分钟内有效。',
+    group: 'sms',
+    label: '重置密码验证码模板',
+    valueType: 'string',
   },
 
   // 支付设置

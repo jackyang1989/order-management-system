@@ -8,12 +8,15 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto, LoginDto } from '../users/user.entity';
+import { SmsService } from '../sms/sms.service';
+import { SmsCodeType } from '../sms/sms.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private smsService: SmsService,
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
@@ -136,6 +139,70 @@ export class AuthService {
     return {
       success: true,
       data: user,
+    };
+  }
+
+  /**
+   * 发送登录验证码
+   */
+  async sendLoginCode(phone: string, ip?: string) {
+    // 检查手机号是否已注册
+    const user = await this.usersService.findByPhone(phone);
+    if (!user) {
+      throw new BadRequestException('该手机号未注册');
+    }
+
+    return this.smsService.sendCode(
+      { phone, type: SmsCodeType.LOGIN },
+      ip,
+    );
+  }
+
+  /**
+   * 短信验证码登录
+   */
+  async loginWithSmsCode(phone: string, code: string) {
+    // 验证手机号是否存在
+    const user = await this.usersService.findByPhone(phone);
+    if (!user) {
+      throw new UnauthorizedException('该手机号未注册');
+    }
+
+    // 验证验证码
+    const verifyResult = await this.smsService.verifyCode({
+      phone,
+      code,
+      type: SmsCodeType.LOGIN,
+    });
+
+    if (!verifyResult.success) {
+      throw new UnauthorizedException(verifyResult.message);
+    }
+
+    // 生成 JWT
+    const payload = {
+      sub: user.id,
+      username: user.username,
+      phone: user.phone,
+    };
+
+    return {
+      success: true,
+      message: '登录成功',
+      data: {
+        accessToken: this.jwtService.sign(payload),
+        user: {
+          id: user.id,
+          username: user.username,
+          phone: user.phone,
+          vip: user.vip,
+          vipExpireAt: user.vipExpireAt,
+          balance: user.balance,
+          silver: user.silver,
+          reward: user.reward,
+          invitationCode: user.invitationCode,
+        },
+      },
     };
   }
 }
