@@ -373,8 +373,8 @@ export class MobileCompatController {
       }
 
       // 获取订单信息
-      const order = await this.ordersService.findOne(orderId, req.user.userId);
-      if (!order) {
+      const order = await this.ordersService.findOne(orderId);
+      if (!order || order.userId !== req.user.userId) {
         return { code: 0, msg: '订单不存在', data: null };
       }
 

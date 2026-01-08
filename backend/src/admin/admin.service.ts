@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Between, MoreThanOrEqual, LessThan } from 'typeorm';
 import { User } from '../users/user.entity';
 import { Merchant, MerchantStatus } from '../merchants/merchant.entity';
 import { Task, TaskStatus } from '../tasks/task.entity';
 import { Order, OrderStatus } from '../orders/order.entity';
 import { Withdrawal, WithdrawalStatus } from '../withdrawals/withdrawal.entity';
 import { WithdrawalsService } from '../withdrawals/withdrawals.service';
+import { FinanceRecord, FinanceType, FinanceMoneyType } from '../finance-records/finance-record.entity';
 
 @Injectable()
 export class AdminService {
@@ -21,6 +22,8 @@ export class AdminService {
     private ordersRepository: Repository<Order>,
     @InjectRepository(Withdrawal)
     private withdrawalsRepository: Repository<Withdrawal>,
+    @InjectRepository(FinanceRecord)
+    private financeRecordRepository: Repository<FinanceRecord>,
     private withdrawalsService: WithdrawalsService,
   ) { }
 
@@ -435,4 +438,286 @@ export class AdminService {
     await this.merchantsRepository.save(merchant);
     return { success: true };
   }
+
+  // ============ 经营概况统计 ============
+
+  /**
+   * 获取经营概况 - 今日/昨日/本周/本月数据对比
+   */
+  async getBusinessOverview(): Promise<{
+    today: BusinessMetrics;
+    yesterday: BusinessMetrics;
+    thisWeek: BusinessMetrics;
+    thisMonth: BusinessMetrics;
+  }> {
+    const now = new Date();
+
+    // 今日
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(now);
+    todayEnd.setHours(23, 59, 59, 999);
+
+    // 昨日
+    const yesterdayStart = new Date(todayStart);
+    yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+    const yesterdayEnd = new Date(todayStart);
+    yesterdayEnd.setMilliseconds(-1);
+
+    // 本周（周一开始）
+    const weekStart = new Date(todayStart);
+    const dayOfWeek = weekStart.getDay() || 7;
+    weekStart.setDate(weekStart.getDate() - dayOfWeek + 1);
+
+    // 本月
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [today, yesterday, thisWeek, thisMonth] = await Promise.all([
+      this.getMetricsForPeriod(todayStart, todayEnd),
+      this.getMetricsForPeriod(yesterdayStart, yesterdayEnd),
+      this.getMetricsForPeriod(weekStart, todayEnd),
+      this.getMetricsForPeriod(monthStart, todayEnd),
+    ]);
+
+    return { today, yesterday, thisWeek, thisMonth };
+  }
+
+  private async getMetricsForPeriod(start: Date, end: Date): Promise<BusinessMetrics> {
+    // 订单统计
+    const ordersQuery = this.ordersRepository
+      .createQueryBuilder('o')
+      .where('o.createdAt BETWEEN :start AND :end', { start, end });
+
+    const orderCount = await ordersQuery.getCount();
+    const completedOrders = await ordersQuery.clone()
+      .andWhere('o.status IN (:...statuses)', { statuses: [OrderStatus.APPROVED, OrderStatus.COMPLETED] })
+      .getCount();
+
+    // 交易金额统计
+    const amountResult = await this.ordersRepository
+      .createQueryBuilder('o')
+      .select('SUM(o.productPrice)', 'totalAmount')
+      .addSelect('SUM(o.commission)', 'totalCommission')
+      .addSelect('SUM(o.userDivided)', 'totalUserDivided')
+      .where('o.createdAt BETWEEN :start AND :end', { start, end })
+      .andWhere('o.status IN (:...statuses)', { statuses: [OrderStatus.APPROVED, OrderStatus.COMPLETED] })
+      .getRawOne();
+
+    // 新增用户统计
+    const newUsers = await this.usersRepository
+      .createQueryBuilder('u')
+      .where('u.createdAt BETWEEN :start AND :end', { start, end })
+      .getCount();
+
+    const newMerchants = await this.merchantsRepository
+      .createQueryBuilder('m')
+      .where('m.createdAt BETWEEN :start AND :end', { start, end })
+      .getCount();
+
+    // 任务统计
+    const newTasks = await this.tasksRepository
+      .createQueryBuilder('t')
+      .where('t.createdAt BETWEEN :start AND :end', { start, end })
+      .getCount();
+
+    return {
+      orderCount,
+      completedOrders,
+      totalAmount: Number(amountResult?.totalAmount || 0),
+      totalCommission: Number(amountResult?.totalCommission || 0),
+      totalUserDivided: Number(amountResult?.totalUserDivided || 0),
+      newUsers,
+      newMerchants,
+      newTasks,
+    };
+  }
+
+  // ============ 资金大盘统计 ============
+
+  /**
+   * 获取资金大盘 - 平台资金流转统计
+   */
+  async getFundOverview(): Promise<{
+    userBalance: { total: number; frozen: number };
+    merchantBalance: { total: number; frozen: number };
+    userSilver: number;
+    merchantSilver: number;
+    todayRecharge: number;
+    todayWithdraw: number;
+    todayCommission: number;
+    pendingWithdraw: number;
+  }> {
+    // 用户余额汇总
+    const userBalanceResult = await this.usersRepository
+      .createQueryBuilder('u')
+      .select('SUM(u.balance)', 'total')
+      .addSelect('SUM(u.silver)', 'silver')
+      .getRawOne();
+
+    // 商家余额汇总
+    const merchantBalanceResult = await this.merchantsRepository
+      .createQueryBuilder('m')
+      .select('SUM(m.balance)', 'total')
+      .addSelect('SUM(m.frozenBalance)', 'frozen')
+      .addSelect('SUM(m.silver)', 'silver')
+      .getRawOne();
+
+    // 今日时间范围
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    // 今日充值金额
+    const rechargeResult = await this.financeRecordRepository
+      .createQueryBuilder('f')
+      .select('SUM(f.amount)', 'total')
+      .where('f.createdAt BETWEEN :start AND :end', { start: todayStart, end: todayEnd })
+      .andWhere('f.financeType = :type', { type: FinanceType.RECHARGE })
+      .getRawOne();
+
+    // 今日提现金额
+    const withdrawResult = await this.withdrawalsRepository
+      .createQueryBuilder('w')
+      .select('SUM(w.amount)', 'total')
+      .where('w.createdAt BETWEEN :start AND :end', { start: todayStart, end: todayEnd })
+      .andWhere('w.status IN (:...statuses)', { statuses: [WithdrawalStatus.APPROVED_PENDING_TRANSFER, WithdrawalStatus.COMPLETED] })
+      .getRawOne();
+
+    // 今日佣金发放
+    const commissionResult = await this.financeRecordRepository
+      .createQueryBuilder('f')
+      .select('SUM(f.amount)', 'total')
+      .where('f.createdAt BETWEEN :start AND :end', { start: todayStart, end: todayEnd })
+      .andWhere('f.financeType = :type', { type: FinanceType.COMMISSION })
+      .getRawOne();
+
+    // 待处理提现
+    const pendingWithdrawResult = await this.withdrawalsRepository
+      .createQueryBuilder('w')
+      .select('SUM(w.amount)', 'total')
+      .where('w.status = :status', { status: WithdrawalStatus.PENDING })
+      .getRawOne();
+
+    return {
+      userBalance: {
+        total: Number(userBalanceResult?.total || 0),
+        frozen: 0,
+      },
+      merchantBalance: {
+        total: Number(merchantBalanceResult?.total || 0),
+        frozen: Number(merchantBalanceResult?.frozen || 0),
+      },
+      userSilver: Number(userBalanceResult?.silver || 0),
+      merchantSilver: Number(merchantBalanceResult?.silver || 0),
+      todayRecharge: Number(rechargeResult?.total || 0),
+      todayWithdraw: Number(withdrawResult?.total || 0),
+      todayCommission: Number(commissionResult?.total || 0),
+      pendingWithdraw: Number(pendingWithdrawResult?.total || 0),
+    };
+  }
+
+  // ============ 用户增长趋势 ============
+
+  /**
+   * 获取用户增长趋势 - 过去N天每日新增
+   */
+  async getUserGrowthTrend(days: number = 30): Promise<{
+    dates: string[];
+    users: number[];
+    merchants: number[];
+  }> {
+    const dates: string[] = [];
+    const users: number[] = [];
+    const merchants: number[] = [];
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    for (let i = days - 1; i >= 0; i--) {
+      const dayStart = new Date(now);
+      dayStart.setDate(dayStart.getDate() - i);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setHours(23, 59, 59, 999);
+
+      const dateStr = dayStart.toISOString().split('T')[0];
+      dates.push(dateStr);
+
+      const userCount = await this.usersRepository
+        .createQueryBuilder('u')
+        .where('u.createdAt BETWEEN :start AND :end', { start: dayStart, end: dayEnd })
+        .getCount();
+      users.push(userCount);
+
+      const merchantCount = await this.merchantsRepository
+        .createQueryBuilder('m')
+        .where('m.createdAt BETWEEN :start AND :end', { start: dayStart, end: dayEnd })
+        .getCount();
+      merchants.push(merchantCount);
+    }
+
+    return { dates, users, merchants };
+  }
+
+  /**
+   * 获取订单趋势 - 过去N天每日订单量
+   */
+  async getOrderTrend(days: number = 30): Promise<{
+    dates: string[];
+    orders: number[];
+    completed: number[];
+    amount: number[];
+  }> {
+    const dates: string[] = [];
+    const orders: number[] = [];
+    const completed: number[] = [];
+    const amount: number[] = [];
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    for (let i = days - 1; i >= 0; i--) {
+      const dayStart = new Date(now);
+      dayStart.setDate(dayStart.getDate() - i);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setHours(23, 59, 59, 999);
+
+      const dateStr = dayStart.toISOString().split('T')[0];
+      dates.push(dateStr);
+
+      const orderCount = await this.ordersRepository
+        .createQueryBuilder('o')
+        .where('o.createdAt BETWEEN :start AND :end', { start: dayStart, end: dayEnd })
+        .getCount();
+      orders.push(orderCount);
+
+      const completedCount = await this.ordersRepository
+        .createQueryBuilder('o')
+        .where('o.createdAt BETWEEN :start AND :end', { start: dayStart, end: dayEnd })
+        .andWhere('o.status IN (:...statuses)', { statuses: [OrderStatus.APPROVED, OrderStatus.COMPLETED] })
+        .getCount();
+      completed.push(completedCount);
+
+      const amountResult = await this.ordersRepository
+        .createQueryBuilder('o')
+        .select('SUM(o.productPrice)', 'total')
+        .where('o.createdAt BETWEEN :start AND :end', { start: dayStart, end: dayEnd })
+        .andWhere('o.status IN (:...statuses)', { statuses: [OrderStatus.APPROVED, OrderStatus.COMPLETED] })
+        .getRawOne();
+      amount.push(Number(amountResult?.total || 0));
+    }
+
+    return { dates, orders, completed, amount };
+  }
+}
+
+interface BusinessMetrics {
+  orderCount: number;
+  completedOrders: number;
+  totalAmount: number;
+  totalCommission: number;
+  totalUserDivided: number;
+  newUsers: number;
+  newMerchants: number;
+  newTasks: number;
 }

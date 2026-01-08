@@ -4,6 +4,7 @@ import { TasksService } from './tasks.service';
 import { TasksController } from './tasks.controller';
 import { OrdersModule } from '../orders/orders.module';
 import { MerchantsModule } from '../merchants/merchants.module';
+import { MessagesModule } from '../messages/messages.module';
 import { Task } from './task.entity';
 // TaskGoods 已迁移到 task-goods 模块
 import { TaskGoods, TaskKeyword } from '../task-goods/task-goods.entity';
@@ -13,6 +14,7 @@ import { TaskGoods, TaskKeyword } from '../task-goods/task-goods.entity';
     TypeOrmModule.forFeature([Task, TaskGoods, TaskKeyword]),
     forwardRef(() => OrdersModule),
     forwardRef(() => MerchantsModule),
+    forwardRef(() => MessagesModule),
   ],
   providers: [TasksService],
   controllers: [TasksController],

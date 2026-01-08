@@ -1,5 +1,5 @@
 import { Controller, Get, Query, UseGuards, Request, Res, BadRequestException } from '@nestjs/common';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { FinanceRecordsService } from './finance-records.service';
 import {
   FinanceRecordFilterDto,

@@ -16,6 +16,8 @@ import {
   TaskFilterDto,
 } from './task.entity';
 import { MerchantsService } from '../merchants/merchants.service';
+import { MessagesService } from '../messages/messages.service';
+import { MessageUserType } from '../messages/message.entity';
 
 @Injectable()
 export class TasksService implements OnModuleInit {
@@ -24,6 +26,8 @@ export class TasksService implements OnModuleInit {
     private tasksRepository: Repository<Task>,
     @Inject(forwardRef(() => MerchantsService))
     private merchantsService: MerchantsService,
+    @Inject(forwardRef(() => MessagesService))
+    private messagesService: MessagesService,
     private dataSource: DataSource,
   ) { }
 
@@ -239,34 +243,60 @@ export class TasksService implements OnModuleInit {
       const dividePrice = baseFeePerOrder * count; // 分成基数
       const userDividedTotal = Math.round(dividePrice * dividedRate * 100) / 100;
 
-      // 2.6 检查余额
-      const totalCost = totalDeposit + totalCommission; // Balance + Silver
-      // In this system: Balance covers deposit, Silver covers commission?
-      // Let's rely on merchant entity: balance, silver.
-      // Usually:
-      // Deposit -> Balance
-      // Commission -> Silver (or Balance)
-      // Let's assume split:
-      // totalDeposit -> Balance
-      // totalCommission -> Silver (as 'baseServiceFee' implies silver cost)
+      // 2.6 检查余额并计算混合支付
+      // 混合支付逻辑：
+      // 1. 佣金优先使用银锭支付
+      // 2. 押金优先使用余额支付
+      // 3. 余额不足时，可用银锭代付押金（如果dto.useReward为true）
+      const useReward = dto.useReward !== false; // 默认启用混合支付
 
-      if (merchant.balance < totalDeposit) {
+      let balanceDeduct = 0; // 从余额扣除
+      let silverDeductForDeposit = 0; // 从银锭扣除（代付押金）
+      let silverDeductForCommission = 0; // 从银锭扣除（佣金）
+
+      // 检查银锭是否足够支付佣金
+      if (merchant.silver < totalCommission) {
+        throw new BadRequestException(
+          `银锭不足，需 ${totalCommission.toFixed(2)}锭，当前 ${merchant.silver}锭`,
+        );
+      }
+      silverDeductForCommission = totalCommission;
+
+      // 检查余额是否足够支付押金
+      if (merchant.balance >= totalDeposit) {
+        // 余额充足，全部从余额扣除
+        balanceDeduct = totalDeposit;
+      } else if (useReward) {
+        // 余额不足，启用混合支付：余额 + 银锭代付
+        balanceDeduct = Number(merchant.balance);
+        const shortfall = totalDeposit - balanceDeduct;
+        // 检查银锭是否足够代付差额
+        const remainingSilver = Number(merchant.silver) - silverDeductForCommission;
+        if (remainingSilver < shortfall) {
+          throw new BadRequestException(
+            `余额+银锭不足，押金需 ${totalDeposit}，余额 ${merchant.balance}，银锭代付差额 ${shortfall} 但仅剩 ${remainingSilver}锭`,
+          );
+        }
+        silverDeductForDeposit = shortfall;
+      } else {
+        // 不启用混合支付，余额必须充足
         throw new BadRequestException(
           `余额不足，需 ${totalDeposit}，当前 ${merchant.balance}`,
         );
       }
-      if (merchant.silver < totalCommission) {
-        throw new BadRequestException(
-          `银锭不足，需 ${totalCommission.toFixed(2)}锭`,
-        );
-      }
+
+      const totalSilverDeduct = silverDeductForCommission + silverDeductForDeposit;
 
       // 扣款动作
-      await this.merchantsService.freezeBalance(merchantId, totalDeposit);
+      if (balanceDeduct > 0) {
+        await this.merchantsService.freezeBalance(merchantId, balanceDeduct);
+      }
       await this.merchantsService.deductSilver(
         merchantId,
-        totalCommission,
-        `发布任务: ${dto.title}`,
+        totalSilverDeduct,
+        silverDeductForDeposit > 0
+          ? `发布任务: ${dto.title}（佣金${silverDeductForCommission}+代付押金${silverDeductForDeposit}）`
+          : `发布任务: ${dto.title}`,
       );
 
       // 4. 创建任务记录
@@ -305,6 +335,23 @@ export class TasksService implements OnModuleInit {
 
       const savedTask = await queryRunner.manager.save(newTask);
       await queryRunner.commitTransaction();
+
+      // 发送消息通知商家：任务发布成功
+      try {
+        const task = Array.isArray(savedTask) ? savedTask[0] : savedTask;
+        if (task && task.id) {
+          await this.messagesService.sendTaskMessage(
+            merchantId,
+            MessageUserType.MERCHANT,
+            task.id,
+            '任务发布成功',
+            `您的任务「${dto.title}」已发布成功，共${count}单，等待买手接单。`,
+          );
+        }
+      } catch (e) {
+        // 消息发送失败不影响主流程
+      }
+
       return Array.isArray(savedTask) ? savedTask[0] : savedTask;
     } catch (error) {
       await queryRunner.rollbackTransaction();

@@ -375,4 +375,46 @@ export class AdminController {
       message: body.vip ? 'VIP已开通' : 'VIP已关闭',
     };
   }
+
+  // ============ 统计报表 ============
+
+  /**
+   * 经营概况 - 今日/昨日/本周/本月数据对比
+   */
+  @Get('reports/business-overview')
+  async getBusinessOverview() {
+    const data = await this.adminService.getBusinessOverview();
+    return { success: true, data };
+  }
+
+  /**
+   * 资金大盘 - 平台资金流转统计
+   */
+  @Get('reports/fund-overview')
+  async getFundOverview() {
+    const data = await this.adminService.getFundOverview();
+    return { success: true, data };
+  }
+
+  /**
+   * 用户增长趋势
+   */
+  @Get('reports/user-growth')
+  async getUserGrowthTrend(@Query('days') days?: string) {
+    const data = await this.adminService.getUserGrowthTrend(
+      days ? parseInt(days) : 30,
+    );
+    return { success: true, data };
+  }
+
+  /**
+   * 订单趋势
+   */
+  @Get('reports/order-trend')
+  async getOrderTrend(@Query('days') days?: string) {
+    const data = await this.adminService.getOrderTrend(
+      days ? parseInt(days) : 30,
+    );
+    return { success: true, data };
+  }
 }

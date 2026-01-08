@@ -23,6 +23,8 @@ import { FinanceRecordsService } from '../finance-records/finance-records.servic
 import { DingdanxiaService } from '../dingdanxia/dingdanxia.service';
 import { MerchantBlacklistService } from '../merchant-blacklist/merchant-blacklist.service';
 import { ReferralService } from '../referral/referral.service';
+import { MessagesService } from '../messages/messages.service';
+import { MessageUserType } from '../messages/message.entity';
 import { User } from '../users/user.entity';
 import { Merchant } from '../merchants/merchant.entity';
 
@@ -42,6 +44,8 @@ export class OrdersService {
     private dingdanxiaService: DingdanxiaService,
     private merchantBlacklistService: MerchantBlacklistService,
     private referralService: ReferralService,
+    @Inject(forwardRef(() => MessagesService))
+    private messagesService: MessagesService,
     private dataSource: DataSource,
   ) { }
 
@@ -393,6 +397,19 @@ export class OrdersService {
       savedOrder.id,
       '接单银锭押金',
     );
+
+    // 发送消息通知商家：有新订单
+    try {
+      await this.messagesService.sendOrderMessage(
+        task.merchantId,
+        MessageUserType.MERCHANT,
+        savedOrder.id,
+        '新订单通知',
+        `任务「${task.title}」有新订单，买手已领取，请关注订单进度。`,
+      );
+    } catch (e) {
+      // 消息发送失败不影响主流程
+    }
 
     return savedOrder;
   }
@@ -857,6 +874,30 @@ export class OrdersService {
       await queryRunner.manager.save(order);
 
       await queryRunner.commitTransaction();
+
+      // 发送消息通知买手：订单审核结果
+      try {
+        if (approved) {
+          await this.messagesService.sendOrderMessage(
+            order.userId,
+            MessageUserType.BUYER,
+            order.id,
+            '订单审核通过',
+            `您的订单「${order.taskTitle}」已审核通过，本金+佣金已返还至账户。`,
+          );
+        } else {
+          await this.messagesService.sendOrderMessage(
+            order.userId,
+            MessageUserType.BUYER,
+            order.id,
+            '订单审核未通过',
+            `您的订单「${order.taskTitle}」审核未通过，原因：${rejectReason || '未说明'}。银锭押金已返还。`,
+          );
+        }
+      } catch (e) {
+        // 消息发送失败不影响主流程
+      }
+
       return order;
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -941,7 +982,22 @@ export class OrdersService {
     order.deliveryNum = deliveryNum;
     order.deliveryTime = new Date();
 
-    return this.ordersRepository.save(order);
+    const savedOrder = await this.ordersRepository.save(order);
+
+    // 发送消息通知买手：商家已发货
+    try {
+      await this.messagesService.sendOrderMessage(
+        order.userId,
+        MessageUserType.BUYER,
+        order.id,
+        '订单已发货',
+        `您的订单「${order.taskTitle}」已发货，快递公司：${delivery}，快递单号：${deliveryNum}，请注意查收。`,
+      );
+    } catch (e) {
+      // 消息发送失败不影响主流程
+    }
+
+    return savedOrder;
   }
 
 
@@ -1081,6 +1137,23 @@ export class OrdersService {
       await queryRunner.manager.save(order);
 
       await queryRunner.commitTransaction();
+
+      // 发送消息通知商家：订单已取消
+      try {
+        const task = await this.tasksService.findOne(order.taskId);
+        if (task) {
+          await this.messagesService.sendOrderMessage(
+            task.merchantId,
+            MessageUserType.MERCHANT,
+            order.id,
+            '订单已取消',
+            `任务「${order.taskTitle}」的订单已被买手取消，本金已退还至您的账户。`,
+          );
+        }
+      } catch (e) {
+        // 消息发送失败不影响主流程
+      }
+
       return order;
     } catch (error) {
       await queryRunner.rollbackTransaction();

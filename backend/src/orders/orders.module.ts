@@ -8,6 +8,7 @@ import { FinanceRecordsModule } from '../finance-records/finance-records.module'
 import { DingdanxiaModule } from '../dingdanxia/dingdanxia.module';
 import { MerchantBlacklistModule } from '../merchant-blacklist/merchant-blacklist.module';
 import { ReferralModule } from '../referral/referral.module';
+import { MessagesModule } from '../messages/messages.module';
 import { Order } from './order.entity';
 import { User } from '../users/user.entity';
 import { Merchant } from '../merchants/merchant.entity';
@@ -21,6 +22,7 @@ import { Merchant } from '../merchants/merchant.entity';
     DingdanxiaModule,
     MerchantBlacklistModule,
     ReferralModule,
+    forwardRef(() => MessagesModule),
   ],
   providers: [OrdersService],
   controllers: [OrdersController],
