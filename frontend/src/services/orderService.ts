@@ -17,7 +17,7 @@ export interface OrderSummary {
     endingTime?: string;
 }
 
-const authHeader = () => {
+const authHeader = (): Record<string, string> => {
     if (typeof localStorage === 'undefined') return {};
     const token = localStorage.getItem('token');
     return token ? { Authorization: `Bearer ${token}` } : {};

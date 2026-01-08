@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchMyOrders, cancelOrder } from '../../../services/orderService';
-import { MockOrder } from '../../../mocks/orderMock';
+import { listOrders, cancelOrder, OrderSummary } from '../../../services/orderService';
 import { isAuthenticated } from '../../../services/authService';
 import BottomNav from '../../../components/BottomNav';
 
 export default function PendingOrdersPage() {
     const router = useRouter();
-    const [orders, setOrders] = useState<MockOrder[]>([]);
+    const [orders, setOrders] = useState<OrderSummary[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -23,7 +22,7 @@ export default function PendingOrdersPage() {
     const loadOrders = async () => {
         setLoading(true);
         try {
-            const allOrders = await fetchMyOrders();
+            const allOrders = await listOrders();
             const pendingOrders = allOrders.filter(
                 o => o.status === 'PENDING' || o.status === 'SUBMITTED'
             );
@@ -35,30 +34,20 @@ export default function PendingOrdersPage() {
         }
     };
 
-    const handleGoStep = (order: MockOrder) => {
+    const handleGoStep = (order: OrderSummary) => {
         router.push(`/orders/${order.id}`);
     };
 
-    const handleCancel = async (order: MockOrder) => {
+    const handleCancel = async (order: OrderSummary) => {
         if (!confirm('确定要放弃此任务吗？每人每天前2单任务自行放弃不扣银锭')) {
             return;
         }
         try {
-            const result = await cancelOrder(order.id);
-            if (result.success) {
-                loadOrders();
-            } else {
-                alert(result.message || '取消失败');
-            }
+            await cancelOrder(order.id);
+            loadOrders();
         } catch (error) {
-            alert('操作失败，请重试');
+            alert((error as Error).message || '操作失败，请重试');
         }
-    };
-
-    const getTerminalLabel = (terminal: string | number | undefined) => {
-        if (terminal === '1' || terminal === 1) return '本佣货返';
-        if (terminal === '2' || terminal === 2) return '本立佣货';
-        return '-';
     };
 
     return (
@@ -96,7 +85,7 @@ export default function PendingOrdersPage() {
                                 {/* Task Header */}
                                 <div className="mb-4 flex items-center justify-between">
                                     <span className="text-xs text-slate-400">
-                                        #{order.taskNumber || order.id?.slice(-6)}
+                                        #{order.id?.slice(-6)}
                                     </span>
                                     <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-500">
                                         进行中
@@ -111,12 +100,8 @@ export default function PendingOrdersPage() {
                                             <span className="font-medium text-slate-800">{order.shopName || '-'}</span>
                                         </div>
                                         <div>
-                                            <span className="text-slate-400">买号: </span>
-                                            <span className="font-medium text-slate-800">{order.buyerAccount || '-'}</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-slate-400">模式: </span>
-                                            <span className="font-medium text-slate-800">{getTerminalLabel(order.terminal)}</span>
+                                            <span className="text-slate-400">平台: </span>
+                                            <span className="font-medium text-slate-800">{order.platform || '-'}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -124,9 +109,9 @@ export default function PendingOrdersPage() {
                                 {/* Amount Info */}
                                 <div className="mb-4 flex justify-between rounded-xl bg-slate-50 px-4 py-3.5">
                                     <div>
-                                        <div className="mb-1 text-xs text-slate-400">垫付本金</div>
+                                        <div className="mb-1 text-xs text-slate-400">商品价格</div>
                                         <div className="text-lg font-bold text-slate-800">
-                                            ¥{Number(order.principal || 0).toFixed(2)}
+                                            ¥{Number(order.productPrice || 0).toFixed(2)}
                                         </div>
                                     </div>
                                     <div className="text-right">

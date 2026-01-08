@@ -2,10 +2,9 @@
 
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchTaskList } from '../../../services/taskService';
+import { fetchTaskDetail, TaskItem } from '../../../services/taskService';
 import { createOrder } from '../../../services/orderService';
 import { fetchBuyerAccounts } from '../../../services/userService';
-import { MockTask } from '../../../mocks/taskMock';
 import { MockBuyerAccount } from '../../../mocks/userMock';
 import { isAuthenticated } from '../../../services/authService';
 import { cn } from '../../../lib/utils';
@@ -14,7 +13,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
     const router = useRouter();
     const { id } = use(params);
 
-    const [task, setTask] = useState<MockTask | null>(null);
+    const [task, setTask] = useState<TaskItem | null>(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [buyerAccount, setBuyerAccount] = useState('');
@@ -36,11 +35,10 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
     const loadTask = async () => {
         setLoading(true);
-        const result = await fetchTaskList();
-        const found = result.list.find(t => t.id === id);
-        if (found) {
+        try {
+            const found = await fetchTaskDetail(id);
             setTask(found);
-        } else {
+        } catch (error) {
             alert('任务不存在');
             router.back();
         }
@@ -98,12 +96,11 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                     任务基本信息
                 </div>
                 <div className="space-y-1 text-xs leading-relaxed text-slate-500">
-                    <div>任务编号：{task.taskNumber}</div>
-                    <div>任务类型：{task.taskType === 'KEYWORD' ? '关键词搜索' : '其他'}</div>
-                    <div>返款方式：{task.terminal}</div>
-                    <div>商品价格：<span className="text-red-500">¥{task.goodsPrice}</span></div>
+                    <div>任务编号：{task.id}</div>
+                    <div>店铺名称：{task.shopName}</div>
+                    <div>平台：{task.platform}</div>
+                    <div>商品价格：<span className="text-red-500">¥{task.price}</span></div>
                     <div>任务佣金：<span className="text-green-500">¥{task.commission}</span></div>
-                    <div>剩余数量：{task.totalCount - (task.claimCount || 0)} 单</div>
                 </div>
             </div>
 

@@ -1,4 +1,4 @@
-import { apiClient } from './apiClient';
+import api from './api';
 
 export interface SystemGlobalConfig {
     id: number;
@@ -65,7 +65,7 @@ export async function fetchSystemConfig(): Promise<SystemGlobalConfig | null> {
     }
 
     try {
-        const response = await apiClient.get<SystemGlobalConfig>('/system-config/global');
+        const response = await api.get<SystemGlobalConfig>('/system-config/global');
         cachedConfig = response.data;
         cacheTimestamp = now;
         return response.data;

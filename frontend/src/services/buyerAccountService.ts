@@ -64,7 +64,7 @@ export interface UpdateBuyerAccountInput {
 // TODO: read from system config
 export const MAX_ACCOUNTS_PER_PLATFORM = 3;
 
-const authHeader = () => {
+const authHeader = (): Record<string, string> => {
     if (typeof localStorage === 'undefined') return {};
     const token = localStorage.getItem('token');
     return token ? { Authorization: `Bearer ${token}` } : {};

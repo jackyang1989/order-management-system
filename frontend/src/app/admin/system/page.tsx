@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { apiClient } from '../../../services/apiClient';
+import api from '../../../services/api';
 
 interface SystemGlobalConfig {
     id: number;
@@ -204,7 +204,7 @@ export default function AdminSystemPage() {
         setLoading(true);
         setError(null);
         try {
-            const response = await apiClient.get<SystemGlobalConfig>('/system-config/global');
+            const response = await api.get<SystemGlobalConfig>('/system-config/global');
             setConfig(response.data);
         } catch (err: any) {
             setError(err.message || '加载配置失败');
@@ -219,7 +219,7 @@ export default function AdminSystemPage() {
         setError(null);
         try {
             const { id, updatedAt, ...updateData } = config;
-            await apiClient.put('/system-config/global', updateData);
+            await api.put('/system-config/global', updateData);
             alert('配置保存成功');
             loadConfig();
         } catch (err: any) {
