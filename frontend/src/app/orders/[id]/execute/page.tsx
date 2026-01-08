@@ -79,6 +79,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const [userBuynoWangwang, setUserBuynoWangwang] = useState('');
     const [sellTaskMemo, setSellTaskMemo] = useState('');
     const [receiverAddress, setReceiverAddress] = useState('');
+    const [platformName, setPlatformName] = useState(''); // 动态平台名称
     const [mainProductFilter3, setMainProductFilter3] = useState(''); // 货比关键词
     const [mainProductFilter1, setMainProductFilter1] = useState(''); // 颜色
     const [mainProductFilter2, setMainProductFilter2] = useState(''); // 尺码
@@ -199,6 +200,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
 
                 // 设置任务类型相关信息
                 setTasktype(String(data.sell_task?.task_type || ''));
+                setPlatformName(data.type_array?.[data.sell_task?.task_type] || '平台');
                 setQrcode(data.sell_task?.qr_code || '');
                 setChannelname(data.sell_task?.channel_name || '');
                 setTaoword(data.sell_task?.tao_word || '');
@@ -625,7 +627,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             {/* 商家要求 */}
             <div style={{ background: '#fff3cd', margin: '10px', borderRadius: '8px', padding: '12px', fontSize: '13px', color: '#856404' }}>
                 <p>{zhongDuanmessage}</p>
-                <p>您当前接受任务的淘宝买号为 <span style={{ color: 'red' }}>"{userBuynoWangwang}"</span> 请访问淘宝APP，确认登录的买号是否正确！</p>
+                <p>您当前接受任务的买号为 <span style={{ color: 'red' }}>"{userBuynoWangwang}"</span> 请访问{platformName || '平台'}APP，确认登录的买号是否正确！</p>
                 {sellTaskMemo && <p>商家订单要求: <span>{sellTaskMemo}</span></p>}
                 {task_time_type === '2' && (
                     <p style={{ color: 'red' }}>今天浏览收藏加购，提交到第三步，明天16点前付款并提交订单信息，超时订单取消。</p>
@@ -672,7 +674,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             <span style={{ fontWeight: 'bold', color: '#409eff' }}>温馨提示</span>
                         </div>
                         <div style={{ fontSize: '12px', color: '#f56c6c', lineHeight: '1.8' }}>
-                            <p>1. 禁止使用任何返利平台，若有使用请退出返利平台并清空淘宝缓存后再继续任务；</p>
+                            <p>1. 禁止使用任何返利平台，若有使用请退出返利平台并清空{platformName || '平台'}缓存后再继续任务；</p>
                             <p>2. 必须按照商家给的关键词和渠道搜索进店，不可擅自加词或更换指定进店渠道，后台可看到进店关键词和渠道；</p>
                             <p>3. 浏览主商品8分钟以上，副商品5分钟以上，然后随机浏览店铺其他2个商品各2分钟，浏览时间不够和未到支付步骤不要提前将购物车的商品下单付款，后台可看到各商品停留时间，总浏览时间低于15分钟无法提交订单；</p>
                             <p>4. 禁止修改订单截图上的实付金额，所有支付优惠商家后台都可查到；</p>
@@ -685,15 +687,15 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                     <div style={{ background: '#fff', borderRadius: '8px', padding: '15px', marginBottom: '10px' }}>
                         {tasktype === '3' && qrcode && (
                             <div>
-                                <p>打开淘宝APP，扫描二维码：</p>
+                                <p>打开{platformName || '平台'}APP，扫描二维码：</p>
                                 <img src={qrcode} alt="二维码" style={{ width: '100px', height: '100px', border: '1px solid #ddd' }} />
                             </div>
                         )}
                         {tasktype === '2' && taoword && (
-                            <p>复制淘口令，打开淘宝APP：<span style={{ color: 'red' }}>{taoword}</span></p>
+                            <p>复制淘口令，打开{platformName || '平台'}APP：<span style={{ color: 'red' }}>{taoword}</span></p>
                         )}
                         {tasktype === '4' && (
-                            <p>淘宝APP搜索框，手动输入搜索关键词：<span style={{ color: 'red', userSelect: 'none' }}>{keyWord}</span></p>
+                            <p>{platformName || '平台'}APP搜索框，手动输入搜索关键词：<span style={{ color: 'red', userSelect: 'none' }}>{keyWord}</span></p>
                         )}
                     </div>
 
@@ -715,7 +717,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             <span style={{ fontWeight: 'bold' }}>货比加购</span>
                         </div>
                         <div style={{ fontSize: '13px', color: '#666', lineHeight: '1.8' }}>
-                            <p>1. 淘宝APP搜索框，搜索货比关键词：<span style={{ color: 'red' }}>{mainProductFilter3}</span></p>
+                            <p>1. {platformName || '平台'}APP搜索框，搜索货比关键词：<span style={{ color: 'red' }}>{mainProductFilter3}</span></p>
                             <p>2. 根据搜索结果，浏览5家同类商品，每家2分钟；</p>
                             <p>3. 将其中3个商家的货比商品加入购物车并截图；</p>
                             <p>4. 上传货比加购截图:</p>
@@ -767,7 +769,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         {tasktype === '5' && (
                             <div style={{ fontSize: '13px', color: '#666', marginBottom: '15px' }}>
                                 <p>1.长按二维码将二维码保存到相册；</p>
-                                <p>2.淘宝APP扫描二维码访问主商品；</p>
+                                <p>2.{platformName || '平台'}APP扫描二维码访问主商品；</p>
                                 <p>3.副商品直接根据主图在店内查找。</p>
                                 {is_video_praise === '1' && (
                                     <p style={{ color: 'red' }}>提示：此任务是视频好评任务，收货时需要下载视频上传评价哦。</p>
@@ -777,7 +779,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         {tasktype === '1' && (
                             <div style={{ fontSize: '13px', color: '#666', marginBottom: '15px' }}>
                                 <p><span style={{ color: 'red' }}>进店{keyWord} 备选词：{mainProductFilter4}</span></p>
-                                <p>淘宝APP搜索进店关键词找到主商品进行信息核对(若找不到可换备选词)，若有副商品直接在店铺内根据副商品图片查找并进行信息核对。</p>
+                                <p>{platformName || '平台'}APP搜索进店关键词找到主商品进行信息核对(若找不到可换备选词)，若有副商品直接在店铺内根据副商品图片查找并进行信息核对。</p>
                                 {is_video_praise === '1' && (
                                     <p style={{ color: 'red' }}>提示：此任务是视频好评任务，收货时需要下载视频上传评价哦。</p>
                                 )}

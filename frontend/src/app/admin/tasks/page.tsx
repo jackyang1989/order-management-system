@@ -12,6 +12,7 @@ import { Table, Column } from '../../../components/ui/table';
 import { Modal } from '../../../components/ui/modal';
 import { Pagination } from '../../../components/ui/pagination';
 import { Tabs } from '../../../components/ui/tabs';
+import { TASK_TYPE_NAMES } from '../../../constants/platformConfig';
 
 interface Task {
     id: string;
@@ -65,7 +66,6 @@ const statusLabels: Record<number, { text: string; color: 'slate' | 'green' | 'b
     4: { text: '待审核', color: 'amber' },
 };
 
-const platformLabels: Record<number, string> = { 1: '淘宝', 2: '天猫', 3: '京东', 4: '拼多多' };
 const terminalLabels: Record<number, string> = { 1: '本佣货返', 2: '本立佣货' };
 
 function progressWidthClass(percent: number) {
@@ -176,7 +176,7 @@ export default function AdminTasksPage() {
         {
             key: 'taskType',
             title: '平台',
-            render: (row) => <span>{platformLabels[row.taskType] || '其他'}</span>,
+            render: (row) => <span>{TASK_TYPE_NAMES[row.taskType] || '其他'}</span>,
             className: 'w-[90px]',
         },
         {
@@ -329,7 +329,7 @@ export default function AdminTasksPage() {
                                 </div>
                                 <div className="space-y-1">
                                     <div className="text-xs text-slate-500">平台</div>
-                                    <div className="text-sm font-medium">{platformLabels[detailModal.taskType]}</div>
+                                    <div className="text-sm font-medium">{TASK_TYPE_NAMES[detailModal.taskType]}</div>
                                 </div>
                                 <div className="space-y-1">
                                     <div className="text-xs text-slate-500">状态</div>

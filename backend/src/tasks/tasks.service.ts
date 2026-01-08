@@ -490,6 +490,8 @@ export class TasksService implements OnModuleInit {
       '天猫': TaskType.TMALL,
       '京东': TaskType.JD,
       '拼多多': TaskType.PDD,
+      '抖音': TaskType.DOUYIN,
+      '快手': TaskType.KUAISHOU,
     };
 
     const results: {
@@ -514,7 +516,7 @@ export class TasksService implements OnModuleInit {
         const keyword = columnMap['关键词'] !== undefined ? String(row[columnMap['关键词']] || '').trim() : '';
         const goodsPrice = parseFloat(row[columnMap['商品价格']]) || 0;
         const count = parseInt(row[columnMap['数量']]) || 1;
-        const platformStr = columnMap['平台'] !== undefined ? String(row[columnMap['平台']] || '淘宝').trim() : '淘宝';
+        const platformStr = columnMap['平台'] !== undefined ? String(row[columnMap['平台']] || '').trim() : '';
         const extraCommission = columnMap['额外佣金'] !== undefined ? parseFloat(row[columnMap['额外佣金']]) || 0 : 0;
         const shopName = columnMap['店铺名'] !== undefined ? String(row[columnMap['店铺名']] || '').trim() : '';
         const remark = columnMap['备注'] !== undefined ? String(row[columnMap['备注']] || '').trim() : '';
@@ -530,7 +532,10 @@ export class TasksService implements OnModuleInit {
           throw new Error('数量必须大于0');
         }
 
-        const taskType = platformTypeMap[platformStr] || TaskType.TAOBAO;
+        const taskType = platformTypeMap[platformStr];
+        if (!taskType) {
+          throw new Error(`无效的平台: ${platformStr || '(未指定)'}，支持的平台: 淘宝, 天猫, 京东, 拼多多, 抖音, 快手`);
+        }
 
         // 创建任务DTO
         const createTaskDto: CreateTaskDto = {

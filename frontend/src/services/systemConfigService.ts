@@ -123,3 +123,21 @@ export function parseStarPriceLimits(limitsJson: string): Record<number, number>
         return { 1: 100, 2: 500, 3: 1000, 4: 2000, 5: 99999 }; // 默认值
     }
 }
+
+// 获取商家最低提现金额
+export function getMerchantMinWithdraw(config: SystemGlobalConfig | null): number {
+    if (!config) return 100; // 默认100元
+    return Number(config.sellerMinMoney) || 100;
+}
+
+// 获取用户最低提现金额
+export function getUserMinWithdraw(config: SystemGlobalConfig | null): number {
+    if (!config) return 10; // 默认10元
+    return Number(config.userMinMoney) || 10;
+}
+
+// 获取商家提现手续费率
+export function getMerchantWithdrawFeeRate(config: SystemGlobalConfig | null): number {
+    if (!config) return 0; // 默认0
+    return Number(config.sellerCashFee) || 0;
+}

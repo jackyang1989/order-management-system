@@ -7,10 +7,10 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { TASK_TYPE_NAMES, TASK_PLATFORMS } from '@/constants/platformConfig';
 
 interface Task { id: string; taskNumber: string; title: string; taskType: number; goodsPrice: number; count: number; claimedCount: number; totalCommission: number; status: number; createdAt: string; }
 
-const TaskTypeMap: Record<number, string> = { 1: '淘宝', 2: '天猫', 3: '京东', 4: '拼多多' };
 const TaskStatusMap: Record<number, { text: string; color: 'amber' | 'green' | 'blue' | 'red' | 'slate' }> = {
     0: { text: '待支付', color: 'amber' }, 1: { text: '进行中', color: 'green' }, 2: { text: '已完成', color: 'blue' }, 3: { text: '已取消', color: 'red' }, 4: { text: '待审核', color: 'slate' },
 };
@@ -57,7 +57,8 @@ export default function MerchantTasksPage() {
                 <div className="flex items-center gap-2">
                     <span className="text-sm text-slate-500">平台:</span>
                     <select value={filter.taskType} onChange={e => setFilter({ ...filter, taskType: e.target.value })} className="rounded-md border border-slate-200 px-3 py-2 text-sm">
-                        <option value="all">全部</option><option value="1">淘宝</option><option value="2">天猫</option><option value="3">京东</option><option value="4">拼多多</option>
+                        <option value="all">全部</option>
+                        {TASK_PLATFORMS.map(p => <option key={p.id} value={String(p.id)}>{p.name}</option>)}
                     </select>
                 </div>
                 <div className="flex-1" />
@@ -95,7 +96,7 @@ export default function MerchantTasksPage() {
                                     <tr key={task.id} className="border-b border-slate-100">
                                         <td className="px-4 py-4 font-mono text-sm text-indigo-600">{task.taskNumber}</td>
                                         <td className="px-4 py-4"><div className="font-medium">{task.title}</div><div className="text-[13px] text-slate-500">¥{task.goodsPrice}</div></td>
-                                        <td className="px-4 py-4 text-sm">{TaskTypeMap[task.taskType] || '未知'}</td>
+                                        <td className="px-4 py-4 text-sm">{TASK_TYPE_NAMES[task.taskType] || '未知'}</td>
                                         <td className="px-4 py-4 font-semibold text-red-600">¥{task.totalCommission}</td>
                                         <td className="px-4 py-4">
                                             <div className="flex items-center gap-2">

@@ -8,6 +8,7 @@ import { Card } from '../../../components/ui/card';
 import { Input } from '../../../components/ui/input';
 import { Select } from '../../../components/ui/select';
 import { Modal } from '../../../components/ui/modal';
+import { fetchSystemConfig, getMerchantMinWithdraw } from '../../../services/systemConfigService';
 
 interface TransactionRecord { id: string; type: 'deposit' | 'withdraw' | 'freeze' | 'unfreeze' | 'deduct'; amount: number; balanceType: 'balance' | 'silver'; memo: string; createdAt: string; }
 interface WalletStats { balance: number; frozenBalance: number; silver: number; }
@@ -23,6 +24,7 @@ export default function MerchantWalletPage() {
     const [loading, setLoading] = useState(true);
     const [bankCards, setBankCards] = useState<BankCard[]>([]);
     const [selectedBankCardId, setSelectedBankCardId] = useState<string>('');
+    const [minWithdraw, setMinWithdraw] = useState(100); // 动态最低提现金额
 
     // 导出相关状态
     const [exportModal, setExportModal] = useState(false);
@@ -31,7 +33,14 @@ export default function MerchantWalletPage() {
     const [exportEndDate, setExportEndDate] = useState('');
     const [exporting, setExporting] = useState(false);
 
-    useEffect(() => { loadStats(); loadTransactions(); loadBankCards(); }, []);
+    useEffect(() => { loadStats(); loadTransactions(); loadBankCards(); loadSystemConfigData(); }, []);
+
+    const loadSystemConfigData = async () => {
+        const config = await fetchSystemConfig();
+        if (config) {
+            setMinWithdraw(getMerchantMinWithdraw(config));
+        }
+    };
 
     const loadStats = async () => {
         const token = localStorage.getItem('merchantToken');
@@ -164,7 +173,7 @@ export default function MerchantWalletPage() {
         const token = localStorage.getItem('merchantToken');
         if (!token) return alert('请先登录');
         if (!amount || Number(amount) <= 0) return alert('请输入有效金额');
-        if (Number(amount) < 100) return alert('最低提现金额为100元');
+        if (Number(amount) < minWithdraw) return alert(`最低提现金额为${minWithdraw}元`);
         if (Number(amount) > stats.balance) return alert('余额不足');
         const approvedCards = bankCards.filter(c => c.status === 1);
         if (approvedCards.length === 0) return alert('请先添加并等待银行卡审核通过');
