@@ -173,10 +173,10 @@ export class BatchOperationsService {
             where: { taskTitle: row.orderNo },
           });
         }
-        // 兼容: 按淘宝单号匹配
+        // 兼容: 按平台订单号匹配
         else if (row.taobaoOrderNo) {
           order = await this.orderRepository.findOne({
-            where: { taobaoOrderNumber: row.taobaoOrderNo },
+            where: { platformOrderNumber: row.taobaoOrderNo },
           });
         }
 

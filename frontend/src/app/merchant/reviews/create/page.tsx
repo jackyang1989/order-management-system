@@ -14,7 +14,7 @@ interface Order {
     productName: string;
     productPrice: number;
     buynoAccount: string;
-    taobaoOrderNumber: string;
+    platformOrderNumber: string;
     completedAt: string;
 }
 
@@ -129,7 +129,7 @@ function CreateReviewContent() {
                 <div className="grid grid-cols-2 gap-3 text-sm">
                     <div><span className="text-slate-500">商品名称：</span>{order?.productName}</div>
                     <div><span className="text-slate-500">买号：</span>{order?.buynoAccount}</div>
-                    <div><span className="text-slate-500">淘宝订单号：</span>{order?.taobaoOrderNumber || '-'}</div>
+                    <div><span className="text-slate-500">平台订单号：</span>{order?.platformOrderNumber || '-'}</div>
                     <div><span className="text-slate-500">完成时间：</span>{order?.completedAt ? new Date(order.completedAt).toLocaleString('zh-CN') : '-'}</div>
                 </div>
             </Card>

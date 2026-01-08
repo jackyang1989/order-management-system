@@ -69,7 +69,7 @@ export class ReviewTask {
   shopId: string; // 店铺ID (shop_id)
 
   @Column({ nullable: true })
-  taobaoOrderNumber: string; // 淘宝订单号 (taobao_number)
+  platformOrderNumber: string; // 平台订单号 (原taobao_number)
 
   @Column({ length: 100, unique: true })
   @Index()

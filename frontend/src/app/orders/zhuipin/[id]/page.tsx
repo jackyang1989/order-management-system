@@ -31,7 +31,7 @@ interface ReviewTaskDetail {
     praises: PraiseContent[];
     orderInfo?: {
         taskTitle: string;
-        taobaoOrderNumber?: string;
+        platformOrderNumber?: string;
         buyerAccountName?: string;
     };
 }

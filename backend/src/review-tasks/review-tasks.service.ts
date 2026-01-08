@@ -214,7 +214,7 @@ export class ReviewTasksService {
         userId: order!.userId,
         buynoId: order!.buynoId,
         shopId: undefined, // 需要从task获取
-        taobaoOrderNumber: order!.taobaoOrderNumber,
+        platformOrderNumber: order!.platformOrderNumber,
         taskNumber: this.generateTaskNumber(),
         userTaskId: order!.id,
         sellerTaskId: order!.taskId,

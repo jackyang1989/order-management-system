@@ -238,21 +238,21 @@ export class OrdersController {
     }
   }
 
-  @Post(':id/taobao-order')
-  async updateTaobaoOrderNumber(
+  @Post(':id/platform-order')
+  async updatePlatformOrderNumber(
     @Param('id') id: string,
-    @Body() body: { taobaoOrderNumber: string },
+    @Body() body: { platformOrderNumber: string },
     @Request() req,
   ) {
     try {
-      const order = await this.ordersService.updateTaobaoOrderNumber(
+      const order = await this.ordersService.updatePlatformOrderNumber(
         id,
         req.user.userId,
-        body.taobaoOrderNumber,
+        body.platformOrderNumber,
       );
       return {
         success: true,
-        message: '淘宝订单号更新成功',
+        message: '平台订单号更新成功',
         data: order,
       };
     } catch (error) {

@@ -29,7 +29,7 @@ interface Order {
     sellerPrincipal: number;
     finalAmount: number;
     refundAmount: number;
-    taobaoOrderNumber: string;
+    platformOrderNumber: string;
     deliveryState: number;
     delivery: string;
     deliveryNum: string;
@@ -103,10 +103,10 @@ export default function AdminOrdersPage() {
 
     const columns: Column<Order>[] = [
         {
-            key: 'taobaoOrderNumber',
-            title: '订单号',
+            key: 'platformOrderNumber',
+            title: '平台订单号',
             className: 'w-[130px]',
-            render: (row) => <code className="text-xs text-slate-500">{row.taobaoOrderNumber || '-'}</code>,
+            render: (row) => <code className="text-xs text-slate-500">{row.platformOrderNumber || '-'}</code>,
         },
         {
             key: 'productName',
@@ -240,8 +240,8 @@ export default function AdminOrdersPage() {
                             <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-slate-800">订单信息</h3>
                             <div className="grid grid-cols-2 gap-4 rounded-lg bg-slate-50 p-4">
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">订单号</div>
-                                    <div className="font-mono text-sm">{detailModal.taobaoOrderNumber || '-'}</div>
+                                    <div className="text-xs text-slate-500">平台订单号</div>
+                                    <div className="font-mono text-sm">{detailModal.platformOrderNumber || '-'}</div>
                                 </div>
                                 <div className="space-y-1">
                                     <div className="text-xs text-slate-500">状态</div>

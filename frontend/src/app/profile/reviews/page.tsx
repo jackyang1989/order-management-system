@@ -98,7 +98,7 @@ function ReviewsContent() {
                                             {getStatusBadge(task.state)}
                                         </div>
                                         <div className="mt-1 flex items-center justify-between text-xs text-slate-400">
-                                            <span>订单号: {task.taobaoOrderNumber}</span>
+                                            <span>订单号: {task.platformOrderNumber}</span>
                                             <span className="font-bold text-amber-500">奖励: {task.userMoney} 银锭</span>
                                         </div>
                                     </div>

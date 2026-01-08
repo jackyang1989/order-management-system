@@ -28,6 +28,21 @@ export enum TaskType {
   KUAISHOU = 6,
 }
 
+// 平台类型到名称的映射（动态配置）
+export const TASK_TYPE_NAMES: Record<number, string> = {
+  [TaskType.TAOBAO]: '淘宝',
+  [TaskType.TMALL]: '天猫',
+  [TaskType.JD]: '京东',
+  [TaskType.PDD]: '拼多多',
+  [TaskType.DOUYIN]: '抖音',
+  [TaskType.KUAISHOU]: '快手',
+};
+
+// 获取平台名称
+export function getTaskTypeName(taskType: number): string {
+  return TASK_TYPE_NAMES[taskType] || '其他';
+}
+
 // 任务类型（结算方式）
 export enum TaskTerminal {
   BENYONG_HUOFAN = 1, // 本佣货返（买手垫付，商家返本金+佣金）

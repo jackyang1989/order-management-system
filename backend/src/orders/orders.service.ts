@@ -16,7 +16,7 @@ import {
   OrderFilterDto,
 } from './order.entity';
 import { TasksService } from '../tasks/tasks.service';
-import { Task } from '../tasks/task.entity';
+import { Task, getTaskTypeName } from '../tasks/task.entity';
 import { BuyerAccountsService } from '../buyer-accounts/buyer-accounts.service';
 import { BuyerAccountStatus } from '../buyer-accounts/buyer-account.entity';
 import { FinanceRecordsService } from '../finance-records/finance-records.service';
@@ -81,7 +81,7 @@ export class OrdersService {
 
     if (filter.keyword) {
       queryBuilder.andWhere(
-        '(order.id LIKE :keyword OR order.taskTitle LIKE :keyword OR order.taobaoOrderNumber LIKE :keyword)',
+        '(order.id LIKE :keyword OR order.taskTitle LIKE :keyword OR order.platformOrderNumber LIKE :keyword)',
         { keyword: `%${filter.keyword}%` },
       );
     }
@@ -350,14 +350,6 @@ export class OrdersService {
       endingTime.setHours(endingTime.getHours() + 1);
     }
 
-    // 平台名称映射
-    const platformMap: Record<number, string> = {
-      1: '淘宝',
-      2: '天猫',
-      3: '京东',
-      4: '拼多多',
-    };
-
     // 计算每单的买手分成佣金
     // userDivided = task.userDivided / task.count
     const userDividedPerOrder =
@@ -371,7 +363,7 @@ export class OrdersService {
       buynoId: createOrderDto.buynoId,
       buynoAccount: createOrderDto.buynoAccount,
       taskTitle: task.title,
-      platform: platformMap[task.taskType] || '其他',
+      platform: getTaskTypeName(task.taskType),
       productName: task.title, // 使用任务标题作为商品名
       productPrice: Number(task.goodsPrice),
       commission: Number(task.baseServiceFee),
@@ -1009,12 +1001,12 @@ export class OrdersService {
 
 
   /**
-   * 更新淘宝订单号
+   * 更新平台订单号
    */
-  async updateTaobaoOrderNumber(
+  async updatePlatformOrderNumber(
     orderId: string,
     userId: string,
-    taobaoOrderNumber: string,
+    platformOrderNumber: string,
   ): Promise<Order> {
     const order = await this.ordersRepository.findOne({
       where: { id: orderId, userId },
@@ -1023,7 +1015,7 @@ export class OrdersService {
       throw new NotFoundException('订单不存在');
     }
 
-    order.taobaoOrderNumber = taobaoOrderNumber;
+    order.platformOrderNumber = platformOrderNumber;
     return this.ordersRepository.save(order);
   }
 

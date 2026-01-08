@@ -136,7 +136,7 @@ export class Order {
   deliveryTime: Date; // 发货时间
 
   @Column({ nullable: true })
-  taobaoOrderNumber: string; // 淘宝订单号
+  platformOrderNumber: string; // 平台订单号（原taobaoOrderNumber）
 
   @Column({ type: 'int', default: DeliveryRequirement.NEED_LOGISTICS })
   deliveryRequirement: number; // 物流需求 0需要 1不需要

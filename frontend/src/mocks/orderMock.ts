@@ -35,7 +35,7 @@ export interface MockOrder {
     memo?: string;               // 备注
     updatedAt?: string;          // 更新时间
     deliveryTime?: string;       // 发货时间
-    taobaoOrderNumber?: string;  // 淘宝订单号
+    platformOrderNumber?: string;  // 平台订单号
     platformRefundTime?: string; // 平台返款时间
     productPrice?: number;       // 商品价格
     taobaoId?: string;           // 商品淘宝ID

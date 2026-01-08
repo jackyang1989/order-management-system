@@ -101,17 +101,22 @@ export default function BindAccountPage() {
     const [submitting, setSubmitting] = useState(false);
     const [smsCountdown, setSmsCountdown] = useState(0);
 
+    // 获取平台列表并使用第一个作为默认值
+    const platformList = getPlatformList();
+    const defaultPlatformId = platformList[0]?.id || 'taobao';
+    const defaultPlatformName = platformList[0]?.name || '淘宝';
+
     // 当前选中的平台配置
-    const [selectedPlatformId, setSelectedPlatformId] = useState('taobao');
+    const [selectedPlatformId, setSelectedPlatformId] = useState(defaultPlatformId);
     const platformConfig = useMemo<PlatformConfig>(() => {
-        return PLATFORM_CONFIG[selectedPlatformId] || PLATFORM_CONFIG.taobao;
-    }, [selectedPlatformId]);
+        return PLATFORM_CONFIG[selectedPlatformId] || PLATFORM_CONFIG[defaultPlatformId];
+    }, [selectedPlatformId, defaultPlatformId]);
 
     // 图片状态 (动态key)
     const [images, setImages] = useState<Record<string, string>>({});
 
-    const [form, setForm] = useState<CreateBuyerAccountInput>({
-        platform: '淘宝',
+    const [form, setForm] = useState<CreateBuyerAccountInput>(() => ({
+        platform: defaultPlatformName,
         platformAccount: '',
         loginProvince: '',
         loginCity: '',
@@ -123,7 +128,7 @@ export default function BindAccountPage() {
         fullAddress: '',
         realName: '',
         smsCode: '',
-    });
+    }));
 
     const updateForm = useCallback((key: keyof CreateBuyerAccountInput, value: string) => {
         setForm(prev => ({ ...prev, [key]: value }));
@@ -227,7 +232,6 @@ export default function BindAccountPage() {
     const loginCities = form.loginProvince ? getCities(form.loginProvince) : [];
     const addressCities = form.province ? getCities(form.province) : [];
     const addressDistricts = form.province && form.city ? getDistricts(form.province, form.city) : [];
-    const platformList = getPlatformList();
 
 
 

@@ -30,7 +30,7 @@ export interface ReviewTask {
     userId: string;
     buynoId: string;
     shopId: string;
-    taobaoOrderNumber: string;
+    platformOrderNumber: string;
     taskNumber: string;
     userTaskId: string;
     sellerTaskId: string;

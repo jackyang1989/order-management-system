@@ -16,7 +16,7 @@ interface ReviewTask {
     userId: string;
     buynoId: string;
     shopId: string;
-    taobaoOrderNumber: string;
+    platformOrderNumber: string;
     taskNumber: string;
     userTaskId: string;
     sellerTaskId: string;
@@ -195,7 +195,7 @@ export default function AdminTasksReviewsPage() {
                                     {tasks.map(t => (
                                         <tr key={t.id} className="border-b border-slate-100">
                                             <td className="px-4 py-3.5 font-mono text-blue-600">{t.taskNumber}</td>
-                                            <td className="px-4 py-3.5 font-mono text-slate-500">{t.taobaoOrderNumber || '-'}</td>
+                                            <td className="px-4 py-3.5 font-mono text-slate-500">{t.platformOrderNumber || '-'}</td>
                                             <td className="px-4 py-3.5 text-right font-medium text-red-500">¥{Number(t.money || 0).toFixed(2)}</td>
                                             <td className="px-4 py-3.5 text-right text-green-600">¥{Number(t.userMoney || 0).toFixed(2)}</td>
                                             <td className="px-4 py-3.5 text-center">
@@ -240,7 +240,7 @@ export default function AdminTasksReviewsPage() {
                             <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm text-slate-500">基本信息</h4>
                             <div className="grid grid-cols-2 gap-3 text-sm">
                                 <div><span className="text-slate-400">任务编号：</span><span className="font-mono text-blue-600">{detailModal.taskNumber}</span></div>
-                                <div><span className="text-slate-400">淘宝订单号：</span><span className="font-mono">{detailModal.taobaoOrderNumber || '-'}</span></div>
+                                <div><span className="text-slate-400">平台订单号：</span><span className="font-mono">{detailModal.platformOrderNumber || '-'}</span></div>
                                 <div><span className="text-slate-400">商家ID：</span>{detailModal.merchantId?.slice(0, 8) || '-'}</div>
                                 <div><span className="text-slate-400">买手ID：</span>{detailModal.userId?.slice(0, 8) || '-'}</div>
                                 <div><span className="text-slate-400">状态：</span><Badge variant="soft" color={statusLabels[detailModal.state]?.color}>{statusLabels[detailModal.state]?.text}</Badge></div>

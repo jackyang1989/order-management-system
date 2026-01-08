@@ -61,7 +61,7 @@ export class ExcelService {
       { header: '商品价格', key: 'productPrice', width: 12 },
       { header: '佣金', key: 'commission', width: 12 },
       { header: '买号', key: 'buynoAccount', width: 20 },
-      { header: '淘宝订单号', key: 'taobaoOrderNumber', width: 25 },
+      { header: '平台订单号', key: 'platformOrderNumber', width: 25 },
       { header: '快递公司', key: 'delivery', width: 15 },
       { header: '快递单号', key: 'deliveryNum', width: 20 },
       { header: '收货人', key: 'addressName', width: 12 },
@@ -149,7 +149,7 @@ export class ExcelService {
 
     const columns: ExportColumn[] = [
       { header: '订单ID', key: 'id', width: 40 },
-      { header: '淘宝订单号', key: 'taobaoOrderNumber', width: 25 },
+      { header: '平台订单号', key: 'platformOrderNumber', width: 25 },
       { header: '收货人', key: 'addressName', width: 12 },
       { header: '收货电话', key: 'addressPhone', width: 15 },
       { header: '收货地址', key: 'address', width: 50 },

@@ -18,7 +18,7 @@ interface ReviewTask {
     userId: string;
     buynoId: string;
     shopId: string;
-    taobaoOrderNumber: string;
+    platformOrderNumber: string;
     taskNumber: string;
     userTaskId: string;
     sellerTaskId: string;
@@ -219,7 +219,7 @@ export default function MerchantReviewsPage() {
                             <div className="mb-2 text-sm"><span className="text-slate-500">任务编号：</span>{selectedTask.taskNumber}</div>
                             <div className="mb-2 text-sm"><span className="text-slate-500">追评费用：</span><span className="font-medium text-red-500">¥{Number(selectedTask.money).toFixed(2)}</span></div>
                             <div className="mb-2 text-sm"><span className="text-slate-500">买手佣金：</span><span className="font-medium text-green-600">¥{Number(selectedTask.userMoney).toFixed(2)}</span></div>
-                            {selectedTask.taobaoOrderNumber && <div className="text-sm"><span className="text-slate-500">淘宝订单号：</span>{selectedTask.taobaoOrderNumber}</div>}
+                            {selectedTask.platformOrderNumber && <div className="text-sm"><span className="text-slate-500">平台订单号：</span>{selectedTask.platformOrderNumber}</div>}
                         </div>
 
                         {/* Submitted Images */}
