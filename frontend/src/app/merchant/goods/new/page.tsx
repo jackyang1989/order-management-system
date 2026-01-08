@@ -35,11 +35,11 @@ export default function NewGoodsPage() {
         setShopsLoading(true);
         try {
             const data = await fetchShops();
-            // status 1 means approved/active; use Number() to handle string/number mismatch from API
-            const activeShops = data.filter(s => Number(s.status) === 1);
-            setShops(activeShops);
-            if (activeShops.length > 0) {
-                setForm(prev => ({ ...prev, shopId: activeShops[0].id }));
+            // status 0=pending, 1=approved; exclude rejected(2) and deleted(3)
+            const availableShops = data.filter(s => Number(s.status) === 0 || Number(s.status) === 1);
+            setShops(availableShops);
+            if (availableShops.length > 0) {
+                setForm(prev => ({ ...prev, shopId: availableShops[0].id }));
             }
         } catch (error) {
             console.error('加载店铺失败:', error);

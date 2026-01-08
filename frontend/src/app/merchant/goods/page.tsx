@@ -11,8 +11,8 @@ import { Modal } from '../../../components/ui/modal';
 import { Badge } from '../../../components/ui/badge';
 import { Spinner } from '../../../components/ui/spinner';
 
-interface Goods { id: string; shopId: string; title: string; mainImage: string; price: number; url: string; verifyCode?: string; platform: string; }
-interface Shop { id: string; name: string; platform: string; }
+interface Goods { id: string; shopId: string; name: string; pcImg: string; price: number; link: string; verifyCode?: string; platform: string; }
+interface Shop { id: string; shopName: string; platform: string; }
 
 export default function GoodsPage() {
     const [goodsList, setGoodsList] = useState<Goods[]>([]);
@@ -28,7 +28,7 @@ export default function GoodsPage() {
     const fetchShops = async () => {
         try {
             const token = localStorage.getItem('merchantToken');
-            const res = await fetch(`${BASE_URL}/shops/my-shops`, { headers: { Authorization: `Bearer ${token}` } });
+            const res = await fetch(`${BASE_URL}/shops`, { headers: { Authorization: `Bearer ${token}` } });
             const json = await res.json();
             if (json.success) setShops(json.data);
         } catch (error) { console.error('Failed to fetch shops:', error); }
@@ -56,12 +56,21 @@ export default function GoodsPage() {
     };
 
     const handleSubmit = async () => {
-        if (!formData.title || !formData.shopId || !formData.price || !formData.url) { alert('请填写必填项'); return; }
+        if (!formData.title || !formData.shopId || !formData.price) { alert('请填写必填项'); return; }
         try {
             const token = localStorage.getItem('merchantToken');
-            const url = editingGoods ? `${BASE_URL}/goods/${editingGoods.id}` : `${BASE_URL}/goods`;
+            const apiUrl = editingGoods ? `${BASE_URL}/goods/${editingGoods.id}` : `${BASE_URL}/goods`;
             const method = editingGoods ? 'PUT' : 'POST';
-            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ ...formData, price: Number(formData.price) }) });
+            // Map frontend field names to backend field names
+            const payload = {
+                shopId: formData.shopId,
+                name: formData.title,
+                link: formData.url || '',
+                pcImg: formData.mainImage || '',
+                price: Number(formData.price),
+                verifyCode: formData.verifyCode || ''
+            };
+            const res = await fetch(apiUrl, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(payload) });
             const json = await res.json();
             if (json.success) { alert(editingGoods ? '更新成功' : '创建成功'); setIsModalOpen(false); setEditingGoods(null); setFormData({ shopId: '', title: '', mainImage: '', price: '', url: '', verifyCode: '' }); fetchGoods(); }
             else alert(json.message || '操作失败');
@@ -78,7 +87,7 @@ export default function GoodsPage() {
         reader.readAsDataURL(file);
     };
 
-    const openEdit = (goods: Goods) => { setEditingGoods(goods); setFormData({ shopId: goods.shopId, title: goods.title, mainImage: goods.mainImage, price: goods.price.toString(), url: goods.url, verifyCode: goods.verifyCode || '' }); setIsModalOpen(true); };
+    const openEdit = (goods: Goods) => { setEditingGoods(goods); setFormData({ shopId: goods.shopId, title: goods.name, mainImage: goods.pcImg || '', price: goods.price.toString(), url: goods.link || '', verifyCode: goods.verifyCode || '' }); setIsModalOpen(true); };
     const openAdd = () => { setEditingGoods(null); setFormData({ shopId: shops.length > 0 ? shops[0].id : '', title: '', mainImage: '', price: '', url: '', verifyCode: '' }); setIsModalOpen(true); };
     const closeModal = () => { setIsModalOpen(false); setEditingGoods(null); setFormData({ shopId: '', title: '', mainImage: '', price: '', url: '', verifyCode: '' }); };
 
@@ -115,15 +124,15 @@ export default function GoodsPage() {
                                     return (
                                         <tr key={goods.id} className="border-b border-slate-100">
                                             <td className="px-4 py-4">
-                                                {goods.mainImage ? <img src={goods.mainImage} alt={goods.title} className="h-[60px] w-[60px] rounded object-cover" />
+                                                {goods.pcImg ? <img src={goods.pcImg} alt={goods.name} className="h-[60px] w-[60px] rounded object-cover" />
                                                     : <div className="h-[60px] w-[60px] rounded bg-slate-100" />}
                                             </td>
                                             <td className="px-4 py-4">
-                                                <div className="mb-1 font-medium">{goods.title}</div>
-                                                <a href={goods.url} target="_blank" rel="noreferrer" className="text-xs text-blue-500">商品链接</a>
+                                                <div className="mb-1 font-medium">{goods.name}</div>
+                                                <a href={goods.link} target="_blank" rel="noreferrer" className="text-xs text-blue-500">商品链接</a>
                                             </td>
                                             <td className="px-4 py-4">
-                                                {shop ? <Badge variant="soft" color="blue">{shop.name}</Badge> : '-'}
+                                                {shop ? <Badge variant="soft" color="blue">{shop.shopName}</Badge> : '-'}
                                             </td>
                                             <td className="px-4 py-4 font-bold text-red-500">¥{goods.price}</td>
                                             <td className="px-4 py-4 text-sm text-slate-500">{goods.verifyCode || '-'}</td>
@@ -145,7 +154,7 @@ export default function GoodsPage() {
                 <div className="space-y-4">
                     <div>
                         <label className="mb-2 block text-sm text-slate-700">所属店铺</label>
-                        <Select value={formData.shopId} onChange={v => setFormData({ ...formData, shopId: v })} options={[{ value: '', label: '请选择店铺' }, ...shops.map(shop => ({ value: shop.id, label: `${shop.name} (${shop.platform})` }))]} />
+                        <Select value={formData.shopId} onChange={v => setFormData({ ...formData, shopId: v })} options={[{ value: '', label: '请选择店铺' }, ...shops.map(shop => ({ value: shop.id, label: `${shop.shopName} (${shop.platform})` }))]} />
                     </div>
                     <div>
                         <label className="mb-2 block text-sm text-slate-700">商品标题</label>
