@@ -39,7 +39,7 @@ export default function MerchantBlacklistPage() {
     };
 
     const handleAdd = async () => {
-        if (!form.accountName.trim()) { alert('请输入买号账号'); return; }
+        if (!form.accountName.trim()) { alert('请输入买号'); return; }
         if (form.type === BlacklistType.TEMPORARY && !form.endTime) { alert('限时拉黑请选择结束时间'); return; }
         setSubmitting(true);
         const res = await addBlacklist(form);
@@ -60,7 +60,7 @@ export default function MerchantBlacklistPage() {
 
             {/* Search */}
             <Card className="flex items-center gap-3 bg-white p-4">
-                <Input type="text" value={searchText} onChange={e => setSearchText(e.target.value)} placeholder="搜索账号名..." className="w-[200px]" onKeyDown={e => e.key === 'Enter' && handleSearch()} />
+                <Input type="text" value={searchText} onChange={e => setSearchText(e.target.value)} placeholder="搜索买号..." className="w-[200px]" onKeyDown={e => e.key === 'Enter' && handleSearch()} />
                 <Button onClick={handleSearch}>搜索</Button>
             </Card>
 
@@ -76,7 +76,7 @@ export default function MerchantBlacklistPage() {
                             <table className="min-w-[700px] w-full border-collapse">
                                 <thead>
                                     <tr className="bg-slate-50">
-                                        <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">买号账号</th>
+                                        <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">买号</th>
                                         <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">类型</th>
                                         <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">结束时间</th>
                                         <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">原因</th>
@@ -123,8 +123,8 @@ export default function MerchantBlacklistPage() {
             <Modal title="添加黑名单" open={showAddModal} onClose={() => { setShowAddModal(false); resetForm(); }}>
                 <div className="space-y-4">
                     <div>
-                        <label className="mb-2 block text-sm">买号账号 <span className="text-red-500">*</span></label>
-                        <Input type="text" value={form.accountName} onChange={e => setForm({ ...form, accountName: e.target.value })} placeholder="请输入旺旺号/淘宝账号" />
+                        <label className="mb-2 block text-sm">买号 <span className="text-red-500">*</span></label>
+                        <Input type="text" value={form.accountName} onChange={e => setForm({ ...form, accountName: e.target.value })} placeholder="请输入买号" />
                     </div>
                     <div>
                         <label className="mb-2 block text-sm">拉黑类型</label>

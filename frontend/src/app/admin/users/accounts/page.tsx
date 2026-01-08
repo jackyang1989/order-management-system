@@ -234,7 +234,7 @@ export default function AdminBuyerAccountsPage() {
                                                 <input type="checkbox" checked={allPendingSelected} onChange={e => handleSelectAll(e.target.checked)} className="cursor-pointer" />
                                             </th>
                                         )}
-                                        <th className="px-4 py-3.5 text-left text-sm font-medium">买号账号</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">买号</th>
                                         <th className="px-4 py-3.5 text-left text-sm font-medium">平台</th>
                                         <th className="px-4 py-3.5 text-left text-sm font-medium">收货信息</th>
                                         <th className="px-4 py-3.5 text-center text-sm font-medium">星级</th>
@@ -312,7 +312,7 @@ export default function AdminBuyerAccountsPage() {
                         <div>
                             <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm font-medium text-slate-600">基本信息</h4>
                             <div className="grid grid-cols-2 gap-3 text-sm">
-                                <div><span className="text-slate-400">账号名称：</span><span className="font-medium">{detailModal.accountName}</span></div>
+                                <div><span className="text-slate-400">买号：</span><span className="font-medium">{detailModal.accountName}</span></div>
                                 <div><span className="text-slate-400">平台：</span>{platformNames[detailModal.platform] || detailModal.platform}</div>
                                 <div><span className="text-slate-400">支付宝姓名：</span>{detailModal.alipayName || '-'}</div>
                                 <div><span className="text-slate-400">星级：</span>{detailModal.star}星</div>
@@ -336,10 +336,10 @@ export default function AdminBuyerAccountsPage() {
                         {/* Wangwang Info */}
                         {(detailModal.wangwangProvince || detailModal.wangwangCity || detailModal.addressRemark) && (
                             <div>
-                                <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm font-medium text-slate-600">旺旺信息</h4>
+                                <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm font-medium text-slate-600">常用登录地</h4>
                                 <div className="grid grid-cols-2 gap-3 text-sm">
-                                    <div><span className="text-slate-400">旺旺省份：</span>{detailModal.wangwangProvince || '-'}</div>
-                                    <div><span className="text-slate-400">旺旺城市：</span>{detailModal.wangwangCity || '-'}</div>
+                                    <div><span className="text-slate-400">登录省份：</span>{detailModal.wangwangProvince || '-'}</div>
+                                    <div><span className="text-slate-400">登录城市：</span>{detailModal.wangwangCity || '-'}</div>
                                     {detailModal.addressRemark && <div className="col-span-2"><span className="text-slate-400">地址备注：</span>{detailModal.addressRemark}</div>}
                                 </div>
                             </div>
@@ -350,9 +350,9 @@ export default function AdminBuyerAccountsPage() {
                             <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm font-medium text-slate-600">认证图片</h4>
                             <div className="flex flex-wrap gap-4">
                                 {renderImageThumbnail(detailModal.idCardImage, '身份证截图')}
-                                {renderImageThumbnail(detailModal.alipayImage, '支付宝认证')}
-                                {renderImageThumbnail(detailModal.archiveImage, '旺旺档案')}
-                                {renderImageThumbnail(detailModal.ipImage, 'IP截图')}
+                                {renderImageThumbnail(detailModal.alipayImage, '支付宝实名截图')}
+                                {renderImageThumbnail(detailModal.archiveImage, '账号主页截图')}
+                                {renderImageThumbnail(detailModal.ipImage, '淘气值截图')}
                                 {!detailModal.idCardImage && !detailModal.alipayImage && !detailModal.archiveImage && !detailModal.ipImage && (
                                     <div className="p-5 text-slate-400">暂无认证图片</div>
                                 )}

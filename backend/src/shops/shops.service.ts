@@ -75,7 +75,7 @@ export class ShopsService {
       if (exists && exists.sellerId !== sellerId) {
         // Allow same user re-bind? Or strict unique?
         // Original logic: "wangwang already used".
-        throw new BadRequestException('该旺旺号已被其他店铺绑定');
+        throw new BadRequestException('该店铺账号已被其他店铺绑定');
       }
     }
 
@@ -102,7 +102,7 @@ export class ShopsService {
       const exists = await this.shopsRepository.findOne({
         where: { accountName: data.accountName },
       });
-      if (exists) throw new BadRequestException('该旺旺号已被使用');
+      if (exists) throw new BadRequestException('该店铺账号已被使用');
     }
 
     Object.assign(shop, data);

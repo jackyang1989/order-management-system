@@ -54,8 +54,8 @@ export default function EditShopPage({ params }: { params: Promise<{ id: string 
                             <Input type="text" placeholder="请输入店铺名称" value={formData.shopName} onChange={e => setFormData({ ...formData, shopName: e.target.value })} />
                         </div>
                         <div>
-                            <label className="mb-2 block font-medium">旺旺/账号名</label>
-                            <Input type="text" placeholder="请输入主旺旺号" value={formData.accountName} onChange={e => setFormData({ ...formData, accountName: e.target.value })} />
+                            <label className="mb-2 block font-medium">店铺账号</label>
+                            <Input type="text" placeholder="请输入店铺账号" value={formData.accountName} onChange={e => setFormData({ ...formData, accountName: e.target.value })} />
                         </div>
                     </div>
 

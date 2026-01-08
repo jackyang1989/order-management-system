@@ -15,6 +15,16 @@ import {
     setStatus,
     remove,
 } from "../../../services/buyerAccountService";
+import { PLATFORM_CONFIG, PLATFORM_NAME_MAP } from "../../../constants/platformConfig";
+
+// 根据平台名获取对应的账号标签
+const getAccountLabel = (platformName: string): string => {
+    const platformId = PLATFORM_NAME_MAP[platformName];
+    if (platformId && PLATFORM_CONFIG[platformId]) {
+        return PLATFORM_CONFIG[platformId].accountLabel;
+    }
+    return `${platformName}账号`;
+};
 
 const STATUS_TEXT: Record<string, string> = {
     PENDING: "审核中",
@@ -147,7 +157,7 @@ export default function BuynoPage() {
                                     <div className="space-y-1">
                                         <div className="text-sm font-semibold text-slate-800">{displayName}</div>
                                         <div className="text-xs text-slate-500">平台：{acc.platform}</div>
-                                        <div className="text-xs text-slate-400">淘宝账号：{displayName}</div>
+                                        <div className="text-xs text-slate-400">{getAccountLabel(acc.platform)}：{displayName}</div>
                                         {acc.isDefault && <div className="text-[11px] text-blue-600">默认买号</div>}
                                     </div>
                                     <div className="flex flex-col items-end gap-2">

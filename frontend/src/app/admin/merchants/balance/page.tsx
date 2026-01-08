@@ -97,7 +97,7 @@ export default function AdminMerchantsBalancePage() {
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <Input
-                        placeholder="搜索商家名..."
+                        placeholder="搜索商家名称..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && handleSearch()}

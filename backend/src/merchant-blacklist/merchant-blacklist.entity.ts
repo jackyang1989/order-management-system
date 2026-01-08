@@ -37,7 +37,7 @@ export class MerchantBlacklist {
   seller: Merchant;
 
   @Column({ length: 100 })
-  accountName: string; // 买号账号名 (旺旺号)
+  accountName: string; // 买号
 
   @Column({ type: 'int', default: BlacklistType.PERMANENT })
   type: BlacklistType; // 类型 0永久 1限时

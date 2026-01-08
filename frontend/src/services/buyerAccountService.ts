@@ -5,24 +5,24 @@ export type BuyerAccountStatus = 'PENDING' | 'APPROVED' | 'DISABLED' | 'REJECTED
 export interface BuyerAccount {
     id: string;
     platform: '淘宝' | '京东' | '拼多多';
-    platformAccount: string;
-    loginProvince?: string;
-    loginCity?: string;
-    province?: string;
-    city?: string;
-    district?: string;
-    buyerName?: string;
-    buyerPhone?: string;
-    fullAddress?: string;
-    realName?: string;
-    profileImg?: string;
-    creditImg?: string;
-    payAuthImg?: string;
-    scoreImg?: string;
+    platformAccount: string;      // 买号
+    loginProvince?: string;       // 常用登录省份
+    loginCity?: string;           // 常用登录城市
+    province?: string;            // 收货省份
+    city?: string;                // 收货城市
+    district?: string;            // 收货区县
+    buyerName?: string;           // 收货人姓名
+    buyerPhone?: string;          // 收货人手机
+    fullAddress?: string;         // 详细地址
+    realName?: string;            // 实名认证姓名
+    profileImg?: string;          // 账号主页截图
+    creditImg?: string;           // 淘气值截图
+    payAuthImg?: string;          // 支付宝实名截图
+    scoreImg?: string;            // 芝麻信用截图
     status: BuyerAccountStatus;
     isDefault: boolean;
-    star?: number;
-    rejectReason?: string;
+    star?: number;                // 买号星级
+    rejectReason?: string;        // 拒绝原因
 }
 
 export interface CreateBuyerAccountInput {

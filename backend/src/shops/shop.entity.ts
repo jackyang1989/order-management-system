@@ -45,10 +45,10 @@ export class Shop {
   platform: ShopPlatform;
 
   @Column()
-  shopName: string;
+  shopName: string; // 店铺名称
 
   @Column()
-  accountName: string; // 旺旺号/账号名
+  accountName: string; // 店铺账号
 
   @Column()
   contactName: string; // 发件人姓名

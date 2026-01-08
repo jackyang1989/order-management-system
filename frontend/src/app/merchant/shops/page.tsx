@@ -51,7 +51,7 @@ export default function MerchantShopsPage() {
                                 <tr className="bg-slate-50">
                                     <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">平台</th>
                                     <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">店铺名称</th>
-                                    <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">旺旺号</th>
+                                    <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">店铺账号</th>
                                     <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">发件人</th>
                                     <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">状态</th>
                                     <th className="border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-600">操作</th>

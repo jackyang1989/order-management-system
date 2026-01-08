@@ -756,7 +756,7 @@ export class MobileCompatController {
           state: statusMap.state,           // 显示状态文本
           index_state: statusMap.index_state, // 状态码
 
-          wwid: order.buynoAccount, // 买号旺旺ID
+          wwid: order.buynoAccount, // 买号
           commission: order.commission,
           user_divided: order.userDivided || 0,
           user_principal: order.userPrincipal || 0,

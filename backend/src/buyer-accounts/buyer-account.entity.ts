@@ -38,7 +38,7 @@ export class BuyerAccount {
   @Column({ type: 'varchar', length: 20, default: BuyerAccountPlatform.TAOBAO })
   platform: BuyerAccountPlatform;
 
-  // 平台账号（原accountName/旺旺ID）
+  // 平台账号/买号（原accountName/旺旺ID）
   @Column({ name: 'accountName', length: 100 })
   platformAccount: string;
 
@@ -86,7 +86,7 @@ export class BuyerAccount {
   @Column({ name: 'ipImage', type: 'text', nullable: true })
   creditImg?: string;
 
-  // 支付宝认证截图（原alipayImage）
+  // 支付宝实名截图（原alipayImage）
   @Column({ name: 'alipayImage', type: 'text', nullable: true })
   payAuthImg?: string;
 
@@ -148,27 +148,27 @@ export class CreateBuyerAccountDto {
 
   @IsString()
   @IsNotEmpty()
-  platformAccount: string; // 平台账号（淘宝账号）
+  platformAccount: string; // 买号
 
   @IsString()
   @IsOptional()
-  loginProvince?: string; // 常用登录省
+  loginProvince?: string; // 常用登录省份
 
   @IsString()
   @IsOptional()
-  loginCity?: string; // 常用登录市
+  loginCity?: string; // 常用登录城市
 
   @IsString()
   @IsOptional()
-  province?: string; // 收货省
+  province?: string; // 收货省份
 
   @IsString()
   @IsOptional()
-  city?: string; // 收货市
+  city?: string; // 收货城市
 
   @IsString()
   @IsOptional()
-  district?: string; // 收货区
+  district?: string; // 收货区县
 
   @IsString()
   @IsOptional()
@@ -192,7 +192,7 @@ export class CreateBuyerAccountDto {
 
   @IsString()
   @IsOptional()
-  profileImg?: string; // 淘宝档案截图
+  profileImg?: string; // 账号主页截图
 
   @IsString()
   @IsOptional()
@@ -200,7 +200,7 @@ export class CreateBuyerAccountDto {
 
   @IsString()
   @IsOptional()
-  payAuthImg?: string; // 支付宝认证截图
+  payAuthImg?: string; // 支付宝实名截图
 
   @IsString()
   @IsOptional()

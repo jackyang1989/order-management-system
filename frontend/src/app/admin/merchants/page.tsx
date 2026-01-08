@@ -242,7 +242,7 @@ export default function AdminMerchantsPage() {
             <Card className="bg-white">
                 <div className="flex flex-wrap items-center gap-3">
                     <Input
-                        placeholder="搜索商家名/手机号..."
+                        placeholder="搜索商家名称/手机号..."
                         value={keyword}
                         onChange={(e) => setKeyword(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}

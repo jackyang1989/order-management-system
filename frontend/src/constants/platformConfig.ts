@@ -41,9 +41,9 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
             '审核通过后方可使用该买号接单'
         ],
         requiredImages: [
-            { key: 'profileImg', label: '淘宝档案截图', example: '/examples/taobao-profile.jpg', required: true },
+            { key: 'profileImg', label: '账号主页截图', example: '/examples/taobao-profile.jpg', required: true },
             { key: 'creditImg', label: '淘气值截图', example: '/examples/taoqi-score.jpg', required: true },
-            { key: 'payAuthImg', label: '支付宝认证截图', example: '/examples/alipay-auth.jpg', required: true },
+            { key: 'payAuthImg', label: '支付宝实名截图', example: '/examples/alipay-auth.jpg', required: true },
             { key: 'scoreImg', label: '芝麻信用截图', example: '/examples/zhima-credit.jpg', required: true }
         ]
     },
