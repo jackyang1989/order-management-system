@@ -46,6 +46,10 @@ export interface TaskFormData {
 
     addReward: number; // Extra money per order
 
+    // Verify Code (口令验证)
+    isPasswordEnabled: boolean; // 是否开启口令验证
+    checkPassword: string; // 商品口令 (4-10字)
+
     // Fee Calculation (Computed)
     baseServiceFee: number;
     praiseFee: number;
@@ -85,6 +89,10 @@ export const InitialTaskData: TaskFormData = {
     isTimingPay: false,
     isCycleTime: false,
     addReward: 0,
+
+    // Verify Code
+    isPasswordEnabled: false,
+    checkPassword: '',
 
     // Defaults    // Fees
     baseServiceFee: 0,

@@ -358,6 +358,102 @@ export class MobileCompatController {
     }
   }
 
+  /**
+   * 获取任务步骤信息
+   * 原版: /mobile/task/taskstep
+   * 用于买手执行任务时获取任务详情和步骤信息
+   */
+  @Post('task/taskstep')
+  @UseGuards(JwtAuthGuard)
+  async taskStep(@Body() body: any, @Request() req) {
+    try {
+      const orderId = body.id || body.orderId || body.order_id;
+      if (!orderId) {
+        return { code: 0, msg: '订单ID不能为空', data: null };
+      }
+
+      // 获取订单信息
+      const order = await this.ordersService.findOne(orderId, req.user.userId);
+      if (!order) {
+        return { code: 0, msg: '订单不存在', data: null };
+      }
+
+      // 获取任务信息
+      const task = await this.tasksService.findOne(order.taskId);
+      if (!task) {
+        return { code: 0, msg: '任务不存在', data: null };
+      }
+
+      // 构建商品信息，使用脱敏口令
+      const maskedPassword = task.isPasswordEnabled && task.checkPassword
+        ? this.ordersService.maskPassword(task.checkPassword)
+        : '';
+
+      // 返回任务步骤信息
+      return {
+        code: 1,
+        msg: 'success',
+        data: {
+          order_id: order.id,
+          task_id: task.id,
+          task_number: task.taskNumber,
+          status: order.status,
+          current_step: order.currentStep || 1,
+          total_steps: order.totalSteps || 6,
+
+          // 任务基础信息
+          shop_name: task.shopName || '',
+          shop_img: '', // TODO: 从商家或店铺表获取
+          main_image: task.mainImage || '',
+          title: task.title || '',
+          url: task.url || '',
+          keyword: task.keyword || '',
+          tao_word: task.taoWord || '',
+          goods_price: task.goodsPrice || 0,
+
+          // 口令验证相关
+          admin_limit_switch: task.isPasswordEnabled ? 1 : 0,
+          goods_info: [{
+            goods_name: task.title || '',
+            goods_img: task.mainImage || '',
+            goods_price: task.goodsPrice || 0,
+            goods_spec: maskedPassword, // 脱敏后的口令
+            goods_num: 1,
+          }],
+
+          // 增值服务
+          is_praise: task.isPraise ? 1 : 0,
+          is_img_praise: task.isImgPraise ? 1 : 0,
+          is_video_praise: task.isVideoPraise ? 1 : 0,
+
+          // 佣金信息
+          commission: order.commission || 0,
+          user_divided: order.userDivided || 0,
+          user_principal: order.userPrincipal || 0,
+
+          // 浏览时长要求
+          total_browse_minutes: task.totalBrowseMinutes || 15,
+          main_browse_minutes: task.mainBrowseMinutes || 8,
+          sub_browse_minutes: task.subBrowseMinutes || 2,
+
+          // 其他要求
+          need_huobi: task.needHuobi ? 1 : 0,
+          huobi_keyword: task.huobiKeyword || '',
+          need_shoucang: task.needShoucang ? 1 : 0,
+          need_guanzhu: task.needGuanzhu ? 1 : 0,
+          need_jialiao: task.needJialiao ? 1 : 0,
+          need_jiagou: task.needJiagou ? 1 : 0,
+
+          // 时间信息
+          create_time: order.createdAt,
+          task_time_limit: task.taskTimeLimit || 24,
+        },
+      };
+    } catch (error) {
+      return { code: 0, msg: error.message || '获取任务步骤失败', data: null };
+    }
+  }
+
   // ============ /mobile/money/* 资金相关 ============
 
   /**

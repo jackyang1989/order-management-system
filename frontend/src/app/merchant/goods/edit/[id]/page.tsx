@@ -87,7 +87,8 @@ export default function EditGoodsPage({ params }: { params: Promise<{ id: string
                     {/* Verify Code */}
                     <div>
                         <label className="mb-2 block font-medium">核对口令</label>
-                        <Input type="text" value={form.verifyCode} onChange={e => handleChange('verifyCode', e.target.value)} placeholder="用于买手核对订单" maxLength={20} />
+                        <Input type="text" value={form.verifyCode} onChange={e => handleChange('verifyCode', e.target.value)} placeholder="请输入核对口令" maxLength={10} />
+                        <div className="mt-1.5 text-xs text-slate-500">请输入不超过10个字的核对口令，必须是商品详情页有的文字。买手做任务时需在详情页找到此口令进行核对。</div>
                     </div>
 
                     {/* Price Row */}

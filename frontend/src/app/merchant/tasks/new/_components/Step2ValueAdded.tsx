@@ -169,6 +169,22 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
             {/* Extra Services */}
             <div className="mb-8">
                 <h3 className="mb-4 text-[15px] font-semibold text-slate-700">其它增值服务</h3>
+                {/* Verify Code Switch */}
+                <div className="flex items-start gap-3 border-b border-slate-100 px-3 py-3">
+                    <input type="checkbox" checked={data.isPasswordEnabled} onChange={e => onChange({ isPasswordEnabled: e.target.checked })} className="mt-1" />
+                    <div className="flex flex-1 flex-col">
+                        <div><span className="text-sm">开启口令验证</span><span className="ml-2 text-xs text-slate-400">买手需在商品详情页找到口令进行核对</span></div>
+                        {data.isPasswordEnabled && (
+                            <div className="mt-2">
+                                <input type="text" value={data.checkPassword || ''} onChange={e => onChange({ checkPassword: e.target.value })} placeholder="请输入4-10个字的核对口令" minLength={4} maxLength={10} className={cn('w-[300px] rounded border px-2 py-1.5 text-sm', data.checkPassword && (data.checkPassword.length < 4 || data.checkPassword.length > 10) ? 'border-red-500' : 'border-slate-200')} />
+                                <div className="mt-1 text-xs text-slate-500">口令需为4-10个详情页文字，买手做任务时需在详情页找到并输入完整口令。</div>
+                                {data.checkPassword && (data.checkPassword.length < 4 || data.checkPassword.length > 10) && (
+                                    <div className="mt-1 text-xs text-red-500">口令需为4-10个字符</div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
                 {/* Timing Publish */}
                 <div className="flex items-center gap-3 border-b border-slate-100 px-3 py-3">
                     <input type="checkbox" checked={data.isTimingPublish} onChange={e => onChange({ isTimingPublish: e.target.checked })} />

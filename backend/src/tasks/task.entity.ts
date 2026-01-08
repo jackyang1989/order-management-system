@@ -340,6 +340,10 @@ export class CreateTaskDto {
   // P0 Fix: 新任务类型
   isRepay?: boolean; // 回购任务
   isNextDay?: boolean; // 隔天任务
+
+  // 口令验证
+  isPasswordEnabled?: boolean; // 是否开启口令验证
+  checkPassword?: string; // 商品口令 (4-10字)
 }
 
 export class TaskFilterDto {

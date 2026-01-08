@@ -44,6 +44,11 @@ export default function NewTaskPage() {
     const handleSubmit = async () => {
         setLoading(true); const token = localStorage.getItem('merchantToken');
         try {
+            // 口令验证校验
+            if (data.isPasswordEnabled) {
+                if (!data.checkPassword || data.checkPassword.trim().length === 0) { alert('开启口令验证后必须填写口令'); setLoading(false); return; }
+                if (data.checkPassword.length < 4 || data.checkPassword.length > 10) { alert('口令需为4-10个详情页文字'); setLoading(false); return; }
+            }
             if (data.isPraise && data.praiseType === 'text') { const filled = data.praiseList.filter(s => s && s.trim().length > 0); if (filled.length !== data.count) { alert(`请填写所有 ${data.count} 条好评内容`); setLoading(false); return; } }
             const payload = { ...data, goodsPrice: Number(data.goodsPrice), count: Number(data.count), addReward: Number(data.addReward), extraCommission: Number(data.addReward) };
             const res = await fetch(`${BASE_URL}/tasks`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });

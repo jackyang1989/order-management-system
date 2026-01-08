@@ -100,4 +100,13 @@ export class MerchantTaskDto {
   @IsNumber()
   @IsOptional()
   extraCommission?: number; // 加赏佣金 (shang_add_reward)
+
+  // --- 口令验证 ---
+  @IsBoolean()
+  @IsOptional()
+  isPasswordEnabled?: boolean; // 是否开启口令验证
+
+  @IsString()
+  @IsOptional()
+  checkPassword?: string; // 商品口令 (4-10字)
 }
