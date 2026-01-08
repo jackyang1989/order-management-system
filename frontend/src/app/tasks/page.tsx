@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '../../lib/utils';
 import { isAuthenticated, getToken } from '../../services/authService';
 import BottomNav from '../../components/BottomNav';
+import { fetchSystemConfig, getEnabledTaskTypes } from '../../services/systemConfigService';
+import { TASK_TYPE_NAMES, getFilteredTaskPlatforms } from '../../constants/platformConfig';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
@@ -32,6 +34,8 @@ export default function TasksPage() {
     const [value3, setValue3] = useState<number | string>('');
     const [value4, setValue4] = useState<number | string>('');
     const [value5, setValue5] = useState<number | string>('');
+    const [platformFilter, setPlatformFilter] = useState<number | string>(''); // 平台筛选
+    const [enabledTaskTypes, setEnabledTaskTypes] = useState<number[]>([1, 2]); // 启用的平台类型
     const [op2count, setOp2count] = useState('');
     const [defaultDate, setDefaultDate] = useState('');
     const [defaultDate2, setDefaultDate2] = useState('');
@@ -42,8 +46,30 @@ export default function TasksPage() {
     const alertSuccess = useCallback((msg: string) => alert(msg), []);
     const alertError = useCallback((msg: string) => alert(msg), []);
 
+    // 加载启用的平台列表
+    useEffect(() => {
+        const loadConfig = async () => {
+            const config = await fetchSystemConfig();
+            const enabled = getEnabledTaskTypes(config);
+            setEnabledTaskTypes(enabled);
+        };
+        loadConfig();
+    }, []);
+
+    // 根据启用平台生成平台筛选选项
+    const platformOptions = useMemo(() => {
+        const options = [{ value: '' as string | number, label: '全部平台' }];
+        enabledTaskTypes.forEach(taskType => {
+            const name = TASK_TYPE_NAMES[taskType];
+            if (name) {
+                options.push({ value: taskType, label: name });
+            }
+        });
+        return options;
+    }, [enabledTaskTypes]);
+
     useEffect(() => { if (!isAuthenticated()) { router.push('/login'); return; } loadBuynos(); getData(); }, []);
-    useEffect(() => { if (!loading) getData(); }, [value3, value4, value5, currentPage]);
+    useEffect(() => { if (!loading) getData(); }, [value3, value4, value5, platformFilter, currentPage]);
 
     const loadBuynos = async () => {
         try {
@@ -60,7 +86,7 @@ export default function TasksPage() {
             const token = getToken();
             const response = await fetch(`${BASE_URL}/mobile/task/index`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ page: currentPage, datetime1: defaultDate, datetime2: defaultDate2, task_type: value3, buyno_id: value2, terminal: value4, getprice: value5 }),
+                body: JSON.stringify({ page: currentPage, datetime1: defaultDate, datetime2: defaultDate2, task_type: value3, buyno_id: value2, terminal: value4, getprice: value5, platform: platformFilter }),
             });
             const data = await response.json();
             if (data.code === 1) { const list = data.data?.list || []; for (let i = 0; i < list.length; i++) list[i].progress = parseInt(list[i].progress) + '%'; setTasks(list); setTotal(data.data?.total || 0); }
@@ -117,6 +143,12 @@ export default function TasksPage() {
                         <select value={value4} onChange={(e) => setValue4(e.target.value ? Number(e.target.value) : '')} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
                             <option value="">请选择</option>
                             {TERMINAL_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                        </select>
+                    </div>
+                    <div className="mb-3">
+                        <div className="mb-1.5 text-xs text-slate-500">平台筛选</div>
+                        <select value={platformFilter} onChange={(e) => { setPlatformFilter(e.target.value ? Number(e.target.value) : ''); setCurrentPage(1); }} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
+                            {platformOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                         </select>
                     </div>
                     <div className="mb-3">

@@ -272,3 +272,27 @@ export function getShopPlatformCode(taskType: number): string {
     const platform = TASK_PLATFORMS.find(p => p.id === taskType);
     return platform?.platformCode || 'OTHER';
 }
+
+// ============ 平台过滤方法（根据系统配置过滤启用的平台）============
+
+// 过滤买号绑定页面的平台列表
+export function getFilteredPlatformList(enabledPlatformIds: string[]): { id: string; name: string }[] {
+    return Object.values(PLATFORM_CONFIG)
+        .filter(p => enabledPlatformIds.includes(p.id))
+        .map(p => ({ id: p.id, name: p.name }));
+}
+
+// 过滤任务发布/筛选的平台列表
+export function getFilteredTaskPlatforms(enabledTaskTypes: number[]): TaskPlatformOption[] {
+    return TASK_PLATFORMS.filter(p => enabledTaskTypes.includes(p.id));
+}
+
+// 检查平台配置ID是否在启用列表中
+export function isPlatformConfigEnabled(platformId: string, enabledPlatformIds: string[]): boolean {
+    return enabledPlatformIds.includes(platformId);
+}
+
+// 检查任务类型是否在启用列表中
+export function isTaskTypeEnabled(taskType: number, enabledTaskTypes: number[]): boolean {
+    return enabledTaskTypes.includes(taskType);
+}

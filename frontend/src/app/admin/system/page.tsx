@@ -59,6 +59,8 @@ interface SystemGlobalConfig {
     inviteRewardAmount: number;
     inviteMaxOrders: number;
     inviteExpiryDays: number;
+    // 平台开关配置
+    enabledPlatforms: string;
     updatedAt: string;
 }
 
@@ -175,6 +177,19 @@ const configGroups: ConfigGroup[] = [
     },
 ];
 
+// 可用的平台列表
+const ALL_PLATFORMS = [
+    { id: 'taobao', name: '淘宝', icon: '🟠' },
+    { id: 'tmall', name: '天猫', icon: '🔴' },
+    { id: 'jd', name: '京东', icon: '🔴' },
+    { id: 'pdd', name: '拼多多', icon: '🟢' },
+    { id: 'douyin', name: '抖音', icon: '📱' },
+    { id: 'kuaishou', name: '快手', icon: '📱' },
+    { id: 'xianyu', name: '闲鱼', icon: '🟡' },
+    { id: 'ali1688', name: '1688', icon: '🟠' },
+    { id: 'xiaohongshu', name: '小红书', icon: '🔴' },
+];
+
 export default function AdminSystemPage() {
     const [config, setConfig] = useState<SystemGlobalConfig | null>(null);
     const [loading, setLoading] = useState(true);
@@ -218,6 +233,25 @@ export default function AdminSystemPage() {
     const handleChange = (key: keyof SystemGlobalConfig, value: string | number | boolean) => {
         if (!config) return;
         setConfig({ ...config, [key]: value });
+    };
+
+    // 获取已启用的平台列表
+    const getEnabledPlatforms = (): string[] => {
+        if (!config?.enabledPlatforms) return ['taobao'];
+        try {
+            return JSON.parse(config.enabledPlatforms);
+        } catch {
+            return ['taobao'];
+        }
+    };
+
+    // 切换平台启用状态
+    const togglePlatform = (platformId: string) => {
+        const enabled = getEnabledPlatforms();
+        const newEnabled = enabled.includes(platformId)
+            ? enabled.filter(id => id !== platformId)
+            : [...enabled, platformId];
+        handleChange('enabledPlatforms', JSON.stringify(newEnabled));
     };
 
     const renderField = (field: ConfigField) => {
@@ -319,6 +353,44 @@ export default function AdminSystemPage() {
             {error && (
                 <div className="rounded-lg bg-red-50 p-4 text-red-600">{error}</div>
             )}
+
+            {/* 平台开关配置 - 放在最前面 */}
+            <div className="overflow-hidden rounded-lg bg-white">
+                <div className="border-b border-slate-100 px-6 py-4">
+                    <span className="text-base font-medium">平台开关配置</span>
+                    <span className="ml-2 text-xs text-slate-400">控制全站显示的平台，关闭后该平台在用户端、商家端均不可见</span>
+                </div>
+                <div className="p-6">
+                    <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5">
+                        {ALL_PLATFORMS.map(platform => {
+                            const enabled = getEnabledPlatforms();
+                            const isEnabled = enabled.includes(platform.id);
+                            return (
+                                <div
+                                    key={platform.id}
+                                    onClick={() => togglePlatform(platform.id)}
+                                    className={`cursor-pointer rounded-lg border-2 p-4 text-center transition-all ${
+                                        isEnabled
+                                            ? 'border-blue-500 bg-blue-50'
+                                            : 'border-slate-200 bg-slate-50 opacity-60'
+                                    }`}
+                                >
+                                    <div className="mb-2 text-2xl">{platform.icon}</div>
+                                    <div className={`text-sm font-medium ${isEnabled ? 'text-blue-700' : 'text-slate-500'}`}>
+                                        {platform.name}
+                                    </div>
+                                    <div className={`mt-1 text-xs ${isEnabled ? 'text-green-600' : 'text-slate-400'}`}>
+                                        {isEnabled ? '已启用' : '已关闭'}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    <div className="mt-4 text-xs text-slate-400">
+                        提示：关闭平台后，用户无法绑定该平台买号、商家无法发布该平台任务、任务大厅不显示该平台任务
+                    </div>
+                </div>
+            </div>
 
             {/* Config Groups */}
             {configGroups.map(group => (

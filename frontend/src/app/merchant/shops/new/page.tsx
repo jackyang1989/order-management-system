@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createShop } from '../../../../services/shopService';
 import { cn } from '../../../../lib/utils';
@@ -8,12 +8,59 @@ import { Button } from '../../../../components/ui/button';
 import { Card } from '../../../../components/ui/card';
 import { Input } from '../../../../components/ui/input';
 import { Select } from '../../../../components/ui/select';
+import { fetchSystemConfig, getEnabledPlatforms } from '../../../../services/systemConfigService';
+
+// 平台ID到platformCode的映射
+const PLATFORM_ID_TO_CODE: Record<string, string> = {
+    'taobao': 'TAOBAO',
+    'tmall': 'TMALL',
+    'jd': 'JD',
+    'pdd': 'PDD',
+    'douyin': 'DOUYIN',
+    'kuaishou': 'KUAISHOU',
+};
+
+// 平台ID到中文名的映射
+const PLATFORM_ID_TO_NAME: Record<string, string> = {
+    'taobao': '淘宝',
+    'tmall': '天猫',
+    'jd': '京东',
+    'pdd': '拼多多',
+    'douyin': '抖音',
+    'kuaishou': '快手',
+};
 
 export default function NewShopPage() {
     const router = useRouter();
     const [submitting, setSubmitting] = useState(false);
+    const [enabledPlatformIds, setEnabledPlatformIds] = useState<string[]>(['taobao']);
     const [formData, setFormData] = useState({ platform: 'TAOBAO', shopName: '', accountName: '', contactName: '', mobile: '', url: '', province: '', city: '', district: '', detailAddress: '', screenshot: null as File | null });
     const [mobileError, setMobileError] = useState('');
+
+    // 加载启用的平台列表
+    useEffect(() => {
+        const loadEnabledPlatforms = async () => {
+            const config = await fetchSystemConfig();
+            const enabled = getEnabledPlatforms(config);
+            setEnabledPlatformIds(enabled);
+            // 如果当前平台不在启用列表中，切换到第一个启用的平台
+            const currentPlatformId = Object.entries(PLATFORM_ID_TO_CODE).find(([_, code]) => code === formData.platform)?.[0];
+            if (currentPlatformId && !enabled.includes(currentPlatformId) && enabled.length > 0) {
+                setFormData(prev => ({ ...prev, platform: PLATFORM_ID_TO_CODE[enabled[0]] || 'TAOBAO' }));
+            }
+        };
+        loadEnabledPlatforms();
+    }, []);
+
+    // 根据启用平台生成选项
+    const platformOptions = useMemo(() => {
+        return enabledPlatformIds
+            .filter(id => PLATFORM_ID_TO_CODE[id])
+            .map(id => ({
+                value: PLATFORM_ID_TO_CODE[id],
+                label: PLATFORM_ID_TO_NAME[id] || id,
+            }));
+    }, [enabledPlatformIds]);
 
     const validateMobile = (mobile: string) => {
         const mobileRegex = /^1[3-9]\d{9}$/;
@@ -42,7 +89,7 @@ export default function NewShopPage() {
                     {/* Platform */}
                     <div>
                         <label className="mb-2 block font-medium">平台类型</label>
-                        <Select value={formData.platform} onChange={v => setFormData({ ...formData, platform: v })} options={[{ value: 'TAOBAO', label: '淘宝' }, { value: 'TMALL', label: '天猫' }, { value: 'JD', label: '京东' }, { value: 'PDD', label: '拼多多' }, { value: 'DOUYIN', label: '抖音' }]} />
+                        <Select value={formData.platform} onChange={v => setFormData({ ...formData, platform: v })} options={platformOptions} />
                     </div>
 
                     {/* Shop Name & Account */}

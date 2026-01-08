@@ -185,6 +185,12 @@ export class SystemGlobalConfig {
   @Column({ type: 'int', default: 30 })
   inviteExpiryDays: number;
 
+  // ============ 平台开关配置 ============
+  // 启用的平台列表，JSON格式: ["taobao","tmall","jd","pdd","douyin","kuaishou"]
+  // 默认只启用淘宝
+  @Column({ type: 'text', default: '["taobao"]' })
+  enabledPlatforms: string;
+
   @UpdateDateColumn()
   updatedAt: Date;
 }
@@ -329,4 +335,9 @@ export class UpdateSystemGlobalConfigDto {
 
   @IsOptional()
   dingdanxiaEnabled?: boolean;
+
+  // 平台开关配置
+  @IsOptional()
+  @IsString()
+  enabledPlatforms?: string;
 }
