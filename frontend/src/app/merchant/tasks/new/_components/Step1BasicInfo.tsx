@@ -77,7 +77,7 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
 
             {/* Shop Selection & URL */}
             <div className="mb-6 flex gap-6">
-                <div className="w-1/3 min-w-[240px]">
+                <div className="w-[260px] shrink-0">
                     <label className="mb-2 block text-sm text-[#374151]">选择店铺</label>
                     {loadingShops ? (
                         <div className="px-3 py-2.5 text-[#9ca3af]">加载中...</div>
@@ -89,32 +89,32 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                 </div>
                 <div className="flex-1">
                     <label className="mb-2 block text-sm text-[#374151]">商品链接</label>
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2">
                         <Input type="text" value={data.url} onChange={e => onChange({ url: e.target.value })} placeholder="粘贴商品链接/口令" className="flex-1" />
-                        <button onClick={handleFetchInfo} className="rounded-md border border-[#d1d5db] bg-[#f3f4f6] px-4 text-[#4b5563] hover:bg-[#e5e7eb]">获取</button>
+                        <button onClick={handleFetchInfo} className="h-[38px] rounded-md border border-[#d1d5db] bg-[#f3f4f6] px-5 text-[14px] text-[#4b5563] transition-colors hover:bg-[#e5e7eb] focus:outline-none focus:ring-2 focus:ring-primary-500/20">获取</button>
                     </div>
                 </div>
             </div>
 
             {/* Product Info */}
             <div className="mb-6 rounded-md border border-[#e5e7eb] bg-[#f9fafb] p-5">
-                <div className="flex gap-6">
-                    <div className="flex h-[100px] w-[100px] items-center justify-center overflow-hidden rounded-md bg-[#e5e7eb]">
-                        {data.mainImage ? <img src={data.mainImage} alt="Main" className="h-full w-full object-cover" /> : <span className="text-2xl text-[#9ca3af]">📷</span>}
+                <div className="flex items-start gap-6">
+                    <div className="flex h-[110px] w-[110px] shrink-0 items-center justify-center overflow-hidden rounded-md border border-[#e5e7eb] bg-white">
+                        {data.mainImage ? <img src={data.mainImage} alt="Main" className="h-full w-full object-cover" /> : <span className="text-3xl text-[#9ca3af]">📷</span>}
                     </div>
                     <div className="min-w-0 flex-1">
                         <div className="mb-4">
-                            <label className="mb-1.5 block text-sm">商品标题</label>
-                            <Input type="text" value={data.title} onChange={e => onChange({ title: e.target.value })} />
+                            <label className="mb-1.5 block text-sm font-medium text-[#3b4559]">商品标题</label>
+                            <Input type="text" value={data.title} onChange={e => onChange({ title: e.target.value })} placeholder="获取商品信息后自动填充" />
                         </div>
                         <div className="flex gap-6">
-                            <div>
-                                <label className="mb-1.5 block text-sm">搜索关键词</label>
-                                <Input type="text" value={data.keyword} onChange={e => onChange({ keyword: e.target.value })} className="w-[200px]" />
+                            <div className="flex-1">
+                                <label className="mb-1.5 block text-sm font-medium text-[#3b4559]">搜索关键词</label>
+                                <Input type="text" value={data.keyword} onChange={e => onChange({ keyword: e.target.value })} placeholder="请输入关键词" />
                             </div>
-                            <div>
-                                <label className="mb-1.5 block text-sm">商品价格 (元)</label>
-                                <Input type="number" value={String(data.goodsPrice)} onChange={e => onChange({ goodsPrice: parseFloat(e.target.value) || 0 })} className="w-[120px]" />
+                            <div className="w-[180px]">
+                                <label className="mb-1.5 block text-sm font-medium text-[#3b4559]">商品价格 (元)</label>
+                                <Input type="number" value={String(data.goodsPrice)} onChange={e => onChange({ goodsPrice: parseFloat(e.target.value) || 0 })} />
                             </div>
                         </div>
                     </div>
@@ -123,18 +123,20 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
 
             {/* Count */}
             <div className="mb-8">
-                <label className="mb-2 block text-sm text-[#374151]">发布任务数量</label>
+                <label className="mb-2 block text-sm font-medium text-[#374151]">发布任务数量</label>
                 <div className="flex items-center gap-3">
-                    <button onClick={() => onChange({ count: Math.max(1, data.count - 1) })} className="flex h-8 w-8 items-center justify-center rounded border border-[#d1d5db] bg-white">-</button>
-                    <Input type="number" value={String(data.count)} onChange={e => onChange({ count: parseInt(e.target.value) || 1 })} className="w-20 text-center" />
-                    <button onClick={() => onChange({ count: data.count + 1 })} className="flex h-8 w-8 items-center justify-center rounded border border-[#d1d5db] bg-white">+</button>
-                    <span className="text-sm text-[#f9fafb]0">单</span>
+                    <div className="flex items-center">
+                        <button onClick={() => onChange({ count: Math.max(1, data.count - 1) })} className="flex h-9 w-9 items-center justify-center rounded-l border border-[#d1d5db] bg-white text-gray-600 hover:bg-gray-50">-</button>
+                        <Input type="number" value={String(data.count)} onChange={e => onChange({ count: parseInt(e.target.value) || 1 })} className="w-20 rounded-none border-x-0 text-center focus:ring-0" />
+                        <button onClick={() => onChange({ count: data.count + 1 })} className="flex h-9 w-9 items-center justify-center rounded-r border border-[#d1d5db] bg-white text-gray-600 hover:bg-gray-50">+</button>
+                    </div>
+                    <span className="text-sm text-[#6b7280]">单</span>
                 </div>
             </div>
 
             {/* Footer Action */}
-            <div className="flex justify-end gap-3 border-t border-[#e5e7eb] px-1 pt-6">
-                <Button onClick={onNext} disabled={isNextDisabled} className={cn('px-8 font-semibold', isNextDisabled && 'cursor-not-allowed bg-[#9ca3af]')}>下一步</Button>
+            <div className="flex items-center justify-end border-t border-[#e5e7eb] pt-8">
+                <Button onClick={onNext} disabled={isNextDisabled} className={cn('min-w-[140px] h-11 text-[15px] font-semibold transition-all', isNextDisabled ? 'cursor-not-allowed bg-[#cbd5e1] text-white' : 'bg-primary-600 text-white shadow-md shadow-primary-600/20 hover:bg-primary-700 active:scale-[0.98]')}>下一步 →</Button>
             </div>
         </div>
     );

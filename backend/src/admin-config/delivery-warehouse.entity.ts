@@ -56,9 +56,8 @@ export const DEFAULT_DELIVERIES = [
   { code: 'YUNDA', name: '韵达速递', sortOrder: 5 },
   { code: 'JD', name: '京东物流', sortOrder: 6 },
   { code: 'EMS', name: 'EMS', sortOrder: 7 },
-  { code: 'BEST', name: '百世快递', sortOrder: 8 },
-  { code: 'JTEXPRESS', name: '极兔速递', sortOrder: 9 },
-  { code: 'DBWL', name: '德邦快递', sortOrder: 10 },
-  { code: 'CAINIAO', name: '菜鸟裹裹', sortOrder: 11 },
+  { code: 'JTEXPRESS', name: '极兔速递', sortOrder: 8 },
+  { code: 'DBWL', name: '德邦快递', sortOrder: 9 },
+  { code: 'CAINIAO', name: '菜鸟裹裹', sortOrder: 10 },
   { code: 'OTHER', name: '其他快递', sortOrder: 99 },
 ];

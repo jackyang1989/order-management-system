@@ -26,6 +26,7 @@ export default function PlatformsPage() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<Partial<Platform>>({});
     const [showModal, setShowModal] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         loadPlatforms();
@@ -33,17 +34,28 @@ export default function PlatformsPage() {
 
     const loadPlatforms = async () => {
         setLoading(true);
+        setError(null);
         try {
             const token = localStorage.getItem('adminToken');
+            if (!token) {
+                setError('未登录，请先登录管理后台');
+                setLoading(false);
+                return;
+            }
             const response = await fetch(`${BASE_URL}/admin/platforms?activeOnly=false`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (response.ok) {
                 const data = await response.json();
                 setPlatforms(data.data || []);
+            } else if (response.status === 401) {
+                setError('登录已过期，请重新登录');
+            } else {
+                setError('加载平台列表失败');
             }
         } catch (error) {
             console.error('加载失败:', error);
+            setError('网络错误，请检查后端服务是否运行');
         } finally {
             setLoading(false);
         }
@@ -134,6 +146,13 @@ export default function PlatformsPage() {
             <Card className="overflow-hidden bg-white p-0">
                 {loading ? (
                     <div className="py-16 text-center text-slate-400">加载中...</div>
+                ) : error ? (
+                    <div className="py-16 text-center">
+                        <div className="text-red-500 mb-4">{error}</div>
+                        <Button onClick={loadPlatforms} variant="secondary">重试</Button>
+                    </div>
+                ) : platforms.length === 0 ? (
+                    <div className="py-16 text-center text-slate-400">暂无平台数据</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="min-w-[900px] w-full border-collapse">

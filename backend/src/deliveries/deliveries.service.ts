@@ -50,13 +50,12 @@ export class DeliveriesService {
       { name: '圆通速递', code: 'YTO', sort: 3 },
       { name: '韵达快递', code: 'YD', sort: 4 },
       { name: '申通快递', code: 'STO', sort: 5 },
-      { name: '百世快递', code: 'HTKY', sort: 6 },
-      { name: '极兔速递', code: 'JTSD', sort: 7 },
-      { name: '邮政快递包裹', code: 'YZPY', sort: 8 },
-      { name: 'EMS', code: 'EMS', sort: 9 },
-      { name: '德邦快递', code: 'DBL', sort: 10 },
-      { name: '京东物流', code: 'JD', sort: 11 },
-      { name: '菜鸟速递', code: 'CNSD', sort: 12 },
+      { name: '极兔速递', code: 'JTSD', sort: 6 },
+      { name: '邮政快递包裹', code: 'YZPY', sort: 7 },
+      { name: 'EMS', code: 'EMS', sort: 8 },
+      { name: '德邦快递', code: 'DBL', sort: 9 },
+      { name: '京东物流', code: 'JD', sort: 10 },
+      { name: '菜鸟速递', code: 'CNSD', sort: 11 },
     ];
 
     for (const delivery of defaultDeliveries) {

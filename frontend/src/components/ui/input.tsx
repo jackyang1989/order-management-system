@@ -13,10 +13,11 @@ export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, leading, trailing, id, ...props }, ref) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
-    const containerWidth = className?.includes('w-') ? className.split(' ').find(c => c.startsWith('w-')) : 'w-full';
+    const layoutClasses = className?.split(' ').filter(c => c.startsWith('w-') || c.startsWith('flex-') || c === 'grow' || c === 'shrink-0') || [];
+    const containerClasses = layoutClasses.length > 0 ? layoutClasses.join(' ') : (label ? 'w-full' : 'w-auto');
 
     return (
-      <div className={cn(containerWidth, !label && 'w-auto')}>
+      <div className={containerClasses}>
         {label && (
           <label htmlFor={inputId} className="mb-1.5 block text-[13px] font-medium text-[#3b4559]">
             {label}
@@ -34,7 +35,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               leading && 'pl-10',
               trailing && 'pr-10',
               error && 'border-danger-400 focus:border-danger-400 focus:ring-danger-400/20',
-              className?.replace(containerWidth || '', '').trim()
+              className?.replace(layoutClasses[0] || '', '').trim()
             )}
             {...props}
           />

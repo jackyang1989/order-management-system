@@ -76,7 +76,7 @@ export default function NewTaskPage() {
             </div>
 
             {/* Content */}
-            <div className="mx-auto my-6 min-h-[600px] max-w-7xl rounded-md bg-white shadow-sm border border-[#e5e7eb]">
+            <div className="mx-auto my-6 min-h-[600px] max-w-7xl rounded-md bg-white">
                 {step === 1 && <Step1BasicInfo data={data} onChange={handleDataChange} onNext={() => setStep(2)} />}
                 {step === 2 && <Step2ValueAdded data={data} onChange={handleDataChange} onPrev={() => setStep(1)} onNext={() => setStep(3)} />}
                 {step === 3 && <Step3Payment data={data} merchant={merchant} onPrev={() => setStep(2)} onSubmit={handleSubmit} loading={loading} />}

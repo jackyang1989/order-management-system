@@ -65,15 +65,14 @@ export class PlatformService implements OnModuleInit {
     }
 
     /**
-     * 删除平台（软删除）
+     * 删除平台（硬删除）
      */
     async delete(id: string): Promise<void> {
         const platform = await this.platformRepo.findOne({ where: { id } });
         if (!platform) {
             throw new NotFoundException('平台不存在');
         }
-        platform.isActive = false;
-        await this.platformRepo.save(platform);
+        await this.platformRepo.remove(platform);
     }
 
     /**
