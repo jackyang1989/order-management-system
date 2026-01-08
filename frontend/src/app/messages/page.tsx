@@ -11,56 +11,13 @@ import {
     Message
 } from '../../services/messageService';
 
-// Fallback mock data
-const mockMessages: Message[] = [
-    {
-        id: '1',
-        type: 'order',
-        title: '任务审核通过',
-        content: '您提交的任务 #TB20241230001 已审核通过，佣金已发放至您的账户。',
-        isRead: false,
-        createdAt: '2024-12-30 10:00:00'
-    },
-    {
-        id: '2',
-        type: 'finance',
-        title: '提现申请已处理',
-        content: '您申请的100元提现已处理完成，请注意查收银行卡到账。',
-        isRead: true,
-        createdAt: '2024-12-29 15:30:00'
-    },
-    {
-        id: '3',
-        type: 'promotion',
-        title: '新任务上线提醒',
-        content: '任务大厅新增50+优质任务，快来抢单赚取佣金吧！',
-        isRead: true,
-        createdAt: '2024-12-28 09:00:00'
-    },
-    {
-        id: '4',
-        type: 'system',
-        title: '账号安全提醒',
-        content: '检测到您的账号在新设备登录，如非本人操作请及时修改密码。',
-        isRead: false,
-        createdAt: '2024-12-27 20:15:00'
-    },
-    {
-        id: '5',
-        type: 'system',
-        title: 'VIP会员即将到期',
-        content: '您的VIP会员将于7天后到期，续费可享受更多优惠任务。',
-        isRead: true,
-        createdAt: '2024-12-26 12:00:00'
-    }
-];
-
 export default function MessagesPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [messages, setMessages] = useState<Message[]>([]);
     const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
     const [showDetail, setShowDetail] = useState(false);
+    const [activeFilter, setActiveFilter] = useState<string>('all');
 
     useEffect(() => {
         if (!isAuthenticated()) {
@@ -74,22 +31,16 @@ export default function MessagesPage() {
         setLoading(true);
         try {
             const result = await fetchMessages();
-            if (result.list.length > 0) {
-                setMessages(result.list);
-            } else {
-                // Fallback to mock data
-                setMessages(mockMessages);
-            }
+            setMessages(result.list || []);
         } catch (error) {
             console.error('Load messages error:', error);
-            setMessages(mockMessages);
+            setMessages([]);
         } finally {
             setLoading(false);
         }
     };
 
     const handleMessageClick = async (message: Message) => {
-        // Mark as read via API
         if (!message.isRead) {
             await markAsRead(message.id);
             setMessages(prev => prev.map(m =>
@@ -118,161 +69,152 @@ export default function MessagesPage() {
 
     const getTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
-            system: '系统通知',
-            task: '任务通知',
-            order: '订单通知',
-            finance: '财务通知',
-            promotion: '活动通知'
+            system: '系统',
+            task: '任务',
+            order: '订单',
+            finance: '财务',
+            promotion: '活动',
+            review: '审核'
         };
         return labels[type] || '通知';
     };
 
     const getTypeColor = (type: string) => {
-        const colors: Record<string, string> = {
-            system: '#909399',
-            task: '#409eff',
-            order: '#67c23a',
-            finance: '#e6a23c',
-            promotion: '#f56c6c'
+        const colors: Record<string, { bg: string; text: string }> = {
+            system: { bg: 'bg-gray-100', text: 'text-gray-600' },
+            task: { bg: 'bg-blue-100', text: 'text-blue-600' },
+            order: { bg: 'bg-green-100', text: 'text-green-600' },
+            finance: { bg: 'bg-yellow-100', text: 'text-yellow-600' },
+            promotion: { bg: 'bg-red-100', text: 'text-red-600' },
+            review: { bg: 'bg-purple-100', text: 'text-purple-600' }
         };
-        return colors[type] || '#909399';
+        return colors[type] || colors.system;
     };
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diff = now.getTime() - date.getTime();
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+        if (days === 0) {
+            return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+        } else if (days === 1) {
+            return '昨天';
+        } else if (days < 7) {
+            return `${days}天前`;
+        } else {
+            return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' });
+        }
+    };
+
+    const filteredMessages = activeFilter === 'all'
+        ? messages
+        : messages.filter(m => m.type === activeFilter);
 
     const unreadCount = messages.filter(m => !m.isRead).length;
 
+    const filterOptions = [
+        { key: 'all', label: '全部' },
+        { key: 'system', label: '系统' },
+        { key: 'order', label: '订单' },
+        { key: 'task', label: '任务' },
+        { key: 'finance', label: '财务' }
+    ];
+
     if (loading) {
-        return <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>加载中...</div>;
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-gray-500">加载中...</div>
+            </div>
+        );
     }
 
     return (
-        <div style={{ minHeight: '100vh', background: '#f8f8f8', paddingBottom: '60px' }}>
+        <div className="min-h-screen bg-gray-50 pb-16">
             {/* 顶部栏 */}
-            <div style={{
-                background: '#fff',
-                height: '44px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderBottom: '1px solid #e5e5e5',
-                position: 'sticky',
-                top: 0,
-                zIndex: 10
-            }}>
-                <div onClick={() => router.back()} style={{ position: 'absolute', left: '15px', fontSize: '20px', cursor: 'pointer', color: '#333' }}>‹</div>
-                <div style={{ fontSize: '16px', fontWeight: '500', color: '#333' }}>
+            <div className="bg-white h-11 flex items-center justify-center border-b border-gray-200 sticky top-0 z-10">
+                <div
+                    onClick={() => router.back()}
+                    className="absolute left-4 text-xl cursor-pointer text-gray-700"
+                >
+                    ‹
+                </div>
+                <div className="text-base font-medium text-gray-800 flex items-center">
                     消息通知
                     {unreadCount > 0 && (
-                        <span style={{
-                            display: 'inline-block',
-                            marginLeft: '5px',
-                            padding: '2px 6px',
-                            background: '#f56c6c',
-                            color: '#fff',
-                            fontSize: '10px',
-                            borderRadius: '10px'
-                        }}>{unreadCount}</span>
+                        <span className="ml-1.5 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                            {unreadCount}
+                        </span>
                     )}
                 </div>
                 {unreadCount > 0 && (
                     <div
                         onClick={handleMarkAllAsRead}
-                        style={{
-                            position: 'absolute',
-                            right: '15px',
-                            fontSize: '12px',
-                            color: '#409eff',
-                            cursor: 'pointer'
-                        }}
+                        className="absolute right-4 text-xs text-blue-500 cursor-pointer"
                     >
                         全部已读
                     </div>
                 )}
             </div>
 
+            {/* 筛选标签 */}
+            <div className="bg-white px-4 py-2 flex gap-2 overflow-x-auto border-b border-gray-100">
+                {filterOptions.map(opt => (
+                    <button
+                        key={opt.key}
+                        onClick={() => setActiveFilter(opt.key)}
+                        className={`px-3 py-1 text-xs rounded-full whitespace-nowrap ${
+                            activeFilter === opt.key
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-gray-100 text-gray-600'
+                        }`}
+                    >
+                        {opt.label}
+                    </button>
+                ))}
+            </div>
+
             {/* 消息列表 */}
-            <div style={{ background: '#fff', marginTop: '10px' }}>
-                {messages.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '60px 0', color: '#999', fontSize: '13px' }}>
-                        <div style={{ fontSize: '40px', marginBottom: '10px' }}>📭</div>
+            <div className="bg-white mt-2">
+                {filteredMessages.length === 0 ? (
+                    <div className="text-center py-16 text-gray-400 text-sm">
+                        <div className="text-4xl mb-2">📭</div>
                         暂无消息
                     </div>
                 ) : (
-                    messages.map((message, index) => (
+                    filteredMessages.map((message, index) => (
                         <div
                             key={message.id}
                             onClick={() => handleMessageClick(message)}
-                            style={{
-                                padding: '15px',
-                                borderBottom: index < messages.length - 1 ? '1px solid #f5f5f5' : 'none',
-                                cursor: 'pointer',
-                                position: 'relative',
-                                background: message.isRead ? '#fff' : '#fafafa'
-                            }}
+                            className={`px-4 py-3.5 cursor-pointer relative ${
+                                index < filteredMessages.length - 1 ? 'border-b border-gray-100' : ''
+                            } ${message.isRead ? 'bg-white' : 'bg-blue-50/30'}`}
                         >
                             {/* 未读红点 */}
                             {!message.isRead && (
-                                <div style={{
-                                    position: 'absolute',
-                                    left: '8px',
-                                    top: '50%',
-                                    transform: 'translateY(-50%)',
-                                    width: '6px',
-                                    height: '6px',
-                                    borderRadius: '50%',
-                                    background: '#f56c6c'
-                                }}></div>
+                                <div className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-red-500" />
                             )}
-                            <div style={{ marginLeft: message.isRead ? 0 : '10px', paddingRight: '30px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
-                                    <span style={{
-                                        fontSize: '10px',
-                                        padding: '1px 6px',
-                                        borderRadius: '2px',
-                                        background: getTypeColor(message.type) + '20',
-                                        color: getTypeColor(message.type),
-                                        marginRight: '8px'
-                                    }}>
+                            <div className={`${message.isRead ? '' : 'ml-2'} pr-8`}>
+                                <div className="flex items-center mb-1.5">
+                                    <span className={`text-xs px-1.5 py-0.5 rounded mr-2 ${getTypeColor(message.type).bg} ${getTypeColor(message.type).text}`}>
                                         {getTypeLabel(message.type)}
                                     </span>
-                                    <span style={{
-                                        fontSize: '14px',
-                                        fontWeight: message.isRead ? 'normal' : 'bold',
-                                        color: '#333'
-                                    }}>
+                                    <span className={`text-sm ${message.isRead ? 'font-normal' : 'font-semibold'} text-gray-800 flex-1 truncate`}>
                                         {message.title}
                                     </span>
+                                    <span className="text-xs text-gray-400 ml-2 flex-shrink-0">
+                                        {formatDate(message.createdAt)}
+                                    </span>
                                 </div>
-                                <div style={{
-                                    fontSize: '12px',
-                                    color: '#999',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap'
-                                }}>
+                                <div className="text-xs text-gray-500 truncate">
                                     {message.content}
-                                </div>
-                                <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    marginTop: '8px',
-                                    fontSize: '11px',
-                                    color: '#bbb'
-                                }}>
-                                    <span>{message.createdAt}</span>
                                 </div>
                             </div>
                             {/* 删除按钮 */}
                             <div
                                 onClick={(e) => handleDelete(message.id, e)}
-                                style={{
-                                    position: 'absolute',
-                                    right: '15px',
-                                    top: '50%',
-                                    transform: 'translateY(-50%)',
-                                    color: '#999',
-                                    fontSize: '14px',
-                                    cursor: 'pointer'
-                                }}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg cursor-pointer hover:text-red-500"
                             >
                                 ×
                             </div>
@@ -283,75 +225,37 @@ export default function MessagesPage() {
 
             {/* 消息详情弹窗 */}
             {showDetail && selectedMessage && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <div style={{
-                        background: '#fff',
-                        borderRadius: '8px',
-                        width: '90%',
-                        maxWidth: '400px',
-                        maxHeight: '80vh',
-                        overflow: 'auto'
-                    }}>
-                        <div style={{
-                            padding: '15px',
-                            borderBottom: '1px solid #e5e5e5',
-                            fontSize: '16px',
-                            fontWeight: 'bold',
-                            textAlign: 'center'
-                        }}>消息详情</div>
-                        <div style={{ padding: '20px' }}>
-                            <div style={{ marginBottom: '10px' }}>
-                                <span style={{
-                                    fontSize: '10px',
-                                    padding: '2px 8px',
-                                    borderRadius: '2px',
-                                    background: getTypeColor(selectedMessage.type) + '20',
-                                    color: getTypeColor(selectedMessage.type)
-                                }}>
+                <div
+                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                    onClick={() => setShowDetail(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg w-11/12 max-w-md max-h-[80vh] overflow-auto"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="px-4 py-3 border-b border-gray-200 text-base font-bold text-center">
+                            消息详情
+                        </div>
+                        <div className="p-5">
+                            <div className="mb-3">
+                                <span className={`text-xs px-2 py-0.5 rounded ${getTypeColor(selectedMessage.type).bg} ${getTypeColor(selectedMessage.type).text}`}>
                                     {getTypeLabel(selectedMessage.type)}
                                 </span>
                             </div>
-                            <h3 style={{ fontSize: '16px', marginBottom: '15px', color: '#333' }}>
+                            <h3 className="text-base font-medium mb-4 text-gray-800">
                                 {selectedMessage.title}
                             </h3>
-                            <p style={{
-                                fontSize: '14px',
-                                color: '#666',
-                                lineHeight: '1.8',
-                                marginBottom: '15px'
-                            }}>
+                            <p className="text-sm text-gray-600 leading-relaxed mb-4 whitespace-pre-wrap">
                                 {selectedMessage.content}
                             </p>
-                            <div style={{ fontSize: '12px', color: '#999' }}>
+                            <div className="text-xs text-gray-400">
                                 <div>时间：{selectedMessage.createdAt}</div>
                             </div>
                         </div>
-                        <div style={{
-                            display: 'flex',
-                            borderTop: '1px solid #e5e5e5'
-                        }}>
+                        <div className="flex border-t border-gray-200">
                             <button
                                 onClick={() => setShowDetail(false)}
-                                style={{
-                                    flex: 1,
-                                    padding: '12px',
-                                    border: 'none',
-                                    background: '#409eff',
-                                    color: '#fff',
-                                    fontSize: '14px',
-                                    cursor: 'pointer'
-                                }}
+                                className="flex-1 py-3 border-none bg-blue-500 text-white text-sm cursor-pointer rounded-b-lg hover:bg-blue-600"
                             >
                                 关闭
                             </button>

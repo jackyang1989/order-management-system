@@ -278,18 +278,105 @@ export const fetchInviteStats = async (): Promise<InviteStats> => {
 };
 
 // 获取邀请记录
-export const fetchInviteRecords = async (): Promise<InviteRecord[]> => {
+export const fetchInviteRecords = async (filter?: {
+    startDate?: string;
+    endDate?: string;
+    keyword?: string;
+}): Promise<InviteRecord[]> => {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${BASE_URL}/user/invite/records`, {
+        const params = new URLSearchParams();
+        if (filter?.startDate) params.append('startDate', filter.startDate);
+        if (filter?.endDate) params.append('endDate', filter.endDate);
+        if (filter?.keyword) params.append('keyword', filter.keyword);
+
+        const response = await fetch(`${BASE_URL}/invite/record?${params.toString()}`, {
             headers: token ? { 'Authorization': `Bearer ${token}` } : {}
         });
         if (!response.ok) throw new Error('Failed to fetch invite records');
         const res = await response.json();
-        return res.data || [];
+        // Map API response to InviteRecord format
+        const list = res.data?.list || [];
+        return list.map((item: any) => ({
+            id: item.id,
+            username: item.inviteeName || '未知用户',
+            registerTime: item.createdAt ? new Date(item.createdAt).toLocaleString('zh-CN') : '',
+            completedTasks: item.completedOrders || 0,
+            reward: item.rewardAmount || 0,
+        }));
     } catch (error) {
         console.error('Fetch invite records error:', error);
         return [];
+    }
+};
+
+// 邀请配置
+export interface InviteConfig {
+    merchantInviteEnabled: boolean;
+    inviteUnlockThreshold: number;
+    referralRewardPerOrder: number;
+    referralMaxCount: number;
+    referralMaxAmount: number;
+    referralLifetimeMaxAmount: number;
+    buyerReferralReward: number;
+    merchantReferralReward: number;
+}
+
+// 获取邀请配置
+export const fetchInviteConfig = async (): Promise<InviteConfig> => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${BASE_URL}/invite/config`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!response.ok) throw new Error('Failed to fetch invite config');
+        const res = await response.json();
+        return res.data || {
+            merchantInviteEnabled: false,
+            inviteUnlockThreshold: 10,
+            referralRewardPerOrder: 1,
+            referralMaxCount: 5,
+            referralMaxAmount: 5,
+            referralLifetimeMaxAmount: 1000,
+            buyerReferralReward: 5,
+            merchantReferralReward: 10,
+        };
+    } catch (error) {
+        console.error('Fetch invite config error:', error);
+        return {
+            merchantInviteEnabled: false,
+            inviteUnlockThreshold: 10,
+            referralRewardPerOrder: 1,
+            referralMaxCount: 5,
+            referralMaxAmount: 5,
+            referralLifetimeMaxAmount: 1000,
+            buyerReferralReward: 5,
+            merchantReferralReward: 10,
+        };
+    }
+};
+
+// 商家邀请资格
+export interface MerchantInviteEligibility {
+    canInvite: boolean;
+    reason?: string;
+    completedTasks: number;
+    requiredTasks: number;
+}
+
+// 检查商家邀请资格
+export const checkMerchantInviteEligibility = async (): Promise<MerchantInviteEligibility> => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${BASE_URL}/invite/merchant-eligibility`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!response.ok) throw new Error('Failed to check merchant invite eligibility');
+        const res = await response.json();
+        return res.data || { canInvite: false, reason: '未知错误', completedTasks: 0, requiredTasks: 10 };
+    } catch (error) {
+        console.error('Check merchant invite eligibility error:', error);
+        return { canInvite: false, reason: '网络错误', completedTasks: 0, requiredTasks: 10 };
     }
 };
 

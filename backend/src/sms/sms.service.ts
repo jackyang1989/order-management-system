@@ -53,8 +53,7 @@ export class SmsService {
       case SmsCodeType.CHANGE_PHONE:
         template = this.configService.getValue('sms_template_change_phone') || '您的手机号变更验证码是{code}，5分钟内有效。';
         break;
-      case SmsCodeType.CHANGE_PASSWORD:
-      case SmsCodeType.CHANGE_PAY_PASSWORD:
+      case SmsCodeType.RESET_PASSWORD:
         template = this.configService.getValue('sms_template_change_password') || '您的密码重置验证码是{code}，5分钟内有效。';
         break;
       default:

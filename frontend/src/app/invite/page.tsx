@@ -4,7 +4,16 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '../../lib/utils';
 import { isAuthenticated, getCurrentUser } from '../../services/authService';
-import { fetchInviteStats, fetchInviteRecords, InviteStats, InviteRecord } from '../../services/userService';
+import {
+    fetchInviteStats,
+    fetchInviteRecords,
+    fetchInviteConfig,
+    checkMerchantInviteEligibility,
+    InviteStats,
+    InviteRecord,
+    InviteConfig,
+    MerchantInviteEligibility
+} from '../../services/userService';
 
 interface RecommendedTask {
     id: string;
@@ -24,7 +33,14 @@ export default function InvitePage() {
     const [records, setRecords] = useState<InviteRecord[]>([]);
     const [recommendedTasks, setRecommendedTasks] = useState<RecommendedTask[]>([]);
     const [copied, setCopied] = useState(false);
+    const [copiedMerchant, setCopiedMerchant] = useState(false);
     const [inviteCode, setInviteCode] = useState('ADMIN');
+    const [config, setConfig] = useState<InviteConfig | null>(null);
+    const [merchantEligibility, setMerchantEligibility] = useState<MerchantInviteEligibility | null>(null);
+
+    // 日期筛选
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
 
     useEffect(() => {
         if (!isAuthenticated()) { router.push('/login'); return; }
@@ -36,9 +52,19 @@ export default function InvitePage() {
         try {
             const user = getCurrentUser();
             if (user?.invitationCode) setInviteCode(user.invitationCode);
-            const [statsData, recordsData] = await Promise.all([fetchInviteStats(), fetchInviteRecords()]);
+
+            const [statsData, recordsData, configData, eligibilityData] = await Promise.all([
+                fetchInviteStats(),
+                fetchInviteRecords(),
+                fetchInviteConfig(),
+                checkMerchantInviteEligibility()
+            ]);
             setStats(statsData);
             setRecords(recordsData);
+            setConfig(configData);
+            setMerchantEligibility(eligibilityData);
+
+            // Load recommended tasks
             try {
                 const token = localStorage.getItem('token');
                 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
@@ -52,11 +78,54 @@ export default function InvitePage() {
         finally { setLoading(false); }
     };
 
-    const inviteLink = typeof window !== 'undefined' ? `${window.location.origin}/register?invite=${inviteCode}` : `https://example.com/register?invite=${inviteCode}`;
+    const handleFilterRecords = async () => {
+        try {
+            const filteredRecords = await fetchInviteRecords({
+                startDate: startDate || undefined,
+                endDate: endDate || undefined,
+            });
+            setRecords(filteredRecords);
+        } catch (error) {
+            console.error('Filter records error:', error);
+        }
+    };
 
-    const handleCopyLink = async () => {
-        try { await navigator.clipboard.writeText(inviteLink); setCopied(true); setTimeout(() => setCopied(false), 2000); }
-        catch { const textArea = document.createElement('textarea'); textArea.value = inviteLink; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); setCopied(true); setTimeout(() => setCopied(false), 2000); }
+    const handleClearFilter = async () => {
+        setStartDate('');
+        setEndDate('');
+        const allRecords = await fetchInviteRecords();
+        setRecords(allRecords);
+    };
+
+    const inviteLink = typeof window !== 'undefined' ? `${window.location.origin}/register?invite=${inviteCode}` : `https://example.com/register?invite=${inviteCode}`;
+    const merchantInviteLink = typeof window !== 'undefined' ? `${window.location.origin}/merchant/register?invite=${inviteCode}` : `https://example.com/merchant/register?invite=${inviteCode}`;
+
+    const handleCopyLink = async (isMerchant: boolean = false) => {
+        const link = isMerchant ? merchantInviteLink : inviteLink;
+        try {
+            await navigator.clipboard.writeText(link);
+            if (isMerchant) {
+                setCopiedMerchant(true);
+                setTimeout(() => setCopiedMerchant(false), 2000);
+            } else {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            }
+        } catch {
+            const textArea = document.createElement('textarea');
+            textArea.value = link;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            if (isMerchant) {
+                setCopiedMerchant(true);
+                setTimeout(() => setCopiedMerchant(false), 2000);
+            } else {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            }
+        }
     };
 
     if (loading) {
@@ -121,18 +190,51 @@ export default function InvitePage() {
                             <div className="text-sm text-slate-600 leading-relaxed">
                                 复制您的 <span className="font-bold text-blue-500">专属邀请链接</span>，邀请好友成功注册后，好友完成任务您即可获得邀请奖励！
                             </div>
+
+                            {/* 买手邀请链接 */}
                             <div>
                                 <div className="mb-2 text-sm font-medium text-slate-700">买手邀请链接</div>
                                 <div className="flex gap-2">
                                     <input type="text" value={inviteLink} readOnly className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600" />
-                                    <button onClick={handleCopyLink} className={cn('whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium text-white', copied ? 'bg-green-500' : 'bg-blue-500')}>
+                                    <button onClick={() => handleCopyLink(false)} className={cn('whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium text-white', copied ? 'bg-green-500' : 'bg-blue-500')}>
                                         {copied ? '已复制' : '复制链接'}
                                     </button>
                                 </div>
                                 <div className="mt-2 text-xs text-slate-400">邀请码：<span className="font-medium text-blue-500">{inviteCode}</span></div>
                             </div>
+
+                            {/* 商家邀请链接 - 仅当启用时显示 */}
+                            {config?.merchantInviteEnabled && (
+                                <div>
+                                    <div className="mb-2 text-sm font-medium text-slate-700 flex items-center gap-2">
+                                        商家邀请链接
+                                        {!merchantEligibility?.canInvite && (
+                                            <span className="text-xs bg-amber-100 text-amber-600 px-2 py-0.5 rounded">
+                                                {merchantEligibility?.reason || '未解锁'}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {merchantEligibility?.canInvite ? (
+                                        <>
+                                            <div className="flex gap-2">
+                                                <input type="text" value={merchantInviteLink} readOnly className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600" />
+                                                <button onClick={() => handleCopyLink(true)} className={cn('whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium text-white', copiedMerchant ? 'bg-green-500' : 'bg-purple-500')}>
+                                                    {copiedMerchant ? '已复制' : '复制链接'}
+                                                </button>
+                                            </div>
+                                            <div className="mt-2 text-xs text-slate-400">邀请商家注册可获得 <span className="font-bold text-purple-500">{config.merchantReferralReward}</span> 银锭奖励</div>
+                                        </>
+                                    ) : (
+                                        <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-500">
+                                            <p>完成 <span className="font-bold text-blue-500">{merchantEligibility?.requiredTasks || config?.inviteUnlockThreshold || 10}</span> 单任务后解锁商家邀请功能</p>
+                                            <p className="mt-1">当前进度：<span className="font-bold">{merchantEligibility?.completedTasks || 0}</span> / {merchantEligibility?.requiredTasks || config?.inviteUnlockThreshold || 10}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
                             <div className="rounded-lg bg-amber-50 p-3">
-                                <div className="mb-2 flex items-center gap-1 text-sm font-medium text-amber-600">⚠️ 请注意</div>
+                                <div className="mb-2 flex items-center gap-1 text-sm font-medium text-amber-600">请注意</div>
                                 <div className="space-y-1 text-xs text-slate-600 leading-relaxed">
                                     <p>1. 邀请链接只能发布于聊天工具中（微信、QQ等），禁止推广于外部网站。</p>
                                     <p>2. 邀请好友只能是朋友、亲戚、同事等熟人，不可向陌生人发送链接。</p>
@@ -140,10 +242,10 @@ export default function InvitePage() {
                                 </div>
                             </div>
                             <div>
-                                <div className="mb-2 text-sm font-medium text-slate-700">🎁 邀请奖励</div>
+                                <div className="mb-2 text-sm font-medium text-slate-700">邀请奖励</div>
                                 <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-600 leading-relaxed">
-                                    <p>• 邀请好友每完成一单任务（完结后），您可获得 <span className="font-bold text-red-500">1</span> 银锭奖励</p>
-                                    <p>• 每邀请一个好友可获得奖励上限 <span className="font-bold text-red-500">1000</span> 银锭</p>
+                                    <p>• 邀请好友每完成一单任务（完结后），您可获得 <span className="font-bold text-red-500">{config?.referralRewardPerOrder || 1}</span> 银锭奖励</p>
+                                    <p>• 每邀请一个好友可获得奖励上限 <span className="font-bold text-red-500">{config?.referralLifetimeMaxAmount || 1000}</span> 银锭</p>
                                 </div>
                                 <div className="mt-2 text-xs text-slate-400">注：奖励由平台承担，不会扣除好友的任务佣金</div>
                             </div>
@@ -152,6 +254,42 @@ export default function InvitePage() {
 
                     {activeTab === 'records' && (
                         <div>
+                            {/* 日期筛选 */}
+                            <div className="mb-4 flex flex-wrap gap-2 items-end">
+                                <div className="flex-1 min-w-[120px]">
+                                    <label className="text-xs text-slate-500 mb-1 block">开始日期</label>
+                                    <input
+                                        type="date"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                        className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm"
+                                    />
+                                </div>
+                                <div className="flex-1 min-w-[120px]">
+                                    <label className="text-xs text-slate-500 mb-1 block">结束日期</label>
+                                    <input
+                                        type="date"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                        className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm"
+                                    />
+                                </div>
+                                <button
+                                    onClick={handleFilterRecords}
+                                    className="px-4 py-1.5 bg-blue-500 text-white text-sm rounded-lg"
+                                >
+                                    筛选
+                                </button>
+                                {(startDate || endDate) && (
+                                    <button
+                                        onClick={handleClearFilter}
+                                        className="px-3 py-1.5 text-sm text-slate-500 hover:text-slate-700"
+                                    >
+                                        清除
+                                    </button>
+                                )}
+                            </div>
+
                             {records.length === 0 ? (
                                 <div className="py-12 text-center">
                                     <div className="mb-3 text-4xl">👥</div>

@@ -1,9 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, Between, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
 import { UserInvite } from '../user-invites/user-invite.entity';
 import { User } from '../users/user.entity';
 import { Order, OrderStatus } from '../orders/order.entity';
+import { AdminConfigService } from '../admin-config/admin-config.service';
+
+/**
+ * 邀请记录筛选参数
+ */
+export interface InviteRecordFilter {
+  startDate?: string;
+  endDate?: string;
+  keyword?: string;
+}
 
 /**
  * 邀请/推荐服务
@@ -18,16 +28,19 @@ export class InviteService {
     private userRepository: Repository<User>,
     @InjectRepository(Order)
     private orderRepository: Repository<Order>,
+    private configService: AdminConfigService,
   ) {}
 
   /**
    * 获取邀请记录
    * 对齐旧版: Invite::record()
+   * 支持日期筛选和关键词搜索
    */
   async record(
     userId: string,
     page: number = 1,
     limit: number = 15,
+    filter?: InviteRecordFilter,
   ): Promise<{
     list: any[];
     total: number;
@@ -36,12 +49,27 @@ export class InviteService {
   }> {
     const skip = (page - 1) * limit;
 
-    const [invites, total] = await this.inviteRepository.findAndCount({
-      where: { inviterId: userId },
-      order: { createdAt: 'DESC' },
-      skip,
-      take: limit,
-    });
+    // 构建查询条件
+    const queryBuilder = this.inviteRepository
+      .createQueryBuilder('invite')
+      .where('invite.inviterId = :userId', { userId })
+      .orderBy('invite.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit);
+
+    // 日期筛选
+    if (filter?.startDate) {
+      queryBuilder.andWhere('invite.createdAt >= :startDate', {
+        startDate: new Date(filter.startDate),
+      });
+    }
+    if (filter?.endDate) {
+      const endDate = new Date(filter.endDate);
+      endDate.setHours(23, 59, 59, 999);
+      queryBuilder.andWhere('invite.createdAt <= :endDate', { endDate });
+    }
+
+    const [invites, total] = await queryBuilder.getManyAndCount();
 
     // 获取被邀请用户的信息
     const list = await Promise.all(
@@ -144,5 +172,74 @@ export class InviteService {
     }));
 
     return { list, total, page, limit };
+  }
+
+  /**
+   * 获取邀请配置
+   */
+  async getInviteConfig(): Promise<{
+    merchantInviteEnabled: boolean;
+    inviteUnlockThreshold: number;
+    referralRewardPerOrder: number;
+    referralMaxCount: number;
+    referralMaxAmount: number;
+    referralLifetimeMaxAmount: number;
+    buyerReferralReward: number;
+    merchantReferralReward: number;
+  }> {
+    return {
+      merchantInviteEnabled: this.configService.getBooleanValue('merchant_invite_enabled', false),
+      inviteUnlockThreshold: this.configService.getNumberValue('invite_unlock_threshold', 10),
+      referralRewardPerOrder: this.configService.getNumberValue('referral_reward_per_order', 1),
+      referralMaxCount: this.configService.getNumberValue('referral_max_count', 5),
+      referralMaxAmount: this.configService.getNumberValue('referral_max_amount', 5),
+      referralLifetimeMaxAmount: this.configService.getNumberValue('referral_lifetime_max_amount', 1000),
+      buyerReferralReward: this.configService.getNumberValue('buyer_referral_reward', 5),
+      merchantReferralReward: this.configService.getNumberValue('merchant_referral_reward', 10),
+    };
+  }
+
+  /**
+   * 检查用户是否可以使用商家邀请功能
+   */
+  async canInviteMerchant(userId: string): Promise<{
+    canInvite: boolean;
+    reason?: string;
+    completedTasks: number;
+    requiredTasks: number;
+  }> {
+    const config = await this.getInviteConfig();
+
+    if (!config.merchantInviteEnabled) {
+      return {
+        canInvite: false,
+        reason: '商家邀请功能暂未开放',
+        completedTasks: 0,
+        requiredTasks: config.inviteUnlockThreshold,
+      };
+    }
+
+    // 获取用户完成的任务数
+    const completedTasks = await this.orderRepository.count({
+      where: {
+        userId,
+        status: OrderStatus.COMPLETED,
+      },
+    });
+
+    if (completedTasks < config.inviteUnlockThreshold) {
+      return {
+        canInvite: false,
+        reason: `需完成${config.inviteUnlockThreshold}单任务后解锁`,
+        completedTasks,
+        requiredTasks: config.inviteUnlockThreshold,
+      };
+    }
+
+    return {
+      canInvite: true,
+      completedTasks,
+      requiredTasks: config.inviteUnlockThreshold,
+    };
   }
 }
