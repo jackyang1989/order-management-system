@@ -47,23 +47,25 @@ export default function MerchantTasksPage() {
             </div>
 
             {/* Filter Bar */}
-            <Card className="flex flex-wrap items-center gap-4 bg-white px-5 py-4" noPadding>
-                <div className="flex items-center gap-2">
-                    <span className="text-[13px] text-[#6b7280]">状态:</span>
-                    <select value={filter.status} onChange={e => setFilter({ ...filter, status: e.target.value })} className="h-9 rounded-md border border-[#e5e7eb] bg-white px-3 text-[14px] text-[#3b4559] focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20">
-                        <option value="all">全部</option><option value="1">进行中</option><option value="2">已完成</option><option value="3">已取消</option><option value="0">待支付</option>
-                    </select>
+            <Card noPadding className="bg-white">
+                <div className="flex flex-wrap items-center gap-4 px-5 py-4">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[13px] text-[#6b7280]">状态:</span>
+                        <select value={filter.status} onChange={e => setFilter({ ...filter, status: e.target.value })} className="h-9 rounded-md border border-[#e5e7eb] bg-white px-3 text-[14px] text-[#3b4559] focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20">
+                            <option value="all">全部</option><option value="1">进行中</option><option value="2">已完成</option><option value="3">已取消</option><option value="0">待支付</option>
+                        </select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-[13px] text-[#6b7280]">平台:</span>
+                        <select value={filter.taskType} onChange={e => setFilter({ ...filter, taskType: e.target.value })} className="h-9 rounded-md border border-[#e5e7eb] bg-white px-3 text-[14px] text-[#3b4559] focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20">
+                            <option value="all">全部</option>
+                            {TASK_PLATFORMS.map(p => <option key={p.id} value={String(p.id)}>{p.name}</option>)}
+                        </select>
+                    </div>
+                    <div className="flex-1" />
+                    <div className="text-[13px] text-[#6b7280]">共 <strong className="text-[#3b4559]">{tasks.length}</strong> 条任务</div>
+                    <button onClick={loadTasks} className="h-9 rounded-md border border-[#e5e7eb] bg-white px-4 text-[13px] text-primary-500 transition-colors hover:bg-[#eff6ff]">刷新</button>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-[13px] text-[#6b7280]">平台:</span>
-                    <select value={filter.taskType} onChange={e => setFilter({ ...filter, taskType: e.target.value })} className="h-9 rounded-md border border-[#e5e7eb] bg-white px-3 text-[14px] text-[#3b4559] focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20">
-                        <option value="all">全部</option>
-                        {TASK_PLATFORMS.map(p => <option key={p.id} value={String(p.id)}>{p.name}</option>)}
-                    </select>
-                </div>
-                <div className="flex-1" />
-                <div className="text-[13px] text-[#6b7280]">共 <strong className="text-[#3b4559]">{tasks.length}</strong> 条任务</div>
-                <button onClick={loadTasks} className="h-9 rounded-md border border-[#e5e7eb] bg-white px-4 text-[13px] text-primary-500 transition-colors hover:bg-[#eff6ff]">刷新</button>
             </Card>
 
             {/* Task Table */}

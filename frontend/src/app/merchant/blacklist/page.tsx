@@ -59,9 +59,11 @@ export default function MerchantBlacklistPage() {
             </div>
 
             {/* Search */}
-            <Card className="flex items-center gap-3 bg-white p-4">
-                <Input type="text" value={searchText} onChange={e => setSearchText(e.target.value)} placeholder="搜索买号..." className="w-[200px]" onKeyDown={e => e.key === 'Enter' && handleSearch()} />
-                <Button onClick={handleSearch}>搜索</Button>
+            <Card noPadding className="bg-white">
+                <div className="flex items-center gap-3 p-4">
+                    <Input type="text" value={searchText} onChange={e => setSearchText(e.target.value)} placeholder="搜索买号..." className="w-[200px]" onKeyDown={e => e.key === 'Enter' && handleSearch()} />
+                    <Button onClick={handleSearch}>搜索</Button>
+                </div>
             </Card>
 
             {/* List */}

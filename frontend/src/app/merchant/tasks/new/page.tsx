@@ -62,7 +62,7 @@ export default function NewTaskPage() {
         <div>
             {/* Steps Progress */}
             <div className="mb-2 border-b border-[#e5e7eb] bg-white px-8 py-6">
-                <div className="mx-auto flex max-w-[800px] items-center">
+                <div className="mx-auto flex max-w-7xl items-center">
                     {steps.map((s, i) => (
                         <div key={s.num} className={cn('flex items-center', i === 2 ? 'flex-none' : 'flex-1')}>
                             <div className={cn('flex items-center gap-2', step >= s.num ? 'opacity-100' : 'opacity-40')}>
@@ -76,7 +76,7 @@ export default function NewTaskPage() {
             </div>
 
             {/* Content */}
-            <div className="mx-auto my-6 min-h-[600px] max-w-[1000px] rounded-md bg-white">
+            <div className="mx-auto my-6 min-h-[600px] max-w-7xl rounded-md bg-white shadow-sm border border-[#e5e7eb]">
                 {step === 1 && <Step1BasicInfo data={data} onChange={handleDataChange} onNext={() => setStep(2)} />}
                 {step === 2 && <Step2ValueAdded data={data} onChange={handleDataChange} onPrev={() => setStep(1)} onNext={() => setStep(3)} />}
                 {step === 3 && <Step3Payment data={data} merchant={merchant} onPrev={() => setStep(2)} onSubmit={handleSubmit} loading={loading} />}

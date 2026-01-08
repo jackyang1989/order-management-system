@@ -76,8 +76,8 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
             </div>
 
             {/* Shop Selection & URL */}
-            <div className="mb-6 grid grid-cols-2 gap-6">
-                <div>
+            <div className="mb-6 flex gap-6">
+                <div className="w-1/3 min-w-[240px]">
                     <label className="mb-2 block text-sm text-[#374151]">选择店铺</label>
                     {loadingShops ? (
                         <div className="px-3 py-2.5 text-[#9ca3af]">加载中...</div>
@@ -87,7 +87,7 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                         <Select value={data.shopId} onChange={handleShopChange} options={[{ value: '', label: '请选择店铺...' }, ...filteredShops.map(shop => ({ value: shop.id, label: `${shop.shopName} (${shop.accountName})` }))]} />
                     )}
                 </div>
-                <div>
+                <div className="flex-1">
                     <label className="mb-2 block text-sm text-[#374151]">商品链接</label>
                     <div className="flex gap-2">
                         <Input type="text" value={data.url} onChange={e => onChange({ url: e.target.value })} placeholder="粘贴商品链接/口令" className="flex-1" />
@@ -133,8 +133,8 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
             </div>
 
             {/* Footer Action */}
-            <div className="flex justify-end border-t border-[#e5e7eb] pt-6">
-                <Button onClick={onNext} disabled={isNextDisabled} className={cn(isNextDisabled && 'cursor-not-allowed bg-[#9ca3af]')}>下一步</Button>
+            <div className="flex justify-end gap-3 border-t border-[#e5e7eb] px-1 pt-6">
+                <Button onClick={onNext} disabled={isNextDisabled} className={cn('px-8 font-semibold', isNextDisabled && 'cursor-not-allowed bg-[#9ca3af]')}>下一步</Button>
             </div>
         </div>
     );
