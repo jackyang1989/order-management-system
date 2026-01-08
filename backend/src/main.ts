@@ -5,6 +5,8 @@ import helmet from 'helmet';
 import compression from 'compression';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
+import { DataSource } from 'typeorm';
+import { runSeeds } from './seeds';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {

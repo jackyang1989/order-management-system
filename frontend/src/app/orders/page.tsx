@@ -144,16 +144,16 @@ function OrdersPageContent() {
 
     const chooseTiao2 = async (review_task_id: string) => {
         if (value5 === '1') {
-            if (confirm('您确定要拒接任务吗？')) {
+            if (confirm('您确定要拒接追评任务吗？')) {
                 try {
                     const token = getToken();
-                    const res = await fetch(`${BASE_URL}/mobile/my/refuse_zhuipin`, {
+                    const res = await fetch(`${BASE_URL}/review-tasks/user/reject`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                        body: JSON.stringify({ id: review_task_id }),
+                        body: JSON.stringify({ reviewTaskId: review_task_id }),
                     });
                     const data = await res.json();
-                    if (data.code === 1) { alertSuccess(data.msg || '已拒接'); setTimeout(() => { if (data.url) router.push(data.url); else getData(); }, 3000); }
-                    else alertError(data.msg || '操作失败');
+                    if (data.success) { alertSuccess(data.message || '已拒接追评任务'); getData(); }
+                    else alertError(data.message || '操作失败');
                 } catch (error) { alertError('网络错误'); }
             }
         } else router.push(`/orders/zhuipin/${review_task_id}`);
