@@ -267,54 +267,131 @@ export default function AdminUsersPage() {
 
     const columns: Column<User>[] = [
         {
-            key: 'info',
-            title: '用户信息',
-            className: 'w-[200px]',
+            key: 'username',
+            title: '用户名',
+            className: 'w-[100px]',
             render: (row) => (
-                <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-lg">
-                        👤
-                    </div>
-                    <div>
-                        <div className="font-medium text-[#3b4559]">{row.username}</div>
-                        <div className="text-xs text-[#9ca3af]">{row.phone}</div>
-                        {row.qq && <div className="text-xs text-[#9ca3af]">QQ: {row.qq}</div>}
-                    </div>
+                <div className="font-medium text-[#3b4559]">{row.username}</div>
+            ),
+        },
+        {
+            key: 'phone',
+            title: '手机号',
+            className: 'w-[120px]',
+            render: (row) => (
+                <div className="text-sm">{row.phone}</div>
+            ),
+        },
+        {
+            key: 'qq',
+            title: 'QQ',
+            className: 'w-[100px]',
+            render: (row) => (
+                <div className="text-sm">{row.qq || '-'}</div>
+            ),
+        },
+        {
+            key: 'createdAt',
+            title: '注册时间',
+            className: 'w-[100px]',
+            render: (row) => (
+                <div className="text-xs text-[#6b7280]">
+                    {new Date(row.createdAt).toLocaleDateString('zh-CN')}
                 </div>
             ),
         },
         {
             key: 'balance',
-            title: '本金余额',
-            className: 'w-[120px] text-right',
+            title: '余额',
+            className: 'w-[90px] text-right',
             render: (row) => (
-                <div>
-                    <div className="font-medium text-success-400">¥{Number(row.balance || 0).toFixed(2)}</div>
-                    {(row.frozenBalance || 0) > 0 && (
-                        <div className="text-xs text-warning-400">冻结: ¥{Number(row.frozenBalance).toFixed(2)}</div>
-                    )}
-                </div>
+                <div className="font-medium text-success-500">¥{Number(row.balance || 0).toFixed(2)}</div>
             ),
         },
         {
             key: 'silver',
-            title: '银锭余额',
-            className: 'w-[120px] text-right',
+            title: '银锭',
+            className: 'w-[80px] text-right',
+            render: (row) => (
+                <div className="font-medium text-primary-600">{Number(row.silver || 0).toFixed(2)}</div>
+            ),
+        },
+        {
+            key: 'vip',
+            title: 'VIP',
+            className: 'w-[100px] text-center',
             render: (row) => (
                 <div>
-                    <div className="font-medium text-primary-600">{Number(row.silver || 0).toFixed(2)}</div>
-                    {(row.frozenSilver || 0) > 0 && (
-                        <div className="text-xs text-warning-400">冻结: {Number(row.frozenSilver).toFixed(2)}</div>
+                    {row.vip ? (
+                        <Badge variant="solid" color="amber">VIP</Badge>
+                    ) : (
+                        <Badge variant="soft" color="slate">普通</Badge>
+                    )}
+                    {row.vipExpireAt && (
+                        <div className="mt-0.5 text-[10px] text-[#9ca3af]">
+                            {new Date(row.vipExpireAt).toLocaleDateString('zh-CN')}
+                        </div>
                     )}
                 </div>
             ),
         },
         {
-            key: 'vip',
-            title: '会员状态',
-            className: 'w-[120px] text-center',
+            key: 'invitedBy',
+            title: '来源用户',
+            className: 'w-[80px]',
             render: (row) => (
-                <div>
+                <div className="text-xs">{row.invitedBy || '-'}</div>
+            ),
+        },
+        {
+            key: 'mcTaskNum',
+            title: '月累计单',
+            className: 'w-[70px] text-center',
+            render: (row) => (
+                <span className="text-sm font-medium">{row.mcTaskNum || 0}</span>
+            ),
+        },
+        {
+            key: 'note',
+            title: '备注',
+            className: 'w-[100px]',
+            render: (row) => (
+                <div className="max-w-[100px] truncate text-xs text-danger-400" title={row.note || ''}>
+                    {row.note || '-'}
+                </div>
+            ),
+        },
+        {
+            key: 'actions',
+            title: '操作',
+            className: 'w-[380px]',
+            render: (row) => (
+                <div className="flex flex-wrap items-center gap-1">
+                    <Button size="sm" variant="outline" className="text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
+                        银锭
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-success-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'balance', action: 'add' })}>
+                        押金
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>
+                        买号
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setDetailModal(row)}>
+                        编辑资料
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-danger-400" onClick={() => { setNoteModal({ userId: row.id, username: row.username, currentNote: row.note || '' }); setNoteText(row.note || ''); }}>
+                        备注
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
+                        改密码
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
+                        消息
+                    </Button>
+                </div>
+            ),
+        },
+    ];
                     {row.vip ? (
                         <Badge variant="solid" color="amber">VIP</Badge>
                     ) : (
