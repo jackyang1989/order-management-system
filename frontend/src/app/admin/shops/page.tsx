@@ -39,7 +39,7 @@ export default function AdminShopsPage() {
         setLoading(true);
         const query = statusFilter ? `?status=${statusFilter}` : '';
         const res = await fetch(`${BASE_URL}/admin/shops${query}`, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
         });
         const json = await res.json();
         if (json.list) setShops(json.list);
@@ -50,7 +50,7 @@ export default function AdminShopsPage() {
         if (!confirm(status === 1 ? '确认通过审核？' : '确认拒绝？')) return;
         const res = await fetch(`${BASE_URL}/admin/shops/${id}/review`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
             body: JSON.stringify({ status, remark })
         });
         const json = await res.json();

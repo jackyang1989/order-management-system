@@ -144,6 +144,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const [admin, setAdmin] = useState<{ username: string } | null>(null);
     const [showDropdown, setShowDropdown] = useState(false);
 
+    // 计算当前路径对应的展开菜单项
+    const currentOpenKey = pathname ? pathToOpenKeys[pathname] : undefined;
+
     useEffect(() => {
         const adminToken = localStorage.getItem('adminToken');
         if (!adminToken && pathname !== '/admin/login') {
@@ -151,6 +154,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         }
         setAdmin({ username: 'Admin' });
     }, [router, pathname]);
+
+    // 自动展开当前路径对应的菜单
+    useEffect(() => {
+        if (currentOpenKey) {
+            setOpenSections((prev) => (prev.includes(currentOpenKey) ? prev : [...prev, currentOpenKey]));
+        }
+    }, [currentOpenKey]);
 
     const handleLogout = () => {
         localStorage.removeItem('adminToken');
@@ -173,14 +183,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     if (pathname === '/admin/login') {
         return <>{children}</>;
     }
-
-    const currentOpenKey = pathname ? pathToOpenKeys[pathname] : undefined;
-
-    useEffect(() => {
-        if (currentOpenKey) {
-            setOpenSections((prev) => (prev.includes(currentOpenKey) ? prev : [...prev, currentOpenKey]));
-        }
-    }, [currentOpenKey]);
 
     return (
         <div className="flex min-h-screen overflow-x-hidden bg-[#f9fafb]">
