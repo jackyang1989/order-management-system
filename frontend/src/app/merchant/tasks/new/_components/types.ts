@@ -1,9 +1,27 @@
-export enum TaskType {
+// 平台类型
+export enum PlatformType {
     TAOBAO = 1,
     TMALL = 2,
     JD = 3,
-    PDD = 4
+    PDD = 4,
+    DOUYIN = 5,
+    KUAISHOU = 6,
+    XHS = 7,
+    XIANYU = 8,
+    ALI1688 = 9,
 }
+
+// 任务搜索入口类型（旧版兼容）
+export enum TaskEntryType {
+    KEYWORD = 1,      // 关键词搜索
+    TAOWORD = 2,      // 淘口令
+    QRCODE = 3,       // 二维码
+    ZTC = 4,          // 直通车
+    CHANNEL = 5,      // 通道
+}
+
+// 向后兼容
+export const TaskType = PlatformType;
 
 export interface PraiseContent {
     str?: string; // Text praise content
@@ -13,14 +31,18 @@ export interface PraiseContent {
 
 export interface TaskFormData {
     // Step 1: Basic Info
-    taskType: number;
+    taskType: number;        // 平台类型 (PlatformType)
+    taskEntryType: number;   // 任务入口类型 (TaskEntryType): 1=关键词, 2=淘口令, 3=二维码, 4=直通车, 5=通道
     shopId: string;
     shopName: string;
     url: string;
     title: string;
     mainImage: string;
     keyword: string;
-    taoWord?: string;
+    taoWord?: string;        // 淘口令内容
+    qrCodeImage?: string;    // 二维码图片URL
+    ztcKeyword?: string;     // 直通车关键词
+    channelUrl?: string;     // 通道链接
     goodsPrice: number;
     count: number;
 
@@ -68,12 +90,17 @@ export interface TaskFormData {
 
 export const InitialTaskData: TaskFormData = {
     taskType: 1,
+    taskEntryType: 1,  // 默认关键词搜索
     shopId: '',
     shopName: '',
     url: '',
     title: '',
     mainImage: '',
     keyword: '',
+    taoWord: '',
+    qrCodeImage: '',
+    ztcKeyword: '',
+    channelUrl: '',
     goodsPrice: 0,
     count: 1,
 

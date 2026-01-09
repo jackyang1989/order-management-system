@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { TaskFormData, TaskType } from './types';
+import { TaskFormData, TaskType, TaskEntryType } from './types';
 import { fetchShops, Shop } from '../../../../../services/shopService';
 import { getShopPlatformCode } from '../../../../../constants/platformConfig';
 import { fetchEnabledPlatforms, PlatformData } from '../../../../../services/systemConfigService';
@@ -22,6 +22,15 @@ const PLATFORM_CODE_TO_TASK_TYPE: Record<string, number> = {
     'xianyu': 8,
     '1688': 9,
 };
+
+// 任务入口类型定义
+const TASK_ENTRY_TYPES = [
+    { id: TaskEntryType.KEYWORD, name: '关键词', icon: '🔍', desc: '通过搜索关键词找到商品' },
+    { id: TaskEntryType.TAOWORD, name: '淘口令', icon: '📋', desc: '复制淘口令打开商品' },
+    { id: TaskEntryType.QRCODE, name: '二维码', icon: '📱', desc: '扫描二维码进入商品' },
+    { id: TaskEntryType.ZTC, name: '直通车', icon: '🚗', desc: '通过直通车搜索进入' },
+    { id: TaskEntryType.CHANNEL, name: '通道', icon: '🔗', desc: '通过指定通道链接进入' },
+];
 
 interface StepProps { data: TaskFormData; onChange: (data: Partial<TaskFormData>) => void; onNext: () => void; }
 
@@ -49,12 +58,33 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     }, [platforms]);
 
     const handlePlatformChange = (type: number) => { onChange({ taskType: type, shopId: '', shopName: '' }); };
+    const handleEntryTypeChange = (entryType: number) => { onChange({ taskEntryType: entryType }); };
     const handleShopChange = (shopId: string) => { const selectedShop = shops.find(s => s.id === shopId); if (selectedShop) onChange({ shopId: selectedShop.id, shopName: selectedShop.shopName }); else onChange({ shopId: '', shopName: '' }); };
     const handleFetchInfo = () => { if (!data.url) return; onChange({ title: '示例商品标题 - ' + (data.url.length > 10 ? data.url.substring(0, 10) : '未知'), mainImage: 'https://via.placeholder.com/150', goodsPrice: 99.00 }); };
 
     const platformCode = getShopPlatformCode(data.taskType);
     const filteredShops = shops.filter(s => s.platform === platformCode || s.platform === 'OTHER');
-    const isNextDisabled = !data.shopId || !data.url || !data.title || data.goodsPrice <= 0 || data.count <= 0;
+
+    // 根据任务入口类型确定是否可以进入下一步
+    const getEntryTypeValid = () => {
+        const entryType = data.taskEntryType || TaskEntryType.KEYWORD;
+        switch (entryType) {
+            case TaskEntryType.KEYWORD:
+                return !!data.keyword;
+            case TaskEntryType.TAOWORD:
+                return !!data.taoWord;
+            case TaskEntryType.QRCODE:
+                return !!data.qrCodeImage;
+            case TaskEntryType.ZTC:
+                return !!data.ztcKeyword;
+            case TaskEntryType.CHANNEL:
+                return !!data.channelUrl;
+            default:
+                return !!data.keyword;
+        }
+    };
+
+    const isNextDisabled = !data.shopId || !data.url || !data.title || data.goodsPrice <= 0 || data.count <= 0 || !getEntryTypeValid();
 
     return (
         <div className="p-6">
@@ -73,6 +103,33 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                         </div>
                     ))}
                 </div>
+            </div>
+
+            {/* Task Entry Type Selection */}
+            <div className="mb-6">
+                <label className="mb-2 block text-sm font-medium text-[#374151]">任务类型（搜索入口）</label>
+                <div className="flex flex-wrap gap-3">
+                    {TASK_ENTRY_TYPES.map(entry => (
+                        <div
+                            key={entry.id}
+                            onClick={() => handleEntryTypeChange(entry.id)}
+                            className={cn(
+                                'flex cursor-pointer items-center gap-2 rounded-md border px-4 py-2.5 transition-all',
+                                (data.taskEntryType || TaskEntryType.KEYWORD) === entry.id
+                                    ? 'border-primary-500 bg-primary-50'
+                                    : 'border-[#e5e7eb] bg-white hover:border-[#d1d5db]'
+                            )}
+                        >
+                            <span>{entry.icon}</span>
+                            <div>
+                                <span className={cn('text-sm', (data.taskEntryType || TaskEntryType.KEYWORD) === entry.id ? 'font-semibold text-primary-600' : 'text-[#374151]')}>{entry.name}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <p className="mt-2 text-xs text-[#6b7280]">
+                    {TASK_ENTRY_TYPES.find(e => e.id === (data.taskEntryType || TaskEntryType.KEYWORD))?.desc}
+                </p>
             </div>
 
             {/* Shop Selection & URL */}
@@ -108,10 +165,6 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                             <Input type="text" value={data.title} onChange={e => onChange({ title: e.target.value })} placeholder="获取商品信息后自动填充" />
                         </div>
                         <div className="flex gap-6">
-                            <div className="flex-1">
-                                <label className="mb-1.5 block text-sm font-medium text-[#3b4559]">搜索关键词</label>
-                                <Input type="text" value={data.keyword} onChange={e => onChange({ keyword: e.target.value })} placeholder="请输入关键词" />
-                            </div>
                             <div className="w-[180px]">
                                 <label className="mb-1.5 block text-sm font-medium text-[#3b4559]">商品价格 (元)</label>
                                 <Input type="number" value={String(data.goodsPrice)} onChange={e => onChange({ goodsPrice: parseFloat(e.target.value) || 0 })} />
@@ -119,6 +172,69 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Entry Type Specific Input */}
+            <div className="mb-6 rounded-md border border-[#e5e7eb] bg-[#f9fafb] p-5">
+                <h3 className="mb-4 text-sm font-semibold text-[#3b4559]">
+                    {TASK_ENTRY_TYPES.find(e => e.id === (data.taskEntryType || TaskEntryType.KEYWORD))?.name}设置
+                </h3>
+
+                {/* 关键词输入 */}
+                {(data.taskEntryType || TaskEntryType.KEYWORD) === TaskEntryType.KEYWORD && (
+                    <div>
+                        <label className="mb-1.5 block text-sm text-[#374151]">搜索关键词 <span className="text-red-500">*</span></label>
+                        <Input type="text" value={data.keyword} onChange={e => onChange({ keyword: e.target.value })} placeholder="请输入买家需要搜索的关键词" />
+                        <p className="mt-1.5 text-xs text-[#6b7280]">买家将通过此关键词在平台搜索找到您的商品</p>
+                    </div>
+                )}
+
+                {/* 淘口令输入 */}
+                {(data.taskEntryType || TaskEntryType.KEYWORD) === TaskEntryType.TAOWORD && (
+                    <div>
+                        <label className="mb-1.5 block text-sm text-[#374151]">淘口令 <span className="text-red-500">*</span></label>
+                        <Input type="text" value={data.taoWord || ''} onChange={e => onChange({ taoWord: e.target.value })} placeholder="请输入淘口令，如：1�February February e0K8YCIBzPw￥" />
+                        <p className="mt-1.5 text-xs text-[#6b7280]">买家将复制此淘口令打开淘宝/天猫App直接跳转商品</p>
+                    </div>
+                )}
+
+                {/* 二维码上传 */}
+                {(data.taskEntryType || TaskEntryType.KEYWORD) === TaskEntryType.QRCODE && (
+                    <div>
+                        <label className="mb-1.5 block text-sm text-[#374151]">二维码图片 <span className="text-red-500">*</span></label>
+                        <div className="flex items-start gap-4">
+                            <div className="flex h-[120px] w-[120px] items-center justify-center rounded-md border-2 border-dashed border-[#d1d5db] bg-white">
+                                {data.qrCodeImage ? (
+                                    <img src={data.qrCodeImage} alt="QR Code" className="h-full w-full object-contain p-2" />
+                                ) : (
+                                    <span className="text-4xl text-[#9ca3af]">📱</span>
+                                )}
+                            </div>
+                            <div className="flex-1">
+                                <Input type="text" value={data.qrCodeImage || ''} onChange={e => onChange({ qrCodeImage: e.target.value })} placeholder="请输入二维码图片URL或上传图片" />
+                                <p className="mt-1.5 text-xs text-[#6b7280]">买家将扫描此二维码进入商品页面</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* 直通车关键词 */}
+                {(data.taskEntryType || TaskEntryType.KEYWORD) === TaskEntryType.ZTC && (
+                    <div>
+                        <label className="mb-1.5 block text-sm text-[#374151]">直通车关键词 <span className="text-red-500">*</span></label>
+                        <Input type="text" value={data.ztcKeyword || ''} onChange={e => onChange({ ztcKeyword: e.target.value })} placeholder="请输入直通车推广关键词" />
+                        <p className="mt-1.5 text-xs text-[#6b7280]">买家将通过直通车搜索入口，使用此关键词找到您的商品（通常显示在搜索结果靠前位置）</p>
+                    </div>
+                )}
+
+                {/* 通道链接 */}
+                {(data.taskEntryType || TaskEntryType.KEYWORD) === TaskEntryType.CHANNEL && (
+                    <div>
+                        <label className="mb-1.5 block text-sm text-[#374151]">通道链接 <span className="text-red-500">*</span></label>
+                        <Input type="text" value={data.channelUrl || ''} onChange={e => onChange({ channelUrl: e.target.value })} placeholder="请输入通道跳转链接" />
+                        <p className="mt-1.5 text-xs text-[#6b7280]">买家将通过此链接直接进入指定的商品页面或活动页面</p>
+                    </div>
+                )}
             </div>
 
             {/* Count */}

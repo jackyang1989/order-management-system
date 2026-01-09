@@ -19,6 +19,13 @@ interface Order {
     status: string;
     createdAt: string;
     completedAt?: string;
+    // 发货相关
+    deliveryCompany?: string;
+    deliveryNumber?: string;
+    deliveredAt?: string;
+    // 返款相关
+    returnedAt?: string;
+    returnAmount?: number;
     stepData: {
         step: number;
         title: string;
@@ -31,6 +38,9 @@ interface Stats {
     pendingReview: number;
     approved: number;
     rejected: number;
+    pendingShip: number;     // 待发货
+    pendingReceive: number;  // 待收货
+    pendingReturn: number;   // 待返款
     total: number;
 }
 
@@ -39,16 +49,30 @@ const statusConfig: Record<string, { text: string; className: string }> = {
     SUBMITTED: { text: '待审核', className: 'bg-warning-50 text-warning-600' },
     APPROVED: { text: '已通过', className: 'bg-success-50 text-success-600' },
     REJECTED: { text: '已驳回', className: 'bg-danger-50 text-danger-500' },
+    PENDING_SHIP: { text: '待发货', className: 'bg-orange-50 text-orange-600' },
+    SHIPPED: { text: '待收货', className: 'bg-blue-50 text-blue-600' },
+    RECEIVED: { text: '待返款', className: 'bg-purple-50 text-purple-600' },
     COMPLETED: { text: '已完成', className: 'bg-[#f9fafb] text-[#6b7280]' },
 };
 
 export default function MerchantOrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
-    const [stats, setStats] = useState<Stats>({ pendingReview: 0, approved: 0, rejected: 0, total: 0 });
+    const [stats, setStats] = useState<Stats>({ pendingReview: 0, approved: 0, rejected: 0, pendingShip: 0, pendingReceive: 0, pendingReturn: 0, total: 0 });
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<string>('SUBMITTED');
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [reviewing, setReviewing] = useState(false);
+    // 发货相关
+    const [showShipModal, setShowShipModal] = useState(false);
+    const [shipOrderId, setShipOrderId] = useState<string>('');
+    const [deliveryCompany, setDeliveryCompany] = useState('');
+    const [deliveryNumber, setDeliveryNumber] = useState('');
+    const [shipping, setShipping] = useState(false);
+    // 返款相关
+    const [showReturnModal, setShowReturnModal] = useState(false);
+    const [returnOrderId, setReturnOrderId] = useState<string>('');
+    const [returnAmount, setReturnAmount] = useState<number>(0);
+    const [returning, setReturning] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -113,10 +137,98 @@ export default function MerchantOrdersPage() {
         }
     };
 
+    // 发货处理
+    const openShipModal = (orderId: string) => {
+        setShipOrderId(orderId);
+        setDeliveryCompany('');
+        setDeliveryNumber('');
+        setShowShipModal(true);
+    };
+
+    const handleShip = async () => {
+        const token = localStorage.getItem('merchantToken');
+        if (!token || !shipOrderId) return;
+        if (!deliveryCompany || !deliveryNumber) {
+            toastError('请填写快递公司和快递单号');
+            return;
+        }
+
+        setShipping(true);
+        try {
+            const res = await fetch(`${BASE_URL}/orders/${shipOrderId}/ship`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ deliveryCompany, deliveryNumber })
+            });
+            const json = await res.json();
+            if (json.success) {
+                toastSuccess('发货成功');
+                setShowShipModal(false);
+                setShipOrderId('');
+                loadData();
+            } else {
+                toastError(json.message || '发货失败');
+            }
+        } catch (e) {
+            toastError('网络错误');
+        } finally {
+            setShipping(false);
+        }
+    };
+
+    // 返款处理
+    const openReturnModal = (order: Order) => {
+        setReturnOrderId(order.id);
+        setReturnAmount(Number(order.productPrice) + Number(order.commission));
+        setShowReturnModal(true);
+    };
+
+    const handleReturn = async () => {
+        const token = localStorage.getItem('merchantToken');
+        if (!token || !returnOrderId) return;
+        if (returnAmount <= 0) {
+            toastError('返款金额必须大于0');
+            return;
+        }
+
+        setReturning(true);
+        try {
+            const res = await fetch(`${BASE_URL}/orders/${returnOrderId}/return`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ amount: returnAmount })
+            });
+            const json = await res.json();
+            if (json.success) {
+                toastSuccess('返款成功');
+                setShowReturnModal(false);
+                setReturnOrderId('');
+                loadData();
+            } else {
+                toastError(json.message || '返款失败');
+            }
+        } catch (e) {
+            toastError('网络错误');
+        } finally {
+            setReturning(false);
+        }
+    };
+
+    // 常用快递公司
+    const deliveryCompanies = ['顺丰速运', '圆通速递', '中通快递', '韵达快递', '申通快递', '邮政EMS', '京东物流', '极兔速递'];
+
     const statCards = [
         { label: '待审核', value: stats.pendingReview, colorClass: 'text-warning-500', filterKey: 'SUBMITTED' },
-        { label: '已通过', value: stats.approved, colorClass: 'text-success-600', filterKey: 'APPROVED' },
-        { label: '已驳回', value: stats.rejected, colorClass: 'text-danger-500', filterKey: 'REJECTED' },
+        { label: '待发货', value: stats.pendingShip, colorClass: 'text-orange-500', filterKey: 'PENDING_SHIP' },
+        { label: '待收货', value: stats.pendingReceive, colorClass: 'text-blue-500', filterKey: 'SHIPPED' },
+        { label: '待返款', value: stats.pendingReturn, colorClass: 'text-purple-500', filterKey: 'RECEIVED' },
+        { label: '已完成', value: stats.approved, colorClass: 'text-success-600', filterKey: 'COMPLETED' },
         { label: '总订单', value: stats.total, colorClass: 'text-[#6b7280]', filterKey: '' },
     ];
 
@@ -144,8 +256,8 @@ export default function MerchantOrdersPage() {
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex items-center gap-2">
-                {['SUBMITTED', 'APPROVED', 'REJECTED', 'PENDING'].map(status => (
+            <div className="flex flex-wrap items-center gap-2">
+                {['SUBMITTED', 'PENDING_SHIP', 'SHIPPED', 'RECEIVED', 'COMPLETED', 'REJECTED'].map(status => (
                     <button
                         key={status}
                         onClick={() => setFilter(status)}
@@ -200,13 +312,42 @@ export default function MerchantOrdersPage() {
                                         {new Date(order.completedAt || order.createdAt).toLocaleString('zh-CN')}
                                     </td>
                                     <td className="px-4 py-3 text-center">
-                                        <Button
-                                            size="sm"
-                                            variant={order.status === 'SUBMITTED' ? 'primary' : 'secondary'}
-                                            onClick={() => setSelectedOrder(order)}
-                                        >
-                                            {order.status === 'SUBMITTED' ? '审核' : '查看'}
-                                        </Button>
+                                        <div className="flex items-center justify-center gap-2">
+                                            {order.status === 'SUBMITTED' && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="primary"
+                                                    onClick={() => setSelectedOrder(order)}
+                                                >
+                                                    审核
+                                                </Button>
+                                            )}
+                                            {order.status === 'PENDING_SHIP' && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="primary"
+                                                    onClick={() => openShipModal(order.id)}
+                                                >
+                                                    发货
+                                                </Button>
+                                            )}
+                                            {order.status === 'RECEIVED' && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="primary"
+                                                    onClick={() => openReturnModal(order)}
+                                                >
+                                                    返款
+                                                </Button>
+                                            )}
+                                            <Button
+                                                size="sm"
+                                                variant="secondary"
+                                                onClick={() => setSelectedOrder(order)}
+                                            >
+                                                查看
+                                            </Button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -289,6 +430,82 @@ export default function MerchantOrdersPage() {
                         )}
                     </div>
                 )}
+            </Modal>
+
+            {/* Ship Modal */}
+            <Modal
+                open={showShipModal}
+                onClose={() => setShowShipModal(false)}
+                title="填写物流信息"
+                className="max-w-md"
+            >
+                <div className="space-y-4">
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">快递公司</label>
+                        <select
+                            value={deliveryCompany}
+                            onChange={(e) => setDeliveryCompany(e.target.value)}
+                            className="h-10 w-full rounded-md border border-[#d1d5db] px-3 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                        >
+                            <option value="">请选择快递公司...</option>
+                            {deliveryCompanies.map(company => (
+                                <option key={company} value={company}>{company}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">快递单号</label>
+                        <input
+                            type="text"
+                            value={deliveryNumber}
+                            onChange={(e) => setDeliveryNumber(e.target.value)}
+                            placeholder="请输入快递单号"
+                            className="h-10 w-full rounded-md border border-[#d1d5db] px-3 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => setShowShipModal(false)}>
+                            取消
+                        </Button>
+                        <Button onClick={handleShip} loading={shipping} disabled={shipping}>
+                            确认发货
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Return Modal */}
+            <Modal
+                open={showReturnModal}
+                onClose={() => setShowReturnModal(false)}
+                title="确认返款"
+                className="max-w-md"
+            >
+                <div className="space-y-4">
+                    <div className="rounded-md bg-[#f9fafb] p-4 text-sm">
+                        <p className="text-[#6b7280]">返款金额包含商品本金和佣金，请确认金额无误后操作。</p>
+                    </div>
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">返款金额 (元)</label>
+                        <input
+                            type="number"
+                            value={returnAmount}
+                            onChange={(e) => setReturnAmount(parseFloat(e.target.value) || 0)}
+                            step="0.01"
+                            min="0"
+                            className="h-10 w-full rounded-md border border-[#d1d5db] px-3 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                        />
+                        <p className="mt-1.5 text-xs text-[#6b7280]">可在原金额80%-120%范围内调整</p>
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => setShowReturnModal(false)}>
+                            取消
+                        </Button>
+                        <Button onClick={handleReturn} loading={returning} disabled={returning}>
+                            确认返款
+                        </Button>
+                    </div>
+                </div>
             </Modal>
         </div>
     );
