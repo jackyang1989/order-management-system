@@ -73,6 +73,14 @@ export class BankCardsController {
     return { success: true, message: '已拒绝', data: card };
   }
 
+  @Delete('admin/:id')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @RequirePermissions('finance:bank')
+  async deleteByAdmin(@Param('id') id: string) {
+    await this.bankCardsService.deleteByAdmin(id);
+    return { success: true, message: '银行卡已删除' };
+  }
+
   // ============ 用户接口 ============
 
   @Get()

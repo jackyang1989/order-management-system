@@ -224,4 +224,13 @@ export class BankCardsService {
     card.rejectReason = reason;
     return this.bankCardsRepository.save(card);
   }
+
+  async deleteByAdmin(id: string): Promise<void> {
+    const card = await this.bankCardsRepository.findOne({ where: { id } });
+    if (!card) {
+      throw new NotFoundException('银行卡不存在');
+    }
+    card.status = BankCardStatus.DELETED;
+    await this.bankCardsRepository.save(card);
+  }
 }

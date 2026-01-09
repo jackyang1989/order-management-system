@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../apiConfig';
-import { cn } from '../../../lib/utils';
 import { toastSuccess, toastError, toastWarning } from '../../../lib/toast';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';

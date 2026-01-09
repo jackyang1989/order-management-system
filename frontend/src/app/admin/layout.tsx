@@ -72,6 +72,11 @@ const menuItems: MenuItem[] = [
         icon: '📣',
     },
     {
+        key: '/admin/help',
+        label: '帮助中心',
+        icon: '❓',
+    },
+    {
         key: 'system',
         label: '系统设置',
         icon: '⚙️',
@@ -83,6 +88,7 @@ const menuItems: MenuItem[] = [
             { key: '/admin/system/deliveries', label: '快递管理' },
             { key: '/admin/system/sensitive', label: '敏感词管理' },
             { key: '/admin/system/api', label: 'API配置' },
+            { key: '/admin/system/banners', label: '轮播图管理' },
         ],
     },
     {
@@ -128,6 +134,7 @@ const pathToOpenKeys: Record<string, string> = {
     '/admin/system/deliveries': 'system',
     '/admin/system/sensitive': 'system',
     '/admin/system/api': 'system',
+    '/admin/system/banners': 'system',
     '/admin/permission/menu': 'permission',
     '/admin/permission/role': 'permission',
     '/admin/permission/admin': 'permission',

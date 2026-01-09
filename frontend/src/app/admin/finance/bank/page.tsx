@@ -54,6 +54,8 @@ export default function AdminFinanceBankPage() {
     const [imageModal, setImageModal] = useState<string | null>(null);
     const [rejectModal, setRejectModal] = useState<string | null>(null);
     const [rejectReason, setRejectReason] = useState('');
+    const [deleteModal, setDeleteModal] = useState<string | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         loadCards();
@@ -126,6 +128,30 @@ export default function AdminFinanceBankPage() {
             }
         } catch (e) {
             alert('操作失败');
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!deleteModal) return;
+        const token = localStorage.getItem('adminToken');
+        setDeleting(true);
+        try {
+            const res = await fetch(`${BASE_URL}/bank-cards/admin/${deleteModal}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (json.success) {
+                setDeleteModal(null);
+                loadCards();
+                setDetailModal(null);
+            } else {
+                alert(json.message || '删除失败');
+            }
+        } catch (e) {
+            alert('删除失败');
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -215,6 +241,7 @@ export default function AdminFinanceBankPage() {
                                                             <Button size="sm" variant="destructive" onClick={() => setRejectModal(c.id)}>拒绝</Button>
                                                         </>
                                                     )}
+                                                    <Button size="sm" variant="outline" className="text-red-500 hover:bg-red-50" onClick={() => setDeleteModal(c.id)}>删除</Button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -354,6 +381,17 @@ export default function AdminFinanceBankPage() {
                     <div className="flex justify-end gap-3">
                         <Button variant="secondary" onClick={() => { setRejectModal(null); setRejectReason(''); }}>取消</Button>
                         <Button variant="destructive" onClick={handleReject}>确认拒绝</Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Delete Confirm Modal */}
+            <Modal title="确认删除" open={deleteModal !== null} onClose={() => setDeleteModal(null)} className="max-w-sm">
+                <div className="space-y-4">
+                    <p className="text-[#4b5563]">确定要删除这张银行卡吗？此操作不可恢复。</p>
+                    <div className="flex justify-end gap-3">
+                        <Button variant="secondary" onClick={() => setDeleteModal(null)}>取消</Button>
+                        <Button variant="destructive" loading={deleting} onClick={handleDelete}>确认删除</Button>
                     </div>
                 </div>
             </Modal>

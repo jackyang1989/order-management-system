@@ -130,8 +130,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 >
                     <option value="">请选择买号...</option>
                     {buyerAccounts.map(acc => (
-                        <option key={acc.id} value={acc.accountName}>
-                            {acc.accountName} ({acc.platform})
+                        <option key={acc.id} value={acc.platformAccount}>
+                            {acc.platformAccount} ({acc.platform})
                         </option>
                     ))}
                 </select>
