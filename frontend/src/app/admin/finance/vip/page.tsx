@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../../apiConfig';
-import { cn } from '../../../../lib/utils';
+import { cn, formatDate } from '../../../../lib/utils';
 import { Button } from '../../../../components/ui/button';
 import { Card } from '../../../../components/ui/card';
 import { Badge } from '../../../../components/ui/badge';
@@ -125,7 +125,7 @@ export default function AdminFinanceVipPage() {
                                             <td className="px-4 py-3.5 text-center text-[#6b7280]">{r.days}天</td>
                                             <td className="px-4 py-3.5 text-right font-medium text-success-400">¥{Number(r.price || 0).toFixed(2)}</td>
                                             <td className="px-4 py-3.5 text-[#6b7280]">{sourceTypeLabels[r.sourceType] || r.sourceType}</td>
-                                            <td className="px-4 py-3.5 text-[#6b7280]">{r.expireAt ? new Date(r.expireAt).toLocaleDateString('zh-CN') : '-'}</td>
+                                            <td className="px-4 py-3.5 text-[#6b7280]">{formatDate(r.expireAt)}</td>
                                             <td className="px-4 py-3.5 text-xs text-[#9ca3af]">{r.createdAt ? new Date(r.createdAt).toLocaleString('zh-CN') : '-'}</td>
                                         </tr>
                                     ))}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../apiConfig';
-import { cn } from '../../../lib/utils';
+import { cn, formatDate } from '../../../lib/utils';
 import { toastSuccess, toastError } from '../../../lib/toast';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
@@ -177,7 +177,7 @@ export default function AdminOrdersPage() {
             key: 'createdAt',
             title: '添加时间',
             className: 'w-[100px]',
-            render: (row) => <span className="text-xs text-[#6b7280]">{row.createdAt ? new Date(row.createdAt).toLocaleDateString('zh-CN') : '-'}</span>,
+            render: (row) => <span className="text-xs text-[#6b7280]">{formatDate(row.createdAt)}</span>,
         },
         {
             key: 'actions',

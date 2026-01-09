@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { cn } from '../../../lib/utils';
+import { cn, formatDate } from '../../../lib/utils';
 import { toastSuccess, toastError } from '../../../lib/toast';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
 import { Input } from '../../../components/ui/input';
+import { DateInput } from '../../../components/ui/date-input';
 import { Select } from '../../../components/ui/select';
 import { Table, Column } from '../../../components/ui/table';
 import { Modal } from '../../../components/ui/modal';
@@ -280,7 +281,7 @@ export default function AdminMerchantsPage() {
                     )}
                     {row.vipExpireAt && (
                         <div className="mt-0.5 text-[10px] text-[#9ca3af]">
-                            {new Date(row.vipExpireAt).toLocaleDateString('zh-CN')}
+                            {formatDate(row.vipExpireAt)}
                         </div>
                     )}
                 </div>
@@ -319,7 +320,7 @@ export default function AdminMerchantsPage() {
             className: 'w-[100px]',
             render: (row) => (
                 <div className="text-xs text-[#6b7280]">
-                    {row.createdAt ? new Date(row.createdAt).toLocaleDateString('zh-CN') : '-'}
+                    {formatDate(row.createdAt)}
                 </div>
             ),
         },
@@ -620,10 +621,9 @@ export default function AdminMerchantsPage() {
                         value={newCompanyName}
                         onChange={(e) => setNewCompanyName(e.target.value)}
                     />
-                    <Input
+                    <DateInput
                         label="VIP到期时间（可选）"
-                        type="date"
-                        placeholder="选择VIP到期时间"
+                        placeholder="YYYY-MM-DD"
                         value={newVipExpireAt}
                         onChange={(e) => setNewVipExpireAt(e.target.value)}
                     />

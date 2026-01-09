@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../apiConfig';
-import { cn } from '../../../lib/utils';
+import { cn, formatDate } from '../../../lib/utils';
 import { toastSuccess, toastError } from '../../../lib/toast';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
 import { Input } from '../../../components/ui/input';
+import { DateInput } from '../../../components/ui/date-input';
 import { Select } from '../../../components/ui/select';
 import { Table, Column } from '../../../components/ui/table';
 import { Modal } from '../../../components/ui/modal';
@@ -488,7 +489,7 @@ export default function AdminUsersPage() {
                     )}
                     {row.vipExpireAt && (
                         <div className="mt-0.5 text-[10px] text-[#9ca3af]">
-                            {new Date(row.vipExpireAt).toLocaleDateString('zh-CN')}
+                            {formatDate(row.vipExpireAt)}
                         </div>
                     )}
                 </div>
@@ -526,7 +527,7 @@ export default function AdminUsersPage() {
             className: 'w-[90px]',
             render: (row) => (
                 <div className="text-xs text-[#6b7280]">
-                    {new Date(row.createdAt).toLocaleDateString('zh-CN')}
+                    {formatDate(row.createdAt)}
                 </div>
             ),
         },
@@ -773,8 +774,7 @@ export default function AdminUsersPage() {
                                     <tr className="border-b border-[#e5e7eb]">
                                         <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">VIP到期时间</td>
                                         <td className="px-3 py-2">
-                                            <input
-                                                type="date"
+                                            <DateInput
                                                 value={editForm.vipExpireAt}
                                                 onChange={(e) => setEditForm({ ...editForm, vipExpireAt: e.target.value })}
                                                 className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
@@ -972,10 +972,9 @@ export default function AdminUsersPage() {
                         value={addUserForm.qq}
                         onChange={(e) => setAddUserForm({ ...addUserForm, qq: e.target.value })}
                     />
-                    <Input
+                    <DateInput
                         label="VIP到期时间（可选）"
-                        type="date"
-                        placeholder="选择VIP到期时间"
+                        placeholder="YYYY-MM-DD"
                         value={addUserForm.vipExpireAt}
                         onChange={(e) => setAddUserForm({ ...addUserForm, vipExpireAt: e.target.value })}
                     />

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { BASE_URL } from '../../../../apiConfig';
-import { cn } from '../../../lib/utils';
+import { cn, formatDate } from '../../../lib/utils';
 import { toastError, toastSuccess } from '../../../lib/toast';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
@@ -228,7 +228,7 @@ export default function AdminTasksPage() {
         {
             key: 'createdAt',
             title: '发布时间',
-            render: (row) => <span className="text-xs text-[#6b7280]">{new Date(row.createdAt).toLocaleDateString('zh-CN')}</span>,
+            render: (row) => <span className="text-xs text-[#6b7280]">{formatDate(row.createdAt)}</span>,
             className: 'w-[100px]',
         },
         {

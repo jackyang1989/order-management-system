@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { BASE_URL } from '../../../../apiConfig';
+import { formatDate } from '../../../lib/utils';
 import { Button } from '../../../components/ui/button';
 
 interface MerchantStats { balance: number; frozenBalance: number; totalTasks: number; activeTasks: number; completedOrders: number; }
@@ -75,7 +76,7 @@ export default function MerchantDashboard() {
             <div className="flex items-center justify-between overflow-hidden rounded-md border border-[#e5e7eb] bg-white px-8 py-6 text-[#3b4559]">
                 <div>
                     <h2 className="mb-2 text-xl font-semibold">欢迎回来，{merchant?.username || merchant?.companyName || '商家'}</h2>
-                    <p className="text-[14px] text-[#6b7280]">今天是 {new Date().toLocaleDateString('zh-CN')}，准备好处理新订单了吗？</p>
+                    <p className="text-[14px] text-[#6b7280]">今天是 {formatDate(new Date())}，准备好处理新订单了吗？</p>
                 </div>
                 <Button onClick={() => router.push('/merchant/tasks/new')} className="flex items-center gap-2">
                     <span>+</span> 发布新任务

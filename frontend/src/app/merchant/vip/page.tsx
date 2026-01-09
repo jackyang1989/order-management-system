@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../apiConfig';
-import { cn } from '../../../lib/utils';
+import { cn, formatDate } from '../../../lib/utils';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { Modal } from '../../../components/ui/modal';
@@ -83,7 +83,7 @@ export default function MerchantVipPage() {
                     <div>
                         <div className="mb-2 text-sm text-[#6b7280]">当前会员状态</div>
                         <div className="mb-2 text-2xl font-semibold">{vipInfo?.isVip ? `VIP ${vipInfo.vipLevel || 1} 会员` : '普通用户'}</div>
-                        {vipInfo?.isVip && vipInfo.vipExpireAt && <div className="text-sm text-[#6b7280]">到期时间: {new Date(vipInfo.vipExpireAt).toLocaleDateString('zh-CN')}（剩余 {vipInfo.vipDaysLeft} 天）</div>}
+                        {vipInfo?.isVip && vipInfo.vipExpireAt && <div className="text-sm text-[#6b7280]">到期时间: {formatDate(vipInfo.vipExpireAt)}（剩余 {vipInfo.vipDaysLeft} 天）</div>}
                         {!vipInfo?.isVip && <div className="text-sm text-[#6b7280]">开通VIP享受更多特权</div>}
                     </div>
                     <div className="text-5xl">{vipInfo?.isVip ? '👑' : '⭐'}</div>

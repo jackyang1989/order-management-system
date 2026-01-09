@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { cn } from '../../lib/utils';
+import { cn, formatDate } from '../../lib/utils';
 import { Badge } from '../../components/ui/badge';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -92,7 +92,7 @@ export default function ProfilePage() {
                                 </span>
                                 {profile?.vip && profile?.vipExpireAt && (
                                     <span className="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-[10px] font-medium text-warning-500">
-                                        到期: {new Date(profile.vipExpireAt).toLocaleDateString('zh-CN')}
+                                        到期: {formatDate(profile.vipExpireAt)}
                                     </span>
                                 )}
                                 <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-[10px] font-bold text-primary-600">
