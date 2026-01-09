@@ -162,8 +162,8 @@ export default function AdminOrdersPage() {
             title: '操作',
             className: 'w-[100px]',
             render: (row) => (
-                <Button size="sm" variant="secondary" onClick={() => setDetailModal(row)}>
-                    👁 查看
+                <Button size="sm" variant="outline" onClick={() => setDetailModal(row)}>
+                    查看
                 </Button>
             ),
         },
@@ -172,6 +172,10 @@ export default function AdminOrdersPage() {
     return (
         <div className="space-y-6">
             <Card className="bg-white">
+                <div className="mb-4 flex items-center justify-between">
+                    <span className="text-base font-medium">订单列表</span>
+                    <span className="text-sm text-[#6b7280]">共 {total} 条记录</span>
+                </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <Input
                         placeholder="搜索订单号/商品名..."
@@ -193,18 +197,18 @@ export default function AdminOrdersPage() {
                         ]}
                         className="w-28"
                     />
-                    <Button onClick={handleSearch} className="flex items-center gap-1">
-                        🔍 搜索
+                    <Button onClick={handleSearch}>
+                        搜索
                     </Button>
-                    <Button variant="secondary" onClick={loadOrders} className="flex items-center gap-1">
-                        🔄 刷新
+                    <Button variant="secondary" onClick={loadOrders}>
+                        刷新
                     </Button>
                     <Button
                         onClick={handleExport}
                         loading={exporting}
-                        className="flex items-center gap-1 bg-success-400 hover:bg-success-500"
+                        variant="success"
                     >
-                        📥 导出
+                        导出
                     </Button>
                 </div>
             </Card>

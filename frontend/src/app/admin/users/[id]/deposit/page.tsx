@@ -33,7 +33,7 @@ interface UserInfo {
     silver: number;
 }
 
-function UserYajinPageContent() {
+function UserDepositPageContent() {
     const params = useParams();
     const userId = params.id as string;
 
@@ -314,10 +314,10 @@ function UserYajinPageContent() {
     );
 }
 
-export default function UserYajinPage() {
+export default function UserDepositPage() {
     return (
         <Suspense fallback={<div className="py-10 text-center text-[#9ca3af]">加载中...</div>}>
-            <UserYajinPageContent />
+            <UserDepositPageContent />
         </Suspense>
     );
 }

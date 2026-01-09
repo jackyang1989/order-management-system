@@ -36,9 +36,13 @@ interface User {
     idCard?: string;
     invitationCode?: string;
     invitedBy?: string;
+    invitedByName?: string;
     note?: string;
     mcTaskNum?: number;
+    monthlyTaskCount?: number;
     accountCount?: number;
+    referralCount?: number;
+    experience?: number;
 }
 
 interface BalanceModalData {
@@ -64,6 +68,7 @@ export default function AdminUsersPage() {
     const [qqSearch, setQqSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [vipFilter, setVipFilter] = useState<string>('all');
+    const [verifyFilter, setVerifyFilter] = useState<string>('all');
 
     const [balanceModal, setBalanceModal] = useState<BalanceModalData | null>(null);
     const [detailModal, setDetailModal] = useState<User | null>(null);
@@ -95,7 +100,7 @@ export default function AdminUsersPage() {
 
     useEffect(() => {
         loadUsers();
-    }, [page, statusFilter, vipFilter]);
+    }, [page, statusFilter, vipFilter, verifyFilter]);
 
     const loadUsers = async () => {
         const token = localStorage.getItem('adminToken');
@@ -106,6 +111,7 @@ export default function AdminUsersPage() {
             if (qqSearch) url += `&qq=${encodeURIComponent(qqSearch)}`;
             if (statusFilter !== 'all') url += `&status=${statusFilter}`;
             if (vipFilter !== 'all') url += `&vip=${vipFilter}`;
+            if (verifyFilter !== 'all') url += `&verifyStatus=${verifyFilter}`;
 
             const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -337,7 +343,12 @@ export default function AdminUsersPage() {
             title: '用户名',
             className: 'w-[100px]',
             render: (row) => (
-                <div className="font-medium text-[#3b4559]">{row.username}</div>
+                <div>
+                    <div className="font-medium text-[#3b4559]">{row.username}</div>
+                    {row.isBanned && (
+                        <Badge variant="solid" color="red" className="mt-0.5">已封禁</Badge>
+                    )}
+                </div>
             ),
         },
         {
@@ -357,35 +368,40 @@ export default function AdminUsersPage() {
             ),
         },
         {
-            key: 'createdAt',
-            title: '注册时间',
-            className: 'w-[100px]',
+            key: 'verifyStatus',
+            title: '实名状态',
+            className: 'w-[80px] text-center',
+            render: (row) => {
+                const { text, color } = verifyLabels[row.verifyStatus] || verifyLabels[0];
+                return <Badge variant="soft" color={color}>{text}</Badge>;
+            },
+        },
+        {
+            key: 'balance',
+            title: '本金/银锭',
+            className: 'w-[120px]',
             render: (row) => (
-                <div className="text-xs text-[#6b7280]">
-                    {new Date(row.createdAt).toLocaleDateString('zh-CN')}
+                <div className="text-sm">
+                    <div className="font-medium text-success-500">¥{Number(row.balance || 0).toFixed(2)}</div>
+                    <div className="text-primary-600">{Number(row.silver || 0).toFixed(2)} 银锭</div>
                 </div>
             ),
         },
         {
-            key: 'balance',
-            title: '余额',
-            className: 'w-[90px] text-right',
+            key: 'frozen',
+            title: '冻结',
+            className: 'w-[90px]',
             render: (row) => (
-                <div className="font-medium text-success-500">¥{Number(row.balance || 0).toFixed(2)}</div>
-            ),
-        },
-        {
-            key: 'silver',
-            title: '银锭',
-            className: 'w-[80px] text-right',
-            render: (row) => (
-                <div className="font-medium text-primary-600">{Number(row.silver || 0).toFixed(2)}</div>
+                <div className="text-xs text-[#9ca3af]">
+                    <div>本金: {Number(row.frozenBalance || 0).toFixed(2)}</div>
+                    <div>银锭: {Number(row.frozenSilver || 0).toFixed(2)}</div>
+                </div>
             ),
         },
         {
             key: 'vip',
             title: 'VIP',
-            className: 'w-[100px] text-center',
+            className: 'w-[90px] text-center',
             render: (row) => (
                 <div>
                     {row.vip ? (
@@ -406,15 +422,35 @@ export default function AdminUsersPage() {
             title: '推荐人',
             className: 'w-[80px]',
             render: (row) => (
-                <div className="text-xs">{row.invitedBy || '-'}</div>
+                <div className="text-xs">{row.invitedByName || row.invitedBy || '-'}</div>
             ),
         },
         {
-            key: 'mcTaskNum',
+            key: 'monthlyTaskCount',
             title: '月累计单',
             className: 'w-[70px] text-center',
             render: (row) => (
-                <span className="text-sm font-medium">{row.mcTaskNum || 0}</span>
+                <span className="text-sm font-medium">{row.monthlyTaskCount || row.mcTaskNum || 0}</span>
+            ),
+        },
+        {
+            key: 'lastLoginAt',
+            title: '最后登录',
+            className: 'w-[100px]',
+            render: (row) => (
+                <div className="text-xs text-[#9ca3af]">
+                    {row.lastLoginAt ? new Date(row.lastLoginAt).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-'}
+                </div>
+            ),
+        },
+        {
+            key: 'createdAt',
+            title: '注册时间',
+            className: 'w-[90px]',
+            render: (row) => (
+                <div className="text-xs text-[#6b7280]">
+                    {new Date(row.createdAt).toLocaleDateString('zh-CN')}
+                </div>
             ),
         },
         {
@@ -463,6 +499,10 @@ export default function AdminUsersPage() {
         <div className="space-y-6">
             {/* 搜索栏 */}
             <Card className="bg-white">
+                <div className="mb-4 flex items-center justify-between">
+                    <span className="text-base font-medium">买手列表</span>
+                    <span className="text-sm text-[#6b7280]">共 {total} 条记录</span>
+                </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <Input
                         placeholder="用户名/手机号"
@@ -495,6 +535,18 @@ export default function AdminUsersPage() {
                             { value: 'all', label: '全部会员' },
                             { value: 'vip', label: 'VIP用户' },
                             { value: 'normal', label: '普通用户' },
+                        ]}
+                        className="w-28"
+                    />
+                    <Select
+                        value={verifyFilter}
+                        onChange={(v) => { setVerifyFilter(v); setPage(1); }}
+                        options={[
+                            { value: 'all', label: '全部实名' },
+                            { value: '0', label: '未认证' },
+                            { value: '1', label: '待审核' },
+                            { value: '2', label: '已认证' },
+                            { value: '3', label: '已拒绝' },
                         ]}
                         className="w-28"
                     />

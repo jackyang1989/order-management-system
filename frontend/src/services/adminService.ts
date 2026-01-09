@@ -34,13 +34,18 @@ export interface AdminMerchant {
     phone: string;
     qq?: string;
     companyName?: string;
+    contactName?: string;
+    businessLicense?: string;
     balance: number;
     frozenBalance: number;
     silver: number;
     status: number; // 0=PENDING, 1=APPROVED, 2=REJECTED, 3=DISABLED
     vip: boolean;
     vipExpireAt?: string;
+    inviteCode?: string;
+    referrerId?: string;
     createdAt: string;
+    updatedAt?: string;
 }
 
 // Withdrawal Interface

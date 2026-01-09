@@ -247,6 +247,10 @@ export default function AdminTasksPage() {
     return (
         <div className="space-y-6">
             <Card className="bg-white">
+                <div className="mb-4 flex items-center justify-between">
+                    <span className="text-base font-medium">任务列表</span>
+                    <span className="text-sm text-[#6b7280]">共 {total} 条记录</span>
+                </div>
                 <div className="flex flex-wrap items-center gap-4">
                     <span className="text-[13px] font-medium text-[#3b4559]">状态筛选：</span>
                     <Tabs
@@ -264,19 +268,15 @@ export default function AdminTasksPage() {
                         ]}
                     />
                     <div className="ml-auto flex items-center gap-2">
-                        <Button
-                            variant="secondary"
-                            onClick={loadTasks}
-                            className="flex items-center gap-1"
-                        >
-                            <span>🔄</span> 刷新
+                        <Button variant="secondary" onClick={loadTasks}>
+                            刷新
                         </Button>
                         <Button
                             onClick={handleExport}
                             loading={exporting}
-                            className="flex items-center gap-1 bg-success-500 hover:bg-success-600"
+                            variant="success"
                         >
-                            <span>📥</span> 导出Excel
+                            导出Excel
                         </Button>
                     </div>
                 </div>

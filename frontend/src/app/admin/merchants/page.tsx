@@ -154,49 +154,69 @@ export default function AdminMerchantsPage() {
         {
             key: 'info',
             title: '商家信息',
-            className: 'w-[200px]',
+            className: 'w-[180px]',
             render: (row) => (
-                <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-lg">
-                        🏪
-                    </div>
-                    <div>
-                        <div className="font-medium text-[#3b4559]">{row.username}</div>
-                        <div className="text-xs text-[#9ca3af]">{row.phone}</div>
-                    </div>
+                <div>
+                    <div className="font-medium text-[#3b4559]">{row.username}</div>
+                    <div className="text-xs text-[#9ca3af]">{row.phone}</div>
+                    {row.companyName && (
+                        <div className="text-xs text-[#6b7280]">{row.companyName}</div>
+                    )}
                 </div>
             ),
         },
         {
-            key: 'balance',
-            title: '余额',
-            className: 'w-[120px] text-right',
+            key: 'qq',
+            title: 'QQ',
+            className: 'w-[100px]',
             render: (row) => (
-                <span className="font-medium text-success-400">¥{Number(row.balance || 0).toFixed(2)}</span>
+                <div className="text-sm">{row.qq || '-'}</div>
             ),
         },
         {
-            key: 'silver',
-            title: '银锭',
-            className: 'w-[100px] text-right',
+            key: 'balance',
+            title: '本金/银锭',
+            className: 'w-[120px]',
             render: (row) => (
-                <span className="font-medium text-primary-600">{Number(row.silver || 0).toFixed(2)}</span>
+                <div className="text-sm">
+                    <div className="font-medium text-success-500">¥{Number(row.balance || 0).toFixed(2)}</div>
+                    <div className="text-primary-600">{Number(row.silver || 0).toFixed(2)} 银锭</div>
+                </div>
+            ),
+        },
+        {
+            key: 'frozen',
+            title: '冻结',
+            className: 'w-[80px]',
+            render: (row) => (
+                <div className="text-xs text-[#9ca3af]">
+                    ¥{Number(row.frozenBalance || 0).toFixed(2)}
+                </div>
             ),
         },
         {
             key: 'vip',
             title: '会员',
-            className: 'w-[80px] text-center',
-            render: (row) => row.vip ? (
-                <Badge variant="solid" color="amber">VIP</Badge>
-            ) : (
-                <Badge variant="soft" color="slate">普通</Badge>
+            className: 'w-[90px] text-center',
+            render: (row) => (
+                <div>
+                    {row.vip ? (
+                        <Badge variant="solid" color="amber">VIP</Badge>
+                    ) : (
+                        <Badge variant="soft" color="slate">普通</Badge>
+                    )}
+                    {row.vipExpireAt && (
+                        <div className="mt-0.5 text-[10px] text-[#9ca3af]">
+                            {new Date(row.vipExpireAt).toLocaleDateString('zh-CN')}
+                        </div>
+                    )}
+                </div>
             ),
         },
         {
             key: 'status',
             title: '状态',
-            className: 'w-[100px] text-center',
+            className: 'w-[80px] text-center',
             render: (row) => {
                 const conf = statusLabels[row.status] || statusLabels[0];
                 return <Badge variant="soft" color={conf.color}>{conf.text}</Badge>;
@@ -205,29 +225,33 @@ export default function AdminMerchantsPage() {
         {
             key: 'createdAt',
             title: '注册时间',
-            className: 'w-[160px]',
-            render: (row) => row.createdAt ? new Date(row.createdAt).toLocaleString('zh-CN') : '-',
+            className: 'w-[100px]',
+            render: (row) => (
+                <div className="text-xs text-[#6b7280]">
+                    {row.createdAt ? new Date(row.createdAt).toLocaleDateString('zh-CN') : '-'}
+                </div>
+            ),
         },
         {
             key: 'actions',
             title: '操作',
-            className: 'w-[280px]',
+            className: 'w-[260px]',
             render: (row) => (
                 <div className="flex flex-wrap items-center gap-1.5">
-                    <Button size="sm" className="flex items-center gap-1" onClick={() => openAdjustBalance(row)}>
-                        💰 调余额
+                    <Button size="sm" variant="outline" onClick={() => openAdjustBalance(row)}>
+                        调余额
                     </Button>
                     {!row.vip && (
-                        <Button size="sm" className="bg-warning-400 hover:bg-warning-500" onClick={() => openSetVip(row)}>
-                            👑 设VIP
+                        <Button size="sm" variant="outline" className="text-warning-500" onClick={() => openSetVip(row)}>
+                            设VIP
                         </Button>
                     )}
                     {row.status === 3 ? (
-                        <Button size="sm" onClick={() => handleBan(row.id, row.status)}>
+                        <Button size="sm" variant="outline" className="text-success-500" onClick={() => handleBan(row.id, row.status)}>
                             启用
                         </Button>
                     ) : (
-                        <Button size="sm" variant="destructive" onClick={() => handleBan(row.id, row.status)}>
+                        <Button size="sm" variant="outline" className="text-danger-400" onClick={() => handleBan(row.id, row.status)}>
                             禁用
                         </Button>
                     )}
@@ -240,6 +264,10 @@ export default function AdminMerchantsPage() {
         <div className="space-y-6">
             {/* 搜索栏 */}
             <Card className="bg-white">
+                <div className="mb-4 flex items-center justify-between">
+                    <span className="text-base font-medium">商家列表</span>
+                    <span className="text-sm text-[#6b7280]">共 {total} 条记录</span>
+                </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <Input
                         placeholder="搜索商家名称/手机号..."
@@ -260,11 +288,11 @@ export default function AdminMerchantsPage() {
                         ]}
                         className="w-28"
                     />
-                    <Button onClick={handleSearch} className="flex items-center gap-1">
-                        🔍 搜索
+                    <Button onClick={handleSearch}>
+                        搜索
                     </Button>
-                    <Button variant="secondary" onClick={loadMerchants} className="flex items-center gap-1">
-                        🔄 刷新
+                    <Button variant="secondary" onClick={loadMerchants}>
+                        刷新
                     </Button>
                 </div>
             </Card>
@@ -290,7 +318,7 @@ export default function AdminMerchantsPage() {
 
             {/* 调整余额弹窗 */}
             <Modal
-                title={`💰 调整余额 - ${selectedMerchant?.username}`}
+                title={`调整余额 - ${selectedMerchant?.username}`}
                 open={activeModal === 'balance'}
                 onClose={() => setActiveModal(null)}
             >
@@ -343,7 +371,7 @@ export default function AdminMerchantsPage() {
 
             {/* 设置VIP弹窗 */}
             <Modal
-                title={`👑 设置VIP - ${selectedMerchant?.username}`}
+                title={`设置VIP - ${selectedMerchant?.username}`}
                 open={activeModal === 'vip'}
                 onClose={() => setActiveModal(null)}
             >
@@ -368,7 +396,7 @@ export default function AdminMerchantsPage() {
 
             {/* 禁用弹窗 */}
             <Modal
-                title={`🚫 禁用商家 - ${selectedMerchant?.username}`}
+                title={`禁用商家 - ${selectedMerchant?.username}`}
                 open={activeModal === 'ban'}
                 onClose={() => setActiveModal(null)}
             >
