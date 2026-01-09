@@ -121,6 +121,10 @@ export class User {
   @Column({ nullable: true })
   lastLoginIp: string; // 最后登录IP
 
+  // 备注（违规备注）
+  @Column({ type: 'text', nullable: true })
+  note: string;
+
   // ============ 推荐活跃熔断相关 ============
   @Column({ type: 'timestamp', nullable: true })
   lastTaskAt: Date; // 最后完成任务时间（用于30天活跃熔断判定）
@@ -161,6 +165,22 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   qq?: string;
+
+  // 管理员创建时可指定的额外字段
+  @IsOptional()
+  vipExpireAt?: string; // VIP到期时间
+
+  @IsOptional()
+  @IsNumber()
+  balance?: number; // 本金余额
+
+  @IsOptional()
+  @IsNumber()
+  silver?: number; // 银锭余额
+
+  @IsString()
+  @IsOptional()
+  note?: string; // 备注
 }
 
 export class LoginDto {

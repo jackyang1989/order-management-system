@@ -55,8 +55,13 @@ interface BalanceModalData {
 interface AddUserModalData {
     username: string;
     password: string;
+    confirmPassword: string;
     phone: string;
     qq: string;
+    vipExpireAt: string;
+    balance: string;
+    silver: string;
+    note: string;
 }
 
 interface StarModalData {
@@ -89,7 +94,10 @@ export default function AdminUsersPage() {
     const [noteModal, setNoteModal] = useState<{ userId: string; username: string; currentNote: string } | null>(null);
     const [passwordModal, setPasswordModal] = useState<{ userId: string; username: string } | null>(null);
     const [addUserModal, setAddUserModal] = useState(false);
-    const [addUserForm, setAddUserForm] = useState<AddUserModalData>({ username: '', password: '', phone: '', qq: '' });
+    const [addUserForm, setAddUserForm] = useState<AddUserModalData>({
+        username: '', password: '', confirmPassword: '', phone: '', qq: '',
+        vipExpireAt: '', balance: '', silver: '', note: ''
+    });
     const [addUserLoading, setAddUserLoading] = useState(false);
 
     // Form state for balance modal
@@ -362,22 +370,39 @@ export default function AdminUsersPage() {
             toastError('密码至少6位');
             return;
         }
+        if (addUserForm.password !== addUserForm.confirmPassword) {
+            toastError('两次密码不一致');
+            return;
+        }
         const token = localStorage.getItem('adminToken');
         setAddUserLoading(true);
         try {
+            const payload: any = {
+                username: addUserForm.username,
+                password: addUserForm.password,
+                phone: addUserForm.phone,
+                qq: addUserForm.qq || undefined,
+                vipExpireAt: addUserForm.vipExpireAt || undefined,
+                balance: addUserForm.balance ? Number(addUserForm.balance) : undefined,
+                silver: addUserForm.silver ? Number(addUserForm.silver) : undefined,
+                note: addUserForm.note || undefined,
+            };
             const res = await fetch(`${BASE_URL}/admin/users`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(addUserForm)
+                body: JSON.stringify(payload)
             });
             const json = await res.json();
             if (json.success) {
                 toastSuccess('买手创建成功');
                 setAddUserModal(false);
-                setAddUserForm({ username: '', password: '', phone: '', qq: '' });
+                setAddUserForm({
+                    username: '', password: '', confirmPassword: '', phone: '', qq: '',
+                    vipExpireAt: '', balance: '', silver: '', note: ''
+                });
                 loadUsers();
             } else {
                 toastError(json.message || '创建失败');
@@ -912,7 +937,7 @@ export default function AdminUsersPage() {
             <Modal
                 title="添加买手"
                 open={addUserModal}
-                onClose={() => { setAddUserModal(false); setAddUserForm({ username: '', password: '', phone: '', qq: '' }); }}
+                onClose={() => { setAddUserModal(false); setAddUserForm({ username: '', password: '', confirmPassword: '', phone: '', qq: '', vipExpireAt: '', balance: '', silver: '', note: '' }); }}
             >
                 <div className="space-y-4">
                     <Input
@@ -929,6 +954,13 @@ export default function AdminUsersPage() {
                         onChange={(e) => setAddUserForm({ ...addUserForm, password: e.target.value })}
                     />
                     <Input
+                        label="确认密码 *"
+                        type="password"
+                        placeholder="请再次输入密码"
+                        value={addUserForm.confirmPassword}
+                        onChange={(e) => setAddUserForm({ ...addUserForm, confirmPassword: e.target.value })}
+                    />
+                    <Input
                         label="手机号 *"
                         placeholder="请输入手机号"
                         value={addUserForm.phone}
@@ -940,8 +972,41 @@ export default function AdminUsersPage() {
                         value={addUserForm.qq}
                         onChange={(e) => setAddUserForm({ ...addUserForm, qq: e.target.value })}
                     />
+                    <Input
+                        label="VIP到期时间（可选）"
+                        type="date"
+                        placeholder="选择VIP到期时间"
+                        value={addUserForm.vipExpireAt}
+                        onChange={(e) => setAddUserForm({ ...addUserForm, vipExpireAt: e.target.value })}
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input
+                            label="本金余额（可选）"
+                            type="number"
+                            placeholder="初始本金余额"
+                            value={addUserForm.balance}
+                            onChange={(e) => setAddUserForm({ ...addUserForm, balance: e.target.value })}
+                        />
+                        <Input
+                            label="银锭余额（可选）"
+                            type="number"
+                            placeholder="初始银锭余额"
+                            value={addUserForm.silver}
+                            onChange={(e) => setAddUserForm({ ...addUserForm, silver: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">备注（可选）</label>
+                        <textarea
+                            className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            rows={2}
+                            placeholder="请输入备注"
+                            value={addUserForm.note}
+                            onChange={(e) => setAddUserForm({ ...addUserForm, note: e.target.value })}
+                        />
+                    </div>
                     <div className="flex justify-end gap-3 pt-4">
-                        <Button variant="secondary" onClick={() => { setAddUserModal(false); setAddUserForm({ username: '', password: '', phone: '', qq: '' }); }}>
+                        <Button variant="secondary" onClick={() => { setAddUserModal(false); setAddUserForm({ username: '', password: '', confirmPassword: '', phone: '', qq: '', vipExpireAt: '', balance: '', silver: '', note: '' }); }}>
                             取消
                         </Button>
                         <Button loading={addUserLoading} onClick={handleAddUser}>

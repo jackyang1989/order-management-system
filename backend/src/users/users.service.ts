@@ -96,25 +96,38 @@ export class UsersService {
     }
 
     // ============ P0-1 Fix: 注册赠送VIP + 银锭 ============
-    // 计算VIP到期时间
-    const vipExpireDate = new Date();
-    vipExpireDate.setDate(
-      vipExpireDate.getDate() + SYSTEM_CONFIG_FALLBACK.REGISTER_VIP_DAYS,
-    );
+    // 计算VIP到期时间（管理员可以指定，否则使用默认值）
+    let vipExpireDate: Date;
+    let isVip: boolean;
+    if (createUserDto.vipExpireAt) {
+      vipExpireDate = new Date(createUserDto.vipExpireAt);
+      isVip = vipExpireDate > new Date();
+    } else {
+      vipExpireDate = new Date();
+      vipExpireDate.setDate(
+        vipExpireDate.getDate() + SYSTEM_CONFIG_FALLBACK.REGISTER_VIP_DAYS,
+      );
+      isVip = true;
+    }
+
+    // 管理员可以指定初始余额
+    const initialBalance = createUserDto.balance ?? 0;
+    const initialSilver = createUserDto.silver ?? SYSTEM_CONFIG_FALLBACK.REGISTER_SILVER;
 
     const newUser = this.usersRepository.create({
       username: createUserDto.username,
       password: hashedPassword,
       phone: createUserDto.phone,
       qq: createUserDto.qq || '',
-      vip: true, // P0-1: 注册即赠送VIP
+      vip: isVip, // P0-1: 注册即赠送VIP
       vipExpireAt: vipExpireDate, // P0-1: VIP到期时间
-      balance: 0,
-      silver: SYSTEM_CONFIG_FALLBACK.REGISTER_SILVER, // P0-1: 注册赠送银锭
+      balance: initialBalance,
+      silver: initialSilver, // P0-1: 注册赠送银锭
       frozenSilver: 0,
-      reward: SYSTEM_CONFIG_FALLBACK.REGISTER_SILVER, // P0-1: 累计赚取银锭
+      reward: initialSilver, // P0-1: 累计赚取银锭
       invitationCode: newInvitationCode,
       invitedBy: invitedBy,
+      note: createUserDto.note || '',
     });
 
     const savedUser = await this.usersRepository.save(newUser);

@@ -67,7 +67,16 @@ export class AdminController {
   }
 
   @Post('users')
-  async createUser(@Body() body: { username: string; password: string; phone: string; qq?: string }) {
+  async createUser(@Body() body: {
+    username: string;
+    password: string;
+    phone: string;
+    qq?: string;
+    vipExpireAt?: string;
+    balance?: number;
+    silver?: number;
+    note?: string;
+  }) {
     try {
       // 生成一个随机的邀请码作为注册用
       const user = await this.usersService.create({
@@ -76,6 +85,10 @@ export class AdminController {
         phone: body.phone,
         qq: body.qq,
         invitationCode: '', // 不使用邀请码
+        vipExpireAt: body.vipExpireAt,
+        balance: body.balance,
+        silver: body.silver,
+        note: body.note,
       });
       return {
         success: true,
