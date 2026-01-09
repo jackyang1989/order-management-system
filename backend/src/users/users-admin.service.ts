@@ -179,17 +179,45 @@ export class UsersAdminService {
     }
 
     const field = dto.type === 'balance' ? 'balance' : 'silver';
-    const balanceBefore = Number(user[field]) || 0;
+    const rawValue = user[field];
+
+    // 调试日志
+    console.log('[adjustBalance] field:', field);
+    console.log('[adjustBalance] rawValue:', rawValue, 'type:', typeof rawValue);
+    console.log('[adjustBalance] dto.amount:', dto.amount, 'type:', typeof dto.amount);
+
+    // 确保 amount 是数字
+    const amount = typeof dto.amount === 'string' ? parseFloat(dto.amount) : dto.amount;
+
+    // 处理余额：可能是字符串、数字或 Decimal 对象
+    let balanceBefore: number;
+    if (typeof rawValue === 'string') {
+      balanceBefore = parseFloat(rawValue) || 0;
+    } else if (typeof rawValue === 'number') {
+      balanceBefore = rawValue;
+    } else if (rawValue && typeof rawValue === 'object') {
+      // Decimal 对象或其他对象
+      balanceBefore = parseFloat(String(rawValue)) || 0;
+    } else {
+      balanceBefore = 0;
+    }
+
+    console.log('[adjustBalance] balanceBefore:', balanceBefore);
+    console.log('[adjustBalance] amount:', amount);
+
     let balanceAfter: number;
 
     if (dto.action === 'add') {
-      balanceAfter = balanceBefore + dto.amount;
+      balanceAfter = balanceBefore + amount;
     } else {
-      if (balanceBefore < dto.amount) {
-        throw new BadRequestException('余额不足');
+      if (balanceBefore < amount) {
+        console.log('[adjustBalance] 余额不足! balanceBefore:', balanceBefore, '< amount:', amount);
+        throw new BadRequestException(`余额不足 (当前: ${balanceBefore}, 扣除: ${amount})`);
       }
-      balanceAfter = balanceBefore - dto.amount;
+      balanceAfter = balanceBefore - amount;
     }
+
+    console.log('[adjustBalance] balanceAfter:', balanceAfter);
 
     user[field] = balanceAfter as any;
     await this.userRepo.save(user);
@@ -200,7 +228,7 @@ export class UsersAdminService {
       userId: id,
       type: dto.type,
       action: dto.action,
-      amount: dto.amount,
+      amount: amount,
       balanceBefore,
       balanceAfter,
       reason: dto.reason,
