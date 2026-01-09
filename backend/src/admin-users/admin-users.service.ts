@@ -214,6 +214,29 @@ export class AdminUsersService {
     await this.adminUserRepository.save(admin);
   }
 
+  async changePassword(
+    id: string,
+    oldPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const admin = await this.adminUserRepository.findOne({ where: { id } });
+    if (!admin) {
+      throw new NotFoundException('管理员不存在');
+    }
+
+    const isPasswordValid = await bcrypt.compare(oldPassword, admin.password);
+    if (!isPasswordValid) {
+      throw new BadRequestException('原密码错误');
+    }
+
+    if (newPassword.length < 6) {
+      throw new BadRequestException('新密码长度至少6位');
+    }
+
+    admin.password = await bcrypt.hash(newPassword, 10);
+    await this.adminUserRepository.save(admin);
+  }
+
   async deleteAdmin(id: string): Promise<void> {
     const admin = await this.adminUserRepository.findOne({ where: { id } });
     if (!admin) {

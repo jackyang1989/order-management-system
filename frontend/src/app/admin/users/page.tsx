@@ -542,6 +542,9 @@ export default function AdminUsersPage() {
                     <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
                         消息
                     </Button>
+                    <Button size="sm" variant="outline" className="text-amber-500" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.id}`}>
+                        银行卡
+                    </Button>
                 </div>
             ),
         },
@@ -900,6 +903,49 @@ export default function AdminUsersPage() {
                         </Button>
                         <Button onClick={handleChangePassword}>
                             确认修改
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* 添加买手弹窗 */}
+            <Modal
+                title="添加买手"
+                open={addUserModal}
+                onClose={() => { setAddUserModal(false); setAddUserForm({ username: '', password: '', phone: '', qq: '' }); }}
+            >
+                <div className="space-y-4">
+                    <Input
+                        label="用户名 *"
+                        placeholder="请输入用户名"
+                        value={addUserForm.username}
+                        onChange={(e) => setAddUserForm({ ...addUserForm, username: e.target.value })}
+                    />
+                    <Input
+                        label="密码 *"
+                        type="password"
+                        placeholder="请输入密码（至少6位）"
+                        value={addUserForm.password}
+                        onChange={(e) => setAddUserForm({ ...addUserForm, password: e.target.value })}
+                    />
+                    <Input
+                        label="手机号 *"
+                        placeholder="请输入手机号"
+                        value={addUserForm.phone}
+                        onChange={(e) => setAddUserForm({ ...addUserForm, phone: e.target.value })}
+                    />
+                    <Input
+                        label="QQ号"
+                        placeholder="请输入QQ号（选填）"
+                        value={addUserForm.qq}
+                        onChange={(e) => setAddUserForm({ ...addUserForm, qq: e.target.value })}
+                    />
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => { setAddUserModal(false); setAddUserForm({ username: '', password: '', phone: '', qq: '' }); }}>
+                            取消
+                        </Button>
+                        <Button loading={addUserLoading} onClick={handleAddUser}>
+                            创建买手
                         </Button>
                     </div>
                 </div>

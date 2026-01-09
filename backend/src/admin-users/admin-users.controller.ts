@@ -70,6 +70,39 @@ export class AdminUsersController {
     return { success: true, data: admin };
   }
 
+  @Put('profile/password')
+  @UseGuards(JwtAuthGuard)
+  async changeMyPassword(
+    @Body() body: { oldPassword: string; newPassword: string },
+    @Request() req,
+    @Ip() ip: string,
+  ) {
+    try {
+      await this.adminUsersService.changePassword(
+        req.user.userId,
+        body.oldPassword,
+        body.newPassword,
+      );
+      await this.adminUsersService.logOperation(
+        req.user.userId,
+        req.user.username,
+        '系统管理',
+        '修改密码',
+        '管理员修改自己的密码',
+        ip,
+      );
+      return {
+        success: true,
+        message: '密码修改成功',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   async findOne(@Param('id') id: string) {

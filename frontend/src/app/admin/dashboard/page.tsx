@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '../../../lib/utils';
 import { BASE_URL } from '../../../../apiConfig';
+import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/input';
+import { Modal } from '../../../components/ui/modal';
+import { toastSuccess, toastError } from '../../../lib/toast';
 
 interface Stats {
     totalUsers: number;
@@ -23,6 +27,11 @@ export default function AdminDashboardPage() {
     const router = useRouter();
     const [stats, setStats] = useState<Stats | null>(null);
     const [loading, setLoading] = useState(true);
+    const [passwordModal, setPasswordModal] = useState(false);
+    const [oldPassword, setOldPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [changingPassword, setChangingPassword] = useState(false);
 
     useEffect(() => {
         loadStats();
@@ -42,6 +51,47 @@ export default function AdminDashboardPage() {
             console.error(e);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleChangePassword = async () => {
+        if (!oldPassword || !newPassword) {
+            toastError('请填写原密码和新密码');
+            return;
+        }
+        if (newPassword.length < 6) {
+            toastError('新密码至少6位');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            toastError('两次密码不一致');
+            return;
+        }
+        const token = localStorage.getItem('adminToken');
+        setChangingPassword(true);
+        try {
+            const res = await fetch(`${BASE_URL}/admin-users/profile/password`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ oldPassword, newPassword })
+            });
+            const json = await res.json();
+            if (json.success) {
+                toastSuccess('密码修改成功');
+                setPasswordModal(false);
+                setOldPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+            } else {
+                toastError(json.message || '修改失败');
+            }
+        } catch (e) {
+            toastError('修改失败');
+        } finally {
+            setChangingPassword(false);
         }
     };
 
@@ -81,10 +131,21 @@ export default function AdminDashboardPage() {
         <div className="space-y-6">
             {/* 欢迎卡片 */}
             <div className="overflow-hidden rounded-md bg-gradient-to-r from-primary-500 to-primary-600 px-8 py-7 text-white ">
-                <h2 className="mb-2 text-xl font-semibold">欢迎回来，管理员</h2>
-                <p className="text-white/80">
-                    今日新增用户 <strong className="text-white">{stats?.todayUsers || 0}</strong> 人，新增订单 <strong className="text-white">{stats?.todayOrders || 0}</strong> 单
-                </p>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="mb-2 text-xl font-semibold">欢迎回来，管理员</h2>
+                        <p className="text-white/80">
+                            今日新增用户 <strong className="text-white">{stats?.todayUsers || 0}</strong> 人，新增订单 <strong className="text-white">{stats?.todayOrders || 0}</strong> 单
+                        </p>
+                    </div>
+                    <Button
+                        variant="outline"
+                        className="border-white/50 text-white hover:bg-white/20 hover:text-white"
+                        onClick={() => setPasswordModal(true)}
+                    >
+                        修改密码
+                    </Button>
+                </div>
             </div>
 
             {/* 统计卡片 */}
@@ -187,6 +248,45 @@ export default function AdminDashboardPage() {
                     ))}
                 </div>
             </div>
+
+            {/* 修改密码弹窗 */}
+            <Modal
+                title="修改密码"
+                open={passwordModal}
+                onClose={() => { setPasswordModal(false); setOldPassword(''); setNewPassword(''); setConfirmPassword(''); }}
+            >
+                <div className="space-y-4">
+                    <Input
+                        type="password"
+                        label="原密码"
+                        placeholder="请输入原密码"
+                        value={oldPassword}
+                        onChange={(e) => setOldPassword(e.target.value)}
+                    />
+                    <Input
+                        type="password"
+                        label="新密码"
+                        placeholder="请输入新密码（至少6位）"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                    <Input
+                        type="password"
+                        label="确认新密码"
+                        placeholder="请再次输入新密码"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => { setPasswordModal(false); setOldPassword(''); setNewPassword(''); setConfirmPassword(''); }}>
+                            取消
+                        </Button>
+                        <Button loading={changingPassword} onClick={handleChangePassword}>
+                            确认修改
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }
