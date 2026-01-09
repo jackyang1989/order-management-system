@@ -74,9 +74,9 @@ export default function TasksPage() {
     const loadBuynos = async () => {
         try {
             const token = getToken();
-            const res = await fetch(`${BASE_URL}/mobile/my/buynolist`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const res = await fetch(`${BASE_URL}/buyer-accounts`, { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
-            if (data.code === 1) { setBuynos(data.data || []); if (data.data?.length > 0) { setValue2(data.data[0].id); setOp2count(data.data[0].count); } }
+            if (data.success) { setBuynos(data.data || []); if (data.data?.length > 0) { setValue2(data.data[0].id); setOp2count(data.data[0].dailyTaskLimit || '0'); } }
         } catch (error) { console.error('Load buynos error:', error); }
     };
 
@@ -84,13 +84,19 @@ export default function TasksPage() {
         setLoading(true);
         try {
             const token = getToken();
-            const response = await fetch(`${BASE_URL}/mobile/task/index`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ page: currentPage, datetime1: defaultDate, datetime2: defaultDate2, task_type: value3, buyno_id: value2, terminal: value4, getprice: value5, platform: platformFilter }),
+            const params = new URLSearchParams({
+                page: String(currentPage),
+                ...(value3 ? { taskType: String(value3) } : {}),
+                ...(value4 ? { terminal: String(value4) } : {}),
+                ...(value5 ? { priceRange: String(value5) } : {}),
+                ...(platformFilter ? { platform: String(platformFilter) } : {}),
+            });
+            const response = await fetch(`${BASE_URL}/tasks?${params.toString()}`, {
+                method: 'GET', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             });
             const data = await response.json();
-            if (data.code === 1) { const list = data.data?.list || []; for (let i = 0; i < list.length; i++) list[i].progress = parseInt(list[i].progress) + '%'; setTasks(list); setTotal(data.data?.total || 0); }
-            else alertError(data.msg || '获取任务失败');
+            if (data.success) { const list = data.data || []; for (let i = 0; i < list.length; i++) list[i].progress = parseInt(list[i].progress || '0') + '%'; setTasks(list); setTotal(data.total || 0); }
+            else alertError(data.message || '获取任务失败');
         } catch (error) { console.error('Failed to load tasks:', error); }
         finally { setLoading(false); }
     };
@@ -104,13 +110,13 @@ export default function TasksPage() {
             try {
                 const task = tasks[index];
                 const token = getToken();
-                const response = await fetch(`${BASE_URL}/mobile/task/get_task`, {
+                const response = await fetch(`${BASE_URL}/tasks/${task.id}/claim`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ task_number: task.task_number, buyno_id: value2, commission: task.user_reward, total_price: task.total_price, terminal: value4, user_divided: task.user_divided }),
+                    body: JSON.stringify({ buyerAccountId: value2, terminal: value4 }),
                 });
                 const data = await response.json();
-                if (data.code === 1) { alertSuccess(data.msg || '添加任务成功'); setTimeout(() => { if (data.url) router.push(data.url); else getData(); }, 3000); }
-                else alertError(data.msg || '添加任务失败');
+                if (data.success) { alertSuccess(data.message || '添加任务成功'); setTimeout(() => { if (data.orderId) router.push(`/orders/${data.orderId}/execute`); else getData(); }, 3000); }
+                else alertError(data.message || '添加任务失败');
             } catch (error) { alertError('网络错误'); }
         }
     };

@@ -145,6 +145,62 @@ export class PaymentsService {
     return result.affected || 0;
   }
 
+  /**
+   * 用户创建支付订单
+   * 替代: /mobile/money/pay
+   */
+  async createPayment(
+    userId: string,
+    payType: string,
+    payMethod: string,
+    amount: number,
+    orderId?: string,
+  ): Promise<{
+    success: boolean;
+    message?: string;
+    url?: string;
+    qrcode?: string;
+    orderNo?: string;
+  }> {
+    try {
+      // 根据支付方式选择渠道
+      const channelMap: Record<string, PaymentChannel> = {
+        alipay: PaymentChannel.ALIPAY,
+        wechat: PaymentChannel.WECHAT,
+      };
+      const channel = channelMap[payMethod] || PaymentChannel.ALIPAY;
+
+      // 根据支付类型确定类型枚举
+      const typeMap: Record<string, PaymentType> = {
+        '1': PaymentType.VIP_PAY,
+        '2': PaymentType.RECHARGE,
+        '3': PaymentType.ORDER_PAY,
+      };
+      const type = typeMap[payType] || PaymentType.RECHARGE;
+
+      // 创建支付订单
+      const order = await this.createOrder({
+        userId,
+        userType: 'buyer',
+        channel,
+        type,
+        amount,
+        relatedId: orderId,
+      });
+
+      return {
+        success: true,
+        url: order.payUrl,
+        orderNo: order.orderNo,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
   // ============ 支付回调管理 ============
 
   /**

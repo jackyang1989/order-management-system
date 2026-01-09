@@ -13,15 +13,15 @@ interface TaskData {
     zhongDuan: string;
     benJin: string;
     yongJin: string;
-    user_divided: string;
+    userDivided: string;
     money: string;
     dianPu: string;
     taskNum: string;
     time: string;
     taskType: string;
     delType: string;
-    goods_price: string;
-    seller_name: string;
+    goodsPrice: string;
+    sellerName: string;
 }
 
 interface TaskData2 {
@@ -33,17 +33,17 @@ interface TaskData2 {
     num: string;
     type1: string;
     time: string;
-    step_two_complete: string;
-    upload_order_time: string;
-    delivery_time: string;
-    platform_refund_time: string;
+    stepTwoComplete: string;
+    uploadOrderTime: string;
+    deliveryTime: string;
+    platformRefundTime: string;
 }
 
 interface ProductInfo {
     name: string;
-    text_praise: string;
-    img_praise: string[];
-    video_praise: string;
+    textPraise: string;
+    imgPraise: string[];
+    videoPraise: string;
 }
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -62,17 +62,16 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
         setLoading(true);
         try {
             const token = getToken();
-            const response = await fetch(`${BASE_URL}/mobile/my/detail`, {
-                method: 'POST',
+            const response = await fetch(`${BASE_URL}/orders/${id}/detail`, {
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ id }),
             });
             const res = await response.json();
 
-            if (res.code === 1) {
+            if (res.success) {
                 const data = res.data;
                 const list = data.list || {};
 
@@ -117,7 +116,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                     })));
                 }
             } else {
-                alertError(res.msg || '获取详情失败');
+                alertError(res.message || '获取详情失败');
                 router.back();
             }
         } catch (error) {

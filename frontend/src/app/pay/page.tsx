@@ -63,22 +63,22 @@ function PayContent() {
         setLoading(true);
         try {
             const token = getToken();
-            const response = await fetch(`${BASE_URL}/mobile/money/pay`, {
+            const response = await fetch(`${BASE_URL}/payments/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    paytype: payType,
-                    paymethod: payMethod,
-                    money: payAmount,
-                    order_id: orderId,
+                    payType: payType,
+                    payMethod: payMethod,
+                    amount: payAmount,
+                    orderId: orderId,
                 }),
             });
             const data = await response.json();
 
-            if (data.code === 1) {
+            if (data.success) {
                 if (data.url) {
                     // 跳转到第三方支付页面
                     setPayUrl(data.url);
@@ -87,13 +87,13 @@ function PayContent() {
                     // 展示二维码支付
                     alertSuccess('请使用手机扫描二维码完成支付');
                 } else {
-                    alertSuccess(data.msg || '支付成功');
+                    alertSuccess(data.message || '支付成功');
                     setTimeout(() => {
                         router.push('/profile');
                     }, 2000);
                 }
             } else {
-                alertError(data.msg || '支付失败');
+                alertError(data.message || '支付失败');
             }
         } catch (error) {
             alertError('网络错误');

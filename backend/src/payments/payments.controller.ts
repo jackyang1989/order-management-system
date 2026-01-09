@@ -128,4 +128,50 @@ export class PaymentsController {
     const count = await this.paymentsService.cancelExpiredOrders();
     return { success: true, message: `已取消${count}个过期订单` };
   }
+
+  // ============ 用户支付接口 ============
+
+  /**
+   * 创建支付订单
+   * 替代: /mobile/money/pay
+   */
+  @Post('create')
+  @UseGuards(JwtAuthGuard)
+  async createPayment(
+    @Req() req: any,
+    @Body()
+    body: {
+      payType: string;
+      payMethod: string;
+      amount: string;
+      orderId?: string;
+    },
+  ) {
+    try {
+      const result = await this.paymentsService.createPayment(
+        req.user.userId,
+        body.payType,
+        body.payMethod,
+        parseFloat(body.amount),
+        body.orderId,
+      );
+
+      if (result.success) {
+        return {
+          success: true,
+          message: '支付订单创建成功',
+          url: result.url,
+          qrcode: result.qrcode,
+          orderNo: result.orderNo,
+        };
+      } else {
+        return {
+          success: false,
+          message: result.message || '创建支付订单失败',
+        };
+      }
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  }
 }

@@ -736,4 +736,193 @@ export class OrdersController {
       return { success: false, message: error.message };
     }
   }
+
+  // ============ 订单详情和确认收货 (RESTful API) ============
+
+  /**
+   * 获取订单完整详情
+   * 替代: /mobile/my/detail
+   */
+  @Get(':id/detail')
+  async getOrderDetail(@Param('id') id: string, @Request() req) {
+    try {
+      const order = await this.ordersService.findOne(id);
+      if (!order) {
+        return { success: false, message: '订单不存在' };
+      }
+      if (order.userId !== req.user.userId) {
+        return { success: false, message: '无权访问此订单' };
+      }
+
+      const task = await this.tasksService.findOne(order.taskId);
+
+      return {
+        success: true,
+        data: {
+          id: order.id,
+          buynoAccount: order.buynoAccount || '',
+          taskType: task?.taskType ? `类型${task.taskType}` : '',
+          terminal: task?.terminal || 1,
+          sellerPrincipal: order.sellerPrincipal || order.userPrincipal || 0,
+          commission: order.commission || 0,
+          userDivided: order.userDivided || 0,
+          goodsPrice: task?.goodsPrice || 0,
+          shopName: task?.shopName || '',
+          taskNumber: task?.taskNumber || order.id,
+          createdAt: order.createdAt,
+          updatedAt: order.updatedAt,
+          status: order.status || '待下单',
+          cancelReason: '',
+          keywordImg: order.keywordImg || '',
+          chatImg: order.chatImg || '',
+          platformOrderNumber: order.platformOrderNumber || '',
+          delivery: order.delivery || '',
+          deliveryNum: order.deliveryNum || '',
+          deliveryTime: order.deliveryTime || '',
+          products: [],
+        },
+      };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  /**
+   * 获取收货页面数据
+   * 替代: /mobile/my/shouhuo
+   */
+  @Get(':id/receive-data')
+  async getReceiveData(@Param('id') id: string, @Request() req) {
+    try {
+      const order = await this.ordersService.findOne(id);
+      if (!order) {
+        return { success: false, message: '订单不存在' };
+      }
+      if (order.userId !== req.user.userId) {
+        return { success: false, message: '无权访问此订单' };
+      }
+
+      const task = await this.tasksService.findOne(order.taskId);
+
+      return {
+        success: true,
+        data: {
+          id: order.id,
+          taskNumber: task?.taskNumber || order.id,
+          createdAt: order.createdAt,
+          taskType: task?.taskType ? `类型${task.taskType}` : '',
+          buynoAccount: order.buynoAccount || '',
+          sellerPrincipal: order.sellerPrincipal || order.userPrincipal || 0,
+          delivery: order.delivery || '',
+          deliveryNum: order.deliveryNum || '',
+          products: [],
+        },
+      };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  /**
+   * 确认收货并上传好评截图
+   * 替代: /mobile/my/take_delivery
+   */
+  @Post(':id/confirm-delivery')
+  async confirmDelivery(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() body: { highPraiseImg: string },
+  ) {
+    try {
+      const order = await this.ordersService.findOne(id);
+      if (!order) {
+        return { success: false, message: '订单不存在' };
+      }
+      if (order.userId !== req.user.userId) {
+        return { success: false, message: '无权访问此订单' };
+      }
+
+      // 确认收货
+      await this.ordersService.confirmReceipt(id, req.user.userId);
+
+      return {
+        success: true,
+        message: '确认收货成功',
+        redirectUrl: '/orders',
+      };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  /**
+   * 批量获取订单返款金额
+   * 替代: /mobile/task/all_seller_principal
+   */
+  @Post('batch/principal')
+  async getBatchPrincipal(@Request() req, @Body() body: { orderIds: string[] }) {
+    try {
+      const orderIds = body.orderIds;
+      if (!orderIds || orderIds.length === 0) {
+        return { success: false, message: '请选择要操作的订单' };
+      }
+
+      let totalPrincipal = 0;
+      for (const orderId of orderIds) {
+        const order = await this.ordersService.findOne(orderId);
+        if (order && order.userId === req.user.userId) {
+          totalPrincipal += parseFloat(String(order.sellerPrincipal || order.userPrincipal || 0));
+        }
+      }
+
+      return {
+        success: true,
+        data: {
+          principal: totalPrincipal.toFixed(2),
+          count: orderIds.length,
+        },
+      };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  /**
+   * 批量确认返款
+   * 替代: /mobile/task/allfankuan
+   */
+  @Post('batch/confirm-refund')
+  async batchConfirmRefund(@Request() req, @Body() body: { orderIds: string[] }) {
+    try {
+      const orderIds = body.orderIds;
+      if (!orderIds || orderIds.length === 0) {
+        return { success: false, message: '请选择要确认返款的订单' };
+      }
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const orderId of orderIds) {
+        try {
+          const order = await this.ordersService.findOne(orderId);
+          if (order && order.userId === req.user.userId) {
+            await this.ordersService.confirmReceipt(orderId, req.user.userId);
+            successCount++;
+          } else {
+            failCount++;
+          }
+        } catch {
+          failCount++;
+        }
+      }
+
+      return {
+        success: true,
+        message: `成功确认 ${successCount} 笔返款${failCount > 0 ? `，${failCount} 笔失败` : ''}`,
+        redirectUrl: '/orders',
+      };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  }
 }

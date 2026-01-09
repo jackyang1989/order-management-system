@@ -87,9 +87,9 @@ function OrdersPageContent() {
     const loadBuynos = async () => {
         try {
             const token = getToken();
-            const res = await fetch(`${BASE_URL}/mobile/my/buynolist`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const res = await fetch(`${BASE_URL}/buyer-accounts`, { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
-            if (data.code === 1) setBuynos(data.data || []);
+            if (data.success) setBuynos(data.data || []);
         } catch (error) { console.error('Load buynos error:', error); }
     };
 
@@ -97,13 +97,20 @@ function OrdersPageContent() {
         setLoading(true);
         try {
             const token = getToken();
-            const response = await fetch(`${BASE_URL}/mobile/my/taskmanagement`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ page: currentPage, datetime1: date1 || datetime1, datetime2: date2 || datetime2, choose_a: value1, buyno: value2, task_type: value3, terminal: value4, zhuipin: value5, indexorder, platform: platformFilter }),
+            const params = new URLSearchParams({
+                page: String(currentPage),
+                ...(value1 ? { status: value1 } : {}),
+                ...(value2 ? { buynoId: value2 } : {}),
+                ...(value3 ? { taskType: String(value3) } : {}),
+                ...(value4 ? { terminal: String(value4) } : {}),
+                ...(platformFilter ? { platform: String(platformFilter) } : {}),
+            });
+            const response = await fetch(`${BASE_URL}/orders?${params.toString()}`, {
+                method: 'GET', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             });
             const data = await response.json();
-            if (data.code === 1) { const list = data.data?.list || []; for (let i = 0; i < list.length; i++) list[i].progress = list[i].progress + '%'; setOrders(list); setTotal(data.data?.total || 0); }
-            else alertError(data.msg || '获取数据失败');
+            if (data.success) { const list = data.data || []; for (let i = 0; i < list.length; i++) list[i].progress = (list[i].progress || 0) + '%'; setOrders(list); setTotal(data.total || 0); }
+            else alertError(data.message || '获取数据失败');
         } catch (error) { console.error('Failed to load orders:', error); }
         finally { setLoading(false); }
     };
@@ -142,22 +149,22 @@ function OrdersPageContent() {
         if (selectedIds.length === 0) { alertError('请选择要确认返款的订单'); return; }
         try {
             const token = getToken();
-            const principalRes = await fetch(`${BASE_URL}/mobile/task/all_seller_principal`, {
+            const principalRes = await fetch(`${BASE_URL}/orders/batch/principal`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ taskid: selectedIds }),
+                body: JSON.stringify({ orderIds: selectedIds }),
             });
             const principalData = await principalRes.json();
-            if (principalData.code === 1) {
+            if (principalData.success) {
                 if (confirm(`商家确认返款金额为: ${principalData.data.principal}，是否确认？`)) {
-                    const res = await fetch(`${BASE_URL}/mobile/task/allfankuan`, {
+                    const res = await fetch(`${BASE_URL}/orders/batch/confirm-refund`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                        body: JSON.stringify({ taskid: selectedIds }),
+                        body: JSON.stringify({ orderIds: selectedIds }),
                     });
                     const data = await res.json();
-                    if (data.code === 1) { alertSuccess(data.msg || '返款成功'); setTimeout(() => { if (data.url) router.push(data.url); else getData(); }, 3000); }
-                    else alertError(data.msg || '返款失败');
+                    if (data.success) { alertSuccess(data.message || '返款成功'); setTimeout(() => { if (data.redirectUrl) router.push(data.redirectUrl); else getData(); }, 3000); }
+                    else alertError(data.message || '返款失败');
                 }
-            } else alertError(principalData.msg || '获取返款金额失败');
+            } else alertError(principalData.message || '获取返款金额失败');
         } catch (error) { alertError('网络错误'); }
     };
 

@@ -41,17 +41,16 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
         setLoading(true);
         try {
             const token = getToken();
-            const response = await fetch(`${BASE_URL}/mobile/my/shouhuo`, {
-                method: 'POST',
+            const response = await fetch(`${BASE_URL}/orders/${id}/receive-data`, {
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ id }),
             });
             const res = await response.json();
 
-            if (res.code === 1) {
+            if (res.success) {
                 const data = res.data;
                 const list = data.list || {};
                 setTaskId(list.id || id);
@@ -72,7 +71,7 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                     })));
                 }
             } else {
-                alertError(res.msg || '获取数据失败');
+                alertError(res.message || '获取数据失败');
             }
         } catch (error) {
             console.error('Load data error:', error);
@@ -133,25 +132,24 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
         setSubmitting(true);
         try {
             const token = getToken();
-            const response = await fetch(`${BASE_URL}/mobile/my/take_delivery`, {
+            const response = await fetch(`${BASE_URL}/orders/${taskId}/confirm-delivery`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    high_praise_img: localFile.content,
-                    task_id: taskId,
+                    highPraiseImg: localFile.content,
                 }),
             });
             const data = await response.json();
 
-            if (data.code === 1) {
+            if (data.success) {
                 setDialogVisible(false);
-                alertSuccess(data.msg || '确认收货成功');
-                router.push('/orders'); // Redirect to order list
+                alertSuccess(data.message || '确认收货成功');
+                router.push(data.redirectUrl || '/orders');
             } else {
-                alertError(data.msg || '操作失败');
+                alertError(data.message || '操作失败');
             }
         } catch (error) {
             alertError('网络错误');
