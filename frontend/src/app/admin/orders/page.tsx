@@ -18,15 +18,20 @@ interface Order {
     id: string;
     taskId: string;
     taskTitle: string;
+    taskNumber?: string;
     userId: string;
+    userName?: string;
     buynoId: string;
     buynoAccount: string;
+    buynoWangwang?: string;
     platform: string;
     productName: string;
     productPrice: number;
     commission: number;
     userPrincipal: number;
     sellerPrincipal: number;
+    depositPayment?: number;
+    silverPayment?: number;
     finalAmount: number;
     refundAmount: number;
     platformOrderNumber: string;
@@ -47,6 +52,7 @@ interface Order {
     cancelRemarks: string;
     createdAt: string;
     completedAt: string;
+    merchant?: { id: string; username: string; shopName?: string };
 }
 
 const statusLabels: Record<string, { text: string; color: 'blue' | 'amber' | 'green' | 'red' | 'slate' }> = {
@@ -103,43 +109,60 @@ export default function AdminOrdersPage() {
 
     const columns: Column<Order>[] = [
         {
+            key: 'taskNumber',
+            title: '任务编号',
+            className: 'w-[120px]',
+            render: (row) => <code className="text-xs text-[#6b7280]">{row.taskNumber || '-'}</code>,
+        },
+        {
             key: 'platformOrderNumber',
             title: '平台订单号',
             className: 'w-[130px]',
             render: (row) => <code className="text-xs text-[#6b7280]">{row.platformOrderNumber || '-'}</code>,
         },
         {
-            key: 'productName',
-            title: '商品',
-            className: 'w-[180px]',
-            render: (row) => <span className="line-clamp-1">{row.productName}</span>,
+            key: 'merchant',
+            title: '卖家/店铺',
+            className: 'w-[130px]',
+            render: (row) => (
+                <div className="text-sm">
+                    <div className="font-medium text-[#3b4559]">{row.merchant?.username || '-'}</div>
+                    <div className="text-xs text-[#9ca3af]">{row.merchant?.shopName || '-'}</div>
+                </div>
+            ),
         },
         {
-            key: 'buynoAccount',
-            title: '买号',
-            className: 'w-[120px]',
-            render: (row) => <span className="line-clamp-1">{row.buynoAccount}</span>,
+            key: 'buyer',
+            title: '买家/买号',
+            className: 'w-[130px]',
+            render: (row) => (
+                <div className="text-sm">
+                    <div className="font-medium text-[#3b4559]">{row.userName || '-'}</div>
+                    <div className="text-xs text-[#9ca3af]">{row.buynoAccount || row.buynoWangwang || '-'}</div>
+                </div>
+            ),
         },
         {
             key: 'productPrice',
-            title: '金额',
+            title: '商家支付',
             className: 'w-[90px] text-right',
             render: (row) => <span className="font-medium">¥{Number(row.productPrice).toFixed(2)}</span>,
         },
         {
             key: 'commission',
-            title: '佣金',
+            title: '用户佣金',
             className: 'w-[80px] text-right',
             render: (row) => <span className="font-medium text-success-400">¥{Number(row.commission).toFixed(2)}</span>,
         },
         {
-            key: 'delivery',
-            title: '物流',
-            className: 'w-[100px] text-center',
-            render: (row) => row.deliveryState === 1 ? (
-                <Badge variant="soft" color="green">已发货</Badge>
-            ) : (
-                <Badge variant="soft" color="slate">待发货</Badge>
+            key: 'depositPayment',
+            title: '押金/银锭',
+            className: 'w-[90px]',
+            render: (row) => (
+                <div className="text-xs">
+                    <div>押金: {Number(row.depositPayment || row.userPrincipal || 0).toFixed(2)}</div>
+                    <div className="text-primary-600">银锭: {Number(row.silverPayment || 0).toFixed(2)}</div>
+                </div>
             ),
         },
         {
@@ -153,9 +176,9 @@ export default function AdminOrdersPage() {
         },
         {
             key: 'createdAt',
-            title: '创建时间',
-            className: 'w-[110px]',
-            render: (row) => row.createdAt ? new Date(row.createdAt).toLocaleDateString('zh-CN') : '-',
+            title: '添加时间',
+            className: 'w-[100px]',
+            render: (row) => <span className="text-xs text-[#6b7280]">{row.createdAt ? new Date(row.createdAt).toLocaleDateString('zh-CN') : '-'}</span>,
         },
         {
             key: 'actions',
@@ -163,7 +186,7 @@ export default function AdminOrdersPage() {
             className: 'w-[100px]',
             render: (row) => (
                 <Button size="sm" variant="outline" onClick={() => setDetailModal(row)}>
-                    查看
+                    详情
                 </Button>
             ),
         },

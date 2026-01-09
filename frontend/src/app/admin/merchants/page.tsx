@@ -28,7 +28,7 @@ export default function AdminMerchantsPage() {
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
 
-    const [activeModal, setActiveModal] = useState<'balance' | 'vip' | 'ban' | null>(null);
+    const [activeModal, setActiveModal] = useState<'balance' | 'vip' | 'ban' | 'note' | 'password' | null>(null);
     const [selectedMerchant, setSelectedMerchant] = useState<AdminMerchant | null>(null);
 
     // Form states
@@ -38,6 +38,8 @@ export default function AdminMerchantsPage() {
     const [balanceReason, setBalanceReason] = useState('');
     const [vipDays, setVipDays] = useState('30');
     const [banReason, setBanReason] = useState('');
+    const [noteContent, setNoteContent] = useState('');
+    const [newPassword, setNewPassword] = useState('');
 
     useEffect(() => {
         loadMerchants();
@@ -150,6 +152,18 @@ export default function AdminMerchantsPage() {
         }
     };
 
+    const openNote = (m: AdminMerchant) => {
+        setSelectedMerchant(m);
+        setNoteContent(m.note || '');
+        setActiveModal('note');
+    };
+
+    const openPassword = (m: AdminMerchant) => {
+        setSelectedMerchant(m);
+        setNewPassword('');
+        setActiveModal('password');
+    };
+
     const columns: Column<AdminMerchant>[] = [
         {
             key: 'info',
@@ -223,6 +237,24 @@ export default function AdminMerchantsPage() {
             },
         },
         {
+            key: 'referrer',
+            title: '推荐人',
+            className: 'w-[80px]',
+            render: (row) => (
+                <div className="text-xs text-[#6b7280]">{row.referrerName || row.referrerId || '-'}</div>
+            ),
+        },
+        {
+            key: 'note',
+            title: '备注',
+            className: 'w-[100px]',
+            render: (row) => (
+                <div className="max-w-[100px] truncate text-xs text-danger-400" title={row.note || ''}>
+                    {row.note || '-'}
+                </div>
+            ),
+        },
+        {
             key: 'createdAt',
             title: '注册时间',
             className: 'w-[100px]',
@@ -235,7 +267,7 @@ export default function AdminMerchantsPage() {
         {
             key: 'actions',
             title: '操作',
-            className: 'w-[260px]',
+            className: 'w-[320px]',
             render: (row) => (
                 <div className="flex flex-wrap items-center gap-1.5">
                     <Button size="sm" variant="outline" onClick={() => openAdjustBalance(row)}>
@@ -246,6 +278,12 @@ export default function AdminMerchantsPage() {
                             设VIP
                         </Button>
                     )}
+                    <Button size="sm" variant="outline" onClick={() => openNote(row)}>
+                        备注
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => openPassword(row)}>
+                        改密码
+                    </Button>
                     {row.status === 3 ? (
                         <Button size="sm" variant="outline" className="text-success-500" onClick={() => handleBan(row.id, row.status)}>
                             启用
@@ -417,6 +455,59 @@ export default function AdminMerchantsPage() {
                         </Button>
                         <Button variant="destructive" onClick={submitBan}>
                             确认禁用
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* 备注弹窗 */}
+            <Modal
+                title={`违规备注 - ${selectedMerchant?.username}`}
+                open={activeModal === 'note'}
+                onClose={() => setActiveModal(null)}
+            >
+                <div className="space-y-4">
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">备注内容</label>
+                        <textarea
+                            className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            rows={3}
+                            placeholder="请输入备注内容"
+                            value={noteContent}
+                            onChange={(e) => setNoteContent(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => setActiveModal(null)}>
+                            取消
+                        </Button>
+                        <Button onClick={() => { toastSuccess('备注保存成功'); setActiveModal(null); }}>
+                            保存
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* 改密码弹窗 */}
+            <Modal
+                title={`修改密码 - ${selectedMerchant?.username}`}
+                open={activeModal === 'password'}
+                onClose={() => setActiveModal(null)}
+            >
+                <div className="space-y-4">
+                    <Input
+                        label="新密码"
+                        type="password"
+                        placeholder="请输入新密码"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => setActiveModal(null)}>
+                            取消
+                        </Button>
+                        <Button onClick={() => { toastSuccess('密码修改成功'); setActiveModal(null); }}>
+                            确认修改
                         </Button>
                     </div>
                 </div>

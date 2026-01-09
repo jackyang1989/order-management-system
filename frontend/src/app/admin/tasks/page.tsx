@@ -20,6 +20,7 @@ interface Task {
     title: string;
     taskType: number;
     shopName: string;
+    shopWangwang?: string;
     goodsPrice: number;
     count: number;
     claimedCount: number;
@@ -34,7 +35,7 @@ interface Task {
     qrCode: string;
     remark: string;
     merchantId: string;
-    merchant?: { id: string; merchantName: string; phone: string };
+    merchant?: { id: string; username: string; merchantName: string; phone: string };
     goodsMoney: number;
     shippingFee: number;
     margin: number;
@@ -56,6 +57,7 @@ interface Task {
     isTimingPublish: boolean;
     publishTime: string;
     updatedAt: string;
+    goodsNum?: number;
 }
 
 const statusLabels: Record<number, { text: string; color: 'slate' | 'green' | 'blue' | 'red' | 'amber' }> = {
@@ -67,20 +69,6 @@ const statusLabels: Record<number, { text: string; color: 'slate' | 'green' | 'b
 };
 
 const terminalLabels: Record<number, string> = { 1: '本佣货返', 2: '本立佣货' };
-
-function progressWidthClass(percent: number) {
-    if (percent <= 0) return 'w-0';
-    if (percent <= 10) return 'w-1/6';
-    if (percent <= 20) return 'w-1/4';
-    if (percent <= 35) return 'w-1/3';
-    if (percent <= 45) return 'w-2/5';
-    if (percent <= 55) return 'w-1/2';
-    if (percent <= 65) return 'w-3/5';
-    if (percent <= 75) return 'w-2/3';
-    if (percent <= 85) return 'w-3/4';
-    if (percent <= 95) return 'w-5/6';
-    return 'w-full';
-}
 
 export default function AdminTasksPage() {
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -165,44 +153,64 @@ export default function AdminTasksPage() {
             key: 'taskNumber',
             title: '任务编号',
             render: (row) => <code className="text-[12px] text-[#6b7280]">{row.taskNumber}</code>,
-            className: 'w-[140px]',
+            className: 'w-[130px]',
         },
         {
-            key: 'title',
-            title: '标题',
-            render: (row) => <span className="line-clamp-1 text-[#3b4559]">{row.title}</span>,
-            className: 'min-w-[180px]',
+            key: 'merchant',
+            title: '商家',
+            render: (row) => (
+                <div className="text-sm">
+                    <div className="font-medium text-[#3b4559]">{row.merchant?.username || row.merchant?.merchantName || '-'}</div>
+                    <div className="text-xs text-[#9ca3af]">{row.shopName || '-'}</div>
+                </div>
+            ),
+            className: 'w-[140px]',
         },
         {
             key: 'taskType',
             title: '平台',
             render: (row) => <span className="text-[#5a6577]">{TASK_TYPE_NAMES[row.taskType] || '其他'}</span>,
+            className: 'w-[80px]',
+        },
+        {
+            key: 'terminal',
+            title: '返款方式',
+            render: (row) => (
+                <Badge variant="soft" color={row.terminal === 1 ? 'blue' : 'green'}>
+                    {terminalLabels[row.terminal] || '-'}
+                </Badge>
+            ),
             className: 'w-[90px]',
         },
         {
             key: 'goodsPrice',
-            title: '单价',
+            title: '商品售价',
             render: (row) => <span className="font-medium text-[#3b4559]">¥{Number(row.goodsPrice).toFixed(2)}</span>,
-            className: 'w-[120px] text-right',
+            className: 'w-[100px] text-right',
         },
         {
             key: 'progress',
-            title: '进度',
-            render: (row) => {
-                const percent = Math.min(100, Math.round((row.claimedCount / row.count) * 100));
-                const barClass = percent >= 100 ? 'bg-success-500' : 'bg-primary-500';
-                return (
-                    <div className="space-y-1">
-                        <div className="h-2 w-full rounded-full bg-[#e5e7eb]">
-                            <div className={cn('h-2 rounded-full', barClass, progressWidthClass(percent))} />
-                        </div>
-                        <span className="text-[12px] text-[#6b7280]">
-                            {row.claimedCount} / {row.count} ({percent}%)
-                        </span>
-                    </div>
-                );
-            },
-            className: 'w-[180px]',
+            title: '已接/完成',
+            render: (row) => (
+                <div className="text-sm">
+                    <span className="text-primary-600">{row.claimedCount}</span>
+                    <span className="text-[#9ca3af]"> / </span>
+                    <span className="text-success-500">{row.completedCount || 0}</span>
+                    <span className="text-[#9ca3af]"> / </span>
+                    <span className="text-[#6b7280]">{row.count}</span>
+                </div>
+            ),
+            className: 'w-[110px]',
+        },
+        {
+            key: 'shipping',
+            title: '邮费',
+            render: (row) => (
+                <Badge variant="soft" color={row.isFreeShipping ? 'green' : 'slate'}>
+                    {row.isFreeShipping ? '包邮' : '非包邮'}
+                </Badge>
+            ),
+            className: 'w-[80px] text-center',
         },
         {
             key: 'status',
@@ -215,13 +223,13 @@ export default function AdminTasksPage() {
                     </Badge>
                 );
             },
-            className: 'w-[110px] text-center',
+            className: 'w-[90px] text-center',
         },
         {
             key: 'createdAt',
-            title: '创建时间',
-            render: (row) => <span className="text-[#6b7280]">{new Date(row.createdAt).toLocaleDateString('zh-CN')}</span>,
-            className: 'w-[120px]',
+            title: '发布时间',
+            render: (row) => <span className="text-xs text-[#6b7280]">{new Date(row.createdAt).toLocaleDateString('zh-CN')}</span>,
+            className: 'w-[100px]',
         },
         {
             key: 'actions',
@@ -229,9 +237,9 @@ export default function AdminTasksPage() {
             render: (row) => (
                 <div className="flex items-center gap-2">
                     <Button size="sm" variant="secondary" onClick={() => setDetailModal(row)}>
-                        查看
+                        详情
                     </Button>
-                    <div className="w-28">
+                    <div className="w-24">
                         <Select
                             value={String(row.status)}
                             onChange={(value) => handleUpdateStatus(row.id, Number(value))}
@@ -240,7 +248,7 @@ export default function AdminTasksPage() {
                     </div>
                 </div>
             ),
-            className: 'w-[220px]',
+            className: 'w-[200px]',
         },
     ];
 

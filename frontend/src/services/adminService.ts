@@ -44,6 +44,9 @@ export interface AdminMerchant {
     vipExpireAt?: string;
     inviteCode?: string;
     referrerId?: string;
+    referrerName?: string; // 推荐人名称
+    note?: string; // 违规备注
+    shopCount?: number; // 店铺数量
     createdAt: string;
     updatedAt?: string;
 }
