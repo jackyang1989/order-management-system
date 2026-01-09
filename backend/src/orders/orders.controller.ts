@@ -13,11 +13,17 @@ import { CreateOrderDto, SubmitStepDto, OrderFilterDto } from './order.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { TasksService } from '../tasks/tasks.service';
+import { DingdanxiaService } from '../dingdanxia/dingdanxia.service';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
 export class OrdersController {
-  constructor(private ordersService: OrdersService) { }
+  constructor(
+    private ordersService: OrdersService,
+    private tasksService: TasksService,
+    private dingdanxiaService: DingdanxiaService,
+  ) { }
 
   // ============ 管理员端订单管理 ============
 
@@ -405,6 +411,329 @@ export class OrdersController {
         success: false,
         message: error.message,
       };
+    }
+  }
+
+  // ============ 任务执行流程 (RESTful API) ============
+
+  /**
+   * 获取订单执行数据
+   * 替代: /mobile/task/taskstep
+   */
+  @Get(':id/execution-data')
+  async getExecutionData(@Param('id') id: string, @Request() req) {
+    try {
+      const order = await this.ordersService.findOne(id);
+      if (!order) {
+        return { success: false, message: '订单不存在' };
+      }
+      if (order.userId !== req.user.userId) {
+        return { success: false, message: '无权访问此订单' };
+      }
+
+      const task = await this.tasksService.findOne(order.taskId);
+      if (!task) {
+        return { success: false, message: '任务不存在' };
+      }
+
+      // 构建脱敏口令
+      const maskedPassword = task.isPasswordEnabled && task.checkPassword
+        ? this.ordersService.maskPassword(task.checkPassword)
+        : '';
+
+      return {
+        success: true,
+        data: {
+          orderId: order.id,
+          taskId: task.id,
+          taskNumber: task.taskNumber,
+          status: order.status,
+          currentStep: order.currentStep || 1,
+          totalSteps: order.totalSteps || 6,
+
+          // 任务基础信息
+          shopName: task.shopName || '',
+          mainImage: task.mainImage || '',
+          title: task.title || '',
+          url: task.url || '',
+          keyword: task.keyword || '',
+          taoWord: task.taoWord || '',
+          qrCode: task.qrCode || '',
+          goodsPrice: task.goodsPrice || 0,
+          taskType: task.taskType,
+          terminal: task.terminal,
+
+          // 口令验证相关
+          isPasswordEnabled: task.isPasswordEnabled,
+          maskedPassword,
+          platformProductId: task.platformProductId,
+
+          // 增值服务
+          isPraise: task.isPraise,
+          isImgPraise: task.isImgPraise,
+          isVideoPraise: task.isVideoPraise,
+
+          // 佣金信息
+          commission: order.commission || 0,
+          userDivided: order.userDivided || 0,
+          userPrincipal: order.userPrincipal || 0,
+
+          // 浏览时长要求
+          totalBrowseMinutes: task.totalBrowseMinutes || 15,
+          mainBrowseMinutes: task.mainBrowseMinutes || 8,
+          subBrowseMinutes: task.subBrowseMinutes || 2,
+
+          // 其他要求
+          needHuobi: task.needHuobi,
+          huobiKeyword: task.huobiKeyword || '',
+          needShoucang: task.needShoucang,
+          needGuanzhu: task.needGuanzhu,
+          needJialiao: task.needJialiao,
+          needJiagou: task.needJiagou,
+
+          // 时间信息
+          createdAt: order.createdAt,
+          endingTime: order.endingTime,
+          taskTimeLimit: task.taskTimeLimit || 24,
+
+          // 订单信息
+          buynoAccount: order.buynoAccount,
+          stepData: order.stepData,
+          address: order.address,
+          addressName: order.addressName,
+          addressPhone: order.addressPhone,
+
+          // 商家备注
+          memo: task.memo || '',
+        },
+      };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  /**
+   * 验证商品链接
+   * 替代: /mobile/task/task_hedui
+   */
+  @Post(':id/verify-link')
+  async verifyLink(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() body: { link: string; goodsId?: string },
+  ) {
+    try {
+      const order = await this.ordersService.findOne(id);
+      if (!order || order.userId !== req.user.userId) {
+        return { success: false, message: '订单不存在' };
+      }
+
+      const task = await this.tasksService.findOne(order.taskId);
+      if (!task) {
+        return { success: false, message: '任务不存在' };
+      }
+
+      const expectedId = body.goodsId || task.platformProductId;
+      if (!expectedId) {
+        return { success: true, message: '核对成功' };
+      }
+
+      const result = await this.dingdanxiaService.validateGoodsLink(body.link, expectedId);
+      if (result.valid) {
+        return { success: true, message: '核对成功，商品链接正确', data: { actualId: result.actualId } };
+      } else {
+        return { success: false, message: result.error || '商品链接核对失败' };
+      }
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  /**
+   * 验证商品口令
+   * 替代: /mobile/task/task_heduinum
+   */
+  @Post(':id/verify-password')
+  async verifyPassword(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() body: { password: string },
+  ) {
+    try {
+      const order = await this.ordersService.findOne(id);
+      if (!order || order.userId !== req.user.userId) {
+        return { success: false, message: '订单不存在' };
+      }
+
+      const task = await this.tasksService.findOne(order.taskId);
+      if (!task) {
+        return { success: false, message: '任务不存在' };
+      }
+
+      if (task.checkPassword && body.password.includes(task.checkPassword)) {
+        return { success: true, message: '核对成功，口令正确' };
+      } else {
+        return { success: false, message: '口令核对失败，请检查输入是否正确' };
+      }
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  /**
+   * 验证付款金额
+   * 替代: /mobile/task/tasknumberchange
+   */
+  @Post(':id/validate-payment')
+  async validatePayment(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() body: { amount: number },
+  ) {
+    try {
+      const order = await this.ordersService.findOne(id);
+      if (!order || order.userId !== req.user.userId) {
+        return { success: false, message: '订单不存在' };
+      }
+
+      const task = await this.tasksService.findOne(order.taskId);
+      if (!task) {
+        return { success: false, message: '任务不存在' };
+      }
+
+      const paymentAmount = Number(body.amount);
+      if (isNaN(paymentAmount) || paymentAmount <= 0) {
+        return { success: false, message: '付款金额必须大于0' };
+      }
+
+      const expectedPrice = parseFloat(String(task.goodsPrice)) || 0;
+      const minPrice = expectedPrice * 0.8;
+      const maxPrice = expectedPrice * 1.2;
+
+      if (paymentAmount < minPrice || paymentAmount > maxPrice) {
+        return {
+          success: false,
+          message: `付款金额必须在 ${minPrice.toFixed(2)} - ${maxPrice.toFixed(2)} 元之间`,
+        };
+      }
+
+      return { success: true, message: '金额验证通过' };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  /**
+   * 验证尾款金额
+   * 替代: /mobile/task/wknumberchange
+   */
+  @Post(':id/validate-final-payment')
+  async validateFinalPayment(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() body: { amount: number },
+  ) {
+    try {
+      const order = await this.ordersService.findOne(id);
+      if (!order || order.userId !== req.user.userId) {
+        return { success: false, message: '订单不存在' };
+      }
+
+      const paymentAmount = Number(body.amount);
+      if (isNaN(paymentAmount) || paymentAmount <= 0) {
+        return { success: false, message: '付款金额必须大于0' };
+      }
+
+      const expectedWkPrice = parseFloat(String(order.wkPrice)) || 0;
+      const minPrice = expectedWkPrice - 100;
+      const maxPrice = expectedWkPrice + 100;
+
+      if (paymentAmount < minPrice || paymentAmount > maxPrice) {
+        return {
+          success: false,
+          message: `尾款金额必须在 ${minPrice.toFixed(2)} - ${maxPrice.toFixed(2)} 元之间`,
+        };
+      }
+
+      return { success: true, message: '金额验证通过' };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  /**
+   * 获取预售订单详情
+   * 替代: /mobile/task/wk
+   */
+  @Get(':id/presale-details')
+  async getPresaleDetails(@Param('id') id: string, @Request() req) {
+    try {
+      const order = await this.ordersService.findOne(id);
+      if (!order || order.userId !== req.user.userId) {
+        return { success: false, message: '订单不存在' };
+      }
+
+      const task = await this.tasksService.findOne(order.taskId);
+      if (!task) {
+        return { success: false, message: '任务不存在' };
+      }
+
+      return {
+        success: true,
+        data: {
+          id: order.id,
+          taskNumber: task.taskNumber || order.id,
+          terminal: task.terminal === 1 ? '本佣货返' : '本立佣货',
+          createdAt: order.createdAt,
+          taskType: task.taskType,
+          endingTime: order.endingTime,
+          principal: order.userPrincipal,
+          sellerPrincipal: order.sellerPrincipal || task.goodsPrice,
+          buynoAccount: order.buynoAccount,
+          delivery: order.delivery,
+          deliveryNum: order.deliveryNum,
+          isPresale: order.isPresale,
+          okYf: order.okYf,
+          okWk: order.okWk,
+          yfPrice: order.yfPrice,
+          wkPrice: order.wkPrice,
+          productName: task.title || order.productName,
+        },
+      };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  /**
+   * 提交预售尾款
+   * 替代: /mobile/task/take_wk
+   */
+  @Post(':id/presale/submit-final')
+  async submitPresaleFinal(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() body: { screenshot: string; orderNo?: string; paymentAmount?: string },
+  ) {
+    try {
+      const order = await this.ordersService.confirmPresaleFinal(
+        id,
+        req.user.userId,
+        body.screenshot,
+      );
+
+      if (body.orderNo) {
+        await this.ordersService.updatePlatformOrderNumber(id, req.user.userId, body.orderNo);
+      }
+
+      return {
+        success: true,
+        message: '尾款凭证提交成功，等待商家审核',
+        data: order,
+        redirectUrl: '/orders',
+      };
+    } catch (error) {
+      return { success: false, message: error.message };
     }
   }
 }
