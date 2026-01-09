@@ -81,7 +81,8 @@ export async function fetchSystemConfig(): Promise<SystemGlobalConfig | null> {
     }
 
     try {
-        const response = await api.get<SystemGlobalConfig>('/system-config/global');
+        // 使用公开API，无需登录即可获取配置
+        const response = await api.get<SystemGlobalConfig>('/system-config/public');
         cachedConfig = response.data;
         cacheTimestamp = now;
         return response.data;
@@ -180,6 +181,24 @@ export function getUserMinWithdraw(config: SystemGlobalConfig | null): number {
 export function getMerchantWithdrawFeeRate(config: SystemGlobalConfig | null): number {
     if (!config) return 0; // 默认0
     return Number(config.sellerCashFee) || 0;
+}
+
+// 获取银锭兑换比例（1银锭=多少元）
+export function getSilverToRmbRate(config: SystemGlobalConfig | null): number {
+    if (!config) return 1; // 默认1:1
+    return Number(config.rewardPrice) || 1;
+}
+
+// 获取邀请解锁门槛（完成多少单才能邀请）
+export function getInviteUnlockThreshold(config: SystemGlobalConfig | null): number {
+    if (!config) return 10; // 默认10单
+    return Number(config.invitationNum) || 10;
+}
+
+// 获取每单邀请奖励金额（银锭）
+export function getInviteRewardAmount(config: SystemGlobalConfig | null): number {
+    if (!config) return 1; // 默认1银锭
+    return Number(config.inviteRewardAmount) || 1;
 }
 
 // 默认启用的平台列表

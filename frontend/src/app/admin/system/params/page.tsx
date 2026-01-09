@@ -5,56 +5,91 @@ import { cn } from '../../../../lib/utils';
 import { toastSuccess, toastError } from '../../../../lib/toast';
 import { Button } from '../../../../components/ui/button';
 import { Card } from '../../../../components/ui/card';
-import { Input } from '../../../../components/ui/input';
 import { Tabs } from '../../../../components/ui/tabs';
-import { adminService, SystemConfigDto } from '../../../../services/adminService';
+import { BASE_URL } from '../../../../../apiConfig';
 
-const CONFIG_ITEMS: { key: keyof SystemConfigDto; group: string; label: string; type: 'text' | 'number' | 'switch'; desc: string }[] = [
-    // Basic
-    { key: 'siteName', group: 'basic', label: '站点名称', type: 'text', desc: '网站名称' },
-    // VIP
-    { key: 'registerReward', group: 'vip', label: '注册赠送银锭', type: 'number', desc: '新用户注册赠送银锭数' },
-    { key: 'registerAudit', group: 'vip', label: '注册审核开关', type: 'switch', desc: '是否开启注册审核' },
-    // Finance - Withdrawals
-    { key: 'userMinMoney', group: 'finance', label: '买手提现最低金额', type: 'number', desc: '买手提现门槛（元）' },
-    { key: 'sellerMinMoney', group: 'finance', label: '商家提现最低金额', type: 'number', desc: '商家提现门槛（元）' },
-    { key: 'userMinReward', group: 'finance', label: '买手提现最低银锭', type: 'number', desc: '买手提现银锭门槛' },
-    { key: 'rewardPrice', group: 'finance', label: '银锭兑换汇率', type: 'number', desc: '1银锭等于多少元' },
-    { key: 'sellerCashFee', group: 'finance', label: '商家提现手续费率', type: 'number', desc: '如0.01代表1%' },
-    { key: 'userFeeMaxPrice', group: 'finance', label: '买手免手续费限额', type: 'number', desc: '低于此金额收取手续费' },
-    { key: 'userCashFree', group: 'finance', label: '买手提现手续费', type: 'number', desc: '固定手续费（元）' },
-    // Task Fees
-    { key: 'baseServiceFee', group: 'service', label: '基础服务费', type: 'number', desc: '每单基础服务费' },
-    { key: 'praiseFee', group: 'praise', label: '文字好评费用', type: 'number', desc: '元/条' },
-    { key: 'imagePraiseFee', group: 'praise', label: '图片好评费用', type: 'number', desc: '元/条' },
-    { key: 'videoPraiseFee', group: 'praise', label: '视频好评费用', type: 'number', desc: '元/条' },
-];
+interface SystemConfig {
+    id: string;
+    key: string;
+    value: string;
+    group: string;
+    label: string;
+    description: string;
+    valueType: string;
+    options: string | null;
+    sortOrder: number;
+    isEditable: boolean;
+    isVisible: boolean;
+}
 
-const TABS = [
-    { key: 'finance', label: '财务设置' },
-    { key: 'vip', label: '会员设置' },
-    { key: 'service', label: '服务费用' },
-    { key: 'praise', label: '好评费用' },
-    { key: 'basic', label: '基本设置' },
-];
+interface GroupMeta {
+    key: string;
+    label: string;
+    icon: string;
+}
+
+const GROUP_ICONS: Record<string, string> = {
+    register: '👤',
+    vip: '👑',
+    withdrawal: '💰',
+    task_fee: '🧮',
+    praise_fee: '⭐',
+    commission: '📊',
+    sms: '📱',
+    payment: '💳',
+    api: '🔗',
+    system: '⚙️',
+};
 
 export default function AdminSystemParamsPage() {
-    const [config, setConfig] = useState<Partial<SystemConfigDto>>({});
+    const [configs, setConfigs] = useState<Record<string, SystemConfig[]>>({});
+    const [groups, setGroups] = useState<GroupMeta[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [activeTab, setActiveTab] = useState('finance');
+    const [activeTab, setActiveTab] = useState('');
+    const [editedValues, setEditedValues] = useState<Record<string, string>>({});
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => { loadConfig(); }, []);
 
     const loadConfig = async () => {
         setLoading(true);
+        setError(null);
         try {
-            const res = await adminService.getGlobalConfig();
-            if (res.data) {
-                setConfig(res.data);
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                setError('未登录，请先登录管理后台');
+                setLoading(false);
+                return;
+            }
+            const response = await fetch(`${BASE_URL}/admin/config`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.data) {
+                    setConfigs(result.data.configs || {});
+                    setGroups(result.data.groups || []);
+                    // 初始化编辑值
+                    const initialValues: Record<string, string> = {};
+                    Object.values(result.data.configs || {}).flat().forEach((config: unknown) => {
+                        const c = config as SystemConfig;
+                        initialValues[c.key] = c.value || '';
+                    });
+                    setEditedValues(initialValues);
+                    // 设置默认tab
+                    if (result.data.groups?.length > 0 && !activeTab) {
+                        setActiveTab(result.data.groups[0].key);
+                    }
+                }
+            } else if (response.status === 401) {
+                setError('登录已过期，请重新登录');
+            } else {
+                setError('加载配置失败');
             }
         } catch (e) {
             console.error(e);
+            setError('网络错误，请检查后端服务是否运行');
         } finally {
             setLoading(false);
         }
@@ -63,8 +98,34 @@ export default function AdminSystemParamsPage() {
     const handleSave = async () => {
         setSaving(true);
         try {
-            await adminService.updateGlobalConfig(config as SystemConfigDto);
-            toastSuccess('配置保存成功');
+            const token = localStorage.getItem('adminToken');
+            // 找出当前分组中修改过的配置
+            const currentConfigs = configs[activeTab] || [];
+            const updates = currentConfigs
+                .filter(config => editedValues[config.key] !== config.value)
+                .map(config => ({ key: config.key, value: editedValues[config.key] }));
+
+            if (updates.length === 0) {
+                toastSuccess('没有需要保存的修改');
+                setSaving(false);
+                return;
+            }
+
+            const response = await fetch(`${BASE_URL}/admin/config`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ configs: updates }),
+            });
+
+            if (response.ok) {
+                toastSuccess('配置保存成功');
+                await loadConfig(); // 重新加载配置
+            } else {
+                toastError('保存失败');
+            }
         } catch (e) {
             toastError('保存失败');
         } finally {
@@ -72,11 +133,113 @@ export default function AdminSystemParamsPage() {
         }
     };
 
-    const updateField = (key: keyof SystemConfigDto, value: unknown) => {
-        setConfig(prev => ({ ...prev, [key]: value }));
+    const updateField = (key: string, value: string) => {
+        setEditedValues(prev => ({ ...prev, [key]: value }));
     };
 
-    const groupedItems = CONFIG_ITEMS.filter(c => c.group === activeTab);
+    const currentConfigs = configs[activeTab] || [];
+
+    const renderConfigInput = (config: SystemConfig) => {
+        const value = editedValues[config.key] ?? config.value ?? '';
+
+        // 如果有options，渲染下拉选择
+        if (config.options) {
+            try {
+                const options = JSON.parse(config.options);
+                return (
+                    <select
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        value={value}
+                        onChange={(e) => updateField(config.key, e.target.value)}
+                        disabled={!config.isEditable}
+                    >
+                        {options.map((opt: { value: string; label: string }) => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                    </select>
+                );
+            } catch {
+                // 解析失败，继续渲染其他类型
+            }
+        }
+
+        switch (config.valueType) {
+            case 'boolean':
+                return (
+                    <button
+                        type="button"
+                        onClick={() => updateField(config.key, value === 'true' ? 'false' : 'true')}
+                        disabled={!config.isEditable}
+                        className={cn(
+                            'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20',
+                            value === 'true' ? 'bg-primary' : 'bg-slate-200',
+                            !config.isEditable && 'opacity-50 cursor-not-allowed'
+                        )}
+                    >
+                        <span
+                            className={cn(
+                                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white ring-0 transition duration-200',
+                                value === 'true' ? 'translate-x-5' : 'translate-x-0'
+                            )}
+                        />
+                    </button>
+                );
+            case 'number':
+                return (
+                    <input
+                        type="number"
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        value={value}
+                        onChange={(e) => updateField(config.key, e.target.value)}
+                        disabled={!config.isEditable}
+                        step="0.01"
+                    />
+                );
+            case 'json':
+                return (
+                    <textarea
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-mono focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        value={value}
+                        onChange={(e) => updateField(config.key, e.target.value)}
+                        disabled={!config.isEditable}
+                        rows={4}
+                    />
+                );
+            case 'array':
+                return (
+                    <textarea
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        value={value}
+                        onChange={(e) => updateField(config.key, e.target.value)}
+                        disabled={!config.isEditable}
+                        rows={2}
+                        placeholder="多个值用逗号分隔"
+                    />
+                );
+            default:
+                // 密码类字段
+                if (config.key.includes('password') || config.key.includes('secret') || config.key.includes('key')) {
+                    return (
+                        <input
+                            type="password"
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            value={value}
+                            onChange={(e) => updateField(config.key, e.target.value)}
+                            disabled={!config.isEditable}
+                        />
+                    );
+                }
+                return (
+                    <input
+                        type="text"
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        value={value}
+                        onChange={(e) => updateField(config.key, e.target.value)}
+                        disabled={!config.isEditable}
+                    />
+                );
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -85,10 +248,10 @@ export default function AdminSystemParamsPage() {
                     <h2 className="text-lg font-semibold text-slate-800">系统参数配置</h2>
                     <div className="flex items-center gap-2">
                         <Button variant="secondary" onClick={loadConfig} className="flex items-center gap-1">
-                            🔄 刷新
+                            刷新
                         </Button>
                         <Button onClick={handleSave} loading={saving} className="flex items-center gap-1">
-                            💾 保存配置
+                            保存配置
                         </Button>
                     </div>
                 </div>
@@ -101,60 +264,39 @@ export default function AdminSystemParamsPage() {
                         </svg>
                         加载中...
                     </div>
+                ) : error ? (
+                    <div className="py-12 text-center">
+                        <div className="text-red-500 mb-4">{error}</div>
+                        <Button onClick={loadConfig} variant="secondary">重试</Button>
+                    </div>
                 ) : (
                     <div>
                         <Tabs
                             value={activeTab}
                             onChange={setActiveTab}
-                            items={TABS.map(t => ({ key: t.key, label: t.label }))}
+                            items={groups.map(g => ({
+                                key: g.key,
+                                label: `${GROUP_ICONS[g.key] || ''} ${g.label}`,
+                            }))}
                         />
 
-                        <div className="mt-6 max-w-lg space-y-5">
-                            {groupedItems.map(item => (
-                                <div key={item.key}>
-                                    <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                                        {item.label}
-                                        <span className="ml-2 text-xs font-normal text-slate-400">{item.desc}</span>
-                                    </label>
-                                    {item.type === 'switch' ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => updateField(item.key, !config[item.key])}
-                                            className={cn(
-                                                'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20',
-                                                config[item.key] ? 'bg-primary' : 'bg-slate-200'
-                                            )}
-                                        >
-                                            <span
-                                                className={cn(
-                                                    'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white ring-0 transition duration-200',
-                                                    config[item.key] ? 'translate-x-5' : 'translate-x-0'
-                                                )}
-                                            />
-                                        </button>
-                                    ) : item.type === 'number' ? (
-                                        <input
-                                            type="number"
-                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                            value={config[item.key] as number ?? ''}
-                                            onChange={(e) => updateField(item.key, e.target.value === '' ? '' : Number(e.target.value))}
-                                            min={0}
-                                            step="0.01"
-                                            placeholder={item.desc}
-                                        />
-                                    ) : (
-                                        <input
-                                            type="text"
-                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                            value={(config[item.key] as string) ?? ''}
-                                            onChange={(e) => updateField(item.key, e.target.value)}
-                                            placeholder={item.desc}
-                                        />
-                                    )}
-                                </div>
-                            ))}
-                            {groupedItems.length === 0 && (
+                        <div className="mt-6 space-y-5">
+                            {currentConfigs.length === 0 ? (
                                 <p className="py-8 text-center text-slate-400">该分组暂无配置项</p>
+                            ) : (
+                                <div className="grid gap-5 md:grid-cols-2">
+                                    {currentConfigs.map(config => (
+                                        <div key={config.key} className="rounded-lg border border-slate-200 p-4">
+                                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                                {config.label || config.key}
+                                            </label>
+                                            {renderConfigInput(config)}
+                                            {config.description && (
+                                                <p className="mt-1.5 text-xs text-slate-400">{config.description}</p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
                             )}
                         </div>
                     </div>

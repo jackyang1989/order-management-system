@@ -8,6 +8,7 @@ import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { BASE_URL } from '../../../../apiConfig';
 import BottomNav from '../../../components/BottomNav';
+import { fetchSystemConfig, getSilverToRmbRate } from '../../../services/systemConfigService';
 
 interface UserBalance {
     balance: number;
@@ -21,6 +22,7 @@ export default function ConvertPage() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+    const [exchangeRate, setExchangeRate] = useState(1);
 
     useEffect(() => {
         if (!isAuthenticated()) {
@@ -28,7 +30,13 @@ export default function ConvertPage() {
             return;
         }
         fetchBalance();
+        loadConfig();
     }, [router]);
+
+    const loadConfig = async () => {
+        const config = await fetchSystemConfig();
+        setExchangeRate(getSilverToRmbRate(config));
+    };
 
     const fetchBalance = async () => {
         setLoading(true);
@@ -130,7 +138,7 @@ export default function ConvertPage() {
                 {/* 兑换说明 */}
                 <Card title="兑换说明">
                     <div className="text-sm text-slate-600 space-y-1">
-                        <p>• 本金与银锭按 <span className="font-bold text-blue-600">1:1</span> 比例兑换</p>
+                        <p>• 本金与银锭按 <span className="font-bold text-blue-600">1:{exchangeRate}</span> 比例兑换</p>
                         <p>• 兑换后银锭可用于接单押金、购买VIP等</p>
                         <p>• 本操作不可逆，请确认后再兑换</p>
                     </div>
