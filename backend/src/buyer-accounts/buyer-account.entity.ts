@@ -39,7 +39,7 @@ export class BuyerAccount {
   platform: BuyerAccountPlatform;
 
   // 平台账号/买号
-  @Column({ length: 100 })
+  @Column({ length: 100, default: '' })
   platformAccount: string;
 
   // 常用登录地省
