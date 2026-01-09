@@ -17,6 +17,7 @@ interface SystemConfig {
     description: string;
     valueType: string;
     options: string | null;
+    dependsOn: string | null; // 格式: "key:value"，当指定key的值等于value时显示
     sortOrder: number;
     isEditable: boolean;
     isVisible: boolean;
@@ -137,7 +138,17 @@ export default function AdminSystemParamsPage() {
         setEditedValues(prev => ({ ...prev, [key]: value }));
     };
 
+    // 检查配置项是否满足dependsOn条件
+    const shouldShowConfig = (config: SystemConfig): boolean => {
+        if (!config.dependsOn) return true;
+        const [depKey, depValue] = config.dependsOn.split(':');
+        const currentValue = editedValues[depKey];
+        return currentValue === depValue;
+    };
+
     const currentConfigs = configs[activeTab] || [];
+    // 过滤出满足条件的配置项
+    const visibleConfigs = currentConfigs.filter(shouldShowConfig);
 
     const renderConfigInput = (config: SystemConfig) => {
         const value = editedValues[config.key] ?? config.value ?? '';
@@ -281,11 +292,11 @@ export default function AdminSystemParamsPage() {
                         />
 
                         <div className="mt-6 space-y-5">
-                            {currentConfigs.length === 0 ? (
+                            {visibleConfigs.length === 0 ? (
                                 <p className="py-8 text-center text-slate-400">该分组暂无配置项</p>
                             ) : (
                                 <div className="grid gap-5 md:grid-cols-2">
-                                    {currentConfigs.map(config => (
+                                    {visibleConfigs.map(config => (
                                         <div key={config.key} className="rounded-lg border border-slate-200 p-4">
                                             <label className="mb-2 block text-sm font-medium text-slate-700">
                                                 {config.label || config.key}

@@ -35,6 +35,9 @@ export class SystemConfig {
   @Column({ nullable: true })
   options: string; // 选项列表(JSON)，用于下拉选择
 
+  @Column({ nullable: true })
+  dependsOn: string; // 依赖条件，格式: "key:value"，当指定key的值等于value时显示
+
   @Column({ type: 'int', default: 0 })
   sortOrder: number;
 
@@ -405,13 +408,14 @@ export const DEFAULT_CONFIGS = [
     label: '启用短信验证',
     valueType: 'boolean',
   },
-  // 短信宝配置
+  // 短信宝配置（短信宝专用）
   {
     key: 'smsbao_username',
     value: '',
     group: 'sms',
     label: '短信宝用户名',
     valueType: 'string',
+    dependsOn: 'sms_provider:smsbao',
   },
   {
     key: 'smsbao_password',
@@ -420,14 +424,16 @@ export const DEFAULT_CONFIGS = [
     label: '短信宝密码',
     valueType: 'string',
     description: '需要填写MD5加密后的密码',
+    dependsOn: 'sms_provider:smsbao',
   },
-  // 阿里云短信配置
+  // 阿里云短信配置（阿里云专用）
   {
     key: 'aliyun_sms_access_key',
     value: '',
     group: 'sms',
     label: '阿里云AccessKeyId',
     valueType: 'string',
+    dependsOn: 'sms_provider:aliyun',
   },
   {
     key: 'aliyun_sms_access_secret',
@@ -435,6 +441,7 @@ export const DEFAULT_CONFIGS = [
     group: 'sms',
     label: '阿里云AccessKeySecret',
     valueType: 'string',
+    dependsOn: 'sms_provider:aliyun',
   },
   {
     key: 'aliyun_sms_sign_name',
@@ -442,52 +449,166 @@ export const DEFAULT_CONFIGS = [
     group: 'sms',
     label: '阿里云短信签名',
     valueType: 'string',
+    dependsOn: 'sms_provider:aliyun',
   },
-  {
-    key: 'aliyun_sms_template_code',
-    value: '',
-    group: 'sms',
-    label: '阿里云验证码模板ID',
-    valueType: 'string',
-    description: '阿里云短信模板Code',
-  },
-  // 短信内容模板
+  // 短信宝内容模板（短信宝专用）
   {
     key: 'sms_sign',
     value: '任务系统',
     group: 'sms',
     label: '短信签名',
     valueType: 'string',
-    description: '短信宝使用的签名，阿里云使用aliyun_sms_sign_name',
+    description: '短信宝短信签名（阿里云请配置aliyun_sms_sign_name）',
+    dependsOn: 'sms_provider:smsbao',
   },
   {
     key: 'sms_template_login',
-    value: '您的登录验证码是{code}，5分钟内有效。',
+    value: '【{sign}】您的登录验证码是{code}，5分钟内有效。',
     group: 'sms',
     label: '登录验证码模板',
     valueType: 'string',
-    description: '短信宝使用，{code}会被替换为验证码',
+    description: '{sign}=签名, {code}=验证码, {time}=有效时间(分钟)',
+    dependsOn: 'sms_provider:smsbao',
   },
   {
     key: 'sms_template_register',
-    value: '您的注册验证码是{code}，5分钟内有效。',
+    value: '【{sign}】您的注册验证码是{code}，5分钟内有效。',
     group: 'sms',
     label: '注册验证码模板',
     valueType: 'string',
+    dependsOn: 'sms_provider:smsbao',
   },
   {
     key: 'sms_template_change_phone',
-    value: '您的手机号变更验证码是{code}，5分钟内有效。',
+    value: '【{sign}】您的手机号变更验证码是{code}，5分钟内有效。',
     group: 'sms',
     label: '换绑手机验证码模板',
     valueType: 'string',
+    dependsOn: 'sms_provider:smsbao',
   },
   {
     key: 'sms_template_change_password',
-    value: '您的密码重置验证码是{code}，5分钟内有效。',
+    value: '【{sign}】您的密码重置验证码是{code}，5分钟内有效。',
     group: 'sms',
     label: '重置密码验证码模板',
     valueType: 'string',
+    dependsOn: 'sms_provider:smsbao',
+  },
+  {
+    key: 'sms_template_verification',
+    value: '【{sign}】您的验证码为{code}，非本人操作忽略！',
+    group: 'sms',
+    label: '通用验证码模板',
+    valueType: 'string',
+    dependsOn: 'sms_provider:smsbao',
+  },
+  {
+    key: 'sms_template_next_day_task',
+    value: '【{sign}】您有编号为{number}的隔天任务等待您继续完成！',
+    group: 'sms',
+    label: '隔天任务提醒模板',
+    valueType: 'string',
+    description: '{number}=任务编号',
+    dependsOn: 'sms_provider:smsbao',
+  },
+  {
+    key: 'sms_template_timing_task',
+    value: '【{sign}】您有编号为{number}的定时任务等待您继续完成！',
+    group: 'sms',
+    label: '定时任务提醒模板',
+    valueType: 'string',
+    description: '{number}=任务编号',
+    dependsOn: 'sms_provider:smsbao',
+  },
+  {
+    key: 'sms_template_payment_urge',
+    value: '【{sign}】您好！请您在一个小时内对您领取的任务完成并付款，否则将取消你的任务，扣除冻结银锭。',
+    group: 'sms',
+    label: '催促付款模板',
+    valueType: 'string',
+    dependsOn: 'sms_provider:smsbao',
+  },
+  {
+    key: 'sms_template_payment_reminder',
+    value: '【{sign}】您好！请您在一个小时内对您领取的任务完成付款。',
+    group: 'sms',
+    label: '付款提醒模板',
+    valueType: 'string',
+    dependsOn: 'sms_provider:smsbao',
+  },
+  // 阿里云短信模板ID配置（阿里云专用）
+  {
+    key: 'aliyun_template_login',
+    value: '',
+    group: 'sms',
+    label: '阿里云登录验证码模板ID',
+    valueType: 'string',
+    description: '阿里云短信模板Code，如 SMS_123456789',
+    dependsOn: 'sms_provider:aliyun',
+  },
+  {
+    key: 'aliyun_template_register',
+    value: '',
+    group: 'sms',
+    label: '阿里云注册验证码模板ID',
+    valueType: 'string',
+    dependsOn: 'sms_provider:aliyun',
+  },
+  {
+    key: 'aliyun_template_change_phone',
+    value: '',
+    group: 'sms',
+    label: '阿里云换绑手机模板ID',
+    valueType: 'string',
+    dependsOn: 'sms_provider:aliyun',
+  },
+  {
+    key: 'aliyun_template_change_password',
+    value: '',
+    group: 'sms',
+    label: '阿里云重置密码模板ID',
+    valueType: 'string',
+    dependsOn: 'sms_provider:aliyun',
+  },
+  {
+    key: 'aliyun_template_verification',
+    value: '',
+    group: 'sms',
+    label: '阿里云通用验证码模板ID',
+    valueType: 'string',
+    dependsOn: 'sms_provider:aliyun',
+  },
+  {
+    key: 'aliyun_template_next_day_task',
+    value: '',
+    group: 'sms',
+    label: '阿里云隔天任务提醒模板ID',
+    valueType: 'string',
+    dependsOn: 'sms_provider:aliyun',
+  },
+  {
+    key: 'aliyun_template_timing_task',
+    value: '',
+    group: 'sms',
+    label: '阿里云定时任务提醒模板ID',
+    valueType: 'string',
+    dependsOn: 'sms_provider:aliyun',
+  },
+  {
+    key: 'aliyun_template_payment_urge',
+    value: '',
+    group: 'sms',
+    label: '阿里云催促付款模板ID',
+    valueType: 'string',
+    dependsOn: 'sms_provider:aliyun',
+  },
+  {
+    key: 'aliyun_template_payment_reminder',
+    value: '',
+    group: 'sms',
+    label: '阿里云付款提醒模板ID',
+    valueType: 'string',
+    dependsOn: 'sms_provider:aliyun',
   },
 
   // 支付设置

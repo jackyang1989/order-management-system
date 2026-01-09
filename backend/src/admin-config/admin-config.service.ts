@@ -22,7 +22,7 @@ export class AdminConfigService implements OnModuleInit {
     }
 
     /**
-     * 确保默认配置项存在
+     * 确保默认配置项存在，并同步元数据（label, description, dependsOn等）
      */
     private async ensureDefaultConfigs() {
         for (const config of DEFAULT_CONFIGS) {
@@ -30,6 +30,37 @@ export class AdminConfigService implements OnModuleInit {
             if (!existing) {
                 await this.configRepo.save(this.configRepo.create(config));
                 this.logger.log(`创建默认配置: ${config.key}`);
+            } else {
+                // 同步元数据字段（不覆盖value）
+                let needsUpdate = false;
+                const updates: Partial<SystemConfig> = {};
+
+                // 检查并更新元数据字段
+                if (config.label && existing.label !== config.label) {
+                    updates.label = config.label;
+                    needsUpdate = true;
+                }
+                if (config.description !== undefined && existing.description !== config.description) {
+                    updates.description = config.description;
+                    needsUpdate = true;
+                }
+                if (config.dependsOn !== undefined && existing.dependsOn !== config.dependsOn) {
+                    updates.dependsOn = config.dependsOn;
+                    needsUpdate = true;
+                }
+                if (config.options !== undefined && existing.options !== config.options) {
+                    updates.options = config.options;
+                    needsUpdate = true;
+                }
+                if (config.valueType && existing.valueType !== config.valueType) {
+                    updates.valueType = config.valueType;
+                    needsUpdate = true;
+                }
+
+                if (needsUpdate) {
+                    await this.configRepo.update({ key: config.key }, updates);
+                    this.logger.log(`更新配置元数据: ${config.key}`);
+                }
             }
         }
     }
