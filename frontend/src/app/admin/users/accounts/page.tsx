@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { BASE_URL } from '../../../../../apiConfig';
 import { cn } from '../../../../lib/utils';
@@ -49,7 +49,7 @@ const statusLabels: Record<number, { text: string; color: 'amber' | 'green' | 'r
     3: { text: '已删除', color: 'slate' }
 };
 
-export default function AdminBuyerAccountsPage() {
+function AdminBuyerAccountsPageContent() {
     const searchParams = useSearchParams();
     const userId = searchParams.get('userId');
 
@@ -420,5 +420,13 @@ export default function AdminBuyerAccountsPage() {
                 </div>
             </Modal>
         </div>
+    );
+}
+
+export default function AdminBuyerAccountsPage() {
+    return (
+        <Suspense fallback={<div className="py-10 text-center text-[#9ca3af]">加载中...</div>}>
+            <AdminBuyerAccountsPageContent />
+        </Suspense>
     );
 }

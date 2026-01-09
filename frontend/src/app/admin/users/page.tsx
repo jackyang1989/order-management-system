@@ -85,7 +85,13 @@ export default function AdminUsersPage() {
         phone: string;
         qq: string;
         realName: string;
-    }>({ username: '', phone: '', qq: '', realName: '' });
+        balance: string;
+        silver: string;
+        vip: boolean;
+        vipExpireAt: string;
+        mcTaskNum: string;
+        note: string;
+    }>({ username: '', phone: '', qq: '', realName: '', balance: '0', silver: '0', vip: false, vipExpireAt: '', mcTaskNum: '0', note: '' });
 
     useEffect(() => {
         loadUsers();
@@ -126,7 +132,13 @@ export default function AdminUsersPage() {
             username: user.username,
             phone: user.phone,
             qq: user.qq || '',
-            realName: user.realName || ''
+            realName: user.realName || '',
+            balance: String(user.balance || 0),
+            silver: String(user.silver || 0),
+            vip: user.vip || false,
+            vipExpireAt: user.vipExpireAt ? user.vipExpireAt.split('T')[0] : '',
+            mcTaskNum: String(user.mcTaskNum || 0),
+            note: user.note || ''
         });
         setDetailModal(user);
     };
@@ -141,7 +153,18 @@ export default function AdminUsersPage() {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(editForm)
+                body: JSON.stringify({
+                    username: editForm.username,
+                    phone: editForm.phone,
+                    qq: editForm.qq,
+                    realName: editForm.realName,
+                    balance: parseFloat(editForm.balance) || 0,
+                    silver: parseFloat(editForm.silver) || 0,
+                    vip: editForm.vip,
+                    vipExpireAt: editForm.vipExpireAt || null,
+                    mcTaskNum: parseInt(editForm.mcTaskNum) || 0,
+                    note: editForm.note
+                })
             });
             const json = await res.json();
             if (json.success) {
@@ -380,7 +403,7 @@ export default function AdminUsersPage() {
         },
         {
             key: 'invitedBy',
-            title: '来源用户',
+            title: '推荐人',
             className: 'w-[80px]',
             render: (row) => (
                 <div className="text-xs">{row.invitedBy || '-'}</div>
@@ -413,7 +436,7 @@ export default function AdminUsersPage() {
                     <Button size="sm" variant="outline" className="text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
                         银锭
                     </Button>
-                    <Button size="sm" variant="outline" className="text-success-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'balance', action: 'add' })}>
+                    <Button size="sm" variant="outline" className="text-success-500" onClick={() => window.location.href = `/admin/users/${row.id}/yajin`}>
                         押金
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>
@@ -581,41 +604,126 @@ export default function AdminUsersPage() {
                 title="编辑资料"
                 open={!!detailModal}
                 onClose={() => setDetailModal(null)}
-                className="max-w-lg"
+                className="max-w-2xl"
             >
                 {detailModal && (
                     <div className="space-y-4">
-                        <Input
-                            label="用户名"
-                            value={editForm.username}
-                            onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
-                        />
-                        <Input
-                            label="手机号"
-                            value={editForm.phone}
-                            onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                        />
-                        <Input
-                            label="QQ"
-                            value={editForm.qq}
-                            onChange={(e) => setEditForm({ ...editForm, qq: e.target.value })}
-                        />
-                        <Input
-                            label="真实姓名"
-                            value={editForm.realName}
-                            onChange={(e) => setEditForm({ ...editForm, realName: e.target.value })}
-                        />
+                        {/* 用户信息标题 */}
+                        <h4 className="border-b border-[#e5e7eb] pb-2 text-sm font-medium">用户信息</h4>
 
-                        {/* 只读信息 */}
-                        <div className="rounded-md bg-[#f9fafb] p-3">
-                            <div className="grid grid-cols-2 gap-3 text-sm">
-                                <div><span className="text-[#6b7280]">用户ID:</span> {detailModal.id}</div>
-                                <div><span className="text-[#6b7280]">邀请码:</span> {detailModal.invitationCode || '-'}</div>
-                                <div><span className="text-[#6b7280]">余额:</span> ¥{Number(detailModal.balance || 0).toFixed(2)}</div>
-                                <div><span className="text-[#6b7280]">银锭:</span> {Number(detailModal.silver || 0).toFixed(2)}</div>
-                                <div><span className="text-[#6b7280]">VIP:</span> {detailModal.vip ? 'VIP用户' : '普通用户'}</div>
-                                <div><span className="text-[#6b7280]">注册时间:</span> {new Date(detailModal.createdAt).toLocaleDateString('zh-CN')}</div>
-                            </div>
+                        {/* 表格布局 */}
+                        <div className="overflow-hidden rounded border border-[#e5e7eb]">
+                            <table className="w-full text-sm">
+                                <tbody>
+                                    <tr className="border-b border-[#e5e7eb]">
+                                        <td className="w-[100px] bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">用户名</td>
+                                        <td className="px-3 py-2">
+                                            <input
+                                                type="text"
+                                                value={editForm.username}
+                                                readOnly
+                                                className="w-full rounded border border-[#e5e7eb] bg-[#f9fafb] px-2 py-1.5 text-sm"
+                                            />
+                                        </td>
+                                        <td className="w-[100px] bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">手机号</td>
+                                        <td className="px-3 py-2">
+                                            <input
+                                                type="text"
+                                                value={editForm.phone}
+                                                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                                                className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
+                                            />
+                                        </td>
+                                    </tr>
+                                    <tr className="border-b border-[#e5e7eb]">
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">VIP到期时间</td>
+                                        <td className="px-3 py-2">
+                                            <input
+                                                type="date"
+                                                value={editForm.vipExpireAt}
+                                                onChange={(e) => setEditForm({ ...editForm, vipExpireAt: e.target.value })}
+                                                className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
+                                            />
+                                        </td>
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">银锭</td>
+                                        <td className="px-3 py-2">
+                                            <input
+                                                type="number"
+                                                value={editForm.silver}
+                                                onChange={(e) => setEditForm({ ...editForm, silver: e.target.value })}
+                                                className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-center text-sm focus:border-primary focus:outline-none"
+                                                min="0"
+                                            />
+                                        </td>
+                                    </tr>
+                                    <tr className="border-b border-[#e5e7eb]">
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">QQ</td>
+                                        <td className="px-3 py-2">
+                                            <input
+                                                type="text"
+                                                value={editForm.qq}
+                                                onChange={(e) => setEditForm({ ...editForm, qq: e.target.value })}
+                                                className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
+                                            />
+                                        </td>
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">推荐人</td>
+                                        <td className="px-3 py-2">
+                                            <input
+                                                type="text"
+                                                value={detailModal.invitedBy || '-'}
+                                                readOnly
+                                                className="w-full rounded border border-[#e5e7eb] bg-[#f9fafb] px-2 py-1.5 text-sm"
+                                            />
+                                        </td>
+                                    </tr>
+                                    <tr className="border-b border-[#e5e7eb]">
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">本金</td>
+                                        <td className="px-3 py-2">
+                                            <input
+                                                type="number"
+                                                value={editForm.balance}
+                                                onChange={(e) => setEditForm({ ...editForm, balance: e.target.value })}
+                                                className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-center text-sm focus:border-primary focus:outline-none"
+                                                min="0"
+                                            />
+                                        </td>
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">是否VIP</td>
+                                        <td className="px-3 py-2">
+                                            <select
+                                                value={editForm.vip ? '1' : '0'}
+                                                onChange={(e) => setEditForm({ ...editForm, vip: e.target.value === '1' })}
+                                                className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
+                                            >
+                                                <option value="0">否</option>
+                                                <option value="1">是</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr className="border-b border-[#e5e7eb]">
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">月累计完成单数</td>
+                                        <td colSpan={3} className="px-3 py-2">
+                                            <input
+                                                type="number"
+                                                value={editForm.mcTaskNum}
+                                                onChange={(e) => setEditForm({ ...editForm, mcTaskNum: e.target.value })}
+                                                className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
+                                                min="0"
+                                            />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">财务备注</td>
+                                        <td colSpan={3} className="px-3 py-2">
+                                            <textarea
+                                                value={editForm.note}
+                                                onChange={(e) => setEditForm({ ...editForm, note: e.target.value })}
+                                                className="min-h-[60px] w-full resize-y rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
+                                                rows={3}
+                                            />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
 
                         <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
@@ -623,7 +731,7 @@ export default function AdminUsersPage() {
                                 取消
                             </Button>
                             <Button onClick={handleUpdateProfile}>
-                                保存修改
+                                保存
                             </Button>
                         </div>
                     </div>

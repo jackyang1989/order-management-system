@@ -13,6 +13,7 @@ import {
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './user.entity';
+import { FundRecord } from './fund-record.entity';
 import { Message, MessageType, MessageStatus, MessageUserType } from '../messages/message.entity';
 import {
   UserQueryDto,
@@ -39,12 +40,11 @@ export interface BalanceLog {
 
 @Injectable()
 export class UsersAdminService {
-  // 简单的内存日志存储（生产环境应该使用数据库）
-  private balanceLogs: BalanceLog[] = [];
-
   constructor(
     @InjectRepository(User)
     private userRepo: Repository<User>,
+    @InjectRepository(FundRecord)
+    private fundRecordRepo: Repository<FundRecord>,
     @InjectRepository(Message)
     private messageRepo: Repository<Message>,
   ) {}
@@ -225,22 +225,18 @@ export class UsersAdminService {
     user[field] = balanceAfter as any;
     await this.userRepo.save(user);
 
-    // 记录日志
-    const log: BalanceLog = {
-      id: Date.now().toString(),
+    // 记录到 FundRecord 表
+    const fundRecord = this.fundRecordRepo.create({
       userId: id,
-      type: dto.type,
-      action: dto.action,
+      type: dto.type === 'balance' ? 'principal' : 'silver',
+      action: dto.action === 'add' ? 'in' : 'out',
       amount: amount,
-      balanceBefore,
-      balanceAfter,
-      reason: dto.reason,
-      operator: 'admin',
-      createdAt: new Date(),
-    };
-    this.balanceLogs.push(log);
+      balance: balanceAfter,
+      description: dto.reason,
+    });
+    await this.fundRecordRepo.save(fundRecord);
 
-    return { user: this.sanitizeUser(user), log };
+    return { user: this.sanitizeUser(user), log: fundRecord };
   }
 
   /**
@@ -359,16 +355,20 @@ export class UsersAdminService {
     page: number,
     limit: number,
     type?: string,
-  ): Promise<{ data: BalanceLog[]; total: number }> {
-    let logs = this.balanceLogs.filter((l) => l.userId === userId);
-    if (type) {
-      logs = logs.filter((l) => l.type === type);
+  ): Promise<{ data: FundRecord[]; total: number }> {
+    const qb = this.fundRecordRepo.createQueryBuilder('fr')
+      .where('fr.userId = :userId', { userId })
+      .orderBy('fr.createdAt', 'DESC');
+
+    if (type === 'principal' || type === 'silver') {
+      qb.andWhere('fr.type = :type', { type });
     }
 
-    const total = logs.length;
-    const data = logs
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-      .slice((page - 1) * limit, page * limit);
+    const total = await qb.getCount();
+    const data = await qb
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
 
     return { data, total };
   }

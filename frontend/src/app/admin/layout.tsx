@@ -28,7 +28,7 @@ const menuItems: MenuItem[] = [
         children: [
             { key: '/admin/users', label: '买手列表' },
             { key: '/admin/users/balance', label: '余额记录' },
-            { key: '/admin/users/accounts', label: '买号审核' },
+            { key: '/admin/users/accounts', label: '买号列表' },
         ],
     },
     {
