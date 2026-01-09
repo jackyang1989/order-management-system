@@ -19,6 +19,7 @@ import { BuyerAccountsService } from '../buyer-accounts/buyer-accounts.service';
 import { BuyerAccountStatus } from '../buyer-accounts/buyer-account.entity';
 import { MerchantsService } from '../merchants/merchants.service';
 import { CreateMerchantDto } from '../merchants/merchant.entity';
+import { UsersService } from '../users/users.service';
 
 @Controller('admin')
 @UseGuards(AdminGuard)
@@ -28,6 +29,7 @@ export class AdminController {
     private readonly shopsService: ShopsService,
     private readonly buyerAccountsService: BuyerAccountsService,
     private readonly merchantsService: MerchantsService,
+    private readonly usersService: UsersService,
   ) { }
 
   // ============ 仪表盘 ============
@@ -62,6 +64,30 @@ export class AdminController {
       return { success: false, message: '用户不存在' };
     }
     return { success: true, message: '状态更新成功', data: user };
+  }
+
+  @Post('users')
+  async createUser(@Body() body: { username: string; password: string; phone: string; qq?: string }) {
+    try {
+      // 生成一个随机的邀请码作为注册用
+      const user = await this.usersService.create({
+        username: body.username,
+        password: body.password,
+        phone: body.phone,
+        qq: body.qq,
+        invitationCode: '', // 不使用邀请码
+      });
+      return {
+        success: true,
+        message: '买手创建成功',
+        data: user,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || '创建失败',
+      };
+    }
   }
 
   // ============ 商家管理 ============

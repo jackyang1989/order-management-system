@@ -37,9 +37,14 @@ export class AdminService {
     pendingWithdrawals: number;
     todayUsers: number;
     todayOrders: number;
+    todayWithdrawalAmount: number;
+    todayRechargeAmount: number;
+    todayTasks: number;
   }> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
 
     const totalUsers = await this.usersRepository.count();
     const totalMerchants = await this.merchantsRepository.count();
@@ -63,6 +68,28 @@ export class AdminService {
       .where('order.createdAt >= :today', { today })
       .getCount();
 
+    // 今日任务数
+    const todayTasks = await this.tasksRepository
+      .createQueryBuilder('task')
+      .where('task.createdAt >= :today', { today })
+      .getCount();
+
+    // 今日提现金额（已审核通过或已完成的）
+    const withdrawResult = await this.withdrawalsRepository
+      .createQueryBuilder('w')
+      .select('SUM(w.amount)', 'total')
+      .where('w.createdAt BETWEEN :start AND :end', { start: today, end: todayEnd })
+      .andWhere('w.status IN (:...statuses)', { statuses: [WithdrawalStatus.APPROVED_PENDING_TRANSFER, WithdrawalStatus.COMPLETED] })
+      .getRawOne();
+
+    // 今日充值金额
+    const rechargeResult = await this.financeRecordRepository
+      .createQueryBuilder('f')
+      .select('SUM(f.amount)', 'total')
+      .where('f.createdAt BETWEEN :start AND :end', { start: today, end: todayEnd })
+      .andWhere('f.financeType IN (:...types)', { types: [FinanceType.BUYER_RECHARGE, FinanceType.BUYER_RECHARGE_SILVER, FinanceType.MERCHANT_RECHARGE] })
+      .getRawOne();
+
     return {
       totalUsers,
       totalMerchants,
@@ -72,6 +99,9 @@ export class AdminService {
       pendingWithdrawals,
       todayUsers,
       todayOrders,
+      todayWithdrawalAmount: Number(withdrawResult?.total || 0),
+      todayRechargeAmount: Number(rechargeResult?.total || 0),
+      todayTasks,
     };
   }
 

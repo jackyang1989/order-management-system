@@ -52,6 +52,19 @@ interface BalanceModalData {
     action: 'add' | 'deduct';
 }
 
+interface AddUserModalData {
+    username: string;
+    password: string;
+    phone: string;
+    qq: string;
+}
+
+interface StarModalData {
+    accountId: string;
+    accountName: string;
+    currentStar: number;
+}
+
 const verifyLabels: Record<number, { text: string; color: 'slate' | 'amber' | 'green' | 'red' }> = {
     0: { text: '未认证', color: 'slate' },
     1: { text: '待审核', color: 'amber' },
@@ -75,6 +88,9 @@ export default function AdminUsersPage() {
     const [banModal, setBanModal] = useState<{ userId: string; username: string } | null>(null);
     const [noteModal, setNoteModal] = useState<{ userId: string; username: string; currentNote: string } | null>(null);
     const [passwordModal, setPasswordModal] = useState<{ userId: string; username: string } | null>(null);
+    const [addUserModal, setAddUserModal] = useState(false);
+    const [addUserForm, setAddUserForm] = useState<AddUserModalData>({ username: '', password: '', phone: '', qq: '' });
+    const [addUserLoading, setAddUserLoading] = useState(false);
 
     // Form state for balance modal
     const [balanceAmount, setBalanceAmount] = useState('');
@@ -337,6 +353,42 @@ export default function AdminUsersPage() {
         }
     };
 
+    const handleAddUser = async () => {
+        if (!addUserForm.username || !addUserForm.password || !addUserForm.phone) {
+            toastError('请填写用户名、密码和手机号');
+            return;
+        }
+        if (addUserForm.password.length < 6) {
+            toastError('密码至少6位');
+            return;
+        }
+        const token = localStorage.getItem('adminToken');
+        setAddUserLoading(true);
+        try {
+            const res = await fetch(`${BASE_URL}/admin/users`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(addUserForm)
+            });
+            const json = await res.json();
+            if (json.success) {
+                toastSuccess('买手创建成功');
+                setAddUserModal(false);
+                setAddUserForm({ username: '', password: '', phone: '', qq: '' });
+                loadUsers();
+            } else {
+                toastError(json.message || '创建失败');
+            }
+        } catch (e) {
+            toastError('创建失败');
+        } finally {
+            setAddUserLoading(false);
+        }
+    };
+
     const columns: Column<User>[] = [
         {
             key: 'username',
@@ -501,7 +553,10 @@ export default function AdminUsersPage() {
             <Card className="bg-white">
                 <div className="mb-4 flex items-center justify-between">
                     <span className="text-base font-medium">买手列表</span>
-                    <span className="text-sm text-[#6b7280]">共 {total} 条记录</span>
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm text-[#6b7280]">共 {total} 条记录</span>
+                        <Button onClick={() => setAddUserModal(true)}>+ 添加买手</Button>
+                    </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <Input

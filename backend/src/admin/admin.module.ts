@@ -14,6 +14,7 @@ import { AuthModule } from '../auth/auth.module';
 import { BuyerAccountsModule } from '../buyer-accounts/buyer-accounts.module';
 import { WithdrawalsModule } from '../withdrawals/withdrawals.module';
 import { MerchantsModule } from '../merchants/merchants.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { MerchantsModule } from '../merchants/merchants.module';
     BuyerAccountsModule,
     WithdrawalsModule,
     MerchantsModule,
+    UsersModule,
   ],
   providers: [AdminService],
   controllers: [AdminController],

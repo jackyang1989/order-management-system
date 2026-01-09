@@ -14,6 +14,9 @@ interface Stats {
     pendingWithdrawals: number;
     todayUsers: number;
     todayOrders: number;
+    todayWithdrawalAmount: number;
+    todayRechargeAmount: number;
+    todayTasks: number;
 }
 
 export default function AdminDashboardPage() {
@@ -141,14 +144,26 @@ export default function AdminDashboardPage() {
                     <div className="border-b border-[#e5e7eb] px-6 py-4">
                         <h3 className="text-[15px] font-semibold text-[#3b4559]">今日数据</h3>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 p-5">
-                        <div className="rounded-md bg-primary-50 p-5 text-center">
+                    <div className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-3 lg:grid-cols-5">
+                        <div className="rounded-md bg-primary-50 p-4 text-center">
                             <div className="text-[13px] text-[#6b7280]">新增用户</div>
-                            <div className="mt-2 text-2xl font-bold text-primary-600">{stats?.todayUsers || 0}</div>
+                            <div className="mt-2 text-xl font-bold text-primary-600">{stats?.todayUsers || 0}</div>
                         </div>
-                        <div className="rounded-md bg-success-50 p-5 text-center">
+                        <div className="rounded-md bg-success-50 p-4 text-center">
                             <div className="text-[13px] text-[#6b7280]">新增订单</div>
-                            <div className="mt-2 text-2xl font-bold text-success-500">{stats?.todayOrders || 0}</div>
+                            <div className="mt-2 text-xl font-bold text-success-500">{stats?.todayOrders || 0}</div>
+                        </div>
+                        <div className="rounded-md bg-[#f5f0ff] p-4 text-center">
+                            <div className="text-[13px] text-[#6b7280]">新增任务</div>
+                            <div className="mt-2 text-xl font-bold text-[#7c5ce0]">{stats?.todayTasks || 0}</div>
+                        </div>
+                        <div className="rounded-md bg-warning-50 p-4 text-center">
+                            <div className="text-[13px] text-[#6b7280]">今日提现</div>
+                            <div className="mt-2 text-xl font-bold text-warning-500">¥{(stats?.todayWithdrawalAmount || 0).toFixed(2)}</div>
+                        </div>
+                        <div className="rounded-md bg-[#ecfdf5] p-4 text-center">
+                            <div className="text-[13px] text-[#6b7280]">今日充值</div>
+                            <div className="mt-2 text-xl font-bold text-[#10b981]">¥{(stats?.todayRechargeAmount || 0).toFixed(2)}</div>
                         </div>
                     </div>
                 </div>
