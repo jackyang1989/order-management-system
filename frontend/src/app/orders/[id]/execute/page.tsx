@@ -155,96 +155,93 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const getData = useCallback(async () => {
         try {
             const token = getToken();
-            const response = await fetch(`${BASE_URL}/mobile/task/taskstep`, {
-                method: 'POST',
+            const response = await fetch(`${BASE_URL}/orders/${id}/execution-data`, {
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
-                body: JSON.stringify({ id }), // 这里的 id 是 orderId
             });
             const res = await response.json();
 
-            if (res.code === 1) {
+            if (res.success) {
                 const data = res.data;
-                setUserTaskId(data.user_task_id);
-                setUserBuynoWangwang(data.user_task?.user_buyno_wangwang || '');
-                setSellTaskMemo(data.sell_task?.memo || '');
-                setReceiverAddress(`${data.user_task?.address || ''} ${data.user_task?.addressname || ''} ${data.user_task?.addressphone || ''}`);
-                setKeyWord(data.key_word || '');
-                setMainProductFilter1(data.main_product_message_filter1 || '');
-                setMainProductFilter2(data.main_product_message_filter2 || '');
-                setMainProductFilter3(data.main_product_message_filter3 || '');
-                setMainProductFilter4(data.main_product_message_filter4 || '');
-                setAdminLimitSwitch(data.admin_limit_switch || 0);
-                setTaskTimeType(data.user_task?.task_type || '');
-                setTaskYsType(data.user_task?.is_ys || '');
+                setUserTaskId(data.orderId);
+                setUserBuynoWangwang(data.buynoAccount || '');
+                setSellTaskMemo(data.memo || '');
+                setReceiverAddress(`${data.address || ''} ${data.addressName || ''} ${data.addressPhone || ''}`);
+                setKeyWord(data.keyword || '');
+                setMainProductFilter1('');
+                setMainProductFilter2('');
+                setMainProductFilter3(data.huobiKeyword || '');
+                setMainProductFilter4('');
+                setAdminLimitSwitch(data.isPasswordEnabled ? 1 : 0);
+                setTaskTimeType('');
+                setTaskYsType('');
 
                 // 设置倒计时
-                if (data.end_time) {
-                    setCurTime(data.end_time);
+                if (data.endingTime) {
+                    setCurTime(new Date(data.endingTime).getTime());
                 }
 
                 // 构建 tableData
                 const taskInfo: TaskInfo = {
-                    maiHao: data.user_task?.user_buyno_wangwang || '',
-                    taskTime: data.user_task?.ending_time || '',
-                    principal: data.user_task?.principal || '',
-                    yongJin: data.user_task?.commission || '',
-                    user_divided: data.user_task?.user_divided || '',
-                    taskNum: data.user_task?.task_number || '',
-                    tasktype: data.type_array?.[data.sell_task?.task_type] || '',
-                    zhongDuan: data.sell_task?.terminal === 1 ? '本佣货返' : '本立佣货',
+                    maiHao: data.buynoAccount || '',
+                    taskTime: data.endingTime || '',
+                    principal: data.userPrincipal || '',
+                    yongJin: data.commission || '',
+                    user_divided: data.userDivided || '',
+                    taskNum: data.taskNumber || '',
+                    tasktype: String(data.taskType || ''),
+                    zhongDuan: data.terminal === 1 ? '本佣货返' : '本立佣货',
                 };
                 setTableData([taskInfo]);
 
                 // 设置任务类型相关信息
-                setTasktype(String(data.sell_task?.task_type || ''));
-                setPlatformName(data.type_array?.[data.sell_task?.task_type] || '平台');
-                setQrcode(data.sell_task?.qr_code || '');
-                setChannelname(data.sell_task?.channel_name || '');
-                setTaoword(data.sell_task?.tao_word || '');
-                setIsVideoPraise(String(data.sell_task?.is_video_praise || ''));
+                setTasktype(String(data.taskType || ''));
+                setPlatformName('平台');
+                setQrcode(data.qrCode || '');
+                setChannelname('');
+                setTaoword(data.taoWord || '');
+                setIsVideoPraise(data.isVideoPraise ? '1' : '');
 
-                if (data.sell_task?.terminal === 1) {
+                if (data.terminal === 1) {
                     setZhongDuanmessage('温馨提示：此任务本佣货返，任务完成后24小时内本金和佣金由平台返到买手账户。');
                 } else {
                     setZhongDuanmessage('温馨提示：此任务本金立返佣金货返，买手提交订单商家审核通过后平台24小时内将本金充值到买手本金账户，佣金在任务完成后24小时内返到买手银锭账户。');
                 }
 
-                // 构建 tableData2 (商品信息)
-                if (data.goods_info && Array.isArray(data.goods_info)) {
-                    const goodsList: GoodsInfo[] = data.goods_info.map((item: any) => ({
-                        id: item.id,
-                        goods_id: item.goods_id,
-                        productName: item.name,
-                        dianpuName: data.shop?.shop_name || '',
-                        type: item.leixing,
-                        specname: item.spec_name,
-                        specifications: item.spec_value,
-                        buy_num: item.buy_num,
-                        buy_price: item.buy_price,
-                        input: '',
-                        inputnum: '',
-                        img: item.pc_img?.[0] || '',
-                        imgdata: item.pc_img || [],
-                        key: item.key,
-                        goods_spec: item.goods_spec,
-                    }));
-                    setTableData2(goodsList);
+                // 构建 tableData2 (商品信息) - 使用任务数据
+                const goodsList: GoodsInfo[] = [{
+                    id: data.taskId,
+                    goods_id: data.platformProductId || data.taskId,
+                    productName: data.title || '',
+                    dianpuName: data.shopName || '',
+                    type: '',
+                    specname: '',
+                    specifications: '',
+                    buy_num: 1,
+                    buy_price: String(data.goodsPrice || ''),
+                    input: '',
+                    inputnum: '',
+                    img: data.mainImage || '',
+                    imgdata: data.mainImage ? [data.mainImage] : [],
+                    key: data.keyword || '',
+                    goods_spec: data.maskedPassword || '',
+                }];
+                setTableData2(goodsList);
 
-                    // 构建 tableData3 (订单商品表格)
-                    const orderGoods: OrderGoods[] = data.goods_info.map((item: any) => ({
-                        id: item.id,
-                        dianpuName: item.shop_name || data.shop?.shop_name || '',
-                        productName: item.name,
-                        price: item.buy_price,
-                        count: item.buy_num,
-                    }));
-                    setTableData3(orderGoods);
-                }
+                // 构建 tableData3 (订单商品表格)
+                const orderGoods: OrderGoods[] = [{
+                    id: data.taskId,
+                    dianpuName: data.shopName || '',
+                    productName: data.title || '',
+                    price: String(data.goodsPrice || ''),
+                    count: 1,
+                }];
+                setTableData3(orderGoods);
             } else {
-                alertError(res.msg || '获取任务数据失败');
+                alertError(res.message || '获取任务数据失败');
             }
         } catch (error) {
             console.error('获取任务数据失败:', error);
@@ -262,19 +259,19 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
         }
         try {
             const token = getToken();
-            const response = await fetch(`${BASE_URL}/mobile/task/task_hedui`, {
+            const response = await fetch(`${BASE_URL}/orders/${id}/verify-link`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
-                body: JSON.stringify({ input, id: goods_id }),
+                body: JSON.stringify({ link: input, goodsId: goods_id }),
             });
             const data = await response.json();
-            if (data.code === 1) {
-                alertSuccess(data.msg);
+            if (data.success) {
+                alertSuccess(data.message);
             } else {
-                alertError(data.msg);
+                alertError(data.message);
             }
         } catch (error) {
             alertError('核对失败');
@@ -289,19 +286,19 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
         }
         try {
             const token = getToken();
-            const response = await fetch(`${BASE_URL}/mobile/task/task_heduinum`, {
+            const response = await fetch(`${BASE_URL}/orders/${id}/verify-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
-                body: JSON.stringify({ inputnum, id: goods_id }),
+                body: JSON.stringify({ password: inputnum }),
             });
             const data = await response.json();
-            if (data.code === 1) {
-                alertSuccess(data.msg);
+            if (data.success) {
+                alertSuccess(data.message);
             } else {
-                alertError(data.msg);
+                alertError(data.message);
             }
         } catch (error) {
             alertError('核对失败');
@@ -314,20 +311,19 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
         setInputNumber(formattedNumber);
         try {
             const token = getToken();
-            const response = await fetch(`${BASE_URL}/mobile/task/tasknumberchange`, {
+            const response = await fetch(`${BASE_URL}/orders/${id}/validate-payment`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
                 body: JSON.stringify({
-                    number: formattedNumber,
-                    task_id: user_task_id,
+                    amount: parseFloat(formattedNumber),
                 }),
             });
             const data = await response.json();
-            if (data.code !== 1) {
-                alertError(data.msg);
+            if (!data.success) {
+                alertError(data.message);
                 setTimeout(() => setInputNumber(''), 3000);
             }
         } catch (error) {
@@ -361,35 +357,31 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 return;
             }
 
-            // 构建核对数据
-            const arr = tableData2.map(item => ({ input: item.input, id: item.goods_id }));
-            const arrnum = tableData2.map(item => ({ inputnum: item.inputnum, id: item.goods_id }));
-
             setSubmitting(true);
             try {
                 const token = getToken();
-                const response = await fetch(`${BASE_URL}/mobile/task/task_two`, {
+                const response = await fetch(`${BASE_URL}/orders/${id}/submit-step`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         ...(token ? { Authorization: `Bearer ${token}` } : {}),
                     },
                     body: JSON.stringify({
-                        user_task_id,
-                        keywordimg: localFile.content,
-                        inputall: arr,
-                        inputallnum: arrnum,
-                        dizhi1: inputValue3,
-                        dizhi2: inputValue4,
-                        chatimg: localFile2?.content || '',
+                        step: 2,
+                        screenshot: localFile.content,
+                        inputData: {
+                            goodsLink1: inputValue3,
+                            goodsLink2: inputValue4,
+                            chatImg: localFile2?.content || '',
+                        },
                     }),
                 });
                 const data = await response.json();
-                if (data.code === 1) {
-                    alertSuccess(data.msg);
+                if (data.success) {
+                    alertSuccess(data.message);
                     setActive(3);
                 } else {
-                    alertError(data.msg);
+                    alertError(data.message);
                 }
             } catch (error) {
                 alertError('提交失败');
@@ -425,35 +417,60 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             setSubmitting(true);
             try {
                 const token = getToken();
-                const response = await fetch(`${BASE_URL}/mobile/task/task_three`, {
+
+                // 如果修改了收货地址，先更新地址
+                if (threeRadio === '2') {
+                    await fetch(`${BASE_URL}/orders/${id}/address`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                        },
+                        body: JSON.stringify({
+                            addressName: inputPerson,
+                            addressPhone: inputMobile,
+                            address: `${area.province} ${area.city} ${area.region} ${inputStreet}`,
+                        }),
+                    });
+                }
+
+                // 更新平台订单号
+                await fetch(`${BASE_URL}/orders/${id}/platform-order`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         ...(token ? { Authorization: `Bearer ${token}` } : {}),
                     },
                     body: JSON.stringify({
-                        user_task_id,
-                        table_order_id: inputValue7,
-                        user_principal: inputNumber,
-                        order_detail_img: localFile3.content,
-                        threeradio: threeRadio,
-                        province: area.province,
-                        city: area.city,
-                        block: area.region,
-                        inputstreet: inputStreet,
-                        adressperson: inputPerson,
-                        addressphone: inputMobile,
+                        platformOrderNumber: inputValue7,
+                    }),
+                });
+
+                // 提交步骤3
+                const response = await fetch(`${BASE_URL}/orders/${id}/submit-step`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                    },
+                    body: JSON.stringify({
+                        step: 3,
+                        screenshot: localFile3.content,
+                        inputData: {
+                            platformOrderNumber: inputValue7,
+                            actualPayment: parseFloat(inputNumber),
+                        },
                     }),
                 });
                 const data = await response.json();
-                if (data.code === 1) {
-                    alertSuccess(data.msg);
+                if (data.success) {
+                    alertSuccess(data.message);
                     sessionStorage.setItem('active', '1');
                     setTimeout(() => {
-                        router.push(data.url || '/orders');
+                        router.push('/orders');
                     }, 3000);
                 } else {
-                    alertError(data.msg);
+                    alertError(data.message);
                 }
             } catch (error) {
                 alertError('提交失败');

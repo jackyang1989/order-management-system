@@ -57,4 +57,19 @@ export class AuthController {
   async getMe(@Request() req) {
     return this.authService.getProfile(req.user.userId);
   }
+
+  /**
+   * 重置密码（通过短信验证码）
+   */
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(
+    @Body() body: { mobile: string; code: string; newPassword: string },
+  ) {
+    return this.authService.resetPasswordWithSms(
+      body.mobile,
+      body.code,
+      body.newPassword,
+    );
+  }
 }

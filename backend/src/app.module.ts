@@ -48,7 +48,6 @@ import { OperationLogsModule } from './operation-logs/operation-logs.module';
 import { AdminMenusModule } from './admin-menus/admin-menus.module';
 import { VipModule } from './vip/vip.module';
 import { MerchantBlacklistModule } from './merchant-blacklist/merchant-blacklist.module';
-import { MobileCompatModule } from './mobile-compat/mobile-compat.module';
 import { CaptchaModule } from './captcha/captcha.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { InviteModule } from './invite/invite.module';
@@ -326,7 +325,6 @@ const ENTITIES = [
     AdminMenusModule,
     VipModule,
     MerchantBlacklistModule,
-    MobileCompatModule,
     CaptchaModule,
     ReviewsModule,
     InviteModule,

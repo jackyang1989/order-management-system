@@ -85,64 +85,41 @@ export default function PresalePaymentPage({ params }: { params: Promise<{ id: s
     const getData = useCallback(async () => {
         try {
             const token = getToken();
-            const response = await fetch(`${BASE_URL}/mobile/task/wk`, {
-                method: 'POST',
+            const response = await fetch(`${BASE_URL}/orders/${id}/presale-details`, {
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
-                body: JSON.stringify({ id }),
             });
             const res = await response.json();
 
-            if (res.code === 1) {
+            if (res.success) {
                 const data = res.data;
-                setTaskId(data.list?.id || id);
-                setYstime(data.list?.ys_time || '');
-                setAlertNum(data.list?.seller_principal || 0);
+                setTaskId(data.id || id);
+                setYstime(data.endingTime || '');
+                setAlertNum(data.sellerPrincipal || 0);
 
                 // 构建 testData
-                if (data.product && Array.isArray(data.product)) {
-                    const taskList: TaskData[] = data.product.map((vo: any) => ({
-                        taskBianHao: data.list?.task_number || '',
-                        zhongDuan: data.list?.terminal || '',
-                        time: data.list?.create_time || '',
-                        type: data.list?.task_type || '',
-                        taskTime: data.list?.ending_time || '',
-                        principal: data.list?.principal || '',
-                        taskNum: data.list?.task_number || '',
-                        title: vo.name || '',
-                        content: vo.text_praise || '',
-                        img: vo.img_praise || '',
-                        video: vo.video_praise || '',
-                        maiHao: data.list?.wwid || '',
-                        kuaiDi: data.list?.delivery || '',
-                        danHao: data.list?.delivery_num || '',
-                        price: data.list?.seller_principal || '',
-                    }));
-                    setTestData(taskList);
-                } else if (data.list) {
-                    // 单条数据情况
-                    setTestData([{
-                        taskBianHao: data.list.task_number || '',
-                        zhongDuan: data.list.terminal || '',
-                        time: data.list.create_time || '',
-                        type: data.list.task_type || '',
-                        taskTime: data.list.ending_time || '',
-                        principal: data.list.principal || '',
-                        taskNum: data.list.task_number || '',
-                        title: data.list.name || '',
-                        content: data.list.text_praise || '',
-                        img: data.list.img_praise || '',
-                        video: data.list.video_praise || '',
-                        maiHao: data.list.wwid || '',
-                        kuaiDi: data.list.delivery || '',
-                        danHao: data.list.delivery_num || '',
-                        price: data.list.seller_principal || '',
-                    }]);
-                }
+                setTestData([{
+                    taskBianHao: data.taskNumber || '',
+                    zhongDuan: data.terminal || '',
+                    time: data.createdAt || '',
+                    type: data.taskType || '',
+                    taskTime: data.endingTime || '',
+                    principal: data.principal || '',
+                    taskNum: data.taskNumber || '',
+                    title: data.productName || '',
+                    content: '',
+                    img: '',
+                    video: '',
+                    maiHao: data.buynoAccount || '',
+                    kuaiDi: data.delivery || '',
+                    danHao: data.deliveryNum || '',
+                    price: data.sellerPrincipal || '',
+                }]);
             } else {
-                alertError(res.msg || '获取任务数据失败');
+                alertError(res.message || '获取任务数据失败');
             }
         } catch (error) {
             console.error('获取任务数据失败:', error);
@@ -158,20 +135,19 @@ export default function PresalePaymentPage({ params }: { params: Promise<{ id: s
         setInputNumber(formattedNumber);
         try {
             const token = getToken();
-            const response = await fetch(`${BASE_URL}/mobile/task/wknumberchange`, {
+            const response = await fetch(`${BASE_URL}/orders/${id}/validate-final-payment`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
                 body: JSON.stringify({
-                    number: formattedNumber,
-                    task_id: task_id,
+                    amount: parseFloat(formattedNumber),
                 }),
             });
             const data = await response.json();
-            if (data.code !== 1) {
-                alertError(data.msg);
+            if (!data.success) {
+                alertError(data.message);
                 setTimeout(() => setInputNumber(''), 3000);
             }
         } catch (error) {
@@ -197,29 +173,28 @@ export default function PresalePaymentPage({ params }: { params: Promise<{ id: s
         setSubmitting(true);
         try {
             const token = getToken();
-            const response = await fetch(`${BASE_URL}/mobile/task/take_wk`, {
+            const response = await fetch(`${BASE_URL}/orders/${id}/presale/submit-final`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
                 body: JSON.stringify({
-                    high_praise_img: localFile.content,
-                    task_id: task_id,
-                    wk_order_detail: inputValue,
-                    wk_input_detail: inputNumber,
+                    screenshot: localFile.content,
+                    orderNo: inputValue,
+                    paymentAmount: inputNumber,
                 }),
             });
             const data = await response.json();
 
-            if (data.code === 1) {
+            if (data.success) {
                 setDialogVisible(false);
-                alertSuccess(data.msg);
+                alertSuccess(data.message);
                 setTimeout(() => {
-                    router.push(data.url || '/orders');
+                    router.push(data.redirectUrl || '/orders');
                 }, 3000);
             } else {
-                alertError(data.msg);
+                alertError(data.message);
             }
         } catch (error) {
             alertError('提交失败');

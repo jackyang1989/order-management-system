@@ -46,7 +46,7 @@ export default function ForgotPasswordPage() {
         }
 
         try {
-            const response = await fetch(`${BASE_URL}/mobile/way/send_code`, {
+            const response = await fetch(`${BASE_URL}/sms/send`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -57,7 +57,7 @@ export default function ForgotPasswordPage() {
             });
             const data = await response.json();
 
-            if (data.code === 1) {
+            if (data.success) {
                 // 开始倒计时
                 let num = 60;
                 setIsDisabled(true);
@@ -78,7 +78,7 @@ export default function ForgotPasswordPage() {
                     }
                 }, 1000);
             } else {
-                alertError(data.msg || '发送失败');
+                alertError(data.message || '发送失败');
             }
         } catch (error) {
             // 即使失败也开始倒计时（模拟旧版行为）
@@ -136,27 +136,26 @@ export default function ForgotPasswordPage() {
 
         setSubmitting(true);
         try {
-            const response = await fetch(`${BASE_URL}/mobile/login/forget_edit`, {
+            const response = await fetch(`${BASE_URL}/auth/reset-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     mobile: mobile,
-                    dxyzm: dxyzm,
-                    newpassword: newpassword,
-                    newpassword2: newpassword2,
+                    code: dxyzm,
+                    newPassword: newpassword,
                 }),
             });
             const data = await response.json();
 
-            if (data.code === 1) {
-                alertSuccess(data.msg);
+            if (data.success) {
+                alertSuccess(data.message);
                 setTimeout(() => {
-                    router.push(data.url || '/login');
+                    router.push(data.redirectUrl || '/login');
                 }, 3000);
             } else {
-                alertError(data.msg);
+                alertError(data.message);
             }
         } catch (error) {
             alertError('提交失败');

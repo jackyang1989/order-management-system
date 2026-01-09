@@ -81,12 +81,17 @@ export function useSmsCode(options: UseSmsCodeOptions = {}): UseSmsCodeReturn {
         }
 
         try {
-            // 调用旧版 API - mobile/way/send_code
-            await fetch(`${BASE_URL}/mobile/way/send_code`, {
+            // 调用新版 RESTful API - /sms/send
+            const response = await fetch(`${BASE_URL}/sms/send`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ mobile }),
             });
+            const result = await response.json();
+            if (!result.success && result.message) {
+                alertError(result.message);
+                return;
+            }
         } catch (error) {
 
         }

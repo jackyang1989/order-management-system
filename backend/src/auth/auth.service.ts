@@ -205,4 +205,35 @@ export class AuthService {
       },
     };
   }
+
+  /**
+   * 通过短信验证码重置密码
+   */
+  async resetPasswordWithSms(mobile: string, code: string, newPassword: string) {
+    // 验证手机号是否存在
+    const user = await this.usersService.findByPhone(mobile);
+    if (!user) {
+      throw new BadRequestException('该手机号未注册');
+    }
+
+    // 验证验证码
+    const verifyResult = await this.smsService.verifyCode({
+      phone: mobile,
+      code,
+      type: SmsCodeType.RESET_PASSWORD,
+    });
+
+    if (!verifyResult.success) {
+      throw new BadRequestException(verifyResult.message || '验证码错误或已过期');
+    }
+
+    // 更新密码
+    await this.usersService.updatePassword(user.id, newPassword);
+
+    return {
+      success: true,
+      message: '密码重置成功',
+      redirectUrl: '/login',
+    };
+  }
 }
