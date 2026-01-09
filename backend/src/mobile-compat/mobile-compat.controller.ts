@@ -20,6 +20,7 @@ import { SmsService } from '../sms/sms.service';
 import { AuthService } from '../auth/auth.service';
 import { SmsCodeType } from '../sms/sms.entity';
 import { WithdrawalType } from '../withdrawals/withdrawal.entity';
+import { DingdanxiaService } from '../dingdanxia/dingdanxia.service';
 
 /**
  * Mobile 兼容层控制器
@@ -41,6 +42,7 @@ export class MobileCompatController {
     private bankCardsService: BankCardsService,
     private smsService: SmsService,
     private authService: AuthService,
+    private dingdanxiaService: DingdanxiaService,
   ) { }
 
   // ============ /mobile/my/* 用户中心 ============
@@ -343,6 +345,245 @@ export class MobileCompatController {
   }
 
   /**
+   * 商品链接核对
+   * 原版: /mobile/task/task_hedui
+   * 用于买手执行任务时核对商品链接是否正确
+   */
+  @Post('task/task_hedui')
+  @UseGuards(JwtAuthGuard)
+  async taskHedui(@Body() body: any) {
+    try {
+      const { input, id: goodsId } = body;
+      if (!input) {
+        return { code: 0, msg: '商品链接不能为空', data: null };
+      }
+      if (!goodsId) {
+        return { code: 0, msg: '商品ID不能为空', data: null };
+      }
+
+      // 使用订单侠API验证商品链接
+      const result = await this.dingdanxiaService.validateGoodsLink(input, goodsId);
+      if (result.valid) {
+        return { code: 1, msg: '核对成功，商品链接正确', data: { actualId: result.actualId } };
+      } else {
+        return { code: 0, msg: result.error || '商品链接核对失败', data: null };
+      }
+    } catch (error) {
+      return { code: 0, msg: error.message || '商品链接核对失败', data: null };
+    }
+  }
+
+  /**
+   * 商品口令核对
+   * 原版: /mobile/task/task_heduinum
+   * 用于买手执行任务时核对商品口令是否正确
+   */
+  @Post('task/task_heduinum')
+  @UseGuards(JwtAuthGuard)
+  async taskHeduinum(@Body() body: any, @Request() req) {
+    try {
+      const { inputnum, id: goodsId } = body;
+      if (!inputnum) {
+        return { code: 0, msg: '口令不能为空', data: null };
+      }
+      if (!goodsId) {
+        return { code: 0, msg: '商品ID不能为空', data: null };
+      }
+
+      // 获取任务信息以验证口令
+      const task = await this.tasksService.findOne(goodsId);
+      if (!task) {
+        return { code: 0, msg: '任务不存在', data: null };
+      }
+
+      // 核对口令：检查输入的口令是否包含任务设置的核对口令
+      if (task.checkPassword && inputnum.includes(task.checkPassword)) {
+        return { code: 1, msg: '核对成功，口令正确', data: null };
+      } else {
+        return { code: 0, msg: '口令核对失败，请检查输入是否正确', data: null };
+      }
+    } catch (error) {
+      return { code: 0, msg: error.message || '口令核对失败', data: null };
+    }
+  }
+
+  /**
+   * 提交第二步（收藏截图+商品链接）
+   * 原版: /mobile/task/task_two
+   * 用于买手执行任务时提交第二步信息
+   */
+  @Post('task/task_two')
+  @UseGuards(JwtAuthGuard)
+  async taskTwo(@Body() body: any, @Request() req) {
+    try {
+      const {
+        user_task_id: orderId,
+        keywordimg,
+        inputall,
+        inputallnum,
+        dizhi1,
+        dizhi2,
+        chatimg,
+      } = body;
+
+      if (!orderId) {
+        return { code: 0, msg: '订单ID不能为空', data: null };
+      }
+
+      // 获取订单信息
+      const order = await this.ordersService.findOne(orderId);
+      if (!order || order.userId !== req.user.userId) {
+        return { code: 0, msg: '订单不存在', data: null };
+      }
+
+      // 获取任务信息
+      const task = await this.tasksService.findOne(order.taskId);
+      if (!task) {
+        return { code: 0, msg: '任务不存在', data: null };
+      }
+
+      // 验证商品链接（如果任务有platformProductId配置）
+      if (task.platformProductId && dizhi1) {
+        const validation = await this.dingdanxiaService.validateGoodsLink(dizhi1, task.platformProductId);
+        if (!validation.valid) {
+          return { code: 0, msg: `主商品链接核对失败: ${validation.error}`, data: null };
+        }
+      }
+
+      // 提交步骤2数据
+      const result = await this.ordersService.submitStep(orderId, req.user.userId, {
+        step: 2,
+        screenshot: keywordimg,
+        inputData: {
+          goodsLink1: dizhi1,
+          goodsLink2: dizhi2,
+          chatImg: chatimg,
+          inputall: inputall,
+          inputallnum: inputallnum,
+        },
+      });
+
+      return { code: 1, msg: '提交成功', data: result };
+    } catch (error) {
+      return { code: 0, msg: error.message || '提交第二步失败', data: null };
+    }
+  }
+
+  /**
+   * 提交第三步（订单信息+截图）
+   * 原版: /mobile/task/task_three
+   * 用于买手执行任务时提交第三步信息
+   */
+  @Post('task/task_three')
+  @UseGuards(JwtAuthGuard)
+  async taskThree(@Body() body: any, @Request() req) {
+    try {
+      const {
+        user_task_id: orderId,
+        table_order_id: platformOrderNumber,
+        user_principal: paymentAmount,
+        order_detail_img: orderDetailImg,
+        threeradio,
+        province,
+        city,
+        block,
+        inputstreet,
+        adressperson,
+        addressphone,
+      } = body;
+
+      if (!orderId) {
+        return { code: 0, msg: '订单ID不能为空', data: null };
+      }
+
+      // 获取订单信息
+      const order = await this.ordersService.findOne(orderId);
+      if (!order || order.userId !== req.user.userId) {
+        return { code: 0, msg: '订单不存在', data: null };
+      }
+
+      // 如果修改了收货地址
+      if (threeradio === '2') {
+        const addressData = {
+          addressName: adressperson,
+          addressPhone: addressphone,
+          address: `${province} ${city} ${block} ${inputstreet}`,
+        };
+        await this.ordersService.updateAddress(orderId, req.user.userId, addressData);
+      }
+
+      // 更新平台订单号
+      if (platformOrderNumber) {
+        await this.ordersService.updatePlatformOrderNumber(orderId, req.user.userId, platformOrderNumber);
+      }
+
+      // 提交步骤3数据
+      const result = await this.ordersService.submitStep(orderId, req.user.userId, {
+        step: 3,
+        screenshot: orderDetailImg,
+        inputData: {
+          platformOrderNumber,
+          paymentAmount,
+        },
+      });
+
+      return { code: 1, msg: '提交成功', url: '/orders', data: result };
+    } catch (error) {
+      return { code: 0, msg: error.message || '提交第三步失败', data: null };
+    }
+  }
+
+  /**
+   * 验证付款金额
+   * 原版: /mobile/task/tasknumberchange
+   * 用于买手执行任务时验证输入的付款金额是否在允许范围内
+   */
+  @Post('task/tasknumberchange')
+  @UseGuards(JwtAuthGuard)
+  async taskNumberChange(@Body() body: any, @Request() req) {
+    try {
+      const { number, task_id: orderId } = body;
+      if (!orderId) {
+        return { code: 0, msg: '订单ID不能为空', data: null };
+      }
+
+      const paymentAmount = parseFloat(number);
+      if (isNaN(paymentAmount) || paymentAmount <= 0) {
+        return { code: 0, msg: '付款金额必须大于0', data: null };
+      }
+
+      // 获取订单信息
+      const order = await this.ordersService.findOne(orderId);
+      if (!order || order.userId !== req.user.userId) {
+        return { code: 0, msg: '订单不存在', data: null };
+      }
+
+      // 获取任务信息
+      const task = await this.tasksService.findOne(order.taskId);
+      if (!task) {
+        return { code: 0, msg: '任务不存在', data: null };
+      }
+
+      // 验证付款金额是否在允许范围内（商品价格的80%-120%）
+      const expectedPrice = parseFloat(String(task.goodsPrice)) || 0;
+      const minPrice = expectedPrice * 0.8;
+      const maxPrice = expectedPrice * 1.2;
+
+      if (paymentAmount < minPrice || paymentAmount > maxPrice) {
+        return {
+          code: 0,
+          msg: `付款金额必须在 ${minPrice.toFixed(2)} - ${maxPrice.toFixed(2)} 元之间`,
+          data: null,
+        };
+      }
+
+      return { code: 1, msg: '金额验证通过', data: null };
+    } catch (error) {
+      return { code: 0, msg: error.message || '金额验证失败', data: null };
+    }
+  }
+
+  /**
    * 删除/取消任务
    * 原版: /mobile/task/del_task
    */
@@ -355,6 +596,156 @@ export class MobileCompatController {
       return { code: 1, msg: '取消成功', data: null };
     } catch (error) {
       return { code: 0, msg: error.message || '取消任务失败', data: null };
+    }
+  }
+
+  /**
+   * 获取预售任务尾款信息
+   * 原版: /mobile/task/wk
+   * 用于买手查看预售订单尾款信息
+   */
+  @Post('task/wk')
+  @UseGuards(JwtAuthGuard)
+  async taskWk(@Body() body: any, @Request() req) {
+    try {
+      const orderId = body.id || body.orderId || body.order_id;
+      if (!orderId) {
+        return { code: 0, msg: '订单ID不能为空', data: null };
+      }
+
+      // 获取订单信息
+      const order = await this.ordersService.findOne(orderId);
+      if (!order || order.userId !== req.user.userId) {
+        return { code: 0, msg: '订单不存在', data: null };
+      }
+
+      // 获取任务信息
+      const task = await this.tasksService.findOne(order.taskId);
+      if (!task) {
+        return { code: 0, msg: '任务不存在', data: null };
+      }
+
+      // 返回预售订单信息
+      return {
+        code: 1,
+        msg: 'success',
+        data: {
+          list: {
+            id: order.id,
+            task_number: task.taskNumber || order.id,
+            terminal: task.terminal === 1 ? '本佣货返' : '本立佣货',
+            create_time: order.createdAt,
+            task_type: task.taskType,
+            ending_time: order.endingTime,
+            principal: order.userPrincipal,
+            seller_principal: order.sellerPrincipal || task.goodsPrice,
+            wwid: order.buynoAccount,
+            delivery: order.delivery,
+            delivery_num: order.deliveryNum,
+            ys_time: order.endingTime, // 尾款截止时间（使用订单截止时间）
+            is_presale: order.isPresale,
+            okYf: order.okYf,
+            okWk: order.okWk,
+            yfPrice: order.yfPrice,
+            wkPrice: order.wkPrice,
+          },
+          product: [{
+            name: task.title || order.productName,
+            text_praise: '', // 好评文字（后续商家配置）
+            img_praise: '', // 好评图片
+            video_praise: '', // 好评视频
+          }],
+        },
+      };
+    } catch (error) {
+      return { code: 0, msg: error.message || '获取预售订单信息失败', data: null };
+    }
+  }
+
+  /**
+   * 提交预售尾款
+   * 原版: /mobile/task/take_wk
+   * 用于买手提交预售订单尾款凭证
+   */
+  @Post('task/take_wk')
+  @UseGuards(JwtAuthGuard)
+  async taskTakeWk(@Body() body: any, @Request() req) {
+    try {
+      const {
+        task_id: orderId,
+        high_praise_img: screenshot,
+        wk_order_detail: orderNo,
+        wk_input_detail: paymentAmount,
+      } = body;
+
+      if (!orderId) {
+        return { code: 0, msg: '订单ID不能为空', data: null };
+      }
+
+      // 调用订单服务确认尾款
+      const order = await this.ordersService.confirmPresaleFinal(
+        orderId,
+        req.user.userId,
+        screenshot,
+      );
+
+      // 更新订单号和付款金额
+      if (orderNo) {
+        await this.ordersService.updatePlatformOrderNumber(orderId, req.user.userId, orderNo);
+      }
+
+      return {
+        code: 1,
+        msg: '尾款凭证提交成功，等待商家审核',
+        url: '/orders',
+        data: order,
+      };
+    } catch (error) {
+      return { code: 0, msg: error.message || '提交尾款凭证失败', data: null };
+    }
+  }
+
+  /**
+   * 验证尾款金额
+   * 原版: /mobile/task/wknumberchange
+   * 用于买手验证尾款金额是否在允许范围内
+   */
+  @Post('task/wknumberchange')
+  @UseGuards(JwtAuthGuard)
+  async wkNumberChange(@Body() body: any, @Request() req) {
+    try {
+      const { number, task_id: orderId } = body;
+      if (!orderId) {
+        return { code: 0, msg: '订单ID不能为空', data: null };
+      }
+
+      const paymentAmount = parseFloat(number);
+      if (isNaN(paymentAmount) || paymentAmount <= 0) {
+        return { code: 0, msg: '付款金额必须大于0', data: null };
+      }
+
+      // 获取订单信息
+      const order = await this.ordersService.findOne(orderId);
+      if (!order || order.userId !== req.user.userId) {
+        return { code: 0, msg: '订单不存在', data: null };
+      }
+
+      // 验证尾款金额是否在允许范围内（实际尾款金额的±100元）
+      const expectedWkPrice = parseFloat(String(order.wkPrice)) || 0;
+      const minPrice = expectedWkPrice - 100;
+      const maxPrice = expectedWkPrice + 100;
+
+      if (paymentAmount < minPrice || paymentAmount > maxPrice) {
+        return {
+          code: 0,
+          msg: `尾款金额必须在 ${minPrice.toFixed(2)} - ${maxPrice.toFixed(2)} 元之间`,
+          data: null,
+        };
+      }
+
+      return { code: 1, msg: '金额验证通过', data: null };
+    } catch (error) {
+      return { code: 0, msg: error.message || '金额验证失败', data: null };
     }
   }
 

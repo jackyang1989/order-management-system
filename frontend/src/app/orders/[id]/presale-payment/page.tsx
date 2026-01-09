@@ -158,7 +158,7 @@ export default function PresalePaymentPage({ params }: { params: Promise<{ id: s
         setInputNumber(formattedNumber);
         try {
             const token = getToken();
-            const response = await fetch(`${BASE_URL}/buy/task/wknumberchange`, {
+            const response = await fetch(`${BASE_URL}/mobile/task/wknumberchange`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

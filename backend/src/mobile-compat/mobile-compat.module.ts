@@ -9,6 +9,7 @@ import { BuyerAccountsModule } from '../buyer-accounts/buyer-accounts.module';
 import { BankCardsModule } from '../bank-cards/bank-cards.module';
 import { SmsModule } from '../sms/sms.module';
 import { AuthModule } from '../auth/auth.module';
+import { DingdanxiaModule } from '../dingdanxia/dingdanxia.module';
 
 /**
  * Mobile 兼容层模块
@@ -27,6 +28,7 @@ import { AuthModule } from '../auth/auth.module';
     BankCardsModule,
     SmsModule,
     AuthModule,
+    DingdanxiaModule,
   ],
   controllers: [MobileCompatController],
 })

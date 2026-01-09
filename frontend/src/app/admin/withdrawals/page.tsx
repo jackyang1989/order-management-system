@@ -195,7 +195,7 @@ export default function AdminWithdrawalsPage() {
             title: '状态',
             className: 'w-[100px] text-center',
             render: (row) => {
-                const conf = statusLabels[row.status] || statusLabels.PENDING;
+                const conf = statusLabels[String(row.status)] || statusLabels['0'];
                 return <Badge variant="soft" color={conf.color}>{conf.text}</Badge>;
             },
         },
@@ -306,10 +306,10 @@ export default function AdminWithdrawalsPage() {
                     rowKey={(r) => r.id}
                     loading={loading}
                     emptyText="暂无提现记录"
-                    selectable={filter === 'PENDING'}
+                    selectable={filter === '0'}
                     selectedKeys={selectedRowKeys}
                     onRowSelect={setSelectedRowKeys}
-                    getRowDisabled={(row) => row.status !== 'PENDING'}
+                    getRowDisabled={(row) => String(row.status) !== '0'}
                 />
             </Card>
 
