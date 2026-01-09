@@ -8,6 +8,7 @@ import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
 import { Select } from '../../../components/ui/select';
+import { Input } from '../../../components/ui/input';
 import { Table, Column } from '../../../components/ui/table';
 import { Modal } from '../../../components/ui/modal';
 
@@ -55,6 +56,8 @@ export default function AdminWithdrawalsPage() {
 
     // Batch modal
     const [batchModal, setBatchModal] = useState<{ action: 'approve' | 'reject'; count: number } | null>(null);
+    const [exporting, setExporting] = useState(false);
+    const [keyword, setKeyword] = useState('');
 
     useEffect(() => {
         loadWithdrawals();
@@ -135,6 +138,35 @@ export default function AdminWithdrawalsPage() {
             return;
         }
         setBatchModal({ action: approved ? 'approve' : 'reject', count: selectedRowKeys.length });
+    };
+
+    const handleExport = async () => {
+        const token = localStorage.getItem('adminToken');
+        setExporting(true);
+        try {
+            let url = `${BASE_URL}/excel/export/withdrawals?status=${filter}`;
+            if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const blob = await res.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = `withdrawals_${Date.now()}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                toastSuccess('导出成功');
+            } else {
+                toastError('导出失败');
+            }
+        } catch (e) {
+            toastError('导出失败');
+        } finally {
+            setExporting(false);
+        }
     };
 
     const submitBatch = async () => {
@@ -284,6 +316,13 @@ export default function AdminWithdrawalsPage() {
             {/* 筛选栏 */}
             <Card className="bg-white">
                 <div className="flex flex-wrap items-center gap-3">
+                    <Input
+                        placeholder="搜索用户名/手机号..."
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && loadWithdrawals()}
+                        className="w-48"
+                    />
                     <Select
                         value={filter}
                         onChange={setFilter}
@@ -297,7 +336,14 @@ export default function AdminWithdrawalsPage() {
                         className="w-32"
                     />
                     <Button variant="secondary" onClick={loadWithdrawals} className="flex items-center gap-1">
-                        🔄 刷新
+                        刷新
+                    </Button>
+                    <Button
+                        onClick={handleExport}
+                        loading={exporting}
+                        variant="success"
+                    >
+                        导出Excel
                     </Button>
                     {filter === '0' && selectedRowKeys.length > 0 && (
                         <>
