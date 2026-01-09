@@ -53,10 +53,10 @@ function ImageUploader({
         <div className="space-y-2">
             <div className="flex items-center justify-between">
                 <label className="text-xs text-slate-500">
-                    {config.label} {config.required && <span className="text-red-500">*</span>}
+                    {config.label} {config.required && <span className="text-danger-400">*</span>}
                 </label>
                 {config.example && (
-                    <button type="button" onClick={() => setShowExample(true)} className="text-xs text-blue-500 hover:underline">
+                    <button type="button" onClick={() => setShowExample(true)} className="text-xs text-primary-500 hover:underline">
                         查看示例
                     </button>
                 )}
@@ -68,13 +68,13 @@ function ImageUploader({
                         <button
                             type="button"
                             onClick={() => onChange('')}
-                            className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white"
+                            className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-danger-400 text-xs text-white"
                         >
                             ×
                         </button>
                     </div>
                 ) : (
-                    <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400 hover:border-blue-400 hover:text-blue-500">
+                    <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400 hover:border-blue-400 hover:text-primary-500">
                         {uploading ? <Spinner size="sm" /> : (<><span className="text-2xl">+</span><span className="text-xs">上传图片</span></>)}
                         <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
                     </label>
@@ -88,7 +88,7 @@ function ImageUploader({
                             示例图片加载中...
                         </div>
                         <div className="mt-3 text-center">
-                            <button onClick={() => setShowExample(false)} className="rounded-lg bg-blue-500 px-4 py-2 text-sm text-white">关闭</button>
+                            <button onClick={() => setShowExample(false)} className="rounded-lg bg-primary-500 px-4 py-2 text-sm text-white">关闭</button>
                         </div>
                     </div>
                 </div>
@@ -278,7 +278,7 @@ export default function BindAccountPage() {
 
                 {/* 动态温馨提示 */}
                 <div className="rounded-lg bg-amber-50 p-3">
-                    <div className="mb-2 flex items-center gap-1 text-sm font-medium text-amber-600">
+                    <div className="mb-2 flex items-center gap-1 text-sm font-medium text-warning-500">
                         ⚠️ 温馨提示 - {platformConfig.name}
                     </div>
                     <div className="space-y-1 text-xs text-slate-600 leading-relaxed">
@@ -293,7 +293,7 @@ export default function BindAccountPage() {
                     <form onSubmit={handleSubmit} className="space-y-5">
                         {/* 1. 平台选择 */}
                         <div>
-                            <label className="mb-1 block text-xs text-slate-500">选择平台 <span className="text-red-500">*</span></label>
+                            <label className="mb-1 block text-xs text-slate-500">选择平台 <span className="text-danger-400">*</span></label>
                             <select
                                 className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
                                 value={selectedPlatformId}
@@ -308,7 +308,7 @@ export default function BindAccountPage() {
                         {/* 2. 账号输入 - 动态Label */}
                         <div>
                             <label className="mb-1 block text-xs text-slate-500">
-                                {platformConfig.accountLabel} <span className="text-red-500">*</span>
+                                {platformConfig.accountLabel} <span className="text-danger-400">*</span>
                             </label>
                             <input
                                 className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
@@ -321,7 +321,7 @@ export default function BindAccountPage() {
                         {/* 3-4. 常用登录地 - 条件显示 */}
                         {platformConfig.hasLoginLocation && (
                             <div>
-                                <label className="mb-1 block text-xs text-slate-500">常用登录地 <span className="text-red-500">*</span></label>
+                                <label className="mb-1 block text-xs text-slate-500">常用登录地 <span className="text-danger-400">*</span></label>
                                 <div className="grid grid-cols-2 gap-2">
                                     <select
                                         className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
@@ -353,7 +353,7 @@ export default function BindAccountPage() {
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-xs text-slate-500">收货人姓名 <span className="text-red-500">*</span></label>
+                                    <label className="mb-1 block text-xs text-slate-500">收货人姓名 <span className="text-danger-400">*</span></label>
                                     <input
                                         className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
                                         placeholder="请输入收货人姓名"
@@ -363,7 +363,7 @@ export default function BindAccountPage() {
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-xs text-slate-500">收货地址 <span className="text-red-500">*</span></label>
+                                    <label className="mb-1 block text-xs text-slate-500">收货地址 <span className="text-danger-400">*</span></label>
                                     <div className="grid grid-cols-3 gap-2">
                                         <select className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-sm text-slate-800" value={form.province}
                                             onChange={e => { updateForm('province', e.target.value); updateForm('city', ''); updateForm('district', ''); }}>
@@ -384,7 +384,7 @@ export default function BindAccountPage() {
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-xs text-slate-500">详细地址 <span className="text-red-500">*</span></label>
+                                    <label className="mb-1 block text-xs text-slate-500">详细地址 <span className="text-danger-400">*</span></label>
                                     <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
                                         placeholder="请输入具体的街道、门牌号等信息" value={form.fullAddress} onChange={e => updateForm('fullAddress', e.target.value)} />
                                 </div>
@@ -395,20 +395,20 @@ export default function BindAccountPage() {
                         {platformConfig.hasSmsVerification && (
                             <>
                                 <div>
-                                    <label className="mb-1 block text-xs text-slate-500">手机号码 <span className="text-red-500">*</span></label>
+                                    <label className="mb-1 block text-xs text-slate-500">手机号码 <span className="text-danger-400">*</span></label>
                                     <div className="flex gap-2">
                                         <input className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
                                             placeholder="请输入11位手机号" maxLength={11} value={form.buyerPhone}
                                             onChange={e => updateForm('buyerPhone', e.target.value.replace(/\D/g, ''))} />
                                         <button type="button" onClick={handleSendSms} disabled={smsCountdown > 0}
-                                            className={`whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-white ${smsCountdown > 0 ? 'bg-slate-400' : 'bg-blue-500'}`}>
+                                            className={`whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-white ${smsCountdown > 0 ? 'bg-slate-400' : 'bg-primary-500'}`}>
                                             {smsCountdown > 0 ? `${smsCountdown}s` : '发送验证码'}
                                         </button>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-xs text-slate-500">验证码 <span className="text-red-500">*</span></label>
+                                    <label className="mb-1 block text-xs text-slate-500">验证码 <span className="text-danger-400">*</span></label>
                                     <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
                                         placeholder="请输入短信验证码" maxLength={6} value={form.smsCode}
                                         onChange={e => updateForm('smsCode', e.target.value.replace(/\D/g, ''))} />
@@ -419,7 +419,7 @@ export default function BindAccountPage() {
                         {/* 实名认证姓名 - 条件显示 */}
                         {platformConfig.hasRealName && (
                             <div>
-                                <label className="mb-1 block text-xs text-slate-500">实名认证姓名 <span className="text-red-500">*</span></label>
+                                <label className="mb-1 block text-xs text-slate-500">实名认证姓名 <span className="text-danger-400">*</span></label>
                                 <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
                                     placeholder="请输入实名认证的姓名" value={form.realName} onChange={e => updateForm('realName', e.target.value)} />
                             </div>
@@ -448,7 +448,7 @@ export default function BindAccountPage() {
                         )}
 
                         <Button type="submit" loading={submitting} disabled={submitting}
-                            className="mt-2 w-full bg-blue-500 py-6 text-base font-medium hover:bg-blue-600">
+                            className="mt-2 w-full bg-primary-500 py-6 text-base font-medium hover:bg-primary-600">
                             提交申请
                         </Button>
                     </form>

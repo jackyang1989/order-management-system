@@ -79,16 +79,18 @@ export default function AdminCommissionPage() {
 
     return (
         <div className="space-y-4">
-            <Card className="flex items-center justify-between bg-white">
-                <span className="text-base font-medium">佣金比例设置</span>
-                <Button onClick={() => setEditing({})}>+ 新增比例</Button>
-            </Card>
+            <Card
+                title="佣金比例设置"
+                actions={<Button onClick={() => setEditing({})}>+ 新增比例</Button>}
+                noPadding
+                className="bg-white"
+            />
 
             <Card className="overflow-hidden bg-white p-0">
                 <div className="overflow-x-auto">
                     <table className="min-w-[600px] w-full border-collapse">
                         <thead>
-                            <tr className="border-b border-slate-100 bg-slate-50">
+                            <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
                                 <th className="px-4 py-3.5 text-left text-sm font-medium">商品限额 (元)</th>
                                 <th className="px-4 py-3.5 text-left text-sm font-medium">收取商家银锭 (个)</th>
                                 <th className="px-4 py-3.5 text-left text-sm font-medium">发放买手银锭 (个)</th>
@@ -97,20 +99,20 @@ export default function AdminCommissionPage() {
                         </thead>
                         <tbody>
                             {rates.map(rate => (
-                                <tr key={rate.id} className="border-b border-slate-100">
+                                <tr key={rate.id} className="border-b border-[#f3f4f6]">
                                     <td className="px-4 py-3.5">{Number(rate.maxGoodsPrice).toFixed(2)}</td>
                                     <td className="px-4 py-3.5">{Number(rate.merchantReward).toFixed(2)}</td>
                                     <td className="px-4 py-3.5">{Number(rate.userReward).toFixed(2)}</td>
                                     <td className="px-4 py-3.5 text-center">
                                         <button
                                             onClick={() => setEditing(rate)}
-                                            className="mr-2 cursor-pointer border-none bg-transparent text-blue-600 hover:text-blue-700"
+                                            className="mr-2 cursor-pointer border-none bg-transparent text-primary-600 hover:text-blue-700"
                                         >
                                             编辑
                                         </button>
                                         <button
                                             onClick={() => handleDelete(rate.id)}
-                                            className="cursor-pointer border-none bg-transparent text-red-500 hover:text-red-600"
+                                            className="cursor-pointer border-none bg-transparent text-danger-400 hover:text-danger-500"
                                         >
                                             删除
                                         </button>
@@ -149,7 +151,7 @@ export default function AdminCommissionPage() {
                             value={String(editing.userReward || '')}
                             onChange={e => setEditing({ ...editing, userReward: parseFloat(e.target.value) })}
                         />
-                        <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                        <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                             <Button variant="secondary" onClick={() => setEditing(null)}>取消</Button>
                             <Button onClick={() => handleSave(editing)}>保存</Button>
                         </div>

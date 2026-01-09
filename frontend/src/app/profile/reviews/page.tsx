@@ -47,10 +47,10 @@ function ReviewsContent() {
         const label = ReviewTaskStatusLabels[state] || { text: '未知', color: '#6b7280' };
         // Map status to tailwind color classes
         const colorMap: Record<string, string> = {
-            'pending': 'bg-amber-100 text-amber-600',
-            'submitted': 'bg-blue-100 text-blue-600',
-            'rejected': 'bg-red-100 text-red-600',
-            'approved': 'bg-green-100 text-green-600',
+            'pending': 'bg-amber-100 text-warning-500',
+            'submitted': 'bg-blue-100 text-primary-600',
+            'rejected': 'bg-red-100 text-danger-500',
+            'approved': 'bg-green-100 text-success-400',
         };
         return <Badge variant="soft" className={colorMap[state] || 'bg-slate-100 text-slate-600'}>{label.text}</Badge>;
     };
@@ -99,15 +99,15 @@ function ReviewsContent() {
                                         </div>
                                         <div className="mt-1 flex items-center justify-between text-xs text-slate-400">
                                             <span>订单号: {task.platformOrderNumber}</span>
-                                            <span className="font-bold text-amber-500">奖励: {task.userMoney} 银锭</span>
+                                            <span className="font-bold text-warning-400">奖励: {task.userMoney} 银锭</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-4 py-3">
                                     <span className="text-[10px] text-slate-400">发布日期: {new Date(task.createdAt).toLocaleDateString()}</span>
-                                    {task.state === ReviewTaskStatus.APPROVED && <Button size="sm" className="bg-blue-500 hover:bg-blue-600 h-8" onClick={() => router.push(`/orders/reviews/${task.id}`)}>去评价</Button>}
-                                    {task.state === ReviewTaskStatus.REJECTED && <Button size="sm" variant="ghost" className="h-8 border border-red-200 text-red-500 hover:bg-red-50" onClick={() => router.push(`/orders/reviews/${task.id}`)}>查看原因</Button>}
-                                    {(task.state === ReviewTaskStatus.UPLOADED || task.state === ReviewTaskStatus.COMPLETED) && <button className="text-xs text-blue-500" onClick={() => router.push(`/orders/reviews/${task.id}`)}>查看详情</button>}
+                                    {task.state === ReviewTaskStatus.APPROVED && <Button size="sm" className="bg-primary-500 hover:bg-primary-600 h-8" onClick={() => router.push(`/orders/reviews/${task.id}`)}>去评价</Button>}
+                                    {task.state === ReviewTaskStatus.REJECTED && <Button size="sm" variant="ghost" className="h-8 border border-red-200 text-danger-400 hover:bg-red-50" onClick={() => router.push(`/orders/reviews/${task.id}`)}>查看原因</Button>}
+                                    {(task.state === ReviewTaskStatus.UPLOADED || task.state === ReviewTaskStatus.COMPLETED) && <button className="text-xs text-primary-500" onClick={() => router.push(`/orders/reviews/${task.id}`)}>查看详情</button>}
                                 </div>
                             </Card>
                         ))

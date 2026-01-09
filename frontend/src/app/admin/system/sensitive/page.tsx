@@ -193,10 +193,10 @@ export default function SensitiveWordsPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-xl font-semibold">敏感词管理</h2>
-                    <p className="mt-1 text-sm text-slate-500">管理系统敏感词过滤规则</p>
+                    <p className="mt-1 text-sm text-[#6b7280]">管理系统敏感词过滤规则</p>
                 </div>
                 <div className="flex gap-3">
-                    <Button className="bg-green-600 hover:bg-green-700" onClick={() => setShowBatchModal(true)}>
+                    <Button className="bg-success-400 hover:bg-success-500" onClick={() => setShowBatchModal(true)}>
                         批量导入
                     </Button>
                     <Button onClick={() => {
@@ -231,32 +231,32 @@ export default function SensitiveWordsPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-4 gap-5">
                 <Card className="bg-white text-center">
-                    <div className="text-3xl font-bold text-blue-600">{words.length}</div>
-                    <div className="mt-1 text-sm text-slate-500">敏感词总数</div>
+                    <div className="text-3xl font-bold text-primary-600">{words.length}</div>
+                    <div className="mt-1 text-sm text-[#6b7280]">敏感词总数</div>
                 </Card>
                 <Card className="bg-white text-center">
-                    <div className="text-3xl font-bold text-green-600">{words.filter(w => w.isActive).length}</div>
-                    <div className="mt-1 text-sm text-slate-500">启用中</div>
+                    <div className="text-3xl font-bold text-success-400">{words.filter(w => w.isActive).length}</div>
+                    <div className="mt-1 text-sm text-[#6b7280]">启用中</div>
                 </Card>
                 <Card className="bg-white text-center">
-                    <div className="text-3xl font-bold text-amber-500">{words.filter(w => !w.isActive).length}</div>
-                    <div className="mt-1 text-sm text-slate-500">已禁用</div>
+                    <div className="text-3xl font-bold text-warning-400">{words.filter(w => !w.isActive).length}</div>
+                    <div className="mt-1 text-sm text-[#6b7280]">已禁用</div>
                 </Card>
                 <Card className="bg-white text-center">
-                    <div className="text-3xl font-bold text-red-500">{words.filter(w => w.level === 3).length}</div>
-                    <div className="mt-1 text-sm text-slate-500">高危词汇</div>
+                    <div className="text-3xl font-bold text-danger-400">{words.filter(w => w.level === 3).length}</div>
+                    <div className="mt-1 text-sm text-[#6b7280]">高危词汇</div>
                 </Card>
             </div>
 
             {/* Word List */}
             <Card className="overflow-hidden bg-white">
-                <div className="border-b border-slate-100 px-6 py-4 text-sm font-medium">
+                <div className="border-b border-[#f3f4f6] px-6 py-4 text-sm font-medium">
                     敏感词列表 ({filteredWords.length})
                 </div>
                 {loading ? (
-                    <div className="py-16 text-center text-slate-400">加载中...</div>
+                    <div className="py-16 text-center text-[#9ca3af]">加载中...</div>
                 ) : filteredWords.length === 0 ? (
-                    <div className="py-16 text-center text-slate-400">
+                    <div className="py-16 text-center text-[#9ca3af]">
                         <div className="mb-4 text-5xl">🔍</div>
                         <div>暂无敏感词</div>
                     </div>
@@ -264,7 +264,7 @@ export default function SensitiveWordsPage() {
                     <div className="overflow-x-auto">
                         <table className="min-w-[800px] w-full border-collapse">
                             <thead>
-                                <tr className="border-b border-slate-100 bg-slate-50">
+                                <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
                                     <th className="px-4 py-4 text-left text-sm font-medium">敏感词</th>
                                     <th className="px-4 py-4 text-left text-sm font-medium">分类</th>
                                     <th className="px-4 py-4 text-left text-sm font-medium">风险等级</th>
@@ -275,7 +275,7 @@ export default function SensitiveWordsPage() {
                             </thead>
                             <tbody>
                                 {filteredWords.map(word => (
-                                    <tr key={word.id} className="border-b border-slate-100">
+                                    <tr key={word.id} className="border-b border-[#f3f4f6]">
                                         <td className="px-4 py-4 font-medium">{word.word}</td>
                                         <td className="px-4 py-4">{getCategoryLabel(word.category)}</td>
                                         <td className="px-4 py-4">{getLevelBadge(word.level)}</td>
@@ -284,7 +284,7 @@ export default function SensitiveWordsPage() {
                                                 {word.isActive ? '启用' : '禁用'}
                                             </Badge>
                                         </td>
-                                        <td className="px-4 py-4 text-xs text-slate-500">
+                                        <td className="px-4 py-4 text-xs text-[#6b7280]">
                                             {new Date(word.createdAt).toLocaleString('zh-CN')}
                                         </td>
                                         <td className="px-4 py-4 text-center">
@@ -293,8 +293,8 @@ export default function SensitiveWordsPage() {
                                                     size="sm"
                                                     className={cn(
                                                         word.isActive
-                                                            ? 'border border-amber-400 bg-amber-50 text-amber-600 hover:bg-amber-100'
-                                                            : 'border border-green-400 bg-green-50 text-green-600 hover:bg-green-100'
+                                                            ? 'border border-amber-400 bg-amber-50 text-warning-500 hover:bg-amber-100'
+                                                            : 'border border-green-400 bg-green-50 text-success-400 hover:bg-green-100'
                                                     )}
                                                     onClick={() => handleToggleActive(word)}
                                                 >
@@ -330,7 +330,7 @@ export default function SensitiveWordsPage() {
                         onChange={e => setFormData({ ...formData, word: e.target.value })}
                     />
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700">分类</label>
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">分类</label>
                         <Select
                             value={formData.category}
                             onChange={v => setFormData({ ...formData, category: v })}
@@ -338,7 +338,7 @@ export default function SensitiveWordsPage() {
                         />
                     </div>
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700">风险等级</label>
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">风险等级</label>
                         <Select
                             value={String(formData.level)}
                             onChange={v => setFormData({ ...formData, level: Number(v) })}
@@ -355,12 +355,12 @@ export default function SensitiveWordsPage() {
                                 type="checkbox"
                                 checked={formData.isActive}
                                 onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
-                                className="h-4 w-4 rounded border-slate-300"
+                                className="h-4 w-4 rounded border-[#d1d5db]"
                             />
                             <span className="text-sm">启用该敏感词</span>
                         </label>
                     </div>
-                    <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                    <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                         <Button variant="secondary" onClick={() => setShowModal(false)}>取消</Button>
                         <Button onClick={handleSubmit}>保存</Button>
                     </div>
@@ -376,20 +376,20 @@ export default function SensitiveWordsPage() {
             >
                 <div className="space-y-4">
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">
                             敏感词列表（每行一个）
                         </label>
                         <textarea
-                            className="w-full resize-y rounded-lg border border-slate-300 px-3 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            className="w-full resize-y rounded-md border border-[#d1d5db] px-3 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                             rows={10}
                             placeholder="请输入敏感词，每行一个..."
                             value={batchInput}
                             onChange={e => setBatchInput(e.target.value)}
                         />
                     </div>
-                    <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                    <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                         <Button variant="secondary" onClick={() => setShowBatchModal(false)}>取消</Button>
-                        <Button className="bg-green-600 hover:bg-green-700" onClick={handleBatchImport}>导入</Button>
+                        <Button className="bg-success-400 hover:bg-success-500" onClick={handleBatchImport}>导入</Button>
                     </div>
                 </div>
             </Modal>

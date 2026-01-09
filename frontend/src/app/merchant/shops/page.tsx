@@ -41,7 +41,7 @@ export default function MerchantShopsPage() {
             {/* Content */}
             <Card className="bg-white p-6">
                 {loading ? (
-                    <div className="text-[#f9fafb]0">加载中...</div>
+                    <div className="text-[#6b7280]">加载中...</div>
                 ) : shops.length === 0 ? (
                     <div className="py-10 text-center text-[#9ca3af]">暂无绑定店铺</div>
                 ) : (
@@ -68,11 +68,11 @@ export default function MerchantShopsPage() {
                                             <td className="px-4 py-4 text-sm">{shop.contactName}</td>
                                             <td className="px-4 py-4">
                                                 <Badge variant="soft" color={status.color}>{status.text}</Badge>
-                                                {shop.auditRemark && <div className="mt-1 text-xs text-red-500">{shop.auditRemark}</div>}
+                                                {shop.auditRemark && <div className="mt-1 text-xs text-danger-400">{shop.auditRemark}</div>}
                                             </td>
                                             <td className="px-4 py-4">
-                                                <button onClick={() => router.push(`/merchant/shops/edit/${shop.id}`)} className="mr-3 text-sm text-blue-500 hover:underline">修改</button>
-                                                <button onClick={() => handleDelete(shop.id)} className="text-sm text-red-500 hover:underline">删除</button>
+                                                <button onClick={() => router.push(`/merchant/shops/edit/${shop.id}`)} className="mr-3 text-sm text-primary-500 hover:underline">修改</button>
+                                                <button onClick={() => handleDelete(shop.id)} className="text-sm text-danger-400 hover:underline">删除</button>
                                             </td>
                                         </tr>
                                     );

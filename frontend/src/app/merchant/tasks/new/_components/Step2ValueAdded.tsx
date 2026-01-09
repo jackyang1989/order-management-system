@@ -85,9 +85,9 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                         <div key={opt.type} onClick={() => handlePraiseChange(opt.type as any)} className={cn('cursor-pointer rounded-md border p-4 transition-all', data.praiseType === opt.type ? 'border-primary-500 bg-primary-50' : 'border-[#e5e7eb] bg-white')}>
                             <div className="mb-1 flex items-center justify-between">
                                 <div className="font-medium">{opt.label}</div>
-                                {opt.fee > 0 && <span className="text-xs font-bold text-red-600">+{opt.fee}元</span>}
+                                {opt.fee > 0 && <span className="text-xs font-bold text-danger-500">+{opt.fee}元</span>}
                             </div>
-                            <div className="text-xs text-[#f9fafb]0">{opt.desc}</div>
+                            <div className="text-xs text-[#6b7280]">{opt.desc}</div>
                         </div>
                     ))}
                 </div>
@@ -98,7 +98,7 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                         <div className="mb-3 text-[13px] text-[#374151]">请填写 <strong>{data.count}</strong> 条文字好评内容：</div>
                         {data.praiseList.map((txt, idx) => (
                             <div key={idx} className="mb-3 flex gap-3">
-                                <span className="w-10 pt-2 text-right text-[13px] text-[#f9fafb]0">#{idx + 1}</span>
+                                <span className="w-10 pt-2 text-right text-[13px] text-[#6b7280]">#{idx + 1}</span>
                                 <input type="text" value={txt} onChange={e => handlePraiseContentChange(idx, e.target.value)} placeholder={`第 ${idx + 1} 单的好评内容`} className="flex-1 rounded-md border border-[#d1d5db] px-2 py-2 text-[13px]" />
                             </div>
                         ))}
@@ -117,7 +117,7 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                                     {(data.praiseImgList?.[idx] || []).map((imgUrl, imgIdx) => (
                                         <div key={imgIdx} className="relative h-[60px] w-[60px]">
                                             <img src={imgUrl} alt={`图片${imgIdx + 1}`} className="h-full w-full rounded border border-[#d1d5db] object-cover" />
-                                            <button onClick={() => handleRemoveImage(idx, imgIdx)} className="absolute -right-1.5 -top-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-red-500 text-xs text-white">×</button>
+                                            <button onClick={() => handleRemoveImage(idx, imgIdx)} className="absolute -right-1.5 -top-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-danger-400 text-xs text-white">×</button>
                                         </div>
                                     ))}
                                     {(data.praiseImgList?.[idx]?.length || 0) < 5 && (
@@ -140,12 +140,12 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                                 <textarea value={data.praiseList[idx] || ''} onChange={e => handlePraiseContentChange(idx, e.target.value)} placeholder={`请输入第 ${idx + 1} 单的好评文字内容`} rows={2} className="mb-3 w-full resize-y rounded-md border border-[#d1d5db] p-2 text-[13px]" />
                                 {/* Video */}
                                 <div className="mb-3">
-                                    <div className="mb-1.5 text-xs text-[#f9fafb]0">视频（必传）：</div>
+                                    <div className="mb-1.5 text-xs text-[#6b7280]">视频（必传）：</div>
                                     <div className="flex items-center gap-2">
                                         {data.praiseVideoList?.[idx] ? (
                                             <div className="relative">
                                                 <video src={data.praiseVideoList[idx]} className="h-20 w-[120px] rounded border border-[#d1d5db] object-cover" />
-                                                <button onClick={() => handleRemoveVideo(idx)} className="absolute -right-1.5 -top-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-red-500 text-xs text-white">×</button>
+                                                <button onClick={() => handleRemoveVideo(idx)} className="absolute -right-1.5 -top-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-danger-400 text-xs text-white">×</button>
                                             </div>
                                         ) : (
                                             <label className="flex h-20 w-[120px] cursor-pointer flex-col items-center justify-center gap-1 rounded border border-dashed border-[#d1d5db] bg-[#f9fafb] text-xs text-[#9ca3af]">
@@ -158,12 +158,12 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                                 </div>
                                 {/* Images */}
                                 <div>
-                                    <div className="mb-1.5 text-xs text-[#f9fafb]0">图片（选填，最多5张）：</div>
+                                    <div className="mb-1.5 text-xs text-[#6b7280]">图片（选填，最多5张）：</div>
                                     <div className="flex flex-wrap items-center gap-2">
                                         {(data.praiseImgList?.[idx] || []).map((imgUrl, imgIdx) => (
                                             <div key={imgIdx} className="relative h-[60px] w-[60px]">
                                                 <img src={imgUrl} alt={`图片${imgIdx + 1}`} className="h-full w-full rounded border border-[#d1d5db] object-cover" />
-                                                <button onClick={() => handleRemoveImage(idx, imgIdx)} className="absolute -right-1.5 -top-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-red-500 text-xs text-white">×</button>
+                                                <button onClick={() => handleRemoveImage(idx, imgIdx)} className="absolute -right-1.5 -top-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-danger-400 text-xs text-white">×</button>
                                             </div>
                                         ))}
                                         {(data.praiseImgList?.[idx]?.length || 0) < 5 && (
@@ -189,9 +189,9 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                         {data.isPasswordEnabled && (
                             <div className="mt-2">
                                 <input type="text" value={data.checkPassword || ''} onChange={e => onChange({ checkPassword: e.target.value })} placeholder="请输入4-10个字的核对口令" minLength={4} maxLength={10} className={cn('w-[300px] rounded border px-2 py-1.5 text-sm', data.checkPassword && (data.checkPassword.length < 4 || data.checkPassword.length > 10) ? 'border-red-500' : 'border-[#e5e7eb]')} />
-                                <div className="mt-1 text-xs text-[#f9fafb]0">口令需为4-10个详情页文字，买手做任务时需在详情页找到并输入完整口令。</div>
+                                <div className="mt-1 text-xs text-[#6b7280]">口令需为4-10个详情页文字，买手做任务时需在详情页找到并输入完整口令。</div>
                                 {data.checkPassword && (data.checkPassword.length < 4 || data.checkPassword.length > 10) && (
-                                    <div className="mt-1 text-xs text-red-500">口令需为4-10个字符</div>
+                                    <div className="mt-1 text-xs text-danger-400">口令需为4-10个字符</div>
                                 )}
                             </div>
                         )}

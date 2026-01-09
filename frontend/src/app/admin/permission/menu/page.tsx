@@ -139,13 +139,13 @@ export default function MenuPermissionPage() {
     const renderMenuRow = (menu: MenuItem, level: number = 0): React.ReactNode => {
         return (
             <React.Fragment key={menu.id}>
-                <tr className="border-b border-slate-100">
+                <tr className="border-b border-[#f3f4f6]">
                     <td className={cn('py-4 pr-4', indentClass[level] ?? 'pl-36')}>
                         <span className="mr-2">{menu.icon}</span>
                         {menu.name}
                     </td>
-                    <td className="px-4 py-4 text-xs text-slate-500">{menu.path}</td>
-                    <td className="px-4 py-4 text-xs text-slate-400">{menu.permission}</td>
+                    <td className="px-4 py-4 text-xs text-[#6b7280]">{menu.path}</td>
+                    <td className="px-4 py-4 text-xs text-[#9ca3af]">{menu.permission}</td>
                     <td className="px-4 py-4">{menu.sort}</td>
                     <td className="px-4 py-4">
                         <Badge variant="soft" color={menu.isActive ? 'green' : 'slate'}>
@@ -172,7 +172,7 @@ export default function MenuPermissionPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-xl font-semibold">菜单管理</h2>
-                    <p className="mt-1 text-sm text-slate-500">管理后台菜单结构和权限配置</p>
+                    <p className="mt-1 text-sm text-[#6b7280]">管理后台菜单结构和权限配置</p>
                 </div>
                 <Button onClick={() => {
                     setEditingMenu(null);
@@ -186,9 +186,9 @@ export default function MenuPermissionPage() {
             {/* Menu List */}
             <Card className="overflow-hidden bg-white">
                 {loading ? (
-                    <div className="py-16 text-center text-slate-400">加载中...</div>
+                    <div className="py-16 text-center text-[#9ca3af]">加载中...</div>
                 ) : menus.length === 0 ? (
-                    <div className="py-16 text-center text-slate-400">
+                    <div className="py-16 text-center text-[#9ca3af]">
                         <div className="mb-4 text-5xl">📁</div>
                         <div>暂无菜单配置</div>
                     </div>
@@ -196,7 +196,7 @@ export default function MenuPermissionPage() {
                     <div className="overflow-x-auto">
                         <table className="min-w-[900px] w-full border-collapse">
                             <thead>
-                                <tr className="border-b border-slate-100 bg-slate-50">
+                                <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
                                     <th className="px-4 py-4 text-left text-sm font-medium">菜单名称</th>
                                     <th className="px-4 py-4 text-left text-sm font-medium">路径</th>
                                     <th className="px-4 py-4 text-left text-sm font-medium">权限标识</th>
@@ -224,7 +224,7 @@ export default function MenuPermissionPage() {
                             onChange={e => setFormData({ ...formData, name: e.target.value })}
                         />
                         <div>
-                            <label className="mb-1.5 block text-sm font-medium text-slate-700">图标</label>
+                            <label className="mb-1.5 block text-sm font-medium text-[#374151]">图标</label>
                             <Select
                                 value={formData.icon}
                                 onChange={v => setFormData({ ...formData, icon: v })}
@@ -242,7 +242,7 @@ export default function MenuPermissionPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="mb-1.5 block text-sm font-medium text-slate-700">上级菜单</label>
+                            <label className="mb-1.5 block text-sm font-medium text-[#374151]">上级菜单</label>
                             <Select
                                 value={formData.parentId}
                                 onChange={v => setFormData({ ...formData, parentId: v })}
@@ -270,13 +270,13 @@ export default function MenuPermissionPage() {
                                 type="checkbox"
                                 checked={formData.isActive}
                                 onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
-                                className="h-4 w-4 rounded border-slate-300"
+                                className="h-4 w-4 rounded border-[#d1d5db]"
                             />
                             <span className="text-sm">启用该菜单</span>
                         </label>
                     </div>
 
-                    <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                    <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                         <Button variant="secondary" onClick={() => setShowModal(false)}>取消</Button>
                         <Button onClick={handleSubmit}>保存</Button>
                     </div>

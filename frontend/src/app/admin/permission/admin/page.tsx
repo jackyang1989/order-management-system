@@ -203,7 +203,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-xl font-semibold">管理员管理</h2>
-                    <p className="mt-1 text-sm text-slate-500">管理后台管理员账号</p>
+                    <p className="mt-1 text-sm text-[#6b7280]">管理后台管理员账号</p>
                 </div>
                 <Button onClick={() => {
                     setEditingAdmin(null);
@@ -217,30 +217,30 @@ export default function AdminPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-4 gap-5">
                 <Card className="bg-white text-center">
-                    <div className="text-3xl font-bold text-blue-600">{admins.length}</div>
-                    <div className="mt-1 text-sm text-slate-500">管理员总数</div>
+                    <div className="text-3xl font-bold text-primary-600">{admins.length}</div>
+                    <div className="mt-1 text-sm text-[#6b7280]">管理员总数</div>
                 </Card>
                 <Card className="bg-white text-center">
-                    <div className="text-3xl font-bold text-green-600">{admins.filter(a => a.status === 1).length}</div>
-                    <div className="mt-1 text-sm text-slate-500">正常状态</div>
+                    <div className="text-3xl font-bold text-success-400">{admins.filter(a => a.status === 1).length}</div>
+                    <div className="mt-1 text-sm text-[#6b7280]">正常状态</div>
                 </Card>
                 <Card className="bg-white text-center">
-                    <div className="text-3xl font-bold text-amber-500">{admins.filter(a => a.status === 0).length}</div>
-                    <div className="mt-1 text-sm text-slate-500">已禁用</div>
+                    <div className="text-3xl font-bold text-warning-400">{admins.filter(a => a.status === 0).length}</div>
+                    <div className="mt-1 text-sm text-[#6b7280]">已禁用</div>
                 </Card>
                 <Card className="bg-white text-center">
                     <div className="text-3xl font-bold text-purple-600">{roles.length}</div>
-                    <div className="mt-1 text-sm text-slate-500">角色数量</div>
+                    <div className="mt-1 text-sm text-[#6b7280]">角色数量</div>
                 </Card>
             </div>
 
             {/* Admin List */}
             <Card className="overflow-hidden bg-white">
-                <div className="border-b border-slate-100 px-6 py-4 text-sm font-medium">管理员列表</div>
+                <div className="border-b border-[#f3f4f6] px-6 py-4 text-sm font-medium">管理员列表</div>
                 {loading ? (
-                    <div className="py-16 text-center text-slate-400">加载中...</div>
+                    <div className="py-16 text-center text-[#9ca3af]">加载中...</div>
                 ) : admins.length === 0 ? (
-                    <div className="py-16 text-center text-slate-400">
+                    <div className="py-16 text-center text-[#9ca3af]">
                         <div className="mb-4 text-5xl">👤</div>
                         <div>暂无管理员</div>
                     </div>
@@ -248,7 +248,7 @@ export default function AdminPage() {
                     <div className="overflow-x-auto">
                         <table className="min-w-[900px] w-full border-collapse">
                             <thead>
-                                <tr className="border-b border-slate-100 bg-slate-50">
+                                <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
                                     <th className="px-4 py-4 text-left text-sm font-medium">用户名</th>
                                     <th className="px-4 py-4 text-left text-sm font-medium">姓名</th>
                                     <th className="px-4 py-4 text-left text-sm font-medium">角色</th>
@@ -260,10 +260,10 @@ export default function AdminPage() {
                             </thead>
                             <tbody>
                                 {admins.map(admin => (
-                                    <tr key={admin.id} className="border-b border-slate-100">
+                                    <tr key={admin.id} className="border-b border-[#f3f4f6]">
                                         <td className="px-4 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-medium text-white">
+                                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-600 text-sm font-medium text-white">
                                                     {admin.realName?.[0] || admin.username[0].toUpperCase()}
                                                 </div>
                                                 <span className="font-medium">{admin.username}</span>
@@ -275,28 +275,28 @@ export default function AdminPage() {
                                                 {admin.roleName}
                                             </Badge>
                                         </td>
-                                        <td className="px-4 py-4 text-xs text-slate-500">{admin.phone || '-'}</td>
+                                        <td className="px-4 py-4 text-xs text-[#6b7280]">{admin.phone || '-'}</td>
                                         <td className="px-4 py-4">
                                             <Badge variant="soft" color={admin.status === 1 ? 'green' : 'red'}>
                                                 {admin.status === 1 ? '正常' : '禁用'}
                                             </Badge>
                                         </td>
-                                        <td className="px-4 py-4 text-xs text-slate-500">
+                                        <td className="px-4 py-4 text-xs text-[#6b7280]">
                                             <div>{formatDate(admin.lastLoginAt)}</div>
-                                            {admin.lastLoginIp && <div className="text-slate-400">{admin.lastLoginIp}</div>}
+                                            {admin.lastLoginIp && <div className="text-[#9ca3af]">{admin.lastLoginIp}</div>}
                                         </td>
                                         <td className="px-4 py-4 text-center">
                                             <div className="flex flex-wrap justify-center gap-2">
                                                 <Button size="sm" variant="secondary" onClick={() => openEdit(admin)}>编辑</Button>
-                                                <Button size="sm" className="border border-amber-400 bg-amber-50 text-amber-600 hover:bg-amber-100" onClick={() => handleResetPassword(admin.id)}>重置密码</Button>
+                                                <Button size="sm" className="border border-amber-400 bg-amber-50 text-warning-500 hover:bg-amber-100" onClick={() => handleResetPassword(admin.id)}>重置密码</Button>
                                                 {admin.username !== 'admin' && (
                                                     <>
                                                         <Button
                                                             size="sm"
                                                             className={cn(
                                                                 admin.status === 1
-                                                                    ? 'border border-amber-400 bg-amber-50 text-amber-600 hover:bg-amber-100'
-                                                                    : 'border border-green-400 bg-green-50 text-green-600 hover:bg-green-100'
+                                                                    ? 'border border-amber-400 bg-amber-50 text-warning-500 hover:bg-amber-100'
+                                                                    : 'border border-green-400 bg-green-50 text-success-400 hover:bg-green-100'
                                                             )}
                                                             onClick={() => handleToggleStatus(admin)}
                                                         >
@@ -320,17 +320,17 @@ export default function AdminPage() {
                 <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="mb-1.5 block text-sm font-medium text-slate-700">用户名 <span className="text-red-500">*</span></label>
+                            <label className="mb-1.5 block text-sm font-medium text-[#374151]">用户名 <span className="text-danger-400">*</span></label>
                             <Input
                                 placeholder="请输入用户名"
                                 value={formData.username}
                                 onChange={e => setFormData({ ...formData, username: e.target.value })}
                                 disabled={!!editingAdmin}
-                                className={editingAdmin ? 'bg-slate-100' : ''}
+                                className={editingAdmin ? 'bg-[#f3f4f6]' : ''}
                             />
                         </div>
                         <div>
-                            <label className="mb-1.5 block text-sm font-medium text-slate-700">密码 {!editingAdmin && <span className="text-red-500">*</span>}</label>
+                            <label className="mb-1.5 block text-sm font-medium text-[#374151]">密码 {!editingAdmin && <span className="text-danger-400">*</span>}</label>
                             <Input
                                 type="password"
                                 placeholder={editingAdmin ? '留空则不修改' : '请输入密码'}
@@ -347,7 +347,7 @@ export default function AdminPage() {
                             onChange={e => setFormData({ ...formData, realName: e.target.value })}
                         />
                         <div>
-                            <label className="mb-1.5 block text-sm font-medium text-slate-700">角色</label>
+                            <label className="mb-1.5 block text-sm font-medium text-[#374151]">角色</label>
                             <Select
                                 value={formData.roleId}
                                 onChange={v => setFormData({ ...formData, roleId: v })}
@@ -376,12 +376,12 @@ export default function AdminPage() {
                                 type="checkbox"
                                 checked={formData.status === 1}
                                 onChange={e => setFormData({ ...formData, status: e.target.checked ? 1 : 0 })}
-                                className="h-4 w-4 rounded border-slate-300"
+                                className="h-4 w-4 rounded border-[#d1d5db]"
                             />
                             <span className="text-sm">启用该账号</span>
                         </label>
                     </div>
-                    <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                    <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                         <Button variant="secondary" onClick={() => setShowModal(false)}>取消</Button>
                         <Button onClick={handleSubmit}>保存</Button>
                     </div>

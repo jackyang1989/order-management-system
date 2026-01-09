@@ -125,23 +125,23 @@ export default function HelpCenterPage() {
                 <div
                     onClick={() => { setActiveTab('announcements'); setSearchText(''); setSearchResults(null); }}
                     className={`flex-1 text-center py-3 text-sm cursor-pointer relative ${
-                        activeTab === 'announcements' ? 'text-blue-500' : 'text-gray-600'
+                        activeTab === 'announcements' ? 'text-primary-500' : 'text-gray-600'
                     }`}
                 >
                     公告通知
                     {activeTab === 'announcements' && (
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-blue-500" />
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-primary-500" />
                     )}
                 </div>
                 <div
                     onClick={() => { setActiveTab('faq'); setSearchText(''); setSearchResults(null); }}
                     className={`flex-1 text-center py-3 text-sm cursor-pointer relative ${
-                        activeTab === 'faq' ? 'text-blue-500' : 'text-gray-600'
+                        activeTab === 'faq' ? 'text-primary-500' : 'text-gray-600'
                     }`}
                 >
                     常见问题
                     {activeTab === 'faq' && (
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-blue-500" />
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-primary-500" />
                     )}
                 </div>
             </div>
@@ -236,7 +236,7 @@ export default function HelpCenterPage() {
                         <div className="flex border-t border-gray-200">
                             <button
                                 onClick={() => setShowDetail(false)}
-                                className="flex-1 py-3 border-none bg-blue-500 text-white text-sm cursor-pointer rounded-b-lg hover:bg-blue-600"
+                                className="flex-1 py-3 border-none bg-primary-500 text-white text-sm cursor-pointer rounded-b-lg hover:bg-primary-600"
                             >
                                 关闭
                             </button>

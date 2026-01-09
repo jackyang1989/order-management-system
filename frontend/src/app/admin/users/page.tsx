@@ -206,8 +206,8 @@ export default function AdminUsersPage() {
                         👤
                     </div>
                     <div>
-                        <div className="font-medium text-slate-800">{row.username}</div>
-                        <div className="text-xs text-slate-400">{row.phone}</div>
+                        <div className="font-medium text-[#3b4559]">{row.username}</div>
+                        <div className="text-xs text-[#9ca3af]">{row.phone}</div>
                     </div>
                 </div>
             ),
@@ -218,9 +218,9 @@ export default function AdminUsersPage() {
             className: 'w-[120px] text-right',
             render: (row) => (
                 <div>
-                    <div className="font-medium text-green-600">¥{Number(row.balance || 0).toFixed(2)}</div>
+                    <div className="font-medium text-success-400">¥{Number(row.balance || 0).toFixed(2)}</div>
                     {(row.frozenBalance || 0) > 0 && (
-                        <div className="text-xs text-amber-500">冻结: ¥{Number(row.frozenBalance).toFixed(2)}</div>
+                        <div className="text-xs text-warning-400">冻结: ¥{Number(row.frozenBalance).toFixed(2)}</div>
                     )}
                 </div>
             ),
@@ -231,9 +231,9 @@ export default function AdminUsersPage() {
             className: 'w-[120px] text-right',
             render: (row) => (
                 <div>
-                    <div className="font-medium text-blue-600">{Number(row.silver || 0).toFixed(2)}</div>
+                    <div className="font-medium text-primary-600">{Number(row.silver || 0).toFixed(2)}</div>
                     {(row.frozenSilver || 0) > 0 && (
-                        <div className="text-xs text-amber-500">冻结: {Number(row.frozenSilver).toFixed(2)}</div>
+                        <div className="text-xs text-warning-400">冻结: {Number(row.frozenSilver).toFixed(2)}</div>
                     )}
                 </div>
             ),
@@ -276,14 +276,14 @@ export default function AdminUsersPage() {
                     <Button size="sm" variant="secondary" onClick={() => setDetailModal(row)}>
                         详情
                     </Button>
-                    <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'balance', action: 'add' })}>
+                    <Button size="sm" className="bg-success-400 text-white hover:bg-success-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'balance', action: 'add' })}>
                         充值
                     </Button>
-                    <Button size="sm" className="border border-amber-500 bg-white text-amber-600 hover:bg-amber-50" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'balance', action: 'deduct' })}>
+                    <Button size="sm" className="border border-warning-400 bg-white text-warning-500 hover:bg-warning-50" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'balance', action: 'deduct' })}>
                         扣款
                     </Button>
                     {!row.vip && (
-                        <Button size="sm" className="bg-purple-600 hover:bg-purple-700" onClick={() => handleSetVip(row.id, 30)}>
+                        <Button size="sm" className="bg-warning-400 text-white hover:bg-warning-500" onClick={() => handleSetVip(row.id, 30)}>
                             👑 VIP
                         </Button>
                     )}
@@ -291,7 +291,7 @@ export default function AdminUsersPage() {
                         <Button size="sm" onClick={() => handleUnban(row.id)}>解封</Button>
                     ) : (
                         <Button size="sm" variant="destructive" onClick={() => setBanModal({ userId: row.id, username: row.username })}>
-                            封禁
+                            🚫 封禁
                         </Button>
                     )}
                 </div>
@@ -367,7 +367,7 @@ export default function AdminUsersPage() {
             >
                 <div className="space-y-4">
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700">账户类型</label>
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">账户类型</label>
                         <Select
                             value={balanceModal?.type || 'balance'}
                             onChange={(t) => balanceModal && setBalanceModal({ ...balanceModal, type: t as 'balance' | 'silver' })}
@@ -396,7 +396,7 @@ export default function AdminUsersPage() {
                         </Button>
                         <Button
                             onClick={handleAdjustBalance}
-                            className={balanceModal?.action === 'add' ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-500 hover:bg-amber-600'}
+                            className={balanceModal?.action === 'add' ? 'bg-success-400 text-white hover:bg-success-500' : 'bg-warning-400 text-white hover:bg-warning-500'}
                         >
                             确认{balanceModal?.action === 'add' ? '充值' : '扣款'}
                         </Button>
@@ -412,9 +412,9 @@ export default function AdminUsersPage() {
             >
                 <div className="space-y-4">
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700">封禁原因</label>
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">封禁原因</label>
                         <textarea
-                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                             rows={3}
                             placeholder="请输入封禁原因"
                             value={banReason}
@@ -443,30 +443,30 @@ export default function AdminUsersPage() {
                     <div className="space-y-6">
                         {/* 基本信息 */}
                         <div>
-                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-slate-800">基本信息</h3>
-                            <div className="grid grid-cols-2 gap-4 rounded-lg bg-slate-50 p-4">
+                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">基本信息</h3>
+                            <div className="grid grid-cols-2 gap-4 rounded-md bg-[#f9fafb] p-4">
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">用户ID</div>
+                                    <div className="text-xs text-[#6b7280]">用户ID</div>
                                     <div className="text-sm font-medium">{detailModal.id}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">用户名</div>
+                                    <div className="text-xs text-[#6b7280]">用户名</div>
                                     <div className="text-sm font-medium">{detailModal.username}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">手机号</div>
+                                    <div className="text-xs text-[#6b7280]">手机号</div>
                                     <div className="text-sm font-medium">{detailModal.phone}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">QQ</div>
+                                    <div className="text-xs text-[#6b7280]">QQ</div>
                                     <div className="text-sm font-medium">{detailModal.qq || '-'}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">邀请码</div>
+                                    <div className="text-xs text-[#6b7280]">邀请码</div>
                                     <div className="text-sm font-medium">{detailModal.invitationCode || '-'}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">最后登录IP</div>
+                                    <div className="text-xs text-[#6b7280]">最后登录IP</div>
                                     <div className="text-sm font-medium">{detailModal.lastLoginIp || '-'}</div>
                                 </div>
                             </div>
@@ -474,37 +474,37 @@ export default function AdminUsersPage() {
 
                         {/* 账户余额 */}
                         <div>
-                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-slate-800">账户余额</h3>
-                            <div className="grid grid-cols-3 gap-4 rounded-lg bg-slate-50 p-4">
+                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">账户余额</h3>
+                            <div className="grid grid-cols-3 gap-4 rounded-md bg-[#f9fafb] p-4">
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">本金余额</div>
-                                    <div className="text-lg font-bold text-green-600">¥{Number(detailModal.balance || 0).toFixed(2)}</div>
+                                    <div className="text-xs text-[#6b7280]">本金余额</div>
+                                    <div className="text-lg font-bold text-success-400">¥{Number(detailModal.balance || 0).toFixed(2)}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">银锭余额</div>
-                                    <div className="text-lg font-bold text-blue-600">{Number(detailModal.silver || 0).toFixed(2)}</div>
+                                    <div className="text-xs text-[#6b7280]">银锭余额</div>
+                                    <div className="text-lg font-bold text-primary-600">{Number(detailModal.silver || 0).toFixed(2)}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">累计赚取</div>
-                                    <div className="text-lg font-bold text-amber-500">{Number(detailModal.reward || 0).toFixed(2)}</div>
+                                    <div className="text-xs text-[#6b7280]">累计赚取</div>
+                                    <div className="text-lg font-bold text-warning-400">{Number(detailModal.reward || 0).toFixed(2)}</div>
                                 </div>
                             </div>
                         </div>
 
                         {/* 状态信息 */}
                         <div>
-                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-slate-800">状态信息</h3>
-                            <div className="grid grid-cols-2 gap-4 rounded-lg bg-slate-50 p-4">
+                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">状态信息</h3>
+                            <div className="grid grid-cols-2 gap-4 rounded-md bg-[#f9fafb] p-4">
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">VIP状态</div>
+                                    <div className="text-xs text-[#6b7280]">VIP状态</div>
                                     <div>{detailModal.vip ? <Badge variant="solid" color="amber">VIP</Badge> : <span className="text-sm">普通用户</span>}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">实名认证</div>
+                                    <div className="text-xs text-[#6b7280]">实名认证</div>
                                     <div><Badge variant="soft" color={verifyLabels[detailModal.verifyStatus]?.color}>{verifyLabels[detailModal.verifyStatus]?.text}</Badge></div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">账号状态</div>
+                                    <div className="text-xs text-[#6b7280]">账号状态</div>
                                     <div>
                                         {detailModal.isBanned ? (
                                             <Badge variant="soft" color="red">已封禁</Badge>
@@ -516,26 +516,26 @@ export default function AdminUsersPage() {
                                     </div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">注册时间</div>
+                                    <div className="text-xs text-[#6b7280]">注册时间</div>
                                     <div className="text-sm font-medium">{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</div>
                                 </div>
                             </div>
                         </div>
 
                         {/* 操作按钮 */}
-                        <div className="flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-4">
+                        <div className="flex flex-wrap justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                             <Button
-                                className="bg-green-600 hover:bg-green-700"
+                                className="bg-success-400 text-white hover:bg-success-500"
                                 onClick={() => { setBalanceModal({ userId: detailModal.id, username: detailModal.username, type: 'balance', action: 'add' }); setDetailModal(null); }}
                             >
                                 充值
                             </Button>
                             {!detailModal.vip && (
                                 <Button
-                                    className="bg-purple-600 hover:bg-purple-700"
+                                    className="bg-warning-400 text-white hover:bg-warning-500"
                                     onClick={() => { handleSetVip(detailModal.id, 30); setDetailModal(null); }}
                                 >
-                                    设为VIP
+                                    👑 设为VIP
                                 </Button>
                             )}
                             {detailModal.isBanned ? (
@@ -547,7 +547,7 @@ export default function AdminUsersPage() {
                                     variant="destructive"
                                     onClick={() => { setBanModal({ userId: detailModal.id, username: detailModal.username }); setDetailModal(null); }}
                                 >
-                                    封禁
+                                    🚫 封禁
                                 </Button>
                             )}
                             <Button variant="secondary" onClick={() => setDetailModal(null)}>

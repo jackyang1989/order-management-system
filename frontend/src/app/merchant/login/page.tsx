@@ -64,17 +64,17 @@ export default function MerchantLoginPage() {
                 <div className="flex-1 p-12">
                     <div className="mb-8">
                         <h2 className="mb-2 text-2xl font-bold text-[#3b4559]">{isLogin ? '欢迎回来' : '注册账号'}</h2>
-                        <p className="text-sm text-[#f9fafb]0">{isLogin ? '登录您的商家账号' : '创建新的商家账号'}</p>
+                        <p className="text-sm text-[#6b7280]">{isLogin ? '登录您的商家账号' : '创建新的商家账号'}</p>
                     </div>
 
                     {/* Toggle Tabs */}
                     <div className="mb-6 flex rounded-md bg-[#f3f4f6] p-1">
-                        <button onClick={() => { setIsLogin(true); setError(''); }} className={cn('flex-1 rounded-md py-2.5 text-sm font-medium transition-all', isLogin ? 'bg-white text-primary-600' : 'text-[#f9fafb]0')}>登录</button>
-                        <button onClick={() => { setIsLogin(false); setError(''); }} className={cn('flex-1 rounded-md py-2.5 text-sm font-medium transition-all', !isLogin ? 'bg-white text-primary-600' : 'text-[#f9fafb]0')}>注册</button>
+                        <button onClick={() => { setIsLogin(true); setError(''); }} className={cn('flex-1 rounded-md py-2.5 text-sm font-medium transition-all', isLogin ? 'bg-white text-primary-600' : 'text-[#6b7280]')}>登录</button>
+                        <button onClick={() => { setIsLogin(false); setError(''); }} className={cn('flex-1 rounded-md py-2.5 text-sm font-medium transition-all', !isLogin ? 'bg-white text-primary-600' : 'text-[#6b7280]')}>注册</button>
                     </div>
 
                     {/* Error Message */}
-                    {error && <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>}
+                    {error && <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-danger-500">{error}</div>}
 
                     {/* Form Fields */}
                     {isLogin ? (

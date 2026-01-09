@@ -72,13 +72,13 @@ export default function PayReviewPage() {
         finally { setPaying(false); }
     };
 
-    if (loading) return <div className="py-12 text-center text-[#f9fafb]0">加载中...</div>;
+    if (loading) return <div className="py-12 text-center text-[#6b7280]">加载中...</div>;
 
     if (error) {
         return (
             <div className="py-12 text-center">
                 <div className="mb-4 text-5xl">⚠️</div>
-                <div className="mb-6 text-red-500">{error}</div>
+                <div className="mb-6 text-danger-400">{error}</div>
                 <Button variant="secondary" onClick={() => router.push('/merchant/reviews')}>返回</Button>
             </div>
         );
@@ -89,7 +89,7 @@ export default function PayReviewPage() {
             {/* Header */}
             <div className="mb-6">
                 <h1 className="text-xl font-bold">支付追评费用</h1>
-                <p className="mt-2 text-sm text-[#f9fafb]0">任务编号: {task?.taskNumber}</p>
+                <p className="mt-2 text-sm text-[#6b7280]">任务编号: {task?.taskNumber}</p>
             </div>
 
             {/* Amount Card */}
@@ -105,11 +105,11 @@ export default function PayReviewPage() {
                 <div className="grid grid-cols-2 gap-4">
                     <div className="rounded-md bg-amber-50 p-4 text-center">
                         <div className="text-sm text-amber-800">银锭余额</div>
-                        <div className="mt-1 text-2xl font-bold text-amber-600">{balance.silver.toFixed(2)}</div>
+                        <div className="mt-1 text-2xl font-bold text-warning-500">{balance.silver.toFixed(2)}</div>
                     </div>
                     <div className="rounded-md bg-blue-50 p-4 text-center">
                         <div className="text-sm text-blue-800">押金余额</div>
-                        <div className="mt-1 text-2xl font-bold text-blue-600">¥{balance.balance.toFixed(2)}</div>
+                        <div className="mt-1 text-2xl font-bold text-primary-600">¥{balance.balance.toFixed(2)}</div>
                     </div>
                 </div>
             </Card>
@@ -124,7 +124,7 @@ export default function PayReviewPage() {
                     </div>
                     <div>
                         <div className="font-medium">纯押金支付</div>
-                        <div className="mt-0.5 text-sm text-[#f9fafb]0">使用押金余额支付全部费用</div>
+                        <div className="mt-0.5 text-sm text-[#6b7280]">使用押金余额支付全部费用</div>
                     </div>
                 </div>
 
@@ -134,7 +134,7 @@ export default function PayReviewPage() {
                     </div>
                     <div>
                         <div className="font-medium">银锭优先支付</div>
-                        <div className="mt-0.5 text-sm text-[#f9fafb]0">优先使用银锭，不足部分用押金补足</div>
+                        <div className="mt-0.5 text-sm text-[#6b7280]">优先使用银锭，不足部分用押金补足</div>
                     </div>
                 </div>
             </Card>
@@ -144,20 +144,20 @@ export default function PayReviewPage() {
                 <h2 className="mb-4 font-semibold">支付明细</h2>
                 <div className="text-sm">
                     {silverDeduct > 0 && (
-                        <div className="mb-2 flex justify-between"><span className="text-[#f9fafb]0">银锭扣除</span><span className="font-medium text-amber-600">{silverDeduct.toFixed(2)} 银锭</span></div>
+                        <div className="mb-2 flex justify-between"><span className="text-[#6b7280]">银锭扣除</span><span className="font-medium text-warning-500">{silverDeduct.toFixed(2)} 银锭</span></div>
                     )}
                     {balanceDeduct > 0 && (
-                        <div className="mb-2 flex justify-between"><span className="text-[#f9fafb]0">押金扣除</span><span className="font-medium text-blue-600">¥{balanceDeduct.toFixed(2)}</span></div>
+                        <div className="mb-2 flex justify-between"><span className="text-[#6b7280]">押金扣除</span><span className="font-medium text-primary-600">¥{balanceDeduct.toFixed(2)}</span></div>
                     )}
                     <div className="flex justify-between border-t border-[#f3f4f6] pt-3 font-semibold">
-                        <span>合计</span><span className="text-red-500">¥{task ? Number(task.money).toFixed(2) : '0.00'}</span>
+                        <span>合计</span><span className="text-danger-400">¥{task ? Number(task.money).toFixed(2) : '0.00'}</span>
                     </div>
                 </div>
             </Card>
 
             {/* Insufficient Balance Warning */}
             {!canPay && (
-                <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">⚠️ 余额不足，请先充值</div>
+                <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-danger-500">⚠️ 余额不足，请先充值</div>
             )}
 
             {/* Actions */}

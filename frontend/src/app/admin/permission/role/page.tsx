@@ -184,7 +184,7 @@ export default function RolePage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-xl font-semibold">角色管理</h2>
-                    <p className="mt-1 text-sm text-slate-500">管理系统角色和权限分配</p>
+                    <p className="mt-1 text-sm text-[#6b7280]">管理系统角色和权限分配</p>
                 </div>
                 <Button onClick={() => {
                     setEditingRole(null);
@@ -197,9 +197,9 @@ export default function RolePage() {
 
             {/* Role Cards */}
             {loading ? (
-                <div className="py-16 text-center text-slate-400">加载中...</div>
+                <div className="py-16 text-center text-[#9ca3af]">加载中...</div>
             ) : roles.length === 0 ? (
-                <Card className="bg-white py-16 text-center text-slate-400">
+                <Card className="bg-white py-16 text-center text-[#9ca3af]">
                     <div className="mb-4 text-5xl">🔐</div>
                     <div>暂无角色配置</div>
                 </Card>
@@ -218,25 +218,25 @@ export default function RolePage() {
                                     <h3 className="flex items-center gap-2 text-base font-medium">
                                         {role.name}
                                         {role.name === '超级管理员' && (
-                                            <span className="rounded bg-blue-600 px-2 py-0.5 text-xs text-white">系统</span>
+                                            <span className="rounded bg-primary-600 px-2 py-0.5 text-xs text-white">系统</span>
                                         )}
                                     </h3>
-                                    <p className="mt-1.5 text-xs text-slate-500">{role.description}</p>
+                                    <p className="mt-1.5 text-xs text-[#6b7280]">{role.description}</p>
                                 </div>
                                 <Badge variant="soft" color={role.status === 1 ? 'green' : 'slate'}>
                                     {role.status === 1 ? '启用' : '禁用'}
                                 </Badge>
                             </div>
 
-                            <div className="mb-4 rounded-md bg-slate-50 p-3 text-sm">
+                            <div className="mb-4 rounded-md bg-[#f9fafb] p-3 text-sm">
                                 <div className="mb-2 flex justify-between">
-                                    <span className="text-slate-500">权限数量</span>
+                                    <span className="text-[#6b7280]">权限数量</span>
                                     <span className="font-medium">
                                         {role.permissions.includes('*') ? '全部权限' : `${role.permissions.length} 项`}
                                     </span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-slate-500">使用人数</span>
+                                    <span className="text-[#6b7280]">使用人数</span>
                                     <span className="font-medium">{role.userCount || 0} 人</span>
                                 </div>
                             </div>
@@ -278,8 +278,8 @@ export default function RolePage() {
                     />
 
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700">权限配置</label>
-                        <div className="max-h-72 overflow-auto rounded-md border border-slate-300 p-4">
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">权限配置</label>
+                        <div className="max-h-72 overflow-auto rounded-md border border-[#d1d5db] p-4">
                             {Object.entries(groupedPermissions).map(([module, perms]) => (
                                 <div key={module} className="mb-4">
                                     <div
@@ -290,7 +290,7 @@ export default function RolePage() {
                                             type="checkbox"
                                             checked={perms.every(p => formData.permissions.includes(p.code))}
                                             onChange={() => toggleAllPermissions(module)}
-                                            className="h-4 w-4 rounded border-slate-300"
+                                            className="h-4 w-4 rounded border-[#d1d5db]"
                                         />
                                         {module}
                                     </div>
@@ -300,14 +300,14 @@ export default function RolePage() {
                                                 key={p.code}
                                                 className={cn(
                                                     'flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-sm',
-                                                    formData.permissions.includes(p.code) ? 'bg-blue-50' : 'bg-slate-100'
+                                                    formData.permissions.includes(p.code) ? 'bg-blue-50' : 'bg-[#f3f4f6]'
                                                 )}
                                             >
                                                 <input
                                                     type="checkbox"
                                                     checked={formData.permissions.includes(p.code)}
                                                     onChange={() => togglePermission(p.code)}
-                                                    className="h-3.5 w-3.5 rounded border-slate-300"
+                                                    className="h-3.5 w-3.5 rounded border-[#d1d5db]"
                                                 />
                                                 {p.name}
                                             </label>
@@ -324,13 +324,13 @@ export default function RolePage() {
                                 type="checkbox"
                                 checked={formData.status === 1}
                                 onChange={e => setFormData({ ...formData, status: e.target.checked ? 1 : 0 })}
-                                className="h-4 w-4 rounded border-slate-300"
+                                className="h-4 w-4 rounded border-[#d1d5db]"
                             />
                             <span className="text-sm">启用该角色</span>
                         </label>
                     </div>
 
-                    <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                    <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                         <Button variant="secondary" onClick={() => setShowModal(false)}>取消</Button>
                         <Button onClick={handleSubmit}>保存</Button>
                     </div>

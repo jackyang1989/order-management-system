@@ -78,7 +78,7 @@ export default function AdminShopsPage() {
                 <div className="overflow-x-auto">
                     <table className="min-w-[1000px] w-full border-collapse">
                         <thead>
-                            <tr className="border-b border-slate-100 bg-slate-50">
+                            <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
                                 <th className="px-3 py-3 text-left text-sm font-medium">所属商家</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">平台</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">店铺名称</th>
@@ -91,10 +91,10 @@ export default function AdminShopsPage() {
                         </thead>
                         <tbody>
                             {shops.map(shop => (
-                                <tr key={shop.id} className="border-b border-slate-100">
+                                <tr key={shop.id} className="border-b border-[#f3f4f6]">
                                     <td className="px-3 py-3">
                                         <div>{shop.merchant?.companyName || '--'}</div>
-                                        <div className="text-xs text-slate-400">{shop.merchant?.username}</div>
+                                        <div className="text-xs text-[#9ca3af]">{shop.merchant?.username}</div>
                                     </td>
                                     <td className="px-3 py-3">{shop.platform}</td>
                                     <td className="px-3 py-3">{shop.shopName}</td>
@@ -105,15 +105,15 @@ export default function AdminShopsPage() {
                                             {statusConfig[shop.status]?.text || '未知'}
                                         </Badge>
                                     </td>
-                                    <td className="px-3 py-3 text-xs text-slate-500">{new Date(shop.createdAt).toLocaleString()}</td>
+                                    <td className="px-3 py-3 text-xs text-[#6b7280]">{new Date(shop.createdAt).toLocaleString()}</td>
                                     <td className="px-3 py-3">
                                         {shop.status === 0 ? (
                                             <div className="flex gap-2">
-                                                <button onClick={() => handleReview(shop.id, 1)} className="cursor-pointer border-none bg-transparent text-sm text-green-600 hover:underline">通过</button>
-                                                <button onClick={() => { const reason = prompt('请输入拒绝原因：'); if (reason) handleReview(shop.id, 2, reason); }} className="cursor-pointer border-none bg-transparent text-sm text-red-500 hover:underline">拒绝</button>
+                                                <button onClick={() => handleReview(shop.id, 1)} className="cursor-pointer border-none bg-transparent text-sm text-success-400 hover:underline">通过</button>
+                                                <button onClick={() => { const reason = prompt('请输入拒绝原因：'); if (reason) handleReview(shop.id, 2, reason); }} className="cursor-pointer border-none bg-transparent text-sm text-danger-400 hover:underline">拒绝</button>
                                             </div>
                                         ) : (
-                                            <span className="text-slate-300">已审核</span>
+                                            <span className="text-[#d1d5db]">已审核</span>
                                         )}
                                     </td>
                                 </tr>
@@ -121,7 +121,7 @@ export default function AdminShopsPage() {
                         </tbody>
                     </table>
                 </div>
-                {shops.length === 0 && !loading && <div className="py-10 text-center text-slate-400">暂无数据</div>}
+                {shops.length === 0 && !loading && <div className="py-10 text-center text-[#9ca3af]">暂无数据</div>}
             </Card>
         </div>
     );

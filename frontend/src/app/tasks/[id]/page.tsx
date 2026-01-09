@@ -99,8 +99,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                     <div>任务编号：{task.id}</div>
                     <div>店铺名称：{task.shopName}</div>
                     <div>平台：{task.platform}</div>
-                    <div>商品价格：<span className="text-red-500">¥{task.price}</span></div>
-                    <div>任务佣金：<span className="text-green-500">¥{task.commission}</span></div>
+                    <div>商品价格：<span className="text-danger-400">¥{task.price}</span></div>
+                    <div>任务佣金：<span className="text-success-400">¥{task.commission}</span></div>
                 </div>
             </div>
 
@@ -114,7 +114,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                     <p>2. 请严格按照搜索关键词找到商品。</p>
                     <p>3. 浏览主图、详情页需满3分钟。</p>
                     <p>4. 禁止秒拍，聊天下单需先进行假聊。</p>
-                    <div className="mt-2.5 rounded bg-amber-50 p-2.5 text-amber-600">
+                    <div className="mt-2.5 rounded bg-amber-50 p-2.5 text-warning-500">
                         注意：未按要求操作可能导致无法审核通过或佣金扣除。
                     </div>
                 </div>
@@ -151,7 +151,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                         disabled={submitting}
                         className={cn(
                             'flex-[2] rounded px-2.5 py-2.5 text-sm font-bold text-white',
-                            submitting ? 'bg-blue-300' : 'bg-blue-500'
+                            submitting ? 'bg-blue-300' : 'bg-primary-500'
                         )}
                     >
                         {submitting ? '领取中...' : '立即领取'}

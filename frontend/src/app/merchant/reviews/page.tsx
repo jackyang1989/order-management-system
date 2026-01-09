@@ -52,10 +52,10 @@ const statusLabels: Record<ReviewTaskStatus, { text: string; color: 'amber' | 'b
 };
 
 const statsColorMap: Record<string, string> = {
-    '#f59e0b': 'text-amber-500',
+    '#f59e0b': 'text-warning-400',
     '#8b5cf6': 'text-purple-500',
-    '#10b981': 'text-green-600',
-    '#6b7280': 'text-[#f9fafb]0',
+    '#10b981': 'text-success-400',
+    '#6b7280': 'text-[#6b7280]',
 };
 
 export default function MerchantReviewsPage() {
@@ -143,7 +143,7 @@ export default function MerchantReviewsPage() {
                         )}
                     >
                         <div className={cn('text-3xl font-bold', statsColorMap[stat.color] || 'text-[#4b5563]')}>{stat.value}</div>
-                        <div className="mt-1 text-sm text-[#f9fafb]0">{stat.label}</div>
+                        <div className="mt-1 text-sm text-[#6b7280]">{stat.label}</div>
                     </div>
                 ))}
             </div>
@@ -162,29 +162,29 @@ export default function MerchantReviewsPage() {
                 </div>
 
                 {loading ? (
-                    <div className="py-12 text-center text-[#f9fafb]0">加载中...</div>
+                    <div className="py-12 text-center text-[#6b7280]">加载中...</div>
                 ) : tasks.length === 0 ? (
-                    <div className="py-12 text-center text-[#f9fafb]0">暂无追评任务</div>
+                    <div className="py-12 text-center text-[#6b7280]">暂无追评任务</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="min-w-[800px] w-full border-collapse">
                             <thead>
                                 <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-[#f9fafb]0">任务编号</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-[#f9fafb]0">费用</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-[#f9fafb]0">买手佣金</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-[#f9fafb]0">创建时间</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-[#f9fafb]0">状态</th>
-                                    <th className="px-4 py-3 text-center text-xs font-medium text-[#f9fafb]0">操作</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[#6b7280]">任务编号</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[#6b7280]">费用</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[#6b7280]">买手佣金</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[#6b7280]">创建时间</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[#6b7280]">状态</th>
+                                    <th className="px-4 py-3 text-center text-xs font-medium text-[#6b7280]">操作</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {tasks.map(task => (
                                     <tr key={task.id} className="border-b border-[#f3f4f6]">
                                         <td className="px-4 py-4 text-sm text-[#374151]">{task.taskNumber}</td>
-                                        <td className="px-4 py-4 font-medium text-red-500">¥{Number(task.money).toFixed(2)}</td>
-                                        <td className="px-4 py-4 font-medium text-green-600">¥{Number(task.userMoney).toFixed(2)}</td>
-                                        <td className="px-4 py-4 text-xs text-[#f9fafb]0">{new Date(task.createdAt).toLocaleString('zh-CN')}</td>
+                                        <td className="px-4 py-4 font-medium text-danger-400">¥{Number(task.money).toFixed(2)}</td>
+                                        <td className="px-4 py-4 font-medium text-success-400">¥{Number(task.userMoney).toFixed(2)}</td>
+                                        <td className="px-4 py-4 text-xs text-[#6b7280]">{new Date(task.createdAt).toLocaleString('zh-CN')}</td>
                                         <td className="px-4 py-4">
                                             <Badge variant="soft" color={statusLabels[task.state]?.color || 'slate'}>{statusLabels[task.state]?.text || '未知'}</Badge>
                                         </td>
@@ -216,10 +216,10 @@ export default function MerchantReviewsPage() {
                     <div className="space-y-5">
                         {/* Task Info */}
                         <div className="rounded-md bg-[#f9fafb] p-4">
-                            <div className="mb-2 text-sm"><span className="text-[#f9fafb]0">任务编号：</span>{selectedTask.taskNumber}</div>
-                            <div className="mb-2 text-sm"><span className="text-[#f9fafb]0">追评费用：</span><span className="font-medium text-red-500">¥{Number(selectedTask.money).toFixed(2)}</span></div>
-                            <div className="mb-2 text-sm"><span className="text-[#f9fafb]0">买手佣金：</span><span className="font-medium text-green-600">¥{Number(selectedTask.userMoney).toFixed(2)}</span></div>
-                            {selectedTask.platformOrderNumber && <div className="text-sm"><span className="text-[#f9fafb]0">平台订单号：</span>{selectedTask.platformOrderNumber}</div>}
+                            <div className="mb-2 text-sm"><span className="text-[#6b7280]">任务编号：</span>{selectedTask.taskNumber}</div>
+                            <div className="mb-2 text-sm"><span className="text-[#6b7280]">追评费用：</span><span className="font-medium text-danger-400">¥{Number(selectedTask.money).toFixed(2)}</span></div>
+                            <div className="mb-2 text-sm"><span className="text-[#6b7280]">买手佣金：</span><span className="font-medium text-success-400">¥{Number(selectedTask.userMoney).toFixed(2)}</span></div>
+                            {selectedTask.platformOrderNumber && <div className="text-sm"><span className="text-[#6b7280]">平台订单号：</span>{selectedTask.platformOrderNumber}</div>}
                         </div>
 
                         {/* Submitted Images */}
@@ -239,7 +239,7 @@ export default function MerchantReviewsPage() {
                         {selectedTask.state === ReviewTaskStatus.UPLOADED && (
                             <div className="flex justify-end gap-3 border-t border-[#f3f4f6] pt-5">
                                 <Button variant="destructive" onClick={() => handleCancel(selectedTask.id)} disabled={processing}>取消任务</Button>
-                                <Button className="bg-green-500 hover:bg-green-600" onClick={() => handleConfirm(selectedTask.id)} disabled={processing}>{processing ? '处理中...' : '确认完成'}</Button>
+                                <Button className="bg-green-500 hover:bg-success-400" onClick={() => handleConfirm(selectedTask.id)} disabled={processing}>{processing ? '处理中...' : '确认完成'}</Button>
                             </div>
                         )}
 

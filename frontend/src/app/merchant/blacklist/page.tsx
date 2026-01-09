@@ -69,7 +69,7 @@ export default function MerchantBlacklistPage() {
             {/* List */}
             <Card className="bg-white p-6">
                 {loading ? (
-                    <div className="py-10 text-center text-[#f9fafb]0">加载中...</div>
+                    <div className="py-10 text-center text-[#6b7280]">加载中...</div>
                 ) : blacklist.length === 0 ? (
                     <div className="py-10 text-center text-[#9ca3af]">暂无黑名单记录</div>
                 ) : (
@@ -101,7 +101,7 @@ export default function MerchantBlacklistPage() {
                                             <td className="px-4 py-4 text-sm">{item.reason || '-'}</td>
                                             <td className="px-4 py-4 text-sm text-[#9ca3af]">{new Date(item.createdAt).toLocaleDateString()}</td>
                                             <td className="px-4 py-4">
-                                                <button onClick={() => handleDelete(item.id)} className="text-sm text-red-500 hover:underline">移除</button>
+                                                <button onClick={() => handleDelete(item.id)} className="text-sm text-danger-400 hover:underline">移除</button>
                                             </td>
                                         </tr>
                                     ))}
@@ -125,7 +125,7 @@ export default function MerchantBlacklistPage() {
             <Modal title="添加黑名单" open={showAddModal} onClose={() => { setShowAddModal(false); resetForm(); }}>
                 <div className="space-y-4">
                     <div>
-                        <label className="mb-2 block text-sm">买号 <span className="text-red-500">*</span></label>
+                        <label className="mb-2 block text-sm">买号 <span className="text-danger-400">*</span></label>
                         <Input type="text" value={form.accountName} onChange={e => setForm({ ...form, accountName: e.target.value })} placeholder="请输入买号" />
                     </div>
                     <div>
@@ -134,7 +134,7 @@ export default function MerchantBlacklistPage() {
                     </div>
                     {form.type === BlacklistType.TEMPORARY && (
                         <div>
-                            <label className="mb-2 block text-sm">结束时间 <span className="text-red-500">*</span></label>
+                            <label className="mb-2 block text-sm">结束时间 <span className="text-danger-400">*</span></label>
                             <Input type="datetime-local" value={form.endTime} onChange={e => setForm({ ...form, endTime: e.target.value })} />
                         </div>
                     )}

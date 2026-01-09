@@ -194,14 +194,14 @@ export default function ProfileSettingsPage() {
             <span className="flex-1 text-sm font-semibold text-slate-500">{label}</span>
             <span className={cn(
                 "text-sm font-bold",
-                onClick ? 'text-blue-600' : 'text-slate-900'
+                onClick ? 'text-primary-600' : 'text-slate-900'
             )}>
                 {value}{showArrow && ' ›'}
             </span>
             {action && (
                 <button
                     onClick={(e) => { e.stopPropagation(); action(); }}
-                    className="ml-4 rounded-xl bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-600 transition-colors hover:bg-blue-100"
+                    className="ml-4 rounded-xl bg-blue-50 px-3 py-1.5 text-xs font-bold text-primary-600 transition-colors hover:bg-blue-100"
                 >
                     修改
                 </button>
@@ -298,7 +298,7 @@ export default function ProfileSettingsPage() {
                     </div>
                     <div className="flex gap-3 pt-4">
                         <button onClick={() => setShowPhoneModal(false)} className="flex-1 rounded-[20px] bg-slate-50 py-4 text-sm font-bold text-slate-500">取消</button>
-                        <button disabled={submitting} onClick={phoneBtnActive} className="flex-1 rounded-[20px] bg-blue-600 py-4 text-sm font-bold text-white disabled:opacity-50">确定</button>
+                        <button disabled={submitting} onClick={phoneBtnActive} className="flex-1 rounded-[20px] bg-primary-600 py-4 text-sm font-bold text-white disabled:opacity-50">确定</button>
                     </div>
                 </div>
             </Modal>
@@ -322,7 +322,7 @@ export default function ProfileSettingsPage() {
                     </div>
                     <div className="flex gap-3 pt-2">
                         <button onClick={() => setShowPasswordModal(false)} className="flex-1 rounded-[20px] bg-slate-50 py-4 text-sm font-bold text-slate-500">取消</button>
-                        <button disabled={submitting} onClick={editBtnActive} className="flex-1 rounded-[20px] bg-blue-600 py-4 text-sm font-bold text-white disabled:opacity-50">确定</button>
+                        <button disabled={submitting} onClick={editBtnActive} className="flex-1 rounded-[20px] bg-primary-600 py-4 text-sm font-bold text-white disabled:opacity-50">确定</button>
                     </div>
                 </div>
             </Modal>
@@ -352,7 +352,7 @@ export default function ProfileSettingsPage() {
                     </div>
                     <div className="flex gap-3 pt-4">
                         <button onClick={() => setShowPayPwdModal(false)} className="flex-1 rounded-[20px] bg-slate-50 py-4 text-sm font-bold text-slate-500">取消</button>
-                        <button disabled={submitting} onClick={zhiFuBtnActive} className="flex-1 rounded-[20px] bg-blue-600 py-4 text-sm font-bold text-white disabled:opacity-50">确定</button>
+                        <button disabled={submitting} onClick={zhiFuBtnActive} className="flex-1 rounded-[20px] bg-primary-600 py-4 text-sm font-bold text-white disabled:opacity-50">确定</button>
                     </div>
                 </div>
             </Modal>

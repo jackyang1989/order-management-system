@@ -66,7 +66,7 @@ export default function NewTaskPage() {
                     {steps.map((s, i) => (
                         <div key={s.num} className={cn('flex items-center', i === 2 ? 'flex-none' : 'flex-1')}>
                             <div className={cn('flex items-center gap-2', step >= s.num ? 'opacity-100' : 'opacity-40')}>
-                                <div className={cn('flex h-8 w-8 items-center justify-center rounded-full font-bold', step >= s.num ? 'bg-primary-600 text-white' : 'bg-[#e5e7eb] text-[#f9fafb]0')}>{s.num}</div>
+                                <div className={cn('flex h-8 w-8 items-center justify-center rounded-full font-bold', step >= s.num ? 'bg-primary-600 text-white' : 'bg-[#e5e7eb] text-[#6b7280]')}>{s.num}</div>
                                 <div className={cn('text-[#3b4559]', step >= s.num ? 'font-semibold' : 'font-normal')}>{s.label}</div>
                             </div>
                             {i < 2 && <div className={cn('mx-4 h-0.5 flex-1', step > s.num ? 'bg-primary-600' : 'bg-[#e5e7eb]')} />}

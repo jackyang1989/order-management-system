@@ -275,7 +275,7 @@ function RegisterForm() {
                 </div>
 
                 <div className="mt-6 flex items-start gap-2 rounded-lg bg-blue-50 p-3">
-                    <span className="text-blue-500">ℹ️</span>
+                    <span className="text-primary-500">ℹ️</span>
                     <p className="text-sm text-blue-700">
                         密码格式要求：6到16位，可包含字母、数字、下划线、减号
                     </p>

@@ -85,7 +85,7 @@ export default function BottomNav() {
                                     onClick={() => setActiveNav(null)}
                                     className={cn(
                                         'block px-3 py-3 text-sm no-underline',
-                                        pathname.startsWith(sub.href.split('?')[0]) ? 'text-blue-500 font-medium' : 'text-[#4b5563]',
+                                        pathname.startsWith(sub.href.split('?')[0]) ? 'text-primary-500 font-medium' : 'text-[#4b5563]',
                                         idx < item.subItems!.length - 1 && 'border-b border-[#f3f4f6]'
                                     )}
                                 >
@@ -100,8 +100,8 @@ export default function BottomNav() {
                         className={cn(
                             'flex h-full cursor-pointer flex-col items-center justify-center gap-1',
                             item.highlight
-                                ? 'bg-blue-500 text-white'
-                                : (activeNav === item.key || isActive(item) ? 'text-blue-500' : 'text-[#f9fafb]0')
+                                ? 'bg-primary-500 text-white'
+                                : (activeNav === item.key || isActive(item) ? 'text-primary-500' : 'text-[#6b7280]')
                         )}
                     >
                         <span className="text-xl">{item.icon}</span>

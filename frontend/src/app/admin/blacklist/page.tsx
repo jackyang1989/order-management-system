@@ -137,14 +137,14 @@ export default function AdminBlacklistPage() {
             {/* Filter Bar */}
             <Card className="flex flex-wrap items-center justify-between gap-3 bg-white">
                 <div className="flex items-center gap-3">
-                    <span className="text-slate-500">状态筛选：</span>
+                    <span className="text-[#6b7280]">状态筛选：</span>
                     {filterButtons.map(item => (
                         <button
                             key={String(item.value)}
                             onClick={() => { setFilter(item.value); setPage(1); }}
                             className={cn(
                                 'cursor-pointer rounded border px-4 py-1.5 text-sm',
-                                filter === item.value ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-slate-200 bg-white text-slate-500'
+                                filter === item.value ? 'border-blue-500 bg-blue-50 text-primary-600' : 'border-[#e5e7eb] bg-white text-[#6b7280]'
                             )}
                         >
                             {item.label}
@@ -166,11 +166,11 @@ export default function AdminBlacklistPage() {
             {/* Batch Actions */}
             {filter === 0 && (
                 <Card className="flex items-center gap-3 bg-white">
-                    <span className="text-slate-500">批量操作：</span>
+                    <span className="text-[#6b7280]">批量操作：</span>
                     <Button
                         onClick={() => handleBatchReview(true)}
                         disabled={batchLoading || selectedIds.size === 0}
-                        className={cn('bg-green-500 hover:bg-green-600', selectedIds.size === 0 && 'cursor-not-allowed opacity-50')}
+                        className={cn('bg-green-500 hover:bg-success-400', selectedIds.size === 0 && 'cursor-not-allowed opacity-50')}
                     >
                         {batchLoading ? '处理中...' : `批量通过 (${selectedIds.size})`}
                     </Button>
@@ -188,15 +188,15 @@ export default function AdminBlacklistPage() {
             {/* Table */}
             <Card className="overflow-hidden bg-white p-0">
                 {loading ? (
-                    <div className="py-12 text-center text-slate-400">加载中...</div>
+                    <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
                 ) : items.length === 0 ? (
-                    <div className="py-12 text-center text-slate-400">暂无黑名单记录</div>
+                    <div className="py-12 text-center text-[#9ca3af]">暂无黑名单记录</div>
                 ) : (
                     <>
                         <div className="overflow-x-auto">
                             <table className="min-w-[1100px] w-full border-collapse">
                                 <thead>
-                                    <tr className="border-b border-slate-100 bg-slate-50">
+                                    <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
                                         {filter === 0 && (
                                             <th className="w-[50px] px-4 py-3.5 text-center text-sm font-medium">
                                                 <input type="checkbox" checked={allPendingSelected} onChange={e => handleSelectAll(e.target.checked)} />
@@ -214,16 +214,16 @@ export default function AdminBlacklistPage() {
                                 </thead>
                                 <tbody>
                                     {items.map(item => (
-                                        <tr key={item.id} className="border-b border-slate-100">
+                                        <tr key={item.id} className="border-b border-[#f3f4f6]">
                                             {filter === 0 && (
                                                 <td className="px-4 py-3.5 text-center">
                                                     {item.status === 0 && <input type="checkbox" checked={selectedIds.has(item.id)} onChange={e => handleSelectOne(item.id, e.target.checked)} />}
                                                 </td>
                                             )}
                                             <td className="px-4 py-3.5 font-medium">{item.accountName}</td>
-                                            <td className="px-4 py-3.5 text-slate-500">
+                                            <td className="px-4 py-3.5 text-[#6b7280]">
                                                 {item.seller?.merchantName || '-'}
-                                                {item.seller?.phone && <div className="text-xs text-slate-400">{item.seller.phone}</div>}
+                                                {item.seller?.phone && <div className="text-xs text-[#9ca3af]">{item.seller.phone}</div>}
                                             </td>
                                             <td className="px-4 py-3.5 text-center">
                                                 <Badge variant="soft" color={typeLabels[item.type]?.color || 'slate'}>{typeLabels[item.type]?.text || '未知'}</Badge>
@@ -231,14 +231,14 @@ export default function AdminBlacklistPage() {
                                             <td className="px-4 py-3.5 text-center">
                                                 <Badge variant="soft" color={statusLabels[item.status]?.color || 'slate'}>{statusLabels[item.status]?.text || '未知'}</Badge>
                                             </td>
-                                            <td className="max-w-[200px] truncate px-4 py-3.5 text-slate-500">{item.reason || '-'}</td>
-                                            <td className="px-4 py-3.5 text-xs text-slate-400">{item.type === 1 && item.endTime ? new Date(item.endTime).toLocaleString('zh-CN') : '-'}</td>
-                                            <td className="px-4 py-3.5 text-xs text-slate-400">{new Date(item.createdAt).toLocaleString('zh-CN')}</td>
+                                            <td className="max-w-[200px] truncate px-4 py-3.5 text-[#6b7280]">{item.reason || '-'}</td>
+                                            <td className="px-4 py-3.5 text-xs text-[#9ca3af]">{item.type === 1 && item.endTime ? new Date(item.endTime).toLocaleString('zh-CN') : '-'}</td>
+                                            <td className="px-4 py-3.5 text-xs text-[#9ca3af]">{new Date(item.createdAt).toLocaleString('zh-CN')}</td>
                                             <td className="px-4 py-3.5 text-center">
                                                 <div className="flex justify-center gap-2">
                                                     {item.status === 0 && (
                                                         <>
-                                                            <Button size="sm" className="bg-green-500 text-white hover:bg-green-600" onClick={() => handleReview(item.id, true)}>通过</Button>
+                                                            <Button size="sm" className="bg-green-500 text-white hover:bg-success-400" onClick={() => handleReview(item.id, true)}>通过</Button>
                                                             <Button size="sm" variant="destructive" onClick={() => handleReview(item.id, false)}>拒绝</Button>
                                                         </>
                                                     )}
@@ -251,11 +251,11 @@ export default function AdminBlacklistPage() {
                             </table>
                         </div>
 
-                        <div className="flex items-center justify-between border-t border-slate-100 p-4">
-                            <span className="text-slate-400">共 {total} 条记录</span>
+                        <div className="flex items-center justify-between border-t border-[#f3f4f6] p-4">
+                            <span className="text-[#9ca3af]">共 {total} 条记录</span>
                             <div className="flex items-center gap-2">
                                 <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className={cn(page === 1 && 'cursor-not-allowed opacity-50')}>上一页</Button>
-                                <span className="px-3 text-sm text-slate-500">第 {page} 页</span>
+                                <span className="px-3 text-sm text-[#6b7280]">第 {page} 页</span>
                                 <Button size="sm" variant="secondary" onClick={() => setPage(p => p + 1)} disabled={items.length < 20} className={cn(items.length < 20 && 'cursor-not-allowed opacity-50')}>下一页</Button>
                             </div>
                         </div>

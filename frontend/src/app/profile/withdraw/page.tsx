@@ -225,7 +225,7 @@ export default function WithdrawPage() {
                                                     <div className="text-sm font-medium text-slate-800">{c.bankName}</div>
                                                     <div className="text-xs text-slate-500">尾号 {c.cardNumber.slice(-4)}</div>
                                                 </div>
-                                                {selectedCard === c.id && <span className="text-blue-500">✓</span>}
+                                                {selectedCard === c.id && <span className="text-primary-500">✓</span>}
                                             </div>
                                         ))}
                                     </div>
@@ -239,7 +239,7 @@ export default function WithdrawPage() {
                                 </div>
                             )}
 
-                            <Button type="submit" className="w-full bg-blue-500 py-3 hover:bg-blue-600" disabled={bankCards.length === 0}>
+                            <Button type="submit" className="w-full bg-primary-500 py-3 hover:bg-primary-600" disabled={bankCards.length === 0}>
                                 申请提现
                             </Button>
                         </form>
@@ -288,7 +288,7 @@ export default function WithdrawPage() {
                                                     <div className="text-sm font-medium text-slate-800">{c.bankName}</div>
                                                     <div className="text-xs text-slate-500">尾号 {c.cardNumber.slice(-4)}</div>
                                                 </div>
-                                                {selectedCard === c.id && <span className="text-blue-500">✓</span>}
+                                                {selectedCard === c.id && <span className="text-primary-500">✓</span>}
                                             </div>
                                         ))}
                                     </div>
@@ -302,7 +302,7 @@ export default function WithdrawPage() {
                                 </div>
                             )}
 
-                            <Button type="submit" className="w-full bg-blue-500 py-3 hover:bg-blue-600" disabled={bankCards.length === 0}>
+                            <Button type="submit" className="w-full bg-primary-500 py-3 hover:bg-primary-600" disabled={bankCards.length === 0}>
                                 申请提现
                             </Button>
                         </form>
@@ -363,7 +363,7 @@ export default function WithdrawPage() {
                 {withdrawData && (
                     <form onSubmit={handleConfirmWithdraw} className="space-y-4">
                         <div className="text-center">
-                            <div className="text-2xl font-bold text-blue-500">¥{calculateActual(withdrawData.amount).toFixed(2)}</div>
+                            <div className="text-2xl font-bold text-primary-500">¥{calculateActual(withdrawData.amount).toFixed(2)}</div>
                             {activeTab === 'silver' && (
                                 <div className="mt-1 text-xs text-slate-500">手续费: ¥{calculateFee(withdrawData.amount).toFixed(2)}</div>
                             )}
@@ -398,7 +398,7 @@ export default function WithdrawPage() {
                             />
                         </div>
 
-                        <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600" loading={submitting}>
+                        <Button type="submit" className="w-full bg-primary-500 hover:bg-primary-600" loading={submitting}>
                             确认提现
                         </Button>
                     </form>

@@ -68,7 +68,7 @@ export default function PaymentSettingsPage() {
                 <div className="mx-auto flex h-14 max-w-[515px] items-center px-4">
                     <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
                     <h1 className="flex-1 text-base font-medium text-slate-800">银行卡管理</h1>
-                    <button onClick={() => setShowAddModal(true)} className="text-sm font-medium text-blue-500">添加</button>
+                    <button onClick={() => setShowAddModal(true)} className="text-sm font-medium text-primary-500">添加</button>
                 </div>
             </header>
 
@@ -79,13 +79,13 @@ export default function PaymentSettingsPage() {
                     <div className="rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center text-slate-400">
                         <div className="mb-3 text-4xl">💳</div>
                         <p className="text-sm">暂未绑定银行卡</p>
-                        <Button className="mt-4 bg-blue-500" onClick={() => setShowAddModal(true)}>立即绑定</Button>
+                        <Button className="mt-4 bg-primary-500" onClick={() => setShowAddModal(true)}>立即绑定</Button>
                     </div>
                 ) : (
                     <div className="space-y-4">
                         {cards.map(card => (
                             <Card key={card.id} className={cn('relative overflow-hidden border-slate-200 transition-all', card.isDefault ? 'border-blue-500 bg-blue-50/30' : 'bg-white')}>
-                                {card.isDefault && <div className="absolute right-0 top-0 rounded-bl-lg bg-blue-500 px-3 py-1 text-[10px] text-white">默认</div>}
+                                {card.isDefault && <div className="absolute right-0 top-0 rounded-bl-lg bg-primary-500 px-3 py-1 text-[10px] text-white">默认</div>}
                                 <div className="p-4">
                                     <div className="mb-4 flex items-center gap-3">
                                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-xl">🏦</div>
@@ -98,8 +98,8 @@ export default function PaymentSettingsPage() {
                                         **** **** **** {card.cardNumber.slice(-4)}
                                     </div>
                                     <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
-                                        {!card.isDefault && <button onClick={() => handleSetDefault(card.id)} className="text-xs text-blue-500">设为默认</button>}
-                                        <button onClick={() => handleDeleteCard(card.id)} className="text-xs text-red-500">删除</button>
+                                        {!card.isDefault && <button onClick={() => handleSetDefault(card.id)} className="text-xs text-primary-500">设为默认</button>}
+                                        <button onClick={() => handleDeleteCard(card.id)} className="text-xs text-danger-400">删除</button>
                                     </div>
                                 </div>
                             </Card>
@@ -122,16 +122,16 @@ export default function PaymentSettingsPage() {
                 <form onSubmit={handleAddCard} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="mb-1 block text-xs text-slate-500">银行名称 <span className="text-red-500">*</span></label>
+                            <label className="mb-1 block text-xs text-slate-500">银行名称 <span className="text-danger-400">*</span></label>
                             <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="如：招商银行" value={form.bankName} onChange={e => setForm(f => ({ ...f, bankName: e.target.value }))} />
                         </div>
                         <div>
-                            <label className="mb-1 block text-xs text-slate-500">持卡人姓名 <span className="text-red-500">*</span></label>
+                            <label className="mb-1 block text-xs text-slate-500">持卡人姓名 <span className="text-danger-400">*</span></label>
                             <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="姓名" value={form.accountName} onChange={e => setForm(f => ({ ...f, accountName: e.target.value }))} />
                         </div>
                     </div>
                     <div>
-                        <label className="mb-1 block text-xs text-slate-500">银行卡号 <span className="text-red-500">*</span></label>
+                        <label className="mb-1 block text-xs text-slate-500">银行卡号 <span className="text-danger-400">*</span></label>
                         <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="请输入银行卡号" value={form.cardNumber} onChange={e => setForm(f => ({ ...f, cardNumber: e.target.value }))} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -145,12 +145,12 @@ export default function PaymentSettingsPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="mb-1 block text-xs text-slate-500">支行信息 <span className="text-red-500">*</span></label>
+                        <label className="mb-1 block text-xs text-slate-500">支行信息 <span className="text-danger-400">*</span></label>
                         <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="如：某某支行" value={form.branchName} onChange={e => setForm(f => ({ ...f, branchName: e.target.value }))} />
                     </div>
                     <div className="flex gap-3 pt-2">
                         <Button variant="secondary" onClick={() => setShowAddModal(false)} className="flex-1">取消</Button>
-                        <Button type="submit" loading={submitting} className="flex-1 bg-blue-500 hover:bg-blue-600">确定</Button>
+                        <Button type="submit" loading={submitting} className="flex-1 bg-primary-500 hover:bg-primary-600">确定</Button>
                     </div>
                 </form>
             </Modal>

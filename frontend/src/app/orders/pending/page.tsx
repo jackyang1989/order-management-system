@@ -87,7 +87,7 @@ export default function PendingOrdersPage() {
                                     <span className="text-xs text-slate-400">
                                         #{order.id?.slice(-6)}
                                     </span>
-                                    <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-500">
+                                    <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-primary-500">
                                         进行中
                                     </span>
                                 </div>
@@ -132,7 +132,7 @@ export default function PendingOrdersPage() {
                                     </button>
                                     <button
                                         onClick={() => handleCancel(order)}
-                                        className="flex-1 cursor-pointer rounded-xl border border-red-500 bg-white py-3.5 text-sm font-semibold text-red-500"
+                                        className="flex-1 cursor-pointer rounded-xl border border-red-500 bg-white py-3.5 text-sm font-semibold text-danger-400"
                                     >
                                         放弃
                                     </button>

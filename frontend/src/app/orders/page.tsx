@@ -190,7 +190,7 @@ function OrdersPageContent() {
     const defaultBtn = (index_state: string) => { if (index_state === '4') return '确认返款'; if (index_state === '2') return '去收货'; return '查看详情'; };
     const defaultBtnClick = (index_state: string, id: string) => { if (!index_state || index_state === '4') router.push(`/orders/${id}`); else if (index_state === '2') router.push(`/orders/${id}/receive`); else router.push(`/orders/${id}`); };
 
-    const getStatusColor = (state: string) => { if (state.includes('完成')) return 'bg-green-50 text-green-600'; if (state.includes('取消') || state.includes('放弃') || state.includes('超时')) return 'bg-slate-100 text-slate-500'; if (state.includes('返款')) return 'bg-amber-50 text-amber-600'; return 'bg-blue-50 text-blue-600'; };
+    const getStatusColor = (state: string) => { if (state.includes('完成')) return 'bg-green-50 text-success-400'; if (state.includes('取消') || state.includes('放弃') || state.includes('超时')) return 'bg-slate-100 text-slate-500'; if (state.includes('返款')) return 'bg-amber-50 text-warning-500'; return 'bg-blue-50 text-primary-600'; };
 
     const totalPages = Math.ceil(total / pageSize);
 
@@ -204,13 +204,13 @@ function OrdersPageContent() {
                     <div className="flex h-14 items-center">
                         <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
                         <h1 className="flex-1 text-base font-medium text-slate-800">任务管理</h1>
-                        <button onClick={() => setShowFilters(!showFilters)} className="text-sm text-blue-500">{showFilters ? '收起' : '筛选'}</button>
+                        <button onClick={() => setShowFilters(!showFilters)} className="text-sm text-primary-500">{showFilters ? '收起' : '筛选'}</button>
                     </div>
                     {/* Search */}
                     <div className="flex gap-2 pb-3">
                         <input type="text" placeholder="请输入任务编号" value={indexorder} onChange={(e) => setIndexorder(e.target.value)}
                             className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400" />
-                        <button onClick={searchOrder} className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white">搜索</button>
+                        <button onClick={searchOrder} className="rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white">搜索</button>
                     </div>
                 </div>
             </div>
@@ -276,7 +276,7 @@ function OrdersPageContent() {
                 <div className="flex overflow-x-auto border-b border-slate-200 bg-white">
                     {QUICK_TABS.map(tab => (
                         <button key={tab.key} onClick={() => getChooseValue(tab.key)}
-                            className={cn('flex-none whitespace-nowrap px-4 py-3 text-sm font-medium', value1 === tab.key ? 'border-b-2 border-blue-500 text-blue-500' : 'text-slate-500')}>
+                            className={cn('flex-none whitespace-nowrap px-4 py-3 text-sm font-medium', value1 === tab.key ? 'border-b-2 border-blue-500 text-primary-500' : 'text-slate-500')}>
                             {tab.label}
                         </button>
                     ))}
@@ -289,7 +289,7 @@ function OrdersPageContent() {
                             <input type="checkbox" checked={selectAll} onChange={handleSelectAll} className="h-4 w-4 rounded border-slate-300" /> 全选
                         </label>
                         <button onClick={handleBatchConfirmRefund} disabled={selectedIds.length === 0}
-                            className={cn('rounded-full px-4 py-1.5 text-sm font-medium text-white', selectedIds.length > 0 ? 'bg-amber-500' : 'cursor-not-allowed bg-slate-300')}>
+                            className={cn('rounded-full px-4 py-1.5 text-sm font-medium text-white', selectedIds.length > 0 ? 'bg-warning-400' : 'cursor-not-allowed bg-slate-300')}>
                             确认返款 ({selectedIds.length})
                         </button>
                     </div>
@@ -324,16 +324,16 @@ function OrdersPageContent() {
                                     <div className="mb-2 text-xs text-slate-400">任务编号：{order.task_number}</div>
                                     <div className="grid grid-cols-2 gap-1 text-sm">
                                         <div className="text-slate-500">买号：<span className="text-slate-700">{order.wwid}</span></div>
-                                        <div className="text-slate-500">佣金：<span className="font-medium text-green-500">{order.commission}+{order.user_divided}银锭</span></div>
-                                        <div className="text-slate-500">垫付资金：<span className="font-medium text-blue-500">¥{order.user_principal}</span></div>
+                                        <div className="text-slate-500">佣金：<span className="font-medium text-success-400">{order.commission}+{order.user_divided}银锭</span></div>
+                                        <div className="text-slate-500">垫付资金：<span className="font-medium text-primary-500">¥{order.user_principal}</span></div>
                                         <div className="text-xs text-slate-400">{order.create_time}</div>
                                     </div>
                                 </div>
                                 {/* Order Footer */}
                                 <div className="flex justify-end gap-2 border-t border-slate-100 px-4 py-3">
-                                    {!value5 && !value1 && <button onClick={() => defaultBtnClick(order.index_state, order.id)} className="rounded-full bg-amber-500 px-4 py-1.5 text-xs font-medium text-white">{defaultBtn(order.index_state)}</button>}
-                                    {(value5 || value1) && <button onClick={() => value5 ? chooseTiao2(order.review_task_id || '') : chooseTiao(order.id)} className="rounded-full bg-amber-500 px-4 py-1.5 text-xs font-medium text-white">{buttonvalue}</button>}
-                                    {value5 === '1' && order.review_task_id && <button onClick={() => goZhuiPin(order.review_task_id!)} className="rounded-full bg-blue-500 px-4 py-1.5 text-xs font-medium text-white">{buttonvalue2}</button>}
+                                    {!value5 && !value1 && <button onClick={() => defaultBtnClick(order.index_state, order.id)} className="rounded-full bg-warning-400 px-4 py-1.5 text-xs font-medium text-white">{defaultBtn(order.index_state)}</button>}
+                                    {(value5 || value1) && <button onClick={() => value5 ? chooseTiao2(order.review_task_id || '') : chooseTiao(order.id)} className="rounded-full bg-warning-400 px-4 py-1.5 text-xs font-medium text-white">{buttonvalue}</button>}
+                                    {value5 === '1' && order.review_task_id && <button onClick={() => goZhuiPin(order.review_task_id!)} className="rounded-full bg-primary-500 px-4 py-1.5 text-xs font-medium text-white">{buttonvalue2}</button>}
                                 </div>
                             </div>
                         ))

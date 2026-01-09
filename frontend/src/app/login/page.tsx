@@ -217,7 +217,7 @@ export default function LoginPage() {
                                         'whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition-colors',
                                         countdown > 0 || sendingCode
                                             ? 'bg-slate-200 text-slate-400'
-                                            : 'bg-blue-500 text-white hover:bg-blue-600'
+                                            : 'bg-primary-500 text-white hover:bg-primary-600'
                                     )}
                                 >
                                     {sendingCode ? '发送中...' : countdown > 0 ? `${countdown}s` : '获取验证码'}
@@ -239,7 +239,7 @@ export default function LoginPage() {
                     还没有账号？
                     <button
                         type="button"
-                        className="ml-1 text-blue-600"
+                        className="ml-1 text-primary-600"
                         onClick={() => router.push('/register')}
                     >
                         立即注册

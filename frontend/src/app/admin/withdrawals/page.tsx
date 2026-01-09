@@ -138,8 +138,8 @@ export default function AdminWithdrawalsPage() {
             className: 'w-[140px]',
             render: (row) => (
                 <div>
-                    <div className="text-base font-semibold text-blue-600">¥{Number(row.amount).toFixed(2)}</div>
-                    <div className="text-xs text-slate-400">
+                    <div className="text-base font-semibold text-primary-600">¥{Number(row.amount).toFixed(2)}</div>
+                    <div className="text-xs text-[#9ca3af]">
                         手续费: ¥{Number(row.fee).toFixed(2)}
                     </div>
                 </div>
@@ -150,7 +150,7 @@ export default function AdminWithdrawalsPage() {
             title: '到账金额',
             className: 'w-[100px]',
             render: (row) => (
-                <span className="font-semibold text-green-600">¥{Number(row.actualAmount).toFixed(2)}</span>
+                <span className="font-semibold text-success-400">¥{Number(row.actualAmount).toFixed(2)}</span>
             ),
         },
         {
@@ -159,9 +159,9 @@ export default function AdminWithdrawalsPage() {
             className: 'w-[200px]',
             render: (row) => (
                 <div>
-                    <div className="font-medium text-slate-800">{row.holderName}</div>
-                    <div className="text-xs text-slate-500">{row.bankName}</div>
-                    <div className="font-mono text-xs text-slate-400">
+                    <div className="font-medium text-[#3b4559]">{row.holderName}</div>
+                    <div className="text-xs text-[#6b7280]">{row.bankName}</div>
+                    <div className="font-mono text-xs text-[#9ca3af]">
                         {row.cardNumber?.replace(/(\d{4})\d+(\d{4})/, '$1****$2')}
                     </div>
                 </div>
@@ -187,7 +187,7 @@ export default function AdminWithdrawalsPage() {
             title: '备注',
             className: 'w-[150px]',
             render: (row) => (
-                <span className="line-clamp-1 text-slate-500">{row.remark || '-'}</span>
+                <span className="line-clamp-1 text-[#6b7280]">{row.remark || '-'}</span>
             ),
         },
         {
@@ -196,13 +196,13 @@ export default function AdminWithdrawalsPage() {
             className: 'w-[200px]',
             render: (row) => {
                 if (row.status !== 'PENDING') {
-                    return <span className="text-sm text-slate-400">已处理</span>;
+                    return <span className="text-sm text-[#9ca3af]">已处理</span>;
                 }
                 return (
                     <div className="flex items-center gap-2">
                         <Button
                             size="sm"
-                            className="bg-green-600 hover:bg-green-700"
+                            className="bg-success-400 hover:bg-success-500"
                             loading={reviewing === row.id}
                             onClick={() => handleApprove(row.id, true)}
                         >
@@ -244,7 +244,7 @@ export default function AdminWithdrawalsPage() {
                     {filter === 'PENDING' && selectedRowKeys.length > 0 && (
                         <>
                             <Button
-                                className="bg-green-600 hover:bg-green-700"
+                                className="bg-success-400 hover:bg-success-500"
                                 loading={batchLoading}
                                 onClick={() => handleBatchApprove(true)}
                             >
@@ -285,9 +285,9 @@ export default function AdminWithdrawalsPage() {
             >
                 <div className="space-y-4">
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700">拒绝原因</label>
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">拒绝原因</label>
                         <textarea
-                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                             rows={3}
                             placeholder="请输入拒绝原因"
                             value={rejectReason}
@@ -312,8 +312,8 @@ export default function AdminWithdrawalsPage() {
                 onClose={() => setBatchModal(null)}
             >
                 <div className="space-y-4">
-                    <p className="text-slate-600">
-                        将对选中的 <span className="font-semibold text-slate-800">{batchModal?.count}</span> 条记录执行
+                    <p className="text-[#4b5563]">
+                        将对选中的 <span className="font-semibold text-[#3b4559]">{batchModal?.count}</span> 条记录执行
                         {batchModal?.action === 'approve' ? '批量通过' : '批量拒绝'}操作
                     </p>
                     <div className="flex justify-end gap-3 pt-4">
@@ -321,7 +321,7 @@ export default function AdminWithdrawalsPage() {
                             取消
                         </Button>
                         <Button
-                            className={batchModal?.action === 'approve' ? 'bg-green-600 hover:bg-green-700' : ''}
+                            className={batchModal?.action === 'approve' ? 'bg-success-400 hover:bg-success-500' : ''}
                             variant={batchModal?.action === 'reject' ? 'destructive' : 'primary'}
                             loading={batchLoading}
                             onClick={submitBatch}

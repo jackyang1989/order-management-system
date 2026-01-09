@@ -55,7 +55,7 @@ export default function MerchantSettingPage() {
         setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     };
 
-    if (loading) return <div className="flex h-[400px] items-center justify-center text-[#f9fafb]0">加载中...</div>;
+    if (loading) return <div className="flex h-[400px] items-center justify-center text-[#6b7280]">加载中...</div>;
 
     return (
         <div className="mx-auto max-w-3xl space-y-6">
@@ -81,26 +81,26 @@ export default function MerchantSettingPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="mb-1 block text-sm text-[#f9fafb]0">用户名</label>
+                        <label className="mb-1 block text-sm text-[#6b7280]">用户名</label>
                         <div className="rounded-md bg-[#f3f4f6] px-3 py-2.5 text-[#374151]">{merchant?.username}</div>
                     </div>
                     <div>
-                        <label className="mb-1 block text-sm text-[#f9fafb]0">手机号</label>
+                        <label className="mb-1 block text-sm text-[#6b7280]">手机号</label>
                         {editing ? <Input type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
                             : <div className="rounded-md bg-[#f3f4f6] px-3 py-2.5 text-[#374151]">{merchant?.phone || '-'}</div>}
                     </div>
                     <div>
-                        <label className="mb-1 block text-sm text-[#f9fafb]0">QQ</label>
+                        <label className="mb-1 block text-sm text-[#6b7280]">QQ</label>
                         {editing ? <Input type="text" value={formData.qq} onChange={e => setFormData({ ...formData, qq: e.target.value })} />
                             : <div className="rounded-md bg-[#f3f4f6] px-3 py-2.5 text-[#374151]">{merchant?.qq || '-'}</div>}
                     </div>
                     <div>
-                        <label className="mb-1 block text-sm text-[#f9fafb]0">联系人</label>
+                        <label className="mb-1 block text-sm text-[#6b7280]">联系人</label>
                         {editing ? <Input type="text" value={formData.contactName} onChange={e => setFormData({ ...formData, contactName: e.target.value })} />
                             : <div className="rounded-md bg-[#f3f4f6] px-3 py-2.5 text-[#374151]">{merchant?.contactName || '-'}</div>}
                     </div>
                     <div className="col-span-2">
-                        <label className="mb-1 block text-sm text-[#f9fafb]0">公司名称</label>
+                        <label className="mb-1 block text-sm text-[#6b7280]">公司名称</label>
                         {editing ? <Input type="text" value={formData.companyName} onChange={e => setFormData({ ...formData, companyName: e.target.value })} />
                             : <div className="rounded-md bg-[#f3f4f6] px-3 py-2.5 text-[#374151]">{merchant?.companyName || '-'}</div>}
                     </div>
@@ -112,16 +112,16 @@ export default function MerchantSettingPage() {
                 <h2 className="mb-5 text-lg font-semibold">账户状态</h2>
                 <div className="grid grid-cols-3 gap-4">
                     <div className="rounded-md bg-green-50 p-4 text-center">
-                        <div className="text-2xl font-bold text-green-600">¥{parseFloat(String(merchant?.balance || 0)).toFixed(2)}</div>
-                        <div className="mt-1 text-sm text-[#f9fafb]0">账户余额</div>
+                        <div className="text-2xl font-bold text-success-400">¥{parseFloat(String(merchant?.balance || 0)).toFixed(2)}</div>
+                        <div className="mt-1 text-sm text-[#6b7280]">账户余额</div>
                     </div>
                     <div className="rounded-md bg-amber-50 p-4 text-center">
-                        <div className="text-2xl font-bold text-amber-600">{parseFloat(String(merchant?.silver || 0)).toFixed(0)}</div>
-                        <div className="mt-1 text-sm text-[#f9fafb]0">银锭</div>
+                        <div className="text-2xl font-bold text-warning-500">{parseFloat(String(merchant?.silver || 0)).toFixed(0)}</div>
+                        <div className="mt-1 text-sm text-[#6b7280]">银锭</div>
                     </div>
                     <div className={cn('rounded-md p-4 text-center', merchant?.vip ? 'bg-purple-50' : 'bg-[#f3f4f6]')}>
                         <div className={cn('text-2xl font-bold', merchant?.vip ? 'text-purple-600' : 'text-[#9ca3af]')}>{merchant?.vip ? 'VIP' : '普通'}</div>
-                        <div className="mt-1 text-sm text-[#f9fafb]0">会员状态</div>
+                        <div className="mt-1 text-sm text-[#6b7280]">会员状态</div>
                     </div>
                 </div>
             </Card>
@@ -132,7 +132,7 @@ export default function MerchantSettingPage() {
                 <div className="flex items-center justify-between border-b border-[#f3f4f6] py-3">
                     <div>
                         <div className="font-medium">登录密码</div>
-                        <div className="text-sm text-[#f9fafb]0">定期更换密码可以保护账户安全</div>
+                        <div className="text-sm text-[#6b7280]">定期更换密码可以保护账户安全</div>
                     </div>
                     <Button variant="secondary" size="sm" onClick={() => setShowPasswordModal(true)}>修改密码</Button>
                 </div>
@@ -142,15 +142,15 @@ export default function MerchantSettingPage() {
             <Modal title="修改密码" open={showPasswordModal} onClose={() => { setShowPasswordModal(false); setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' }); }}>
                 <div className="space-y-4">
                     <div>
-                        <label className="mb-1 block text-sm text-[#f9fafb]0">当前密码</label>
+                        <label className="mb-1 block text-sm text-[#6b7280]">当前密码</label>
                         <Input type="password" value={passwordForm.oldPassword} onChange={e => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })} />
                     </div>
                     <div>
-                        <label className="mb-1 block text-sm text-[#f9fafb]0">新密码</label>
+                        <label className="mb-1 block text-sm text-[#6b7280]">新密码</label>
                         <Input type="password" value={passwordForm.newPassword} onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} />
                     </div>
                     <div>
-                        <label className="mb-1 block text-sm text-[#f9fafb]0">确认新密码</label>
+                        <label className="mb-1 block text-sm text-[#6b7280]">确认新密码</label>
                         <Input type="password" value={passwordForm.confirmPassword} onChange={e => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} />
                     </div>
                 </div>

@@ -164,7 +164,7 @@ export default function AdminTasksPage() {
         {
             key: 'taskNumber',
             title: '任务编号',
-            render: (row) => <code className="text-[12px] text-[#7c889a]">{row.taskNumber}</code>,
+            render: (row) => <code className="text-[12px] text-[#6b7280]">{row.taskNumber}</code>,
             className: 'w-[140px]',
         },
         {
@@ -193,10 +193,10 @@ export default function AdminTasksPage() {
                 const barClass = percent >= 100 ? 'bg-success-500' : 'bg-primary-500';
                 return (
                     <div className="space-y-1">
-                        <div className="h-2 w-full rounded-full bg-[#e5eaef]">
+                        <div className="h-2 w-full rounded-full bg-[#e5e7eb]">
                             <div className={cn('h-2 rounded-full', barClass, progressWidthClass(percent))} />
                         </div>
-                        <span className="text-[12px] text-[#7c889a]">
+                        <span className="text-[12px] text-[#6b7280]">
                             {row.claimedCount} / {row.count} ({percent}%)
                         </span>
                     </div>
@@ -220,7 +220,7 @@ export default function AdminTasksPage() {
         {
             key: 'createdAt',
             title: '创建时间',
-            render: (row) => <span className="text-[#7c889a]">{new Date(row.createdAt).toLocaleDateString('zh-CN')}</span>,
+            render: (row) => <span className="text-[#6b7280]">{new Date(row.createdAt).toLocaleDateString('zh-CN')}</span>,
             className: 'w-[120px]',
         },
         {
@@ -314,7 +314,7 @@ export default function AdminTasksPage() {
                                 <img
                                     src={detailModal.mainImage}
                                     alt="商品图"
-                                    className="h-48 rounded-xl object-contain"
+                                    className="h-48 rounded-md object-contain"
                                 />
                             </div>
                         )}
@@ -322,17 +322,17 @@ export default function AdminTasksPage() {
                         {/* 基本信息 */}
                         <div className="mb-6">
                             <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">基本信息</h3>
-                            <div className="grid grid-cols-1 gap-4 rounded-xl bg-[#f6f8fb] p-4 sm:grid-cols-3">
+                            <div className="grid grid-cols-1 gap-4 rounded-md bg-[#f9fafb] p-4 sm:grid-cols-3">
                                 <div className="space-y-1">
-                                    <div className="text-[12px] text-[#7c889a]">任务编号</div>
+                                    <div className="text-[12px] text-[#6b7280]">任务编号</div>
                                     <div className="text-[13px] font-medium text-[#3b4559]">{detailModal.taskNumber}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-[12px] text-[#7c889a]">平台</div>
+                                    <div className="text-[12px] text-[#6b7280]">平台</div>
                                     <div className="text-[13px] font-medium text-[#3b4559]">{TASK_TYPE_NAMES[detailModal.taskType]}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-[12px] text-[#7c889a]">状态</div>
+                                    <div className="text-[12px] text-[#6b7280]">状态</div>
                                     <div>
                                         <Badge variant="soft" color={statusLabels[detailModal.status]?.color}>
                                             {statusLabels[detailModal.status]?.text}
@@ -340,19 +340,19 @@ export default function AdminTasksPage() {
                                     </div>
                                 </div>
                                 <div className="space-y-1 sm:col-span-3">
-                                    <div className="text-[12px] text-[#7c889a]">标题</div>
+                                    <div className="text-[12px] text-[#6b7280]">标题</div>
                                     <div className="text-[13px] font-medium text-[#3b4559]">{detailModal.title}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-[12px] text-[#7c889a]">店铺</div>
+                                    <div className="text-[12px] text-[#6b7280]">店铺</div>
                                     <div className="text-[13px] font-medium text-[#3b4559]">{detailModal.shopName || '-'}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-[12px] text-[#7c889a]">关键词</div>
+                                    <div className="text-[12px] text-[#6b7280]">关键词</div>
                                     <div className="text-[13px] font-medium text-[#3b4559]">{detailModal.keyword || '-'}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-[12px] text-[#7c889a]">结算方式</div>
+                                    <div className="text-[12px] text-[#6b7280]">结算方式</div>
                                     <div className="text-[13px] font-medium text-[#3b4559]">{terminalLabels[detailModal.terminal] || '-'}</div>
                                 </div>
                             </div>
@@ -361,21 +361,21 @@ export default function AdminTasksPage() {
                         {/* 任务进度 */}
                         <div className="mb-6">
                             <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">任务进度</h3>
-                            <div className="grid grid-cols-2 gap-4 rounded-xl bg-[#f6f8fb] p-4 sm:grid-cols-4">
+                            <div className="grid grid-cols-2 gap-4 rounded-md bg-[#f9fafb] p-4 sm:grid-cols-4">
                                 <div>
-                                    <div className="text-[12px] text-[#7c889a]">总单数</div>
+                                    <div className="text-[12px] text-[#6b7280]">总单数</div>
                                     <div className="text-lg font-bold text-[#3b4559]">{detailModal.count}</div>
                                 </div>
                                 <div>
-                                    <div className="text-[12px] text-[#7c889a]">已领取</div>
+                                    <div className="text-[12px] text-[#6b7280]">已领取</div>
                                     <div className="text-lg font-bold text-primary-600">{detailModal.claimedCount}</div>
                                 </div>
                                 <div>
-                                    <div className="text-[12px] text-[#7c889a]">已完成</div>
+                                    <div className="text-[12px] text-[#6b7280]">已完成</div>
                                     <div className="text-lg font-bold text-success-500">{detailModal.completedCount || 0}</div>
                                 </div>
                                 <div>
-                                    <div className="text-[12px] text-[#7c889a]">剩余</div>
+                                    <div className="text-[12px] text-[#6b7280]">剩余</div>
                                     <div className="text-lg font-bold text-warning-500">
                                         {detailModal.count - detailModal.claimedCount}
                                     </div>
@@ -386,17 +386,17 @@ export default function AdminTasksPage() {
                         {/* 费用信息 */}
                         <div className="mb-6">
                             <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">费用信息</h3>
-                            <div className="grid grid-cols-1 gap-4 rounded-xl bg-[#f6f8fb] p-4 sm:grid-cols-3">
+                            <div className="grid grid-cols-1 gap-4 rounded-md bg-[#f9fafb] p-4 sm:grid-cols-3">
                                 <div>
-                                    <div className="text-[12px] text-[#7c889a]">商品单价</div>
+                                    <div className="text-[12px] text-[#6b7280]">商品单价</div>
                                     <div className="text-[13px] font-medium text-[#3b4559]">¥{Number(detailModal.goodsPrice).toFixed(2)}</div>
                                 </div>
                                 <div>
-                                    <div className="text-[12px] text-[#7c889a]">总押金</div>
+                                    <div className="text-[12px] text-[#6b7280]">总押金</div>
                                     <div className="text-[13px] font-medium text-[#3b4559]">¥{Number(detailModal.totalDeposit || 0).toFixed(2)}</div>
                                 </div>
                                 <div>
-                                    <div className="text-[12px] text-[#7c889a]">总佣金</div>
+                                    <div className="text-[12px] text-[#6b7280]">总佣金</div>
                                     <div className="text-[13px] font-medium text-[#3b4559]">¥{Number(detailModal.totalCommission || 0).toFixed(2)}</div>
                                 </div>
                             </div>
@@ -405,28 +405,28 @@ export default function AdminTasksPage() {
                         {/* 增值服务 */}
                         <div>
                             <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">增值服务</h3>
-                            <div className="grid grid-cols-2 gap-4 rounded-xl bg-[#f6f8fb] p-4 sm:grid-cols-4">
+                            <div className="grid grid-cols-2 gap-4 rounded-md bg-[#f9fafb] p-4 sm:grid-cols-4">
                                 <div>
-                                    <div className="text-[12px] text-[#7c889a]">文字好评</div>
-                                    <div className={cn("text-[13px] font-medium", detailModal.isPraise ? "text-success-500" : "text-[#94a3b8]")}>
+                                    <div className="text-[12px] text-[#6b7280]">文字好评</div>
+                                    <div className={cn("text-[13px] font-medium", detailModal.isPraise ? "text-success-500" : "text-[#9ca3af]")}>
                                         {detailModal.isPraise ? '是' : '否'}
                                     </div>
                                 </div>
                                 <div>
-                                    <div className="text-[12px] text-[#7c889a]">图片好评</div>
-                                    <div className={cn("text-[13px] font-medium", detailModal.isImgPraise ? "text-success-500" : "text-[#94a3b8]")}>
+                                    <div className="text-[12px] text-[#6b7280]">图片好评</div>
+                                    <div className={cn("text-[13px] font-medium", detailModal.isImgPraise ? "text-success-500" : "text-[#9ca3af]")}>
                                         {detailModal.isImgPraise ? '是' : '否'}
                                     </div>
                                 </div>
                                 <div>
-                                    <div className="text-[12px] text-[#7c889a]">视频好评</div>
-                                    <div className={cn("text-[13px] font-medium", detailModal.isVideoPraise ? "text-success-500" : "text-[#94a3b8]")}>
+                                    <div className="text-[12px] text-[#6b7280]">视频好评</div>
+                                    <div className={cn("text-[13px] font-medium", detailModal.isVideoPraise ? "text-success-500" : "text-[#9ca3af]")}>
                                         {detailModal.isVideoPraise ? '是' : '否'}
                                     </div>
                                 </div>
                                 <div>
-                                    <div className="text-[12px] text-[#7c889a]">包邮</div>
-                                    <div className={cn("text-[13px] font-medium", detailModal.isFreeShipping ? "text-primary-600" : "text-[#94a3b8]")}>
+                                    <div className="text-[12px] text-[#6b7280]">包邮</div>
+                                    <div className={cn("text-[13px] font-medium", detailModal.isFreeShipping ? "text-primary-600" : "text-[#9ca3af]")}>
                                         {detailModal.isFreeShipping ? '是' : '否'}
                                     </div>
                                 </div>

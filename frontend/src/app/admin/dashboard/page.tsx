@@ -77,7 +77,7 @@ export default function AdminDashboardPage() {
     return (
         <div className="space-y-6">
             {/* 欢迎卡片 */}
-            <div className="overflow-hidden rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 px-8 py-7 text-white shadow-soft">
+            <div className="overflow-hidden rounded-md bg-gradient-to-r from-primary-500 to-primary-600 px-8 py-7 text-white ">
                 <h2 className="mb-2 text-xl font-semibold">欢迎回来，管理员</h2>
                 <p className="text-white/80">
                     今日新增用户 <strong className="text-white">{stats?.todayUsers || 0}</strong> 人，新增订单 <strong className="text-white">{stats?.todayOrders || 0}</strong> 单
@@ -89,14 +89,14 @@ export default function AdminDashboardPage() {
                 {statCards.map((item, idx) => (
                     <div
                         key={idx}
-                        className="overflow-hidden rounded-xl border border-[#e5eaef] bg-white p-5 shadow-card transition-shadow hover:shadow-soft"
+                        className="overflow-hidden rounded-md border border-[#e5e7eb] bg-white p-5  transition-shadow hover:"
                     >
                         <div className="flex items-center gap-4">
-                            <div className={cn('flex h-12 w-12 items-center justify-center rounded-xl text-xl', item.bgColor)}>
+                            <div className={cn('flex h-12 w-12 items-center justify-center rounded-md text-xl', item.bgColor)}>
                                 {item.icon}
                             </div>
                             <div>
-                                <div className="text-[13px] text-[#7c889a]">{item.label}</div>
+                                <div className="text-[13px] text-[#6b7280]">{item.label}</div>
                                 <div className={cn('text-2xl font-bold', item.textColor)}>{item.value}</div>
                             </div>
                         </div>
@@ -107,8 +107,8 @@ export default function AdminDashboardPage() {
             {/* 快捷操作区 */}
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
                 {/* 待处理事项 */}
-                <div className="overflow-hidden rounded-xl border border-[#e5eaef] bg-white shadow-card">
-                    <div className="flex items-center justify-between border-b border-[#e5eaef] px-6 py-4">
+                <div className="overflow-hidden rounded-md border border-[#e5e7eb] bg-white ">
+                    <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 py-4">
                         <h3 className="text-[15px] font-semibold text-[#3b4559]">待处理事项</h3>
                         <span className="text-lg">📈</span>
                     </div>
@@ -117,7 +117,7 @@ export default function AdminDashboardPage() {
                             <button
                                 key={idx}
                                 onClick={() => router.push(action.path)}
-                                className="flex w-full items-center justify-between rounded-xl border border-[#e5eaef] bg-white px-4 py-3.5 transition-all hover:border-primary-200 hover:bg-primary-50"
+                                className="flex w-full items-center justify-between rounded-md border border-[#e5e7eb] bg-white px-4 py-3.5 transition-all hover:border-primary-200 hover:bg-primary-50"
                             >
                                 <div className="flex items-center gap-3">
                                     <span className="text-lg">{action.icon}</span>
@@ -126,7 +126,7 @@ export default function AdminDashboardPage() {
                                 <span
                                     className={cn(
                                         'flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-[12px] font-medium text-white',
-                                        action.count > 0 ? 'bg-warning-400' : 'bg-[#94a3b8]'
+                                        action.count > 0 ? 'bg-warning-400' : 'bg-[#9ca3af]'
                                     )}
                                 >
                                     {action.count}
@@ -137,17 +137,17 @@ export default function AdminDashboardPage() {
                 </div>
 
                 {/* 今日数据 */}
-                <div className="overflow-hidden rounded-xl border border-[#e5eaef] bg-white shadow-card">
-                    <div className="border-b border-[#e5eaef] px-6 py-4">
+                <div className="overflow-hidden rounded-md border border-[#e5e7eb] bg-white ">
+                    <div className="border-b border-[#e5e7eb] px-6 py-4">
                         <h3 className="text-[15px] font-semibold text-[#3b4559]">今日数据</h3>
                     </div>
                     <div className="grid grid-cols-2 gap-4 p-5">
-                        <div className="rounded-xl bg-primary-50 p-5 text-center">
-                            <div className="text-[13px] text-[#7c889a]">新增用户</div>
+                        <div className="rounded-md bg-primary-50 p-5 text-center">
+                            <div className="text-[13px] text-[#6b7280]">新增用户</div>
                             <div className="mt-2 text-2xl font-bold text-primary-600">{stats?.todayUsers || 0}</div>
                         </div>
-                        <div className="rounded-xl bg-success-50 p-5 text-center">
-                            <div className="text-[13px] text-[#7c889a]">新增订单</div>
+                        <div className="rounded-md bg-success-50 p-5 text-center">
+                            <div className="text-[13px] text-[#6b7280]">新增订单</div>
                             <div className="mt-2 text-2xl font-bold text-success-500">{stats?.todayOrders || 0}</div>
                         </div>
                     </div>
@@ -155,8 +155,8 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* 快捷入口 */}
-            <div className="overflow-hidden rounded-xl border border-[#e5eaef] bg-white shadow-card">
-                <div className="border-b border-[#e5eaef] px-6 py-4">
+            <div className="overflow-hidden rounded-md border border-[#e5e7eb] bg-white ">
+                <div className="border-b border-[#e5e7eb] px-6 py-4">
                     <h3 className="text-[15px] font-semibold text-[#3b4559]">快捷入口</h3>
                 </div>
                 <div className="grid grid-cols-3 gap-4 p-5 sm:grid-cols-4 md:grid-cols-6">
@@ -164,7 +164,7 @@ export default function AdminDashboardPage() {
                         <button
                             key={idx}
                             onClick={() => router.push(item.path)}
-                            className="flex flex-col items-center gap-2.5 rounded-xl p-4 transition-all hover:bg-[#f6f8fb]"
+                            className="flex flex-col items-center gap-2.5 rounded-md p-4 transition-all hover:bg-[#f9fafb]"
                         >
                             <span className="text-2xl">{item.icon}</span>
                             <span className="text-[13px] text-[#5a6577]">{item.label}</span>

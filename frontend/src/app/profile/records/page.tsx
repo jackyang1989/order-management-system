@@ -65,7 +65,7 @@ function RecordsContent() {
                         <button
                             onClick={handleExport}
                             disabled={exporting || loading}
-                            className="text-sm font-medium text-blue-500 disabled:text-slate-400"
+                            className="text-sm font-medium text-primary-500 disabled:text-slate-400"
                         >
                             {exporting ? '导出中...' : '导出'}
                         </button>
@@ -110,7 +110,7 @@ function RecordsContent() {
                                 <Card key={r.id} className="flex items-center justify-between border-slate-200 p-4">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2">
-                                            <span className={cn('text-lg font-bold', r.action === 'in' ? 'text-green-500' : 'text-red-500')}>
+                                            <span className={cn('text-lg font-bold', r.action === 'in' ? 'text-success-400' : 'text-danger-400')}>
                                                 {r.action === 'in' ? '+' : '-'}{r.amount.toFixed(2)}
                                             </span>
                                             <span className="text-xs text-slate-400">余额: {r.balance.toFixed(2)}</span>

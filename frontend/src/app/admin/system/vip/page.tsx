@@ -139,15 +139,15 @@ export default function VipConfigPage() {
     // Color map for VIP card backgrounds (mapping hex to Tailwind classes)
     const getCardBgClass = (color: string) => {
         const colorMap: Record<string, string> = {
-            '#1890ff': 'bg-blue-500',
+            '#1890ff': 'bg-primary-500',
             '#52c41a': 'bg-green-500',
-            '#faad14': 'bg-amber-500',
+            '#faad14': 'bg-warning-400',
             '#eb2f96': 'bg-pink-500',
             '#722ed1': 'bg-purple-500',
             '#13c2c2': 'bg-cyan-500',
-            '#f5222d': 'bg-red-500',
+            '#f5222d': 'bg-danger-400',
         };
-        return colorMap[color] || 'bg-blue-500';
+        return colorMap[color] || 'bg-primary-500';
     };
 
     return (
@@ -156,20 +156,20 @@ export default function VipConfigPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-xl font-semibold">VIP等级配置</h2>
-                    <p className="mt-1 text-sm text-slate-500">配置买手和商家的VIP等级及权益</p>
+                    <p className="mt-1 text-sm text-[#6b7280]">配置买手和商家的VIP等级及权益</p>
                 </div>
                 <Button onClick={handleCreate}>+ 添加VIP等级</Button>
             </div>
 
             {/* Tab Switch */}
-            <div className="inline-flex rounded-lg bg-white p-1">
+            <div className="inline-flex rounded-md bg-white p-1">
                 <button
                     onClick={() => setActiveTab('buyer')}
                     className={cn(
                         'rounded-md px-8 py-2.5 text-sm transition-colors',
                         activeTab === 'buyer'
-                            ? 'bg-blue-600 font-medium text-white'
-                            : 'text-slate-500 hover:text-slate-700'
+                            ? 'bg-primary-600 font-medium text-white'
+                            : 'text-[#6b7280] hover:text-[#374151]'
                     )}
                 >
                     👤 买手VIP
@@ -179,8 +179,8 @@ export default function VipConfigPage() {
                     className={cn(
                         'rounded-md px-8 py-2.5 text-sm transition-colors',
                         activeTab === 'merchant'
-                            ? 'bg-blue-600 font-medium text-white'
-                            : 'text-slate-500 hover:text-slate-700'
+                            ? 'bg-primary-600 font-medium text-white'
+                            : 'text-[#6b7280] hover:text-[#374151]'
                     )}
                 >
                     🏪 商家VIP
@@ -189,7 +189,7 @@ export default function VipConfigPage() {
 
             {/* VIP Level Cards */}
             {loading ? (
-                <div className="py-16 text-center text-slate-400">加载中...</div>
+                <div className="py-16 text-center text-[#9ca3af]">加载中...</div>
             ) : (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5">
                     {filteredLevels.map(vip => (
@@ -215,8 +215,8 @@ export default function VipConfigPage() {
                             {/* Card Body */}
                             <div className="p-5">
                                 <div className="mb-4">
-                                    <div className="mb-3 font-medium text-slate-700">权益配置</div>
-                                    <div className="space-y-2 text-sm text-slate-500">
+                                    <div className="mb-3 font-medium text-[#374151]">权益配置</div>
+                                    <div className="space-y-2 text-sm text-[#6b7280]">
                                         {activeTab === 'buyer' ? (
                                             <>
                                                 <div>📋 每日任务: {vip.dailyTaskLimit === 0 ? '无限制' : `${vip.dailyTaskLimit}个`}</div>
@@ -237,15 +237,15 @@ export default function VipConfigPage() {
                                 </div>
 
                                 {/* Action Buttons */}
-                                <div className="flex gap-2 border-t border-slate-100 pt-4">
+                                <div className="flex gap-2 border-t border-[#f3f4f6] pt-4">
                                     <Button size="sm" variant="secondary" className="flex-1" onClick={() => handleEdit(vip)}>编辑</Button>
                                     <Button
                                         size="sm"
                                         className={cn(
                                             'flex-1',
                                             vip.isActive
-                                                ? 'border border-amber-400 bg-amber-50 text-amber-600 hover:bg-amber-100'
-                                                : 'border border-blue-400 bg-blue-50 text-blue-600 hover:bg-blue-100'
+                                                ? 'border border-amber-400 bg-amber-50 text-warning-500 hover:bg-amber-100'
+                                                : 'border border-blue-400 bg-blue-50 text-primary-600 hover:bg-blue-100'
                                         )}
                                         onClick={() => handleToggle(vip.id)}
                                     >
@@ -287,12 +287,12 @@ export default function VipConfigPage() {
                             onChange={e => setEditForm({ ...editForm, duration: parseInt(e.target.value) })}
                         />
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-slate-700">颜色</label>
+                            <label className="mb-2 block text-sm font-medium text-[#374151]">颜色</label>
                             <input
                                 type="color"
                                 value={editForm.color || '#1890ff'}
                                 onChange={e => setEditForm({ ...editForm, color: e.target.value })}
-                                className="h-10 w-full cursor-pointer rounded-md border border-slate-300"
+                                className="h-10 w-full cursor-pointer rounded-md border border-[#d1d5db]"
                             />
                         </div>
                         {activeTab === 'buyer' ? (
@@ -345,7 +345,7 @@ export default function VipConfigPage() {
                                         type="checkbox"
                                         checked={editForm.canReserveTask || false}
                                         onChange={e => setEditForm({ ...editForm, canReserveTask: e.target.checked })}
-                                        className="h-4 w-4 rounded border-slate-300"
+                                        className="h-4 w-4 rounded border-[#d1d5db]"
                                     />
                                     <span className="text-sm">可预约任务</span>
                                 </label>
@@ -354,7 +354,7 @@ export default function VipConfigPage() {
                                         type="checkbox"
                                         checked={editForm.showVipBadge || false}
                                         onChange={e => setEditForm({ ...editForm, showVipBadge: e.target.checked })}
-                                        className="h-4 w-4 rounded border-slate-300"
+                                        className="h-4 w-4 rounded border-[#d1d5db]"
                                     />
                                     <span className="text-sm">显示VIP徽章</span>
                                 </label>
@@ -366,7 +366,7 @@ export default function VipConfigPage() {
                                         type="checkbox"
                                         checked={editForm.priorityReview || false}
                                         onChange={e => setEditForm({ ...editForm, priorityReview: e.target.checked })}
-                                        className="h-4 w-4 rounded border-slate-300"
+                                        className="h-4 w-4 rounded border-[#d1d5db]"
                                     />
                                     <span className="text-sm">优先审核</span>
                                 </label>
@@ -375,7 +375,7 @@ export default function VipConfigPage() {
                                         type="checkbox"
                                         checked={editForm.dedicatedSupport || false}
                                         onChange={e => setEditForm({ ...editForm, dedicatedSupport: e.target.checked })}
-                                        className="h-4 w-4 rounded border-slate-300"
+                                        className="h-4 w-4 rounded border-[#d1d5db]"
                                     />
                                     <span className="text-sm">专属客服</span>
                                 </label>
@@ -386,13 +386,13 @@ export default function VipConfigPage() {
                                 type="checkbox"
                                 checked={editForm.isActive || false}
                                 onChange={e => setEditForm({ ...editForm, isActive: e.target.checked })}
-                                className="h-4 w-4 rounded border-slate-300"
+                                className="h-4 w-4 rounded border-[#d1d5db]"
                             />
                             <span className="text-sm">启用</span>
                         </label>
                     </div>
                 </div>
-                <div className="mt-5 flex justify-end gap-3 border-t border-slate-200 pt-4">
+                <div className="mt-5 flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                     <Button variant="secondary" onClick={() => setShowModal(false)}>取消</Button>
                     <Button onClick={handleSave}>保存</Button>
                 </div>

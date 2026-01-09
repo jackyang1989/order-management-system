@@ -93,7 +93,7 @@ export default function AdminMerchantsBalancePage() {
             <Card className="bg-white">
                 <div className="mb-4 flex items-center justify-between">
                     <span className="text-base font-medium">商家余额记录</span>
-                    <span className="text-slate-500">共 {total} 条记录</span>
+                    <span className="text-[#6b7280]">共 {total} 条记录</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <Input
@@ -120,15 +120,15 @@ export default function AdminMerchantsBalancePage() {
             {/* Table Card */}
             <Card className="overflow-hidden bg-white p-0">
                 {loading ? (
-                    <div className="py-12 text-center text-slate-400">加载中...</div>
+                    <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
                 ) : records.length === 0 ? (
-                    <div className="py-12 text-center text-slate-400">暂无记录</div>
+                    <div className="py-12 text-center text-[#9ca3af]">暂无记录</div>
                 ) : (
                     <>
                         <div className="overflow-x-auto">
                             <table className="min-w-[1000px] w-full border-collapse">
                                 <thead>
-                                    <tr className="border-b border-slate-100 bg-slate-50">
+                                    <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
                                         <th className="px-4 py-3.5 text-left text-sm font-medium">商家</th>
                                         <th className="px-4 py-3.5 text-left text-sm font-medium">类型</th>
                                         <th className="px-4 py-3.5 text-center text-sm font-medium">账户</th>
@@ -141,21 +141,21 @@ export default function AdminMerchantsBalancePage() {
                                 </thead>
                                 <tbody>
                                     {records.map(r => (
-                                        <tr key={r.id} className="border-b border-slate-100">
+                                        <tr key={r.id} className="border-b border-[#f3f4f6]">
                                             <td className="px-4 py-3.5 font-medium">{r.username || '-'}</td>
-                                            <td className="px-4 py-3.5 text-slate-500">{changeTypeLabels[r.changeType] || r.changeType}</td>
+                                            <td className="px-4 py-3.5 text-[#6b7280]">{changeTypeLabels[r.changeType] || r.changeType}</td>
                                             <td className="px-4 py-3.5 text-center">
                                                 <Badge variant="soft" color={moneyTypeLabels[r.moneyType]?.color || 'slate'}>
                                                     {moneyTypeLabels[r.moneyType]?.text || '未知'}
                                                 </Badge>
                                             </td>
-                                            <td className={cn('px-4 py-3.5 text-right font-medium', Number(r.amount) > 0 ? 'text-green-600' : 'text-red-500')}>
+                                            <td className={cn('px-4 py-3.5 text-right font-medium', Number(r.amount) > 0 ? 'text-success-400' : 'text-danger-400')}>
                                                 {Number(r.amount) > 0 ? '+' : ''}{Number(r.amount).toFixed(2)}
                                             </td>
-                                            <td className="px-4 py-3.5 text-right text-slate-400">{Number(r.beforeBalance || 0).toFixed(2)}</td>
+                                            <td className="px-4 py-3.5 text-right text-[#9ca3af]">{Number(r.beforeBalance || 0).toFixed(2)}</td>
                                             <td className="px-4 py-3.5 text-right">{Number(r.afterBalance || 0).toFixed(2)}</td>
-                                            <td className="max-w-[150px] truncate px-4 py-3.5 text-slate-500">{r.remark || '-'}</td>
-                                            <td className="px-4 py-3.5 text-xs text-slate-400">{r.createdAt ? new Date(r.createdAt).toLocaleString('zh-CN') : '-'}</td>
+                                            <td className="max-w-[150px] truncate px-4 py-3.5 text-[#6b7280]">{r.remark || '-'}</td>
+                                            <td className="px-4 py-3.5 text-xs text-[#9ca3af]">{r.createdAt ? new Date(r.createdAt).toLocaleString('zh-CN') : '-'}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -172,7 +172,7 @@ export default function AdminMerchantsBalancePage() {
                             >
                                 上一页
                             </Button>
-                            <span className="px-3 text-sm text-slate-500">第 {page} 页</span>
+                            <span className="px-3 text-sm text-[#6b7280]">第 {page} 页</span>
                             <Button
                                 size="sm"
                                 variant="secondary"

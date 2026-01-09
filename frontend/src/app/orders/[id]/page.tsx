@@ -166,7 +166,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             </div>
 
             {/* Title Bar */}
-            <div className="border-b border-slate-200 bg-white px-4 py-3.5 text-center text-sm font-semibold text-blue-500">
+            <div className="border-b border-slate-200 bg-white px-4 py-3.5 text-center text-sm font-semibold text-primary-500">
                 任务详情
             </div>
 
@@ -175,17 +175,17 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 {/* Task Info Card */}
                 <div className="mb-3 overflow-hidden rounded-xl bg-white">
                     <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5">
-                        <span className="text-sm font-semibold text-red-500">任务信息</span>
+                        <span className="text-sm font-semibold text-danger-400">任务信息</span>
                         <div className="flex gap-3">
                             <button
                                 onClick={() => router.push('/profile/records?type=silver')}
-                                className="cursor-pointer text-xs text-blue-500"
+                                className="cursor-pointer text-xs text-primary-500"
                             >
                                 银锭记录
                             </button>
                             <button
                                 onClick={() => router.push('/profile/records?type=principal')}
-                                className="cursor-pointer text-xs text-blue-500"
+                                className="cursor-pointer text-xs text-primary-500"
                             >
                                 本金记录
                             </button>
@@ -207,7 +207,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                         </div>
                         <div className="flex justify-between">
                             <span className="text-slate-500">佣金：</span>
-                            <span className="font-semibold text-blue-500">
+                            <span className="font-semibold text-primary-500">
                                 {taskData.yongJin}<span className="text-amber-400">+{taskData.user_divided}银锭</span>
                             </span>
                         </div>
@@ -217,7 +217,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                         </div>
                         <div className="flex justify-between">
                             <span className="text-slate-500">垫付金额：</span>
-                            <span className="font-semibold text-blue-500">{taskData.benJin}元</span>
+                            <span className="font-semibold text-primary-500">{taskData.benJin}元</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-slate-500">返款金额：</span>
@@ -240,7 +240,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                             <span className="text-slate-800">
                                 {taskData.taskType}
                                 {taskData.taskType === '已取消' && taskData.delType && (
-                                    <span className="ml-2.5 text-red-500">{taskData.delType}</span>
+                                    <span className="ml-2.5 text-danger-400">{taskData.delType}</span>
                                 )}
                             </span>
                         </div>
@@ -251,7 +251,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 {taskData2 && (
                     <div className="mb-3 overflow-hidden rounded-xl bg-white">
                         <div className="border-b border-slate-100 px-4 py-3.5">
-                            <span className="text-sm font-semibold text-red-500">任务进度</span>
+                            <span className="text-sm font-semibold text-danger-400">任务进度</span>
                         </div>
 
                         <div className="overflow-x-auto p-4">
@@ -268,10 +268,10 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                         <td className="border border-slate-200 p-2.5">浏览店铺及在线客服聊天</td>
                                         <td className="border border-slate-200 p-2.5 text-center">
                                             <div className="flex justify-center gap-2">
-                                                <button onClick={() => showImage(taskData2.img)} className="cursor-pointer text-blue-500">
+                                                <button onClick={() => showImage(taskData2.img)} className="cursor-pointer text-primary-500">
                                                     点击查看
                                                 </button>
-                                                <button onClick={() => showImage(taskData2.img2)} className="cursor-pointer text-blue-500">
+                                                <button onClick={() => showImage(taskData2.img2)} className="cursor-pointer text-primary-500">
                                                     点击查看
                                                 </button>
                                             </div>
@@ -302,9 +302,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                         <td className="border border-slate-200 p-2.5">平台返款</td>
                                         <td className="border border-slate-200 p-2.5 text-center">
                                             {taskData2.type1 === '待确认返款' || taskData2.type1 === '已完成' ? (
-                                                <span className="text-green-500">已返款</span>
+                                                <span className="text-success-400">已返款</span>
                                             ) : (
-                                                <span className="text-amber-500">待返款</span>
+                                                <span className="text-warning-400">待返款</span>
                                             )}
                                         </td>
                                         <td className="border border-slate-200 p-2.5 text-center">{taskData2.platform_refund_time}</td>
@@ -317,7 +317,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                     {products.map((vo, index) => (
                                         <tr key={index}>
                                             <td className="border border-slate-200 p-2.5">好评内容</td>
-                                            <td className="border border-slate-200 p-2.5 text-red-500">{vo.text_praise || '暂无内容'}</td>
+                                            <td className="border border-slate-200 p-2.5 text-danger-400">{vo.text_praise || '暂无内容'}</td>
                                             <td className="border border-slate-200 p-2.5 text-center">暂无内容</td>
                                         </tr>
                                     ))}
@@ -359,7 +359,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                                 <a
                                                     href={`https://b--d.oss-cn-guangzhou.aliyuncs.com${products.find(p => p.video_praise)?.video_praise}`}
                                                     download="视频"
-                                                    className="text-blue-500"
+                                                    className="text-primary-500"
                                                 >
                                                     下载
                                                 </a>
@@ -400,7 +400,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                         alertError('取消功能开发中');
                                     }
                                 }}
-                                className="flex-1 rounded-lg border border-red-500 px-4 py-2.5 text-sm font-medium text-red-500 active:bg-red-50"
+                                className="flex-1 rounded-lg border border-red-500 px-4 py-2.5 text-sm font-medium text-danger-400 active:bg-red-50"
                             >
                                 取消任务
                             </button>
@@ -410,7 +410,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                         {taskData.taskType === '待上传截图' && (
                             <button
                                 onClick={() => router.push(`/orders/${id}/receive`)}
-                                className="flex-1 rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white active:bg-blue-600"
+                                className="flex-1 rounded-lg bg-primary-500 px-4 py-2.5 text-sm font-medium text-white active:bg-primary-600"
                             >
                                 上传截图
                             </button>
@@ -425,7 +425,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                         alertError('确认收货功能开发中');
                                     }
                                 }}
-                                className="flex-1 rounded-lg bg-green-500 px-4 py-2.5 text-sm font-medium text-white active:bg-green-600"
+                                className="flex-1 rounded-lg bg-green-500 px-4 py-2.5 text-sm font-medium text-white active:bg-success-400"
                             >
                                 确认收货
                             </button>
@@ -435,7 +435,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                         {taskData.taskType === '待追评' && (
                             <button
                                 onClick={() => router.push(`/orders/${id}/receive?type=zhuiping`)}
-                                className="flex-1 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-medium text-white active:bg-amber-600"
+                                className="flex-1 rounded-lg bg-warning-400 px-4 py-2.5 text-sm font-medium text-white active:bg-warning-500"
                             >
                                 上传追评截图
                             </button>

@@ -150,14 +150,14 @@ export default function ReviewTaskDetailPage() {
                         <div className="text-sm text-slate-500">任务状态</div>
                         <div className={cn(
                             'mt-1 text-lg font-bold',
-                            task.state === ReviewTaskStatus.UNPAID && 'text-amber-500',
+                            task.state === ReviewTaskStatus.UNPAID && 'text-warning-400',
                             task.state === ReviewTaskStatus.PAID && 'text-indigo-500',
-                            task.state === ReviewTaskStatus.APPROVED && 'text-blue-500',
+                            task.state === ReviewTaskStatus.APPROVED && 'text-primary-500',
                             task.state === ReviewTaskStatus.UPLOADED && 'text-purple-500',
                             task.state === ReviewTaskStatus.COMPLETED && 'text-emerald-500',
                             task.state === ReviewTaskStatus.CANCELLED && 'text-slate-500',
-                            task.state === ReviewTaskStatus.BUYER_REJECTED && 'text-red-500',
-                            task.state === ReviewTaskStatus.REJECTED && 'text-red-600'
+                            task.state === ReviewTaskStatus.BUYER_REJECTED && 'text-danger-400',
+                            task.state === ReviewTaskStatus.REJECTED && 'text-danger-500'
                         )}>
                             {statusInfo.text}
                         </div>
@@ -258,7 +258,7 @@ export default function ReviewTaskDetailPage() {
                                 />
                                 <button
                                     onClick={() => handleRemoveImage(idx)}
-                                    className="absolute -right-2 -top-2 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-red-500 text-xs text-white"
+                                    className="absolute -right-2 -top-2 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-danger-400 text-xs text-white"
                                 >
                                     ×
                                 </button>
@@ -326,7 +326,7 @@ export default function ReviewTaskDetailPage() {
                         <button
                             onClick={() => setShowRejectModal(true)}
                             disabled={submitting}
-                            className="flex-1 cursor-pointer rounded-lg border border-red-500 bg-white py-3.5 text-base font-semibold text-red-500"
+                            className="flex-1 cursor-pointer rounded-lg border border-red-500 bg-white py-3.5 text-base font-semibold text-danger-400"
                         >
                             拒绝追评
                         </button>
@@ -369,7 +369,7 @@ export default function ReviewTaskDetailPage() {
                             <button
                                 onClick={handleReject}
                                 disabled={submitting}
-                                className="flex-1 cursor-pointer rounded-lg bg-red-500 py-3 text-sm text-white"
+                                className="flex-1 cursor-pointer rounded-lg bg-danger-400 py-3 text-sm text-white"
                             >
                                 {submitting ? '处理中...' : '确认拒绝'}
                             </button>

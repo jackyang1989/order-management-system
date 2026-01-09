@@ -151,7 +151,7 @@ export default function BackupPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-xl font-semibold">数据备份</h2>
-                    <p className="mt-2 text-sm text-slate-500">创建和管理数据库备份，支持一键恢复</p>
+                    <p className="mt-2 text-sm text-[#6b7280]">创建和管理数据库备份，支持一键恢复</p>
                 </div>
                 <div className="flex gap-3">
                     <Button
@@ -164,7 +164,7 @@ export default function BackupPage() {
                     <Button
                         onClick={() => handleCreate('data')}
                         disabled={creating}
-                        className={cn('bg-green-500 hover:bg-green-600', creating && 'cursor-not-allowed opacity-70')}
+                        className={cn('bg-green-500 hover:bg-success-400', creating && 'cursor-not-allowed opacity-70')}
                     >
                         📊 数据备份
                     </Button>
@@ -174,30 +174,30 @@ export default function BackupPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-4 gap-5">
                 <Card className="bg-white p-5 text-center">
-                    <div className="text-3xl font-bold text-blue-600">{backups.length}</div>
-                    <div className="mt-1 text-sm text-slate-500">备份总数</div>
+                    <div className="text-3xl font-bold text-primary-600">{backups.length}</div>
+                    <div className="mt-1 text-sm text-[#6b7280]">备份总数</div>
                 </Card>
                 <Card className="bg-white p-5 text-center">
-                    <div className="text-3xl font-bold text-green-600">{backups.filter(b => b.status === 'completed').length}</div>
-                    <div className="mt-1 text-sm text-slate-500">成功备份</div>
+                    <div className="text-3xl font-bold text-success-400">{backups.filter(b => b.status === 'completed').length}</div>
+                    <div className="mt-1 text-sm text-[#6b7280]">成功备份</div>
                 </Card>
                 <Card className="bg-white p-5 text-center">
-                    <div className="text-3xl font-bold text-amber-600">{formatSize(backups.reduce((sum, b) => sum + b.size, 0))}</div>
-                    <div className="mt-1 text-sm text-slate-500">占用空间</div>
+                    <div className="text-3xl font-bold text-warning-500">{formatSize(backups.reduce((sum, b) => sum + b.size, 0))}</div>
+                    <div className="mt-1 text-sm text-[#6b7280]">占用空间</div>
                 </Card>
                 <Card className="bg-white p-5 text-center">
                     <div className="text-3xl font-bold text-purple-600">{backups.length > 0 ? formatDate(backups[0].createdAt).split(' ')[0] : '-'}</div>
-                    <div className="mt-1 text-sm text-slate-500">最近备份</div>
+                    <div className="mt-1 text-sm text-[#6b7280]">最近备份</div>
                 </Card>
             </div>
 
             {/* Backup List */}
             <Card className="overflow-hidden bg-white p-0">
-                <div className="border-b border-slate-100 px-6 py-4 text-sm font-medium">备份记录</div>
+                <div className="border-b border-[#f3f4f6] px-6 py-4 text-sm font-medium">备份记录</div>
                 {loading ? (
-                    <div className="py-16 text-center text-slate-400">加载中...</div>
+                    <div className="py-16 text-center text-[#9ca3af]">加载中...</div>
                 ) : backups.length === 0 ? (
-                    <div className="py-16 text-center text-slate-400">
+                    <div className="py-16 text-center text-[#9ca3af]">
                         <div className="mb-4 text-5xl">📁</div>
                         <div>暂无备份记录</div>
                         <div className="mt-2 text-sm">点击上方按钮创建第一个备份</div>
@@ -206,7 +206,7 @@ export default function BackupPage() {
                     <div className="overflow-x-auto">
                         <table className="min-w-[900px] w-full border-collapse">
                             <thead>
-                                <tr className="border-b border-slate-100 bg-slate-50">
+                                <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
                                     <th className="px-4 py-4 text-left text-sm font-medium">文件名</th>
                                     <th className="px-4 py-4 text-left text-sm font-medium">类型</th>
                                     <th className="px-4 py-4 text-left text-sm font-medium">大小</th>
@@ -217,7 +217,7 @@ export default function BackupPage() {
                             </thead>
                             <tbody>
                                 {backups.map(backup => (
-                                    <tr key={backup.id} className="border-b border-slate-100">
+                                    <tr key={backup.id} className="border-b border-[#f3f4f6]">
                                         <td className="px-4 py-4">
                                             <span className="mr-2">📄</span>
                                             {backup.filename}
@@ -229,7 +229,7 @@ export default function BackupPage() {
                                         <td className="px-4 py-4">
                                             <Badge variant="soft" color={statusConfig[backup.status]?.color}>{statusConfig[backup.status]?.text}</Badge>
                                         </td>
-                                        <td className="px-4 py-4 text-xs text-slate-500">{formatDate(backup.createdAt)}</td>
+                                        <td className="px-4 py-4 text-xs text-[#6b7280]">{formatDate(backup.createdAt)}</td>
                                         <td className="px-4 py-4 text-center">
                                             <div className="flex justify-center gap-2">
                                                 <Button
@@ -243,7 +243,7 @@ export default function BackupPage() {
                                                 </Button>
                                                 <Button
                                                     size="sm"
-                                                    className={cn('border border-amber-300 bg-amber-50 text-amber-600 hover:bg-amber-100', (backup.status !== 'completed' || restoring === backup.id) && 'cursor-not-allowed opacity-50')}
+                                                    className={cn('border border-amber-300 bg-amber-50 text-warning-500 hover:bg-amber-100', (backup.status !== 'completed' || restoring === backup.id) && 'cursor-not-allowed opacity-50')}
                                                     onClick={() => handleRestore(backup.id)}
                                                     disabled={backup.status !== 'completed' || restoring === backup.id}
                                                 >
@@ -261,9 +261,9 @@ export default function BackupPage() {
             </Card>
 
             {/* Info Box */}
-            <div className="rounded-lg border border-blue-200 bg-blue-50 px-6 py-4">
-                <h4 className="mb-2 text-sm font-medium text-blue-600">💡 备份说明</h4>
-                <ul className="list-disc space-y-1 pl-5 text-xs leading-relaxed text-slate-600">
+            <div className="rounded-md border border-blue-200 bg-blue-50 px-6 py-4">
+                <h4 className="mb-2 text-sm font-medium text-primary-600">💡 备份说明</h4>
+                <ul className="list-disc space-y-1 pl-5 text-xs leading-relaxed text-[#4b5563]">
                     <li><strong>完整备份</strong>：包含数据库所有表的数据和结构</li>
                     <li><strong>数据备份</strong>：仅包含业务数据（用户、订单、任务等）</li>
                     <li><strong>配置备份</strong>：仅包含系统配置数据</li>

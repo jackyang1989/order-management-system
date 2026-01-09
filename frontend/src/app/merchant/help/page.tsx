@@ -70,7 +70,7 @@ export default function MerchantHelpPage() {
                     <div key={idx} onClick={item.action} className="cursor-pointer rounded-md border border-[#e5e7eb] bg-white p-5 text-center transition-all">
                         <div className="mb-2 text-3xl">{item.icon}</div>
                         <div className="mb-1 font-semibold">{item.title}</div>
-                        <div className="text-xs text-[#f9fafb]0">{item.desc}</div>
+                        <div className="text-xs text-[#6b7280]">{item.desc}</div>
                     </div>
                 ))}
             </div>
@@ -96,7 +96,7 @@ export default function MerchantHelpPage() {
                 {/* FAQ List */}
                 <div>
                     {filteredFaqs.length === 0 ? (
-                        <div className="py-16 text-center text-[#f9fafb]0">
+                        <div className="py-16 text-center text-[#6b7280]">
                             <div className="mb-4 text-5xl">🔍</div>
                             <div>未找到相关问题</div>
                             <div className="mt-2 text-sm">请尝试其他关键词或联系客服</div>
@@ -124,20 +124,20 @@ export default function MerchantHelpPage() {
             <Modal title="联系客服" open={showContactModal} onClose={() => setShowContactModal(false)}>
                 <div className="text-center">
                     <div className="mb-4 text-5xl">👨‍💼</div>
-                    <p className="mb-6 text-[#f9fafb]0">请通过以下方式联系我们</p>
+                    <p className="mb-6 text-[#6b7280]">请通过以下方式联系我们</p>
 
                     <div className="mb-6 space-y-3">
                         <div className="flex items-center gap-3 rounded-md bg-[#f3f4f6] p-3">
                             <span className="text-xl">📱</span>
-                            <div className="text-left"><div className="text-xs text-[#f9fafb]0">客服电话</div><div className="font-medium">400-123-4567</div></div>
+                            <div className="text-left"><div className="text-xs text-[#6b7280]">客服电话</div><div className="font-medium">400-123-4567</div></div>
                         </div>
                         <div className="flex items-center gap-3 rounded-md bg-[#f3f4f6] p-3">
                             <span className="text-xl">💬</span>
-                            <div className="text-left"><div className="text-xs text-[#f9fafb]0">QQ客服</div><div className="font-medium">12345678</div></div>
+                            <div className="text-left"><div className="text-xs text-[#6b7280]">QQ客服</div><div className="font-medium">12345678</div></div>
                         </div>
                         <div className="flex items-center gap-3 rounded-md bg-[#f3f4f6] p-3">
                             <span className="text-xl">📧</span>
-                            <div className="text-left"><div className="text-xs text-[#f9fafb]0">邮箱</div><div className="font-medium">support@example.com</div></div>
+                            <div className="text-left"><div className="text-xs text-[#6b7280]">邮箱</div><div className="font-medium">support@example.com</div></div>
                         </div>
                     </div>
 

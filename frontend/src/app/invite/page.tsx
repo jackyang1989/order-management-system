@@ -160,7 +160,7 @@ export default function InvitePage() {
                         <div className="mt-1 text-xs text-slate-400">累计邀请(人)</div>
                     </div>
                     <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-                        <div className="text-2xl font-bold text-amber-500">{stats.totalReward}</div>
+                        <div className="text-2xl font-bold text-warning-400">{stats.totalReward}</div>
                         <div className="mt-1 text-xs text-slate-400">累计奖励(银锭)</div>
                     </div>
                     <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
@@ -168,7 +168,7 @@ export default function InvitePage() {
                         <div className="mt-1 text-xs text-slate-400">今日邀请(人)</div>
                     </div>
                     <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-                        <div className="text-2xl font-bold text-amber-500">{stats.todayReward}</div>
+                        <div className="text-2xl font-bold text-warning-400">{stats.todayReward}</div>
                         <div className="mt-1 text-xs text-slate-400">今日奖励(银锭)</div>
                     </div>
                 </div>
@@ -177,7 +177,7 @@ export default function InvitePage() {
                 <div className="mt-4 flex border-b border-slate-200 bg-white rounded-t-xl overflow-hidden">
                     {tabs.map(tab => (
                         <button key={tab.key} onClick={() => setActiveTab(tab.key as 'invite' | 'records' | 'tasks')}
-                            className={cn('flex-1 py-3 text-center text-sm font-medium', activeTab === tab.key ? 'border-b-2 border-blue-500 text-blue-500' : 'text-slate-500')}>
+                            className={cn('flex-1 py-3 text-center text-sm font-medium', activeTab === tab.key ? 'border-b-2 border-blue-500 text-primary-500' : 'text-slate-500')}>
                             {tab.label}
                         </button>
                     ))}
@@ -188,7 +188,7 @@ export default function InvitePage() {
                     {activeTab === 'invite' && (
                         <div className="space-y-4">
                             <div className="text-sm text-slate-600 leading-relaxed">
-                                复制您的 <span className="font-bold text-blue-500">专属邀请链接</span>，邀请好友成功注册后，好友完成任务您即可获得邀请奖励！
+                                复制您的 <span className="font-bold text-primary-500">专属邀请链接</span>，邀请好友成功注册后，好友完成任务您即可获得邀请奖励！
                             </div>
 
                             {/* 买手邀请链接 */}
@@ -196,11 +196,11 @@ export default function InvitePage() {
                                 <div className="mb-2 text-sm font-medium text-slate-700">买手邀请链接</div>
                                 <div className="flex gap-2">
                                     <input type="text" value={inviteLink} readOnly className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600" />
-                                    <button onClick={() => handleCopyLink(false)} className={cn('whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium text-white', copied ? 'bg-green-500' : 'bg-blue-500')}>
+                                    <button onClick={() => handleCopyLink(false)} className={cn('whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium text-white', copied ? 'bg-green-500' : 'bg-primary-500')}>
                                         {copied ? '已复制' : '复制链接'}
                                     </button>
                                 </div>
-                                <div className="mt-2 text-xs text-slate-400">邀请码：<span className="font-medium text-blue-500">{inviteCode}</span></div>
+                                <div className="mt-2 text-xs text-slate-400">邀请码：<span className="font-medium text-primary-500">{inviteCode}</span></div>
                             </div>
 
                             {/* 商家邀请链接 - 仅当启用时显示 */}
@@ -209,7 +209,7 @@ export default function InvitePage() {
                                     <div className="mb-2 text-sm font-medium text-slate-700 flex items-center gap-2">
                                         商家邀请链接
                                         {!merchantEligibility?.canInvite && (
-                                            <span className="text-xs bg-amber-100 text-amber-600 px-2 py-0.5 rounded">
+                                            <span className="text-xs bg-amber-100 text-warning-500 px-2 py-0.5 rounded">
                                                 {merchantEligibility?.reason || '未解锁'}
                                             </span>
                                         )}
@@ -226,7 +226,7 @@ export default function InvitePage() {
                                         </>
                                     ) : (
                                         <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-500">
-                                            <p>完成 <span className="font-bold text-blue-500">{merchantEligibility?.requiredTasks || config?.inviteUnlockThreshold || 10}</span> 单任务后解锁商家邀请功能</p>
+                                            <p>完成 <span className="font-bold text-primary-500">{merchantEligibility?.requiredTasks || config?.inviteUnlockThreshold || 10}</span> 单任务后解锁商家邀请功能</p>
                                             <p className="mt-1">当前进度：<span className="font-bold">{merchantEligibility?.completedTasks || 0}</span> / {merchantEligibility?.requiredTasks || config?.inviteUnlockThreshold || 10}</p>
                                         </div>
                                     )}
@@ -234,7 +234,7 @@ export default function InvitePage() {
                             )}
 
                             <div className="rounded-lg bg-amber-50 p-3">
-                                <div className="mb-2 flex items-center gap-1 text-sm font-medium text-amber-600">请注意</div>
+                                <div className="mb-2 flex items-center gap-1 text-sm font-medium text-warning-500">请注意</div>
                                 <div className="space-y-1 text-xs text-slate-600 leading-relaxed">
                                     <p>1. 邀请链接只能发布于聊天工具中（微信、QQ等），禁止推广于外部网站。</p>
                                     <p>2. 邀请好友只能是朋友、亲戚、同事等熟人，不可向陌生人发送链接。</p>
@@ -244,8 +244,8 @@ export default function InvitePage() {
                             <div>
                                 <div className="mb-2 text-sm font-medium text-slate-700">邀请奖励</div>
                                 <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-600 leading-relaxed">
-                                    <p>• 邀请好友每完成一单任务（完结后），您可获得 <span className="font-bold text-red-500">{config?.referralRewardPerOrder || 1}</span> 银锭奖励</p>
-                                    <p>• 每邀请一个好友可获得奖励上限 <span className="font-bold text-red-500">{config?.referralLifetimeMaxAmount || 1000}</span> 银锭</p>
+                                    <p>• 邀请好友每完成一单任务（完结后），您可获得 <span className="font-bold text-danger-400">{config?.referralRewardPerOrder || 1}</span> 银锭奖励</p>
+                                    <p>• 每邀请一个好友可获得奖励上限 <span className="font-bold text-danger-400">{config?.referralLifetimeMaxAmount || 1000}</span> 银锭</p>
                                 </div>
                                 <div className="mt-2 text-xs text-slate-400">注：奖励由平台承担，不会扣除好友的任务佣金</div>
                             </div>
@@ -276,7 +276,7 @@ export default function InvitePage() {
                                 </div>
                                 <button
                                     onClick={handleFilterRecords}
-                                    className="px-4 py-1.5 bg-blue-500 text-white text-sm rounded-lg"
+                                    className="px-4 py-1.5 bg-primary-500 text-white text-sm rounded-lg"
                                 >
                                     筛选
                                 </button>
@@ -304,7 +304,7 @@ export default function InvitePage() {
                                                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-base">👤</div>
                                                     <span className="font-medium text-slate-800">{record.username}</span>
                                                 </div>
-                                                <span className="font-medium text-blue-500">+{record.reward} 银锭</span>
+                                                <span className="font-medium text-primary-500">+{record.reward} 银锭</span>
                                             </div>
                                             <div className="mt-1 ml-12 text-xs text-slate-400">
                                                 <div>注册时间：{record.registerTime}</div>
@@ -336,7 +336,7 @@ export default function InvitePage() {
                                                         <div className="text-xs text-slate-400">{task.taskTitle}</div>
                                                     </div>
                                                 </div>
-                                                <span className="font-medium text-green-500">+{task.commissionAmount} 银锭</span>
+                                                <span className="font-medium text-success-400">+{task.commissionAmount} 银锭</span>
                                             </div>
                                             <div className="mt-1 ml-12 text-xs text-slate-400">
                                                 <div>完成时间：{task.completedAt ? new Date(task.completedAt).toLocaleString('zh-CN') : '-'}</div>

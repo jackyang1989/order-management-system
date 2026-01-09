@@ -180,7 +180,7 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
             </div>
 
             {/* Title Bar */}
-            <div className="border-b border-slate-200 bg-white px-4 py-3.5 text-center text-sm font-semibold text-blue-500">
+            <div className="border-b border-slate-200 bg-white px-4 py-3.5 text-center text-sm font-semibold text-primary-500">
                 去收货
             </div>
 
@@ -189,7 +189,7 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                 <div className="mb-3 text-right">
                     <button
                         onClick={() => setDialogVisible(true)}
-                        className="cursor-pointer rounded-md bg-red-500 px-6 py-2.5 text-sm font-semibold text-white"
+                        className="cursor-pointer rounded-md bg-danger-400 px-6 py-2.5 text-sm font-semibold text-white"
                     >
                         确认收货
                     </button>
@@ -218,7 +218,7 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                         {item.price && (
                             <div className="mb-2.5 flex justify-between text-xs">
                                 <span className="text-slate-500">垫付本金：</span>
-                                <span className="font-medium text-blue-600">¥{item.price}</span>
+                                <span className="font-medium text-primary-600">¥{item.price}</span>
                             </div>
                         )}
                         {item.kuaiDi && (
@@ -243,11 +243,11 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="min-w-0 flex-1">
                                         <span className="text-xs font-semibold text-slate-800">文字好评：</span>
-                                        <span className="text-xs text-red-500">{item.content}</span>
+                                        <span className="text-xs text-danger-400">{item.content}</span>
                                     </div>
                                     <button
                                         onClick={() => copyText(item.content)}
-                                        className="shrink-0 cursor-pointer whitespace-nowrap rounded bg-red-500 px-3 py-1 text-xs text-white"
+                                        className="shrink-0 cursor-pointer whitespace-nowrap rounded bg-danger-400 px-3 py-1 text-xs text-white"
                                     >
                                         一键复制
                                     </button>
@@ -289,7 +289,7 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                                 <a
                                     href={item.video}
                                     download="视频"
-                                    className="mt-2 inline-block text-xs text-blue-500"
+                                    className="mt-2 inline-block text-xs text-primary-500"
                                 >
                                     下载视频
                                 </a>
@@ -302,10 +302,10 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                 <div className="mt-3 rounded-xl bg-amber-100 p-4">
                     <div className="mb-2 text-sm font-semibold text-amber-700">提示</div>
                     <div className="space-y-2 text-xs leading-relaxed text-amber-700">
-                        <p className="text-red-500">
+                        <p className="text-danger-400">
                             1.请复制以上指定文字好评内容进行5星好评，若有照片好评内容需长按每张照片保存到相册再到评价页面上传买家秀，若有视频好评内容先点击下载视频保存到相册后再到评价页面上传视频，评价提交后将评价页面截图上传。
                         </p>
-                        <p className="text-red-500">
+                        <p className="text-danger-400">
                             2.无指定评价内容时需全5星并自由发挥15字以上与商品相关的评语。
                         </p>
                         <p>3.未按指定文字、照片、视频好评将扣除本次任务的银锭(佣金)。</p>
@@ -338,7 +338,7 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                                     />
                                     <button
                                         onClick={handleRemove}
-                                        className="absolute -right-2 -top-2 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-red-500 text-xs text-white"
+                                        className="absolute -right-2 -top-2 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-danger-400 text-xs text-white"
                                     >
                                         ×
                                     </button>
@@ -361,7 +361,7 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
                                 disabled={submitting}
                                 className={cn(
                                     'flex-1 rounded-md py-2.5 text-white',
-                                    submitting ? 'cursor-not-allowed bg-blue-300' : 'cursor-pointer bg-blue-500'
+                                    submitting ? 'cursor-not-allowed bg-blue-300' : 'cursor-pointer bg-primary-500'
                                 )}
                             >
                                 {submitting ? '提交中...' : '确认'}

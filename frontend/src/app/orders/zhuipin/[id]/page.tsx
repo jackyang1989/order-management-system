@@ -39,13 +39,13 @@ interface ReviewTaskDetail {
 // 状态映射
 const STATE_MAP: Record<number, { text: string; color: string }> = {
     0: { text: '未支付', color: 'bg-slate-100 text-slate-600' },
-    1: { text: '待审核', color: 'bg-amber-100 text-amber-600' },
-    2: { text: '待追评', color: 'bg-blue-100 text-blue-600' },
+    1: { text: '待审核', color: 'bg-amber-100 text-warning-500' },
+    2: { text: '待追评', color: 'bg-blue-100 text-primary-600' },
     3: { text: '待确认', color: 'bg-purple-100 text-purple-600' },
-    4: { text: '已完成', color: 'bg-green-100 text-green-600' },
+    4: { text: '已完成', color: 'bg-green-100 text-success-400' },
     5: { text: '已取消', color: 'bg-slate-100 text-slate-500' },
-    6: { text: '已拒接', color: 'bg-red-100 text-red-600' },
-    7: { text: '已拒绝', color: 'bg-red-100 text-red-600' },
+    6: { text: '已拒接', color: 'bg-red-100 text-danger-500' },
+    7: { text: '已拒绝', color: 'bg-red-100 text-danger-500' },
 };
 
 export default function ZhuipinPage({ params }: { params: Promise<{ id: string }> }) {
@@ -212,7 +212,7 @@ export default function ZhuipinPage({ params }: { params: Promise<{ id: string }
         return (
             <div className="flex h-screen flex-col items-center justify-center bg-slate-100">
                 <div className="text-sm text-slate-400">追评任务不存在</div>
-                <button onClick={() => router.back()} className="mt-4 text-blue-500">返回</button>
+                <button onClick={() => router.back()} className="mt-4 text-primary-500">返回</button>
             </div>
         );
     }
@@ -269,7 +269,7 @@ export default function ZhuipinPage({ params }: { params: Promise<{ id: string }
                         )}
                         <div className="flex justify-between">
                             <span className="text-slate-500">追评佣金：</span>
-                            <span className="font-medium text-red-500">+{taskDetail.userMoney} 银锭</span>
+                            <span className="font-medium text-danger-400">+{taskDetail.userMoney} 银锭</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-slate-500">创建时间：</span>
@@ -288,11 +288,11 @@ export default function ZhuipinPage({ params }: { params: Promise<{ id: string }
                             <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0 flex-1">
                                     <span className="text-xs font-semibold text-slate-800">文字追评：</span>
-                                    <span className="text-xs text-red-500">{praise.content}</span>
+                                    <span className="text-xs text-danger-400">{praise.content}</span>
                                 </div>
                                 <button
                                     onClick={() => copyText(praise.content)}
-                                    className="shrink-0 cursor-pointer whitespace-nowrap rounded bg-red-500 px-3 py-1 text-xs text-white"
+                                    className="shrink-0 cursor-pointer whitespace-nowrap rounded bg-danger-400 px-3 py-1 text-xs text-white"
                                 >
                                     一键复制
                                 </button>
@@ -333,7 +333,7 @@ export default function ZhuipinPage({ params }: { params: Promise<{ id: string }
                                     <a
                                         href={praise.content.startsWith('http') ? praise.content : `${BASE_URL}${praise.content}`}
                                         download="追评视频"
-                                        className="mt-2 inline-block text-xs text-blue-500"
+                                        className="mt-2 inline-block text-xs text-primary-500"
                                     >
                                         下载视频
                                     </a>
@@ -369,7 +369,7 @@ export default function ZhuipinPage({ params }: { params: Promise<{ id: string }
                 {taskDetail.remarks && (
                     <div className="rounded-xl bg-amber-50 p-4">
                         <div className="text-sm font-semibold text-amber-700 mb-2">审核备注</div>
-                        <div className="text-xs text-amber-600">{taskDetail.remarks}</div>
+                        <div className="text-xs text-warning-500">{taskDetail.remarks}</div>
                     </div>
                 )}
 
@@ -377,10 +377,10 @@ export default function ZhuipinPage({ params }: { params: Promise<{ id: string }
                 <div className="rounded-xl bg-amber-100 p-4">
                     <div className="mb-2 text-sm font-semibold text-amber-700">提示</div>
                     <div className="space-y-2 text-xs leading-relaxed text-amber-700">
-                        <p className="text-red-500">
+                        <p className="text-danger-400">
                             1. 请按照上方追评要求进行追评，完成后截图上传。
                         </p>
-                        <p className="text-red-500">
+                        <p className="text-danger-400">
                             2. 追评需在收货后7天内完成，否则无法提交。
                         </p>
                         <p>3. 未按要求追评将扣除本次追评佣金。</p>
@@ -399,7 +399,7 @@ export default function ZhuipinPage({ params }: { params: Promise<{ id: string }
                         </button>
                         <button
                             onClick={() => setDialogVisible(true)}
-                            className="flex-1 rounded-lg bg-blue-500 py-3 text-sm font-medium text-white"
+                            className="flex-1 rounded-lg bg-primary-500 py-3 text-sm font-medium text-white"
                         >
                             上传追评截图
                         </button>
@@ -433,7 +433,7 @@ export default function ZhuipinPage({ params }: { params: Promise<{ id: string }
                                             />
                                             <button
                                                 onClick={() => handleRemoveImage(idx)}
-                                                className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white"
+                                                className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-danger-400 text-xs text-white"
                                             >
                                                 ×
                                             </button>
@@ -458,7 +458,7 @@ export default function ZhuipinPage({ params }: { params: Promise<{ id: string }
                                 disabled={submitting}
                                 className={cn(
                                     'flex-1 rounded-md py-2.5 text-white',
-                                    submitting ? 'bg-blue-300' : 'bg-blue-500'
+                                    submitting ? 'bg-blue-300' : 'bg-primary-500'
                                 )}
                             >
                                 {submitting ? '提交中...' : '确认提交'}
@@ -483,7 +483,7 @@ export default function ZhuipinPage({ params }: { params: Promise<{ id: string }
                                 value={rejectReason}
                                 onChange={(e) => setRejectReason(e.target.value)}
                             />
-                            <p className="mt-2 text-xs text-amber-600">
+                            <p className="mt-2 text-xs text-warning-500">
                                 注意：拒绝追评后，追评费用将退还给商家。
                             </p>
                         </div>
@@ -503,7 +503,7 @@ export default function ZhuipinPage({ params }: { params: Promise<{ id: string }
                                 disabled={submitting}
                                 className={cn(
                                     'flex-1 rounded-md py-2.5 text-white',
-                                    submitting ? 'bg-red-300' : 'bg-red-500'
+                                    submitting ? 'bg-red-300' : 'bg-danger-400'
                                 )}
                             >
                                 {submitting ? '处理中...' : '确认拒绝'}

@@ -106,7 +106,7 @@ export default function AdminOrdersPage() {
             key: 'platformOrderNumber',
             title: '平台订单号',
             className: 'w-[130px]',
-            render: (row) => <code className="text-xs text-slate-500">{row.platformOrderNumber || '-'}</code>,
+            render: (row) => <code className="text-xs text-[#6b7280]">{row.platformOrderNumber || '-'}</code>,
         },
         {
             key: 'productName',
@@ -130,7 +130,7 @@ export default function AdminOrdersPage() {
             key: 'commission',
             title: '佣金',
             className: 'w-[80px] text-right',
-            render: (row) => <span className="font-medium text-green-600">¥{Number(row.commission).toFixed(2)}</span>,
+            render: (row) => <span className="font-medium text-success-400">¥{Number(row.commission).toFixed(2)}</span>,
         },
         {
             key: 'delivery',
@@ -202,7 +202,7 @@ export default function AdminOrdersPage() {
                     <Button
                         onClick={handleExport}
                         loading={exporting}
-                        className="flex items-center gap-1 bg-green-600 hover:bg-green-700"
+                        className="flex items-center gap-1 bg-success-400 hover:bg-success-500"
                     >
                         📥 导出
                     </Button>
@@ -237,14 +237,14 @@ export default function AdminOrdersPage() {
                     <div className="max-h-[70vh] space-y-6 overflow-y-auto pr-2">
                         {/* 订单信息 */}
                         <div>
-                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-slate-800">订单信息</h3>
-                            <div className="grid grid-cols-2 gap-4 rounded-lg bg-slate-50 p-4">
+                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">订单信息</h3>
+                            <div className="grid grid-cols-2 gap-4 rounded-md bg-[#f9fafb] p-4">
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">平台订单号</div>
+                                    <div className="text-xs text-[#6b7280]">平台订单号</div>
                                     <div className="font-mono text-sm">{detailModal.platformOrderNumber || '-'}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">状态</div>
+                                    <div className="text-xs text-[#6b7280]">状态</div>
                                     <div>
                                         <Badge variant="soft" color={statusLabels[detailModal.status]?.color}>
                                             {statusLabels[detailModal.status]?.text}
@@ -252,15 +252,15 @@ export default function AdminOrdersPage() {
                                     </div>
                                 </div>
                                 <div className="col-span-2 space-y-1">
-                                    <div className="text-xs text-slate-500">商品名称</div>
+                                    <div className="text-xs text-[#6b7280]">商品名称</div>
                                     <div className="text-sm font-medium">{detailModal.productName}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">买号</div>
+                                    <div className="text-xs text-[#6b7280]">买号</div>
                                     <div className="text-sm font-medium">{detailModal.buynoAccount}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">平台</div>
+                                    <div className="text-xs text-[#6b7280]">平台</div>
                                     <div className="text-sm font-medium">{detailModal.platform || '-'}</div>
                                 </div>
                             </div>
@@ -268,30 +268,30 @@ export default function AdminOrdersPage() {
 
                         {/* 金额信息 */}
                         <div>
-                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-slate-800">金额信息</h3>
-                            <div className="grid grid-cols-3 gap-4 rounded-lg bg-slate-50 p-4">
+                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">金额信息</h3>
+                            <div className="grid grid-cols-3 gap-4 rounded-md bg-[#f9fafb] p-4">
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">商品价格</div>
+                                    <div className="text-xs text-[#6b7280]">商品价格</div>
                                     <div className="text-sm font-medium">¥{Number(detailModal.productPrice).toFixed(2)}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">佣金</div>
-                                    <div className="text-sm font-medium text-green-600">¥{Number(detailModal.commission).toFixed(2)}</div>
+                                    <div className="text-xs text-[#6b7280]">佣金</div>
+                                    <div className="text-sm font-medium text-success-400">¥{Number(detailModal.commission).toFixed(2)}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">实付金额</div>
+                                    <div className="text-xs text-[#6b7280]">实付金额</div>
                                     <div className="text-sm font-medium">¥{Number(detailModal.finalAmount || 0).toFixed(2)}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">用户本金</div>
+                                    <div className="text-xs text-[#6b7280]">用户本金</div>
                                     <div className="text-sm">¥{Number(detailModal.userPrincipal || 0).toFixed(2)}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">商家本金</div>
+                                    <div className="text-xs text-[#6b7280]">商家本金</div>
                                     <div className="text-sm">¥{Number(detailModal.sellerPrincipal || 0).toFixed(2)}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">退款金额</div>
+                                    <div className="text-xs text-[#6b7280]">退款金额</div>
                                     <div className="text-sm">¥{Number(detailModal.refundAmount || 0).toFixed(2)}</div>
                                 </div>
                             </div>
@@ -299,10 +299,10 @@ export default function AdminOrdersPage() {
 
                         {/* 物流信息 */}
                         <div>
-                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-slate-800">物流信息</h3>
-                            <div className="grid grid-cols-2 gap-4 rounded-lg bg-slate-50 p-4">
+                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">物流信息</h3>
+                            <div className="grid grid-cols-2 gap-4 rounded-md bg-[#f9fafb] p-4">
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">物流状态</div>
+                                    <div className="text-xs text-[#6b7280]">物流状态</div>
                                     <div>
                                         {detailModal.deliveryState === 1 ? (
                                             <Badge variant="soft" color="green">已发货</Badge>
@@ -312,23 +312,23 @@ export default function AdminOrdersPage() {
                                     </div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">快递公司</div>
+                                    <div className="text-xs text-[#6b7280]">快递公司</div>
                                     <div className="text-sm">{detailModal.delivery || '-'}</div>
                                 </div>
                                 <div className="col-span-2 space-y-1">
-                                    <div className="text-xs text-slate-500">快递单号</div>
+                                    <div className="text-xs text-[#6b7280]">快递单号</div>
                                     <div className="font-mono text-sm">{detailModal.deliveryNum || '-'}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">收货人</div>
+                                    <div className="text-xs text-[#6b7280]">收货人</div>
                                     <div className="text-sm">{detailModal.addressName || '-'}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">联系电话</div>
+                                    <div className="text-xs text-[#6b7280]">联系电话</div>
                                     <div className="text-sm">{detailModal.addressPhone || '-'}</div>
                                 </div>
                                 <div className="col-span-2 space-y-1">
-                                    <div className="text-xs text-slate-500">收货地址</div>
+                                    <div className="text-xs text-[#6b7280]">收货地址</div>
                                     <div className="text-sm">{detailModal.address || '-'}</div>
                                 </div>
                             </div>
@@ -337,8 +337,8 @@ export default function AdminOrdersPage() {
                         {/* 评价信息 */}
                         {detailModal.praiseContent && (
                             <div>
-                                <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-slate-800">评价信息</h3>
-                                <div className="rounded-lg bg-slate-50 p-4">
+                                <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">评价信息</h3>
+                                <div className="rounded-md bg-[#f9fafb] p-4">
                                     <div className="text-sm">{detailModal.praiseContent}</div>
                                 </div>
                             </div>
@@ -347,16 +347,16 @@ export default function AdminOrdersPage() {
                         {/* 截图凭证 */}
                         {(detailModal.keywordImg || detailModal.orderDetailImg) && (
                             <div>
-                                <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-slate-800">截图凭证</h3>
+                                <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">截图凭证</h3>
                                 <div className="flex flex-wrap gap-3">
                                     {detailModal.keywordImg && (
-                                        <img src={detailModal.keywordImg} alt="关键词截图" className="h-24 w-24 rounded-lg object-cover" />
+                                        <img src={detailModal.keywordImg} alt="关键词截图" className="h-24 w-24 rounded-md object-cover" />
                                     )}
                                     {detailModal.orderDetailImg && (
-                                        <img src={detailModal.orderDetailImg} alt="订单详情" className="h-24 w-24 rounded-lg object-cover" />
+                                        <img src={detailModal.orderDetailImg} alt="订单详情" className="h-24 w-24 rounded-md object-cover" />
                                     )}
                                     {detailModal.receiveImg && (
-                                        <img src={detailModal.receiveImg} alt="收货截图" className="h-24 w-24 rounded-lg object-cover" />
+                                        <img src={detailModal.receiveImg} alt="收货截图" className="h-24 w-24 rounded-md object-cover" />
                                     )}
                                 </div>
                             </div>
@@ -364,14 +364,14 @@ export default function AdminOrdersPage() {
 
                         {/* 时间信息 */}
                         <div>
-                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-slate-800">时间信息</h3>
-                            <div className="grid grid-cols-2 gap-4 rounded-lg bg-slate-50 p-4">
+                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">时间信息</h3>
+                            <div className="grid grid-cols-2 gap-4 rounded-md bg-[#f9fafb] p-4">
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">创建时间</div>
+                                    <div className="text-xs text-[#6b7280]">创建时间</div>
                                     <div className="text-sm">{detailModal.createdAt ? new Date(detailModal.createdAt).toLocaleString('zh-CN') : '-'}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-xs text-slate-500">完成时间</div>
+                                    <div className="text-xs text-[#6b7280]">完成时间</div>
                                     <div className="text-sm">{detailModal.completedAt ? new Date(detailModal.completedAt).toLocaleString('zh-CN') : '-'}</div>
                                 </div>
                             </div>

@@ -24,7 +24,7 @@ export function Empty({
         </svg>
       </div>
       {title && <h3 className="mt-4 text-base font-semibold text-[#1f2937]">{title}</h3>}
-      {description && <p className="mt-2 text-sm text-[#f9fafb]0">{description}</p>}
+      {description && <p className="mt-2 text-sm text-[#6b7280]">{description}</p>}
       {action && <div className="mt-4">{action}</div>}
     </div>
   );

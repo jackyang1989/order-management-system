@@ -74,18 +74,18 @@ export default function MerchantBankPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-semibold">银行卡管理</h1>
-                    <p className="mt-1 text-sm text-[#f9fafb]0">绑定银行卡用于提现</p>
+                    <p className="mt-1 text-sm text-[#6b7280]">绑定银行卡用于提现</p>
                 </div>
                 <Button onClick={() => setShowAddModal(true)}>+ 添加银行卡</Button>
             </div>
 
             {/* Cards List */}
             {loading ? (
-                <div className="py-16 text-center text-[#f9fafb]0">加载中...</div>
+                <div className="py-16 text-center text-[#6b7280]">加载中...</div>
             ) : cards.length === 0 ? (
                 <Card className="bg-white py-16 text-center">
                     <div className="mb-4 text-5xl">💳</div>
-                    <div className="mb-6 text-[#f9fafb]0">暂未绑定银行卡</div>
+                    <div className="mb-6 text-[#6b7280]">暂未绑定银行卡</div>
                     <Button onClick={() => setShowAddModal(true)}>立即绑定</Button>
                 </Card>
             ) : (
@@ -115,15 +115,15 @@ export default function MerchantBankPage() {
             <Modal title="添加银行卡" open={showAddModal} onClose={() => { setShowAddModal(false); setForm({ bankName: '', cardNumber: '', cardHolder: '', isDefault: false }); }}>
                 <div className="space-y-4">
                     <div>
-                        <label className="mb-1.5 block text-sm text-[#4b5563]">开户银行 <span className="text-red-500">*</span></label>
+                        <label className="mb-1.5 block text-sm text-[#4b5563]">开户银行 <span className="text-danger-400">*</span></label>
                         <Select value={form.bankName} onChange={v => setForm({ ...form, bankName: v })} options={[{ value: '', label: '请选择银行' }, ...bankOptions.map(b => ({ value: b, label: b }))]} />
                     </div>
                     <div>
-                        <label className="mb-1.5 block text-sm text-[#4b5563]">银行卡号 <span className="text-red-500">*</span></label>
+                        <label className="mb-1.5 block text-sm text-[#4b5563]">银行卡号 <span className="text-danger-400">*</span></label>
                         <Input type="text" value={form.cardNumber} onChange={e => setForm({ ...form, cardNumber: e.target.value.replace(/\D/g, '') })} placeholder="请输入银行卡号" maxLength={19} />
                     </div>
                     <div>
-                        <label className="mb-1.5 block text-sm text-[#4b5563]">持卡人姓名 <span className="text-red-500">*</span></label>
+                        <label className="mb-1.5 block text-sm text-[#4b5563]">持卡人姓名 <span className="text-danger-400">*</span></label>
                         <Input type="text" value={form.cardHolder} onChange={e => setForm({ ...form, cardHolder: e.target.value })} placeholder="请输入持卡人姓名" />
                     </div>
                     <label className="flex cursor-pointer items-center gap-2">

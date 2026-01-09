@@ -65,7 +65,7 @@ export default function ProfilePage() {
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => router.push('/tasks/continue')}
-                            className="flex h-9 items-center rounded-full bg-blue-600 px-4 text-xs font-bold text-white transition-transform active:scale-95"
+                            className="flex h-9 items-center rounded-full bg-primary-600 px-4 text-xs font-bold text-white transition-transform active:scale-95"
                         >
                             继续任务
                         </button>
@@ -91,11 +91,11 @@ export default function ProfilePage() {
                                     {profile?.vip ? 'VIP会员' : '普通用户'}
                                 </span>
                                 {profile?.vip && profile?.vipExpireAt && (
-                                    <span className="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-[10px] font-medium text-amber-600">
+                                    <span className="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-[10px] font-medium text-warning-500">
                                         到期: {new Date(profile.vipExpireAt).toLocaleDateString('zh-CN')}
                                     </span>
                                 )}
-                                <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-[10px] font-bold text-blue-600">
+                                <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-[10px] font-bold text-primary-600">
                                     累计完成: {profile?.experience || 0}
                                 </span>
                             </div>
@@ -105,7 +105,7 @@ export default function ProfilePage() {
 
                 {/* Main Assets - Clean Flat Blocks */}
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col rounded-[24px] bg-blue-600 p-5 text-white">
+                    <div className="flex flex-col rounded-[24px] bg-primary-600 p-5 text-white">
                         <span className="text-xs font-bold opacity-80 uppercase">本金余额</span>
                         <div className="mt-2 flex items-baseline gap-1">
                             <span className="text-sm font-bold opacity-80">¥</span>
@@ -147,7 +147,7 @@ export default function ProfilePage() {
                             <div className="mt-1 text-[10px] font-bold text-slate-400 uppercase">累计赚取银锭</div>
                         </div>
                         <div className="flex-1 px-4 text-center">
-                            <div className="text-lg font-black text-amber-500">{Number(profile?.pendingReward || profile?.stats?.pendingMerchantSilver || 0).toFixed(2)}</div>
+                            <div className="text-lg font-black text-warning-400">{Number(profile?.pendingReward || profile?.stats?.pendingMerchantSilver || 0).toFixed(2)}</div>
                             <div className="mt-1 text-[10px] font-bold text-slate-400 uppercase">待商家发放</div>
                         </div>
                         <div className="flex-1 px-4 text-center">
@@ -161,7 +161,7 @@ export default function ProfilePage() {
                 <Card className="rounded-[24px] border-none bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                     <div className="flex divide-x divide-slate-50">
                         <div className="flex-1 px-3 text-center">
-                            <div className="text-lg font-black text-blue-600">¥{Number(profile?.stats?.totalPaidPrincipal || 0).toFixed(0)}</div>
+                            <div className="text-lg font-black text-primary-600">¥{Number(profile?.stats?.totalPaidPrincipal || 0).toFixed(0)}</div>
                             <div className="mt-1 text-[10px] font-bold text-slate-400 uppercase">累计垫付</div>
                         </div>
                         <div className="flex-1 px-3 text-center">
@@ -200,7 +200,7 @@ export default function ProfilePage() {
                 <div className="pt-4">
                     <button
                         onClick={() => { logout(); router.push('/login'); }}
-                        className="flex w-full items-center justify-center rounded-[20px] bg-red-50 py-4 text-sm font-bold text-red-500 transition-colors hover:bg-red-100"
+                        className="flex w-full items-center justify-center rounded-[20px] bg-red-50 py-4 text-sm font-bold text-danger-400 transition-colors hover:bg-red-100"
                     >
                         退出登录
                     </button>

@@ -170,8 +170,8 @@ export default function AdminBuyerAccountsPage() {
         if (!url) return null;
         return (
             <div className="text-center">
-                <img src={url} alt={label} className="h-20 w-[120px] cursor-pointer rounded border border-slate-200 object-cover" onClick={() => setImageModal(url)} />
-                <div className="mt-1 text-xs text-slate-500">{label}</div>
+                <img src={url} alt={label} className="h-20 w-[120px] cursor-pointer rounded border border-[#e5e7eb] object-cover" onClick={() => setImageModal(url)} />
+                <div className="mt-1 text-xs text-[#6b7280]">{label}</div>
             </div>
         );
     };
@@ -200,7 +200,7 @@ export default function AdminBuyerAccountsPage() {
                             <Button
                                 onClick={() => handleBatchReview(true)}
                                 disabled={batchLoading || selectedIds.size === 0}
-                                className={cn('bg-green-500 text-white hover:bg-green-600', selectedIds.size === 0 && 'cursor-not-allowed opacity-50')}
+                                className={cn('bg-green-500 text-white hover:bg-success-400', selectedIds.size === 0 && 'cursor-not-allowed opacity-50')}
                             >
                                 {batchLoading ? '处理中...' : `批量通过 (${selectedIds.size})`}
                             </Button>
@@ -220,15 +220,15 @@ export default function AdminBuyerAccountsPage() {
             {/* Table */}
             <Card className="overflow-hidden bg-white p-0">
                 {loading ? (
-                    <div className="py-10 text-center text-slate-400">加载中...</div>
+                    <div className="py-10 text-center text-[#9ca3af]">加载中...</div>
                 ) : accounts.length === 0 ? (
-                    <div className="py-10 text-center text-slate-400">暂无数据</div>
+                    <div className="py-10 text-center text-[#9ca3af]">暂无数据</div>
                 ) : (
                     <>
                         <div className="overflow-x-auto">
                             <table className="min-w-[1100px] w-full border-collapse">
                                 <thead>
-                                    <tr className="border-b border-slate-100 bg-slate-50">
+                                    <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
                                         {filterStatus === '0' && (
                                             <th className="w-[50px] px-4 py-3.5 text-center text-sm font-medium">
                                                 <input type="checkbox" checked={allPendingSelected} onChange={e => handleSelectAll(e.target.checked)} className="cursor-pointer" />
@@ -245,43 +245,43 @@ export default function AdminBuyerAccountsPage() {
                                 </thead>
                                 <tbody>
                                     {accounts.map(a => (
-                                        <tr key={a.id} className="border-b border-slate-100">
+                                        <tr key={a.id} className="border-b border-[#f3f4f6]">
                                             {filterStatus === '0' && (
                                                 <td className="px-4 py-3.5 text-center">
                                                     {a.status === 0 && <input type="checkbox" checked={selectedIds.has(a.id)} onChange={e => handleSelectOne(a.id, e.target.checked)} className="cursor-pointer" />}
                                                 </td>
                                             )}
                                             <td className="px-4 py-3.5">
-                                                <div className="font-medium text-blue-600">{a.accountName}</div>
-                                                {a.alipayName && <div className="text-xs text-slate-400">支付宝: {a.alipayName}</div>}
+                                                <div className="font-medium text-primary-600">{a.accountName}</div>
+                                                {a.alipayName && <div className="text-xs text-[#9ca3af]">支付宝: {a.alipayName}</div>}
                                             </td>
                                             <td className="px-4 py-3.5">
-                                                <span className="rounded bg-slate-100 px-2 py-0.5 text-xs">{platformNames[a.platform] || a.platform || '未知'}</span>
+                                                <span className="rounded bg-[#f3f4f6] px-2 py-0.5 text-xs">{platformNames[a.platform] || a.platform || '未知'}</span>
                                             </td>
                                             <td className="px-4 py-3.5">
                                                 <div className="text-sm">{a.receiverName} {a.receiverPhone}</div>
-                                                <div className="text-xs text-slate-400">{a.province} {a.city}</div>
+                                                <div className="text-xs text-[#9ca3af]">{a.province} {a.city}</div>
                                             </td>
                                             <td className="px-4 py-3.5 text-center">
                                                 <select
                                                     value={a.star}
                                                     onChange={e => handleSetStar(a.id, parseInt(e.target.value))}
-                                                    className="rounded border border-slate-200 px-2 py-1 text-xs"
+                                                    className="rounded border border-[#e5e7eb] px-2 py-1 text-xs"
                                                 >
                                                     {[1, 2, 3, 4, 5].map(s => <option key={s} value={s}>{s}星</option>)}
                                                 </select>
                                             </td>
                                             <td className="px-4 py-3.5 text-center">
                                                 <Badge variant="soft" color={statusLabels[a.status]?.color}>{statusLabels[a.status]?.text}</Badge>
-                                                {a.rejectReason && <div className="mt-1 text-[11px] text-red-500">{a.rejectReason}</div>}
+                                                {a.rejectReason && <div className="mt-1 text-[11px] text-danger-400">{a.rejectReason}</div>}
                                             </td>
-                                            <td className="px-4 py-3.5 text-xs text-slate-400">{new Date(a.createdAt).toLocaleDateString()}</td>
+                                            <td className="px-4 py-3.5 text-xs text-[#9ca3af]">{new Date(a.createdAt).toLocaleDateString()}</td>
                                             <td className="px-4 py-3.5 text-center">
                                                 <div className="flex flex-wrap justify-center gap-1.5">
                                                     <Button size="sm" variant="secondary" onClick={() => setDetailModal(a)}>查看</Button>
                                                     {a.status === 0 && (
                                                         <>
-                                                            <Button size="sm" className="bg-green-500 text-white hover:bg-green-600" onClick={() => handleApprove(a.id)}>通过</Button>
+                                                            <Button size="sm" className="bg-green-500 text-white hover:bg-success-400" onClick={() => handleApprove(a.id)}>通过</Button>
                                                             <Button size="sm" variant="destructive" onClick={() => setRejectingId(a.id)}>拒绝</Button>
                                                         </>
                                                     )}
@@ -296,7 +296,7 @@ export default function AdminBuyerAccountsPage() {
                         {totalPages > 1 && (
                             <div className="flex items-center justify-center gap-2 p-4">
                                 <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className={cn(page === 1 && 'cursor-not-allowed opacity-50')}>上一页</Button>
-                                <span className="px-4 text-sm text-slate-500">{page} / {totalPages} (共 {total} 条)</span>
+                                <span className="px-4 text-sm text-[#6b7280]">{page} / {totalPages} (共 {total} 条)</span>
                                 <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className={cn(page === totalPages && 'cursor-not-allowed opacity-50')}>下一页</Button>
                             </div>
                         )}
@@ -310,51 +310,51 @@ export default function AdminBuyerAccountsPage() {
                     <div className="space-y-6">
                         {/* Basic Info */}
                         <div>
-                            <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm font-medium text-slate-600">基本信息</h4>
+                            <h4 className="mb-3 border-b border-[#f3f4f6] pb-2 text-sm font-medium text-[#4b5563]">基本信息</h4>
                             <div className="grid grid-cols-2 gap-3 text-sm">
-                                <div><span className="text-slate-400">买号：</span><span className="font-medium">{detailModal.accountName}</span></div>
-                                <div><span className="text-slate-400">平台：</span>{platformNames[detailModal.platform] || detailModal.platform}</div>
-                                <div><span className="text-slate-400">支付宝姓名：</span>{detailModal.alipayName || '-'}</div>
-                                <div><span className="text-slate-400">星级：</span>{detailModal.star}星</div>
-                                <div><span className="text-slate-400">状态：</span><Badge variant="soft" color={statusLabels[detailModal.status]?.color}>{statusLabels[detailModal.status]?.text}</Badge></div>
-                                <div><span className="text-slate-400">提交时间：</span>{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</div>
+                                <div><span className="text-[#9ca3af]">买号：</span><span className="font-medium">{detailModal.accountName}</span></div>
+                                <div><span className="text-[#9ca3af]">平台：</span>{platformNames[detailModal.platform] || detailModal.platform}</div>
+                                <div><span className="text-[#9ca3af]">支付宝姓名：</span>{detailModal.alipayName || '-'}</div>
+                                <div><span className="text-[#9ca3af]">星级：</span>{detailModal.star}星</div>
+                                <div><span className="text-[#9ca3af]">状态：</span><Badge variant="soft" color={statusLabels[detailModal.status]?.color}>{statusLabels[detailModal.status]?.text}</Badge></div>
+                                <div><span className="text-[#9ca3af]">提交时间：</span>{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</div>
                             </div>
                         </div>
 
                         {/* Receiver Info */}
                         <div>
-                            <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm font-medium text-slate-600">收货信息</h4>
+                            <h4 className="mb-3 border-b border-[#f3f4f6] pb-2 text-sm font-medium text-[#4b5563]">收货信息</h4>
                             <div className="grid grid-cols-2 gap-3 text-sm">
-                                <div><span className="text-slate-400">收货人：</span>{detailModal.receiverName || '-'}</div>
-                                <div><span className="text-slate-400">手机号：</span>{detailModal.receiverPhone || '-'}</div>
-                                <div><span className="text-slate-400">省份：</span>{detailModal.province || '-'}</div>
-                                <div><span className="text-slate-400">城市：</span>{detailModal.city || '-'}</div>
-                                <div className="col-span-2"><span className="text-slate-400">详细地址：</span>{detailModal.fullAddress || '-'}</div>
+                                <div><span className="text-[#9ca3af]">收货人：</span>{detailModal.receiverName || '-'}</div>
+                                <div><span className="text-[#9ca3af]">手机号：</span>{detailModal.receiverPhone || '-'}</div>
+                                <div><span className="text-[#9ca3af]">省份：</span>{detailModal.province || '-'}</div>
+                                <div><span className="text-[#9ca3af]">城市：</span>{detailModal.city || '-'}</div>
+                                <div className="col-span-2"><span className="text-[#9ca3af]">详细地址：</span>{detailModal.fullAddress || '-'}</div>
                             </div>
                         </div>
 
                         {/* Wangwang Info */}
                         {(detailModal.wangwangProvince || detailModal.wangwangCity || detailModal.addressRemark) && (
                             <div>
-                                <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm font-medium text-slate-600">常用登录地</h4>
+                                <h4 className="mb-3 border-b border-[#f3f4f6] pb-2 text-sm font-medium text-[#4b5563]">常用登录地</h4>
                                 <div className="grid grid-cols-2 gap-3 text-sm">
-                                    <div><span className="text-slate-400">登录省份：</span>{detailModal.wangwangProvince || '-'}</div>
-                                    <div><span className="text-slate-400">登录城市：</span>{detailModal.wangwangCity || '-'}</div>
-                                    {detailModal.addressRemark && <div className="col-span-2"><span className="text-slate-400">地址备注：</span>{detailModal.addressRemark}</div>}
+                                    <div><span className="text-[#9ca3af]">登录省份：</span>{detailModal.wangwangProvince || '-'}</div>
+                                    <div><span className="text-[#9ca3af]">登录城市：</span>{detailModal.wangwangCity || '-'}</div>
+                                    {detailModal.addressRemark && <div className="col-span-2"><span className="text-[#9ca3af]">地址备注：</span>{detailModal.addressRemark}</div>}
                                 </div>
                             </div>
                         )}
 
                         {/* Images */}
                         <div>
-                            <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm font-medium text-slate-600">认证图片</h4>
+                            <h4 className="mb-3 border-b border-[#f3f4f6] pb-2 text-sm font-medium text-[#4b5563]">认证图片</h4>
                             <div className="flex flex-wrap gap-4">
                                 {renderImageThumbnail(detailModal.idCardImage, '身份证截图')}
                                 {renderImageThumbnail(detailModal.alipayImage, '支付宝实名截图')}
                                 {renderImageThumbnail(detailModal.archiveImage, '账号主页截图')}
                                 {renderImageThumbnail(detailModal.ipImage, '淘气值截图')}
                                 {!detailModal.idCardImage && !detailModal.alipayImage && !detailModal.archiveImage && !detailModal.ipImage && (
-                                    <div className="p-5 text-slate-400">暂无认证图片</div>
+                                    <div className="p-5 text-[#9ca3af]">暂无认证图片</div>
                                 )}
                             </div>
                         </div>
@@ -362,16 +362,16 @@ export default function AdminBuyerAccountsPage() {
                         {/* Reject Reason */}
                         {detailModal.rejectReason && (
                             <div className="rounded border border-red-200 bg-red-50 p-3">
-                                <span className="font-medium text-red-500">拒绝原因：</span>
-                                <span className="text-red-500">{detailModal.rejectReason}</span>
+                                <span className="font-medium text-danger-400">拒绝原因：</span>
+                                <span className="text-danger-400">{detailModal.rejectReason}</span>
                             </div>
                         )}
 
                         {/* Actions */}
                         {detailModal.status === 0 && (
-                            <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                            <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                                 <Button variant="destructive" onClick={() => { setRejectingId(detailModal.id); setDetailModal(null); }}>拒绝</Button>
-                                <Button className="bg-green-500 text-white hover:bg-green-600" onClick={() => handleApprove(detailModal.id)}>通过审核</Button>
+                                <Button className="bg-green-500 text-white hover:bg-success-400" onClick={() => handleApprove(detailModal.id)}>通过审核</Button>
                             </div>
                         )}
                     </div>
@@ -394,7 +394,7 @@ export default function AdminBuyerAccountsPage() {
                             value={rejectReason}
                             onChange={e => setRejectReason(e.target.value)}
                             placeholder="请输入拒绝理由..."
-                            className="min-h-[80px] w-full resize-y rounded border border-slate-300 p-2.5"
+                            className="min-h-[80px] w-full resize-y rounded border border-[#d1d5db] p-2.5"
                         />
                     </div>
                     <div className="flex justify-end gap-3">

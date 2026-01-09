@@ -137,7 +137,7 @@ export default function PlatformsPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-xl font-semibold">平台管理</h2>
-                    <p className="mt-1 text-sm text-slate-500">管理电商平台分类，如淘宝、天猫、京东、拼多多等</p>
+                    <p className="mt-1 text-sm text-[#6b7280]">管理电商平台分类，如淘宝、天猫、京东、拼多多等</p>
                 </div>
                 <Button onClick={handleCreate}>+ 添加平台</Button>
             </div>
@@ -145,19 +145,19 @@ export default function PlatformsPage() {
             {/* Platform List */}
             <Card className="overflow-hidden bg-white p-0">
                 {loading ? (
-                    <div className="py-16 text-center text-slate-400">加载中...</div>
+                    <div className="py-16 text-center text-[#9ca3af]">加载中...</div>
                 ) : error ? (
                     <div className="py-16 text-center">
-                        <div className="text-red-500 mb-4">{error}</div>
+                        <div className="text-danger-400 mb-4">{error}</div>
                         <Button onClick={loadPlatforms} variant="secondary">重试</Button>
                     </div>
                 ) : platforms.length === 0 ? (
-                    <div className="py-16 text-center text-slate-400">暂无平台数据</div>
+                    <div className="py-16 text-center text-[#9ca3af]">暂无平台数据</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="min-w-[900px] w-full border-collapse">
                             <thead>
-                                <tr className="border-b border-slate-100 bg-slate-50">
+                                <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
                                     <th className="px-4 py-4 text-left text-sm font-medium">排序</th>
                                     <th className="px-4 py-4 text-left text-sm font-medium">图标</th>
                                     <th className="px-4 py-4 text-left text-sm font-medium">平台代码</th>
@@ -170,7 +170,7 @@ export default function PlatformsPage() {
                             </thead>
                             <tbody>
                                 {platforms.sort((a, b) => a.sortOrder - b.sortOrder).map(platform => (
-                                    <tr key={platform.id} className={cn('border-b border-slate-100', !platform.isActive && 'opacity-50')}>
+                                    <tr key={platform.id} className={cn('border-b border-[#f3f4f6]', !platform.isActive && 'opacity-50')}>
                                         <td className="px-4 py-4">{platform.sortOrder}</td>
                                         <td className="px-4 py-4 text-2xl">{platform.icon || '🛒'}</td>
                                         <td className="px-4 py-4 font-mono">{platform.code}</td>
@@ -193,8 +193,8 @@ export default function PlatformsPage() {
                                                     size="sm"
                                                     className={cn(
                                                         platform.isActive
-                                                            ? 'border border-amber-400 bg-amber-50 text-amber-600 hover:bg-amber-100'
-                                                            : 'border border-blue-400 bg-blue-50 text-blue-600 hover:bg-blue-100'
+                                                            ? 'border border-amber-400 bg-amber-50 text-warning-500 hover:bg-amber-100'
+                                                            : 'border border-blue-400 bg-blue-50 text-primary-600 hover:bg-blue-100'
                                                     )}
                                                     onClick={() => handleToggle(platform.id, platform.isActive)}
                                                 >
@@ -227,7 +227,7 @@ export default function PlatformsPage() {
                         onChange={e => setEditForm({ ...editForm, name: e.target.value })}
                     />
                     <div>
-                        <label className="mb-2 block text-sm font-medium text-slate-700">图标</label>
+                        <label className="mb-2 block text-sm font-medium text-[#374151]">图标</label>
                         <div className="flex flex-wrap gap-2">
                             {platformIcons.map(icon => (
                                 <button
@@ -235,10 +235,10 @@ export default function PlatformsPage() {
                                     type="button"
                                     onClick={() => setEditForm({ ...editForm, icon })}
                                     className={cn(
-                                        'flex h-10 w-10 items-center justify-center rounded-lg border text-xl transition-colors',
+                                        'flex h-10 w-10 items-center justify-center rounded-md border text-xl transition-colors',
                                         editForm.icon === icon
                                             ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500'
-                                            : 'border-slate-200 bg-white hover:border-slate-300'
+                                            : 'border-[#e5e7eb] bg-white hover:border-[#d1d5db]'
                                     )}
                                 >
                                     {icon}
@@ -264,7 +264,7 @@ export default function PlatformsPage() {
                                 type="checkbox"
                                 checked={editForm.supportsTkl || false}
                                 onChange={e => setEditForm({ ...editForm, supportsTkl: e.target.checked })}
-                                className="h-4 w-4 rounded border-slate-300"
+                                className="h-4 w-4 rounded border-[#d1d5db]"
                             />
                             <span className="text-sm">支持淘口令</span>
                         </label>
@@ -273,12 +273,12 @@ export default function PlatformsPage() {
                                 type="checkbox"
                                 checked={editForm.isActive !== false}
                                 onChange={e => setEditForm({ ...editForm, isActive: e.target.checked })}
-                                className="h-4 w-4 rounded border-slate-300"
+                                className="h-4 w-4 rounded border-[#d1d5db]"
                             />
                             <span className="text-sm">启用</span>
                         </label>
                     </div>
-                    <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                    <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                         <Button variant="secondary" onClick={() => setShowModal(false)}>取消</Button>
                         <Button onClick={handleSave}>保存</Button>
                     </div>

@@ -118,7 +118,7 @@ export default function DeliveriesPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-xl font-semibold">快递管理</h2>
-                    <p className="mt-1 text-sm text-slate-500">管理快递公司信息，配置物流查询链接</p>
+                    <p className="mt-1 text-sm text-[#6b7280]">管理快递公司信息，配置物流查询链接</p>
                 </div>
                 <Button onClick={handleCreate}>+ 添加快递公司</Button>
             </div>
@@ -126,12 +126,12 @@ export default function DeliveriesPage() {
             {/* Delivery List */}
             <Card className="overflow-hidden bg-white p-0">
                 {loading ? (
-                    <div className="py-16 text-center text-slate-400">加载中...</div>
+                    <div className="py-16 text-center text-[#9ca3af]">加载中...</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="min-w-[900px] w-full border-collapse">
                             <thead>
-                                <tr className="border-b border-slate-100 bg-slate-50">
+                                <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
                                     <th className="px-4 py-4 text-left text-sm font-medium">排序</th>
                                     <th className="px-4 py-4 text-left text-sm font-medium">快递代码</th>
                                     <th className="px-4 py-4 text-left text-sm font-medium">快递名称</th>
@@ -142,14 +142,14 @@ export default function DeliveriesPage() {
                             </thead>
                             <tbody>
                                 {deliveries.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)).map(delivery => (
-                                    <tr key={delivery.id} className={cn('border-b border-slate-100', !delivery.isActive && 'opacity-50')}>
+                                    <tr key={delivery.id} className={cn('border-b border-[#f3f4f6]', !delivery.isActive && 'opacity-50')}>
                                         <td className="px-4 py-4">{delivery.sortOrder || 0}</td>
                                         <td className="px-4 py-4 font-mono font-medium">{delivery.code}</td>
                                         <td className="px-4 py-4">
                                             <span className="mr-2">📦</span>
                                             {delivery.name}
                                         </td>
-                                        <td className="max-w-[300px] truncate px-4 py-4 text-xs text-slate-500">
+                                        <td className="max-w-[300px] truncate px-4 py-4 text-xs text-[#6b7280]">
                                             {delivery.trackingUrl || '-'}
                                         </td>
                                         <td className="px-4 py-4">
@@ -164,8 +164,8 @@ export default function DeliveriesPage() {
                                                     size="sm"
                                                     className={cn(
                                                         delivery.isActive
-                                                            ? 'border border-amber-400 bg-amber-50 text-amber-600 hover:bg-amber-100'
-                                                            : 'border border-blue-400 bg-blue-50 text-blue-600 hover:bg-blue-100'
+                                                            ? 'border border-amber-400 bg-amber-50 text-warning-500 hover:bg-amber-100'
+                                                            : 'border border-blue-400 bg-blue-50 text-primary-600 hover:bg-blue-100'
                                                     )}
                                                     onClick={() => handleToggle(delivery.id)}
                                                 >
@@ -204,7 +204,7 @@ export default function DeliveriesPage() {
                             value={editForm.trackingUrl || ''}
                             onChange={e => setEditForm({ ...editForm, trackingUrl: e.target.value })}
                         />
-                        <p className="mt-1.5 text-xs text-slate-400">
+                        <p className="mt-1.5 text-xs text-[#9ca3af]">
                             示例: https://www.sf-express.com/cn/sc/dynamic_function/waybill/#search/bill-number/{'{number}'}
                         </p>
                     </div>
@@ -220,12 +220,12 @@ export default function DeliveriesPage() {
                                 type="checkbox"
                                 checked={editForm.isActive !== false}
                                 onChange={e => setEditForm({ ...editForm, isActive: e.target.checked })}
-                                className="h-4 w-4 rounded border-slate-300"
+                                className="h-4 w-4 rounded border-[#d1d5db]"
                             />
                             <span className="text-sm">启用</span>
                         </label>
                     </div>
-                    <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                    <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                         <Button variant="secondary" onClick={() => setShowModal(false)}>取消</Button>
                         <Button onClick={handleSave}>保存</Button>
                     </div>

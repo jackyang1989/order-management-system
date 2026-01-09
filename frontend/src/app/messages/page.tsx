@@ -82,10 +82,10 @@ export default function MessagesPage() {
     const getTypeColor = (type: string) => {
         const colors: Record<string, { bg: string; text: string }> = {
             system: { bg: 'bg-gray-100', text: 'text-gray-600' },
-            task: { bg: 'bg-blue-100', text: 'text-blue-600' },
-            order: { bg: 'bg-green-100', text: 'text-green-600' },
+            task: { bg: 'bg-blue-100', text: 'text-primary-600' },
+            order: { bg: 'bg-green-100', text: 'text-success-400' },
             finance: { bg: 'bg-yellow-100', text: 'text-yellow-600' },
-            promotion: { bg: 'bg-red-100', text: 'text-red-600' },
+            promotion: { bg: 'bg-red-100', text: 'text-danger-500' },
             review: { bg: 'bg-purple-100', text: 'text-purple-600' }
         };
         return colors[type] || colors.system;
@@ -143,7 +143,7 @@ export default function MessagesPage() {
                 <div className="text-base font-medium text-gray-800 flex items-center">
                     消息通知
                     {unreadCount > 0 && (
-                        <span className="ml-1.5 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                        <span className="ml-1.5 px-1.5 py-0.5 bg-danger-400 text-white text-xs rounded-full">
                             {unreadCount}
                         </span>
                     )}
@@ -151,7 +151,7 @@ export default function MessagesPage() {
                 {unreadCount > 0 && (
                     <div
                         onClick={handleMarkAllAsRead}
-                        className="absolute right-4 text-xs text-blue-500 cursor-pointer"
+                        className="absolute right-4 text-xs text-primary-500 cursor-pointer"
                     >
                         全部已读
                     </div>
@@ -166,7 +166,7 @@ export default function MessagesPage() {
                         onClick={() => setActiveFilter(opt.key)}
                         className={`px-3 py-1 text-xs rounded-full whitespace-nowrap ${
                             activeFilter === opt.key
-                                ? 'bg-blue-500 text-white'
+                                ? 'bg-primary-500 text-white'
                                 : 'bg-gray-100 text-gray-600'
                         }`}
                     >
@@ -193,7 +193,7 @@ export default function MessagesPage() {
                         >
                             {/* 未读红点 */}
                             {!message.isRead && (
-                                <div className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-red-500" />
+                                <div className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-danger-400" />
                             )}
                             <div className={`${message.isRead ? '' : 'ml-2'} pr-8`}>
                                 <div className="flex items-center mb-1.5">
@@ -214,7 +214,7 @@ export default function MessagesPage() {
                             {/* 删除按钮 */}
                             <div
                                 onClick={(e) => handleDelete(message.id, e)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg cursor-pointer hover:text-red-500"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg cursor-pointer hover:text-danger-400"
                             >
                                 ×
                             </div>
@@ -255,7 +255,7 @@ export default function MessagesPage() {
                         <div className="flex border-t border-gray-200">
                             <button
                                 onClick={() => setShowDetail(false)}
-                                className="flex-1 py-3 border-none bg-blue-500 text-white text-sm cursor-pointer rounded-b-lg hover:bg-blue-600"
+                                className="flex-1 py-3 border-none bg-primary-500 text-white text-sm cursor-pointer rounded-b-lg hover:bg-primary-600"
                             >
                                 关闭
                             </button>

@@ -34,7 +34,7 @@ export default function EditShopPage({ params }: { params: Promise<{ id: string 
         if (res.success) { alert('店铺信息已更新'); router.push('/merchant/shops'); } else alert(res.message);
     };
 
-    if (loading) return <div className="py-10 text-center text-[#f9fafb]0">加载中...</div>;
+    if (loading) return <div className="py-10 text-center text-[#6b7280]">加载中...</div>;
 
     return (
         <div className="mx-auto max-w-[800px] space-y-6 p-6">

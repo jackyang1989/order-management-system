@@ -183,22 +183,22 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     }, [currentOpenKey]);
 
     return (
-        <div className="flex min-h-screen overflow-x-hidden bg-[#f6f8fb]">
+        <div className="flex min-h-screen overflow-x-hidden bg-[#f9fafb]">
             {/* Sidebar */}
             <aside
                 className={cn(
-                    'custom-scrollbar fixed left-0 top-0 z-40 h-screen overflow-y-auto border-r border-[#e5eaef] bg-white transition-all duration-200',
+                    'custom-scrollbar fixed left-0 top-0 z-40 h-screen overflow-y-auto border-r border-[#e5e7eb] bg-white transition-all duration-200',
                     collapsed ? 'w-[72px]' : 'w-[240px]'
                 )}
             >
                 {/* Logo */}
                 <div
                     className={cn(
-                        'flex h-16 items-center border-b border-[#e5eaef]',
+                        'flex h-16 items-center border-b border-[#e5e7eb]',
                         collapsed ? 'justify-center' : 'px-5'
                     )}
                 >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-100">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary-100">
                         <span className="text-lg">🛡️</span>
                     </div>
                     {!collapsed && (
@@ -226,10 +226,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                         }
                                     }}
                                     className={cn(
-                                        'flex w-full items-center rounded-lg px-3 py-2.5 text-left text-[14px] transition-all',
+                                        'flex w-full items-center rounded-md px-3 py-2.5 text-left text-[14px] transition-all',
                                         isActive
                                             ? 'bg-primary-50 text-primary-600 font-medium'
-                                            : 'text-[#5a6577] hover:bg-[#f6f8fb] hover:text-[#3b4559]',
+                                            : 'text-[#5a6577] hover:bg-[#f9fafb] hover:text-[#3b4559]',
                                         collapsed && 'justify-center px-0'
                                     )}
                                 >
@@ -240,7 +240,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                             {hasChildren && (
                                                 <svg
                                                     className={cn(
-                                                        'h-4 w-4 text-[#94a3b8] transition-transform',
+                                                        'h-4 w-4 text-[#9ca3af] transition-transform',
                                                         isOpen && 'rotate-180'
                                                     )}
                                                     fill="none"
@@ -261,7 +261,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
                                 {/* Sub menu */}
                                 {hasChildren && isOpen && !collapsed && (
-                                    <div className="ml-3 mt-1 border-l border-[#e5eaef] pl-4">
+                                    <div className="ml-3 mt-1 border-l border-[#e5e7eb] pl-4">
                                         {item.children?.map((child) => (
                                             <button
                                                 key={child.key}
@@ -270,7 +270,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                                     'block w-full rounded-md py-2 pl-2 pr-3 text-left text-[13px] transition-all',
                                                     pathname === child.key
                                                         ? 'bg-primary-50 font-medium text-primary-600'
-                                                        : 'text-[#7c889a] hover:bg-[#f6f8fb] hover:text-[#3b4559]'
+                                                        : 'text-[#6b7280] hover:bg-[#f9fafb] hover:text-[#3b4559]'
                                                 )}
                                             >
                                                 {child.label}
@@ -292,10 +292,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 )}
             >
                 {/* Header */}
-                <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#e5eaef] bg-white px-6">
+                <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#e5e7eb] bg-white px-6">
                     <button
                         onClick={() => setCollapsed(!collapsed)}
-                        className="flex h-9 w-9 items-center justify-center rounded-lg text-[#7c889a] transition-colors hover:bg-[#f6f8fb] hover:text-[#3b4559]"
+                        className="flex h-9 w-9 items-center justify-center rounded-md text-[#6b7280] transition-colors hover:bg-[#f9fafb] hover:text-[#3b4559]"
                     >
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             {collapsed ? (
@@ -310,7 +310,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     <div className="relative">
                         <button
                             onClick={() => setShowDropdown(!showDropdown)}
-                            className="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-[#f6f8fb]"
+                            className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-[#f9fafb]"
                         >
                             <span className="text-[14px] text-[#5a6577]">欢迎, {admin?.username}</span>
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-[13px] font-medium text-primary-600">
@@ -319,24 +319,24 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         </button>
 
                         {showDropdown && (
-                            <div className="absolute right-0 top-full mt-2 w-44 overflow-hidden rounded-xl border border-[#e5eaef] bg-white shadow-soft">
+                            <div className="absolute right-0 top-full mt-2 w-44 overflow-hidden rounded-md border border-[#e5e7eb] bg-white">
                                 <button
                                     onClick={() => {
                                         router.push('/admin/profile');
                                         setShowDropdown(false);
                                     }}
-                                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-[14px] text-[#5a6577] transition-colors hover:bg-[#f6f8fb] hover:text-[#3b4559]"
+                                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-[14px] text-[#5a6577] transition-colors hover:bg-[#f9fafb] hover:text-[#3b4559]"
                                 >
                                     <span>⚙️</span>
                                     <span>个人设置</span>
                                 </button>
-                                <div className="border-t border-[#e5eaef]" />
+                                <div className="border-t border-[#e5e7eb]" />
                                 <button
                                     onClick={() => {
                                         handleLogout();
                                         setShowDropdown(false);
                                     }}
-                                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-[14px] text-[#5a6577] transition-colors hover:bg-[#f6f8fb] hover:text-[#3b4559]"
+                                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-[14px] text-[#5a6577] transition-colors hover:bg-[#f9fafb] hover:text-[#3b4559]"
                                 >
                                     <span>🚪</span>
                                     <span>退出登录</span>

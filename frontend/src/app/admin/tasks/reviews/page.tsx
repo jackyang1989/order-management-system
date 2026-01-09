@@ -125,20 +125,20 @@ export default function AdminTasksReviewsPage() {
             {stats && (
                 <div className="grid grid-cols-4 gap-4">
                     <Card className="bg-white p-5 text-center">
-                        <div className="text-2xl font-semibold text-blue-600">{stats.total || 0}</div>
-                        <div className="mt-1 text-slate-500">总任务数</div>
+                        <div className="text-2xl font-semibold text-primary-600">{stats.total || 0}</div>
+                        <div className="mt-1 text-[#6b7280]">总任务数</div>
                     </Card>
                     <Card className="bg-white p-5 text-center">
-                        <div className="text-2xl font-semibold text-amber-500">{stats.pending || 0}</div>
-                        <div className="mt-1 text-slate-500">待审核</div>
+                        <div className="text-2xl font-semibold text-warning-400">{stats.pending || 0}</div>
+                        <div className="mt-1 text-[#6b7280]">待审核</div>
                     </Card>
                     <Card className="bg-white p-5 text-center">
                         <div className="text-2xl font-semibold text-purple-600">{stats.uploaded || 0}</div>
-                        <div className="mt-1 text-slate-500">已上传</div>
+                        <div className="mt-1 text-[#6b7280]">已上传</div>
                     </Card>
                     <Card className="bg-white p-5 text-center">
-                        <div className="text-2xl font-semibold text-green-600">{stats.completed || 0}</div>
-                        <div className="mt-1 text-slate-500">已完成</div>
+                        <div className="text-2xl font-semibold text-success-400">{stats.completed || 0}</div>
+                        <div className="mt-1 text-[#6b7280]">已完成</div>
                     </Card>
                 </div>
             )}
@@ -147,7 +147,7 @@ export default function AdminTasksReviewsPage() {
             <Card className="space-y-4 bg-white">
                 <div className="flex items-center justify-between">
                     <span className="font-medium">追评任务审核</span>
-                    <span className="text-slate-500">共 {total} 条记录</span>
+                    <span className="text-[#6b7280]">共 {total} 条记录</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <Input placeholder="搜索任务编号..." value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSearch()} className="w-52" />
@@ -173,15 +173,15 @@ export default function AdminTasksReviewsPage() {
             {/* Task Table */}
             <Card className="overflow-hidden bg-white p-0">
                 {loading ? (
-                    <div className="py-12 text-center text-slate-400">加载中...</div>
+                    <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
                 ) : tasks.length === 0 ? (
-                    <div className="py-12 text-center text-slate-400">暂无追评任务</div>
+                    <div className="py-12 text-center text-[#9ca3af]">暂无追评任务</div>
                 ) : (
                     <>
                         <div className="overflow-x-auto">
                             <table className="min-w-[1000px] w-full border-collapse">
                                 <thead>
-                                    <tr className="border-b border-slate-100 bg-slate-50">
+                                    <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
                                         <th className="px-4 py-3.5 text-left text-sm font-medium">任务编号</th>
                                         <th className="px-4 py-3.5 text-left text-sm font-medium">平台订单号</th>
                                         <th className="px-4 py-3.5 text-right text-sm font-medium">任务金额</th>
@@ -193,26 +193,26 @@ export default function AdminTasksReviewsPage() {
                                 </thead>
                                 <tbody>
                                     {tasks.map(t => (
-                                        <tr key={t.id} className="border-b border-slate-100">
-                                            <td className="px-4 py-3.5 font-mono text-blue-600">{t.taskNumber}</td>
-                                            <td className="px-4 py-3.5 font-mono text-slate-500">{t.platformOrderNumber || '-'}</td>
-                                            <td className="px-4 py-3.5 text-right font-medium text-red-500">¥{Number(t.money || 0).toFixed(2)}</td>
-                                            <td className="px-4 py-3.5 text-right text-green-600">¥{Number(t.userMoney || 0).toFixed(2)}</td>
+                                        <tr key={t.id} className="border-b border-[#f3f4f6]">
+                                            <td className="px-4 py-3.5 font-mono text-primary-600">{t.taskNumber}</td>
+                                            <td className="px-4 py-3.5 font-mono text-[#6b7280]">{t.platformOrderNumber || '-'}</td>
+                                            <td className="px-4 py-3.5 text-right font-medium text-danger-400">¥{Number(t.money || 0).toFixed(2)}</td>
+                                            <td className="px-4 py-3.5 text-right text-success-400">¥{Number(t.userMoney || 0).toFixed(2)}</td>
                                             <td className="px-4 py-3.5 text-center">
                                                 <Badge variant="soft" color={statusLabels[t.state]?.color || 'slate'}>{statusLabels[t.state]?.text || '未知'}</Badge>
                                             </td>
-                                            <td className="px-4 py-3.5 text-xs text-slate-400">{t.createdAt ? new Date(t.createdAt).toLocaleString('zh-CN') : '-'}</td>
+                                            <td className="px-4 py-3.5 text-xs text-[#9ca3af]">{t.createdAt ? new Date(t.createdAt).toLocaleString('zh-CN') : '-'}</td>
                                             <td className="px-4 py-3.5 text-center">
                                                 <div className="flex justify-center gap-2">
                                                     <Button size="sm" variant="secondary" onClick={() => setDetailModal(t)}>查看</Button>
                                                     {t.state === 1 && (
                                                         <>
-                                                            <Button size="sm" className="bg-green-500 hover:bg-green-600" onClick={() => setExamineModal({ id: t.id, action: 'approve' })}>通过</Button>
+                                                            <Button size="sm" className="bg-green-500 hover:bg-success-400" onClick={() => setExamineModal({ id: t.id, action: 'approve' })}>通过</Button>
                                                             <Button size="sm" variant="destructive" onClick={() => setExamineModal({ id: t.id, action: 'reject' })}>拒绝</Button>
                                                         </>
                                                     )}
                                                     {t.state === 3 && (
-                                                        <Button size="sm" className="bg-purple-600 hover:bg-purple-700" onClick={() => handleRefund(t.id)}>返款</Button>
+                                                        <Button size="sm" className="bg-warning-400 hover:bg-warning-500" onClick={() => handleRefund(t.id)}>返款</Button>
                                                     )}
                                                 </div>
                                             </td>
@@ -222,9 +222,9 @@ export default function AdminTasksReviewsPage() {
                             </table>
                         </div>
 
-                        <div className="flex justify-end gap-2 border-t border-slate-100 p-4">
+                        <div className="flex justify-end gap-2 border-t border-[#f3f4f6] p-4">
                             <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className={cn(page === 1 && 'cursor-not-allowed opacity-50')}>上一页</Button>
-                            <span className="px-3 py-1.5 text-sm text-slate-500">第 {page} 页</span>
+                            <span className="px-3 py-1.5 text-sm text-[#6b7280]">第 {page} 页</span>
                             <Button size="sm" variant="secondary" onClick={() => setPage(p => p + 1)} disabled={tasks.length < 20} className={cn(tasks.length < 20 && 'cursor-not-allowed opacity-50')}>下一页</Button>
                         </div>
                     </>
@@ -237,33 +237,33 @@ export default function AdminTasksReviewsPage() {
                     <div className="space-y-6">
                         {/* Basic Info */}
                         <div>
-                            <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm text-slate-500">基本信息</h4>
+                            <h4 className="mb-3 border-b border-[#f3f4f6] pb-2 text-sm text-[#6b7280]">基本信息</h4>
                             <div className="grid grid-cols-2 gap-3 text-sm">
-                                <div><span className="text-slate-400">任务编号：</span><span className="font-mono text-blue-600">{detailModal.taskNumber}</span></div>
-                                <div><span className="text-slate-400">平台订单号：</span><span className="font-mono">{detailModal.platformOrderNumber || '-'}</span></div>
-                                <div><span className="text-slate-400">商家ID：</span>{detailModal.merchantId?.slice(0, 8) || '-'}</div>
-                                <div><span className="text-slate-400">买手ID：</span>{detailModal.userId?.slice(0, 8) || '-'}</div>
-                                <div><span className="text-slate-400">状态：</span><Badge variant="soft" color={statusLabels[detailModal.state]?.color}>{statusLabels[detailModal.state]?.text}</Badge></div>
+                                <div><span className="text-[#9ca3af]">任务编号：</span><span className="font-mono text-primary-600">{detailModal.taskNumber}</span></div>
+                                <div><span className="text-[#9ca3af]">平台订单号：</span><span className="font-mono">{detailModal.platformOrderNumber || '-'}</span></div>
+                                <div><span className="text-[#9ca3af]">商家ID：</span>{detailModal.merchantId?.slice(0, 8) || '-'}</div>
+                                <div><span className="text-[#9ca3af]">买手ID：</span>{detailModal.userId?.slice(0, 8) || '-'}</div>
+                                <div><span className="text-[#9ca3af]">状态：</span><Badge variant="soft" color={statusLabels[detailModal.state]?.color}>{statusLabels[detailModal.state]?.text}</Badge></div>
                             </div>
                         </div>
 
                         {/* Money Info */}
                         <div>
-                            <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm text-slate-500">金额信息</h4>
+                            <h4 className="mb-3 border-b border-[#f3f4f6] pb-2 text-sm text-[#6b7280]">金额信息</h4>
                             <div className="grid grid-cols-3 gap-3 text-sm">
-                                <div><span className="text-slate-400">任务金额：</span><span className="font-medium text-red-500">¥{Number(detailModal.money || 0).toFixed(2)}</span></div>
-                                <div><span className="text-slate-400">买手佣金：</span><span className="font-medium text-green-600">¥{Number(detailModal.userMoney || 0).toFixed(2)}</span></div>
-                                <div><span className="text-slate-400">订单金额：</span><span className="text-slate-600">¥{Number(detailModal.payPrice || 0).toFixed(2)}</span></div>
+                                <div><span className="text-[#9ca3af]">任务金额：</span><span className="font-medium text-danger-400">¥{Number(detailModal.money || 0).toFixed(2)}</span></div>
+                                <div><span className="text-[#9ca3af]">买手佣金：</span><span className="font-medium text-success-400">¥{Number(detailModal.userMoney || 0).toFixed(2)}</span></div>
+                                <div><span className="text-[#9ca3af]">订单金额：</span><span className="text-[#4b5563]">¥{Number(detailModal.payPrice || 0).toFixed(2)}</span></div>
                             </div>
                         </div>
 
                         {/* Images */}
                         {detailModal.img && parseImages(detailModal.img).length > 0 && (
                             <div>
-                                <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm text-slate-500">追评截图</h4>
+                                <h4 className="mb-3 border-b border-[#f3f4f6] pb-2 text-sm text-[#6b7280]">追评截图</h4>
                                 <div className="flex flex-wrap gap-3">
                                     {parseImages(detailModal.img).map((url, index) => (
-                                        <img key={index} src={url} alt={`追评截图${index + 1}`} className="h-[120px] w-[120px] cursor-pointer rounded border border-slate-200 object-cover" onClick={() => setImageModal(url)} />
+                                        <img key={index} src={url} alt={`追评截图${index + 1}`} className="h-[120px] w-[120px] cursor-pointer rounded border border-[#e5e7eb] object-cover" onClick={() => setImageModal(url)} />
                                     ))}
                                 </div>
                             </div>
@@ -272,33 +272,33 @@ export default function AdminTasksReviewsPage() {
                         {/* Remarks */}
                         {detailModal.remarks && (
                             <div className="rounded border border-green-200 bg-green-50 p-3">
-                                <span className="font-medium text-green-600">审核备注：</span>
-                                <span className="text-slate-700">{detailModal.remarks}</span>
+                                <span className="font-medium text-success-400">审核备注：</span>
+                                <span className="text-[#374151]">{detailModal.remarks}</span>
                             </div>
                         )}
 
                         {/* Time Records */}
                         <div>
-                            <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm text-slate-500">时间记录</h4>
+                            <h4 className="mb-3 border-b border-[#f3f4f6] pb-2 text-sm text-[#6b7280]">时间记录</h4>
                             <div className="grid grid-cols-2 gap-3 text-sm">
-                                <div><span className="text-slate-400">创建时间：</span>{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</div>
-                                {detailModal.payTime && <div><span className="text-slate-400">支付时间：</span>{new Date(detailModal.payTime).toLocaleString('zh-CN')}</div>}
-                                {detailModal.examineTime && <div><span className="text-slate-400">审核时间：</span>{new Date(detailModal.examineTime).toLocaleString('zh-CN')}</div>}
-                                {detailModal.uploadTime && <div><span className="text-slate-400">上传时间：</span>{new Date(detailModal.uploadTime).toLocaleString('zh-CN')}</div>}
-                                {detailModal.confirmTime && <div><span className="text-slate-400">完成时间：</span>{new Date(detailModal.confirmTime).toLocaleString('zh-CN')}</div>}
+                                <div><span className="text-[#9ca3af]">创建时间：</span>{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</div>
+                                {detailModal.payTime && <div><span className="text-[#9ca3af]">支付时间：</span>{new Date(detailModal.payTime).toLocaleString('zh-CN')}</div>}
+                                {detailModal.examineTime && <div><span className="text-[#9ca3af]">审核时间：</span>{new Date(detailModal.examineTime).toLocaleString('zh-CN')}</div>}
+                                {detailModal.uploadTime && <div><span className="text-[#9ca3af]">上传时间：</span>{new Date(detailModal.uploadTime).toLocaleString('zh-CN')}</div>}
+                                {detailModal.confirmTime && <div><span className="text-[#9ca3af]">完成时间：</span>{new Date(detailModal.confirmTime).toLocaleString('zh-CN')}</div>}
                             </div>
                         </div>
 
                         {/* Actions */}
-                        <div className="flex justify-end gap-3 border-t border-slate-100 pt-4">
+                        <div className="flex justify-end gap-3 border-t border-[#f3f4f6] pt-4">
                             {detailModal.state === 1 && (
                                 <>
-                                    <Button className="bg-green-500 hover:bg-green-600" onClick={() => setExamineModal({ id: detailModal.id, action: 'approve' })}>通过审核</Button>
+                                    <Button className="bg-green-500 hover:bg-success-400" onClick={() => setExamineModal({ id: detailModal.id, action: 'approve' })}>通过审核</Button>
                                     <Button variant="destructive" onClick={() => setExamineModal({ id: detailModal.id, action: 'reject' })}>拒绝</Button>
                                 </>
                             )}
                             {detailModal.state === 3 && (
-                                <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => handleRefund(detailModal.id)}>返款完成</Button>
+                                <Button className="bg-warning-400 hover:bg-warning-500" onClick={() => handleRefund(detailModal.id)}>返款完成</Button>
                             )}
                             <Button variant="secondary" onClick={() => setDetailModal(null)}>关闭</Button>
                         </div>
@@ -320,11 +320,11 @@ export default function AdminTasksReviewsPage() {
                     onChange={e => setExamineRemark(e.target.value)}
                     placeholder={examineModal?.action === 'approve' ? '审核备注（可选）...' : '请输入拒绝原因...'}
                     rows={4}
-                    className="mb-4 w-full resize-y rounded border border-slate-200 p-2.5"
+                    className="mb-4 w-full resize-y rounded border border-[#e5e7eb] p-2.5"
                 />
                 <div className="flex justify-end gap-3">
                     <Button variant="secondary" onClick={() => { setExamineModal(null); setExamineRemark(''); }}>取消</Button>
-                    <Button onClick={handleExamine} className={examineModal?.action === 'approve' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}>
+                    <Button onClick={handleExamine} className={examineModal?.action === 'approve' ? 'bg-green-500 hover:bg-success-400' : 'bg-danger-400 hover:bg-danger-500'}>
                         {examineModal?.action === 'approve' ? '确认通过' : '确认拒绝'}
                     </Button>
                 </div>

@@ -266,12 +266,12 @@ export default function AdminSystemPage() {
                             type="checkbox"
                             checked={Boolean(value)}
                             onChange={e => handleChange(field.key, e.target.checked)}
-                            className="h-4 w-4 rounded border-[#e5eaef] text-primary-500 focus:ring-primary-500"
+                            className="h-4 w-4 rounded border-[#e5e7eb] text-primary-500 focus:ring-primary-500"
                         />
                         <span className="text-[13px] text-[#3b4559]">{field.label}</span>
                     </label>
                     {field.description && (
-                        <span className="text-[12px] text-[#94a3b8]">{field.description}</span>
+                        <span className="text-[12px] text-[#9ca3af]">{field.description}</span>
                     )}
                 </div>
             );
@@ -284,11 +284,11 @@ export default function AdminSystemPage() {
                     <textarea
                         value={String(value ?? '')}
                         onChange={e => handleChange(field.key, e.target.value)}
-                        className="min-h-[80px] resize-y rounded-lg border border-[#e5eaef] bg-white px-3.5 py-2.5 font-mono text-[13px] text-[#3b4559] transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                        className="min-h-[80px] resize-y rounded-md border border-[#e5e7eb] bg-white px-3.5 py-2.5 font-mono text-[13px] text-[#3b4559] transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                         rows={3}
                     />
                     {field.description && (
-                        <span className="text-[12px] text-[#94a3b8]">{field.description}</span>
+                        <span className="text-[12px] text-[#9ca3af]">{field.description}</span>
                     )}
                 </div>
             );
@@ -304,11 +304,11 @@ export default function AdminSystemPage() {
                         const val = field.type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value;
                         handleChange(field.key, val);
                     }}
-                    className="rounded-lg border border-[#e5eaef] bg-white px-3.5 py-2.5 text-[14px] text-[#3b4559] transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                    className="rounded-md border border-[#e5e7eb] bg-white px-3.5 py-2.5 text-[14px] text-[#3b4559] transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                     step={field.type === 'number' ? 'any' : undefined}
                 />
                 {field.description && (
-                    <span className="text-[12px] text-[#94a3b8]">{field.description}</span>
+                    <span className="text-[12px] text-[#9ca3af]">{field.description}</span>
                 )}
             </div>
         );
@@ -317,7 +317,7 @@ export default function AdminSystemPage() {
     if (loading) {
         return (
             <div className="flex h-64 items-center justify-center">
-                <div className="text-[#7c889a]">加载配置中...</div>
+                <div className="text-[#6b7280]">加载配置中...</div>
             </div>
         );
     }
@@ -328,7 +328,7 @@ export default function AdminSystemPage() {
                 <div className="text-danger-400">{error}</div>
                 <button
                     onClick={loadConfig}
-                    className="rounded-lg bg-primary-500 px-4 py-2 text-white hover:bg-primary-600"
+                    className="rounded-md bg-primary-500 px-4 py-2 text-white hover:bg-primary-600"
                 >
                     重试
                 </button>
@@ -339,26 +339,26 @@ export default function AdminSystemPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between overflow-hidden rounded-xl border border-[#e5eaef] bg-white px-6 py-4 shadow-card">
+            <div className="flex items-center justify-between overflow-hidden rounded-md border border-[#e5e7eb] bg-white px-6 py-4 ">
                 <span className="text-[15px] font-semibold text-[#3b4559]">系统配置管理</span>
                 <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="cursor-pointer rounded-lg bg-primary-500 px-5 py-2.5 text-[14px] font-medium text-white shadow-sm transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="cursor-pointer rounded-md bg-primary-500 px-5 py-2.5 text-[14px] font-medium text-white shadow-sm transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     {saving ? '保存中...' : '保存配置'}
                 </button>
             </div>
 
             {error && (
-                <div className="rounded-xl border border-danger-100 bg-danger-50 p-4 text-[14px] text-danger-500">{error}</div>
+                <div className="rounded-md border border-danger-100 bg-danger-50 p-4 text-[14px] text-danger-500">{error}</div>
             )}
 
             {/* 平台开关配置 - 放在最前面 */}
-            <div className="overflow-hidden rounded-xl border border-[#e5eaef] bg-white shadow-card">
-                <div className="border-b border-[#e5eaef] px-6 py-4">
+            <div className="overflow-hidden rounded-md border border-[#e5e7eb] bg-white ">
+                <div className="border-b border-[#e5e7eb] px-6 py-4">
                     <span className="text-[15px] font-semibold text-[#3b4559]">平台开关配置</span>
-                    <span className="ml-2 text-[12px] text-[#7c889a]">控制全站显示的平台，关闭后该平台在用户端、商家端均不可见</span>
+                    <span className="ml-2 text-[12px] text-[#6b7280]">控制全站显示的平台，关闭后该平台在用户端、商家端均不可见</span>
                 </div>
                 <div className="p-6">
                     <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5">
@@ -369,24 +369,24 @@ export default function AdminSystemPage() {
                                 <div
                                     key={platform.id}
                                     onClick={() => togglePlatform(platform.id)}
-                                    className={`cursor-pointer rounded-xl border-2 p-4 text-center transition-all ${
+                                    className={`cursor-pointer rounded-md border-2 p-4 text-center transition-all ${
                                         isEnabled
                                             ? 'border-primary-500 bg-primary-50'
-                                            : 'border-[#e5eaef] bg-[#f6f8fb] opacity-60'
+                                            : 'border-[#e5e7eb] bg-[#f9fafb] opacity-60'
                                     }`}
                                 >
                                     <div className="mb-2 text-2xl">{platform.icon}</div>
-                                    <div className={`text-[13px] font-medium ${isEnabled ? 'text-primary-600' : 'text-[#7c889a]'}`}>
+                                    <div className={`text-[13px] font-medium ${isEnabled ? 'text-primary-600' : 'text-[#6b7280]'}`}>
                                         {platform.name}
                                     </div>
-                                    <div className={`mt-1 text-[11px] ${isEnabled ? 'text-success-500' : 'text-[#94a3b8]'}`}>
+                                    <div className={`mt-1 text-[11px] ${isEnabled ? 'text-success-500' : 'text-[#9ca3af]'}`}>
                                         {isEnabled ? '已启用' : '已关闭'}
                                     </div>
                                 </div>
                             );
                         })}
                     </div>
-                    <div className="mt-4 text-[12px] text-[#7c889a]">
+                    <div className="mt-4 text-[12px] text-[#6b7280]">
                         提示：关闭平台后，用户无法绑定该平台买号、商家无法发布该平台任务、任务大厅不显示该平台任务
                     </div>
                 </div>
@@ -394,8 +394,8 @@ export default function AdminSystemPage() {
 
             {/* Config Groups */}
             {configGroups.map(group => (
-                <div key={group.title} className="overflow-hidden rounded-xl border border-[#e5eaef] bg-white shadow-card">
-                    <div className="border-b border-[#e5eaef] px-6 py-4">
+                <div key={group.title} className="overflow-hidden rounded-md border border-[#e5e7eb] bg-white ">
+                    <div className="border-b border-[#e5e7eb] px-6 py-4">
                         <span className="text-[15px] font-semibold text-[#3b4559]">{group.title}</span>
                     </div>
                     <div className="p-6">
@@ -407,21 +407,21 @@ export default function AdminSystemPage() {
             ))}
 
             {/* System Info */}
-            <div className="overflow-hidden rounded-xl border border-[#e5eaef] bg-white p-6 shadow-card">
+            <div className="overflow-hidden rounded-md border border-[#e5e7eb] bg-white p-6 ">
                 <h3 className="mb-4 text-[15px] font-semibold text-[#3b4559]">系统信息</h3>
                 <div className="grid grid-cols-3 gap-4">
-                    <div className="rounded-xl bg-[#f6f8fb] p-4">
-                        <div className="mb-1 text-[12px] text-[#7c889a]">系统版本</div>
+                    <div className="rounded-md bg-[#f9fafb] p-4">
+                        <div className="mb-1 text-[12px] text-[#6b7280]">系统版本</div>
                         <div className="text-[14px] font-medium text-[#3b4559]">v2.0.0</div>
                     </div>
-                    <div className="rounded-xl bg-[#f6f8fb] p-4">
-                        <div className="mb-1 text-[12px] text-[#7c889a]">配置更新时间</div>
+                    <div className="rounded-md bg-[#f9fafb] p-4">
+                        <div className="mb-1 text-[12px] text-[#6b7280]">配置更新时间</div>
                         <div className="text-[14px] font-medium text-[#3b4559]">
                             {config?.updatedAt ? new Date(config.updatedAt).toLocaleString('zh-CN') : '-'}
                         </div>
                     </div>
-                    <div className="rounded-xl bg-[#f6f8fb] p-4">
-                        <div className="mb-1 text-[12px] text-[#7c889a]">服务器时间</div>
+                    <div className="rounded-md bg-[#f9fafb] p-4">
+                        <div className="mb-1 text-[12px] text-[#6b7280]">服务器时间</div>
                         <div className="text-[14px] font-medium text-[#3b4559]">{new Date().toLocaleString('zh-CN')}</div>
                     </div>
                 </div>

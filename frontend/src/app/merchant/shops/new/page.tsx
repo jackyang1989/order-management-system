@@ -90,7 +90,7 @@ export default function NewShopPage() {
                         <div>
                             <label className="mb-2 block font-medium">发件人手机</label>
                             <Input type="text" placeholder="请输入手机号" value={formData.mobile} maxLength={11} onChange={e => { setFormData({ ...formData, mobile: e.target.value }); validateMobile(e.target.value); }} onBlur={e => validateMobile(e.target.value)} className={cn(mobileError && 'border-red-500')} />
-                            {mobileError && <div className="mt-1 text-xs text-red-500">{mobileError}</div>}
+                            {mobileError && <div className="mt-1 text-xs text-danger-400">{mobileError}</div>}
                         </div>
                     </div>
 
@@ -133,11 +133,11 @@ export default function NewShopPage() {
                         <label className="mb-2 block font-medium">店铺后台截图 (验证用)</label>
                         <div onClick={() => document.getElementById('screenshot-upload')?.click()} className="cursor-pointer rounded border border-dashed border-[#d1d5db] bg-[#f9fafb] p-5 text-center hover:border-[#9ca3af]">
                             {formData.screenshot ? (
-                                <div className="text-sm text-green-500">已选择: {formData.screenshot.name}</div>
+                                <div className="text-sm text-success-400">已选择: {formData.screenshot.name}</div>
                             ) : (
                                 <>
                                     <div className="mb-2 text-2xl text-[#9ca3af]">📷</div>
-                                    <div className="text-sm text-[#f9fafb]0">点击上传店铺后台截图</div>
+                                    <div className="text-sm text-[#6b7280]">点击上传店铺后台截图</div>
                                 </>
                             )}
                             <input id="screenshot-upload" type="file" accept="image/*" className="hidden" onChange={e => { if (e.target.files?.[0]) setFormData({ ...formData, screenshot: e.target.files[0] }); }} />

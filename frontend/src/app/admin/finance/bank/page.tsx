@@ -133,7 +133,7 @@ export default function AdminFinanceBankPage() {
             <Card className="bg-white">
                 <div className="mb-4 flex items-center justify-between">
                     <span className="text-base font-medium">银行卡审核</span>
-                    <span className="text-slate-500">共 {total} 条记录</span>
+                    <span className="text-[#6b7280]">共 {total} 条记录</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <Input
@@ -161,15 +161,15 @@ export default function AdminFinanceBankPage() {
             {/* Table Card */}
             <Card className="overflow-hidden bg-white p-0">
                 {loading ? (
-                    <div className="py-12 text-center text-slate-400">加载中...</div>
+                    <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
                 ) : cards.length === 0 ? (
-                    <div className="py-12 text-center text-slate-400">暂无银行卡记录</div>
+                    <div className="py-12 text-center text-[#9ca3af]">暂无银行卡记录</div>
                 ) : (
                     <>
                         <div className="overflow-x-auto">
                             <table className="min-w-[1000px] w-full border-collapse">
                                 <thead>
-                                    <tr className="border-b border-slate-100 bg-slate-50">
+                                    <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
                                         <th className="px-4 py-3.5 text-left text-sm font-medium">持卡人</th>
                                         <th className="px-4 py-3.5 text-left text-sm font-medium">银行</th>
                                         <th className="px-4 py-3.5 text-left text-sm font-medium">卡号</th>
@@ -181,23 +181,23 @@ export default function AdminFinanceBankPage() {
                                 </thead>
                                 <tbody>
                                     {cards.map(c => (
-                                        <tr key={c.id} className="border-b border-slate-100">
+                                        <tr key={c.id} className="border-b border-[#f3f4f6]">
                                             <td className="px-4 py-3.5 font-medium">{c.accountName}</td>
-                                            <td className="px-4 py-3.5 text-slate-500">{c.bankName}</td>
+                                            <td className="px-4 py-3.5 text-[#6b7280]">{c.bankName}</td>
                                             <td className="px-4 py-3.5 font-mono">{maskCardNumber(c.cardNumber)}</td>
-                                            <td className="max-w-[150px] truncate px-4 py-3.5 text-slate-500">{c.branchName || '-'}</td>
+                                            <td className="max-w-[150px] truncate px-4 py-3.5 text-[#6b7280]">{c.branchName || '-'}</td>
                                             <td className="px-4 py-3.5 text-center">
                                                 <Badge variant="soft" color={statusLabels[c.status]?.color || 'slate'}>
                                                     {statusLabels[c.status]?.text || '未知'}
                                                 </Badge>
                                             </td>
-                                            <td className="px-4 py-3.5 text-xs text-slate-400">{c.createdAt ? new Date(c.createdAt).toLocaleString('zh-CN') : '-'}</td>
+                                            <td className="px-4 py-3.5 text-xs text-[#9ca3af]">{c.createdAt ? new Date(c.createdAt).toLocaleString('zh-CN') : '-'}</td>
                                             <td className="px-4 py-3.5 text-center">
                                                 <div className="flex justify-center gap-2">
                                                     <Button size="sm" variant="secondary" onClick={() => setDetailModal(c)}>查看</Button>
                                                     {c.status === 0 && (
                                                         <>
-                                                            <Button size="sm" className="bg-green-500 text-white hover:bg-green-600" onClick={() => handleApprove(c.id)}>通过</Button>
+                                                            <Button size="sm" className="bg-green-500 text-white hover:bg-success-400" onClick={() => handleApprove(c.id)}>通过</Button>
                                                             <Button size="sm" variant="destructive" onClick={() => setRejectModal(c.id)}>拒绝</Button>
                                                         </>
                                                     )}
@@ -219,7 +219,7 @@ export default function AdminFinanceBankPage() {
                             >
                                 上一页
                             </Button>
-                            <span className="px-3 text-sm text-slate-500">第 {page} 页</span>
+                            <span className="px-3 text-sm text-[#6b7280]">第 {page} 页</span>
                             <Button
                                 size="sm"
                                 variant="secondary"
@@ -240,16 +240,16 @@ export default function AdminFinanceBankPage() {
                     <div className="space-y-6">
                         {/* Bank Card Info */}
                         <div>
-                            <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm font-medium text-slate-600">银行卡信息</h4>
+                            <h4 className="mb-3 border-b border-[#f3f4f6] pb-2 text-sm font-medium text-[#4b5563]">银行卡信息</h4>
                             <div className="grid grid-cols-2 gap-3 text-sm">
-                                <div><span className="text-slate-400">持卡人：</span><span className="font-medium">{detailModal.accountName}</span></div>
-                                <div><span className="text-slate-400">银行：</span>{detailModal.bankName}</div>
-                                <div><span className="text-slate-400">卡号：</span><span className="font-mono">{detailModal.cardNumber}</span></div>
-                                <div><span className="text-slate-400">预留手机：</span>{detailModal.phone || '-'}</div>
-                                <div><span className="text-slate-400">开户省市：</span>{detailModal.province || ''} {detailModal.city || ''}</div>
-                                <div><span className="text-slate-400">开户支行：</span>{detailModal.branchName || '-'}</div>
-                                <div><span className="text-slate-400">身份证号：</span>{detailModal.idCard ? detailModal.idCard.replace(/(\d{4})\d{10}(\d{4})/, '$1**********$2') : '-'}</div>
-                                <div><span className="text-slate-400">状态：</span>
+                                <div><span className="text-[#9ca3af]">持卡人：</span><span className="font-medium">{detailModal.accountName}</span></div>
+                                <div><span className="text-[#9ca3af]">银行：</span>{detailModal.bankName}</div>
+                                <div><span className="text-[#9ca3af]">卡号：</span><span className="font-mono">{detailModal.cardNumber}</span></div>
+                                <div><span className="text-[#9ca3af]">预留手机：</span>{detailModal.phone || '-'}</div>
+                                <div><span className="text-[#9ca3af]">开户省市：</span>{detailModal.province || ''} {detailModal.city || ''}</div>
+                                <div><span className="text-[#9ca3af]">开户支行：</span>{detailModal.branchName || '-'}</div>
+                                <div><span className="text-[#9ca3af]">身份证号：</span>{detailModal.idCard ? detailModal.idCard.replace(/(\d{4})\d{10}(\d{4})/, '$1**********$2') : '-'}</div>
+                                <div><span className="text-[#9ca3af]">状态：</span>
                                     <Badge variant="soft" color={statusLabels[detailModal.status]?.color}>{statusLabels[detailModal.status]?.text}</Badge>
                                 </div>
                             </div>
@@ -258,17 +258,17 @@ export default function AdminFinanceBankPage() {
                         {/* ID Card Images */}
                         {(detailModal.idCardFrontImage || detailModal.idCardBackImage) && (
                             <div>
-                                <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm font-medium text-slate-600">身份证照片</h4>
+                                <h4 className="mb-3 border-b border-[#f3f4f6] pb-2 text-sm font-medium text-[#4b5563]">身份证照片</h4>
                                 <div className="flex flex-wrap gap-4">
                                     {detailModal.idCardFrontImage && (
                                         <div className="text-center">
                                             <img
                                                 src={detailModal.idCardFrontImage}
                                                 alt="身份证正面"
-                                                className="h-[120px] w-[180px] cursor-pointer rounded border border-slate-200 object-cover"
+                                                className="h-[120px] w-[180px] cursor-pointer rounded border border-[#e5e7eb] object-cover"
                                                 onClick={() => setImageModal(detailModal.idCardFrontImage)}
                                             />
-                                            <div className="mt-1 text-xs text-slate-500">身份证正面</div>
+                                            <div className="mt-1 text-xs text-[#6b7280]">身份证正面</div>
                                         </div>
                                     )}
                                     {detailModal.idCardBackImage && (
@@ -276,10 +276,10 @@ export default function AdminFinanceBankPage() {
                                             <img
                                                 src={detailModal.idCardBackImage}
                                                 alt="身份证背面"
-                                                className="h-[120px] w-[180px] cursor-pointer rounded border border-slate-200 object-cover"
+                                                className="h-[120px] w-[180px] cursor-pointer rounded border border-[#e5e7eb] object-cover"
                                                 onClick={() => setImageModal(detailModal.idCardBackImage)}
                                             />
-                                            <div className="mt-1 text-xs text-slate-500">身份证背面</div>
+                                            <div className="mt-1 text-xs text-[#6b7280]">身份证背面</div>
                                         </div>
                                     )}
                                 </div>
@@ -289,25 +289,25 @@ export default function AdminFinanceBankPage() {
                         {/* Reject Reason */}
                         {detailModal.status === 2 && detailModal.rejectReason && (
                             <div className="rounded border border-red-200 bg-red-50 p-3">
-                                <span className="font-medium text-red-500">拒绝原因：</span>
-                                <span className="text-red-500">{detailModal.rejectReason}</span>
+                                <span className="font-medium text-danger-400">拒绝原因：</span>
+                                <span className="text-danger-400">{detailModal.rejectReason}</span>
                             </div>
                         )}
 
                         {/* Time Info */}
                         <div>
-                            <h4 className="mb-3 border-b border-slate-100 pb-2 text-sm font-medium text-slate-600">时间记录</h4>
+                            <h4 className="mb-3 border-b border-[#f3f4f6] pb-2 text-sm font-medium text-[#4b5563]">时间记录</h4>
                             <div className="grid grid-cols-2 gap-3 text-sm">
-                                <div><span className="text-slate-400">提交时间：</span>{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</div>
-                                <div><span className="text-slate-400">更新时间：</span>{detailModal.updatedAt ? new Date(detailModal.updatedAt).toLocaleString('zh-CN') : '-'}</div>
+                                <div><span className="text-[#9ca3af]">提交时间：</span>{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</div>
+                                <div><span className="text-[#9ca3af]">更新时间：</span>{detailModal.updatedAt ? new Date(detailModal.updatedAt).toLocaleString('zh-CN') : '-'}</div>
                             </div>
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                        <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                             {detailModal.status === 0 && (
                                 <>
-                                    <Button className="bg-green-500 text-white hover:bg-green-600" onClick={() => handleApprove(detailModal.id)}>通过审核</Button>
+                                    <Button className="bg-green-500 text-white hover:bg-success-400" onClick={() => handleApprove(detailModal.id)}>通过审核</Button>
                                     <Button variant="destructive" onClick={() => setRejectModal(detailModal.id)}>拒绝</Button>
                                 </>
                             )}
@@ -335,7 +335,7 @@ export default function AdminFinanceBankPage() {
                         onChange={e => setRejectReason(e.target.value)}
                         placeholder="请输入拒绝原因..."
                         rows={4}
-                        className="w-full resize-y rounded border border-slate-300 p-2.5"
+                        className="w-full resize-y rounded border border-[#d1d5db] p-2.5"
                     />
                     <div className="flex justify-end gap-3">
                         <Button variant="secondary" onClick={() => { setRejectModal(null); setRejectReason(''); }}>取消</Button>

@@ -82,13 +82,13 @@ export default function EditGoodsPage({ params }: { params: Promise<{ id: string
         if (res.success) { alert('商品更新成功'); router.push('/merchant/goods'); } else alert(res.message);
     };
 
-    if (loading) return <div className="py-6 text-center text-[#f9fafb]0">加载中...</div>;
+    if (loading) return <div className="py-6 text-center text-[#6b7280]">加载中...</div>;
 
     if (!goods) {
         return (
             <div className="py-6 text-center">
-                <div className="mb-4 text-red-500">商品不存在</div>
-                <button onClick={() => router.back()} className="text-blue-500 hover:underline">返回</button>
+                <div className="mb-4 text-danger-400">商品不存在</div>
+                <button onClick={() => router.back()} className="text-primary-500 hover:underline">返回</button>
             </div>
         );
     }
@@ -98,7 +98,7 @@ export default function EditGoodsPage({ params }: { params: Promise<{ id: string
     return (
         <div className="space-y-6 p-6">
             {/* Back Link */}
-            <button onClick={() => router.back()} className="text-sm text-blue-500 hover:underline">← 返回商品列表</button>
+            <button onClick={() => router.back()} className="text-sm text-primary-500 hover:underline">← 返回商品列表</button>
 
             <h1 className="text-2xl font-medium">编辑商品</h1>
 
@@ -112,7 +112,7 @@ export default function EditGoodsPage({ params }: { params: Promise<{ id: string
 
                     {/* Name */}
                     <div>
-                        <label className="mb-2 block font-medium">商品名称 <span className="text-red-500">*</span></label>
+                        <label className="mb-2 block font-medium">商品名称 <span className="text-danger-400">*</span></label>
                         <Input type="text" value={form.name} onChange={e => handleChange('name', e.target.value)} placeholder="请输入商品名称" maxLength={200} />
                     </div>
 
@@ -120,7 +120,7 @@ export default function EditGoodsPage({ params }: { params: Promise<{ id: string
                     <div>
                         <label className="mb-2 block font-medium">商品链接/淘口令</label>
                         <Input type="text" value={form.link || ''} onChange={e => handleChange('link', e.target.value)} placeholder="请输入商品链接或淘口令" />
-                        <div className="mt-1.5 text-xs text-[#f9fafb]0">可粘贴商品链接或淘口令，系统将自动解析商品信息</div>
+                        <div className="mt-1.5 text-xs text-[#6b7280]">可粘贴商品链接或淘口令，系统将自动解析商品信息</div>
                     </div>
 
                     {/* Platform Product ID */}
@@ -133,7 +133,7 @@ export default function EditGoodsPage({ params }: { params: Promise<{ id: string
                     <div>
                         <label className="mb-2 block font-medium">核对口令</label>
                         <Input type="text" value={form.verifyCode || ''} onChange={e => handleChange('verifyCode', e.target.value)} placeholder="请输入核对口令" maxLength={10} />
-                        <div className="mt-1.5 text-xs text-[#f9fafb]0">请输入不超过10个字的核对口令，必须是商品详情页有的文字。买手做任务时需在详情页找到此口令进行核对。</div>
+                        <div className="mt-1.5 text-xs text-[#6b7280]">请输入不超过10个字的核对口令，必须是商品详情页有的文字。买手做任务时需在详情页找到此口令进行核对。</div>
                     </div>
 
                     {/* Product Image Upload */}
@@ -146,13 +146,13 @@ export default function EditGoodsPage({ params }: { params: Promise<{ id: string
                                     <button
                                         type="button"
                                         onClick={() => handleChange('pcImg', '')}
-                                        className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-sm text-white hover:bg-red-600"
+                                        className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-danger-400 text-sm text-white hover:bg-danger-500"
                                     >
                                         ×
                                     </button>
                                 </div>
                             ) : (
-                                <label className="flex h-32 w-32 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-[#d1d5db] bg-[#f9fafb] text-[#9ca3af] transition-colors hover:border-blue-400 hover:text-blue-500">
+                                <label className="flex h-32 w-32 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-[#d1d5db] bg-[#f9fafb] text-[#9ca3af] transition-colors hover:border-blue-400 hover:text-primary-500">
                                     {uploading ? (
                                         <Spinner size="sm" />
                                     ) : (
@@ -165,13 +165,13 @@ export default function EditGoodsPage({ params }: { params: Promise<{ id: string
                                 </label>
                             )}
                         </div>
-                        <div className="mt-1.5 text-xs text-[#f9fafb]0">建议上传800x800以上的正方形商品图</div>
+                        <div className="mt-1.5 text-xs text-[#6b7280]">建议上传800x800以上的正方形商品图</div>
                     </div>
 
                     {/* Price Row */}
                     <div className="grid grid-cols-3 gap-4">
                         <div>
-                            <label className="mb-2 block font-medium">商品单价 <span className="text-red-500">*</span></label>
+                            <label className="mb-2 block font-medium">商品单价 <span className="text-danger-400">*</span></label>
                             <Input type="number" value={String(form.price)} onChange={e => handleChange('price', e.target.value)} placeholder="0.00" min={0} step={0.01} />
                         </div>
                         <div>

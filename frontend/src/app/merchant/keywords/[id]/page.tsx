@@ -11,7 +11,7 @@ import { Select } from '../../../../components/ui/select';
 import { Modal } from '../../../../components/ui/modal';
 import { Badge } from '../../../../components/ui/badge';
 
-const platformColorMap: Record<number, string> = { [KeywordPlatform.TAOBAO]: 'bg-orange-500', [KeywordPlatform.TMALL]: 'bg-red-600' };
+const platformColorMap: Record<number, string> = { [KeywordPlatform.TAOBAO]: 'bg-orange-500', [KeywordPlatform.TMALL]: 'bg-danger-500' };
 
 export default function KeywordDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = use(params);
@@ -56,13 +56,13 @@ export default function KeywordDetailPage({ params }: { params: Promise<{ id: st
         else alert(res.message);
     };
 
-    if (loading) return <div className="py-6 text-center text-[#f9fafb]0">加载中...</div>;
+    if (loading) return <div className="py-6 text-center text-[#6b7280]">加载中...</div>;
 
     if (!scheme) {
         return (
             <div className="py-6 text-center">
-                <div className="mb-4 text-red-500">方案不存在</div>
-                <button onClick={() => router.back()} className="text-blue-500">返回</button>
+                <div className="mb-4 text-danger-400">方案不存在</div>
+                <button onClick={() => router.back()} className="text-primary-500">返回</button>
             </div>
         );
     }
@@ -70,13 +70,13 @@ export default function KeywordDetailPage({ params }: { params: Promise<{ id: st
     return (
         <div className="space-y-6 p-6">
             {/* Back Link */}
-            <button onClick={() => router.push('/merchant/keywords')} className="text-sm text-blue-500 hover:underline">← 返回方案列表</button>
+            <button onClick={() => router.push('/merchant/keywords')} className="text-sm text-primary-500 hover:underline">← 返回方案列表</button>
 
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="mb-2 text-2xl font-medium">{scheme.name}</h1>
-                    <span className={cn('rounded px-2 py-1 text-xs text-white', platformColorMap[scheme.platform as KeywordPlatform] || 'bg-blue-500')}>
+                    <span className={cn('rounded px-2 py-1 text-xs text-white', platformColorMap[scheme.platform as KeywordPlatform] || 'bg-primary-500')}>
                         {platformNames[scheme.platform as KeywordPlatform] || '淘宝'}
                     </span>
                 </div>
@@ -88,7 +88,7 @@ export default function KeywordDetailPage({ params }: { params: Promise<{ id: st
                 {details.length === 0 ? (
                     <div className="py-10 text-center text-[#9ca3af]">
                         <div className="mb-4">暂无关键词</div>
-                        <button onClick={handleAdd} className="text-blue-500 hover:underline">立即添加</button>
+                        <button onClick={handleAdd} className="text-primary-500 hover:underline">立即添加</button>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
@@ -120,8 +120,8 @@ export default function KeywordDetailPage({ params }: { params: Promise<{ id: st
                                         </td>
                                         <td className="px-4 py-4 text-sm">{detail.province || '-'}</td>
                                         <td className="px-4 py-4">
-                                            <button onClick={() => handleEdit(detail)} className="mr-3 text-sm text-blue-500 hover:underline">编辑</button>
-                                            <button onClick={() => handleDelete(detail.id)} className="text-sm text-red-500 hover:underline">删除</button>
+                                            <button onClick={() => handleEdit(detail)} className="mr-3 text-sm text-primary-500 hover:underline">编辑</button>
+                                            <button onClick={() => handleDelete(detail.id)} className="text-sm text-danger-400 hover:underline">删除</button>
                                         </td>
                                     </tr>
                                 ))}
@@ -135,7 +135,7 @@ export default function KeywordDetailPage({ params }: { params: Promise<{ id: st
             <Modal title={editingDetail ? '编辑关键词' : '添加关键词'} open={showAddModal} onClose={() => { setShowAddModal(false); resetForm(); setEditingDetail(null); }}>
                 <div className="space-y-4">
                     <div>
-                        <label className="mb-2 block text-sm">关键词 <span className="text-red-500">*</span></label>
+                        <label className="mb-2 block text-sm">关键词 <span className="text-danger-400">*</span></label>
                         <Input type="text" value={form.keyword} onChange={e => setForm({ ...form, keyword: e.target.value })} placeholder="请输入搜索关键词" maxLength={100} />
                     </div>
                     <div>

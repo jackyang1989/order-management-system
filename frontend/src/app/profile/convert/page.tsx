@@ -122,13 +122,13 @@ export default function ConvertPage() {
                 {/* 余额卡片 */}
                 <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-                        <div className="text-xl font-bold text-green-600">
+                        <div className="text-xl font-bold text-success-400">
                             ¥{balanceData?.balance?.toFixed(2) || '0.00'}
                         </div>
                         <div className="mt-1 text-xs text-slate-400">本金余额</div>
                     </div>
                     <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-                        <div className="text-xl font-bold text-amber-500">
+                        <div className="text-xl font-bold text-warning-400">
                             {balanceData?.silver?.toFixed(2) || '0.00'}
                         </div>
                         <div className="mt-1 text-xs text-slate-400">银锭余额</div>
@@ -138,7 +138,7 @@ export default function ConvertPage() {
                 {/* 兑换说明 */}
                 <Card title="兑换说明">
                     <div className="text-sm text-slate-600 space-y-1">
-                        <p>• 本金与银锭按 <span className="font-bold text-blue-600">1:{exchangeRate}</span> 比例兑换</p>
+                        <p>• 本金与银锭按 <span className="font-bold text-primary-600">1:{exchangeRate}</span> 比例兑换</p>
                         <p>• 兑换后银锭可用于接单押金、购买VIP等</p>
                         <p>• 本操作不可逆，请确认后再兑换</p>
                     </div>
@@ -166,7 +166,7 @@ export default function ConvertPage() {
                             {[50, 100, 200, 500].map((val) => (
                                 <button
                                     key={val}
-                                    className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 hover:border-blue-500 hover:text-blue-600 disabled:opacity-50"
+                                    className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 hover:border-blue-500 hover:text-primary-600 disabled:opacity-50"
                                     onClick={() => handleQuickAmount(val)}
                                     disabled={!balanceData || balanceData.balance < val}
                                 >
@@ -174,7 +174,7 @@ export default function ConvertPage() {
                                 </button>
                             ))}
                             <button
-                                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 hover:border-blue-500 hover:text-blue-600 disabled:opacity-50"
+                                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 hover:border-blue-500 hover:text-primary-600 disabled:opacity-50"
                                 onClick={() => handleQuickAmount('all')}
                                 disabled={!balanceData || balanceData.balance <= 0}
                             >

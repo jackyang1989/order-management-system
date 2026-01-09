@@ -127,8 +127,8 @@ export default function CachePage() {
     const formatDate = (dateStr: string) => new Date(dateStr).toLocaleString('zh-CN');
 
     const getMemoryBarColor = () => {
-        if (systemInfo.memoryPercent > 80) return 'bg-red-500';
-        if (systemInfo.memoryPercent > 60) return 'bg-amber-500';
+        if (systemInfo.memoryPercent > 80) return 'bg-danger-400';
+        if (systemInfo.memoryPercent > 60) return 'bg-warning-400';
         return 'bg-green-500';
     };
 
@@ -138,7 +138,7 @@ export default function CachePage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-xl font-semibold">缓存管理</h2>
-                    <p className="mt-2 text-sm text-slate-500">管理系统缓存，优化系统性能</p>
+                    <p className="mt-2 text-sm text-[#6b7280]">管理系统缓存，优化系统性能</p>
                 </div>
                 <div className="flex gap-3">
                     <Button variant="secondary" onClick={loadCaches}>刷新</Button>
@@ -156,50 +156,50 @@ export default function CachePage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-4 gap-5">
                 <Card className="bg-white p-5">
-                    <div className="mb-2 text-sm text-slate-500">内存使用</div>
-                    <div className="text-2xl font-bold text-blue-600">{systemInfo.memoryUsed}</div>
-                    <div className="mt-3 h-2 w-full overflow-hidden rounded bg-slate-100">
+                    <div className="mb-2 text-sm text-[#6b7280]">内存使用</div>
+                    <div className="text-2xl font-bold text-primary-600">{systemInfo.memoryUsed}</div>
+                    <div className="mt-3 h-2 w-full overflow-hidden rounded bg-[#f3f4f6]">
                         <div className={cn('h-full origin-left rounded transition-transform [transform:scaleX(var(--progress))]', getMemoryBarColor(), `[--progress:${Math.max(0, Math.min(1, systemInfo.memoryPercent / 100))}]`)} />
                     </div>
-                    <div className="mt-1 text-xs text-slate-400">共 {systemInfo.memoryTotal} ({systemInfo.memoryPercent}%)</div>
+                    <div className="mt-1 text-xs text-[#9ca3af]">共 {systemInfo.memoryTotal} ({systemInfo.memoryPercent}%)</div>
                 </Card>
                 <Card className="bg-white p-5 text-center">
-                    <div className="mb-2 text-sm text-slate-500">Redis 状态</div>
-                    <div className={cn('text-2xl font-bold', systemInfo.redisConnected ? 'text-green-600' : 'text-red-500')}>
+                    <div className="mb-2 text-sm text-[#6b7280]">Redis 状态</div>
+                    <div className={cn('text-2xl font-bold', systemInfo.redisConnected ? 'text-success-400' : 'text-danger-400')}>
                         {systemInfo.redisConnected ? '已连接' : '未连接'}
                     </div>
-                    <div className="mt-2 text-xs text-slate-400">{systemInfo.redisConnected ? '服务正常' : '请检查Redis服务'}</div>
+                    <div className="mt-2 text-xs text-[#9ca3af]">{systemInfo.redisConnected ? '服务正常' : '请检查Redis服务'}</div>
                 </Card>
                 <Card className="bg-white p-5 text-center">
-                    <div className="mb-2 text-sm text-slate-500">Redis 键数量</div>
+                    <div className="mb-2 text-sm text-[#6b7280]">Redis 键数量</div>
                     <div className="text-2xl font-bold text-purple-600">{systemInfo.redisKeys.toLocaleString()}</div>
-                    <div className="mt-2 text-xs text-slate-400">个缓存键</div>
+                    <div className="mt-2 text-xs text-[#9ca3af]">个缓存键</div>
                 </Card>
                 <Card className="bg-white p-5 text-center">
-                    <div className="mb-2 text-sm text-slate-500">Redis 内存</div>
-                    <div className="text-2xl font-bold text-amber-600">{systemInfo.redisMemory}</div>
-                    <div className="mt-2 text-xs text-slate-400">缓存占用</div>
+                    <div className="mb-2 text-sm text-[#6b7280]">Redis 内存</div>
+                    <div className="text-2xl font-bold text-warning-500">{systemInfo.redisMemory}</div>
+                    <div className="mt-2 text-xs text-[#9ca3af]">缓存占用</div>
                 </Card>
             </div>
 
             {/* Cache List */}
             <Card className="overflow-hidden bg-white p-0">
-                <div className="border-b border-slate-100 px-6 py-4 text-sm font-medium">缓存分类</div>
+                <div className="border-b border-[#f3f4f6] px-6 py-4 text-sm font-medium">缓存分类</div>
                 {loading ? (
-                    <div className="py-16 text-center text-slate-400">加载中...</div>
+                    <div className="py-16 text-center text-[#9ca3af]">加载中...</div>
                 ) : caches.length === 0 ? (
-                    <div className="py-16 text-center text-slate-400">
+                    <div className="py-16 text-center text-[#9ca3af]">
                         <div className="mb-4 text-5xl">📦</div>
                         <div>暂无缓存数据</div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 gap-px bg-slate-100">
+                    <div className="grid grid-cols-2 gap-px bg-[#f3f4f6]">
                         {caches.map(cache => (
                             <div key={cache.key} className="flex items-center justify-between bg-white px-6 py-5">
                                 <div>
                                     <div className="mb-1 text-sm font-medium">{cache.name}</div>
-                                    <div className="mb-2 text-xs text-slate-400">{cache.description}</div>
-                                    <div className="flex gap-4 text-xs text-slate-500">
+                                    <div className="mb-2 text-xs text-[#9ca3af]">{cache.description}</div>
+                                    <div className="flex gap-4 text-xs text-[#6b7280]">
                                         <span>大小: {cache.size}</span>
                                         <span>数量: {cache.count}</span>
                                         <span>更新: {formatDate(cache.lastUpdate)}</span>
@@ -221,9 +221,9 @@ export default function CachePage() {
             </Card>
 
             {/* Info Box */}
-            <div className="rounded-lg border border-blue-200 bg-blue-50 px-6 py-4">
-                <h4 className="mb-2 text-sm font-medium text-blue-600">💡 缓存说明</h4>
-                <ul className="list-disc space-y-1 pl-5 text-xs leading-relaxed text-slate-600">
+            <div className="rounded-md border border-blue-200 bg-blue-50 px-6 py-4">
+                <h4 className="mb-2 text-sm font-medium text-primary-600">💡 缓存说明</h4>
+                <ul className="list-disc space-y-1 pl-5 text-xs leading-relaxed text-[#4b5563]">
                     <li><strong>系统配置缓存</strong>：存储系统参数，清除后会重新从数据库加载</li>
                     <li><strong>用户/商家信息缓存</strong>：存储用户基本信息，清除后用户需重新加载数据</li>
                     <li><strong>会话缓存</strong>：存储登录状态，清除后所有用户需要重新登录</li>

@@ -136,7 +136,7 @@ export default function TasksPage() {
                             <option value="">请选择买号</option>
                             {buynos.map(b => <option key={b.id} value={b.id}>{b.wwid}</option>)}
                         </select>
-                        {op2count && <div className="mt-1.5 text-xs text-amber-500">今日可接 {op2count} 单</div>}
+                        {op2count && <div className="mt-1.5 text-xs text-warning-400">今日可接 {op2count} 单</div>}
                     </div>
                     <div className="mb-3">
                         <div className="mb-1.5 text-xs text-slate-500">返款方式</div>
@@ -163,7 +163,7 @@ export default function TasksPage() {
                             {PRICE_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                         </select>
                     </div>
-                    <div className="rounded-lg bg-amber-50 p-3 text-xs text-amber-600">当日只可以接同一个商家的1单任务</div>
+                    <div className="rounded-lg bg-amber-50 p-3 text-xs text-warning-500">当日只可以接同一个商家的1单任务</div>
                 </div>
 
                 {/* Task List */}
@@ -183,8 +183,8 @@ export default function TasksPage() {
                                     <span>商家：<span className="text-slate-700">{task.seller_name?.substring(0, 4)}...</span></span>
                                 </div>
                                 <div className="mb-3 flex justify-between text-sm text-slate-500">
-                                    <span>垫付资金：<span className="font-medium text-blue-500">¥{task.total_price}</span></span>
-                                    <span>佣金：<span className="font-medium text-green-500">{task.user_reward}+{(task.user_divided / task.num).toFixed(2)}</span></span>
+                                    <span>垫付资金：<span className="font-medium text-primary-500">¥{task.total_price}</span></span>
+                                    <span>佣金：<span className="font-medium text-success-400">{task.user_reward}+{(task.user_divided / task.num).toFixed(2)}</span></span>
                                 </div>
                                 <button onClick={() => addTask(index)} className="w-full rounded-lg bg-green-500 py-2.5 text-sm font-medium text-white">添加任务单</button>
                             </div>

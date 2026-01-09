@@ -150,10 +150,10 @@ export default function LogsPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-xl font-semibold">操作日志</h2>
-                    <p className="mt-2 text-sm text-slate-500">查看管理员操作记录</p>
+                    <p className="mt-2 text-sm text-[#6b7280]">查看管理员操作记录</p>
                 </div>
                 <div className="flex gap-3">
-                    <Button className="bg-green-500 hover:bg-green-600" onClick={handleExport}>导出日志</Button>
+                    <Button className="bg-green-500 hover:bg-success-400" onClick={handleExport}>导出日志</Button>
                     <Button variant="destructive" onClick={handleClearLogs}>清理旧日志</Button>
                 </div>
             </div>
@@ -161,7 +161,7 @@ export default function LogsPage() {
             {/* Filters */}
             <Card className="flex flex-wrap items-end gap-4 bg-white p-5">
                 <div>
-                    <label className="mb-1.5 block text-xs text-slate-500">模块</label>
+                    <label className="mb-1.5 block text-xs text-[#6b7280]">模块</label>
                     <Select
                         value={filters.module}
                         onChange={v => setFilters({ ...filters, module: v })}
@@ -170,7 +170,7 @@ export default function LogsPage() {
                     />
                 </div>
                 <div>
-                    <label className="mb-1.5 block text-xs text-slate-500">操作人</label>
+                    <label className="mb-1.5 block text-xs text-[#6b7280]">操作人</label>
                     <Input
                         placeholder="用户名"
                         value={filters.username}
@@ -179,21 +179,21 @@ export default function LogsPage() {
                     />
                 </div>
                 <div>
-                    <label className="mb-1.5 block text-xs text-slate-500">开始日期</label>
+                    <label className="mb-1.5 block text-xs text-[#6b7280]">开始日期</label>
                     <input
                         type="date"
                         value={filters.startDate}
                         onChange={e => setFilters({ ...filters, startDate: e.target.value })}
-                        className="rounded-md border border-slate-200 px-4 py-2 text-sm"
+                        className="rounded-md border border-[#e5e7eb] px-4 py-2 text-sm"
                     />
                 </div>
                 <div>
-                    <label className="mb-1.5 block text-xs text-slate-500">结束日期</label>
+                    <label className="mb-1.5 block text-xs text-[#6b7280]">结束日期</label>
                     <input
                         type="date"
                         value={filters.endDate}
                         onChange={e => setFilters({ ...filters, endDate: e.target.value })}
-                        className="rounded-md border border-slate-200 px-4 py-2 text-sm"
+                        className="rounded-md border border-[#e5e7eb] px-4 py-2 text-sm"
                     />
                 </div>
                 <Button variant="secondary" onClick={() => setFilters({ module: '', username: '', startDate: '', endDate: '' })}>重置</Button>
@@ -201,14 +201,14 @@ export default function LogsPage() {
 
             {/* Logs Table */}
             <Card className="overflow-hidden bg-white p-0">
-                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                <div className="flex items-center justify-between border-b border-[#f3f4f6] px-6 py-4">
                     <span className="text-sm font-medium">日志记录</span>
-                    <span className="text-xs text-slate-400">共 {pagination.total} 条记录</span>
+                    <span className="text-xs text-[#9ca3af]">共 {pagination.total} 条记录</span>
                 </div>
                 {loading ? (
-                    <div className="py-16 text-center text-slate-400">加载中...</div>
+                    <div className="py-16 text-center text-[#9ca3af]">加载中...</div>
                 ) : logs.length === 0 ? (
-                    <div className="py-16 text-center text-slate-400">
+                    <div className="py-16 text-center text-[#9ca3af]">
                         <div className="mb-4 text-5xl">📋</div>
                         <div>暂无操作日志</div>
                     </div>
@@ -217,7 +217,7 @@ export default function LogsPage() {
                         <div className="overflow-x-auto">
                             <table className="min-w-[1000px] w-full border-collapse">
                                 <thead>
-                                    <tr className="border-b border-slate-100 bg-slate-50">
+                                    <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
                                         <th className="px-4 py-4 text-left text-sm font-medium">操作时间</th>
                                         <th className="px-4 py-4 text-left text-sm font-medium">操作人</th>
                                         <th className="px-4 py-4 text-left text-sm font-medium">模块</th>
@@ -228,8 +228,8 @@ export default function LogsPage() {
                                 </thead>
                                 <tbody>
                                     {logs.map(log => (
-                                        <tr key={log.id} className="border-b border-slate-100">
-                                            <td className="px-4 py-4 text-xs text-slate-500">{formatDate(log.createdAt)}</td>
+                                        <tr key={log.id} className="border-b border-[#f3f4f6]">
+                                            <td className="px-4 py-4 text-xs text-[#6b7280]">{formatDate(log.createdAt)}</td>
                                             <td className="px-4 py-4 font-medium">{log.adminUsername}</td>
                                             <td className="px-4 py-4">
                                                 <Badge variant="soft" color={moduleColors[log.module] || 'slate'}>
@@ -238,9 +238,9 @@ export default function LogsPage() {
                                             </td>
                                             <td className="px-4 py-4">{log.action}</td>
                                             <td className="max-w-[300px] px-4 py-4">
-                                                <div className="truncate text-xs text-slate-500" title={log.content}>{log.content}</div>
+                                                <div className="truncate text-xs text-[#6b7280]" title={log.content}>{log.content}</div>
                                             </td>
-                                            <td className="px-4 py-4 text-xs text-slate-400">{log.ip}</td>
+                                            <td className="px-4 py-4 text-xs text-[#9ca3af]">{log.ip}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -248,7 +248,7 @@ export default function LogsPage() {
                         </div>
 
                         {totalPages > 1 && (
-                            <div className="flex items-center justify-end gap-2 border-t border-slate-100 p-4">
+                            <div className="flex items-center justify-end gap-2 border-t border-[#f3f4f6] p-4">
                                 <Button
                                     size="sm"
                                     variant="secondary"
@@ -258,7 +258,7 @@ export default function LogsPage() {
                                 >
                                     上一页
                                 </Button>
-                                <span className="px-3 text-sm text-slate-500">第 {pagination.page} / {totalPages} 页</span>
+                                <span className="px-3 text-sm text-[#6b7280]">第 {pagination.page} / {totalPages} 页</span>
                                 <Button
                                     size="sm"
                                     variant="secondary"

@@ -120,7 +120,7 @@ export default function KeywordsPage() {
             <Card className="flex w-[300px] flex-col bg-white p-4">
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-bold">关键词方案</h2>
-                    <button onClick={() => { setSchemeForm({ id: '', name: '', description: '' }); setIsSchemeModalOpen(true); }} className="cursor-pointer border-none bg-transparent text-xl text-blue-500">+</button>
+                    <button onClick={() => { setSchemeForm({ id: '', name: '', description: '' }); setIsSchemeModalOpen(true); }} className="cursor-pointer border-none bg-transparent text-xl text-primary-500">+</button>
                 </div>
                 <div className="flex-1 overflow-y-auto">
                     {schemes.map(scheme => (
@@ -137,9 +137,9 @@ export default function KeywordsPage() {
                                 <div className="truncate text-xs text-[#9ca3af]">{scheme.description || '无描述'}</div>
                             </div>
                             <div className="flex gap-2">
-                                <button onClick={(e) => { e.stopPropagation(); router.push(`/merchant/keywords/${scheme.id}`); }} className="cursor-pointer border-none bg-transparent text-xs text-green-600">详情</button>
-                                <button onClick={(e) => { e.stopPropagation(); setSchemeForm(scheme); setIsSchemeModalOpen(true); }} className="cursor-pointer border-none bg-transparent text-xs text-blue-500">编辑</button>
-                                <button onClick={(e) => { e.stopPropagation(); deleteScheme(scheme.id); }} className="cursor-pointer border-none bg-transparent text-xs text-red-500">删除</button>
+                                <button onClick={(e) => { e.stopPropagation(); router.push(`/merchant/keywords/${scheme.id}`); }} className="cursor-pointer border-none bg-transparent text-xs text-success-400">详情</button>
+                                <button onClick={(e) => { e.stopPropagation(); setSchemeForm(scheme); setIsSchemeModalOpen(true); }} className="cursor-pointer border-none bg-transparent text-xs text-primary-500">编辑</button>
+                                <button onClick={(e) => { e.stopPropagation(); deleteScheme(scheme.id); }} className="cursor-pointer border-none bg-transparent text-xs text-danger-400">删除</button>
                             </div>
                         </div>
                     ))}
@@ -153,7 +153,7 @@ export default function KeywordsPage() {
                         <div className="mb-6 flex items-center justify-between">
                             <div>
                                 <h2 className="text-lg font-bold">{selectedScheme.name} - 关键词列表</h2>
-                                <div className="mt-1 text-sm text-[#f9fafb]0">管理该方案下的所有搜索关键词配置</div>
+                                <div className="mt-1 text-sm text-[#6b7280]">管理该方案下的所有搜索关键词配置</div>
                             </div>
                             <Button onClick={() => { setKeywordForm({ id: '', keyword: '', targetPrice: '', searchEngine: 'taobao', orderType: 'comprehensive', amount: '1' }); setIsKeywordModalOpen(true); }}>+ 添加关键词</Button>
                         </div>
@@ -182,9 +182,9 @@ export default function KeywordsPage() {
                                                 <td className="px-3 py-3">
                                                     <button
                                                         onClick={() => { setKeywordForm({ id: kw.id, keyword: kw.keyword, targetPrice: kw.targetPrice?.toString() || '', searchEngine: kw.searchEngine, orderType: kw.orderType, amount: kw.amount.toString() }); setIsKeywordModalOpen(true); }}
-                                                        className="mr-2 cursor-pointer border-none bg-transparent text-blue-500"
+                                                        className="mr-2 cursor-pointer border-none bg-transparent text-primary-500"
                                                     >编辑</button>
-                                                    <button onClick={() => deleteKeyword(kw.id)} className="cursor-pointer border-none bg-transparent text-red-500">删除</button>
+                                                    <button onClick={() => deleteKeyword(kw.id)} className="cursor-pointer border-none bg-transparent text-danger-400">删除</button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -220,11 +220,11 @@ export default function KeywordsPage() {
             <Modal title={keywordForm.id ? '编辑关键词' : '添加关键词'} open={isKeywordModalOpen} onClose={() => setIsKeywordModalOpen(false)} className="w-[500px]">
                 <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2">
-                        <label className="mb-1.5 block text-xs text-[#f9fafb]0">关键词</label>
+                        <label className="mb-1.5 block text-xs text-[#6b7280]">关键词</label>
                         <Input value={keywordForm.keyword} onChange={e => setKeywordForm({ ...keywordForm, keyword: e.target.value })} />
                     </div>
                     <div>
-                        <label className="mb-1.5 block text-xs text-[#f9fafb]0">搜索引擎</label>
+                        <label className="mb-1.5 block text-xs text-[#6b7280]">搜索引擎</label>
                         <Select
                             value={keywordForm.searchEngine}
                             onChange={v => setKeywordForm({ ...keywordForm, searchEngine: v })}
@@ -232,7 +232,7 @@ export default function KeywordsPage() {
                         />
                     </div>
                     <div>
-                        <label className="mb-1.5 block text-xs text-[#f9fafb]0">排序方式</label>
+                        <label className="mb-1.5 block text-xs text-[#6b7280]">排序方式</label>
                         <Select
                             value={keywordForm.orderType}
                             onChange={v => setKeywordForm({ ...keywordForm, orderType: v })}
@@ -240,11 +240,11 @@ export default function KeywordsPage() {
                         />
                     </div>
                     <div>
-                        <label className="mb-1.5 block text-xs text-[#f9fafb]0">卡不到价格 (选填)</label>
+                        <label className="mb-1.5 block text-xs text-[#6b7280]">卡不到价格 (选填)</label>
                         <Input type="number" value={keywordForm.targetPrice} onChange={e => setKeywordForm({ ...keywordForm, targetPrice: e.target.value })} placeholder="0.00" />
                     </div>
                     <div>
-                        <label className="mb-1.5 block text-xs text-[#f9fafb]0">数量</label>
+                        <label className="mb-1.5 block text-xs text-[#6b7280]">数量</label>
                         <Input type="number" value={keywordForm.amount} onChange={e => setKeywordForm({ ...keywordForm, amount: e.target.value })} />
                     </div>
                 </div>

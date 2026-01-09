@@ -161,8 +161,8 @@ export default function AdminMerchantsPage() {
                         🏪
                     </div>
                     <div>
-                        <div className="font-medium text-slate-800">{row.username}</div>
-                        <div className="text-xs text-slate-400">{row.phone}</div>
+                        <div className="font-medium text-[#3b4559]">{row.username}</div>
+                        <div className="text-xs text-[#9ca3af]">{row.phone}</div>
                     </div>
                 </div>
             ),
@@ -172,7 +172,7 @@ export default function AdminMerchantsPage() {
             title: '余额',
             className: 'w-[120px] text-right',
             render: (row) => (
-                <span className="font-medium text-green-600">¥{Number(row.balance || 0).toFixed(2)}</span>
+                <span className="font-medium text-success-400">¥{Number(row.balance || 0).toFixed(2)}</span>
             ),
         },
         {
@@ -180,7 +180,7 @@ export default function AdminMerchantsPage() {
             title: '银锭',
             className: 'w-[100px] text-right',
             render: (row) => (
-                <span className="font-medium text-blue-600">{Number(row.silver || 0).toFixed(2)}</span>
+                <span className="font-medium text-primary-600">{Number(row.silver || 0).toFixed(2)}</span>
             ),
         },
         {
@@ -218,7 +218,7 @@ export default function AdminMerchantsPage() {
                         💰 调余额
                     </Button>
                     {!row.vip && (
-                        <Button size="sm" className="bg-purple-600 hover:bg-purple-700" onClick={() => openSetVip(row)}>
+                        <Button size="sm" className="bg-warning-400 hover:bg-warning-500" onClick={() => openSetVip(row)}>
                             👑 设VIP
                         </Button>
                     )}
@@ -296,7 +296,7 @@ export default function AdminMerchantsPage() {
             >
                 <div className="space-y-4">
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700">账户类型</label>
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">账户类型</label>
                         <Select
                             value={balanceType}
                             onChange={(v) => setBalanceType(v as 'balance' | 'silver')}
@@ -307,7 +307,7 @@ export default function AdminMerchantsPage() {
                         />
                     </div>
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700">操作类型</label>
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">操作类型</label>
                         <Select
                             value={balanceAction}
                             onChange={(v) => setBalanceAction(v as 'add' | 'deduct')}
@@ -374,9 +374,9 @@ export default function AdminMerchantsPage() {
             >
                 <div className="space-y-4">
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700">禁用原因</label>
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">禁用原因</label>
                         <textarea
-                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                             rows={3}
                             placeholder="请输入禁用原因"
                             value={banReason}

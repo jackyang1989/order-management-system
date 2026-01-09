@@ -218,7 +218,7 @@ export default function ApiConfigPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-xl font-semibold">API配置</h2>
-                    <p className="mt-1 text-sm text-slate-500">配置第三方服务API密钥，请妥善保管</p>
+                    <p className="mt-1 text-sm text-[#6b7280]">配置第三方服务API密钥，请妥善保管</p>
                 </div>
                 <Button onClick={handleSave} loading={loading}>
                     {loading ? '保存中...' : '保存所有配置'}
@@ -228,7 +228,7 @@ export default function ApiConfigPage() {
             {/* Config Groups */}
             {Object.entries(groupedConfigs).map(([groupName, groupConfigs]) => (
                 <Card key={groupName} className="overflow-hidden bg-white">
-                    <div className="border-b border-slate-100 bg-slate-50 px-6 py-4 text-sm font-medium">
+                    <div className="border-b border-[#f3f4f6] bg-[#f9fafb] px-6 py-4 text-sm font-medium">
                         {groupName}
                     </div>
                     <div className="flex flex-col gap-5 p-6">
@@ -236,7 +236,7 @@ export default function ApiConfigPage() {
                             <div key={config.key} className="flex items-start gap-4">
                                 <div className="w-48 flex-shrink-0">
                                     <label className="mb-1 block text-sm font-medium">{config.label}</label>
-                                    <span className="text-xs text-slate-400">{config.description}</span>
+                                    <span className="text-xs text-[#9ca3af]">{config.description}</span>
                                 </div>
                                 <div className="flex min-w-0 flex-1 gap-2">
                                     <div className="relative flex-1">
@@ -251,7 +251,7 @@ export default function ApiConfigPage() {
                                             }}
                                             placeholder={`请输入${config.label}`}
                                             className={cn(
-                                                'w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm',
+                                                'w-full rounded-md border border-[#d1d5db] px-3 py-2.5 text-sm',
                                                 'focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20',
                                                 config.type === 'password' && 'pr-10'
                                             )}
@@ -268,7 +268,7 @@ export default function ApiConfigPage() {
                                     </div>
                                     {config.testable && (
                                         <Button
-                                            className="shrink-0 bg-green-600 hover:bg-green-700"
+                                            className="shrink-0 bg-success-400 hover:bg-success-500"
                                             loading={testLoading === config.key}
                                             onClick={() => handleTest(config.key)}
                                         >
@@ -286,14 +286,14 @@ export default function ApiConfigPage() {
             {testResult && (
                 <div
                     className={cn(
-                        'fixed right-6 top-24 z-50 flex items-center gap-3 rounded-lg border px-6 py-4',
+                        'fixed right-6 top-24 z-50 flex items-center gap-3 rounded-md border px-6 py-4',
                         testResult.success
                             ? 'border-green-200 bg-green-50'
                             : 'border-red-200 bg-red-50'
                     )}
                 >
                     <span className="text-xl">{testResult.success ? '✅' : '❌'}</span>
-                    <span className={testResult.success ? 'text-green-600' : 'text-red-500'}>
+                    <span className={testResult.success ? 'text-success-400' : 'text-danger-400'}>
                         {testResult.message}
                     </span>
                     <button
@@ -306,9 +306,9 @@ export default function ApiConfigPage() {
             )}
 
             {/* Security Notice */}
-            <div className="rounded-lg border border-amber-200 bg-amber-50 px-6 py-4">
+            <div className="rounded-md border border-amber-200 bg-amber-50 px-6 py-4">
                 <h4 className="mb-2 text-sm font-medium text-amber-700">⚠️ 安全提示</h4>
-                <ul className="list-disc space-y-1 pl-5 text-xs leading-relaxed text-slate-600">
+                <ul className="list-disc space-y-1 pl-5 text-xs leading-relaxed text-[#4b5563]">
                     <li>API密钥属于敏感信息，请勿泄露给他人</li>
                     <li>建议定期更换API密钥以保障安全</li>
                     <li>修改配置后请点击"保存所有配置"按钮</li>

@@ -73,7 +73,7 @@ export default function AdminFinanceVipPage() {
             <Card className="bg-white">
                 <div className="mb-4 flex items-center justify-between">
                     <span className="text-base font-medium">会员记录</span>
-                    <span className="text-slate-500">共 {total} 条记录</span>
+                    <span className="text-[#6b7280]">共 {total} 条记录</span>
                 </div>
                 <div className="flex items-center gap-3">
                     <Select
@@ -91,15 +91,15 @@ export default function AdminFinanceVipPage() {
 
             <Card className="overflow-hidden bg-white p-0">
                 {loading ? (
-                    <div className="py-12 text-center text-slate-400">加载中...</div>
+                    <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
                 ) : records.length === 0 ? (
-                    <div className="py-12 text-center text-slate-400">暂无会员记录</div>
+                    <div className="py-12 text-center text-[#9ca3af]">暂无会员记录</div>
                 ) : (
                     <>
                         <div className="overflow-x-auto">
                             <table className="min-w-[1000px] w-full border-collapse">
                                 <thead>
-                                    <tr className="border-b border-slate-100 bg-slate-50">
+                                    <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
                                         <th className="px-4 py-3.5 text-left text-sm font-medium">用户</th>
                                         <th className="px-4 py-3.5 text-center text-sm font-medium">用户类型</th>
                                         <th className="px-4 py-3.5 text-center text-sm font-medium">VIP等级</th>
@@ -112,7 +112,7 @@ export default function AdminFinanceVipPage() {
                                 </thead>
                                 <tbody>
                                     {records.map(r => (
-                                        <tr key={r.id} className="border-b border-slate-100">
+                                        <tr key={r.id} className="border-b border-[#f3f4f6]">
                                             <td className="px-4 py-3.5 font-medium">{r.username || r.userId.slice(0, 8)}</td>
                                             <td className="px-4 py-3.5 text-center">
                                                 <Badge variant="soft" color={userTypeLabels[r.userType]?.color || 'slate'}>
@@ -122,11 +122,11 @@ export default function AdminFinanceVipPage() {
                                             <td className="px-4 py-3.5 text-center">
                                                 <Badge variant="soft" color="amber">VIP{r.vipLevel}</Badge>
                                             </td>
-                                            <td className="px-4 py-3.5 text-center text-slate-500">{r.days}天</td>
-                                            <td className="px-4 py-3.5 text-right font-medium text-green-600">¥{Number(r.price || 0).toFixed(2)}</td>
-                                            <td className="px-4 py-3.5 text-slate-500">{sourceTypeLabels[r.sourceType] || r.sourceType}</td>
-                                            <td className="px-4 py-3.5 text-slate-500">{r.expireAt ? new Date(r.expireAt).toLocaleDateString('zh-CN') : '-'}</td>
-                                            <td className="px-4 py-3.5 text-xs text-slate-400">{r.createdAt ? new Date(r.createdAt).toLocaleString('zh-CN') : '-'}</td>
+                                            <td className="px-4 py-3.5 text-center text-[#6b7280]">{r.days}天</td>
+                                            <td className="px-4 py-3.5 text-right font-medium text-success-400">¥{Number(r.price || 0).toFixed(2)}</td>
+                                            <td className="px-4 py-3.5 text-[#6b7280]">{sourceTypeLabels[r.sourceType] || r.sourceType}</td>
+                                            <td className="px-4 py-3.5 text-[#6b7280]">{r.expireAt ? new Date(r.expireAt).toLocaleDateString('zh-CN') : '-'}</td>
+                                            <td className="px-4 py-3.5 text-xs text-[#9ca3af]">{r.createdAt ? new Date(r.createdAt).toLocaleString('zh-CN') : '-'}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -143,7 +143,7 @@ export default function AdminFinanceVipPage() {
                             >
                                 上一页
                             </Button>
-                            <span className="px-3 text-sm text-slate-500">第 {page} 页</span>
+                            <span className="px-3 text-sm text-[#6b7280]">第 {page} 页</span>
                             <Button
                                 size="sm"
                                 variant="secondary"
