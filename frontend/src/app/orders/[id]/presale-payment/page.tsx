@@ -31,7 +31,7 @@ export default function PresalePaymentPage({ params }: { params: Promise<{ id: s
     // ===================== 状态 =====================
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [task_id, setTaskId] = useState('');
+    const [taskId, setTaskId] = useState('');
     const [dialogVisible, setDialogVisible] = useState(false);
     const [testData, setTestData] = useState<TaskData[]>([]);
     const [ystime, setYstime] = useState(''); // 尾款时间

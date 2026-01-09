@@ -23,7 +23,7 @@ const PRICE_OPTIONS = [
 ];
 
 interface BuynoItem { id: string; wwid: string; count: number; }
-interface TaskItem { id: string; rand_num: string; task_number: string; seller_name: string; mobile: string; total_price: number; user_reward: number; user_divided: number; num: number; progress: string; }
+interface TaskItem { id: string; randNum: string; taskNumber: string; sellerName: string; mobile: string; totalPrice: number; userReward: number; userDivided: number; num: number; progress: string; }
 
 export default function TasksPage() {
     const router = useRouter();
@@ -185,12 +185,12 @@ export default function TasksPage() {
                         tasks.map((task, index) => (
                             <div key={task.id} className="rounded-xl border border-slate-200 bg-white p-4">
                                 <div className="mb-2 flex justify-between text-sm text-slate-500">
-                                    <span>ID：<span className="text-slate-700">{task.rand_num}</span></span>
-                                    <span>商家：<span className="text-slate-700">{task.seller_name?.substring(0, 4)}...</span></span>
+                                    <span>ID：<span className="text-slate-700">{task.randNum}</span></span>
+                                    <span>商家：<span className="text-slate-700">{task.sellerName?.substring(0, 4)}...</span></span>
                                 </div>
                                 <div className="mb-3 flex justify-between text-sm text-slate-500">
-                                    <span>垫付资金：<span className="font-medium text-primary-500">¥{task.total_price}</span></span>
-                                    <span>佣金：<span className="font-medium text-success-400">{task.user_reward}+{(task.user_divided / task.num).toFixed(2)}</span></span>
+                                    <span>垫付资金：<span className="font-medium text-primary-500">¥{task.totalPrice}</span></span>
+                                    <span>佣金：<span className="font-medium text-success-400">{task.userReward}+{(task.userDivided / task.num).toFixed(2)}</span></span>
                                 </div>
                                 <button onClick={() => addTask(index)} className="w-full rounded-lg bg-green-500 py-2.5 text-sm font-medium text-white">添加任务单</button>
                             </div>

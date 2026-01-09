@@ -73,46 +73,45 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
             if (res.success) {
                 const data = res.data;
-                const list = data.list || {};
 
                 setTaskData({
-                    maiHao: list.wwid || '',
-                    type: list.task_type || '',
-                    zhongDuan: list.terminal === 1 ? '本佣货返' : list.terminal === 2 ? '本立佣货' : list.terminal || '',
-                    benJin: list.seller_principal || '',
-                    yongJin: list.commission || '',
-                    user_divided: list.user_divided || '',
-                    money: list.seller_principal || '',
-                    dianPu: list.shop_name || '',
-                    taskNum: list.task_number || '',
-                    time: list.create_time || '',
-                    taskType: list.state || '',
-                    delType: list.deltask_type || '',
-                    goods_price: list.goods_price || '',
-                    seller_name: list.seller_name || '',
+                    maiHao: data.buynoAccount || '',
+                    type: data.taskType || '',
+                    zhongDuan: data.terminal === 1 ? '本佣货返' : data.terminal === 2 ? '本立佣货' : data.terminal || '',
+                    benJin: data.sellerPrincipal || '',
+                    yongJin: data.commission || '',
+                    userDivided: data.userDivided || '',
+                    money: data.sellerPrincipal || '',
+                    dianPu: data.shopName || '',
+                    taskNum: data.taskNumber || '',
+                    time: data.createdAt || '',
+                    taskType: data.status || '',
+                    delType: data.cancelReason || '',
+                    goodsPrice: data.goodsPrice || '',
+                    sellerName: '',
                 });
 
                 setTaskData2({
-                    img: list.keywordimg || '',
-                    img2: list.chatimg || '',
-                    zhiFu: list.table_order_id ? '已上传订单' : '待上传',
-                    order: list.table_order_id || '',
-                    style: list.delivery || '',
-                    num: list.delivery_num || '',
-                    type1: list.state || '',
-                    time: list.update_time || '',
-                    step_two_complete: list.step_two_complete || '',
-                    upload_order_time: list.upload_order_time || '',
-                    delivery_time: list.delivery_time || '',
-                    platform_refund_time: list.platform_refund_time || '',
+                    img: data.keywordImg || '',
+                    img2: data.chatImg || '',
+                    zhiFu: data.platformOrderNumber ? '已上传订单' : '待上传',
+                    order: data.platformOrderNumber || '',
+                    style: data.delivery || '',
+                    num: data.deliveryNum || '',
+                    type1: data.status || '',
+                    time: data.updatedAt || '',
+                    stepTwoComplete: '',
+                    uploadOrderTime: '',
+                    deliveryTime: data.deliveryTime || '',
+                    platformRefundTime: '',
                 });
 
-                if (data.product && Array.isArray(data.product)) {
-                    setProducts(data.product.map((item: any) => ({
+                if (data.products && Array.isArray(data.products)) {
+                    setProducts(data.products.map((item: any) => ({
                         name: item.name || '',
-                        text_praise: item.text_praise || '',
-                        img_praise: item.img_praise || [],
-                        video_praise: item.video_praise || '',
+                        textPraise: item.textPraise || '',
+                        imgPraise: item.imgPraise || [],
+                        videoPraise: item.videoPraise || '',
                     })));
                 }
             } else {
@@ -207,12 +206,12 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                         <div className="flex justify-between">
                             <span className="text-slate-500">佣金：</span>
                             <span className="font-semibold text-primary-500">
-                                {taskData.yongJin}<span className="text-amber-400">+{taskData.user_divided}银锭</span>
+                                {taskData.yongJin}<span className="text-amber-400">+{taskData.userDivided}银锭</span>
                             </span>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-slate-500">任务金额：</span>
-                            <span className="text-slate-800">{taskData.goods_price}</span>
+                            <span className="text-slate-800">{taskData.goodsPrice}</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-slate-500">垫付金额：</span>
@@ -275,17 +274,17 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                                 </button>
                                             </div>
                                         </td>
-                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.step_two_complete}</td>
+                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.stepTwoComplete}</td>
                                     </tr>
                                     <tr>
                                         <td className="border border-slate-200 p-2.5">下单/支付</td>
                                         <td className="border border-slate-200 p-2.5 text-center">{taskData2.zhiFu}</td>
-                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.upload_order_time}</td>
+                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.uploadOrderTime}</td>
                                     </tr>
                                     <tr>
                                         <td className="border border-slate-200 p-2.5">订单编号</td>
                                         <td className="border border-slate-200 p-2.5 text-center">{taskData2.order}</td>
-                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.upload_order_time}</td>
+                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.uploadOrderTime}</td>
                                     </tr>
                                     <tr>
                                         <td className="border border-slate-200 p-2.5">商家发货</td>
@@ -295,7 +294,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                                 <p>快递单号：<span>{taskData2.num || '-'}</span></p>
                                             </div>
                                         </td>
-                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.delivery_time}</td>
+                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.deliveryTime}</td>
                                     </tr>
                                     <tr>
                                         <td className="border border-slate-200 p-2.5">平台返款</td>
@@ -306,7 +305,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                                 <span className="text-warning-400">待返款</span>
                                             )}
                                         </td>
-                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.platform_refund_time}</td>
+                                        <td className="border border-slate-200 p-2.5 text-center">{taskData2.platformRefundTime}</td>
                                     </tr>
                                     <tr>
                                         <td className="border border-slate-200 p-2.5">任务状态</td>
@@ -316,7 +315,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                     {products.map((vo, index) => (
                                         <tr key={index}>
                                             <td className="border border-slate-200 p-2.5">好评内容</td>
-                                            <td className="border border-slate-200 p-2.5 text-danger-400">{vo.text_praise || '暂无内容'}</td>
+                                            <td className="border border-slate-200 p-2.5 text-danger-400">{vo.textPraise || '暂无内容'}</td>
                                             <td className="border border-slate-200 p-2.5 text-center">暂无内容</td>
                                         </tr>
                                     ))}
@@ -324,7 +323,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                         <td className="border border-slate-200 p-2.5">图片</td>
                                         <td className="border border-slate-200 p-2.5">
                                             <div className="flex flex-wrap gap-2">
-                                                {products.flatMap(p => p.img_praise || []).map((img, idx) => (
+                                                {products.flatMap(p => p.imgPraise || []).map((img, idx) => (
                                                     <img
                                                         key={idx}
                                                         src={`https://b--d.oss-cn-guangzhou.aliyuncs.com${img}`}
@@ -333,7 +332,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                                         onClick={() => setPreviewImage(`https://b--d.oss-cn-guangzhou.aliyuncs.com${img}`)}
                                                     />
                                                 ))}
-                                                {products.flatMap(p => p.img_praise || []).length === 0 && (
+                                                {products.flatMap(p => p.imgPraise || []).length === 0 && (
                                                     <span className="text-slate-400">暂无图片</span>
                                                 )}
                                             </div>
@@ -343,9 +342,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                     <tr>
                                         <td className="border border-slate-200 p-2.5">视频</td>
                                         <td className="border border-slate-200 p-2.5">
-                                            {products.some(p => p.video_praise) ? (
+                                            {products.some(p => p.videoPraise) ? (
                                                 <video
-                                                    src={`https://b--d.oss-cn-guangzhou.aliyuncs.com${products.find(p => p.video_praise)?.video_praise}`}
+                                                    src={`https://b--d.oss-cn-guangzhou.aliyuncs.com${products.find(p => p.videoPraise)?.videoPraise}`}
                                                     controls
                                                     className="h-20 w-[120px] rounded"
                                                 />
@@ -354,9 +353,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                             )}
                                         </td>
                                         <td className="border border-slate-200 p-2.5 text-center">
-                                            {products.some(p => p.video_praise) && (
+                                            {products.some(p => p.videoPraise) && (
                                                 <a
-                                                    href={`https://b--d.oss-cn-guangzhou.aliyuncs.com${products.find(p => p.video_praise)?.video_praise}`}
+                                                    href={`https://b--d.oss-cn-guangzhou.aliyuncs.com${products.find(p => p.videoPraise)?.videoPraise}`}
                                                     download="视频"
                                                     className="text-primary-500"
                                                 >

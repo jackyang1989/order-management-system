@@ -28,7 +28,7 @@ const REVIEW_STATUS_OPTIONS = [
     { value: '3', label: '已完成追评任务' }, { value: '4', label: '已拒接追评任务' },
 ];
 
-interface OrderItem { id: string; task_number: string; shop_name: string; shop_img: string; type: string; task_type: string; main_product_name: string; main_product_pc_img: string; state: string; index_state: string; wwid: string; commission: number; user_divided: number; user_principal: number; create_time: string; progress: string; review_task_id?: string; checked?: boolean; }
+interface OrderItem { id: string; taskNumber: string; shopName: string; shopImg: string; type: string; taskType: string; mainProductName: string; mainProductPcImg: string; state: string; indexState: string; buynoAccount: string; commission: number; userDivided: number; userPrincipal: number; createdAt: string; progress: string; reviewTaskId?: string; checked?: boolean; }
 interface BuynoItem { id: string; wwid: string; }
 
 function OrdersPageContent() {
@@ -318,29 +318,29 @@ function OrdersPageContent() {
                                 <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
                                     <div className="flex items-center gap-3">
                                         {value1 === '4' && <input type="checkbox" checked={order.checked || false} onChange={() => handleSelectOrder(order.id)} className="h-4 w-4 rounded border-slate-300" />}
-                                        {order.shop_img ? <img src={order.shop_img} alt="" className="h-9 w-9 rounded-lg object-cover" /> : <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-lg">🏪</div>}
+                                        {order.shopImg ? <img src={order.shopImg} alt="" className="h-9 w-9 rounded-lg object-cover" /> : <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-lg">🏪</div>}
                                         <div>
-                                            <div className="text-sm font-medium text-slate-800">{order.type}店铺：{order.shop_name?.substring(0, 3)}...</div>
-                                            <div className="text-xs text-slate-400">任务类型：{order.task_type}</div>
+                                            <div className="text-sm font-medium text-slate-800">{order.type}店铺：{order.shopName?.substring(0, 3)}...</div>
+                                            <div className="text-xs text-slate-400">任务类型：{order.taskType}</div>
                                         </div>
                                     </div>
                                     <span className={cn('rounded-full px-2.5 py-1 text-xs font-medium', getStatusColor(order.state))}>{order.state}</span>
                                 </div>
                                 {/* Order Body */}
                                 <div className="px-4 py-3">
-                                    <div className="mb-2 text-xs text-slate-400">任务编号：{order.task_number}</div>
+                                    <div className="mb-2 text-xs text-slate-400">任务编号：{order.taskNumber}</div>
                                     <div className="grid grid-cols-2 gap-1 text-sm">
-                                        <div className="text-slate-500">买号：<span className="text-slate-700">{order.wwid}</span></div>
-                                        <div className="text-slate-500">佣金：<span className="font-medium text-success-400">{order.commission}+{order.user_divided}银锭</span></div>
-                                        <div className="text-slate-500">垫付资金：<span className="font-medium text-primary-500">¥{order.user_principal}</span></div>
-                                        <div className="text-xs text-slate-400">{order.create_time}</div>
+                                        <div className="text-slate-500">买号：<span className="text-slate-700">{order.buynoAccount}</span></div>
+                                        <div className="text-slate-500">佣金：<span className="font-medium text-success-400">{order.commission}+{order.userDivided}银锭</span></div>
+                                        <div className="text-slate-500">垫付资金：<span className="font-medium text-primary-500">¥{order.userPrincipal}</span></div>
+                                        <div className="text-xs text-slate-400">{order.createdAt}</div>
                                     </div>
                                 </div>
                                 {/* Order Footer */}
                                 <div className="flex justify-end gap-2 border-t border-slate-100 px-4 py-3">
-                                    {!value5 && !value1 && <button onClick={() => defaultBtnClick(order.index_state, order.id)} className="rounded-full bg-warning-400 px-4 py-1.5 text-xs font-medium text-white">{defaultBtn(order.index_state)}</button>}
-                                    {(value5 || value1) && <button onClick={() => value5 ? chooseTiao2(order.review_task_id || '') : chooseTiao(order.id)} className="rounded-full bg-warning-400 px-4 py-1.5 text-xs font-medium text-white">{buttonvalue}</button>}
-                                    {value5 === '1' && order.review_task_id && <button onClick={() => goZhuiPin(order.review_task_id!)} className="rounded-full bg-primary-500 px-4 py-1.5 text-xs font-medium text-white">{buttonvalue2}</button>}
+                                    {!value5 && !value1 && <button onClick={() => defaultBtnClick(order.indexState, order.id)} className="rounded-full bg-warning-400 px-4 py-1.5 text-xs font-medium text-white">{defaultBtn(order.indexState)}</button>}
+                                    {(value5 || value1) && <button onClick={() => value5 ? chooseTiao2(order.reviewTaskId || '') : chooseTiao(order.id)} className="rounded-full bg-warning-400 px-4 py-1.5 text-xs font-medium text-white">{buttonvalue}</button>}
+                                    {value5 === '1' && order.reviewTaskId && <button onClick={() => goZhuiPin(order.reviewTaskId!)} className="rounded-full bg-primary-500 px-4 py-1.5 text-xs font-medium text-white">{buttonvalue2}</button>}
                                 </div>
                             </div>
                         ))

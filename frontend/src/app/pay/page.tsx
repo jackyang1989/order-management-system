@@ -18,7 +18,7 @@ function PayContent() {
 
     // 1=VIP充值, 2=本金充值, 3=订单支付
     const payType = searchParams.get('type') || '1';
-    const orderId = searchParams.get('order_id') || '';
+    const orderId = searchParams.get('orderId') || '';
     const amount = searchParams.get('amount') || '0';
 
     const [loading, setLoading] = useState(false);

@@ -12,26 +12,26 @@ interface TaskInfo {
     taskTime: string;
     principal: string;
     yongJin: string;
-    user_divided: string;
+    userDivided: string;
     zhongDuan: string;
 }
 
 interface GoodsInfo {
     id: string;
-    goods_id: string;
+    goodsId: string;
     productName: string;
     dianpuName: string;
     type: string;
     specname: string;
     specifications: string;
-    buy_num: number;
-    buy_price: string;
+    buyNum: number;
+    buyPrice: string;
     input: string;
     inputnum: string;
     img: string;
     imgdata: string[];
     key: string;
-    goods_spec: string;
+    goodsSpec: string;
 }
 
 interface OrderGoods {
@@ -57,12 +57,12 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [active, setActive] = useState(1); // 当前步骤 1/2/3
-    const [user_task_id, setUserTaskId] = useState('');
+    const [userTaskId, setUserTaskId] = useState('');
 
     // 任务类型相关
     const [tasktype, setTasktype] = useState('');
-    const [task_time_type, setTaskTimeType] = useState('');
-    const [task_ys_type, setTaskYsType] = useState('');
+    const [taskTimeType, setTaskTimeType] = useState('');
+    const [taskYsType, setTaskYsType] = useState('');
     const [is_video_praise, setIsVideoPraise] = useState('');
     const [zhongDuanmessage, setZhongDuanmessage] = useState('');
     const [taoword, setTaoword] = useState('');
@@ -190,7 +190,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                     taskTime: data.endingTime || '',
                     principal: data.userPrincipal || '',
                     yongJin: data.commission || '',
-                    user_divided: data.userDivided || '',
+                    userDivided: data.userDivided || '',
                     taskNum: data.taskNumber || '',
                     tasktype: String(data.taskType || ''),
                     zhongDuan: data.terminal === 1 ? '本佣货返' : '本立佣货',
@@ -214,20 +214,20 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 // 构建 tableData2 (商品信息) - 使用任务数据
                 const goodsList: GoodsInfo[] = [{
                     id: data.taskId,
-                    goods_id: data.platformProductId || data.taskId,
+                    goodsId: data.platformProductId || data.taskId,
                     productName: data.title || '',
                     dianpuName: data.shopName || '',
                     type: '',
                     specname: '',
                     specifications: '',
-                    buy_num: 1,
-                    buy_price: String(data.goodsPrice || ''),
+                    buyNum: 1,
+                    buyPrice: String(data.goodsPrice || ''),
                     input: '',
                     inputnum: '',
                     img: data.mainImage || '',
                     imgdata: data.mainImage ? [data.mainImage] : [],
                     key: data.keyword || '',
-                    goods_spec: data.maskedPassword || '',
+                    goodsSpec: data.maskedPassword || '',
                 }];
                 setTableData2(goodsList);
 
@@ -252,7 +252,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     }, [id, getToken, alertError]);
 
     // 商品链接核对
-    const hedui = async (input: string, goods_id: string) => {
+    const hedui = async (input: string, goodsId: string) => {
         if (!input) {
             alertError('商品地址不能为空');
             return;
@@ -265,7 +265,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
-                body: JSON.stringify({ link: input, goodsId: goods_id }),
+                body: JSON.stringify({ link: input, goodsId: goodsId }),
             });
             const data = await response.json();
             if (data.success) {
@@ -279,7 +279,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     };
 
     // 商品口令核对
-    const heduinum = async (inputnum: string, goods_id: string) => {
+    const heduinum = async (inputnum: string, goodsId: string) => {
         if (!inputnum) {
             alertError('数字核对不能为空');
             return;
@@ -617,7 +617,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             <span>垫付本金：</span><span>{item.principal}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span>任务佣金：</span><span style={{ color: 'blue' }}>{item.yongJin}+{item.user_divided}</span>
+                            <span>任务佣金：</span><span style={{ color: 'blue' }}>{item.yongJin}+{item.userDivided}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <span>返款方式：</span><span>{item.zhongDuan}</span>
@@ -646,10 +646,10 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 <p>{zhongDuanmessage}</p>
                 <p>您当前接受任务的买号为 <span style={{ color: 'red' }}>"{userBuynoWangwang}"</span> 请访问{platformName || '平台'}APP，确认登录的买号是否正确！</p>
                 {sellTaskMemo && <p>商家订单要求: <span>{sellTaskMemo}</span></p>}
-                {task_time_type === '2' && (
+                {taskTimeType === '2' && (
                     <p style={{ color: 'red' }}>今天浏览收藏加购，提交到第三步，明天16点前付款并提交订单信息，超时订单取消。</p>
                 )}
-                {task_ys_type === '1' && (
+                {taskYsType === '1' && (
                     <p style={{ color: 'red', fontSize: '12px' }}>此任务是预售任务，领取任务当日只需要付预付金额</p>
                 )}
             </div>
@@ -829,7 +829,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                     <div style={{ flex: 1 }}>
                                         <div style={{ fontSize: '13px', color: '#333' }}>{item.productName}</div>
                                         <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>店铺：{item.dianpuName}</div>
-                                        <div style={{ fontSize: '12px', color: '#f56c6c', marginTop: '5px' }}>¥{item.buy_price} x {item.buy_num}</div>
+                                        <div style={{ fontSize: '12px', color: '#f56c6c', marginTop: '5px' }}>¥{item.buyPrice} x {item.buyNum}</div>
                                     </div>
                                 </div>
 
@@ -847,7 +847,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                                 style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
                                             />
                                             <button
-                                                onClick={() => hedui(item.input, item.goods_id)}
+                                                onClick={() => hedui(item.input, item.goodsId)}
                                                 style={{ background: '#409eff', color: 'white', border: 'none', borderRadius: '4px', padding: '0 15px' }}
                                             >
                                                 核对
@@ -858,7 +858,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                     {adminLimitSwitch === 1 && (
                                         <div>
                                             <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>商品口令核对：</div>
-                                            {item.goods_spec && (
+                                            {item.goodsSpec && (
                                                 <div style={{
                                                     fontSize: '12px',
                                                     color: '#f56c6c',
@@ -867,7 +867,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                                     background: '#fff5f5',
                                                     borderRadius: '4px'
                                                 }}>
-                                                    口令提示：<span style={{ fontWeight: 'bold' }}>{item.goods_spec}</span>
+                                                    口令提示：<span style={{ fontWeight: 'bold' }}>{item.goodsSpec}</span>
                                                 </div>
                                             )}
                                             <div style={{ display: 'flex', gap: '10px' }}>
@@ -879,7 +879,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                                     style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
                                                 />
                                                 <button
-                                                    onClick={() => heduinum(item.inputnum, item.goods_id)}
+                                                    onClick={() => heduinum(item.inputnum, item.goodsId)}
                                                     style={{ background: '#409eff', color: 'white', border: 'none', borderRadius: '4px', padding: '0 15px' }}
                                                 >
                                                     核对

@@ -52,22 +52,21 @@ export default function ReceivePage({ params }: { params: Promise<{ id: string }
 
             if (res.success) {
                 const data = res.data;
-                const list = data.list || {};
-                setTaskId(list.id || id);
+                setTaskId(data.id || id);
 
-                if (data.product && Array.isArray(data.product)) {
-                    setTestData(data.product.map((vo: any) => ({
-                        taskBianHao: list.task_number || '',
-                        time: list.create_time || '',
-                        type: list.task_type || '',
+                if (data.products && Array.isArray(data.products)) {
+                    setTestData(data.products.map((vo: any) => ({
+                        taskBianHao: data.taskNumber || '',
+                        time: data.createdAt || '',
+                        type: data.taskType || '',
                         title: vo.name || '',
-                        content: vo.text_praise || '',
-                        img: vo.img_praise || '',
-                        video: vo.video_praise ? `https://b--d.oss-cn-guangzhou.aliyuncs.com${vo.video_praise}` : '',
-                        maiHao: list.wwid || '',
-                        kuaiDi: list.delivery || '',
-                        danHao: list.delivery_num || '',
-                        price: list.seller_principal || '',
+                        content: vo.textPraise || '',
+                        img: vo.imgPraise || '',
+                        video: vo.videoPraise ? `https://b--d.oss-cn-guangzhou.aliyuncs.com${vo.videoPraise}` : '',
+                        maiHao: data.buynoAccount || '',
+                        kuaiDi: data.delivery || '',
+                        danHao: data.deliveryNum || '',
+                        price: data.sellerPrincipal || '',
                     })));
                 }
             } else {
