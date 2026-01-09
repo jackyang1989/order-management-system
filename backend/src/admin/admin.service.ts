@@ -222,7 +222,7 @@ export class AdminService {
     limit = 20,
     status?: WithdrawalStatus,
   ): Promise<{
-    data: Withdrawal[];
+    data: any[];
     total: number;
     page: number;
     totalPages: number;
@@ -234,11 +234,39 @@ export class AdminService {
     }
 
     const total = await query.getCount();
-    const data = await query
+    const withdrawals = await query
       .orderBy('withdrawal.createdAt', 'DESC')
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
+
+    // Enrich with username from User or Merchant based on ownerType
+    const data = await Promise.all(
+      withdrawals.map(async (w) => {
+        let username = '';
+        let userType = 1; // 1=buyer, 2=merchant
+        if (w.ownerType === 'merchant') {
+          const merchant = await this.merchantsRepository.findOne({
+            where: { id: w.ownerId },
+            select: ['username'],
+          });
+          username = merchant?.username || '';
+          userType = 2;
+        } else {
+          const user = await this.usersRepository.findOne({
+            where: { id: w.ownerId || w.userId },
+            select: ['username'],
+          });
+          username = user?.username || '';
+          userType = 1;
+        }
+        return {
+          ...w,
+          username,
+          userType,
+        };
+      }),
+    );
 
     return {
       data,

@@ -13,6 +13,8 @@ import { Modal } from '../../../../components/ui/modal';
 interface BankCard {
     id: string;
     userId: string;
+    username?: string;
+    userType?: number;
     bankName: string;
     accountName: string;
     cardNumber: string;
@@ -34,6 +36,11 @@ const statusLabels: Record<number, { text: string; color: 'amber' | 'green' | 'r
     0: { text: '待审核', color: 'amber' },
     1: { text: '已通过', color: 'green' },
     2: { text: '已拒绝', color: 'red' },
+};
+
+const userTypeLabels: Record<number, { text: string; color: 'green' | 'blue' }> = {
+    1: { text: '买手', color: 'green' },
+    2: { text: '商家', color: 'blue' },
 };
 
 export default function AdminFinanceBankPage() {
@@ -170,6 +177,7 @@ export default function AdminFinanceBankPage() {
                             <table className="min-w-[1000px] w-full border-collapse">
                                 <thead>
                                     <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">用户信息</th>
                                         <th className="px-4 py-3.5 text-left text-sm font-medium">持卡人</th>
                                         <th className="px-4 py-3.5 text-left text-sm font-medium">银行</th>
                                         <th className="px-4 py-3.5 text-left text-sm font-medium">卡号</th>
@@ -182,6 +190,12 @@ export default function AdminFinanceBankPage() {
                                 <tbody>
                                     {cards.map(c => (
                                         <tr key={c.id} className="border-b border-[#f3f4f6]">
+                                            <td className="px-4 py-3.5">
+                                                <div className="font-medium text-[#3b4559]">{c.username || '-'}</div>
+                                                <Badge variant="soft" color={userTypeLabels[c.userType || 1]?.color || 'green'} className="mt-0.5">
+                                                    {userTypeLabels[c.userType || 1]?.text || '买手'}
+                                                </Badge>
+                                            </td>
                                             <td className="px-4 py-3.5 font-medium">{c.accountName}</td>
                                             <td className="px-4 py-3.5 text-[#6b7280]">{c.bankName}</td>
                                             <td className="px-4 py-3.5 font-mono">{maskCardNumber(c.cardNumber)}</td>

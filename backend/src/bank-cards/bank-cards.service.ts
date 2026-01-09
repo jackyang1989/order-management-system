@@ -8,15 +8,22 @@ import { Repository, Like, In } from 'typeorm';
 import {
   BankCard,
   BankCardStatus,
+  BankCardOwnerType,
   CreateBankCardDto,
   UpdateBankCardDto,
 } from './bank-card.entity';
+import { User } from '../users/user.entity';
+import { Merchant } from '../merchants/merchant.entity';
 
 @Injectable()
 export class BankCardsService {
   constructor(
     @InjectRepository(BankCard)
     private bankCardsRepository: Repository<BankCard>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    @InjectRepository(Merchant)
+    private merchantRepository: Repository<Merchant>,
   ) {}
 
   async findAllByUser(userId: string): Promise<BankCard[]> {
@@ -135,7 +142,7 @@ export class BankCardsService {
     limit?: number;
     status?: BankCardStatus;
     keyword?: string;
-  }): Promise<{ data: BankCard[]; total: number }> {
+  }): Promise<{ data: any[]; total: number }> {
     const { page = 1, limit = 20, status, keyword } = options;
 
     const query = this.bankCardsRepository.createQueryBuilder('card');
@@ -161,7 +168,36 @@ export class BankCardsService {
     query.orderBy('card.createdAt', 'DESC');
     query.skip((page - 1) * limit).take(limit);
 
-    const [data, total] = await query.getManyAndCount();
+    const [cards, total] = await query.getManyAndCount();
+
+    // Enrich with username from User or Merchant based on ownerType
+    const data = await Promise.all(
+      cards.map(async (card) => {
+        let username = '';
+        let userType = 1; // 1=buyer, 2=merchant
+        if (card.ownerType === BankCardOwnerType.MERCHANT) {
+          const merchant = await this.merchantRepository.findOne({
+            where: { id: card.ownerId || card.userId },
+            select: ['username'],
+          });
+          username = merchant?.username || '';
+          userType = 2;
+        } else {
+          const user = await this.userRepository.findOne({
+            where: { id: card.ownerId || card.userId },
+            select: ['username'],
+          });
+          username = user?.username || '';
+          userType = 1;
+        }
+        return {
+          ...card,
+          username,
+          userType,
+        };
+      }),
+    );
+
     return { data, total };
   }
 

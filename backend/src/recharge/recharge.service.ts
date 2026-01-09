@@ -282,7 +282,7 @@ export class RechargeService {
    * 查询充值记录
    */
   async findAll(filter: RechargeFilterDto): Promise<{
-    data: Recharge[];
+    data: any[];
     total: number;
     page: number;
     totalPages: number;
@@ -316,11 +316,40 @@ export class RechargeService {
     }
 
     const total = await queryBuilder.getCount();
-    const data = await queryBuilder
+    const records = await queryBuilder
       .orderBy('r.createdAt', 'DESC')
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
+
+    // Enrich with username and phone from User or Merchant
+    const data = await Promise.all(
+      records.map(async (r) => {
+        let username = '';
+        let phone = '';
+        if (r.userType === RechargeUserType.MERCHANT) {
+          const merchant = await this.merchantRepository.findOne({
+            where: { id: r.userId },
+            select: ['username', 'phone'],
+          });
+          username = merchant?.username || '';
+          phone = merchant?.phone || '';
+        } else {
+          const user = await this.userRepository.findOne({
+            where: { id: r.userId },
+            select: ['username', 'phone'],
+          });
+          username = user?.username || '';
+          phone = user?.phone || '';
+        }
+        return {
+          ...r,
+          username,
+          phone,
+          moneyType: r.rechargeType, // Frontend expects moneyType
+        };
+      }),
+    );
 
     return { data, total, page, totalPages: Math.ceil(total / limit) };
   }

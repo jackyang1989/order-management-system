@@ -14,6 +14,9 @@ interface Shop {
     shopName: string;
     accountName: string;
     contactName: string;
+    mobile?: string;
+    needLogistics?: boolean;
+    expressCode?: string;
     status: number;
     merchant: { username: string; companyName: string };
     createdAt: string;
@@ -82,8 +85,9 @@ export default function AdminShopsPage() {
                                 <th className="px-3 py-3 text-left text-sm font-medium">所属商家</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">平台</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">店铺名称</th>
-                                <th className="px-3 py-3 text-left text-sm font-medium">店铺账号</th>
+                                <th className="px-3 py-3 text-left text-sm font-medium">店铺账号/旺旺ID</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">联系人</th>
+                                <th className="px-3 py-3 text-left text-sm font-medium">物流信息</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">状态</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">申请时间</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">操作</th>
@@ -98,8 +102,15 @@ export default function AdminShopsPage() {
                                     </td>
                                     <td className="px-3 py-3">{shop.platform}</td>
                                     <td className="px-3 py-3">{shop.shopName}</td>
-                                    <td className="px-3 py-3">{shop.accountName}</td>
-                                    <td className="px-3 py-3">{shop.contactName}</td>
+                                    <td className="px-3 py-3 text-[#6b7280]">{shop.accountName || '-'}</td>
+                                    <td className="px-3 py-3">
+                                        <div>{shop.contactName}</div>
+                                        <div className="text-xs text-[#9ca3af]">{shop.mobile || '-'}</div>
+                                    </td>
+                                    <td className="px-3 py-3 text-[#6b7280]">
+                                        <div>{shop.needLogistics ? '需要物流' : '无需物流'}</div>
+                                        {shop.expressCode && <div className="text-xs text-[#9ca3af]">站点: {shop.expressCode}</div>}
+                                    </td>
                                     <td className="px-3 py-3">
                                         <Badge variant="soft" color={statusConfig[shop.status]?.color || 'slate'}>
                                             {statusConfig[shop.status]?.text || '未知'}
