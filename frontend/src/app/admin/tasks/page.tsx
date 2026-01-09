@@ -20,7 +20,7 @@ interface Task {
     title: string;
     taskType: number;
     shopName: string;
-    shopWangwang?: string;
+    shopAccount?: string;
     goodsPrice: number;
     count: number;
     claimedCount: number;

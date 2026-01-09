@@ -74,7 +74,6 @@ export class ShopsService {
       });
       if (exists && exists.sellerId !== sellerId) {
         // Allow same user re-bind? Or strict unique?
-        // Original logic: "wangwang already used".
         throw new BadRequestException('该店铺账号已被其他店铺绑定');
       }
     }

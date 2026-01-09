@@ -85,7 +85,7 @@ export default function AdminShopsPage() {
                                 <th className="px-3 py-3 text-left text-sm font-medium">所属商家</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">平台</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">店铺名称</th>
-                                <th className="px-3 py-3 text-left text-sm font-medium">店铺账号/旺旺ID</th>
+                                <th className="px-3 py-3 text-left text-sm font-medium">店铺账号</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">联系人</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">物流信息</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">状态</th>

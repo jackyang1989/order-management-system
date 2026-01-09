@@ -76,7 +76,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const [tableData3, setTableData3] = useState<OrderGoods[]>([]);
 
     // 用户任务信息（从后端模板变量获取）
-    const [userBuynoWangwang, setUserBuynoWangwang] = useState('');
+    const [userBuynoAccount, setUserBuynoAccount] = useState('');
     const [sellTaskMemo, setSellTaskMemo] = useState('');
     const [receiverAddress, setReceiverAddress] = useState('');
     const [platformName, setPlatformName] = useState(''); // 动态平台名称
@@ -167,7 +167,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             if (res.success) {
                 const data = res.data;
                 setUserTaskId(data.orderId);
-                setUserBuynoWangwang(data.buynoAccount || '');
+                setUserBuynoAccount(data.buynoAccount || '');
                 setSellTaskMemo(data.memo || '');
                 setReceiverAddress(`${data.address || ''} ${data.addressName || ''} ${data.addressPhone || ''}`);
                 setKeyWord(data.keyword || '');
@@ -644,7 +644,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             {/* 商家要求 */}
             <div style={{ background: '#fff3cd', margin: '10px', borderRadius: '8px', padding: '12px', fontSize: '13px', color: '#856404' }}>
                 <p>{zhongDuanmessage}</p>
-                <p>您当前接受任务的买号为 <span style={{ color: 'red' }}>"{userBuynoWangwang}"</span> 请访问{platformName || '平台'}APP，确认登录的买号是否正确！</p>
+                <p>您当前接受任务的买号为 <span style={{ color: 'red' }}>"{userBuynoAccount}"</span> 请访问{platformName || '平台'}APP，确认登录的买号是否正确！</p>
                 {sellTaskMemo && <p>商家订单要求: <span>{sellTaskMemo}</span></p>}
                 {taskTimeType === '2' && (
                     <p style={{ color: 'red' }}>今天浏览收藏加购，提交到第三步，明天16点前付款并提交订单信息，超时订单取消。</p>

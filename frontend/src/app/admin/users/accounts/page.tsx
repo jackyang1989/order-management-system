@@ -28,8 +28,8 @@ interface BuyerAccount {
     alipayImage?: string;
     archiveImage?: string;
     ipImage?: string;
-    wangwangProvince?: string;
-    wangwangCity?: string;
+    loginProvince?: string;
+    loginCity?: string;
     addressRemark?: string;
     star: number;
     status: number;
@@ -349,13 +349,13 @@ function AdminBuyerAccountsPageContent() {
                             </div>
                         </div>
 
-                        {/* Wangwang Info */}
-                        {(detailModal.wangwangProvince || detailModal.wangwangCity || detailModal.addressRemark) && (
+                        {/* Login Location Info */}
+                        {(detailModal.loginProvince || detailModal.loginCity || detailModal.addressRemark) && (
                             <div>
                                 <h4 className="mb-3 border-b border-[#f3f4f6] pb-2 text-sm font-medium text-[#4b5563]">常用登录地</h4>
                                 <div className="grid grid-cols-2 gap-3 text-sm">
-                                    <div><span className="text-[#9ca3af]">登录省份：</span>{detailModal.wangwangProvince || '-'}</div>
-                                    <div><span className="text-[#9ca3af]">登录城市：</span>{detailModal.wangwangCity || '-'}</div>
+                                    <div><span className="text-[#9ca3af]">登录省份：</span>{detailModal.loginProvince || '-'}</div>
+                                    <div><span className="text-[#9ca3af]">登录城市：</span>{detailModal.loginCity || '-'}</div>
                                     {detailModal.addressRemark && <div className="col-span-2"><span className="text-[#9ca3af]">地址备注：</span>{detailModal.addressRemark}</div>}
                                 </div>
                             </div>

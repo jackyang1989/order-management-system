@@ -42,7 +42,7 @@ export interface MockBuyerAccount {
     id: string;
     userId: string;
     platform: '淘宝' | '京东' | '拼多多';
-    accountName: string; // 淘宝账号/旺旺ID
+    accountName: string; // 平台账号
     province?: string;
     city?: string;
     district?: string;

@@ -33,27 +33,6 @@ const apiConfigs: ApiConfig[] = [
         type: 'url',
     },
     {
-        key: 'sms_api_key',
-        label: '短信 API Key',
-        value: '',
-        description: '短信验证码服务API密钥',
-        type: 'password',
-    },
-    {
-        key: 'sms_api_secret',
-        label: '短信 API Secret',
-        value: '',
-        description: '短信验证码服务API密钥',
-        type: 'password',
-    },
-    {
-        key: 'sms_sign_name',
-        label: '短信签名',
-        value: '',
-        description: '短信签名名称',
-        type: 'text',
-    },
-    {
         key: 'alipay_app_id',
         label: '支付宝 AppID',
         value: '',
@@ -206,7 +185,6 @@ export default function ApiConfigPage() {
     // Group configs by category
     const groupedConfigs = {
         '订单侠API': configs.filter(c => c.key.startsWith('dingdanxia')),
-        '短信服务': configs.filter(c => c.key.startsWith('sms')),
         '支付宝支付': configs.filter(c => c.key.startsWith('alipay')),
         '微信支付': configs.filter(c => c.key.startsWith('wechat')),
         'OSS存储': configs.filter(c => c.key.startsWith('oss')),

@@ -23,7 +23,6 @@ interface Order {
     userName?: string;
     buynoId: string;
     buynoAccount: string;
-    buynoWangwang?: string;
     platform: string;
     productName: string;
     productPrice: number;
@@ -138,7 +137,7 @@ export default function AdminOrdersPage() {
             render: (row) => (
                 <div className="text-sm">
                     <div className="font-medium text-[#3b4559]">{row.userName || '-'}</div>
-                    <div className="text-xs text-[#9ca3af]">{row.buynoAccount || row.buynoWangwang || '-'}</div>
+                    <div className="text-xs text-[#9ca3af]">{row.buynoAccount || '-'}</div>
                 </div>
             ),
         },
