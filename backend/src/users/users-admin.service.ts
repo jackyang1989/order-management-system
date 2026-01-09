@@ -13,7 +13,7 @@ import {
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './user.entity';
-import { FundRecord } from './fund-record.entity';
+import { FundRecord, FundType, FundAction } from './fund-record.entity';
 import { Message, MessageType, MessageStatus, MessageUserType } from '../messages/message.entity';
 import {
   UserQueryDto,
@@ -174,7 +174,7 @@ export class UsersAdminService {
     dto: AdjustBalanceDto,
   ): Promise<{
     user: User;
-    log: BalanceLog;
+    log: FundRecord;
   }> {
     const user = await this.userRepo.findOne({ where: { id } });
     if (!user) {
@@ -226,14 +226,13 @@ export class UsersAdminService {
     await this.userRepo.save(user);
 
     // 记录到 FundRecord 表
-    const fundRecord = this.fundRecordRepo.create({
-      userId: id,
-      type: dto.type === 'balance' ? 'principal' : 'silver',
-      action: dto.action === 'add' ? 'in' : 'out',
-      amount: amount,
-      balance: balanceAfter,
-      description: dto.reason,
-    });
+    const fundRecord = new FundRecord();
+    fundRecord.userId = id;
+    fundRecord.type = dto.type === 'balance' ? FundType.PRINCIPAL : FundType.SILVER;
+    fundRecord.action = dto.action === 'add' ? FundAction.IN : FundAction.OUT;
+    fundRecord.amount = amount;
+    fundRecord.balance = balanceAfter;
+    fundRecord.description = dto.reason;
     await this.fundRecordRepo.save(fundRecord);
 
     return { user: this.sanitizeUser(user), log: fundRecord };
