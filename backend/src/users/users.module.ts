@@ -7,9 +7,10 @@ import { UsersAdminController } from './users-admin.controller';
 import { User } from './user.entity';
 import { FundRecord } from './fund-record.entity';
 import { Order } from '../orders/order.entity';
+import { Message } from '../messages/message.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, FundRecord, Order])],
+  imports: [TypeOrmModule.forFeature([User, FundRecord, Order, Message])],
   providers: [UsersService, UsersAdminService],
   controllers: [UsersController, UsersAdminController],
   exports: [UsersService, UsersAdminService],

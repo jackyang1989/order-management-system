@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { BASE_URL } from '../../../../../apiConfig';
 import { cn } from '../../../../lib/utils';
 import { Button } from '../../../../components/ui/button';
@@ -8,6 +9,7 @@ import { Card } from '../../../../components/ui/card';
 import { Badge } from '../../../../components/ui/badge';
 import { Select } from '../../../../components/ui/select';
 import { Modal } from '../../../../components/ui/modal';
+import { Input } from '../../../../components/ui/input';
 
 interface BuyerAccount {
     id: string;
@@ -48,12 +50,15 @@ const statusLabels: Record<number, { text: string; color: 'amber' | 'green' | 'r
 };
 
 export default function AdminBuyerAccountsPage() {
+    const searchParams = useSearchParams();
+    const userId = searchParams.get('userId');
+
     const [accounts, setAccounts] = useState<BuyerAccount[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
-    const [filterStatus, setFilterStatus] = useState<string>('0');
+    const [filterStatus, setFilterStatus] = useState<string>('');
     const [rejectReason, setRejectReason] = useState('');
     const [rejectingId, setRejectingId] = useState<string | null>(null);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -63,7 +68,7 @@ export default function AdminBuyerAccountsPage() {
 
     const getToken = () => localStorage.getItem('adminToken');
 
-    useEffect(() => { loadAccounts(); }, [page, filterStatus]);
+    useEffect(() => { loadAccounts(); }, [page, filterStatus, userId]);
 
     const loadAccounts = async () => {
         setLoading(true);
@@ -73,6 +78,7 @@ export default function AdminBuyerAccountsPage() {
             params.append('page', page.toString());
             params.append('limit', '20');
             if (filterStatus) params.append('status', filterStatus);
+            if (userId) params.append('userId', userId);
 
             const res = await fetch(`${BASE_URL}/admin/buyer-accounts?${params.toString()}`, {
                 headers: { 'Authorization': `Bearer ${getToken()}` }
@@ -182,7 +188,12 @@ export default function AdminBuyerAccountsPage() {
             <Card className="bg-white">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                        <span className="text-base font-medium">买号审核</span>
+                        <span className="text-base font-medium">买号列表</span>
+                        {userId && (
+                            <span className="text-sm text-[#6b7280]">
+                                (用户ID: {userId})
+                            </span>
+                        )}
                         <Select
                             value={filterStatus}
                             onChange={v => { setFilterStatus(v); setPage(1); }}

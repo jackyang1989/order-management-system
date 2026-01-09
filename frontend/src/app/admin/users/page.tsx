@@ -79,6 +79,14 @@ export default function AdminUsersPage() {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
+    // 编辑资料表单状态
+    const [editForm, setEditForm] = useState<{
+        username: string;
+        phone: string;
+        qq: string;
+        realName: string;
+    }>({ username: '', phone: '', qq: '', realName: '' });
+
     useEffect(() => {
         loadUsers();
     }, [page, statusFilter, vipFilter]);
@@ -111,6 +119,41 @@ export default function AdminUsersPage() {
     const handleSearch = () => {
         setPage(1);
         loadUsers();
+    };
+
+    const openEditModal = (user: User) => {
+        setEditForm({
+            username: user.username,
+            phone: user.phone,
+            qq: user.qq || '',
+            realName: user.realName || ''
+        });
+        setDetailModal(user);
+    };
+
+    const handleUpdateProfile = async () => {
+        if (!detailModal) return;
+        const token = localStorage.getItem('adminToken');
+        try {
+            const res = await fetch(`${BASE_URL}/admin/users/${detailModal.id}/profile`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(editForm)
+            });
+            const json = await res.json();
+            if (json.success) {
+                toastSuccess('资料已更新');
+                setDetailModal(null);
+                loadUsers();
+            } else {
+                toastError(json.message || '操作失败');
+            }
+        } catch (e) {
+            toastError('操作失败');
+        }
     };
 
     const handleAdjustBalance = async () => {
@@ -376,7 +419,7 @@ export default function AdminUsersPage() {
                     <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>
                         买号
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => setDetailModal(row)}>
+                    <Button size="sm" variant="outline" onClick={() => openEditModal(row)}>
                         编辑资料
                     </Button>
                     <Button size="sm" variant="outline" className="text-danger-400" onClick={() => { setNoteModal({ userId: row.id, username: row.username, currentNote: row.note || '' }); setNoteText(row.note || ''); }}>
@@ -388,97 +431,6 @@ export default function AdminUsersPage() {
                     <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
                         消息
                     </Button>
-                </div>
-            ),
-        },
-    ];
-                    {row.vip ? (
-                        <Badge variant="solid" color="amber">VIP</Badge>
-                    ) : (
-                        <Badge variant="soft" color="slate">普通</Badge>
-                    )}
-                    {row.vipExpireAt && (
-                        <div className="mt-1 text-[10px] text-[#9ca3af]">
-                            到期: {new Date(row.vipExpireAt).toLocaleDateString('zh-CN')}
-                        </div>
-                    )}
-                </div>
-            ),
-        },
-        {
-            key: 'accounts',
-            title: '买号数',
-            className: 'w-[70px] text-center',
-            render: (row) => (
-                <span className="text-sm font-medium">{row.accountCount || 0}</span>
-            ),
-        },
-        {
-            key: 'note',
-            title: '备注',
-            className: 'w-[100px]',
-            render: (row) => (
-                <div className="max-w-[100px] truncate text-xs text-danger-400" title={row.note || ''}>
-                    {row.note || '-'}
-                </div>
-            ),
-        },
-        {
-            key: 'status',
-            title: '状态',
-            className: 'w-[80px] text-center',
-            render: (row) => {
-                if (row.isBanned) return <Badge variant="soft" color="red">已封禁</Badge>;
-                if (row.isActive) return <Badge variant="soft" color="green">正常</Badge>;
-                return <Badge variant="soft" color="slate">未激活</Badge>;
-            },
-        },
-        {
-            key: 'createdAt',
-            title: '注册时间',
-            className: 'w-[100px]',
-            render: (row) => (
-                <div className="text-xs text-[#9ca3af]">
-                    {new Date(row.createdAt).toLocaleDateString('zh-CN')}
-                </div>
-            ),
-        },
-        {
-            key: 'actions',
-            title: '操作',
-            className: 'w-[400px]',
-            render: (row) => (
-                <div className="flex flex-wrap items-center gap-1.5">
-                    <Button size="sm" variant="secondary" onClick={() => setDetailModal(row)}>
-                        详情
-                    </Button>
-                    <Button size="sm" variant="outline" className="text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
-                        银锭
-                    </Button>
-                    <Button size="sm" variant="outline" className="text-success-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'balance', action: 'add' })}>
-                        本金
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/users/${row.id}/accounts`}>
-                        买号
-                    </Button>
-                    <Button size="sm" variant="outline" className="text-danger-400" onClick={() => { setNoteModal({ userId: row.id, username: row.username, currentNote: row.note || '' }); setNoteText(row.note || ''); }}>
-                        备注
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
-                        改密码
-                    </Button>
-                    {!row.vip && (
-                        <Button size="sm" variant="warning" onClick={() => handleSetVip(row.id, 30)}>
-                            VIP
-                        </Button>
-                    )}
-                    {row.isBanned ? (
-                        <Button size="sm" onClick={() => handleUnban(row.id)}>解封</Button>
-                    ) : (
-                        <Button size="sm" variant="destructive" onClick={() => setBanModal({ userId: row.id, username: row.username })}>
-                            封禁
-                        </Button>
-                    )}
                 </div>
             ),
         },
@@ -624,136 +576,54 @@ export default function AdminUsersPage() {
                 </div>
             </Modal>
 
-            {/* 用户详情弹窗 */}
+            {/* 编辑资料弹窗 */}
             <Modal
-                title="用户详情"
+                title="编辑资料"
                 open={!!detailModal}
                 onClose={() => setDetailModal(null)}
-                className="max-w-2xl"
+                className="max-w-lg"
             >
                 {detailModal && (
-                    <div className="space-y-6">
-                        {/* 基本信息 */}
-                        <div>
-                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">基本信息</h3>
-                            <div className="grid grid-cols-2 gap-4 rounded-md bg-[#f9fafb] p-4">
-                                <div className="space-y-1">
-                                    <div className="text-xs text-[#6b7280]">用户ID</div>
-                                    <div className="text-sm font-medium">{detailModal.id}</div>
-                                </div>
-                                <div className="space-y-1">
-                                    <div className="text-xs text-[#6b7280]">用户名</div>
-                                    <div className="text-sm font-medium">{detailModal.username}</div>
-                                </div>
-                                <div className="space-y-1">
-                                    <div className="text-xs text-[#6b7280]">手机号</div>
-                                    <div className="text-sm font-medium">{detailModal.phone}</div>
-                                </div>
-                                <div className="space-y-1">
-                                    <div className="text-xs text-[#6b7280]">QQ</div>
-                                    <div className="text-sm font-medium">{detailModal.qq || '-'}</div>
-                                </div>
-                                <div className="space-y-1">
-                                    <div className="text-xs text-[#6b7280]">邀请码</div>
-                                    <div className="text-sm font-medium">{detailModal.invitationCode || '-'}</div>
-                                </div>
-                                <div className="space-y-1">
-                                    <div className="text-xs text-[#6b7280]">最后登录IP</div>
-                                    <div className="text-sm font-medium">{detailModal.lastLoginIp || '-'}</div>
-                                </div>
+                    <div className="space-y-4">
+                        <Input
+                            label="用户名"
+                            value={editForm.username}
+                            onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                        />
+                        <Input
+                            label="手机号"
+                            value={editForm.phone}
+                            onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                        />
+                        <Input
+                            label="QQ"
+                            value={editForm.qq}
+                            onChange={(e) => setEditForm({ ...editForm, qq: e.target.value })}
+                        />
+                        <Input
+                            label="真实姓名"
+                            value={editForm.realName}
+                            onChange={(e) => setEditForm({ ...editForm, realName: e.target.value })}
+                        />
+
+                        {/* 只读信息 */}
+                        <div className="rounded-md bg-[#f9fafb] p-3">
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                <div><span className="text-[#6b7280]">用户ID:</span> {detailModal.id}</div>
+                                <div><span className="text-[#6b7280]">邀请码:</span> {detailModal.invitationCode || '-'}</div>
+                                <div><span className="text-[#6b7280]">余额:</span> ¥{Number(detailModal.balance || 0).toFixed(2)}</div>
+                                <div><span className="text-[#6b7280]">银锭:</span> {Number(detailModal.silver || 0).toFixed(2)}</div>
+                                <div><span className="text-[#6b7280]">VIP:</span> {detailModal.vip ? 'VIP用户' : '普通用户'}</div>
+                                <div><span className="text-[#6b7280]">注册时间:</span> {new Date(detailModal.createdAt).toLocaleDateString('zh-CN')}</div>
                             </div>
                         </div>
 
-                        {/* 账户余额 */}
-                        <div>
-                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">账户余额</h3>
-                            <div className="grid grid-cols-3 gap-4 rounded-md bg-[#f9fafb] p-4">
-                                <div className="space-y-1">
-                                    <div className="text-xs text-[#6b7280]">本金余额</div>
-                                    <div className="text-lg font-bold text-success-400">¥{Number(detailModal.balance || 0).toFixed(2)}</div>
-                                </div>
-                                <div className="space-y-1">
-                                    <div className="text-xs text-[#6b7280]">银锭余额</div>
-                                    <div className="text-lg font-bold text-primary-600">{Number(detailModal.silver || 0).toFixed(2)}</div>
-                                </div>
-                                <div className="space-y-1">
-                                    <div className="text-xs text-[#6b7280]">累计赚取</div>
-                                    <div className="text-lg font-bold text-warning-400">{Number(detailModal.reward || 0).toFixed(2)}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 状态信息 */}
-                        <div>
-                            <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">状态信息</h3>
-                            <div className="grid grid-cols-2 gap-4 rounded-md bg-[#f9fafb] p-4">
-                                <div className="space-y-1">
-                                    <div className="text-xs text-[#6b7280]">VIP状态</div>
-                                    <div>{detailModal.vip ? <Badge variant="solid" color="amber">VIP</Badge> : <span className="text-sm">普通用户</span>}</div>
-                                </div>
-                                <div className="space-y-1">
-                                    <div className="text-xs text-[#6b7280]">实名认证</div>
-                                    <div><Badge variant="soft" color={verifyLabels[detailModal.verifyStatus]?.color}>{verifyLabels[detailModal.verifyStatus]?.text}</Badge></div>
-                                </div>
-                                <div className="space-y-1">
-                                    <div className="text-xs text-[#6b7280]">账号状态</div>
-                                    <div>
-                                        {detailModal.isBanned ? (
-                                            <Badge variant="soft" color="red">已封禁</Badge>
-                                        ) : detailModal.isActive ? (
-                                            <Badge variant="soft" color="green">正常</Badge>
-                                        ) : (
-                                            <Badge variant="soft" color="slate">未激活</Badge>
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <div className="text-xs text-[#6b7280]">注册时间</div>
-                                    <div className="text-sm font-medium">{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 违规备注 */}
-                        {detailModal.note && (
-                            <div>
-                                <h3 className="mb-3 border-l-4 border-danger-400 pl-2 text-sm font-semibold text-danger-400">违规备注</h3>
-                                <div className="rounded-md bg-red-50 p-4 text-sm text-danger-400">
-                                    {detailModal.note}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 操作按钮 */}
-                        <div className="flex flex-wrap justify-end gap-3 border-t border-[#e5e7eb] pt-4">
-                            <Button
-                                variant="success"
-                                onClick={() => { setBalanceModal({ userId: detailModal.id, username: detailModal.username, type: 'balance', action: 'add' }); setDetailModal(null); }}
-                            >
-                                充值
-                            </Button>
-                            {!detailModal.vip && (
-                                <Button
-                                    variant="warning"
-                                    onClick={() => { handleSetVip(detailModal.id, 30); setDetailModal(null); }}
-                                >
-                                    👑 设为VIP
-                                </Button>
-                            )}
-                            {detailModal.isBanned ? (
-                                <Button onClick={() => { handleUnban(detailModal.id); setDetailModal(null); }}>
-                                    解封
-                                </Button>
-                            ) : (
-                                <Button
-                                    variant="destructive"
-                                    onClick={() => { setBanModal({ userId: detailModal.id, username: detailModal.username }); setDetailModal(null); }}
-                                >
-                                    🚫 封禁
-                                </Button>
-                            )}
+                        <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                             <Button variant="secondary" onClick={() => setDetailModal(null)}>
-                                关闭
+                                取消
+                            </Button>
+                            <Button onClick={handleUpdateProfile}>
+                                保存修改
                             </Button>
                         </div>
                     </div>

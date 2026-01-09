@@ -13,6 +13,7 @@ import {
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './user.entity';
+import { Message, MessageType, MessageStatus, MessageUserType } from '../messages/message.entity';
 import {
   UserQueryDto,
   AdjustBalanceDto,
@@ -44,6 +45,8 @@ export class UsersAdminService {
   constructor(
     @InjectRepository(User)
     private userRepo: Repository<User>,
+    @InjectRepository(Message)
+    private messageRepo: Repository<Message>,
   ) {}
 
   /**
@@ -488,5 +491,57 @@ export class UsersAdminService {
   private sanitizeUser(user: User): User {
     const { password, payPassword, ...rest } = user;
     return { ...rest, password: '', payPassword: '' } as User;
+  }
+
+  /**
+   * 获取用户消息列表
+   */
+  async getUserMessages(
+    userId: string,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{ data: Message[]; total: number; page: number; limit: number }> {
+    const [data, total] = await this.messageRepo.findAndCount({
+      where: { receiverId: userId },
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return {
+      data: data.map((msg) => ({
+        ...msg,
+        isRead: msg.status === MessageStatus.READ,
+      })),
+      total,
+      page,
+      limit,
+    };
+  }
+
+  /**
+   * 发送消息给用户
+   */
+  async sendMessage(
+    userId: string,
+    title: string,
+    content: string,
+  ): Promise<Message> {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+
+    const message = this.messageRepo.create({
+      receiverId: userId,
+      receiverType: MessageUserType.BUYER,
+      senderType: MessageUserType.ADMIN,
+      type: MessageType.PRIVATE,
+      title,
+      content,
+      status: MessageStatus.UNREAD,
+    });
+
+    return this.messageRepo.save(message);
   }
 }

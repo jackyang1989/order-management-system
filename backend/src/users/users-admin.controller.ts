@@ -104,6 +104,10 @@ export class BatchOperationDto {
 export class UserDetailUpdateDto {
   @IsOptional()
   @IsString()
+  username?: string;
+
+  @IsOptional()
+  @IsString()
   phone?: string;
 
   @IsOptional()
@@ -242,6 +246,65 @@ export class UsersAdminController {
   ) {
     await this.usersAdminService.resetPassword(id, body.newPassword);
     return { success: true, message: '密码已重置' };
+  }
+
+  /**
+   * 修改用户密码 (PUT)
+   */
+  @Put(':id/password')
+  async changePassword(
+    @Param('id') id: string,
+    @Body() body: { password: string },
+  ) {
+    await this.usersAdminService.resetPassword(id, body.password);
+    return { success: true, message: '密码已修改' };
+  }
+
+  /**
+   * 更新用户资料 (编辑资料)
+   */
+  @Put(':id/profile')
+  async updateProfile(@Param('id') id: string, @Body() data: UserDetailUpdateDto) {
+    const user = await this.usersAdminService.updateUser(id, data);
+    return { success: true, data: user, message: '资料已更新' };
+  }
+
+  /**
+   * 更新用户备注
+   */
+  @Put(':id/note')
+  async updateNote(@Param('id') id: string, @Body() body: { note: string }) {
+    const user = await this.usersAdminService.updateUser(id, { note: body.note } as any);
+    return { success: true, data: user, message: '备注已更新' };
+  }
+
+  /**
+   * 获取用户消息列表
+   */
+  @Get(':id/messages')
+  async getUserMessages(
+    @Param('id') id: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const result = await this.usersAdminService.getUserMessages(
+      id,
+      parseInt(page || '1', 10),
+      parseInt(limit || '20', 10),
+    );
+    return { success: true, ...result };
+  }
+
+  /**
+   * 发送消息给用户
+   */
+  @Post(':id/messages')
+  async sendMessage(
+    @Param('id') id: string,
+    @Body() body: { title: string; content: string },
+  ) {
+    const message = await this.usersAdminService.sendMessage(id, body.title, body.content);
+    return { success: true, data: message, message: '消息发送成功' };
   }
 
   /**
