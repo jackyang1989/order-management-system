@@ -218,6 +218,31 @@ export class OrdersController {
     }
   }
 
+  @Post(':id/return')
+  async returnPayment(
+    @Param('id') id: string,
+    @Body() body: { amount: number },
+    @Request() req,
+  ) {
+    try {
+      const order = await this.ordersService.returnPayment(
+        id,
+        req.user.userId,
+        body.amount,
+      );
+      return {
+        success: true,
+        message: '返款成功',
+        data: order,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
   @Post(':id/confirm-receipt')
   async confirmReceipt(@Param('id') id: string, @Request() req) {
     try {

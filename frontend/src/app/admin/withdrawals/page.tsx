@@ -25,18 +25,19 @@ interface Withdrawal {
     createdAt: string;
 }
 
-const statusLabels: Record<string, { text: string; color: 'amber' | 'green' | 'red' | 'slate' }> = {
-    PENDING: { text: '待审核', color: 'amber' },
-    APPROVED: { text: '已通过', color: 'green' },
-    REJECTED: { text: '已拒绝', color: 'red' },
-    COMPLETED: { text: '已完成', color: 'slate' },
+const statusLabels: Record<string, { text: string; color: 'amber' | 'green' | 'red' | 'slate' | 'blue' }> = {
+    '0': { text: '待审核', color: 'amber' },
+    '1': { text: '待打款', color: 'blue' },
+    '2': { text: '已拒绝', color: 'red' },
+    '3': { text: '已完成', color: 'green' },
 };
 
 export default function AdminWithdrawalsPage() {
     const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState<string>('PENDING');
+    const [filter, setFilter] = useState<string>('0');
     const [reviewing, setReviewing] = useState<string | null>(null);
+    const [confirming, setConfirming] = useState<string | null>(null);
     const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string | number>>([]);
     const [batchLoading, setBatchLoading] = useState(false);
 
@@ -85,6 +86,28 @@ export default function AdminWithdrawalsPage() {
             toastError('操作失败');
         } finally {
             setReviewing(null);
+        }
+    };
+
+    const handleConfirmPayment = async (id: string) => {
+        const token = localStorage.getItem('adminToken');
+        setConfirming(id);
+        try {
+            const res = await fetch(`${BASE_URL}/admin/withdrawals/${id}/confirm-payment`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            });
+            const json = await res.json();
+            if (json.success) {
+                toastSuccess('已确认打款');
+                loadWithdrawals();
+            } else {
+                toastError(json.message || '操作失败');
+            }
+        } catch (e) {
+            toastError('操作失败');
+        } finally {
+            setConfirming(null);
         }
     };
 
@@ -195,29 +218,41 @@ export default function AdminWithdrawalsPage() {
             title: '操作',
             className: 'w-[200px]',
             render: (row) => {
-                if (row.status !== 'PENDING') {
-                    return <span className="text-sm text-[#9ca3af]">已处理</span>;
+                if (String(row.status) === '0') {
+                    return (
+                        <div className="flex items-center gap-2">
+                            <Button
+                                size="sm"
+                                className="bg-success-400 hover:bg-success-500"
+                                loading={reviewing === row.id}
+                                onClick={() => handleApprove(row.id, true)}
+                            >
+                                ✓ 通过
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="destructive"
+                                loading={reviewing === row.id}
+                                onClick={() => setRejectModal(row.id)}
+                            >
+                                ✗ 拒绝
+                            </Button>
+                        </div>
+                    );
                 }
-                return (
-                    <div className="flex items-center gap-2">
+                if (String(row.status) === '1') {
+                    return (
                         <Button
                             size="sm"
-                            className="bg-success-400 hover:bg-success-500"
-                            loading={reviewing === row.id}
-                            onClick={() => handleApprove(row.id, true)}
+                            className="bg-primary-500 hover:bg-primary-600"
+                            loading={confirming === row.id}
+                            onClick={() => handleConfirmPayment(row.id)}
                         >
-                            ✓ 通过
+                            确认打款
                         </Button>
-                        <Button
-                            size="sm"
-                            variant="destructive"
-                            loading={reviewing === row.id}
-                            onClick={() => setRejectModal(row.id)}
-                        >
-                            ✗ 拒绝
-                        </Button>
-                    </div>
-                );
+                    );
+                }
+                return <span className="text-sm text-[#9ca3af]">已处理</span>;
             },
         },
     ];
@@ -231,9 +266,10 @@ export default function AdminWithdrawalsPage() {
                         value={filter}
                         onChange={setFilter}
                         options={[
-                            { value: 'PENDING', label: '待审核' },
-                            { value: 'APPROVED', label: '已通过' },
-                            { value: 'REJECTED', label: '已拒绝' },
+                            { value: '0', label: '待审核' },
+                            { value: '1', label: '待打款' },
+                            { value: '3', label: '已完成' },
+                            { value: '2', label: '已拒绝' },
                             { value: '', label: '全部' },
                         ]}
                         className="w-32"
@@ -241,7 +277,7 @@ export default function AdminWithdrawalsPage() {
                     <Button variant="secondary" onClick={loadWithdrawals} className="flex items-center gap-1">
                         🔄 刷新
                     </Button>
-                    {filter === 'PENDING' && selectedRowKeys.length > 0 && (
+                    {filter === '0' && selectedRowKeys.length > 0 && (
                         <>
                             <Button
                                 className="bg-success-400 hover:bg-success-500"

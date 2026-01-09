@@ -260,6 +260,28 @@ export class AdminService {
     return this.withdrawalsService.review(id, { status, remark }, adminId || 'admin');
   }
 
+  /**
+   * 确认提现已打款
+   * 将状态从APPROVED_PENDING_TRANSFER变为COMPLETED
+   */
+  async confirmWithdrawalPayment(
+    id: string,
+    adminId: string,
+  ): Promise<Withdrawal | null> {
+    const withdrawal = await this.withdrawalsRepository.findOne({
+      where: { id, status: WithdrawalStatus.APPROVED_PENDING_TRANSFER },
+    });
+    if (!withdrawal) {
+      return null;
+    }
+    withdrawal.status = WithdrawalStatus.COMPLETED;
+    withdrawal.completedAt = new Date();
+    if (adminId) {
+      withdrawal.remark = (withdrawal.remark || '') + ` [已打款 by ${adminId}]`;
+    }
+    return this.withdrawalsRepository.save(withdrawal);
+  }
+
   // ============ 批量提现审核 ============
   async batchApproveWithdrawals(
     ids: string[],

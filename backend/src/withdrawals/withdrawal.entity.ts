@@ -89,6 +89,9 @@ export class Withdrawal {
   @Column({ nullable: true })
   reviewedBy?: string; // 审核人
 
+  @Column({ type: 'timestamp', nullable: true })
+  completedAt?: Date; // 打款完成时间
+
   @CreateDateColumn()
   createdAt: Date;
 

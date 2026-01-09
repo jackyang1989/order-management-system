@@ -998,7 +998,99 @@ export class OrdersService {
     return savedOrder;
   }
 
+  /**
+   * 商家返款
+   * 将商品本金+佣金返还给买手
+   */
+  async returnPayment(
+    orderId: string,
+    merchantId: string,
+    amount: number,
+  ): Promise<Order> {
+    const order = await this.ordersRepository.findOne({
+      where: { id: orderId },
+    });
+    if (!order) {
+      throw new NotFoundException('订单不存在');
+    }
 
+    // 验证权限
+    const task = await this.tasksService.findOne(order.taskId);
+    if (!task || task.merchantId !== merchantId) {
+      throw new BadRequestException('无权操作此订单');
+    }
+
+    // 检查订单状态是否为待返款
+    if (order.status !== OrderStatus.WAITING_REFUND) {
+      throw new BadRequestException('订单状态不正确，无法返款');
+    }
+
+    // 验证返款金额范围（80%-120%）
+    const expectedAmount = Number(order.productPrice) + Number(order.commission);
+    const minAmount = expectedAmount * 0.8;
+    const maxAmount = expectedAmount * 1.2;
+    if (amount < minAmount || amount > maxAmount) {
+      throw new BadRequestException(`返款金额必须在${minAmount.toFixed(2)}-${maxAmount.toFixed(2)}之间`);
+    }
+
+    // 使用事务处理返款
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // 更新订单状态为已完成
+      order.status = OrderStatus.COMPLETED;
+      order.returnAmount = amount;
+      order.refundTime = new Date();
+      await queryRunner.manager.save(order);
+
+      // 给买手增加余额
+      const user = await this.usersRepository.findOne({
+        where: { id: order.userId },
+      });
+      if (user) {
+        user.balance = Number(user.balance) + amount;
+        await queryRunner.manager.save(user);
+
+        // 记录财务流水
+        await this.financeRecordsService.createWithManager(
+          queryRunner.manager,
+          {
+            userId: order.userId,
+            userType: 'buyer',
+            type: 'return',
+            amount: amount,
+            balanceAfter: user.balance,
+            description: `订单返款 - ${order.taskTitle}`,
+            relatedOrderId: order.id,
+          },
+        );
+      }
+
+      await queryRunner.commitTransaction();
+
+      // 发送消息通知买手
+      try {
+        await this.messagesService.sendOrderMessage(
+          order.userId,
+          MessageUserType.BUYER,
+          order.id,
+          '订单已返款',
+          `您的订单「${order.taskTitle}」已返款 ¥${amount.toFixed(2)}，款项已到账。`,
+        );
+      } catch (e) {
+        // 消息发送失败不影响主流程
+      }
+
+      return order;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
 
   /**
    * 更新平台订单号

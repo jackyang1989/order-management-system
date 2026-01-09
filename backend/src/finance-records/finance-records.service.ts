@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, EntityManager } from 'typeorm';
 import {
   FinanceRecord,
   CreateFinanceRecordDto,
@@ -24,6 +24,35 @@ export class FinanceRecordsService {
   async create(dto: CreateFinanceRecordDto): Promise<FinanceRecord> {
     const record = this.financeRecordRepository.create(dto);
     return this.financeRecordRepository.save(record);
+  }
+
+  /**
+   * 使用指定的EntityManager创建财务记录（用于事务）
+   */
+  async createWithManager(
+    manager: EntityManager,
+    data: {
+      userId: string;
+      userType: 'buyer' | 'merchant';
+      type: string;
+      amount: number;
+      balanceAfter: number;
+      description: string;
+      relatedOrderId?: string;
+    },
+  ): Promise<FinanceRecord> {
+    const record = manager.create(FinanceRecord, {
+      userId: data.userId,
+      userType: data.userType === 'buyer' ? FinanceUserType.BUYER : FinanceUserType.MERCHANT,
+      moneyType: FinanceMoneyType.BALANCE,
+      financeType: data.type === 'return' ? FinanceType.BUYER_TASK_REFUND : FinanceType.BUYER_TASK_COMMISSION,
+      amount: data.amount,
+      balanceAfter: data.balanceAfter,
+      memo: data.description,
+      relatedId: data.relatedOrderId,
+      relatedType: 'order',
+    });
+    return manager.save(record);
   }
 
   /**

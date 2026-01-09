@@ -230,6 +230,9 @@ export class Order {
   @Column({ nullable: true })
   refundTime: Date; // 返款时间
 
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  returnAmount: number; // 实际返款金额
+
   @Column({ default: 1 })
   currentStep: number;
 

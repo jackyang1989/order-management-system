@@ -163,6 +163,25 @@ export class AdminController {
     };
   }
 
+  @Put('withdrawals/:id/confirm-payment')
+  async confirmWithdrawalPayment(
+    @Param('id') id: string,
+    @Req() req,
+  ) {
+    const withdrawal = await this.adminService.confirmWithdrawalPayment(
+      id,
+      req.admin.adminId,
+    );
+    if (!withdrawal) {
+      return { success: false, message: '提现记录不存在或状态不正确' };
+    }
+    return {
+      success: true,
+      message: '已确认打款',
+      data: withdrawal,
+    };
+  }
+
   // ============ 店铺管理 ============
   @Get('shops')
   async getShops(@Query() query: any) {

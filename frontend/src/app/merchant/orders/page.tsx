@@ -161,7 +161,7 @@ export default function MerchantOrdersPage() {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ deliveryCompany, deliveryNumber })
+                body: JSON.stringify({ delivery: deliveryCompany, deliveryNum: deliveryNumber })
             });
             const json = await res.json();
             if (json.success) {
