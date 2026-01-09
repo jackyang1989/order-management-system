@@ -276,14 +276,14 @@ export default function AdminUsersPage() {
                     <Button size="sm" variant="secondary" onClick={() => setDetailModal(row)}>
                         详情
                     </Button>
-                    <Button size="sm" className="bg-success-400 text-white hover:bg-success-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'balance', action: 'add' })}>
+                    <Button size="sm" variant="success" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'balance', action: 'add' })}>
                         充值
                     </Button>
-                    <Button size="sm" className="border border-warning-400 bg-white text-warning-500 hover:bg-warning-50" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'balance', action: 'deduct' })}>
+                    <Button size="sm" variant="outline" className="border-warning-400 text-warning-500 hover:bg-warning-50" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'balance', action: 'deduct' })}>
                         扣款
                     </Button>
                     {!row.vip && (
-                        <Button size="sm" className="bg-warning-400 text-white hover:bg-warning-500" onClick={() => handleSetVip(row.id, 30)}>
+                        <Button size="sm" variant="warning" onClick={() => handleSetVip(row.id, 30)}>
                             👑 VIP
                         </Button>
                     )}
@@ -396,7 +396,7 @@ export default function AdminUsersPage() {
                         </Button>
                         <Button
                             onClick={handleAdjustBalance}
-                            className={balanceModal?.action === 'add' ? 'bg-success-400 text-white hover:bg-success-500' : 'bg-warning-400 text-white hover:bg-warning-500'}
+                            variant={balanceModal?.action === 'add' ? 'success' : 'warning'}
                         >
                             确认{balanceModal?.action === 'add' ? '充值' : '扣款'}
                         </Button>
@@ -525,14 +525,14 @@ export default function AdminUsersPage() {
                         {/* 操作按钮 */}
                         <div className="flex flex-wrap justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                             <Button
-                                className="bg-success-400 text-white hover:bg-success-500"
+                                variant="success"
                                 onClick={() => { setBalanceModal({ userId: detailModal.id, username: detailModal.username, type: 'balance', action: 'add' }); setDetailModal(null); }}
                             >
                                 充值
                             </Button>
                             {!detailModal.vip && (
                                 <Button
-                                    className="bg-warning-400 text-white hover:bg-warning-500"
+                                    variant="warning"
                                     onClick={() => { handleSetVip(detailModal.id, 30); setDetailModal(null); }}
                                 >
                                     👑 设为VIP

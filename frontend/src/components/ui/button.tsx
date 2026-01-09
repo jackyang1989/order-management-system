@@ -4,7 +4,7 @@ import { forwardRef, ButtonHTMLAttributes, ReactNode } from 'react';
 import { cn } from '../../lib/utils';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'destructive' | 'outline';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'destructive' | 'outline' | 'success' | 'warning';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   children?: ReactNode;
@@ -21,6 +21,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ghost: 'bg-transparent text-primary-500 hover:text-primary-600 focus:ring-primary-500',
       destructive: 'bg-danger-400 text-white hover:bg-danger-500 focus:ring-danger-400 disabled:bg-[#d1d5db] disabled:text-[#9ca3af]',
       outline: 'bg-white text-primary-500 border border-primary-500 hover:bg-primary-50 focus:ring-primary-500 disabled:border-[#d1d5db] disabled:text-[#9ca3af] disabled:bg-white',
+      success: 'bg-success-400 text-white hover:bg-success-500 focus:ring-success-400 disabled:bg-[#d1d5db] disabled:text-[#9ca3af]',
+      warning: 'bg-warning-400 text-white hover:bg-warning-500 focus:ring-warning-400 disabled:bg-[#d1d5db] disabled:text-[#9ca3af]',
     };
 
     const sizes: Record<string, string> = {
