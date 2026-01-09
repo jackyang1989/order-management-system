@@ -14,6 +14,9 @@ import { Modal } from '../../../components/ui/modal';
 interface Withdrawal {
     id: string;
     userId: string;
+    username?: string;
+    phone?: string;
+    userType?: number;
     amount: number;
     fee: number;
     actualAmount: number;
@@ -30,6 +33,11 @@ const statusLabels: Record<string, { text: string; color: 'amber' | 'green' | 'r
     '1': { text: '待打款', color: 'blue' },
     '2': { text: '已拒绝', color: 'red' },
     '3': { text: '已完成', color: 'green' },
+};
+
+const userTypeLabels: Record<number, { text: string; color: 'green' | 'blue' }> = {
+    1: { text: '买手', color: 'green' },
+    2: { text: '商家', color: 'blue' },
 };
 
 export default function AdminWithdrawalsPage() {
@@ -155,6 +163,20 @@ export default function AdminWithdrawalsPage() {
     };
 
     const columns: Column<Withdrawal>[] = [
+        {
+            key: 'user',
+            title: '用户信息',
+            className: 'w-[150px]',
+            render: (row) => (
+                <div>
+                    <div className="font-medium text-[#3b4559]">{row.username || '-'}</div>
+                    <div className="text-xs text-[#9ca3af]">{row.phone || '-'}</div>
+                    <Badge variant="soft" color={userTypeLabels[row.userType || 1]?.color || 'slate'} className="mt-0.5">
+                        {userTypeLabels[row.userType || 1]?.text || '买手'}
+                    </Badge>
+                </div>
+            ),
+        },
         {
             key: 'amount',
             title: '提现金额',
