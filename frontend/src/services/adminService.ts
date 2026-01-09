@@ -83,7 +83,17 @@ export const adminService = {
         return api.get<{ data: AdminMerchant[]; total: number }>(`/admin/merchants?${query.toString()}`);
     },
 
-    createMerchant: (data: { username: string; password: string; phone: string; qq?: string; companyName?: string }) =>
+    createMerchant: (data: {
+        username: string;
+        password: string;
+        phone: string;
+        qq?: string;
+        companyName?: string;
+        vipExpireAt?: string;
+        balance?: number;
+        silver?: number;
+        note?: string;
+    }) =>
         api.post('/admin/merchants', data),
 
     banMerchant: (id: string, reason: string) => api.post(`/admin/merchants/${id}/ban`, { reason }),

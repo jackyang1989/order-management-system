@@ -105,15 +105,26 @@ export class MerchantsService {
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
+    // 处理VIP到期时间
+    let vipExpireAt: Date | undefined;
+    let vip = false;
+    if (dto.vipExpireAt) {
+      vipExpireAt = new Date(dto.vipExpireAt);
+      vip = vipExpireAt > new Date();
+    }
+
     const merchant = this.merchantsRepository.create({
       username: dto.username,
       password: hashedPassword,
       phone: dto.phone,
       qq: dto.qq || '',
       companyName: dto.companyName || '',
-      balance: 0,
+      balance: dto.balance || 0,
       frozenBalance: 0,
-      silver: 0,
+      silver: dto.silver || 0,
+      vip,
+      vipExpireAt,
+      note: dto.note || '',
       status: MerchantStatus.APPROVED, // 默认直接通过，实际可设为 PENDING
     });
 

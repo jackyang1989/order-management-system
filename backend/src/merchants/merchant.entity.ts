@@ -82,6 +82,10 @@ export class Merchant {
   @Column({ name: 'referrer_id', nullable: true })
   referrerId: string;
 
+  // 备注
+  @Column({ nullable: true })
+  note: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
@@ -110,6 +114,19 @@ export class CreateMerchantDto {
   @IsString()
   @IsOptional()
   companyName?: string;
+
+  @IsOptional()
+  vipExpireAt?: string; // VIP到期时间
+
+  @IsOptional()
+  balance?: number; // 本金余额
+
+  @IsOptional()
+  silver?: number; // 银锭余额
+
+  @IsString()
+  @IsOptional()
+  note?: string; // 备注
 }
 
 export class MerchantLoginDto {

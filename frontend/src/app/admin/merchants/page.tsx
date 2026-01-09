@@ -45,8 +45,13 @@ export default function AdminMerchantsPage() {
     const [newUsername, setNewUsername] = useState('');
     const [newPhone, setNewPhone] = useState('');
     const [newMerchantPassword, setNewMerchantPassword] = useState('');
+    const [newConfirmPassword, setNewConfirmPassword] = useState('');
     const [newQQ, setNewQQ] = useState('');
     const [newCompanyName, setNewCompanyName] = useState('');
+    const [newVipExpireAt, setNewVipExpireAt] = useState('');
+    const [newBalance, setNewBalance] = useState('');
+    const [newSilver, setNewSilver] = useState('');
+    const [newNote, setNewNote] = useState('');
 
     useEffect(() => {
         loadMerchants();
@@ -175,14 +180,23 @@ export default function AdminMerchantsPage() {
         setNewUsername('');
         setNewPhone('');
         setNewMerchantPassword('');
+        setNewConfirmPassword('');
         setNewQQ('');
         setNewCompanyName('');
+        setNewVipExpireAt('');
+        setNewBalance('');
+        setNewSilver('');
+        setNewNote('');
         setActiveModal('add');
     };
 
     const submitAddMerchant = async () => {
         if (!newUsername.trim() || !newPhone.trim() || !newMerchantPassword.trim()) {
             toastError('请填写用户名、手机号和密码');
+            return;
+        }
+        if (newMerchantPassword !== newConfirmPassword) {
+            toastError('两次密码不一致');
             return;
         }
         try {
@@ -192,6 +206,10 @@ export default function AdminMerchantsPage() {
                 password: newMerchantPassword,
                 qq: newQQ || undefined,
                 companyName: newCompanyName || undefined,
+                vipExpireAt: newVipExpireAt || undefined,
+                balance: newBalance ? Number(newBalance) : undefined,
+                silver: newSilver ? Number(newSilver) : undefined,
+                note: newNote || undefined,
             });
             if (res.data?.success) {
                 toastSuccess('商家创建成功');
@@ -584,6 +602,13 @@ export default function AdminMerchantsPage() {
                         onChange={(e) => setNewMerchantPassword(e.target.value)}
                     />
                     <Input
+                        label="确认密码"
+                        type="password"
+                        placeholder="请再次输入密码"
+                        value={newConfirmPassword}
+                        onChange={(e) => setNewConfirmPassword(e.target.value)}
+                    />
+                    <Input
                         label="QQ（可选）"
                         placeholder="请输入QQ号"
                         value={newQQ}
@@ -595,6 +620,39 @@ export default function AdminMerchantsPage() {
                         value={newCompanyName}
                         onChange={(e) => setNewCompanyName(e.target.value)}
                     />
+                    <Input
+                        label="VIP到期时间（可选）"
+                        type="date"
+                        placeholder="选择VIP到期时间"
+                        value={newVipExpireAt}
+                        onChange={(e) => setNewVipExpireAt(e.target.value)}
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input
+                            label="本金余额（可选）"
+                            type="number"
+                            placeholder="初始本金余额"
+                            value={newBalance}
+                            onChange={(e) => setNewBalance(e.target.value)}
+                        />
+                        <Input
+                            label="银锭余额（可选）"
+                            type="number"
+                            placeholder="初始银锭余额"
+                            value={newSilver}
+                            onChange={(e) => setNewSilver(e.target.value)}
+                        />
+                    </div>
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">备注（可选）</label>
+                        <textarea
+                            className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            rows={2}
+                            placeholder="请输入备注"
+                            value={newNote}
+                            onChange={(e) => setNewNote(e.target.value)}
+                        />
+                    </div>
                     <div className="flex justify-end gap-3 pt-4">
                         <Button variant="secondary" onClick={() => setActiveModal(null)}>
                             取消
