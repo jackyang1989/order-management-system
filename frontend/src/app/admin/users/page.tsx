@@ -36,6 +36,9 @@ interface User {
     idCard?: string;
     invitationCode?: string;
     invitedBy?: string;
+    note?: string;
+    mcTaskNum?: number;
+    accountCount?: number;
 }
 
 interface BalanceModalData {
@@ -58,17 +61,23 @@ export default function AdminUsersPage() {
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState('');
+    const [qqSearch, setQqSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [vipFilter, setVipFilter] = useState<string>('all');
 
     const [balanceModal, setBalanceModal] = useState<BalanceModalData | null>(null);
     const [detailModal, setDetailModal] = useState<User | null>(null);
     const [banModal, setBanModal] = useState<{ userId: string; username: string } | null>(null);
+    const [noteModal, setNoteModal] = useState<{ userId: string; username: string; currentNote: string } | null>(null);
+    const [passwordModal, setPasswordModal] = useState<{ userId: string; username: string } | null>(null);
 
     // Form state for balance modal
     const [balanceAmount, setBalanceAmount] = useState('');
     const [balanceReason, setBalanceReason] = useState('');
     const [banReason, setBanReasonText] = useState('');
+    const [noteText, setNoteText] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
 
     useEffect(() => {
         loadUsers();
@@ -80,6 +89,7 @@ export default function AdminUsersPage() {
         try {
             let url = `${BASE_URL}/admin/users?page=${page}&limit=20`;
             if (search) url += `&keyword=${encodeURIComponent(search)}`;
+            if (qqSearch) url += `&qq=${encodeURIComponent(qqSearch)}`;
             if (statusFilter !== 'all') url += `&status=${statusFilter}`;
             if (vipFilter !== 'all') url += `&vip=${vipFilter}`;
 
@@ -195,6 +205,66 @@ export default function AdminUsersPage() {
         }
     };
 
+    const handleUpdateNote = async () => {
+        if (!noteModal) return;
+        const token = localStorage.getItem('adminToken');
+        try {
+            const res = await fetch(`${BASE_URL}/admin/users/${noteModal.userId}/note`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ note: noteText })
+            });
+            const json = await res.json();
+            if (json.success) {
+                toastSuccess('备注已更新');
+                setNoteModal(null);
+                setNoteText('');
+                loadUsers();
+            } else {
+                toastError(json.message || '操作失败');
+            }
+        } catch (e) {
+            toastError('操作失败');
+        }
+    };
+
+    const handleChangePassword = async () => {
+        if (!passwordModal) return;
+        if (!newPassword || newPassword.length < 6) {
+            toastError('密码至少6位');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            toastError('两次密码不一致');
+            return;
+        }
+        const token = localStorage.getItem('adminToken');
+        try {
+            const res = await fetch(`${BASE_URL}/admin/users/${passwordModal.userId}/password`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ password: newPassword })
+            });
+            const json = await res.json();
+            if (json.success) {
+                toastSuccess('密码已修改');
+                setPasswordModal(null);
+                setNewPassword('');
+                setConfirmPassword('');
+            } else {
+                toastError(json.message || '操作失败');
+            }
+        } catch (e) {
+            toastError('操作失败');
+        }
+    };
+
     const columns: Column<User>[] = [
         {
             key: 'info',
@@ -208,6 +278,7 @@ export default function AdminUsersPage() {
                     <div>
                         <div className="font-medium text-[#3b4559]">{row.username}</div>
                         <div className="text-xs text-[#9ca3af]">{row.phone}</div>
+                        {row.qq && <div className="text-xs text-[#9ca3af]">QQ: {row.qq}</div>}
                     </div>
                 </div>
             ),
@@ -240,22 +311,40 @@ export default function AdminUsersPage() {
         },
         {
             key: 'vip',
-            title: '会员',
-            className: 'w-[80px] text-center',
-            render: (row) => row.vip ? (
-                <Badge variant="solid" color="amber">VIP</Badge>
-            ) : (
-                <Badge variant="soft" color="slate">普通</Badge>
+            title: '会员状态',
+            className: 'w-[120px] text-center',
+            render: (row) => (
+                <div>
+                    {row.vip ? (
+                        <Badge variant="solid" color="amber">VIP</Badge>
+                    ) : (
+                        <Badge variant="soft" color="slate">普通</Badge>
+                    )}
+                    {row.vipExpireAt && (
+                        <div className="mt-1 text-[10px] text-[#9ca3af]">
+                            到期: {new Date(row.vipExpireAt).toLocaleDateString('zh-CN')}
+                        </div>
+                    )}
+                </div>
             ),
         },
         {
-            key: 'verify',
-            title: '实名',
-            className: 'w-[80px] text-center',
-            render: (row) => {
-                const conf = verifyLabels[row.verifyStatus] || verifyLabels[0];
-                return <Badge variant="soft" color={conf.color}>{conf.text}</Badge>;
-            },
+            key: 'accounts',
+            title: '买号数',
+            className: 'w-[70px] text-center',
+            render: (row) => (
+                <span className="text-sm font-medium">{row.accountCount || 0}</span>
+            ),
+        },
+        {
+            key: 'note',
+            title: '备注',
+            className: 'w-[100px]',
+            render: (row) => (
+                <div className="max-w-[100px] truncate text-xs text-danger-400" title={row.note || ''}>
+                    {row.note || '-'}
+                </div>
+            ),
         },
         {
             key: 'status',
@@ -268,30 +357,49 @@ export default function AdminUsersPage() {
             },
         },
         {
+            key: 'createdAt',
+            title: '注册时间',
+            className: 'w-[100px]',
+            render: (row) => (
+                <div className="text-xs text-[#9ca3af]">
+                    {new Date(row.createdAt).toLocaleDateString('zh-CN')}
+                </div>
+            ),
+        },
+        {
             key: 'actions',
             title: '操作',
-            className: 'w-[320px]',
+            className: 'w-[400px]',
             render: (row) => (
                 <div className="flex flex-wrap items-center gap-1.5">
                     <Button size="sm" variant="secondary" onClick={() => setDetailModal(row)}>
                         详情
                     </Button>
-                    <Button size="sm" variant="success" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'balance', action: 'add' })}>
-                        充值
+                    <Button size="sm" variant="outline" className="text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
+                        银锭
                     </Button>
-                    <Button size="sm" variant="outline" className="border-warning-400 text-warning-500 hover:bg-warning-50" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'balance', action: 'deduct' })}>
-                        扣款
+                    <Button size="sm" variant="outline" className="text-success-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'balance', action: 'add' })}>
+                        本金
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/users/${row.id}/accounts`}>
+                        买号
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-danger-400" onClick={() => { setNoteModal({ userId: row.id, username: row.username, currentNote: row.note || '' }); setNoteText(row.note || ''); }}>
+                        备注
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
+                        改密码
                     </Button>
                     {!row.vip && (
                         <Button size="sm" variant="warning" onClick={() => handleSetVip(row.id, 30)}>
-                            👑 VIP
+                            VIP
                         </Button>
                     )}
                     {row.isBanned ? (
                         <Button size="sm" onClick={() => handleUnban(row.id)}>解封</Button>
                     ) : (
                         <Button size="sm" variant="destructive" onClick={() => setBanModal({ userId: row.id, username: row.username })}>
-                            🚫 封禁
+                            封禁
                         </Button>
                     )}
                 </div>
@@ -305,11 +413,18 @@ export default function AdminUsersPage() {
             <Card className="bg-white">
                 <div className="flex flex-wrap items-center gap-3">
                     <Input
-                        placeholder="搜索用户名/手机号/姓名..."
+                        placeholder="用户名/手机号"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                        className="w-64"
+                        className="w-44"
+                    />
+                    <Input
+                        placeholder="QQ号"
+                        value={qqSearch}
+                        onChange={(e) => setQqSearch(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                        className="w-32"
                     />
                     <Select
                         value={statusFilter}
@@ -332,10 +447,10 @@ export default function AdminUsersPage() {
                         className="w-28"
                     />
                     <Button onClick={handleSearch} className="flex items-center gap-1">
-                        🔍 搜索
+                        搜索
                     </Button>
                     <Button variant="secondary" onClick={loadUsers} className="flex items-center gap-1">
-                        🔄 刷新
+                        刷新
                     </Button>
                 </div>
             </Card>
@@ -522,6 +637,16 @@ export default function AdminUsersPage() {
                             </div>
                         </div>
 
+                        {/* 违规备注 */}
+                        {detailModal.note && (
+                            <div>
+                                <h3 className="mb-3 border-l-4 border-danger-400 pl-2 text-sm font-semibold text-danger-400">违规备注</h3>
+                                <div className="rounded-md bg-red-50 p-4 text-sm text-danger-400">
+                                    {detailModal.note}
+                                </div>
+                            </div>
+                        )}
+
                         {/* 操作按钮 */}
                         <div className="flex flex-wrap justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                             <Button
@@ -556,6 +681,66 @@ export default function AdminUsersPage() {
                         </div>
                     </div>
                 )}
+            </Modal>
+
+            {/* 违规备注弹窗 */}
+            <Modal
+                title={`违规备注 - ${noteModal?.username}`}
+                open={!!noteModal}
+                onClose={() => { setNoteModal(null); setNoteText(''); }}
+            >
+                <div className="space-y-4">
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">备注内容</label>
+                        <textarea
+                            className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            rows={4}
+                            placeholder="请输入违规备注内容..."
+                            value={noteText}
+                            onChange={(e) => setNoteText(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => { setNoteModal(null); setNoteText(''); }}>
+                            取消
+                        </Button>
+                        <Button onClick={handleUpdateNote}>
+                            保存备注
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* 修改密码弹窗 */}
+            <Modal
+                title={`修改密码 - ${passwordModal?.username}`}
+                open={!!passwordModal}
+                onClose={() => { setPasswordModal(null); setNewPassword(''); setConfirmPassword(''); }}
+            >
+                <div className="space-y-4">
+                    <Input
+                        label="新密码"
+                        type="password"
+                        placeholder="请输入新密码（至少6位）"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                    <Input
+                        label="确认密码"
+                        type="password"
+                        placeholder="请再次输入新密码"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => { setPasswordModal(null); setNewPassword(''); setConfirmPassword(''); }}>
+                            取消
+                        </Button>
+                        <Button onClick={handleChangePassword}>
+                            确认修改
+                        </Button>
+                    </div>
+                </div>
             </Modal>
         </div>
     );

@@ -234,6 +234,7 @@ export default function AdminBuyerAccountsPage() {
                                                 <input type="checkbox" checked={allPendingSelected} onChange={e => handleSelectAll(e.target.checked)} className="cursor-pointer" />
                                             </th>
                                         )}
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">用户名</th>
                                         <th className="px-4 py-3.5 text-left text-sm font-medium">买号</th>
                                         <th className="px-4 py-3.5 text-left text-sm font-medium">平台</th>
                                         <th className="px-4 py-3.5 text-left text-sm font-medium">收货信息</th>
@@ -251,6 +252,10 @@ export default function AdminBuyerAccountsPage() {
                                                     {a.status === 0 && <input type="checkbox" checked={selectedIds.has(a.id)} onChange={e => handleSelectOne(a.id, e.target.checked)} className="cursor-pointer" />}
                                                 </td>
                                             )}
+                                            <td className="px-4 py-3.5">
+                                                <div className="text-sm font-medium">{a.user?.username || '-'}</div>
+                                                <div className="text-xs text-[#9ca3af]">{a.user?.phone || ''}</div>
+                                            </td>
                                             <td className="px-4 py-3.5">
                                                 <div className="font-medium text-primary-600">{a.accountName}</div>
                                                 {a.alipayName && <div className="text-xs text-[#9ca3af]">支付宝: {a.alipayName}</div>}
