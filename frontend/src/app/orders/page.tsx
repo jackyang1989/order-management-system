@@ -29,7 +29,7 @@ const REVIEW_STATUS_OPTIONS = [
 ];
 
 interface OrderItem { id: string; taskNumber: string; shopName: string; shopImg: string; type: string; taskType: string; mainProductName: string; mainProductPcImg: string; state: string; indexState: string; buynoAccount: string; commission: number; userDivided: number; userPrincipal: number; createdAt: string; progress: string; reviewTaskId?: string; checked?: boolean; }
-interface BuynoItem { id: string; wwid: string; }
+interface BuynoItem { id: string; platformAccount: string; }
 
 function OrdersPageContent() {
     const router = useRouter();
@@ -237,7 +237,7 @@ function OrdersPageContent() {
                                 <div className="mb-1 text-xs text-slate-500">任务买号</div>
                                 <select value={value2} onChange={(e) => { setValue2(e.target.value); setCurrentPage(1); }} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
                                     <option value="">全部买号</option>
-                                    {buynos.map(b => <option key={b.id} value={b.id}>{b.wwid}</option>)}
+                                    {buynos.map(b => <option key={b.id} value={b.id}>{b.platformAccount}</option>)}
                                 </select>
                             </div>
                         </div>

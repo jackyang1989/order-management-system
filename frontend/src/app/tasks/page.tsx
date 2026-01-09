@@ -22,7 +22,7 @@ const PRICE_OPTIONS = [
     { value: 3, label: '500-1000' }, { value: 4, label: '1000-2000' }, { value: 5, label: '>2000' },
 ];
 
-interface BuynoItem { id: string; wwid: string; count: number; }
+interface BuynoItem { id: string; platformAccount: string; count: number; }
 interface TaskItem { id: string; randNum: string; taskNumber: string; sellerName: string; mobile: string; totalPrice: number; userReward: number; userDivided: number; num: number; progress: string; }
 
 export default function TasksPage() {
@@ -140,7 +140,7 @@ export default function TasksPage() {
                         <div className="mb-1.5 text-xs text-slate-500">选择买号</div>
                         <select value={value2} onChange={(e) => selectChange(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
                             <option value="">请选择买号</option>
-                            {buynos.map(b => <option key={b.id} value={b.id}>{b.wwid}</option>)}
+                            {buynos.map(b => <option key={b.id} value={b.id}>{b.platformAccount}</option>)}
                         </select>
                         {op2count && <div className="mt-1.5 text-xs text-warning-400">今日可接 {op2count} 单</div>}
                     </div>

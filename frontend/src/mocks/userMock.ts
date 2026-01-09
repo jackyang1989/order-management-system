@@ -42,14 +42,14 @@ export interface MockBuyerAccount {
     id: string;
     userId: string;
     platform: '淘宝' | '京东' | '拼多多';
-    accountName: string; // 平台账号
+    platformAccount: string; // 平台账号
     province?: string;
     city?: string;
     district?: string;
-    receiverName?: string; // 收货人
-    receiverPhone?: string; // 收货人手机
+    buyerName?: string; // 收货人
+    buyerPhone?: string; // 收货人手机
     fullAddress?: string; // 完整地址
-    alipayName?: string; // 支付宝认证姓名
+    realName?: string; // 实名认证姓名
     star?: number;
     status: 'PENDING' | 'APPROVED' | 'REJECTED' | number;
     rejectReason?: string;
@@ -61,8 +61,8 @@ export const mockBuyerAccounts: MockBuyerAccount[] = [
         id: 'ba1',
         userId: '1',
         platform: '淘宝',
-        accountName: 'tb_buyer_001',
-        receiverName: '张三',
+        platformAccount: 'tb_buyer_001',
+        buyerName: '张三',
         status: 'APPROVED',
         star: 3
     },
@@ -70,8 +70,8 @@ export const mockBuyerAccounts: MockBuyerAccount[] = [
         id: 'ba2',
         userId: '1',
         platform: '淘宝',
-        accountName: 'tb_buyer_002',
-        receiverName: '李四',
+        platformAccount: 'tb_buyer_002',
+        buyerName: '李四',
         status: 'PENDING',
         star: 2
     }

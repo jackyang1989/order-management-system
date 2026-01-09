@@ -111,7 +111,7 @@ export default function ApiConfigPage() {
     const loadConfigs = async () => {
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`${BASE_URL}/admin/configs?group=api`, {
+            const response = await fetch(`${BASE_URL}/admin/config/group/api`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (response.ok) {
@@ -133,7 +133,7 @@ export default function ApiConfigPage() {
         try {
             const token = localStorage.getItem('adminToken');
             for (const config of configs) {
-                await fetch(`${BASE_URL}/admin/configs/${config.key}`, {
+                await fetch(`${BASE_URL}/admin/config/${config.key}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',

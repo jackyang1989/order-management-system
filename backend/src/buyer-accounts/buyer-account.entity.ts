@@ -38,16 +38,16 @@ export class BuyerAccount {
   @Column({ type: 'varchar', length: 20, default: BuyerAccountPlatform.TAOBAO })
   platform: BuyerAccountPlatform;
 
-  // 平台账号/买号（原accountName/旺旺ID）
-  @Column({ name: 'accountName', length: 100 })
+  // 平台账号/买号
+  @Column({ length: 100 })
   platformAccount: string;
 
-  // 常用登录地省（原wangwangProvince）
-  @Column({ name: 'wangwangProvince', length: 100, nullable: true })
+  // 常用登录地省
+  @Column({ length: 100, nullable: true })
   loginProvince?: string;
 
-  // 常用登录地市（原wangwangCity）
-  @Column({ name: 'wangwangCity', length: 100, nullable: true })
+  // 常用登录地市
+  @Column({ length: 100, nullable: true })
   loginCity?: string;
 
   // 收货地址省
@@ -62,39 +62,39 @@ export class BuyerAccount {
   @Column({ length: 50, nullable: true })
   district?: string;
 
-  // 收货人姓名（原receiverName）
-  @Column({ name: 'receiverName', length: 100, nullable: true })
+  // 收货人姓名
+  @Column({ length: 100, nullable: true })
   buyerName?: string;
 
-  // 收货人手机（原receiverPhone）
-  @Column({ name: 'receiverPhone', length: 20, nullable: true })
+  // 收货人手机
+  @Column({ length: 20, nullable: true })
   buyerPhone?: string;
 
   // 详细地址
   @Column({ type: 'text', nullable: true })
   fullAddress?: string;
 
-  // 实名认证姓名（原alipayName）
-  @Column({ name: 'alipayName', length: 50, nullable: true })
+  // 实名认证姓名
+  @Column({ length: 50, nullable: true })
   realName?: string;
 
-  // 淘宝档案截图（原archiveImage）
-  @Column({ name: 'archiveImage', type: 'text', nullable: true })
+  // 账号主页截图
+  @Column({ type: 'text', nullable: true })
   profileImg?: string;
 
-  // 淘气值截图（原ipImage）
-  @Column({ name: 'ipImage', type: 'text', nullable: true })
+  // 淘气值/信用截图
+  @Column({ type: 'text', nullable: true })
   creditImg?: string;
 
-  // 支付宝实名截图（原alipayImage）
-  @Column({ name: 'alipayImage', type: 'text', nullable: true })
+  // 支付宝实名截图
+  @Column({ type: 'text', nullable: true })
   payAuthImg?: string;
 
-  // 芝麻信用截图（原zhimaImage）
-  @Column({ name: 'zhimaImage', type: 'text', nullable: true })
+  // 芝麻信用截图
+  @Column({ type: 'text', nullable: true })
   scoreImg?: string;
 
-  // 身份证截图（保留）
+  // 身份证截图
   @Column({ type: 'text', nullable: true })
   idCardImage?: string;
 

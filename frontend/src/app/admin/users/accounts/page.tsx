@@ -16,18 +16,19 @@ interface BuyerAccount {
     userId: string;
     user?: { username: string; phone: string };
     platform: string;
-    accountName: string;
+    platformAccount: string;
     province?: string;
     city?: string;
     district?: string;
-    receiverName?: string;
-    receiverPhone?: string;
+    buyerName?: string;
+    buyerPhone?: string;
     fullAddress?: string;
-    alipayName?: string;
+    realName?: string;
     idCardImage?: string;
-    alipayImage?: string;
-    archiveImage?: string;
-    ipImage?: string;
+    payAuthImg?: string;
+    profileImg?: string;
+    creditImg?: string;
+    scoreImg?: string;
     loginProvince?: string;
     loginCity?: string;
     addressRemark?: string;
@@ -268,14 +269,14 @@ function AdminBuyerAccountsPageContent() {
                                                 <div className="text-xs text-[#9ca3af]">{a.user?.phone || ''}</div>
                                             </td>
                                             <td className="px-4 py-3.5">
-                                                <div className="font-medium text-primary-600">{a.accountName}</div>
-                                                {a.alipayName && <div className="text-xs text-[#9ca3af]">支付宝: {a.alipayName}</div>}
+                                                <div className="font-medium text-primary-600">{a.platformAccount}</div>
+                                                {a.realName && <div className="text-xs text-[#9ca3af]">实名: {a.realName}</div>}
                                             </td>
                                             <td className="px-4 py-3.5">
                                                 <span className="rounded bg-[#f3f4f6] px-2 py-0.5 text-xs">{platformNames[a.platform] || a.platform || '未知'}</span>
                                             </td>
                                             <td className="px-4 py-3.5">
-                                                <div className="text-sm">{a.receiverName} {a.receiverPhone}</div>
+                                                <div className="text-sm">{a.buyerName} {a.buyerPhone}</div>
                                                 <div className="text-xs text-[#9ca3af]">{a.province} {a.city}</div>
                                             </td>
                                             <td className="px-4 py-3.5 text-center">
@@ -328,9 +329,9 @@ function AdminBuyerAccountsPageContent() {
                         <div>
                             <h4 className="mb-3 border-b border-[#f3f4f6] pb-2 text-sm font-medium text-[#4b5563]">基本信息</h4>
                             <div className="grid grid-cols-2 gap-3 text-sm">
-                                <div><span className="text-[#9ca3af]">买号：</span><span className="font-medium">{detailModal.accountName}</span></div>
+                                <div><span className="text-[#9ca3af]">买号：</span><span className="font-medium">{detailModal.platformAccount}</span></div>
                                 <div><span className="text-[#9ca3af]">平台：</span>{platformNames[detailModal.platform] || detailModal.platform}</div>
-                                <div><span className="text-[#9ca3af]">支付宝姓名：</span>{detailModal.alipayName || '-'}</div>
+                                <div><span className="text-[#9ca3af]">实名姓名：</span>{detailModal.realName || '-'}</div>
                                 <div><span className="text-[#9ca3af]">星级：</span>{detailModal.star}星</div>
                                 <div><span className="text-[#9ca3af]">状态：</span><Badge variant="soft" color={statusLabels[detailModal.status]?.color}>{statusLabels[detailModal.status]?.text}</Badge></div>
                                 <div><span className="text-[#9ca3af]">提交时间：</span>{new Date(detailModal.createdAt).toLocaleString('zh-CN')}</div>
@@ -341,8 +342,8 @@ function AdminBuyerAccountsPageContent() {
                         <div>
                             <h4 className="mb-3 border-b border-[#f3f4f6] pb-2 text-sm font-medium text-[#4b5563]">收货信息</h4>
                             <div className="grid grid-cols-2 gap-3 text-sm">
-                                <div><span className="text-[#9ca3af]">收货人：</span>{detailModal.receiverName || '-'}</div>
-                                <div><span className="text-[#9ca3af]">手机号：</span>{detailModal.receiverPhone || '-'}</div>
+                                <div><span className="text-[#9ca3af]">收货人：</span>{detailModal.buyerName || '-'}</div>
+                                <div><span className="text-[#9ca3af]">手机号：</span>{detailModal.buyerPhone || '-'}</div>
                                 <div><span className="text-[#9ca3af]">省份：</span>{detailModal.province || '-'}</div>
                                 <div><span className="text-[#9ca3af]">城市：</span>{detailModal.city || '-'}</div>
                                 <div className="col-span-2"><span className="text-[#9ca3af]">详细地址：</span>{detailModal.fullAddress || '-'}</div>
@@ -366,10 +367,11 @@ function AdminBuyerAccountsPageContent() {
                             <h4 className="mb-3 border-b border-[#f3f4f6] pb-2 text-sm font-medium text-[#4b5563]">认证图片</h4>
                             <div className="flex flex-wrap gap-4">
                                 {renderImageThumbnail(detailModal.idCardImage, '身份证截图')}
-                                {renderImageThumbnail(detailModal.alipayImage, '支付宝实名截图')}
-                                {renderImageThumbnail(detailModal.archiveImage, '账号主页截图')}
-                                {renderImageThumbnail(detailModal.ipImage, '淘气值截图')}
-                                {!detailModal.idCardImage && !detailModal.alipayImage && !detailModal.archiveImage && !detailModal.ipImage && (
+                                {renderImageThumbnail(detailModal.payAuthImg, '支付宝实名截图')}
+                                {renderImageThumbnail(detailModal.profileImg, '账号主页截图')}
+                                {renderImageThumbnail(detailModal.creditImg, '淘气值截图')}
+                                {renderImageThumbnail(detailModal.scoreImg, '芝麻信用截图')}
+                                {!detailModal.idCardImage && !detailModal.payAuthImg && !detailModal.profileImg && !detailModal.creditImg && !detailModal.scoreImg && (
                                     <div className="p-5 text-[#9ca3af]">暂无认证图片</div>
                                 )}
                             </div>
