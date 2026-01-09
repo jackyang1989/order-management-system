@@ -436,7 +436,7 @@ export default function AdminUsersPage() {
                     <Button size="sm" variant="outline" className="text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
                         银锭
                     </Button>
-                    <Button size="sm" variant="outline" className="text-success-500" onClick={() => window.location.href = `/admin/users/${row.id}/yajin`}>
+                    <Button size="sm" variant="outline" className="text-success-500" onClick={() => window.location.href = `/admin/users/${row.id}/deposit`}>
                         押金
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>

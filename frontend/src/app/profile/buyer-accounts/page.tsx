@@ -167,7 +167,7 @@ export default function BuynoPage() {
                                                 size="sm"
                                                 variant="secondary"
                                                 disabled={working}
-                                                onClick={() => router.push(`/profile/buyno/edit/${acc.id}`)}
+                                                onClick={() => router.push(`/profile/buyer-accounts/edit/${acc.id}`)}
                                             >
                                                 编辑
                                             </Button>

@@ -244,7 +244,7 @@ export default function EditBuynoPage({ params }: { params: Promise<{ id: string
                 scoreImg: images.scoreImg,
             });
             toastSuccess('更新成功');
-            router.push('/profile/buyno');
+            router.push('/profile/buyer-accounts');
         } catch (e: any) {
             toastError(e?.message || '更新失败');
         } finally {

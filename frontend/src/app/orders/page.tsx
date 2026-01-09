@@ -189,10 +189,10 @@ function OrdersPageContent() {
                     else alertError(data.message || '操作失败');
                 } catch (error) { alertError('网络错误'); }
             }
-        } else router.push(`/orders/zhuipin/${review_task_id}`);
+        } else router.push(`/orders/additional-review/${review_task_id}`);
     };
 
-    const goZhuiPin = (review_task_id: string) => router.push(`/orders/zhuipin/${review_task_id}`);
+    const goZhuiPin = (review_task_id: string) => router.push(`/orders/additional-review/${review_task_id}`);
 
     const defaultBtn = (index_state: string) => { if (index_state === '4') return '确认返款'; if (index_state === '2') return '去收货'; return '查看详情'; };
     const defaultBtnClick = (index_state: string, id: string) => { if (!index_state || index_state === '4') router.push(`/orders/${id}`); else if (index_state === '2') router.push(`/orders/${id}/receive`); else router.push(`/orders/${id}`); };
