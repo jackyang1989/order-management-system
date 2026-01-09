@@ -14,11 +14,11 @@ export interface ApiResponse<T = unknown> {
 
 /**
  * 获取认证Token
- * 优先使用商家token，其次用户token
+ * 优先使用管理员token，其次商家token，最后用户token
  */
 export const getToken = (): string | null => {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem('merchantToken') || localStorage.getItem('token') || null;
+    return localStorage.getItem('adminToken') || localStorage.getItem('merchantToken') || localStorage.getItem('token') || null;
 };
 
 /**

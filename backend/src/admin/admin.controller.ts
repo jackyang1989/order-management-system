@@ -17,6 +17,8 @@ import { ShopsService } from '../shops/shops.service';
 import { ShopStatus } from '../shops/shop.entity';
 import { BuyerAccountsService } from '../buyer-accounts/buyer-accounts.service';
 import { BuyerAccountStatus } from '../buyer-accounts/buyer-account.entity';
+import { MerchantsService } from '../merchants/merchants.service';
+import { CreateMerchantDto } from '../merchants/merchant.entity';
 
 @Controller('admin')
 @UseGuards(AdminGuard)
@@ -25,6 +27,7 @@ export class AdminController {
     private readonly adminService: AdminService,
     private readonly shopsService: ShopsService,
     private readonly buyerAccountsService: BuyerAccountsService,
+    private readonly merchantsService: MerchantsService,
   ) { }
 
   // ============ 仪表盘 ============
@@ -92,6 +95,23 @@ export class AdminController {
       message: approved ? '商家审核通过' : '商家已拒绝',
       data: merchant,
     };
+  }
+
+  @Post('merchants')
+  async createMerchant(@Body() dto: CreateMerchantDto) {
+    try {
+      const merchant = await this.merchantsService.create(dto);
+      return {
+        success: true,
+        message: '商家创建成功',
+        data: merchant,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || '创建失败',
+      };
+    }
   }
 
   // ============ 任务管理 ============

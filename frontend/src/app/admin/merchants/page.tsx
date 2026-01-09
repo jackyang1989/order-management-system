@@ -28,7 +28,7 @@ export default function AdminMerchantsPage() {
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
 
-    const [activeModal, setActiveModal] = useState<'balance' | 'vip' | 'ban' | 'note' | 'password' | null>(null);
+    const [activeModal, setActiveModal] = useState<'balance' | 'vip' | 'ban' | 'note' | 'password' | 'add' | null>(null);
     const [selectedMerchant, setSelectedMerchant] = useState<AdminMerchant | null>(null);
 
     // Form states
@@ -40,6 +40,13 @@ export default function AdminMerchantsPage() {
     const [banReason, setBanReason] = useState('');
     const [noteContent, setNoteContent] = useState('');
     const [newPassword, setNewPassword] = useState('');
+
+    // Add merchant form states
+    const [newUsername, setNewUsername] = useState('');
+    const [newPhone, setNewPhone] = useState('');
+    const [newMerchantPassword, setNewMerchantPassword] = useState('');
+    const [newQQ, setNewQQ] = useState('');
+    const [newCompanyName, setNewCompanyName] = useState('');
 
     useEffect(() => {
         loadMerchants();
@@ -162,6 +169,40 @@ export default function AdminMerchantsPage() {
         setSelectedMerchant(m);
         setNewPassword('');
         setActiveModal('password');
+    };
+
+    const openAddMerchant = () => {
+        setNewUsername('');
+        setNewPhone('');
+        setNewMerchantPassword('');
+        setNewQQ('');
+        setNewCompanyName('');
+        setActiveModal('add');
+    };
+
+    const submitAddMerchant = async () => {
+        if (!newUsername.trim() || !newPhone.trim() || !newMerchantPassword.trim()) {
+            toastError('请填写用户名、手机号和密码');
+            return;
+        }
+        try {
+            const res = await adminService.createMerchant({
+                username: newUsername,
+                phone: newPhone,
+                password: newMerchantPassword,
+                qq: newQQ || undefined,
+                companyName: newCompanyName || undefined,
+            });
+            if (res.data?.success) {
+                toastSuccess('商家创建成功');
+                setActiveModal(null);
+                loadMerchants();
+            } else {
+                toastError(res.data?.message || '创建失败');
+            }
+        } catch (e: any) {
+            toastError(e.errorMessage || '创建失败');
+        }
     };
 
     const columns: Column<AdminMerchant>[] = [
@@ -331,6 +372,9 @@ export default function AdminMerchantsPage() {
                     </Button>
                     <Button variant="secondary" onClick={loadMerchants}>
                         刷新
+                    </Button>
+                    <Button onClick={openAddMerchant}>
+                        添加商家
                     </Button>
                 </div>
             </Card>
@@ -508,6 +552,55 @@ export default function AdminMerchantsPage() {
                         </Button>
                         <Button onClick={() => { toastSuccess('密码修改成功'); setActiveModal(null); }}>
                             确认修改
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* 添加商家弹窗 */}
+            <Modal
+                title="添加商家"
+                open={activeModal === 'add'}
+                onClose={() => setActiveModal(null)}
+            >
+                <div className="space-y-4">
+                    <Input
+                        label="用户名"
+                        placeholder="请输入用户名"
+                        value={newUsername}
+                        onChange={(e) => setNewUsername(e.target.value)}
+                    />
+                    <Input
+                        label="手机号"
+                        placeholder="请输入手机号"
+                        value={newPhone}
+                        onChange={(e) => setNewPhone(e.target.value)}
+                    />
+                    <Input
+                        label="密码"
+                        type="password"
+                        placeholder="请输入密码"
+                        value={newMerchantPassword}
+                        onChange={(e) => setNewMerchantPassword(e.target.value)}
+                    />
+                    <Input
+                        label="QQ（可选）"
+                        placeholder="请输入QQ号"
+                        value={newQQ}
+                        onChange={(e) => setNewQQ(e.target.value)}
+                    />
+                    <Input
+                        label="公司名称（可选）"
+                        placeholder="请输入公司名称"
+                        value={newCompanyName}
+                        onChange={(e) => setNewCompanyName(e.target.value)}
+                    />
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => setActiveModal(null)}>
+                            取消
+                        </Button>
+                        <Button onClick={submitAddMerchant}>
+                            创建商家
                         </Button>
                     </div>
                 </div>
