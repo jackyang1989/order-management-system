@@ -6,6 +6,7 @@ import { VipPackage, VipPurchase, RechargeOrder } from './vip.entity';
 // VipRecord removed
 import { User } from '../users/user.entity';
 import { FundRecord } from '../users/fund-record.entity';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { FundRecord } from '../users/fund-record.entity';
       User,
       FundRecord,
     ]),
+    AuthModule,
   ],
   controllers: [VipController],
   providers: [VipService],

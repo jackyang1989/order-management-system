@@ -188,4 +188,102 @@ export class MerchantBlacklistService {
 
     return Array.from(accounts);
   }
+
+  // ============ 管理员接口 ============
+
+  // 获取所有黑名单列表（管理员用）
+  async findAllAdmin(filter?: BlacklistFilterDto): Promise<{
+    data: MerchantBlacklist[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const page = filter?.page || 1;
+    const limit = filter?.limit || 20;
+
+    const queryBuilder = this.blacklistRepository
+      .createQueryBuilder('bl')
+      .leftJoinAndSelect('bl.seller', 'seller');
+
+    if (filter?.accountName) {
+      queryBuilder.andWhere('bl.accountName LIKE :accountName', {
+        accountName: `%${filter.accountName}%`,
+      });
+    }
+
+    if (filter?.type !== undefined) {
+      queryBuilder.andWhere('bl.type = :type', { type: filter.type });
+    }
+
+    if (filter?.status !== undefined) {
+      queryBuilder.andWhere('bl.status = :status', { status: filter.status });
+    }
+
+    const total = await queryBuilder.getCount();
+    const data = await queryBuilder
+      .orderBy('bl.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    return { data, total, page, limit };
+  }
+
+  // 审核黑名单记录
+  async reviewBlacklist(
+    id: string,
+    approved: boolean,
+    adminRemark?: string,
+  ): Promise<MerchantBlacklist> {
+    const blacklist = await this.blacklistRepository.findOne({
+      where: { id },
+    });
+
+    if (!blacklist) {
+      throw new NotFoundException('黑名单记录不存在');
+    }
+
+    blacklist.status = approved
+      ? BlacklistStatus.APPROVED
+      : BlacklistStatus.REJECTED;
+    if (adminRemark) {
+      blacklist.adminRemark = adminRemark;
+    }
+
+    return this.blacklistRepository.save(blacklist);
+  }
+
+  // 批量审核黑名单记录
+  async batchReviewBlacklist(
+    ids: string[],
+    approved: boolean,
+    adminRemark?: string,
+  ): Promise<{ success: number; failed: number }> {
+    let success = 0;
+    let failed = 0;
+
+    for (const id of ids) {
+      try {
+        await this.reviewBlacklist(id, approved, adminRemark);
+        success++;
+      } catch {
+        failed++;
+      }
+    }
+
+    return { success, failed };
+  }
+
+  // 管理员删除黑名单记录
+  async adminDelete(id: string): Promise<void> {
+    const blacklist = await this.blacklistRepository.findOne({
+      where: { id },
+    });
+
+    if (!blacklist) {
+      throw new NotFoundException('黑名单记录不存在');
+    }
+
+    await this.blacklistRepository.remove(blacklist);
+  }
 }

@@ -50,7 +50,7 @@ export class SensitiveWordsController {
   /**
    * 获取敏感词列表
    */
-  @Get('admin/list')
+  @Get('admin')
   @UseGuards(JwtAuthGuard)
   async findAll(@Query() filter: SensitiveWordFilterDto) {
     const result = await this.sensitiveWordsService.findAll(filter);
