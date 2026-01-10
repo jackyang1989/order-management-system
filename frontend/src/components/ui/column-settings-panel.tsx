@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { cn } from '../../lib/utils';
 import { Button } from './button';
 import { Modal } from './modal';
@@ -38,16 +38,12 @@ export function ColumnSettingsPanel({
     const dragItem = useRef<number | null>(null);
     const dragOverItem = useRef<number | null>(null);
 
-    // 初始化本地配置
-    useState(() => {
-        const sorted = [...config].sort((a, b) => a.order - b.order);
-        setLocalConfig(sorted);
-    });
-
     // 同步外部配置变化
-    useState(() => {
-        setLocalConfig([...config].sort((a, b) => a.order - b.order));
-    });
+    useEffect(() => {
+        if (config && config.length > 0) {
+            setLocalConfig([...config].sort((a, b) => a.order - b.order));
+        }
+    }, [config]);
 
     // 切换可见性
     const toggleVisibility = (key: string) => {

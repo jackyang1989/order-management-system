@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { BASE_URL } from '../../../../apiConfig';
-import { cn } from '../../../lib/utils';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
@@ -29,7 +28,7 @@ const statusConfig: Record<number, { text: string; color: 'amber' | 'green' | 'r
     2: { text: '已拒绝', color: 'red' },
 };
 
-export default function AdminShopsPage() {
+function ShopsContent() {
     const searchParams = useSearchParams();
     const merchantId = searchParams.get('merchantId');
 
@@ -37,9 +36,7 @@ export default function AdminShopsPage() {
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<string>('');
 
-    useEffect(() => { loadShops(); }, [statusFilter, merchantId]);
-
-    const loadShops = async () => {
+    const loadShops = useCallback(async () => {
         setLoading(true);
         const params = new URLSearchParams();
         if (statusFilter) params.append('status', statusFilter);
@@ -152,5 +149,13 @@ export default function AdminShopsPage() {
                 {shops.length === 0 && !loading && <div className="py-10 text-center text-[#9ca3af]">暂无数据</div>}
             </Card>
         </div>
+    );
+}
+
+export default function AdminShopsPage() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center py-12 text-[#6b7280]">加载中...</div>}>
+            <ShopsContent />
+        </Suspense>
     );
 }

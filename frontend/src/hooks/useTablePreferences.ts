@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { BASE_URL } from '../../apiConfig';
 
 export interface ColumnConfig {
@@ -29,13 +29,19 @@ export function useTablePreferences({
 }: UseTablePreferencesOptions): UseTablePreferencesReturn {
     const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>(defaultColumns);
     const [isLoading, setIsLoading] = useState(true);
+    const defaultColumnsRef = useRef(defaultColumns);
+
+    // Keep ref updated
+    useEffect(() => {
+        defaultColumnsRef.current = defaultColumns;
+    }, [defaultColumns]);
 
     // 加载配置
     useEffect(() => {
         const loadPreferences = async () => {
             const token = localStorage.getItem('adminToken');
             if (!token) {
-                setColumnConfig(defaultColumns);
+                setColumnConfig(defaultColumnsRef.current);
                 setIsLoading(false);
                 return;
             }
@@ -48,18 +54,18 @@ export function useTablePreferences({
                 if (json.success && json.data?.columns?.length > 0) {
                     setColumnConfig(json.data.columns);
                 } else {
-                    setColumnConfig(defaultColumns);
+                    setColumnConfig(defaultColumnsRef.current);
                 }
             } catch (e) {
                 console.error('Failed to load table preferences:', e);
-                setColumnConfig(defaultColumns);
+                setColumnConfig(defaultColumnsRef.current);
             } finally {
                 setIsLoading(false);
             }
         };
 
         loadPreferences();
-    }, [tableKey, defaultColumns]);
+    }, [tableKey]);
 
     // 保存配置到后端
     const savePreferences = useCallback(async (config: ColumnConfig[]) => {
@@ -85,7 +91,7 @@ export function useTablePreferences({
     const resetPreferences = useCallback(async () => {
         const token = localStorage.getItem('adminToken');
         if (!token) {
-            setColumnConfig(defaultColumns);
+            setColumnConfig(defaultColumnsRef.current);
             return;
         }
 
@@ -98,13 +104,13 @@ export function useTablePreferences({
             if (json.success && json.data?.columns) {
                 setColumnConfig(json.data.columns);
             } else {
-                setColumnConfig(defaultColumns);
+                setColumnConfig(defaultColumnsRef.current);
             }
         } catch (e) {
             console.error('Failed to reset table preferences:', e);
-            setColumnConfig(defaultColumns);
+            setColumnConfig(defaultColumnsRef.current);
         }
-    }, [tableKey, defaultColumns]);
+    }, [tableKey]);
 
     // 本地更新配置 (用于列宽调整)
     const updateLocalConfig = useCallback((config: ColumnConfig[]) => {
