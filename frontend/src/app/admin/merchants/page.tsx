@@ -533,8 +533,8 @@ export default function AdminMerchantsPage() {
             title: '操作',
             defaultWidth: 310,
             minWidth: 200,
-            headerClassName: 'text-right',
-            cellClassName: 'text-right',
+            headerClassName: 'text-right pr-2',
+            cellClassName: 'text-right pr-0',
             render: (row) => (
                 <div className="flex flex-wrap gap-1 justify-end">
                     <Button size="sm" variant="outline" className="w-[65px]" onClick={() => router.push(`/admin/shops?merchantId=${row.id}`)}>
