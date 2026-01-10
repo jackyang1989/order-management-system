@@ -53,7 +53,7 @@ export default function AdminMerchantsPage() {
         { key: 'referrer', visible: true, width: 120, order: 7 },
         { key: 'note', visible: true, width: 100, order: 8 },
         { key: 'createdAt', visible: true, width: 100, order: 9 },
-        { key: 'actions', visible: true, width: 280, order: 10 },
+        { key: 'actions', visible: true, width: 310, order: 10 },
     ], []);
 
     // 列配置 Hook
@@ -531,7 +531,7 @@ export default function AdminMerchantsPage() {
         {
             key: 'actions',
             title: '操作',
-            defaultWidth: 280,
+            defaultWidth: 310,
             minWidth: 200,
             render: (row) => (
                 <div className="flex flex-wrap gap-1">
@@ -619,37 +619,35 @@ export default function AdminMerchantsPage() {
             </Card>
 
             {/* 商家列表 */}
-            <Card className="overflow-hidden bg-white">
-                <div className="mb-4 flex items-center justify-end border-b border-[#e5e7eb] pb-3">
-                    <Button variant="ghost" size="sm" onClick={() => setShowColumnSettings(true)}>
-                        ☰ 列设置
-                    </Button>
-                </div>
-                <EnhancedTable
-                    columns={columns}
-                    data={merchants}
-                    rowKey={(r) => r.id}
-                    loading={loading}
-                    emptyText="暂无商家数据"
-                    columnConfig={columnConfig}
-                    onColumnConfigChange={updateLocalConfig}
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={(field, order) => {
-                        setSortField(field);
-                        setSortOrder(order);
-                        // 注意：后端暂不支持排序，这里只更新前端显示状态
-                    }}
-                />
-                <div className="mt-4 flex justify-end px-6 pb-6">
-                    <Pagination
-                        current={page}
-                        total={total}
-                        pageSize={10}
-                        onChange={setPage}
+            <div className="max-w-full overflow-hidden">
+                <Card className="overflow-hidden bg-white">
+                    <EnhancedTable
+                        columns={columns}
+                        data={merchants}
+                        rowKey={(r) => r.id}
+                        loading={loading}
+                        emptyText="暂无商家数据"
+                        columnConfig={columnConfig}
+                        onColumnConfigChange={updateLocalConfig}
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={(field, order) => {
+                            setSortField(field);
+                            setSortOrder(order);
+                            // 注意：后端暂不支持排序，这里只更新前端显示状态
+                        }}
+                        onColumnSettingsClick={() => setShowColumnSettings(true)}
                     />
-                </div>
-            </Card>
+                    <div className="mt-4 flex justify-end px-6 pb-6">
+                        <Pagination
+                            current={page}
+                            total={total}
+                            pageSize={10}
+                            onChange={setPage}
+                        />
+                    </div>
+                </Card>
+            </div>
 
             {/* 列设置面板 */}
             <ColumnSettingsPanel

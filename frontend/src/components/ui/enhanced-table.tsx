@@ -196,11 +196,23 @@ export function EnhancedTable<T extends object>({
     return (
         <div className={cn('overflow-hidden rounded-md border border-[#e5e7eb] bg-white', className)}>
             <div className="w-full overflow-x-auto">
-                <table className="w-full min-w-full border-collapse text-[14px]" style={{ tableLayout: 'auto' }}>
+                <table className="w-full min-w-full border-collapse text-[14px]" style={{ tableLayout: 'fixed' }}>
+                    <colgroup>
+                        {selectable && <col style={{ width: 40 }} />}
+                        {visibleColumns.map((col) => (
+                            <col
+                                key={col.key}
+                                style={{ width: localWidths[col.key] || col.defaultWidth || 120 }}
+                            />
+                        ))}
+                        {/* 补充一个伸缩列，吸收 w-full 带来的多余空间 */}
+                        <col style={{ width: 'auto' }} />
+                        {onColumnSettingsClick && <col style={{ width: 85 }} />}
+                    </colgroup>
                     <thead>
                         <tr className="border-b border-[#e5e7eb] bg-[#f9fafb]">
                             {selectable && (
-                                <th className="w-10 px-3 py-3 text-left text-[12px] font-semibold uppercase tracking-wider text-[#6b7280]">
+                                <th className="px-3 py-3 text-left text-[12px] font-semibold uppercase tracking-wider text-[#6b7280]">
                                     <span className="sr-only">选择</span>
                                 </th>
                             )}
@@ -223,20 +235,20 @@ export function EnhancedTable<T extends object>({
                                         )}
                                     </div>
                                     {/* 可调宽度的分隔线 */}
-                                    {idx < visibleColumns.length - 1 && (
-                                        <ColumnResizer onResize={(delta) => handleResize(col.key, delta)} />
-                                    )}
+                                    <ColumnResizer onResize={(delta) => handleResize(col.key, delta)} />
                                 </th>
                             ))}
+                            {/* 伸缩头 */}
+                            <th className="p-0 border-0" style={{ width: 'auto' }} />
                             {/* 列设置按钮 */}
                             {onColumnSettingsClick && (
-                                <th className="w-20 px-2 py-3 text-right">
+                                <th className="w-[85px] px-2 py-3 text-right">
                                     <button
                                         type="button"
                                         onClick={onColumnSettingsClick}
-                                        className="text-[12px] text-primary-500 hover:text-primary-600"
+                                        className="whitespace-nowrap text-[12px] text-primary-500 hover:text-primary-600"
                                     >
-                                        ☰ 列设置
+                                        <span className="relative -top-[1px] inline-block mr-0.5">☰</span> 列设置
                                     </button>
                                 </th>
                             )}
@@ -276,7 +288,6 @@ export function EnhancedTable<T extends object>({
                                         <td
                                             key={col.key}
                                             className="px-4 py-3 text-[#3b4559] overflow-hidden"
-                                            style={{ width: localWidths[col.key] || col.defaultWidth || 120, maxWidth: localWidths[col.key] || col.defaultWidth || 120 }}
                                         >
                                             <div className="break-words overflow-hidden">
                                                 {col.render
@@ -285,7 +296,9 @@ export function EnhancedTable<T extends object>({
                                             </div>
                                         </td>
                                     ))}
-                                    {onColumnSettingsClick && <td className="w-20" />}
+                                    {/* 伸缩列单元格 */}
+                                    <td className="p-0 border-0" />
+                                    {onColumnSettingsClick && <td className="px-2 py-3" />}
                                 </tr>
                             );
                         })}

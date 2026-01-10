@@ -111,7 +111,7 @@ export default function AdminUsersPage() {
         { key: 'lastLoginAt', visible: true, width: 100, order: 9 },
         { key: 'createdAt', visible: true, width: 90, order: 10 },
         { key: 'note', visible: true, width: 100, order: 11 },
-        { key: 'actions', visible: true, width: 280, order: 12 },
+        { key: 'actions', visible: true, width: 310, order: 12 },
     ], []);
 
     // 列配置 Hook
@@ -655,7 +655,7 @@ export default function AdminUsersPage() {
         {
             key: 'actions',
             title: '操作',
-            defaultWidth: 280,
+            defaultWidth: 310,
             minWidth: 200,
             render: (row) => (
                 <div className="flex flex-wrap gap-1">
@@ -761,32 +761,35 @@ export default function AdminUsersPage() {
             </Card>
 
             {/* 用户列表 */}
-            <Card className="overflow-hidden bg-white">
-                <EnhancedTable
-                    columns={columns}
-                    data={users}
-                    rowKey={(r) => r.id}
-                    loading={loading}
-                    emptyText="暂无用户数据"
-                    columnConfig={columnConfig}
-                    onColumnConfigChange={updateLocalConfig}
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={(field, order) => {
-                        setSortField(field);
-                        setSortOrder(order);
-                        // 注意：后端暂不支持排序，这里只更新前端显示状态
-                    }}
-                />
-                <div className="mt-4 flex justify-end px-6 pb-6">
-                    <Pagination
-                        current={page}
-                        total={total}
-                        pageSize={20}
-                        onChange={setPage}
+            <div className="max-w-full overflow-hidden">
+                <Card className="overflow-hidden bg-white">
+                    <EnhancedTable
+                        columns={columns}
+                        data={users}
+                        rowKey={(r) => r.id}
+                        loading={loading}
+                        emptyText="暂无用户数据"
+                        columnConfig={columnConfig}
+                        onColumnConfigChange={updateLocalConfig}
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={(field, order) => {
+                            setSortField(field);
+                            setSortOrder(order);
+                            // 注意：后端暂不支持排序，这里只更新前端显示状态
+                        }}
+                        onColumnSettingsClick={() => setShowColumnSettings(true)}
                     />
-                </div>
-            </Card>
+                    <div className="mt-4 flex justify-end px-6 pb-6">
+                        <Pagination
+                            current={page}
+                            total={total}
+                            pageSize={20}
+                            onChange={setPage}
+                        />
+                    </div>
+                </Card>
+            </div>
 
             {/* 列设置面板 */}
             <ColumnSettingsPanel
