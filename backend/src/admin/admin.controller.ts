@@ -71,7 +71,7 @@ export class AdminController {
     username: string;
     password: string;
     phone: string;
-    qq?: string;
+    wechat?: string;
     vipExpireAt?: string;
     balance?: number;
     silver?: number;
@@ -83,7 +83,7 @@ export class AdminController {
         username: body.username,
         password: body.password,
         phone: body.phone,
-        qq: body.qq,
+        wechat: body.wechat,
         invitationCode: '', // 不使用邀请码
         vipExpireAt: body.vipExpireAt,
         balance: body.balance,
@@ -160,7 +160,7 @@ export class AdminController {
     @Param('id') id: string,
     @Body() body: {
       phone?: string;
-      qq?: string;
+      wechat?: string;
       companyName?: string;
       balance?: number;
       silver?: number;

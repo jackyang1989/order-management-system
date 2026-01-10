@@ -8,13 +8,13 @@ import { Card } from '../../../components/ui/card';
 import { Input } from '../../../components/ui/input';
 import { Modal } from '../../../components/ui/modal';
 
-interface MerchantInfo { id: string; username: string; phone: string; qq?: string; companyName?: string; businessLicense?: string; contactName?: string; balance: number; silver: number; vip: boolean; vipExpireAt?: string; status: number; createdAt: string; }
+interface MerchantInfo { id: string; username: string; phone: string; wechat?: string; companyName?: string; businessLicense?: string; contactName?: string; balance: number; silver: number; vip: boolean; vipExpireAt?: string; status: number; createdAt: string; }
 
 export default function MerchantSettingPage() {
     const [merchant, setMerchant] = useState<MerchantInfo | null>(null);
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
-    const [formData, setFormData] = useState({ phone: '', qq: '', companyName: '', contactName: '' });
+    const [formData, setFormData] = useState({ phone: '', wechat: '', companyName: '', contactName: '' });
     const [passwordForm, setPasswordForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
@@ -26,7 +26,7 @@ export default function MerchantSettingPage() {
             const token = localStorage.getItem('merchantToken');
             const res = await fetch(`${BASE_URL}/merchant/profile`, { headers: { Authorization: `Bearer ${token}` } });
             const data = await res.json();
-            if (data.success) { setMerchant(data.data); setFormData({ phone: data.data.phone || '', qq: data.data.qq || '', companyName: data.data.companyName || '', contactName: data.data.contactName || '' }); }
+            if (data.success) { setMerchant(data.data); setFormData({ phone: data.data.phone || '', wechat: data.data.wechat || '', companyName: data.data.companyName || '', contactName: data.data.contactName || '' }); }
         } catch (error) { console.error('获取商家信息失败:', error); }
         finally { setLoading(false); }
     };
@@ -90,9 +90,9 @@ export default function MerchantSettingPage() {
                             : <div className="rounded-md bg-[#f3f4f6] px-3 py-2.5 text-[#374151]">{merchant?.phone || '-'}</div>}
                     </div>
                     <div>
-                        <label className="mb-1 block text-sm text-[#6b7280]">QQ</label>
-                        {editing ? <Input type="text" value={formData.qq} onChange={e => setFormData({ ...formData, qq: e.target.value })} />
-                            : <div className="rounded-md bg-[#f3f4f6] px-3 py-2.5 text-[#374151]">{merchant?.qq || '-'}</div>}
+                        <label className="mb-1 block text-sm text-[#6b7280]">微信</label>
+                        {editing ? <Input type="text" value={formData.wechat} onChange={e => setFormData({ ...formData, wechat: e.target.value })} />
+                            : <div className="rounded-md bg-[#f3f4f6] px-3 py-2.5 text-[#374151]">{merchant?.wechat || '-'}</div>}
                     </div>
                     <div>
                         <label className="mb-1 block text-sm text-[#6b7280]">联系人</label>

@@ -28,7 +28,7 @@ export abstract class BaseUserEntity {
   phone: string;
 
   @Column({ nullable: true })
-  qq?: string;
+  wechat?: string;
 
   // ============ 账户余额 ============
 

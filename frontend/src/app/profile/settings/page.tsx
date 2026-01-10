@@ -21,7 +21,7 @@ export default function ProfileSettingsPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [userInfo, setUserInfo] = useState({ username: '用户', mobile: '', qq: '', vip: false, vipExpireAt: '' });
+    const [userInfo, setUserInfo] = useState({ username: '用户', mobile: '', wechat: '', vip: false, vipExpireAt: '' });
 
     const [showPhoneModal, setShowPhoneModal] = useState(false);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -50,7 +50,7 @@ export default function ProfileSettingsPage() {
                 setUserInfo({
                     username: data.username,
                     mobile: data.phone,
-                    qq: data.qq || '',
+                    wechat: data.wechat || '',
                     vip: data.vip,
                     vipExpireAt: data.vipExpireAt || ''
                 });
@@ -243,7 +243,7 @@ export default function ProfileSettingsPage() {
                     <Card className="divide-y divide-slate-50 overflow-hidden rounded-[24px] border-none">
                         <InfoRow label="用户名" value={userInfo.username} />
                         <InfoRow label="手机号" value={maskedPhone} action={() => setShowPhoneModal(true)} />
-                        <InfoRow label="QQ号" value={userInfo.qq || '未绑定'} />
+                        <InfoRow label="微信号" value={userInfo.wechat || '未绑定'} />
                     </Card>
                 </div>
 

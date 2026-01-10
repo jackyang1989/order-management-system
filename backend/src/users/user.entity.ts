@@ -31,7 +31,7 @@ export class User {
   phone: string;
 
   @Column({ nullable: true })
-  qq?: string;
+  wechat?: string;
 
   @Column({ default: false })
   vip: boolean;
@@ -164,7 +164,7 @@ export class CreateUserDto {
 
   @IsString()
   @IsOptional()
-  qq?: string;
+  wechat?: string;
 
   // 管理员创建时可指定的额外字段
   @IsOptional()
@@ -204,7 +204,7 @@ export class UpdateUserDto {
 
   @IsString()
   @IsOptional()
-  qq?: string;
+  wechat?: string;
 
   @IsBoolean()
   @IsOptional()

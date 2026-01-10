@@ -437,7 +437,7 @@ export class UsersAdminService {
       ID: u.id,
       用户名: u.username,
       手机号: u.phone,
-      QQ: u.qq,
+      微信: u.wechat,
       VIP: u.vip ? '是' : '否',
       本金余额: u.balance,
       银锭余额: u.silver,

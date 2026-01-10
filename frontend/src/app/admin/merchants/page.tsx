@@ -51,7 +51,7 @@ export default function AdminMerchantsPage() {
 
     // Edit form states
     const [editPhone, setEditPhone] = useState('');
-    const [editQQ, setEditQQ] = useState('');
+    const [editWechat, setEditWechat] = useState('');
     const [editBalance, setEditBalance] = useState('');
     const [editSilver, setEditSilver] = useState('');
     const [editVipExpireAt, setEditVipExpireAt] = useState('');
@@ -62,7 +62,7 @@ export default function AdminMerchantsPage() {
     const [newPhone, setNewPhone] = useState('');
     const [newMerchantPassword, setNewMerchantPassword] = useState('');
     const [newConfirmPassword, setNewConfirmPassword] = useState('');
-    const [newQQ, setNewQQ] = useState('');
+    const [newWechat, setNewWechat] = useState('');
     const [newCompanyName, setNewCompanyName] = useState('');
     const [newVipExpireAt, setNewVipExpireAt] = useState('');
     const [newBalance, setNewBalance] = useState('');
@@ -222,7 +222,7 @@ export default function AdminMerchantsPage() {
         setNewPhone('');
         setNewMerchantPassword('');
         setNewConfirmPassword('');
-        setNewQQ('');
+        setNewWechat('');
         setNewCompanyName('');
         setNewVipExpireAt('');
         setNewBalance('');
@@ -274,7 +274,7 @@ export default function AdminMerchantsPage() {
     const openEdit = (m: AdminMerchant) => {
         setSelectedMerchant(m);
         setEditPhone(m.phone || '');
-        setEditQQ(m.qq || '');
+        setEditWechat(m.wechat || '');
         setEditBalance(String(m.balance || 0));
         setEditSilver(String(m.silver || 0));
         setEditVipExpireAt(m.vipExpireAt ? new Date(m.vipExpireAt).toISOString().split('T')[0] : '');
@@ -294,7 +294,7 @@ export default function AdminMerchantsPage() {
                 },
                 body: JSON.stringify({
                     phone: editPhone,
-                    qq: editQQ || undefined,
+                    wechat: editWechat || undefined,
                     balance: editBalance ? Number(editBalance) : undefined,
                     silver: editSilver ? Number(editSilver) : undefined,
                     vipExpireAt: editVipExpireAt || undefined,
@@ -328,7 +328,7 @@ export default function AdminMerchantsPage() {
                 username: newUsername,
                 phone: newPhone,
                 password: newMerchantPassword,
-                qq: newQQ || undefined,
+                wechat: newWechat || undefined,
                 companyName: newCompanyName || undefined,
                 vipExpireAt: newVipExpireAt || undefined,
                 balance: newBalance ? Number(newBalance) : undefined,
@@ -378,11 +378,11 @@ export default function AdminMerchantsPage() {
             ),
         },
         {
-            key: 'qq',
-            title: 'QQ',
+            key: 'wechat',
+            title: '微信',
             className: 'w-[100px]',
             render: (row) => (
-                <div className="text-sm">{row.qq || '-'}</div>
+                <div className="text-sm">{row.wechat || '-'}</div>
             ),
         },
         {
@@ -792,10 +792,10 @@ export default function AdminMerchantsPage() {
                         onChange={(e) => setEditPhone(e.target.value)}
                     />
                     <Input
-                        label="QQ"
-                        placeholder="请输入QQ号"
-                        value={editQQ}
-                        onChange={(e) => setEditQQ(e.target.value)}
+                        label="微信"
+                        placeholder="请输入微信号"
+                        value={editWechat}
+                        onChange={(e) => setEditWechat(e.target.value)}
                     />
                     <div className="grid grid-cols-2 gap-4">
                         <Input
@@ -869,10 +869,10 @@ export default function AdminMerchantsPage() {
                         onChange={(e) => setNewConfirmPassword(e.target.value)}
                     />
                     <Input
-                        label="QQ（可选）"
-                        placeholder="请输入QQ号"
-                        value={newQQ}
-                        onChange={(e) => setNewQQ(e.target.value)}
+                        label="微信（可选）"
+                        placeholder="请输入微信号"
+                        value={newWechat}
+                        onChange={(e) => setNewWechat(e.target.value)}
                     />
                     <Input
                         label="公司名称（可选）"

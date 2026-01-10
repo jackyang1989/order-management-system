@@ -21,7 +21,7 @@ function RegisterForm() {
         username: '',
         phone: '',
         smsCode: '',
-        qq: '',
+        wechat: '',
         invitationCode: '',
         password: '',
         confirmPassword: '',
@@ -100,7 +100,7 @@ function RegisterForm() {
                     username: form.username,
                     phone: form.phone,
                     password: form.password,
-                    qq: form.qq || '',
+                    wechat: form.wechat || '',
                     invitationCode: form.invitationCode,
                     smsCode: form.smsCode,
                 }),
@@ -196,13 +196,13 @@ function RegisterForm() {
                     </div>
 
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700">QQ号 (选填)</label>
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">微信号 (选填)</label>
                         <input
                             type="text"
                             className="w-full rounded-lg border border-slate-300 px-4 py-3 text-base focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                            placeholder="QQ号"
-                            value={form.qq}
-                            onChange={(e) => updateField('qq', e.target.value)}
+                            placeholder="微信号"
+                            value={form.wechat}
+                            onChange={(e) => updateField('wechat', e.target.value)}
                         />
                     </div>
 

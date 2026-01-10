@@ -30,7 +30,7 @@ export class Merchant {
   phone: string;
 
   @Column({ nullable: true })
-  qq: string;
+  wechat: string;
 
   // 企业信息
   @Column({ name: 'company_name', nullable: true })
@@ -109,7 +109,7 @@ export class CreateMerchantDto {
 
   @IsString()
   @IsOptional()
-  qq?: string;
+  wechat?: string;
 
   @IsString()
   @IsOptional()
@@ -146,7 +146,7 @@ export class UpdateMerchantDto {
 
   @IsString()
   @IsOptional()
-  qq?: string;
+  wechat?: string;
 
   @IsString()
   @IsOptional()

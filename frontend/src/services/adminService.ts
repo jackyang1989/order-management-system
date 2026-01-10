@@ -32,7 +32,7 @@ export interface AdminMerchant {
     id: string;
     username: string;
     phone: string;
-    qq?: string;
+    wechat?: string;
     companyName?: string;
     contactName?: string;
     businessLicense?: string;
@@ -87,7 +87,7 @@ export const adminService = {
         username: string;
         password: string;
         phone: string;
-        qq?: string;
+        wechat?: string;
         companyName?: string;
         vipExpireAt?: string;
         balance?: number;

@@ -118,7 +118,7 @@ export class UsersService {
       username: createUserDto.username,
       password: hashedPassword,
       phone: createUserDto.phone,
-      qq: createUserDto.qq || '',
+      wechat: createUserDto.wechat || '',
       vip: isVip, // P0-1: 注册即赠送VIP
       vipExpireAt: vipExpireDate, // P0-1: VIP到期时间
       balance: initialBalance,

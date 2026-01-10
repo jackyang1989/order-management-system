@@ -197,7 +197,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <aside
                 className={cn(
                     'custom-scrollbar fixed left-0 top-0 z-40 h-screen overflow-y-auto border-r border-[#e5e7eb] bg-white transition-all duration-200',
-                    collapsed ? 'w-[72px]' : 'w-[240px]'
+                    collapsed ? 'w-[72px]' : 'w-[200px]'
                 )}
             >
                 {/* Logo */}
@@ -297,7 +297,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <div
                 className={cn(
                     'flex flex-1 flex-col transition-all duration-200',
-                    collapsed ? 'ml-[72px]' : 'ml-[240px]'
+                    collapsed ? 'ml-[72px]' : 'ml-[200px]'
                 )}
             >
                 {/* Header */}
@@ -357,7 +357,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
                 {/* Page content */}
                 <main className="flex-1 p-6">
-                    <div className="mx-auto w-full max-w-7xl">
+                    <div className="mx-auto w-full">
                         {children}
                     </div>
                 </main>

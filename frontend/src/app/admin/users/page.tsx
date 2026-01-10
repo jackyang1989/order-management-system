@@ -18,7 +18,7 @@ interface User {
     id: string;
     username: string;
     phone: string;
-    qq?: string;
+    wechat?: string;
     balance: number;
     silver: number;
     frozenBalance?: number;
@@ -58,7 +58,7 @@ interface AddUserModalData {
     password: string;
     confirmPassword: string;
     phone: string;
-    qq: string;
+    wechat: string;
     vipExpireAt: string;
     balance: string;
     silver: string;
@@ -84,7 +84,7 @@ export default function AdminUsersPage() {
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState('');
-    const [qqSearch, setQqSearch] = useState('');
+    const [wechatSearch, setWechatSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [vipFilter, setVipFilter] = useState<string>('all');
     const [verifyFilter, setVerifyFilter] = useState<string>('all');
@@ -96,7 +96,7 @@ export default function AdminUsersPage() {
     const [passwordModal, setPasswordModal] = useState<{ userId: string; username: string } | null>(null);
     const [addUserModal, setAddUserModal] = useState(false);
     const [addUserForm, setAddUserForm] = useState<AddUserModalData>({
-        username: '', password: '', confirmPassword: '', phone: '', qq: '',
+        username: '', password: '', confirmPassword: '', phone: '', wechat: '',
         vipExpireAt: '', balance: '', silver: '', note: ''
     });
     const [addUserLoading, setAddUserLoading] = useState(false);
@@ -113,7 +113,7 @@ export default function AdminUsersPage() {
     const [editForm, setEditForm] = useState<{
         username: string;
         phone: string;
-        qq: string;
+        wechat: string;
         realName: string;
         balance: string;
         silver: string;
@@ -121,7 +121,7 @@ export default function AdminUsersPage() {
         vipExpireAt: string;
         mcTaskNum: string;
         note: string;
-    }>({ username: '', phone: '', qq: '', realName: '', balance: '0', silver: '0', vip: false, vipExpireAt: '', mcTaskNum: '0', note: '' });
+    }>({ username: '', phone: '', wechat: '', realName: '', balance: '0', silver: '0', vip: false, vipExpireAt: '', mcTaskNum: '0', note: '' });
 
     useEffect(() => {
         loadUsers();
@@ -133,7 +133,7 @@ export default function AdminUsersPage() {
         try {
             let url = `${BASE_URL}/admin/users?page=${page}&limit=20`;
             if (search) url += `&keyword=${encodeURIComponent(search)}`;
-            if (qqSearch) url += `&qq=${encodeURIComponent(qqSearch)}`;
+            if (wechatSearch) url += `&wechat=${encodeURIComponent(wechatSearch)}`;
             if (statusFilter !== 'all') url += `&status=${statusFilter}`;
             if (vipFilter !== 'all') url += `&vip=${vipFilter}`;
             if (verifyFilter !== 'all') url += `&verifyStatus=${verifyFilter}`;
@@ -162,7 +162,7 @@ export default function AdminUsersPage() {
         setEditForm({
             username: user.username,
             phone: user.phone,
-            qq: user.qq || '',
+            wechat: user.wechat || '',
             realName: user.realName || '',
             balance: String(user.balance || 0),
             silver: String(user.silver || 0),
@@ -187,7 +187,7 @@ export default function AdminUsersPage() {
                 body: JSON.stringify({
                     username: editForm.username,
                     phone: editForm.phone,
-                    qq: editForm.qq,
+                    wechat: editForm.wechat,
                     realName: editForm.realName,
                     balance: parseFloat(editForm.balance) || 0,
                     silver: parseFloat(editForm.silver) || 0,
@@ -382,7 +382,7 @@ export default function AdminUsersPage() {
                 username: addUserForm.username,
                 password: addUserForm.password,
                 phone: addUserForm.phone,
-                qq: addUserForm.qq || undefined,
+                wechat: addUserForm.wechat || undefined,
                 vipExpireAt: addUserForm.vipExpireAt || undefined,
                 balance: addUserForm.balance ? Number(addUserForm.balance) : undefined,
                 silver: addUserForm.silver ? Number(addUserForm.silver) : undefined,
@@ -401,7 +401,7 @@ export default function AdminUsersPage() {
                 toastSuccess('买手创建成功');
                 setAddUserModal(false);
                 setAddUserForm({
-                    username: '', password: '', confirmPassword: '', phone: '', qq: '',
+                    username: '', password: '', confirmPassword: '', phone: '', wechat: '',
                     vipExpireAt: '', balance: '', silver: '', note: ''
                 });
                 loadUsers();
@@ -438,11 +438,11 @@ export default function AdminUsersPage() {
             ),
         },
         {
-            key: 'qq',
-            title: 'QQ',
+            key: 'wechat',
+            title: '微信',
             className: 'w-[100px]',
             render: (row) => (
-                <div className="text-sm">{row.qq || '-'}</div>
+                <div className="text-sm">{row.wechat || '-'}</div>
             ),
         },
         {
@@ -596,9 +596,9 @@ export default function AdminUsersPage() {
                         className="w-44"
                     />
                     <Input
-                        placeholder="QQ号"
-                        value={qqSearch}
-                        onChange={(e) => setQqSearch(e.target.value)}
+                        placeholder="微信号"
+                        value={wechatSearch}
+                        onChange={(e) => setWechatSearch(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         className="w-32"
                     />
@@ -792,12 +792,12 @@ export default function AdminUsersPage() {
                                         </td>
                                     </tr>
                                     <tr className="border-b border-[#e5e7eb]">
-                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">QQ</td>
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">微信</td>
                                         <td className="px-3 py-2">
                                             <input
                                                 type="text"
-                                                value={editForm.qq}
-                                                onChange={(e) => setEditForm({ ...editForm, qq: e.target.value })}
+                                                value={editForm.wechat}
+                                                onChange={(e) => setEditForm({ ...editForm, wechat: e.target.value })}
                                                 className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
                                             />
                                         </td>
@@ -937,7 +937,7 @@ export default function AdminUsersPage() {
             <Modal
                 title="添加买手"
                 open={addUserModal}
-                onClose={() => { setAddUserModal(false); setAddUserForm({ username: '', password: '', confirmPassword: '', phone: '', qq: '', vipExpireAt: '', balance: '', silver: '', note: '' }); }}
+                onClose={() => { setAddUserModal(false); setAddUserForm({ username: '', password: '', confirmPassword: '', phone: '', wechat: '', vipExpireAt: '', balance: '', silver: '', note: '' }); }}
             >
                 <div className="space-y-4">
                     <Input
@@ -967,10 +967,10 @@ export default function AdminUsersPage() {
                         onChange={(e) => setAddUserForm({ ...addUserForm, phone: e.target.value })}
                     />
                     <Input
-                        label="QQ号"
-                        placeholder="请输入QQ号（选填）"
-                        value={addUserForm.qq}
-                        onChange={(e) => setAddUserForm({ ...addUserForm, qq: e.target.value })}
+                        label="微信号"
+                        placeholder="请输入微信号（选填）"
+                        value={addUserForm.wechat}
+                        onChange={(e) => setAddUserForm({ ...addUserForm, wechat: e.target.value })}
                     />
                     <DateInput
                         label="VIP到期时间（可选）"
@@ -1005,7 +1005,7 @@ export default function AdminUsersPage() {
                         />
                     </div>
                     <div className="flex justify-end gap-3 pt-4">
-                        <Button variant="secondary" onClick={() => { setAddUserModal(false); setAddUserForm({ username: '', password: '', confirmPassword: '', phone: '', qq: '', vipExpireAt: '', balance: '', silver: '', note: '' }); }}>
+                        <Button variant="secondary" onClick={() => { setAddUserModal(false); setAddUserForm({ username: '', password: '', confirmPassword: '', phone: '', wechat: '', vipExpireAt: '', balance: '', silver: '', note: '' }); }}>
                             取消
                         </Button>
                         <Button loading={addUserLoading} onClick={handleAddUser}>

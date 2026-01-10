@@ -112,7 +112,7 @@ export class UserDetailUpdateDto {
 
   @IsOptional()
   @IsString()
-  qq?: string;
+  wechat?: string;
 
   @IsOptional()
   @IsString()

@@ -494,7 +494,7 @@ export interface UserProfile {
     id: string;
     username: string;
     phone: string;
-    qq?: string;            // QQ号码
+    wechat?: string;            // 微信号
     realName?: string;      // 实名
     balance: number;        // 本金余额
     frozenBalance: number;  // 冻结本金

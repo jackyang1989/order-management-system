@@ -117,7 +117,7 @@ export class MerchantsService {
       username: dto.username,
       password: hashedPassword,
       phone: dto.phone,
-      qq: dto.qq || '',
+      wechat: dto.wechat || '',
       companyName: dto.companyName || '',
       balance: dto.balance || 0,
       frozenBalance: 0,
@@ -453,7 +453,7 @@ export class MerchantsService {
     id: string,
     data: {
       phone?: string;
-      qq?: string;
+      wechat?: string;
       companyName?: string;
       balance?: number;
       silver?: number;
@@ -469,7 +469,7 @@ export class MerchantsService {
 
     // 更新基本信息
     if (data.phone !== undefined) merchant.phone = data.phone;
-    if (data.qq !== undefined) merchant.qq = data.qq;
+    if (data.wechat !== undefined) merchant.wechat = data.wechat;
     if (data.companyName !== undefined) merchant.companyName = data.companyName;
     if (data.note !== undefined) merchant.note = data.note;
     if (data.referrerId !== undefined) merchant.referrerId = data.referrerId;

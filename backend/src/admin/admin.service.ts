@@ -175,7 +175,7 @@ export class AdminService {
     if (keyword) {
       const condition = status !== undefined ? 'andWhere' : 'where';
       query[condition](
-        '(merchant.username ILIKE :keyword OR merchant.phone ILIKE :keyword OR merchant.qq ILIKE :keyword)',
+        '(merchant.username ILIKE :keyword OR merchant.phone ILIKE :keyword OR merchant.wechat ILIKE :keyword)',
         { keyword: `%${keyword}%` },
       );
     }
@@ -186,7 +186,7 @@ export class AdminService {
         'merchant.id',
         'merchant.username',
         'merchant.phone',
-        'merchant.qq',
+        'merchant.wechat',
         'merchant.companyName',
         'merchant.balance',
         'merchant.frozenBalance',
