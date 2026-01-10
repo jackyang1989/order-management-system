@@ -145,13 +145,32 @@ export class UserDetailUpdateDto {
 
   @IsOptional()
   vipExpireAt?: Date;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  balance?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  silver?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  mcTaskNum?: number;
+
+  @IsOptional()
+  @IsString()
+  note?: string;
 }
 
 @Controller('admin/users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin')
 export class UsersAdminController {
-  constructor(private readonly usersAdminService: UsersAdminService) {}
+  constructor(private readonly usersAdminService: UsersAdminService) { }
 
   /**
    * 获取用户列表（分页、筛选、搜索）

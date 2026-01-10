@@ -990,7 +990,7 @@ export default function AdminUsersPage() {
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">财务备注</td>
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">备注</td>
                                         <td colSpan={3} className="px-3 py-2">
                                             <textarea
                                                 value={editForm.note}

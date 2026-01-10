@@ -47,7 +47,7 @@ export default function NewShopPage() {
     };
 
     const handleSubmit = async () => {
-        if (!formData.shopName || !formData.accountName || !formData.contactName || !formData.mobile) { alert('请完善店铺基本信息'); return; }
+        if (!formData.shopName || !formData.accountName || !formData.contactName || !formData.mobile || !formData.url) { alert('请完善店铺基本信息'); return; }
         if (!validateMobile(formData.mobile)) { alert('请输入有效的11位手机号'); return; }
         setSubmitting(true);
         const data = new FormData();
@@ -96,7 +96,7 @@ export default function NewShopPage() {
 
                     {/* URL */}
                     <div>
-                        <label className="mb-2 block font-medium">店铺链接 (选填)</label>
+                        <label className="mb-2 block font-medium">店铺链接</label>
                         <Input type="text" placeholder="https://" value={formData.url} onChange={e => setFormData({ ...formData, url: e.target.value })} />
                     </div>
 

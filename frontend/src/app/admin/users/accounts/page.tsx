@@ -242,7 +242,7 @@ function AdminBuyerAccountsPageContent() {
         } catch { alert('操作失败'); }
     };
 
-    const handleSetStar = async (id: string, star: number) => {
+    const handleSetStar = useCallback(async (id: string, star: number) => {
         try {
             const res = await fetch(`${BASE_URL}/admin/buyer-accounts/${id}/star`, {
                 method: 'PUT',
@@ -253,7 +253,7 @@ function AdminBuyerAccountsPageContent() {
             if (data.success) { alert('星级设置成功'); loadAccounts(); }
             else alert(data.message);
         } catch { alert('操作失败'); }
-    };
+    }, [loadAccounts]);
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
@@ -282,7 +282,7 @@ function AdminBuyerAccountsPageContent() {
         finally { setBatchLoading(false); }
     };
 
-    const handleDelete = async (id: string) => {
+    const handleDelete = useCallback(async (id: string) => {
         if (!confirm('确定要删除该买号吗？此操作不可恢复！')) return;
         try {
             const res = await fetch(`${BASE_URL}/admin/buyer-accounts/${id}`, {
@@ -293,9 +293,9 @@ function AdminBuyerAccountsPageContent() {
             if (data.success) { alert('删除成功'); loadAccounts(); }
             else alert(data.message || '删除失败');
         } catch { alert('操作失败'); }
-    };
+    }, [loadAccounts]);
 
-    const openEditModal = (a: BuyerAccount) => {
+    const openEditModal = useCallback((a: BuyerAccount) => {
         setEditForm({
             platformAccount: a.platformAccount || '',
             realName: a.realName || '',
@@ -313,7 +313,7 @@ function AdminBuyerAccountsPageContent() {
             remark: ''
         });
         setEditModal(a);
-    };
+    }, []);
 
     const handleSaveEdit = async () => {
         if (!editModal) return;
@@ -338,14 +338,14 @@ function AdminBuyerAccountsPageContent() {
     const allPendingSelected = pendingAccounts.length > 0 && pendingAccounts.every(a => selectedIds.has(a.id));
 
     // 获取当前账号需要显示的截图列表
-    const getDisplayImages = (account: BuyerAccount) => {
+    const getDisplayImages = useCallback((account: BuyerAccount) => {
         const platformImages = getPlatformImages(account.platform);
         return platformImages.map(img => ({
             key: img.key,
             label: img.label,
             url: account[img.key as keyof BuyerAccount] as string | undefined
         }));
-    };
+    }, []);
 
     // EnhancedTable 列定义
     const columns: EnhancedColumn<BuyerAccount>[] = useMemo(() => [

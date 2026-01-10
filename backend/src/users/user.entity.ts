@@ -212,6 +212,22 @@ export class UpdateUserDto {
 
   @IsOptional()
   vipExpireAt?: Date;
+
+  @IsOptional()
+  @IsNumber()
+  balance?: number;
+
+  @IsOptional()
+  @IsNumber()
+  silver?: number;
+
+  @IsOptional()
+  @IsNumber()
+  mcTaskNum?: number;
+
+  @IsString()
+  @IsOptional()
+  note?: string;
 }
 
 export class ChangePasswordDto {

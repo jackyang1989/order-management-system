@@ -28,12 +28,18 @@ export default function BackupPage() {
             const response = await fetch(`${BASE_URL}/admin/backup`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+            const data = await response.json();
             if (response.ok) {
-                const data = await response.json();
-                setBackups(data || []);
+                // 处理两种可能的返回格式：直接数组或 { success, data } 格式
+                const backupList = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
+                setBackups(backupList);
+            } else {
+                console.error('加载备份失败:', data?.message || '未知错误');
+                setBackups([]);
             }
         } catch (error) {
             console.error('加载失败:', error);
+            setBackups([]);
         } finally {
             setLoading(false);
         }
@@ -48,12 +54,12 @@ export default function BackupPage() {
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ description: '手动备份' }),
             });
+            const json = await response.json();
             if (response.ok) {
                 alert('备份创建成功');
                 loadBackups();
             } else {
-                const json = await response.json();
-                alert(json.message || '创建备份失败');
+                alert(json?.message || '创建备份失败');
             }
         } catch (error) {
             console.error('创建失败:', error);
@@ -73,11 +79,11 @@ export default function BackupPage() {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` },
             });
+            const json = await response.json();
             if (response.ok) {
                 alert('数据库恢复成功');
             } else {
-                const json = await response.json();
-                alert(json.message || '恢复失败');
+                alert(json?.message || '恢复失败');
             }
         } catch (error) {
             console.error('恢复失败:', error);
@@ -120,14 +126,15 @@ export default function BackupPage() {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` },
             });
+            const json = await response.json();
             if (response.ok) {
                 loadBackups();
             } else {
-                const json = await response.json();
-                alert(json.message || '删除失败');
+                alert(json?.message || '删除失败');
             }
         } catch (error) {
             console.error('删除失败:', error);
+            alert('删除失败');
         }
     };
 
@@ -141,15 +148,16 @@ export default function BackupPage() {
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ keepCount: parseInt(keepCount) }),
             });
+            const data = await response.json();
             if (response.ok) {
-                const data = await response.json();
-                alert(`已清理 ${data.deletedCount} 个旧备份`);
+                alert(`已清理 ${data?.deletedCount ?? 0} 个旧备份`);
                 loadBackups();
             } else {
-                alert('清理失败');
+                alert(data?.message || '清理失败');
             }
         } catch (error) {
             console.error('清理失败:', error);
+            alert('清理失败');
         }
     };
 

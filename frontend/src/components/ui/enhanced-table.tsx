@@ -127,25 +127,31 @@ export function EnhancedTable<T extends object>({
         setLocalWidths(widths);
     }, [columns, columnConfig]);
 
+    // 待同步到父组件的列宽变化
+    const [pendingResize, setPendingResize] = useState<{ colKey: string; newWidth: number } | null>(null);
+
     // 处理列宽变化
     const handleResize = useCallback((colKey: string, delta: number) => {
         setLocalWidths((prev) => {
             const col = columns.find((c) => c.key === colKey);
             const minWidth = col?.minWidth || 60;
             const newWidth = Math.max(minWidth, (prev[colKey] || 120) + delta);
-            const updated = { ...prev, [colKey]: newWidth };
-
-            // 回调更新配置
-            if (onColumnConfigChange && columnConfig) {
-                const newConfig = columnConfig.map((c) =>
-                    c.key === colKey ? { ...c, width: newWidth } : c
-                );
-                onColumnConfigChange(newConfig);
-            }
-
-            return updated;
+            // 标记需要同步到父组件
+            setPendingResize({ colKey, newWidth });
+            return { ...prev, [colKey]: newWidth };
         });
-    }, [columns, columnConfig, onColumnConfigChange]);
+    }, [columns]);
+
+    // 在状态更新后通知父组件
+    useEffect(() => {
+        if (pendingResize && onColumnConfigChange && columnConfig) {
+            const newConfig = columnConfig.map((c) =>
+                c.key === pendingResize.colKey ? { ...c, width: pendingResize.newWidth } : c
+            );
+            onColumnConfigChange(newConfig);
+            setPendingResize(null);
+        }
+    }, [pendingResize, onColumnConfigChange, columnConfig]);
 
     // 处理排序点击
     const handleSortClick = (colKey: string) => {
