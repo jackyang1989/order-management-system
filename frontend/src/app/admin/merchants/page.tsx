@@ -31,7 +31,7 @@ export default function AdminMerchantsPage() {
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
 
-    const [activeModal, setActiveModal] = useState<'balance' | 'vip' | 'ban' | 'note' | 'password' | 'add' | null>(null);
+    const [activeModal, setActiveModal] = useState<'balance' | 'vip' | 'ban' | 'note' | 'password' | 'add' | 'message' | 'edit' | null>(null);
     const [selectedMerchant, setSelectedMerchant] = useState<AdminMerchant | null>(null);
 
     // Form states
@@ -43,6 +43,10 @@ export default function AdminMerchantsPage() {
     const [banReason, setBanReason] = useState('');
     const [noteContent, setNoteContent] = useState('');
     const [newPassword, setNewPassword] = useState('');
+
+    // Message form states
+    const [messageTitle, setMessageTitle] = useState('');
+    const [messageContent, setMessageContent] = useState('');
 
     // Add merchant form states
     const [newUsername, setNewUsername] = useState('');
@@ -193,6 +197,46 @@ export default function AdminMerchantsPage() {
         setActiveModal('add');
     };
 
+    const openMessage = (m: AdminMerchant) => {
+        setSelectedMerchant(m);
+        setMessageTitle('');
+        setMessageContent('');
+        setActiveModal('message');
+    };
+
+    const submitMessage = async () => {
+        if (!selectedMerchant || !messageTitle.trim() || !messageContent.trim()) {
+            toastError('请填写标题和内容');
+            return;
+        }
+        try {
+            const token = localStorage.getItem('adminToken');
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/messages`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    receiverId: selectedMerchant.id,
+                    receiverType: 2, // MERCHANT
+                    type: 1, // SYSTEM
+                    title: messageTitle,
+                    content: messageContent
+                })
+            });
+            if (res.ok) {
+                toastSuccess('消息发送成功');
+                setActiveModal(null);
+            } else {
+                const json = await res.json();
+                toastError(json.message || '发送失败');
+            }
+        } catch (e) {
+            toastError('发送失败');
+        }
+    };
+
     const submitAddMerchant = async () => {
         if (!newUsername.trim() || !newPhone.trim() || !newMerchantPassword.trim()) {
             toastError('请填写用户名、手机号和密码');
@@ -301,9 +345,18 @@ export default function AdminMerchantsPage() {
         {
             key: 'referrer',
             title: '推荐人',
-            className: 'w-[80px]',
+            className: 'w-[120px]',
             render: (row) => (
-                <div className="text-xs text-[#6b7280]">{row.referrerName || row.referrerId || '-'}</div>
+                <div className="text-xs">
+                    {row.referrerName ? (
+                        <div className="text-[#374151]">{row.referrerName}</div>
+                    ) : null}
+                    {row.referrerId ? (
+                        <div className="text-[#9ca3af]">ID: {row.referrerId.slice(0, 8)}...</div>
+                    ) : (
+                        <div className="text-[#9ca3af]">-</div>
+                    )}
+                </div>
             ),
         },
         {
@@ -329,14 +382,20 @@ export default function AdminMerchantsPage() {
         {
             key: 'actions',
             title: '操作',
-            className: 'w-[380px]',
+            className: 'w-[480px]',
             render: (row) => (
                 <div className="flex flex-wrap items-center gap-1.5">
                     <Button size="sm" variant="outline" onClick={() => router.push(`/admin/shops?merchantId=${row.id}`)}>
                         店铺
                     </Button>
+                    <Button size="sm" variant="outline" onClick={() => router.push(`/admin/merchants/balance?merchantId=${row.id}`)}>
+                        流水
+                    </Button>
                     <Button size="sm" variant="outline" onClick={() => openAdjustBalance(row)}>
                         调余额
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-primary-600" onClick={() => openMessage(row)}>
+                        消息
                     </Button>
                     {!row.vip && (
                         <Button size="sm" variant="outline" className="text-warning-500" onClick={() => openSetVip(row)}>
@@ -576,6 +635,40 @@ export default function AdminMerchantsPage() {
                         </Button>
                         <Button onClick={() => { toastSuccess('密码修改成功'); setActiveModal(null); }}>
                             确认修改
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* 发送消息弹窗 */}
+            <Modal
+                title={`发送消息 - ${selectedMerchant?.username}`}
+                open={activeModal === 'message'}
+                onClose={() => setActiveModal(null)}
+            >
+                <div className="space-y-4">
+                    <Input
+                        label="消息标题"
+                        placeholder="请输入消息标题"
+                        value={messageTitle}
+                        onChange={(e) => setMessageTitle(e.target.value)}
+                    />
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">消息内容</label>
+                        <textarea
+                            className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            rows={4}
+                            placeholder="请输入消息内容"
+                            value={messageContent}
+                            onChange={(e) => setMessageContent(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => setActiveModal(null)}>
+                            取消
+                        </Button>
+                        <Button onClick={submitMessage}>
+                            发送
                         </Button>
                     </div>
                 </div>
