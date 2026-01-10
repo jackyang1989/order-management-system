@@ -13,10 +13,13 @@ export class ShopsService {
   async findAll(query: {
     status?: ShopStatus;
     sellerId?: string;
+    merchantId?: string;
     page?: number;
     limit?: number;
   }): Promise<{ list: Shop[]; total: number }> {
-    const { status, sellerId, page = 1, limit = 10 } = query;
+    const { status, sellerId, merchantId, page = 1, limit = 10 } = query;
+    // 支持 merchantId 参数（前端使用）和 sellerId 参数（兼容旧代码）
+    const filterSellerId = merchantId || sellerId;
     const qb = this.shopsRepository
       .createQueryBuilder('shop')
       .leftJoinAndSelect('shop.merchant', 'merchant')
@@ -27,8 +30,8 @@ export class ShopsService {
     if (status !== undefined) {
       qb.andWhere('shop.status = :status', { status });
     }
-    if (sellerId) {
-      qb.andWhere('shop.sellerId = :sellerId', { sellerId });
+    if (filterSellerId) {
+      qb.andWhere('shop.sellerId = :sellerId', { sellerId: filterSellerId });
     }
 
     const [list, total] = await qb.getManyAndCount();
