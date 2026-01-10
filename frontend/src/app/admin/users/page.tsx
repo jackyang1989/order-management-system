@@ -550,7 +550,7 @@ export default function AdminUsersPage() {
         },
         {
             key: 'monthlyTaskCount',
-            title: '月累计单',
+            title: '月单量',
             className: 'w-[70px] text-center',
             render: (row) => (
                 <span className="text-sm font-medium">{row.monthlyTaskCount || row.mcTaskNum || 0}</span>
@@ -885,7 +885,7 @@ export default function AdminUsersPage() {
                                         </td>
                                     </tr>
                                     <tr className="border-b border-[#e5e7eb]">
-                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">月累计完成单数</td>
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">月单量</td>
                                         <td colSpan={3} className="px-3 py-2">
                                             <input
                                                 type="number"
