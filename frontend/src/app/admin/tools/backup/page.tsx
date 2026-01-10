@@ -5,31 +5,13 @@ import { BASE_URL } from '../../../../../apiConfig';
 import { cn } from '../../../../lib/utils';
 import { Button } from '../../../../components/ui/button';
 import { Card } from '../../../../components/ui/card';
-import { Badge } from '../../../../components/ui/badge';
 
 interface Backup {
-    id: string;
     filename: string;
     size: number;
-    type: 'full' | 'data' | 'config';
-    status: 'pending' | 'running' | 'completed' | 'failed';
     createdAt: string;
-    completedAt?: string;
-    error?: string;
+    path: string;
 }
-
-const statusConfig: Record<string, { color: 'amber' | 'blue' | 'green' | 'red'; text: string }> = {
-    pending: { color: 'amber', text: '等待中' },
-    running: { color: 'blue', text: '进行中' },
-    completed: { color: 'green', text: '已完成' },
-    failed: { color: 'red', text: '失败' },
-};
-
-const typeConfig: Record<string, { color: 'blue' | 'red' | 'green'; text: string }> = {
-    full: { color: 'blue', text: '完整备份' },
-    data: { color: 'red', text: '数据备份' },
-    config: { color: 'green', text: '配置备份' },
-};
 
 export default function BackupPage() {
     const [backups, setBackups] = useState<Backup[]>([]);
@@ -43,35 +25,36 @@ export default function BackupPage() {
         setLoading(true);
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`${BASE_URL}/backup`, {
+            const response = await fetch(`${BASE_URL}/admin/backup`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (response.ok) {
                 const data = await response.json();
-                setBackups(data.data || []);
+                setBackups(data || []);
             }
         } catch (error) {
             console.error('加载失败:', error);
-            setBackups([
-                { id: '1', filename: 'backup_20241225_120000.sql', size: 1024 * 1024 * 15, type: 'full', status: 'completed', createdAt: new Date(Date.now() - 86400000).toISOString(), completedAt: new Date(Date.now() - 86400000 + 60000).toISOString() },
-                { id: '2', filename: 'backup_20241224_120000.sql', size: 1024 * 1024 * 14, type: 'full', status: 'completed', createdAt: new Date(Date.now() - 172800000).toISOString(), completedAt: new Date(Date.now() - 172800000 + 60000).toISOString() },
-            ]);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleCreate = async (type: 'full' | 'data' | 'config') => {
+    const handleCreate = async () => {
         setCreating(true);
         try {
             const token = localStorage.getItem('adminToken');
-            await fetch(`${BASE_URL}/backup`, {
+            const response = await fetch(`${BASE_URL}/admin/backup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ type }),
+                body: JSON.stringify({ description: '手动备份' }),
             });
-            alert('备份任务已创建，请稍后刷新查看');
-            loadBackups();
+            if (response.ok) {
+                alert('备份创建成功');
+                loadBackups();
+            } else {
+                const json = await response.json();
+                alert(json.message || '创建备份失败');
+            }
         } catch (error) {
             console.error('创建失败:', error);
             alert('创建备份失败');
@@ -80,17 +63,22 @@ export default function BackupPage() {
         }
     };
 
-    const handleRestore = async (id: string) => {
+    const handleRestore = async (filename: string) => {
         if (!confirm('确定要恢复到此备份？此操作不可逆！')) return;
         if (!confirm('再次确认：恢复备份将覆盖当前所有数据！')) return;
-        setRestoring(id);
+        setRestoring(filename);
         try {
             const token = localStorage.getItem('adminToken');
-            await fetch(`${BASE_URL}/backup/${id}/restore`, {
+            const response = await fetch(`${BASE_URL}/admin/backup/restore/${encodeURIComponent(filename)}`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` },
             });
-            alert('恢复任务已开始，请等待完成');
+            if (response.ok) {
+                alert('数据库恢复成功');
+            } else {
+                const json = await response.json();
+                alert(json.message || '恢复失败');
+            }
         } catch (error) {
             console.error('恢复失败:', error);
             alert('恢复失败');
@@ -99,10 +87,10 @@ export default function BackupPage() {
         }
     };
 
-    const handleDownload = async (id: string, filename: string) => {
+    const handleDownload = async (filename: string) => {
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`${BASE_URL}/backup/${id}/download`, {
+            const response = await fetch(`${BASE_URL}/admin/backup/download/${encodeURIComponent(filename)}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (response.ok) {
@@ -115,6 +103,8 @@ export default function BackupPage() {
                 a.click();
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(url);
+            } else {
+                alert('下载失败');
             }
         } catch (error) {
             console.error('下载失败:', error);
@@ -122,17 +112,44 @@ export default function BackupPage() {
         }
     };
 
-    const handleDelete = async (id: string) => {
+    const handleDelete = async (filename: string) => {
         if (!confirm('确定删除该备份文件？')) return;
         try {
             const token = localStorage.getItem('adminToken');
-            await fetch(`${BASE_URL}/backup/${id}`, {
+            const response = await fetch(`${BASE_URL}/admin/backup/${encodeURIComponent(filename)}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` },
             });
-            loadBackups();
+            if (response.ok) {
+                loadBackups();
+            } else {
+                const json = await response.json();
+                alert(json.message || '删除失败');
+            }
         } catch (error) {
             console.error('删除失败:', error);
+        }
+    };
+
+    const handleCleanOldBackups = async () => {
+        const keepCount = prompt('保留最近多少个备份？', '10');
+        if (!keepCount) return;
+        try {
+            const token = localStorage.getItem('adminToken');
+            const response = await fetch(`${BASE_URL}/admin/backup/clean`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ keepCount: parseInt(keepCount) }),
+            });
+            if (response.ok) {
+                const data = await response.json();
+                alert(`已清理 ${data.deletedCount} 个旧备份`);
+                loadBackups();
+            } else {
+                alert('清理失败');
+            }
+        } catch (error) {
+            console.error('清理失败:', error);
         }
     };
 
@@ -155,18 +172,17 @@ export default function BackupPage() {
                 </div>
                 <div className="flex gap-3">
                     <Button
-                        onClick={() => handleCreate('full')}
+                        onClick={handleCreate}
                         disabled={creating}
                         className={cn(creating && 'cursor-not-allowed opacity-70')}
                     >
-                        {creating ? '创建中...' : '🗄️ 完整备份'}
+                        {creating ? '创建中...' : '创建备份'}
                     </Button>
                     <Button
-                        onClick={() => handleCreate('data')}
-                        disabled={creating}
-                        className={cn('bg-green-500 hover:bg-success-400', creating && 'cursor-not-allowed opacity-70')}
+                        onClick={handleCleanOldBackups}
+                        variant="secondary"
                     >
-                        📊 数据备份
+                        清理旧备份
                     </Button>
                 </div>
             </div>
@@ -178,16 +194,16 @@ export default function BackupPage() {
                     <div className="mt-1 text-sm text-[#6b7280]">备份总数</div>
                 </Card>
                 <Card className="bg-white p-5 text-center">
-                    <div className="text-3xl font-bold text-success-400">{backups.filter(b => b.status === 'completed').length}</div>
-                    <div className="mt-1 text-sm text-[#6b7280]">成功备份</div>
-                </Card>
-                <Card className="bg-white p-5 text-center">
                     <div className="text-3xl font-bold text-warning-500">{formatSize(backups.reduce((sum, b) => sum + b.size, 0))}</div>
                     <div className="mt-1 text-sm text-[#6b7280]">占用空间</div>
                 </Card>
                 <Card className="bg-white p-5 text-center">
                     <div className="text-3xl font-bold text-purple-600">{backups.length > 0 ? formatDate(backups[0].createdAt).split(' ')[0] : '-'}</div>
-                    <div className="mt-1 text-sm text-[#6b7280]">最近备份</div>
+                    <div className="mt-1 text-sm text-[#6b7280]">最近备份日期</div>
+                </Card>
+                <Card className="bg-white p-5 text-center">
+                    <div className="text-3xl font-bold text-success-400">{backups.length > 0 ? formatSize(backups[0].size) : '-'}</div>
+                    <div className="mt-1 text-sm text-[#6b7280]">最近备份大小</div>
                 </Card>
             </div>
 
@@ -204,52 +220,42 @@ export default function BackupPage() {
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="min-w-[900px] w-full border-collapse">
+                        <table className="min-w-[700px] w-full border-collapse">
                             <thead>
                                 <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
                                     <th className="px-4 py-4 text-left text-sm font-medium">文件名</th>
-                                    <th className="px-4 py-4 text-left text-sm font-medium">类型</th>
                                     <th className="px-4 py-4 text-left text-sm font-medium">大小</th>
-                                    <th className="px-4 py-4 text-left text-sm font-medium">状态</th>
                                     <th className="px-4 py-4 text-left text-sm font-medium">创建时间</th>
                                     <th className="px-4 py-4 text-center text-sm font-medium">操作</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {backups.map(backup => (
-                                    <tr key={backup.id} className="border-b border-[#f3f4f6]">
+                                    <tr key={backup.filename} className="border-b border-[#f3f4f6]">
                                         <td className="px-4 py-4">
                                             <span className="mr-2">📄</span>
                                             {backup.filename}
                                         </td>
-                                        <td className="px-4 py-4">
-                                            <Badge variant="soft" color={typeConfig[backup.type]?.color}>{typeConfig[backup.type]?.text}</Badge>
-                                        </td>
                                         <td className="px-4 py-4">{formatSize(backup.size)}</td>
-                                        <td className="px-4 py-4">
-                                            <Badge variant="soft" color={statusConfig[backup.status]?.color}>{statusConfig[backup.status]?.text}</Badge>
-                                        </td>
                                         <td className="px-4 py-4 text-xs text-[#6b7280]">{formatDate(backup.createdAt)}</td>
                                         <td className="px-4 py-4 text-center">
                                             <div className="flex justify-center gap-2">
                                                 <Button
                                                     size="sm"
                                                     variant="secondary"
-                                                    onClick={() => handleDownload(backup.id, backup.filename)}
-                                                    disabled={backup.status !== 'completed'}
-                                                    className={cn(backup.status !== 'completed' && 'cursor-not-allowed opacity-50')}
+                                                    onClick={() => handleDownload(backup.filename)}
                                                 >
                                                     下载
                                                 </Button>
                                                 <Button
                                                     size="sm"
-                                                    className={cn('border border-amber-300 bg-amber-50 text-warning-500 hover:bg-amber-100', (backup.status !== 'completed' || restoring === backup.id) && 'cursor-not-allowed opacity-50')}
-                                                    onClick={() => handleRestore(backup.id)}
-                                                    disabled={backup.status !== 'completed' || restoring === backup.id}
+                                                    className={cn('border border-amber-300 bg-amber-50 text-warning-500 hover:bg-amber-100', restoring === backup.filename && 'cursor-not-allowed opacity-50')}
+                                                    onClick={() => handleRestore(backup.filename)}
+                                                    disabled={restoring === backup.filename}
                                                 >
-                                                    {restoring === backup.id ? '恢复中...' : '恢复'}
+                                                    {restoring === backup.filename ? '恢复中...' : '恢复'}
                                                 </Button>
-                                                <Button size="sm" variant="destructive" onClick={() => handleDelete(backup.id)}>删除</Button>
+                                                <Button size="sm" variant="destructive" onClick={() => handleDelete(backup.filename)}>删除</Button>
                                             </div>
                                         </td>
                                     </tr>
@@ -262,13 +268,13 @@ export default function BackupPage() {
 
             {/* Info Box */}
             <div className="rounded-md border border-blue-200 bg-blue-50 px-6 py-4">
-                <h4 className="mb-2 text-sm font-medium text-primary-600">💡 备份说明</h4>
+                <h4 className="mb-2 text-sm font-medium text-primary-600">备份说明</h4>
                 <ul className="list-disc space-y-1 pl-5 text-xs leading-relaxed text-[#4b5563]">
-                    <li><strong>完整备份</strong>：包含数据库所有表的数据和结构</li>
-                    <li><strong>数据备份</strong>：仅包含业务数据（用户、订单、任务等）</li>
-                    <li><strong>配置备份</strong>：仅包含系统配置数据</li>
-                    <li>建议每日执行完整备份，备份文件可下载至本地保存</li>
-                    <li>恢复操作将覆盖当前数据，请谨慎操作</li>
+                    <li>备份使用 PostgreSQL 的 pg_dump 工具创建完整的数据库备份</li>
+                    <li>备份文件包含数据库所有表的数据和结构</li>
+                    <li>恢复操作将使用 psql 恢复备份，会覆盖当前数据</li>
+                    <li>建议定期执行备份，备份文件可下载至本地保存</li>
+                    <li>使用"清理旧备份"功能可以保留最近N个备份，删除更早的备份</li>
                 </ul>
             </div>
         </div>

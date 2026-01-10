@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { BASE_URL } from '../../../../apiConfig';
 import { cn } from '../../../lib/utils';
 import { Button } from '../../../components/ui/button';
@@ -29,15 +30,21 @@ const statusConfig: Record<number, { text: string; color: 'amber' | 'green' | 'r
 };
 
 export default function AdminShopsPage() {
+    const searchParams = useSearchParams();
+    const merchantId = searchParams.get('merchantId');
+
     const [shops, setShops] = useState<Shop[]>([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<string>('');
 
-    useEffect(() => { loadShops(); }, [statusFilter]);
+    useEffect(() => { loadShops(); }, [statusFilter, merchantId]);
 
     const loadShops = async () => {
         setLoading(true);
-        const query = statusFilter ? `?status=${statusFilter}` : '';
+        const params = new URLSearchParams();
+        if (statusFilter) params.append('status', statusFilter);
+        if (merchantId) params.append('merchantId', merchantId);
+        const query = params.toString() ? `?${params.toString()}` : '';
         const res = await fetch(`${BASE_URL}/admin/shops${query}`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
         });
@@ -60,7 +67,17 @@ export default function AdminShopsPage() {
 
     return (
         <div className="space-y-6 p-6">
-            <h1 className="text-2xl font-medium">店铺审核</h1>
+            <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-medium">
+                    店铺审核
+                    {merchantId && <span className="ml-2 text-base text-[#6b7280]">(筛选商家ID: {merchantId})</span>}
+                </h1>
+                {merchantId && (
+                    <Button variant="outline" onClick={() => window.location.href = '/admin/shops'}>
+                        查看全部
+                    </Button>
+                )}
+            </div>
 
             <div className="flex items-center gap-3">
                 <Select

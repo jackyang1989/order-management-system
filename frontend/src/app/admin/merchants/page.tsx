@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { cn, formatDate } from '../../../lib/utils';
 import { toastSuccess, toastError } from '../../../lib/toast';
 import { Button } from '../../../components/ui/button';
@@ -22,6 +23,7 @@ const statusLabels: Record<number, { text: string; color: 'amber' | 'green' | 'r
 };
 
 export default function AdminMerchantsPage() {
+    const router = useRouter();
     const [merchants, setMerchants] = useState<AdminMerchant[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<string>('all');
@@ -327,9 +329,12 @@ export default function AdminMerchantsPage() {
         {
             key: 'actions',
             title: '操作',
-            className: 'w-[320px]',
+            className: 'w-[380px]',
             render: (row) => (
                 <div className="flex flex-wrap items-center gap-1.5">
+                    <Button size="sm" variant="outline" onClick={() => router.push(`/admin/shops?merchantId=${row.id}`)}>
+                        店铺
+                    </Button>
                     <Button size="sm" variant="outline" onClick={() => openAdjustBalance(row)}>
                         调余额
                     </Button>

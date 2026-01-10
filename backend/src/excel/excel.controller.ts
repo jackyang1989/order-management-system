@@ -17,6 +17,7 @@ import { BatchOperationsService } from '../batch-operations/batch-operations.ser
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { OrderStatus } from '../orders/order.entity';
 import { TaskStatus } from '../tasks/task.entity';
+import { WithdrawalOwnerType } from '../withdrawals/withdrawal.entity';
 
 @Controller('excel')
 export class ExcelController {
@@ -83,6 +84,38 @@ export class ExcelController {
     res.setHeader(
       'Content-Disposition',
       `attachment; filename=tasks_${Date.now()}.xlsx`,
+    );
+    res.send(buffer);
+  }
+
+  /**
+   * 导出提现记录
+   */
+  @Get('export/withdrawals')
+  @UseGuards(JwtAuthGuard)
+  async exportWithdrawals(
+    @Res() res: express.Response,
+    @Query('status') status?: string,
+    @Query('ownerType') ownerType?: string,
+    @Query('keyword') keyword?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const buffer = await this.excelService.exportWithdrawals({
+      status: status ? parseInt(status, 10) : undefined,
+      ownerType: ownerType as WithdrawalOwnerType,
+      keyword,
+      startDate: startDate ? new Date(startDate) : undefined,
+      endDate: endDate ? new Date(endDate) : undefined,
+    });
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=withdrawals_${Date.now()}.xlsx`,
     );
     res.send(buffer);
   }

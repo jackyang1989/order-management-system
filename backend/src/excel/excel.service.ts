@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, In } from 'typeorm';
+import { Repository, Between, In, Like } from 'typeorm';
 import { Order, OrderStatus } from '../orders/order.entity';
 import { Task, TaskStatus } from '../tasks/task.entity';
+import { Withdrawal, WithdrawalStatus, WithdrawalOwnerType } from '../withdrawals/withdrawal.entity';
 import * as ExcelJS from 'exceljs';
 
 export interface ExportColumn {
@@ -18,6 +19,8 @@ export class ExcelService {
     private orderRepository: Repository<Order>,
     @InjectRepository(Task)
     private taskRepository: Repository<Task>,
+    @InjectRepository(Withdrawal)
+    private withdrawalRepository: Repository<Withdrawal>,
   ) { }
 
   // ============ 导出功能 ============
@@ -128,6 +131,60 @@ export class ExcelService {
     }));
 
     return this.generateExcel(columns, data, '任务列表');
+  }
+
+  /**
+   * 导出提现列表
+   */
+  async exportWithdrawals(filter: {
+    status?: number;
+    ownerType?: WithdrawalOwnerType;
+    keyword?: string;
+    startDate?: Date;
+    endDate?: Date;
+  }): Promise<Buffer> {
+    const queryBuilder = this.withdrawalRepository.createQueryBuilder('w');
+
+    if (filter.status !== undefined) {
+      queryBuilder.andWhere('w.status = :status', { status: filter.status });
+    }
+    if (filter.ownerType) {
+      queryBuilder.andWhere('w.ownerType = :ownerType', { ownerType: filter.ownerType });
+    }
+    if (filter.startDate && filter.endDate) {
+      queryBuilder.andWhere('w.createdAt BETWEEN :startDate AND :endDate', {
+        startDate: filter.startDate,
+        endDate: filter.endDate,
+      });
+    }
+
+    const withdrawals = await queryBuilder.orderBy('w.createdAt', 'DESC').getMany();
+
+    const columns: ExportColumn[] = [
+      { header: 'ID', key: 'id', width: 40 },
+      { header: '用户类型', key: 'ownerTypeText', width: 10 },
+      { header: '提现金额', key: 'amount', width: 12 },
+      { header: '手续费', key: 'fee', width: 10 },
+      { header: '到账金额', key: 'actualAmount', width: 12 },
+      { header: '银行名称', key: 'bankName', width: 15 },
+      { header: '开户人', key: 'accountName', width: 12 },
+      { header: '银行卡号', key: 'cardNumber', width: 25 },
+      { header: '手机号', key: 'phone', width: 15 },
+      { header: '状态', key: 'statusText', width: 12 },
+      { header: '申请时间', key: 'createdAt', width: 20 },
+      { header: '审核时间', key: 'reviewedAt', width: 20 },
+      { header: '备注', key: 'remark', width: 30 },
+    ];
+
+    const data = withdrawals.map((w) => ({
+      ...w,
+      ownerTypeText: w.ownerType === WithdrawalOwnerType.BUYER ? '买手' : '商家',
+      statusText: this.getWithdrawalStatusText(w.status),
+      createdAt: w.createdAt?.toISOString?.() || '',
+      reviewedAt: w.reviewedAt?.toISOString?.() || '',
+    }));
+
+    return this.generateExcel(columns, data, '提现记录');
   }
 
   /**
@@ -323,6 +380,19 @@ export class ExcelService {
       [TaskStatus.CANCELLED]: '已取消',
       [TaskStatus.AUDIT]: '待审核',
       [TaskStatus.PAUSED]: '已暂停',
+    };
+    return statusMap[status] || String(status);
+  }
+
+  /**
+   * 获取提现状态文本
+   */
+  private getWithdrawalStatusText(status: number): string {
+    const statusMap: Record<number, string> = {
+      [WithdrawalStatus.PENDING]: '待审核',
+      [WithdrawalStatus.APPROVED_PENDING_TRANSFER]: '待打款',
+      [WithdrawalStatus.REJECTED]: '已拒绝',
+      [WithdrawalStatus.COMPLETED]: '已完成',
     };
     return statusMap[status] || String(status);
   }
