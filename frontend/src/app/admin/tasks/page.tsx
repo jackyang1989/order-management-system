@@ -78,6 +78,7 @@ export default function AdminTasksPage() {
     const [total, setTotal] = useState(0);
     const [exporting, setExporting] = useState(false);
     const [detailModal, setDetailModal] = useState<Task | null>(null);
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
     const statusOptions = useMemo(
         () =>
@@ -93,6 +94,7 @@ export default function AdminTasksPage() {
     const loadTasks = async () => {
         const token = localStorage.getItem('adminToken');
         setLoading(true);
+        setSelectedIds([]);
         try {
             let url = `${BASE_URL}/admin/tasks?page=${page}&limit=20`;
             if (filter !== undefined) url += `&status=${filter}`;
@@ -100,6 +102,62 @@ export default function AdminTasksPage() {
             const json = await res.json();
             if (json.success) { setTasks(json.data); setTotal(json.total || json.data.length); }
         } catch (e) { console.error(e); } finally { setLoading(false); }
+    };
+
+    const toggleSelect = (id: string) => {
+        setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.length === tasks.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(tasks.map(t => t.id));
+        }
+    };
+
+    const handleBatchApprove = async () => {
+        if (selectedIds.length === 0) {
+            toastError('请先选择任务');
+            return;
+        }
+        if (!confirm(`确定要批量通过 ${selectedIds.length} 个任务吗？`)) return;
+        const token = localStorage.getItem('adminToken');
+        try {
+            for (const id of selectedIds) {
+                await fetch(`${BASE_URL}/admin/tasks/${id}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ status: 1 })
+                });
+            }
+            toastSuccess(`已批量通过 ${selectedIds.length} 个任务`);
+            loadTasks();
+        } catch (e) {
+            toastError('批量操作失败');
+        }
+    };
+
+    const handleBatchReject = async () => {
+        if (selectedIds.length === 0) {
+            toastError('请先选择任务');
+            return;
+        }
+        if (!confirm(`确定要批量拒绝 ${selectedIds.length} 个任务吗？`)) return;
+        const token = localStorage.getItem('adminToken');
+        try {
+            for (const id of selectedIds) {
+                await fetch(`${BASE_URL}/admin/tasks/${id}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ status: 3 })
+                });
+            }
+            toastSuccess(`已批量拒绝 ${selectedIds.length} 个任务`);
+            loadTasks();
+        } catch (e) {
+            toastError('批量操作失败');
+        }
     };
 
     const handleUpdateStatus = async (id: string, status: number) => {
@@ -149,6 +207,26 @@ export default function AdminTasksPage() {
     };
 
     const columns: Column<Task>[] = [
+        {
+            key: 'checkbox',
+            title: (
+                <input
+                    type="checkbox"
+                    checked={tasks.length > 0 && selectedIds.length === tasks.length}
+                    onChange={toggleSelectAll}
+                    className="h-4 w-4 rounded border-[#d1d5db]"
+                />
+            ),
+            render: (row) => (
+                <input
+                    type="checkbox"
+                    checked={selectedIds.includes(row.id)}
+                    onChange={() => toggleSelect(row.id)}
+                    className="h-4 w-4 rounded border-[#d1d5db]"
+                />
+            ),
+            className: 'w-[50px]',
+        },
         {
             key: 'taskNumber',
             title: '任务编号',
@@ -276,6 +354,17 @@ export default function AdminTasksPage() {
                         ]}
                     />
                     <div className="ml-auto flex items-center gap-2">
+                        {selectedIds.length > 0 && (
+                            <>
+                                <span className="text-sm text-[#6b7280]">已选 {selectedIds.length} 项</span>
+                                <Button onClick={handleBatchApprove}>
+                                    批量通过
+                                </Button>
+                                <Button variant="destructive" onClick={handleBatchReject}>
+                                    批量拒绝
+                                </Button>
+                            </>
+                        )}
                         <Button variant="secondary" onClick={loadTasks}>
                             刷新
                         </Button>

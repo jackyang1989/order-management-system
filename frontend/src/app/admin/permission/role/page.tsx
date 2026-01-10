@@ -49,7 +49,7 @@ export default function RolePage() {
         setLoading(true);
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`${BASE_URL}/admin/roles`, {
+            const response = await fetch(`${BASE_URL}/admin-users/roles/list`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (response.ok) {
@@ -72,7 +72,7 @@ export default function RolePage() {
     const loadPermissions = async () => {
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`${BASE_URL}/admin/permissions`, {
+            const response = await fetch(`${BASE_URL}/admin-users/permissions/list`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (response.ok) {
@@ -106,7 +106,7 @@ export default function RolePage() {
         }
         try {
             const token = localStorage.getItem('adminToken');
-            const url = editingRole ? `${BASE_URL}/admin/roles/${editingRole.id}` : `${BASE_URL}/admin/roles`;
+            const url = editingRole ? `${BASE_URL}/admin-users/roles/${editingRole.id}` : `${BASE_URL}/admin-users/roles`;
             const method = editingRole ? 'PUT' : 'POST';
 
             await fetch(url, {
@@ -129,7 +129,7 @@ export default function RolePage() {
         if (!confirm('确定删除该角色？使用该角色的管理员将失去权限！')) return;
         try {
             const token = localStorage.getItem('adminToken');
-            await fetch(`${BASE_URL}/admin/roles/${id}`, {
+            await fetch(`${BASE_URL}/admin-users/roles/${id}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` },
             });

@@ -55,7 +55,7 @@ export default function AdminPage() {
         setLoading(true);
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`${BASE_URL}/admin/users/list`, {
+            const response = await fetch(`${BASE_URL}/admin-users`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (response.ok) {
@@ -78,7 +78,7 @@ export default function AdminPage() {
     const loadRoles = async () => {
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`${BASE_URL}/admin/roles`, {
+            const response = await fetch(`${BASE_URL}/admin-users/roles/list`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (response.ok) {
@@ -107,7 +107,7 @@ export default function AdminPage() {
         }
         try {
             const token = localStorage.getItem('adminToken');
-            const url = editingAdmin ? `${BASE_URL}/admin/users/${editingAdmin.id}` : `${BASE_URL}/admin/users`;
+            const url = editingAdmin ? `${BASE_URL}/admin-users/${editingAdmin.id}` : `${BASE_URL}/admin-users`;
             const method = editingAdmin ? 'PUT' : 'POST';
             const submitData = { ...formData };
             if (editingAdmin && !submitData.password) {
@@ -134,7 +134,7 @@ export default function AdminPage() {
         if (!confirm('确定删除该管理员？')) return;
         try {
             const token = localStorage.getItem('adminToken');
-            await fetch(`${BASE_URL}/admin/users/${id}`, {
+            await fetch(`${BASE_URL}/admin-users/${id}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -147,7 +147,7 @@ export default function AdminPage() {
     const handleToggleStatus = async (admin: Admin) => {
         try {
             const token = localStorage.getItem('adminToken');
-            await fetch(`${BASE_URL}/admin/users/${admin.id}/status`, {
+            await fetch(`${BASE_URL}/admin-users/${admin.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ status: admin.status === 1 ? 0 : 1 }),
@@ -166,10 +166,10 @@ export default function AdminPage() {
         }
         try {
             const token = localStorage.getItem('adminToken');
-            await fetch(`${BASE_URL}/admin/users/${id}/password`, {
+            await fetch(`${BASE_URL}/admin-users/${id}/password`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ password: newPassword }),
+                body: JSON.stringify({ newPassword }),
             });
             alert('密码重置成功');
         } catch (error) {
