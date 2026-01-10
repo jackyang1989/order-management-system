@@ -210,6 +210,7 @@ export function EnhancedTable<T extends object>({
                                 }}
                             />
                         ))}
+                        {onColumnSettingsClick && <col style={{ width: 85 }} />}
                     </colgroup>
                     <thead>
                         <tr className="border-b border-[#e5e7eb] bg-[#f9fafb]">
