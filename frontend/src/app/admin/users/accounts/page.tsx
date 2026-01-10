@@ -475,10 +475,10 @@ function AdminBuyerAccountsPageContent() {
             headerClassName: 'text-center',
             cellClassName: 'text-center',
             render: (row) => (
-                <div className="flex flex-nowrap justify-center gap-1">
-                    <Button size="sm" variant="outline" onClick={() => openEditModal(row)}>审核</Button>
-                    <Button size="sm" variant="outline" onClick={() => openEditModal(row)}>编辑</Button>
-                    <Button size="sm" variant="outline" className="text-red-500" onClick={() => handleDelete(row.id)}>删除</Button>
+                <div className="flex flex-nowrap gap-1">
+                    <Button size="sm" variant="outline" className="whitespace-nowrap" onClick={() => openEditModal(row)}>审核</Button>
+                    <Button size="sm" variant="outline" className="whitespace-nowrap" onClick={() => openEditModal(row)}>编辑</Button>
+                    <Button size="sm" variant="outline" className="whitespace-nowrap text-red-500" onClick={() => handleDelete(row.id)}>删除</Button>
                 </div>
             )
         },
@@ -653,19 +653,19 @@ function AdminBuyerAccountsPageContent() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="mb-1 block text-sm text-[#6b7280]">{getAccountLabel(editModal.platform)}</label>
-                                <Input value={editForm.platformAccount} onChange={e => setEditForm({...editForm, platformAccount: e.target.value})} />
+                                <Input value={editForm.platformAccount} onChange={e => setEditForm({ ...editForm, platformAccount: e.target.value })} />
                             </div>
                             <div>
                                 <label className="mb-1 block text-sm text-[#6b7280]">实名姓名</label>
-                                <Input value={editForm.realName} onChange={e => setEditForm({...editForm, realName: e.target.value})} />
+                                <Input value={editForm.realName} onChange={e => setEditForm({ ...editForm, realName: e.target.value })} />
                             </div>
                             <div>
                                 <label className="mb-1 block text-sm text-[#6b7280]">收货人</label>
-                                <Input value={editForm.buyerName} onChange={e => setEditForm({...editForm, buyerName: e.target.value})} />
+                                <Input value={editForm.buyerName} onChange={e => setEditForm({ ...editForm, buyerName: e.target.value })} />
                             </div>
                             <div>
                                 <label className="mb-1 block text-sm text-[#6b7280]">收货人手机</label>
-                                <Input value={editForm.buyerPhone} onChange={e => setEditForm({...editForm, buyerPhone: e.target.value})} />
+                                <Input value={editForm.buyerPhone} onChange={e => setEditForm({ ...editForm, buyerPhone: e.target.value })} />
                             </div>
                         </div>
 
@@ -674,8 +674,8 @@ function AdminBuyerAccountsPageContent() {
                             <div>
                                 <label className="mb-1 block text-sm text-[#6b7280]">常用登录地</label>
                                 <div className="grid grid-cols-2 gap-2">
-                                    <Input placeholder="省" value={editForm.loginProvince} onChange={e => setEditForm({...editForm, loginProvince: e.target.value})} />
-                                    <Input placeholder="市" value={editForm.loginCity} onChange={e => setEditForm({...editForm, loginCity: e.target.value})} />
+                                    <Input placeholder="省" value={editForm.loginProvince} onChange={e => setEditForm({ ...editForm, loginProvince: e.target.value })} />
+                                    <Input placeholder="市" value={editForm.loginCity} onChange={e => setEditForm({ ...editForm, loginCity: e.target.value })} />
                                 </div>
                             </div>
                         )}
@@ -684,11 +684,11 @@ function AdminBuyerAccountsPageContent() {
                         <div>
                             <label className="mb-1 block text-sm text-[#6b7280]">收货地址</label>
                             <div className="mb-2 grid grid-cols-3 gap-2">
-                                <Input placeholder="省" value={editForm.province} onChange={e => setEditForm({...editForm, province: e.target.value})} />
-                                <Input placeholder="市" value={editForm.city} onChange={e => setEditForm({...editForm, city: e.target.value})} />
-                                <Input placeholder="区" value={editForm.district} onChange={e => setEditForm({...editForm, district: e.target.value})} />
+                                <Input placeholder="省" value={editForm.province} onChange={e => setEditForm({ ...editForm, province: e.target.value })} />
+                                <Input placeholder="市" value={editForm.city} onChange={e => setEditForm({ ...editForm, city: e.target.value })} />
+                                <Input placeholder="区" value={editForm.district} onChange={e => setEditForm({ ...editForm, district: e.target.value })} />
                             </div>
-                            <Input placeholder="详细地址（不含省市区）" value={editForm.fullAddress} onChange={e => setEditForm({...editForm, fullAddress: e.target.value})} />
+                            <Input placeholder="详细地址（不含省市区）" value={editForm.fullAddress} onChange={e => setEditForm({ ...editForm, fullAddress: e.target.value })} />
                         </div>
 
                         {/* 星级和冻结 */}
@@ -697,7 +697,7 @@ function AdminBuyerAccountsPageContent() {
                                 <label className="mb-1 block text-sm text-[#6b7280]">星级</label>
                                 <select
                                     value={editForm.star}
-                                    onChange={e => setEditForm({...editForm, star: parseInt(e.target.value)})}
+                                    onChange={e => setEditForm({ ...editForm, star: parseInt(e.target.value) })}
                                     className="w-full rounded border border-[#d1d5db] px-3 py-2"
                                 >
                                     {[1, 2, 3, 4, 5].map(s => <option key={s} value={s}>{s}星</option>)}
@@ -705,7 +705,7 @@ function AdminBuyerAccountsPageContent() {
                             </div>
                             <div>
                                 <label className="mb-1 block text-sm text-[#6b7280]">冻结到期时间</label>
-                                <DateInput value={editForm.freezeUntil} onChange={e => setEditForm({...editForm, freezeUntil: e.target.value})} />
+                                <DateInput value={editForm.freezeUntil} onChange={e => setEditForm({ ...editForm, freezeUntil: e.target.value })} />
                             </div>
                         </div>
 
@@ -714,7 +714,7 @@ function AdminBuyerAccountsPageContent() {
                             <label className="mb-1 block text-sm text-[#6b7280]">审核状态</label>
                             <select
                                 value={editForm.status}
-                                onChange={e => setEditForm({...editForm, status: parseInt(e.target.value)})}
+                                onChange={e => setEditForm({ ...editForm, status: parseInt(e.target.value) })}
                                 className="w-full rounded border border-[#d1d5db] px-3 py-2"
                             >
                                 <option value={0}>待审核</option>
@@ -728,7 +728,7 @@ function AdminBuyerAccountsPageContent() {
                             <label className="mb-1 block text-sm text-[#6b7280]">备注</label>
                             <textarea
                                 value={editForm.remark}
-                                onChange={e => setEditForm({...editForm, remark: e.target.value})}
+                                onChange={e => setEditForm({ ...editForm, remark: e.target.value })}
                                 placeholder="请输入备注..."
                                 className="min-h-[60px] w-full resize-y rounded border border-[#d1d5db] p-2.5"
                             />
