@@ -99,6 +99,7 @@ export default function AdminUsersPage() {
         vipExpireAt: '', balance: '', silver: '', note: ''
     });
     const [addUserLoading, setAddUserLoading] = useState(false);
+    const [exporting, setExporting] = useState(false);
 
     // Form state for balance modal
     const [balanceAmount, setBalanceAmount] = useState('');
@@ -413,6 +414,52 @@ export default function AdminUsersPage() {
         }
     };
 
+    const handleExport = async () => {
+        const token = localStorage.getItem('adminToken');
+        setExporting(true);
+        try {
+            let url = `${BASE_URL}/admin/users/export?`;
+            if (search) url += `keyword=${encodeURIComponent(search)}&`;
+            if (statusFilter !== 'all') url += `status=${statusFilter}&`;
+            if (vipFilter !== 'all') url += `vip=${vipFilter}&`;
+            if (verifyFilter !== 'all') url += `verifyStatus=${verifyFilter}&`;
+
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (json.success && json.data) {
+                const exportData = json.data.data || json.data;
+                const headers = ['ID', '用户名', '手机号', '微信号', 'VIP', '本金余额', '银锭余额', '实名状态', '状态', '注册时间'];
+                const rows = exportData.map((item: any) => [
+                    item['ID'] || item.id || '',
+                    item['用户名'] || item.username || '',
+                    item['手机号'] || item.phone || '',
+                    item['微信号'] || item.wechat || '',
+                    item['VIP'] || (item.vip ? '是' : '否'),
+                    item['本金余额'] || item.balance || 0,
+                    item['银锭余额'] || item.silver || 0,
+                    item['实名状态'] || '',
+                    item['状态'] || '',
+                    item['注册时间'] || item.createdAt || ''
+                ].join(','));
+                const csv = [headers.join(','), ...rows].join('\n');
+                const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `买手列表_${new Date().toISOString().split('T')[0]}.csv`;
+                link.click();
+                toastSuccess('导出成功');
+            } else {
+                toastError(json.message || '导出失败');
+            }
+        } catch (e) {
+            toastError('导出失败');
+        } finally {
+            setExporting(false);
+        }
+    };
+
     const columns: Column<User>[] = [
         {
             key: 'username',
@@ -542,7 +589,7 @@ export default function AdminUsersPage() {
         {
             key: 'actions',
             title: '操作',
-            className: 'w-[380px]',
+            className: 'w-[450px]',
             render: (row) => (
                 <div className="flex flex-wrap items-center gap-1">
                     <Button size="sm" variant="outline" className="text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
@@ -569,6 +616,15 @@ export default function AdminUsersPage() {
                     <Button size="sm" variant="outline" className="text-amber-500" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.id}`}>
                         银行卡
                     </Button>
+                    {row.isBanned ? (
+                        <Button size="sm" variant="outline" className="text-green-600" onClick={() => handleUnban(row.id)}>
+                            解封
+                        </Button>
+                    ) : (
+                        <Button size="sm" variant="outline" className="text-red-500" onClick={() => setBanModal({ userId: row.id, username: row.username })}>
+                            封禁
+                        </Button>
+                    )}
                 </div>
             ),
         },
@@ -583,6 +639,9 @@ export default function AdminUsersPage() {
                     <div className="flex items-center gap-3">
                         <span className="text-sm text-[#6b7280]">共 {total} 条记录</span>
                         <Button onClick={() => setAddUserModal(true)}>+ 添加买手</Button>
+                        <Button variant="secondary" onClick={handleExport} disabled={exporting}>
+                            {exporting ? '导出中...' : '导出Excel'}
+                        </Button>
                     </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">

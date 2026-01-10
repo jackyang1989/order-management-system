@@ -60,6 +60,9 @@ function AdminBuyerAccountsPageContent() {
     const [total, setTotal] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
     const [filterStatus, setFilterStatus] = useState<string>('');
+    const [filterUsername, setFilterUsername] = useState<string>('');
+    const [filterPhone, setFilterPhone] = useState<string>('');
+    const [filterPlatformAccount, setFilterPlatformAccount] = useState<string>('');
     const [rejectReason, setRejectReason] = useState('');
     const [rejectingId, setRejectingId] = useState<string | null>(null);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -80,6 +83,9 @@ function AdminBuyerAccountsPageContent() {
             params.append('limit', '20');
             if (filterStatus) params.append('status', filterStatus);
             if (userId) params.append('userId', userId);
+            if (filterUsername) params.append('username', filterUsername);
+            if (filterPhone) params.append('phone', filterPhone);
+            if (filterPlatformAccount) params.append('platformAccount', filterPlatformAccount);
 
             const res = await fetch(`${BASE_URL}/admin/buyer-accounts?${params.toString()}`, {
                 headers: { 'Authorization': `Bearer ${getToken()}` }
@@ -94,6 +100,11 @@ function AdminBuyerAccountsPageContent() {
             console.error('获取买号列表失败:', error);
         }
         setLoading(false);
+    };
+
+    const handleSearch = () => {
+        setPage(1);
+        loadAccounts();
     };
 
     const handleApprove = async (id: string) => {
