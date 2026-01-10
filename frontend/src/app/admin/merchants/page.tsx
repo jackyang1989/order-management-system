@@ -53,7 +53,7 @@ export default function AdminMerchantsPage() {
         { key: 'referrer', visible: true, width: 120, order: 7 },
         { key: 'note', visible: true, width: 100, order: 8 },
         { key: 'createdAt', visible: true, width: 100, order: 9 },
-        { key: 'actions', visible: true, width: 480, order: 10 },
+        { key: 'actions', visible: true, width: 280, order: 10 },
     ], []);
 
     // 列配置 Hook
@@ -531,10 +531,10 @@ export default function AdminMerchantsPage() {
         {
             key: 'actions',
             title: '操作',
-            defaultWidth: 480,
-            minWidth: 300,
+            defaultWidth: 280,
+            minWidth: 200,
             render: (row) => (
-                <div className="flex flex-wrap items-center gap-1.5">
+                <div className="grid grid-cols-4 gap-1">
                     <Button size="sm" variant="outline" onClick={() => router.push(`/admin/shops?merchantId=${row.id}`)}>
                         店铺
                     </Button>

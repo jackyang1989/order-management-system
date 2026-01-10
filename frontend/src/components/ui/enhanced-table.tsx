@@ -75,8 +75,8 @@ function ColumnResizer({
             className="absolute right-0 top-0 z-10 h-full w-[5px] cursor-col-resize select-none"
             onMouseDown={handleMouseDown}
         >
-            {/* 可见的灰色分隔线 */}
-            <div className="absolute right-[2px] top-1/2 h-4 w-px -translate-y-1/2 bg-[#d1d5db]" />
+            {/* 短灰色竖线指示器 */}
+            <div className="absolute right-[2px] top-1/2 h-4 w-px -translate-y-1/2 bg-[#d1d5db] hover:bg-primary-400" />
         </div>
     );
 }
@@ -197,7 +197,7 @@ export function EnhancedTable<T extends object>({
                     <thead>
                         <tr className="border-b border-[#e5e7eb] bg-[#f9fafb]">
                             {selectable && (
-                                <th className="w-10 border-r border-[#e5e7eb] px-3 py-3 text-left text-[12px] font-semibold uppercase tracking-wider text-[#6b7280]">
+                                <th className="w-10 px-3 py-3 text-left text-[12px] font-semibold uppercase tracking-wider text-[#6b7280]">
                                     <span className="sr-only">选择</span>
                                 </th>
                             )}
@@ -206,8 +206,7 @@ export function EnhancedTable<T extends object>({
                                     key={col.key}
                                     className={cn(
                                         'relative px-4 py-3 text-left text-[12px] font-semibold uppercase tracking-wider text-[#6b7280]',
-                                        col.sortable && 'cursor-pointer select-none hover:text-[#374151]',
-                                        idx < visibleColumns.length - 1 && 'border-r border-[#e5e7eb]'
+                                        col.sortable && 'cursor-pointer select-none hover:text-[#374151]'
                                     )}
                                     style={{ width: localWidths[col.key] || col.defaultWidth || 120 }}
                                     onClick={() => handleSortClick(col.key)}
@@ -239,7 +238,7 @@ export function EnhancedTable<T extends object>({
                                     className="border-b border-[#e5e7eb] transition-colors last:border-0 hover:bg-[#f9fafb]"
                                 >
                                     {selectable && (
-                                        <td className="border-r border-[#e5e7eb] px-3 py-3">
+                                        <td className="px-3 py-3">
                                             <input
                                                 type="checkbox"
                                                 className="h-4 w-4 rounded border-[#e5e7eb] text-primary-500 focus:ring-primary-500/20"
@@ -261,13 +260,10 @@ export function EnhancedTable<T extends object>({
                                     {visibleColumns.map((col, colIdx) => (
                                         <td
                                             key={col.key}
-                                            className={cn(
-                                                'px-4 py-3 text-[#3b4559]',
-                                                colIdx < visibleColumns.length - 1 && 'border-r border-[#e5e7eb]'
-                                            )}
+                                            className="px-4 py-3 text-[#3b4559]"
                                             style={{ width: localWidths[col.key] || col.defaultWidth || 120 }}
                                         >
-                                            <div className="truncate">
+                                            <div className="break-words">
                                                 {col.render
                                                     ? col.render(row, idx)
                                                     : ((row as Record<string, unknown>)[col.key] as ReactNode)}
