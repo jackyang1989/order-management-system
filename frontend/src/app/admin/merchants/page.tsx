@@ -638,7 +638,7 @@ export default function AdminMerchantsPage() {
                     onSort={(field, order) => {
                         setSortField(field);
                         setSortOrder(order);
-                        loadMerchants();
+                        // 注意：后端暂不支持排序，这里只更新前端显示状态
                     }}
                 />
                 <div className="mt-4 flex justify-end px-6 pb-6">

@@ -60,8 +60,12 @@ export class UserQueryDto {
   sortBy?: string;
 
   @IsOptional()
-  @IsIn(['ASC', 'DESC'])
-  sortOrder?: 'ASC' | 'DESC';
+  @IsString()
+  sortField?: string; // 前端发送的字段名，作为 sortBy 的别名
+
+  @IsOptional()
+  @IsIn(['ASC', 'DESC', 'asc', 'desc'])
+  sortOrder?: 'ASC' | 'DESC' | 'asc' | 'desc';
 }
 
 export class AdjustBalanceDto {

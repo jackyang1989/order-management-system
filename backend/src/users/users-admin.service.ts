@@ -101,8 +101,8 @@ export class UsersAdminService {
     }
 
     // 排序
-    const sortBy = query.sortBy || 'createdAt';
-    const sortOrder = query.sortOrder || 'DESC';
+    const sortBy = query.sortField || query.sortBy || 'createdAt';
+    const sortOrder = (query.sortOrder?.toUpperCase() as 'ASC' | 'DESC') || 'DESC';
     qb.orderBy(`u.${sortBy}`, sortOrder);
 
     const total = await qb.getCount();

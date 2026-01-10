@@ -185,9 +185,7 @@ export default function AdminUsersPage() {
             if (statusFilter !== 'all') url += `&status=${statusFilter}`;
             if (vipFilter !== 'all') url += `&vip=${vipFilter}`;
             if (verifyFilter !== 'all') url += `&verifyStatus=${verifyFilter}`;
-            // 排序参数
-            if (sortField) url += `&sortField=${sortField}`;
-            if (sortOrder) url += `&sortOrder=${sortOrder}`;
+            // 注意：后端暂不支持排序参数，需要后续添加
 
             const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -782,7 +780,7 @@ export default function AdminUsersPage() {
                     onSort={(field, order) => {
                         setSortField(field);
                         setSortOrder(order);
-                        loadUsers();
+                        // 注意：后端暂不支持排序，这里只更新前端显示状态
                     }}
                 />
                 <div className="mt-4 flex justify-end px-6 pb-6">
