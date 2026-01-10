@@ -119,7 +119,7 @@ export const adminService = {
     },
 
     reviewWithdrawal: (id: string, approved: boolean, remark?: string) =>
-        api.put(`/admin/withdrawals/${id}/review`, { approved, remark }),
+        api.put(`/admin/withdrawals/${id}/approve`, { approved, remark }),
 
     // ============ Order Management ============
     getOrders: (params?: { page?: number; limit?: number; status?: string; keyword?: string }) => {

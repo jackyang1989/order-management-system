@@ -554,6 +554,43 @@ export class BuyerAccountsService {
   }
 
   /**
+   * 管理员更新买号信息
+   */
+  async adminUpdate(
+    buyerAccountId: string,
+    updateDto: UpdateBuyerAccountDto,
+  ): Promise<BuyerAccount> {
+    const account = await this.buyerAccountsRepository.findOne({
+      where: { id: buyerAccountId },
+    });
+
+    if (!account) {
+      throw new NotFoundException('买号不存在');
+    }
+
+    // 管理员可以更新所有字段，包括状态
+    Object.assign(account, updateDto);
+    return this.buyerAccountsRepository.save(account);
+  }
+
+  /**
+   * 管理员删除买号
+   */
+  async adminDelete(buyerAccountId: string): Promise<void> {
+    const account = await this.buyerAccountsRepository.findOne({
+      where: { id: buyerAccountId },
+    });
+
+    if (!account) {
+      throw new NotFoundException('买号不存在');
+    }
+
+    // 软删除
+    account.status = BuyerAccountStatus.DELETED;
+    await this.buyerAccountsRepository.save(account);
+  }
+
+  /**
    * P1: 获取有待审核地址修改的买号列表
    */
   async getPendingAddressChanges(

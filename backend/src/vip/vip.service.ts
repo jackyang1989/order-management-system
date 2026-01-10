@@ -411,6 +411,32 @@ export class VipService {
     return { list, total };
   }
 
+  /**
+   * 管理员获取所有VIP购买记录
+   */
+  async getAllPurchases(
+    page: number = 1,
+    pageSize: number = 20,
+    userType?: string,
+  ): Promise<{
+    data: VipPurchase[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const queryBuilder = this.vipPurchaseRepository
+      .createQueryBuilder('purchase')
+      .leftJoinAndSelect('purchase.user', 'user')
+      .orderBy('purchase.createdAt', 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize);
+
+    // userType filter can be added if needed based on user role
+
+    const [data, total] = await queryBuilder.getManyAndCount();
+    return { data, total, page, limit: pageSize };
+  }
+
   // ========== 初始化默认套餐 ==========
 
   async initDefaultPackages(): Promise<void> {

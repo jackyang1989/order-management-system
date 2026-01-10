@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { VipService } from './vip.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AdminGuard } from '../auth/admin.guard';
 import { CreateVipPackageDto, PurchaseVipDto } from './vip.entity';
 import { VipLevelService } from '../admin-config/vip-level.service';
 
@@ -148,6 +149,24 @@ export class VipController {
   }
 
   // ========== 管理员接口 ==========
+
+  /**
+   * 管理员获取所有VIP购买记录
+   */
+  @Get('admin/records')
+  @UseGuards(AdminGuard)
+  async getAdminRecords(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('userType') userType?: string,
+  ) {
+    const result = await this.vipService.getAllPurchases(
+      parseInt(page || '1'),
+      parseInt(limit || '20'),
+      userType,
+    );
+    return { success: true, ...result };
+  }
 
   /**
    * 创建套餐

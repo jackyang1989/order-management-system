@@ -17,6 +17,22 @@ export class DeliveriesService {
     });
   }
 
+  async findAllAdmin(includeInactive: boolean = false): Promise<Delivery[]> {
+    if (includeInactive) {
+      return this.deliveryRepository.find({
+        order: { sort: 'ASC', name: 'ASC' },
+      });
+    }
+    return this.findAll();
+  }
+
+  async toggle(id: string): Promise<Delivery | null> {
+    const delivery = await this.deliveryRepository.findOne({ where: { id } });
+    if (!delivery) return null;
+    delivery.isActive = !delivery.isActive;
+    return this.deliveryRepository.save(delivery);
+  }
+
   async findOne(id: string): Promise<Delivery | null> {
     return this.deliveryRepository.findOne({ where: { id } });
   }

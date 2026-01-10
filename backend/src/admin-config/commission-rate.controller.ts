@@ -13,7 +13,7 @@ import { CommissionRateService } from './commission-rate.service';
 import { CommissionRate } from './commission-rate.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-@Controller('admin/commission-rates')
+@Controller('commission-rates')
 @UseGuards(JwtAuthGuard)
 export class CommissionRateController {
     constructor(private readonly rateService: CommissionRateService) { }

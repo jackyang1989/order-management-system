@@ -23,6 +23,34 @@ import {
 export class MessagesController {
   constructor(private messagesService: MessagesService) {}
 
+  // ============ 管理员发送消息 ============
+
+  /**
+   * 管理员发送消息给用户/商户
+   */
+  @Post()
+  @UseGuards(AdminGuard)
+  async sendMessage(
+    @Body()
+    body: {
+      receiverId: string;
+      receiverType: number; // 1=BUYER, 2=MERCHANT
+      type?: number; // 1=SYSTEM, 2=ORDER, etc.
+      title: string;
+      content: string;
+    },
+  ) {
+    const receiverType =
+      body.receiverType === 2 ? MessageUserType.MERCHANT : MessageUserType.BUYER;
+    const message = await this.messagesService.sendSystemMessage(
+      body.receiverId,
+      receiverType,
+      body.title,
+      body.content,
+    );
+    return { success: true, message: '消息发送成功', data: message };
+  }
+
   // ============ 用户消息接口 ============
 
   /**

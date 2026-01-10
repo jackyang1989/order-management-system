@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Put,
+  Delete,
   Query,
   Param,
   Body,
@@ -16,7 +17,7 @@ import { WithdrawalStatus } from '../withdrawals/withdrawal.entity';
 import { ShopsService } from '../shops/shops.service';
 import { ShopStatus } from '../shops/shop.entity';
 import { BuyerAccountsService } from '../buyer-accounts/buyer-accounts.service';
-import { BuyerAccountStatus } from '../buyer-accounts/buyer-account.entity';
+import { BuyerAccountStatus, UpdateBuyerAccountDto } from '../buyer-accounts/buyer-account.entity';
 import { MerchantsService } from '../merchants/merchants.service';
 import { CreateMerchantDto } from '../merchants/merchant.entity';
 import { UsersService } from '../users/users.service';
@@ -347,6 +348,28 @@ export class AdminController {
       success: true,
       message: '星级设置成功',
       data: account,
+    };
+  }
+
+  @Put('buyer-accounts/:id')
+  async updateBuyerAccount(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateBuyerAccountDto,
+  ) {
+    const account = await this.buyerAccountsService.adminUpdate(id, updateDto);
+    return {
+      success: true,
+      message: '买号更新成功',
+      data: account,
+    };
+  }
+
+  @Delete('buyer-accounts/:id')
+  async deleteBuyerAccount(@Param('id') id: string) {
+    await this.buyerAccountsService.adminDelete(id);
+    return {
+      success: true,
+      message: '买号删除成功',
     };
   }
 
