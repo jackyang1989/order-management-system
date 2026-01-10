@@ -379,7 +379,7 @@ export default function AdminMerchantsPage() {
         },
         {
             key: 'wechat',
-            title: '微信',
+            title: '微信号',
             className: 'w-[100px]',
             render: (row) => (
                 <div className="text-sm">{row.wechat || '-'}</div>
@@ -792,7 +792,7 @@ export default function AdminMerchantsPage() {
                         onChange={(e) => setEditPhone(e.target.value)}
                     />
                     <Input
-                        label="微信"
+                        label="微信号"
                         placeholder="请输入微信号"
                         value={editWechat}
                         onChange={(e) => setEditWechat(e.target.value)}
@@ -869,7 +869,7 @@ export default function AdminMerchantsPage() {
                         onChange={(e) => setNewConfirmPassword(e.target.value)}
                     />
                     <Input
-                        label="微信（可选）"
+                        label="微信号（可选）"
                         placeholder="请输入微信号"
                         value={newWechat}
                         onChange={(e) => setNewWechat(e.target.value)}

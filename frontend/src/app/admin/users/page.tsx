@@ -439,7 +439,7 @@ export default function AdminUsersPage() {
         },
         {
             key: 'wechat',
-            title: '微信',
+            title: '微信号',
             className: 'w-[100px]',
             render: (row) => (
                 <div className="text-sm">{row.wechat || '-'}</div>
@@ -544,31 +544,31 @@ export default function AdminUsersPage() {
         {
             key: 'actions',
             title: '操作',
-            className: 'w-[380px]',
+            className: 'w-[440px]',
             render: (row) => (
-                <div className="flex flex-wrap items-center gap-1">
-                    <Button size="sm" variant="outline" className="text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
+                <div className="grid grid-cols-4 items-center gap-2">
+                    <Button size="sm" variant="outline" className="whitespace-nowrap text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
                         银锭
                     </Button>
-                    <Button size="sm" variant="outline" className="text-success-500" onClick={() => window.location.href = `/admin/users/${row.id}/deposit`}>
+                    <Button size="sm" variant="outline" className="whitespace-nowrap text-success-500" onClick={() => window.location.href = `/admin/users/${row.id}/deposit`}>
                         押金
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>
+                    <Button size="sm" variant="outline" className="whitespace-nowrap" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>
                         买号
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => openEditModal(row)}>
+                    <Button size="sm" variant="outline" className="whitespace-nowrap" onClick={() => openEditModal(row)}>
                         编辑资料
                     </Button>
-                    <Button size="sm" variant="outline" className="text-danger-400" onClick={() => { setNoteModal({ userId: row.id, username: row.username, currentNote: row.note || '' }); setNoteText(row.note || ''); }}>
+                    <Button size="sm" variant="outline" className="whitespace-nowrap text-danger-400" onClick={() => { setNoteModal({ userId: row.id, username: row.username, currentNote: row.note || '' }); setNoteText(row.note || ''); }}>
                         备注
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
+                    <Button size="sm" variant="outline" className="whitespace-nowrap" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
                         改密码
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
+                    <Button size="sm" variant="outline" className="whitespace-nowrap" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
                         消息
                     </Button>
-                    <Button size="sm" variant="outline" className="text-amber-500" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.id}`}>
+                    <Button size="sm" variant="outline" className="whitespace-nowrap text-amber-500" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.id}`}>
                         银行卡
                     </Button>
                 </div>
@@ -792,7 +792,7 @@ export default function AdminUsersPage() {
                                         </td>
                                     </tr>
                                     <tr className="border-b border-[#e5e7eb]">
-                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">微信</td>
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">微信号</td>
                                         <td className="px-3 py-2">
                                             <input
                                                 type="text"

@@ -90,7 +90,7 @@ export default function MerchantSettingPage() {
                             : <div className="rounded-md bg-[#f3f4f6] px-3 py-2.5 text-[#374151]">{merchant?.phone || '-'}</div>}
                     </div>
                     <div>
-                        <label className="mb-1 block text-sm text-[#6b7280]">微信</label>
+                        <label className="mb-1 block text-sm text-[#6b7280]">微信号</label>
                         {editing ? <Input type="text" value={formData.wechat} onChange={e => setFormData({ ...formData, wechat: e.target.value })} />
                             : <div className="rounded-md bg-[#f3f4f6] px-3 py-2.5 text-[#374151]">{merchant?.wechat || '-'}</div>}
                     </div>
