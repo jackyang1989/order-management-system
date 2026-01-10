@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { BASE_URL } from '../../../../apiConfig';
 import { cn, formatDate } from '../../../lib/utils';
 import { toastSuccess, toastError } from '../../../lib/toast';
@@ -10,9 +10,11 @@ import { Badge } from '../../../components/ui/badge';
 import { Input } from '../../../components/ui/input';
 import { DateInput } from '../../../components/ui/date-input';
 import { Select } from '../../../components/ui/select';
-import { Table, Column } from '../../../components/ui/table';
+import { EnhancedTable, EnhancedColumn } from '../../../components/ui/enhanced-table';
+import { ColumnSettingsPanel, ColumnConfig, ColumnMeta } from '../../../components/ui/column-settings-panel';
 import { Modal } from '../../../components/ui/modal';
 import { Pagination } from '../../../components/ui/pagination';
+import { useTablePreferences } from '../../../hooks/useTablePreferences';
 
 interface User {
     id: string;
@@ -88,6 +90,53 @@ export default function AdminUsersPage() {
     const [vipFilter, setVipFilter] = useState<string>('all');
     const [verifyFilter, setVerifyFilter] = useState<string>('all');
 
+    // 排序状态
+    const [sortField, setSortField] = useState<string>('createdAt');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+    // 列设置面板状态
+    const [showColumnSettings, setShowColumnSettings] = useState(false);
+
+    // 默认列配置
+    const defaultColumns: ColumnConfig[] = useMemo(() => [
+        { key: 'username', visible: true, width: 100, order: 0 },
+        { key: 'phone', visible: true, width: 120, order: 1 },
+        { key: 'wechat', visible: true, width: 100, order: 2 },
+        { key: 'verifyStatus', visible: true, width: 80, order: 3 },
+        { key: 'balance', visible: true, width: 120, order: 4 },
+        { key: 'frozen', visible: true, width: 90, order: 5 },
+        { key: 'vip', visible: true, width: 90, order: 6 },
+        { key: 'invitedBy', visible: true, width: 80, order: 7 },
+        { key: 'monthlyTaskCount', visible: true, width: 70, order: 8 },
+        { key: 'lastLoginAt', visible: true, width: 100, order: 9 },
+        { key: 'createdAt', visible: true, width: 90, order: 10 },
+        { key: 'note', visible: true, width: 100, order: 11 },
+        { key: 'actions', visible: true, width: 450, order: 12 },
+    ], []);
+
+    // 列配置 Hook
+    const { columnConfig, savePreferences, resetPreferences, updateLocalConfig } = useTablePreferences({
+        tableKey: 'admin_users',
+        defaultColumns,
+    });
+
+    // 列元信息 (用于列设置面板)
+    const columnMeta: ColumnMeta[] = useMemo(() => [
+        { key: 'username', title: '用户名' },
+        { key: 'phone', title: '手机号' },
+        { key: 'wechat', title: '微信号' },
+        { key: 'verifyStatus', title: '实名状态' },
+        { key: 'balance', title: '本金/银锭' },
+        { key: 'frozen', title: '冻结' },
+        { key: 'vip', title: 'VIP' },
+        { key: 'invitedBy', title: '推荐人' },
+        { key: 'monthlyTaskCount', title: '月单量' },
+        { key: 'lastLoginAt', title: '最后登录' },
+        { key: 'createdAt', title: '注册时间' },
+        { key: 'note', title: '备注' },
+        { key: 'actions', title: '操作' },
+    ], []);
+
     const [balanceModal, setBalanceModal] = useState<BalanceModalData | null>(null);
     const [detailModal, setDetailModal] = useState<User | null>(null);
     const [banModal, setBanModal] = useState<{ userId: string; username: string } | null>(null);
@@ -136,6 +185,9 @@ export default function AdminUsersPage() {
             if (statusFilter !== 'all') url += `&status=${statusFilter}`;
             if (vipFilter !== 'all') url += `&vip=${vipFilter}`;
             if (verifyFilter !== 'all') url += `&verifyStatus=${verifyFilter}`;
+            // 排序参数
+            if (sortField) url += `&sortField=${sortField}`;
+            if (sortOrder) url += `&sortOrder=${sortOrder}`;
 
             const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -460,11 +512,13 @@ export default function AdminUsersPage() {
         }
     };
 
-    const columns: Column<User>[] = [
+    const columns: EnhancedColumn<User>[] = [
         {
             key: 'username',
             title: '用户名',
-            className: 'w-[100px]',
+            defaultWidth: 100,
+            minWidth: 60,
+            sortable: true,
             render: (row) => (
                 <div>
                     <div className="font-medium text-[#3b4559]">{row.username}</div>
@@ -477,7 +531,9 @@ export default function AdminUsersPage() {
         {
             key: 'phone',
             title: '手机号',
-            className: 'w-[120px]',
+            defaultWidth: 120,
+            minWidth: 80,
+            sortable: true,
             render: (row) => (
                 <div className="text-sm">{row.phone}</div>
             ),
@@ -485,7 +541,8 @@ export default function AdminUsersPage() {
         {
             key: 'wechat',
             title: '微信号',
-            className: 'w-[100px]',
+            defaultWidth: 100,
+            minWidth: 60,
             render: (row) => (
                 <div className="text-sm">{row.wechat || '-'}</div>
             ),
@@ -493,7 +550,8 @@ export default function AdminUsersPage() {
         {
             key: 'verifyStatus',
             title: '实名状态',
-            className: 'w-[80px] text-center',
+            defaultWidth: 80,
+            minWidth: 60,
             render: (row) => {
                 const { text, color } = verifyLabels[row.verifyStatus] || verifyLabels[0];
                 return <Badge variant="soft" color={color}>{text}</Badge>;
@@ -569,7 +627,9 @@ export default function AdminUsersPage() {
         {
             key: 'createdAt',
             title: '注册时间',
-            className: 'w-[90px]',
+            defaultWidth: 90,
+            minWidth: 60,
+            sortable: true,
             render: (row) => (
                 <div className="text-xs text-[#6b7280]">
                     {formatDate(row.createdAt)}
