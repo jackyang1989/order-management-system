@@ -181,7 +181,7 @@ export class AdminService {
     }
 
     const total = await query.getCount();
-    const data = await query
+    const merchants = await query
       .select([
         'merchant.id',
         'merchant.username',
@@ -202,6 +202,21 @@ export class AdminService {
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
+
+    // Enrich with referrer name
+    const data = await Promise.all(
+      merchants.map(async (m) => {
+        let referrerName = '';
+        if (m.referrerId) {
+          const referrer = await this.merchantsRepository.findOne({
+            where: { id: m.referrerId },
+            select: ['username'],
+          });
+          referrerName = referrer?.username || '';
+        }
+        return { ...m, referrerName };
+      }),
+    );
 
     return {
       data,

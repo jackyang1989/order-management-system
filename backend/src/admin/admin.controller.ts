@@ -166,6 +166,7 @@ export class AdminController {
       silver?: number;
       vipExpireAt?: string;
       note?: string;
+      referrerId?: string;
     },
   ) {
     try {

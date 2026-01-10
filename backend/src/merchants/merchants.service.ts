@@ -459,6 +459,7 @@ export class MerchantsService {
       silver?: number;
       vipExpireAt?: string;
       note?: string;
+      referrerId?: string;
     },
   ): Promise<{ success: boolean; message?: string; merchant?: Merchant }> {
     const merchant = await this.merchantsRepository.findOne({ where: { id } });
@@ -471,6 +472,7 @@ export class MerchantsService {
     if (data.qq !== undefined) merchant.qq = data.qq;
     if (data.companyName !== undefined) merchant.companyName = data.companyName;
     if (data.note !== undefined) merchant.note = data.note;
+    if (data.referrerId !== undefined) merchant.referrerId = data.referrerId;
 
     // 更新余额
     if (data.balance !== undefined) merchant.balance = data.balance;
