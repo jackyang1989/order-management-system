@@ -402,11 +402,11 @@ export default function AdminMerchantsPage() {
 
     const columns: EnhancedColumn<AdminMerchant>[] = [
         {
-            key: 'info',
-            title: '商家信息',
-            defaultWidth: 180,
-            minWidth: 100,
+            key: 'name',
+            title: '商家名称',
             sortable: true,
+            defaultWidth: 150,
+            flexible: true,
             render: (row) => (
                 <div>
                     <div className="font-medium text-[#3b4559]">{row.username}</div>
@@ -619,35 +619,33 @@ export default function AdminMerchantsPage() {
             </Card>
 
             {/* 商家列表 */}
-            <div className="max-w-full overflow-hidden">
-                <Card className="overflow-hidden bg-white">
-                    <EnhancedTable
-                        columns={columns}
-                        data={merchants}
-                        rowKey={(r) => r.id}
-                        loading={loading}
-                        emptyText="暂无商家数据"
-                        columnConfig={columnConfig}
-                        onColumnConfigChange={updateLocalConfig}
-                        sortField={sortField}
-                        sortOrder={sortOrder}
-                        onSort={(field, order) => {
-                            setSortField(field);
-                            setSortOrder(order);
-                            // 注意：后端暂不支持排序，这里只更新前端显示状态
-                        }}
-                        onColumnSettingsClick={() => setShowColumnSettings(true)}
+            <Card className="overflow-hidden bg-white">
+                <EnhancedTable
+                    columns={columns}
+                    data={merchants}
+                    rowKey={(r) => r.id}
+                    loading={loading}
+                    emptyText="暂无商家数据"
+                    columnConfig={columnConfig}
+                    onColumnConfigChange={updateLocalConfig}
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={(field, order) => {
+                        setSortField(field);
+                        setSortOrder(order);
+                        // 注意：后端暂不支持排序，这里只更新前端显示状态
+                    }}
+                    onColumnSettingsClick={() => setShowColumnSettings(true)}
+                />
+                <div className="mt-4 flex justify-end px-6 pb-6">
+                    <Pagination
+                        current={page}
+                        total={total}
+                        pageSize={10}
+                        onChange={setPage}
                     />
-                    <div className="mt-4 flex justify-end px-6 pb-6">
-                        <Pagination
-                            current={page}
-                            total={total}
-                            pageSize={10}
-                            onChange={setPage}
-                        />
-                    </div>
-                </Card>
-            </div>
+                </div>
+            </Card>
 
             {/* 列设置面板 */}
             <ColumnSettingsPanel

@@ -514,9 +514,9 @@ export default function AdminUsersPage() {
         {
             key: 'username',
             title: '用户名',
-            defaultWidth: 100,
-            minWidth: 60,
             sortable: true,
+            defaultWidth: 100,
+            flexible: true,
             render: (row) => (
                 <div>
                     <div className="font-medium text-[#3b4559]">{row.username}</div>
@@ -761,35 +761,33 @@ export default function AdminUsersPage() {
             </Card>
 
             {/* 用户列表 */}
-            <div className="max-w-full overflow-hidden">
-                <Card className="overflow-hidden bg-white">
-                    <EnhancedTable
-                        columns={columns}
-                        data={users}
-                        rowKey={(r) => r.id}
-                        loading={loading}
-                        emptyText="暂无用户数据"
-                        columnConfig={columnConfig}
-                        onColumnConfigChange={updateLocalConfig}
-                        sortField={sortField}
-                        sortOrder={sortOrder}
-                        onSort={(field, order) => {
-                            setSortField(field);
-                            setSortOrder(order);
-                            // 注意：后端暂不支持排序，这里只更新前端显示状态
-                        }}
-                        onColumnSettingsClick={() => setShowColumnSettings(true)}
+            <Card className="overflow-hidden bg-white">
+                <EnhancedTable
+                    columns={columns}
+                    data={users}
+                    rowKey={(r) => r.id}
+                    loading={loading}
+                    emptyText="暂无用户数据"
+                    columnConfig={columnConfig}
+                    onColumnConfigChange={updateLocalConfig}
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={(field, order) => {
+                        setSortField(field);
+                        setSortOrder(order);
+                        // 注意：后端暂不支持排序，这里只更新前端显示状态
+                    }}
+                    onColumnSettingsClick={() => setShowColumnSettings(true)}
+                />
+                <div className="mt-4 flex justify-end px-6 pb-6">
+                    <Pagination
+                        current={page}
+                        total={total}
+                        pageSize={20}
+                        onChange={setPage}
                     />
-                    <div className="mt-4 flex justify-end px-6 pb-6">
-                        <Pagination
-                            current={page}
-                            total={total}
-                            pageSize={20}
-                            onChange={setPage}
-                        />
-                    </div>
-                </Card>
-            </div>
+                </div>
+            </Card>
 
             {/* 列设置面板 */}
             <ColumnSettingsPanel
