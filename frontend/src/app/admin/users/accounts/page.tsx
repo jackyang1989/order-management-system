@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { BASE_URL } from '../../../../../apiConfig';
 import { cn } from '../../../../lib/utils';
@@ -12,6 +12,9 @@ import { Modal } from '../../../../components/ui/modal';
 import { Input } from '../../../../components/ui/input';
 import { DateInput } from '../../../../components/ui/date-input';
 import { PLATFORM_CONFIG, PLATFORM_NAME_MAP } from '../../../../constants/platformConfig';
+import { EnhancedTable, EnhancedColumn } from '../../../../components/ui/enhanced-table';
+import { ColumnSettingsPanel, ColumnConfig, ColumnMeta } from '../../../../components/ui/column-settings-panel';
+import { useTablePreferences } from '../../../../hooks/useTablePreferences';
 import Image from 'next/image';
 
 interface BuyerAccount {
@@ -95,6 +98,45 @@ function AdminBuyerAccountsPageContent() {
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [batchLoading, setBatchLoading] = useState(false);
     const [imageModal, setImageModal] = useState<string | null>(null);
+
+    // 列设置面板状态
+    const [showColumnSettings, setShowColumnSettings] = useState(false);
+
+    // 默认列配置
+    const defaultColumns: ColumnConfig[] = useMemo(() => [
+        { key: 'index', visible: true, width: 50, order: 0 },
+        { key: 'platform', visible: true, width: 70, order: 1 },
+        { key: 'platformAccount', visible: true, width: 120, order: 2 },
+        { key: 'username', visible: true, width: 80, order: 3 },
+        { key: 'realName', visible: true, width: 80, order: 4 },
+        { key: 'receiver', visible: true, width: 100, order: 5 },
+        { key: 'address', visible: true, width: 150, order: 6 },
+        { key: 'images', visible: true, width: 200, order: 7 },
+        { key: 'star', visible: true, width: 70, order: 8 },
+        { key: 'status', visible: true, width: 80, order: 9 },
+        { key: 'actions', visible: true, width: 200, order: 10 },
+    ], []);
+
+    // 列配置 Hook
+    const { columnConfig, savePreferences, resetPreferences, updateLocalConfig } = useTablePreferences({
+        tableKey: 'admin_buyer_accounts',
+        defaultColumns,
+    });
+
+    // 列元信息 (用于列设置面板)
+    const columnMeta: ColumnMeta[] = useMemo(() => [
+        { key: 'index', title: '序号' },
+        { key: 'platform', title: '平台' },
+        { key: 'platformAccount', title: '平台账号' },
+        { key: 'username', title: '用户名' },
+        { key: 'realName', title: '实名姓名' },
+        { key: 'receiver', title: '收货人' },
+        { key: 'address', title: '收货地址' },
+        { key: 'images', title: '资质截图' },
+        { key: 'star', title: '星级' },
+        { key: 'status', title: '状态' },
+        { key: 'actions', title: '操作' },
+    ], []);
 
     // 编辑弹窗
     const [editModal, setEditModal] = useState<BuyerAccount | null>(null);
@@ -220,12 +262,6 @@ function AdminBuyerAccountsPageContent() {
         } else setSelectedIds(new Set());
     };
 
-    const handleSelectOne = (id: string, checked: boolean) => {
-        const newSet = new Set(selectedIds);
-        if (checked) newSet.add(id); else newSet.delete(id);
-        setSelectedIds(newSet);
-    };
-
     const handleBatchReview = async (approved: boolean) => {
         if (selectedIds.size === 0) { alert('请先选择要操作的记录'); return; }
         const action = approved ? '批量通过' : '批量拒绝';
@@ -310,6 +346,143 @@ function AdminBuyerAccountsPageContent() {
             url: account[img.key as keyof BuyerAccount] as string | undefined
         }));
     };
+
+    // EnhancedTable 列定义
+    const columns: EnhancedColumn<BuyerAccount>[] = useMemo(() => [
+        {
+            key: 'index',
+            title: '序号',
+            defaultWidth: 50,
+            headerClassName: 'text-center',
+            cellClassName: 'text-center',
+            render: (_, idx) => <span className="text-[#6b7280]">{(page - 1) * 20 + idx + 1}</span>
+        },
+        {
+            key: 'platform',
+            title: '平台',
+            defaultWidth: 70,
+            headerClassName: 'text-center',
+            cellClassName: 'text-center',
+            render: (row) => <span className="rounded bg-[#f3f4f6] px-2 py-0.5 text-xs">{row.platform}</span>
+        },
+        {
+            key: 'platformAccount',
+            title: '平台账号',
+            defaultWidth: 120,
+            render: (row) => <span className="font-medium text-primary-600">{row.platformAccount}</span>
+        },
+        {
+            key: 'username',
+            title: '用户名',
+            defaultWidth: 80,
+            render: (row) => <span>{row.user?.username || '-'}</span>
+        },
+        {
+            key: 'realName',
+            title: '实名姓名',
+            defaultWidth: 80,
+            render: (row) => <span>{row.realName || '-'}</span>
+        },
+        {
+            key: 'receiver',
+            title: '收货人',
+            defaultWidth: 100,
+            render: (row) => (
+                <div>
+                    <div className="text-xs">{row.buyerName || '-'}</div>
+                    <div className="text-xs text-[#9ca3af]">{row.buyerPhone || ''}</div>
+                </div>
+            )
+        },
+        {
+            key: 'address',
+            title: '收货地址',
+            defaultWidth: 150,
+            render: (row) => (
+                <div>
+                    <div className="max-w-[150px] truncate text-xs" title={`${row.province || ''} ${row.city || ''} ${row.district || ''} ${row.fullAddress || ''}`}>
+                        {row.province} {row.city} {row.district}
+                    </div>
+                    <div className="max-w-[150px] truncate text-xs text-[#9ca3af]">{row.fullAddress || ''}</div>
+                </div>
+            )
+        },
+        {
+            key: 'images',
+            title: '资质截图',
+            defaultWidth: 200,
+            headerClassName: 'text-center',
+            cellClassName: 'text-center',
+            render: (row) => {
+                const displayImages = getDisplayImages(row);
+                return (
+                    <div className="flex flex-wrap gap-1 justify-center">
+                        {displayImages.slice(0, 2).map(img => (
+                            img.url ? (
+                                <Image
+                                    key={img.key}
+                                    src={img.url}
+                                    alt={img.label}
+                                    title={img.label}
+                                    width={60}
+                                    height={50}
+                                    className="h-[50px] w-[60px] cursor-pointer rounded border border-[#e5e7eb] object-cover"
+                                    onClick={() => setImageModal(img.url!)}
+                                    unoptimized
+                                />
+                            ) : null
+                        ))}
+                        {displayImages.length > 2 && (
+                            <div
+                                className="flex h-[50px] w-[40px] cursor-pointer items-center justify-center rounded border border-dashed border-[#d1d5db] text-xs text-[#9ca3af]"
+                                onClick={() => openEditModal(row)}
+                            >
+                                +{displayImages.length - 2}
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+        },
+        {
+            key: 'star',
+            title: '星级',
+            defaultWidth: 70,
+            headerClassName: 'text-center',
+            cellClassName: 'text-center',
+            render: (row) => (
+                <select
+                    value={row.star}
+                    onChange={e => handleSetStar(row.id, parseInt(e.target.value))}
+                    className="w-14 rounded border border-[#e5e7eb] px-1 py-0.5 text-xs"
+                >
+                    {[1, 2, 3, 4, 5].map(s => <option key={s} value={s}>{s}星</option>)}
+                </select>
+            )
+        },
+        {
+            key: 'status',
+            title: '状态',
+            defaultWidth: 80,
+            headerClassName: 'text-center',
+            cellClassName: 'text-center',
+            render: (row) => <Badge variant="soft" color={statusLabels[row.status]?.color}>{statusLabels[row.status]?.text}</Badge>
+        },
+        {
+            key: 'actions',
+            title: '操作',
+            defaultWidth: 200,
+            headerClassName: 'text-center',
+            cellClassName: 'text-center',
+            render: (row) => (
+                <div className="flex flex-nowrap justify-center gap-1">
+                    <Button size="sm" variant="outline" onClick={() => openEditModal(row)}>审核</Button>
+                    <Button size="sm" variant="outline" onClick={() => openEditModal(row)}>编辑</Button>
+                    <Button size="sm" variant="outline" className="text-red-500" onClick={() => handleDelete(row.id)}>删除</Button>
+                </div>
+            )
+        },
+    ], [page, getDisplayImages, handleSetStar, openEditModal, handleDelete, setImageModal]);
 
     return (
         <div className="space-y-4">
@@ -420,124 +593,49 @@ function AdminBuyerAccountsPageContent() {
 
             {/* Table */}
             <Card className="overflow-hidden bg-white p-0">
-                {loading ? (
-                    <div className="py-10 text-center text-[#9ca3af]">加载中...</div>
-                ) : accounts.length === 0 ? (
-                    <div className="py-10 text-center text-[#9ca3af]">暂无数据</div>
-                ) : (
-                    <>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-[1200px] w-full border-collapse text-sm">
-                                <thead>
-                                    <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
-                                        {filterStatus === '0' && (
-                                            <th className="w-[40px] px-2 py-3 text-center">
-                                                <input type="checkbox" checked={allPendingSelected} onChange={e => handleSelectAll(e.target.checked)} className="cursor-pointer" />
-                                            </th>
-                                        )}
-                                        <th className="w-[50px] px-2 py-3 text-center font-medium">序号</th>
-                                        <th className="w-[70px] px-2 py-3 text-center font-medium">平台</th>
-                                        <th className="w-[100px] px-2 py-3 text-left font-medium">平台账号</th>
-                                        <th className="w-[80px] px-2 py-3 text-left font-medium">用户名</th>
-                                        <th className="w-[80px] px-2 py-3 text-left font-medium">实名姓名</th>
-                                        <th className="w-[100px] px-2 py-3 text-left font-medium">收货人</th>
-                                        <th className="w-[150px] px-2 py-3 text-left font-medium">收货地址</th>
-                                        <th className="w-[200px] px-2 py-3 text-center font-medium">资质截图</th>
-                                        <th className="w-[70px] px-2 py-3 text-center font-medium">星级</th>
-                                        <th className="w-[80px] px-2 py-3 text-center font-medium">状态</th>
-                                        <th className="w-[160px] px-2 py-3 text-center font-medium">操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {accounts.map((a, idx) => {
-                                        const displayImages = getDisplayImages(a);
-                                        return (
-                                            <tr key={a.id} className="border-b border-[#f3f4f6] hover:bg-[#fafbfc]">
-                                                {filterStatus === '0' && (
-                                                    <td className="px-2 py-2 text-center">
-                                                        {a.status === 0 && <input type="checkbox" checked={selectedIds.has(a.id)} onChange={e => handleSelectOne(a.id, e.target.checked)} className="cursor-pointer" />}
-                                                    </td>
-                                                )}
-                                                <td className="px-2 py-2 text-center text-[#6b7280]">{(page - 1) * 20 + idx + 1}</td>
-                                                <td className="px-2 py-2 text-center">
-                                                    <span className="rounded bg-[#f3f4f6] px-2 py-0.5 text-xs">{a.platform}</span>
-                                                </td>
-                                                <td className="px-2 py-2 font-medium text-primary-600">{a.platformAccount}</td>
-                                                <td className="px-2 py-2">{a.user?.username || '-'}</td>
-                                                <td className="px-2 py-2">{a.realName || '-'}</td>
-                                                <td className="px-2 py-2">
-                                                    <div className="text-xs">{a.buyerName || '-'}</div>
-                                                    <div className="text-xs text-[#9ca3af]">{a.buyerPhone || ''}</div>
-                                                </td>
-                                                <td className="px-2 py-2">
-                                                    <div className="max-w-[150px] truncate text-xs" title={`${a.province || ''} ${a.city || ''} ${a.district || ''} ${a.fullAddress || ''}`}>
-                                                        {a.province} {a.city} {a.district}
-                                                    </div>
-                                                    <div className="max-w-[150px] truncate text-xs text-[#9ca3af]">{a.fullAddress || ''}</div>
-                                                </td>
-                                                <td className="px-2 py-2">
-                                                    <div className="flex flex-wrap gap-1 justify-center">
-                                                        {displayImages.slice(0, 2).map(img => (
-                                                            img.url ? (
-                                                                <Image
-                                                                    key={img.key}
-                                                                    src={img.url}
-                                                                    alt={img.label}
-                                                                    title={img.label}
-                                                                    width={60}
-                                                                    height={50}
-                                                                    className="h-[50px] w-[60px] cursor-pointer rounded border border-[#e5e7eb] object-cover"
-                                                                    onClick={() => setImageModal(img.url!)}
-                                                                    unoptimized
-                                                                />
-                                                            ) : null
-                                                        ))}
-                                                        {displayImages.length > 2 && (
-                                                            <div
-                                                                className="flex h-[50px] w-[40px] cursor-pointer items-center justify-center rounded border border-dashed border-[#d1d5db] text-xs text-[#9ca3af]"
-                                                                onClick={() => openEditModal(a)}
-                                                            >
-                                                                +{displayImages.length - 2}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="px-2 py-2 text-center">
-                                                    <select
-                                                        value={a.star}
-                                                        onChange={e => handleSetStar(a.id, parseInt(e.target.value))}
-                                                        className="w-14 rounded border border-[#e5e7eb] px-1 py-0.5 text-xs"
-                                                    >
-                                                        {[1, 2, 3, 4, 5].map(s => <option key={s} value={s}>{s}星</option>)}
-                                                    </select>
-                                                </td>
-                                                <td className="px-2 py-2 text-center">
-                                                    <Badge variant="soft" color={statusLabels[a.status]?.color}>{statusLabels[a.status]?.text}</Badge>
-                                                </td>
-                                                <td className="px-2 py-2 text-center">
-                                                    <div className="flex flex-wrap justify-center gap-1">
-                                                        <Button size="sm" variant="outline" onClick={() => openEditModal(a)}>审核</Button>
-                                                        <Button size="sm" variant="outline" onClick={() => openEditModal(a)}>编辑</Button>
-                                                        <Button size="sm" variant="outline" className="text-red-500" onClick={() => handleDelete(a.id)}>删除</Button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {totalPages > 1 && (
-                            <div className="flex items-center justify-center gap-2 p-4">
-                                <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className={cn(page === 1 && 'cursor-not-allowed opacity-50')}>上一页</Button>
-                                <span className="px-4 text-sm text-[#6b7280]">{page} / {totalPages} (共 {total} 条)</span>
-                                <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className={cn(page === totalPages && 'cursor-not-allowed opacity-50')}>下一页</Button>
-                            </div>
-                        )}
-                    </>
+                {filterStatus === '0' && accounts.length > 0 && (
+                    <div className="flex items-center gap-2 border-b border-[#e5e7eb] px-4 py-2 bg-[#f9fafb]">
+                        <input
+                            type="checkbox"
+                            checked={allPendingSelected}
+                            onChange={e => handleSelectAll(e.target.checked)}
+                            className="cursor-pointer h-4 w-4 rounded border-[#d1d5db]"
+                        />
+                        <span className="text-sm text-[#6b7280]">全选待审核</span>
+                    </div>
+                )}
+                <EnhancedTable
+                    columns={columns}
+                    data={accounts}
+                    rowKey={(r) => r.id}
+                    loading={loading}
+                    emptyText="暂无数据"
+                    columnConfig={columnConfig}
+                    onColumnConfigChange={updateLocalConfig}
+                    onColumnSettingsClick={() => setShowColumnSettings(true)}
+                    selectable={filterStatus === '0'}
+                    selectedKeys={Array.from(selectedIds)}
+                    onRowSelect={(keys) => setSelectedIds(new Set(keys.map(String)))}
+                    getRowDisabled={(row) => row.status !== 0}
+                />
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 p-4">
+                        <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className={cn(page === 1 && 'cursor-not-allowed opacity-50')}>上一页</Button>
+                        <span className="px-4 text-sm text-[#6b7280]">{page} / {totalPages} (共 {total} 条)</span>
+                        <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className={cn(page === totalPages && 'cursor-not-allowed opacity-50')}>下一页</Button>
+                    </div>
                 )}
             </Card>
+
+            {/* 列设置面板 */}
+            <ColumnSettingsPanel
+                open={showColumnSettings}
+                onClose={() => setShowColumnSettings(false)}
+                columns={columnMeta}
+                config={columnConfig}
+                onSave={savePreferences}
+                onReset={resetPreferences}
+            />
 
             {/* Edit Modal - 动态适配不同平台 */}
             <Modal title={`审核 | 编辑买号 (${editModal?.platform || ''})`} open={editModal !== null} onClose={() => setEditModal(null)} className="max-w-3xl">
@@ -590,7 +688,7 @@ function AdminBuyerAccountsPageContent() {
                                 <Input placeholder="市" value={editForm.city} onChange={e => setEditForm({...editForm, city: e.target.value})} />
                                 <Input placeholder="区" value={editForm.district} onChange={e => setEditForm({...editForm, district: e.target.value})} />
                             </div>
-                            <Input placeholder="详细地址" value={editForm.fullAddress} onChange={e => setEditForm({...editForm, fullAddress: e.target.value})} />
+                            <Input placeholder="详细地址（不含省市区）" value={editForm.fullAddress} onChange={e => setEditForm({...editForm, fullAddress: e.target.value})} />
                         </div>
 
                         {/* 星级和冻结 */}
