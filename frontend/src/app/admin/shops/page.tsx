@@ -48,7 +48,9 @@ function ShopsContent() {
         const json = await res.json();
         if (json.list) setShops(json.list);
         setLoading(false);
-    };
+    }, [statusFilter, merchantId]);
+
+    useEffect(() => { loadShops(); }, [loadShops]);
 
     const handleReview = async (id: string, status: number, remark?: string) => {
         if (!confirm(status === 1 ? '确认通过审核？' : '确认拒绝？')) return;
