@@ -39,6 +39,8 @@ export interface EnhancedTableProps<T> {
     selectedKeys?: Array<string | number>;
     onRowSelect?: (selectedKeys: Array<string | number>) => void;
     getRowDisabled?: (row: T) => boolean;
+    // 列设置按钮
+    onColumnSettingsClick?: () => void;
 }
 
 // ===== 列分隔线拖拽组件 =====
@@ -108,6 +110,7 @@ export function EnhancedTable<T extends object>({
     selectedKeys = [],
     onRowSelect,
     getRowDisabled,
+    onColumnSettingsClick,
 }: EnhancedTableProps<T>) {
     // 本地列宽状态
     const [localWidths, setLocalWidths] = useState<Record<string, number>>({});
@@ -192,8 +195,8 @@ export function EnhancedTable<T extends object>({
 
     return (
         <div className={cn('overflow-hidden rounded-md border border-[#e5e7eb] bg-white', className)}>
-            <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-[14px]" style={{ tableLayout: 'fixed' }}>
+            <div className="w-full overflow-x-auto">
+                <table className="w-full min-w-full border-collapse text-[14px]" style={{ tableLayout: 'auto' }}>
                     <thead>
                         <tr className="border-b border-[#e5e7eb] bg-[#f9fafb]">
                             {selectable && (
@@ -225,6 +228,18 @@ export function EnhancedTable<T extends object>({
                                     )}
                                 </th>
                             ))}
+                            {/* 列设置按钮 */}
+                            {onColumnSettingsClick && (
+                                <th className="w-20 px-2 py-3 text-right">
+                                    <button
+                                        type="button"
+                                        onClick={onColumnSettingsClick}
+                                        className="text-[12px] text-primary-500 hover:text-primary-600"
+                                    >
+                                        ☰ 列设置
+                                    </button>
+                                </th>
+                            )}
                         </tr>
                     </thead>
                     <tbody>
@@ -260,16 +275,17 @@ export function EnhancedTable<T extends object>({
                                     {visibleColumns.map((col, colIdx) => (
                                         <td
                                             key={col.key}
-                                            className="px-4 py-3 text-[#3b4559]"
-                                            style={{ width: localWidths[col.key] || col.defaultWidth || 120 }}
+                                            className="px-4 py-3 text-[#3b4559] overflow-hidden"
+                                            style={{ width: localWidths[col.key] || col.defaultWidth || 120, maxWidth: localWidths[col.key] || col.defaultWidth || 120 }}
                                         >
-                                            <div className="break-words">
+                                            <div className="break-words overflow-hidden">
                                                 {col.render
                                                     ? col.render(row, idx)
                                                     : ((row as Record<string, unknown>)[col.key] as ReactNode)}
                                             </div>
                                         </td>
                                     ))}
+                                    {onColumnSettingsClick && <td className="w-20" />}
                                 </tr>
                             );
                         })}

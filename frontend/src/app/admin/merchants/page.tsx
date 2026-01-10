@@ -534,42 +534,42 @@ export default function AdminMerchantsPage() {
             defaultWidth: 280,
             minWidth: 200,
             render: (row) => (
-                <div className="grid grid-cols-4 gap-1">
-                    <Button size="sm" variant="outline" onClick={() => router.push(`/admin/shops?merchantId=${row.id}`)}>
+                <div className="flex flex-wrap gap-1">
+                    <Button size="sm" variant="outline" className="w-[65px]" onClick={() => router.push(`/admin/shops?merchantId=${row.id}`)}>
                         店铺
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => router.push(`/admin/merchants/balance?merchantId=${row.id}`)}>
+                    <Button size="sm" variant="outline" className="w-[65px]" onClick={() => router.push(`/admin/merchants/balance?merchantId=${row.id}`)}>
                         流水
                     </Button>
-                    <Button size="sm" variant="outline" className="text-success-500" onClick={() => router.push(`/admin/merchants/${row.id}/deposit`)}>
+                    <Button size="sm" variant="outline" className="w-[65px] text-success-500" onClick={() => router.push(`/admin/merchants/${row.id}/deposit`)}>
                         押金
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => openAdjustBalance(row)}>
+                    <Button size="sm" variant="outline" className="w-[65px]" onClick={() => openAdjustBalance(row)}>
                         调余额
                     </Button>
-                    <Button size="sm" variant="outline" className="text-primary-600" onClick={() => openMessage(row)}>
+                    <Button size="sm" variant="outline" className="w-[65px] text-primary-600" onClick={() => openMessage(row)}>
                         消息
                     </Button>
                     {!row.vip && (
-                        <Button size="sm" variant="outline" className="text-warning-500" onClick={() => openSetVip(row)}>
-                            设vip
+                        <Button size="sm" variant="outline" className="w-[65px] text-warning-500" onClick={() => openSetVip(row)}>
+                            设VIP
                         </Button>
                     )}
-                    <Button size="sm" variant="outline" onClick={() => openEdit(row)}>
+                    <Button size="sm" variant="outline" className="w-[65px]" onClick={() => openEdit(row)}>
                         编辑
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => openNote(row)}>
+                    <Button size="sm" variant="outline" className="w-[65px]" onClick={() => openNote(row)}>
                         备注
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => openPassword(row)}>
+                    <Button size="sm" variant="outline" className="w-[65px]" onClick={() => openPassword(row)}>
                         改密码
                     </Button>
                     {row.status === 3 ? (
-                        <Button size="sm" variant="outline" className="text-success-500" onClick={() => handleBan(row.id, row.status)}>
+                        <Button size="sm" variant="outline" className="w-[65px] text-success-500" onClick={() => handleBan(row.id, row.status)}>
                             启用
                         </Button>
                     ) : (
-                        <Button size="sm" variant="outline" className="text-danger-400" onClick={() => handleBan(row.id, row.status)}>
+                        <Button size="sm" variant="outline" className="w-[65px] text-danger-400" onClick={() => handleBan(row.id, row.status)}>
                             禁用
                         </Button>
                     )}
