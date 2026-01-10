@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn, formatDate } from '../../../lib/utils';
 import { toastSuccess, toastError } from '../../../lib/toast';
@@ -10,11 +10,13 @@ import { Badge } from '../../../components/ui/badge';
 import { Input } from '../../../components/ui/input';
 import { DateInput } from '../../../components/ui/date-input';
 import { Select } from '../../../components/ui/select';
-import { Table, Column } from '../../../components/ui/table';
+import { EnhancedTable, EnhancedColumn } from '../../../components/ui/enhanced-table';
+import { ColumnSettingsPanel, ColumnConfig, ColumnMeta } from '../../../components/ui/column-settings-panel';
 import { Modal } from '../../../components/ui/modal';
 import { Pagination } from '../../../components/ui/pagination';
 import { adminService, AdminMerchant } from '../../../services/adminService';
 import { BASE_URL } from '../../../../apiConfig';
+import { useTablePreferences } from '../../../hooks/useTablePreferences';
 
 const statusLabels: Record<number, { text: string; color: 'amber' | 'green' | 'red' | 'slate' }> = {
     0: { text: '待审核', color: 'amber' },
@@ -31,6 +33,49 @@ export default function AdminMerchantsPage() {
     const [keyword, setKeyword] = useState('');
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
+
+    // 排序状态
+    const [sortField, setSortField] = useState<string>('createdAt');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+    // 列设置面板状态
+    const [showColumnSettings, setShowColumnSettings] = useState(false);
+
+    // 默认列配置
+    const defaultColumns: ColumnConfig[] = useMemo(() => [
+        { key: 'info', visible: true, width: 180, order: 0 },
+        { key: 'phone', visible: true, width: 120, order: 1 },
+        { key: 'wechat', visible: true, width: 100, order: 2 },
+        { key: 'balance', visible: true, width: 120, order: 3 },
+        { key: 'frozen', visible: true, width: 80, order: 4 },
+        { key: 'vip', visible: true, width: 90, order: 5 },
+        { key: 'status', visible: true, width: 80, order: 6 },
+        { key: 'referrer', visible: true, width: 120, order: 7 },
+        { key: 'note', visible: true, width: 100, order: 8 },
+        { key: 'createdAt', visible: true, width: 100, order: 9 },
+        { key: 'actions', visible: true, width: 480, order: 10 },
+    ], []);
+
+    // 列配置 Hook
+    const { columnConfig, savePreferences, resetPreferences, updateLocalConfig } = useTablePreferences({
+        tableKey: 'admin_merchants',
+        defaultColumns,
+    });
+
+    // 列元信息
+    const columnMeta: ColumnMeta[] = useMemo(() => [
+        { key: 'info', title: '商家信息' },
+        { key: 'phone', title: '手机号' },
+        { key: 'wechat', title: '微信' },
+        { key: 'balance', title: '本金/银锭' },
+        { key: 'frozen', title: '冻结' },
+        { key: 'vip', title: '会员' },
+        { key: 'status', title: '状态' },
+        { key: 'referrer', title: '推荐人' },
+        { key: 'note', title: '备注' },
+        { key: 'createdAt', title: '注册时间' },
+        { key: 'actions', title: '操作' },
+    ], []);
 
     const [activeModal, setActiveModal] = useState<'balance' | 'vip' | 'ban' | 'note' | 'password' | 'add' | 'message' | 'edit' | null>(null);
     const [selectedMerchant, setSelectedMerchant] = useState<AdminMerchant | null>(null);
@@ -355,11 +400,13 @@ export default function AdminMerchantsPage() {
         }
     ) => row.phone || row.mobile || row.phoneNumber || row.contactPhone || '';
 
-    const columns: Column<AdminMerchant>[] = [
+    const columns: EnhancedColumn<AdminMerchant>[] = [
         {
             key: 'info',
             title: '商家信息',
-            className: 'w-[180px]',
+            defaultWidth: 180,
+            minWidth: 100,
+            sortable: true,
             render: (row) => (
                 <div>
                     <div className="font-medium text-[#3b4559]">{row.username}</div>
@@ -372,7 +419,8 @@ export default function AdminMerchantsPage() {
         {
             key: 'phone',
             title: '手机号',
-            className: 'w-[120px]',
+            defaultWidth: 120,
+            minWidth: 80,
             render: (row) => (
                 <div className="text-sm">{getMerchantPhone(row) || '-'}</div>
             ),
@@ -380,7 +428,8 @@ export default function AdminMerchantsPage() {
         {
             key: 'wechat',
             title: '微信号',
-            className: 'w-[100px]',
+            defaultWidth: 100,
+            minWidth: 60,
             render: (row) => (
                 <div className="text-sm">{row.wechat || '-'}</div>
             ),
@@ -388,7 +437,8 @@ export default function AdminMerchantsPage() {
         {
             key: 'balance',
             title: '本金/银锭',
-            className: 'w-[120px]',
+            defaultWidth: 120,
+            minWidth: 80,
             render: (row) => (
                 <div className="text-sm">
                     <div className="font-medium text-success-500">¥{Number(row.balance || 0).toFixed(2)}</div>
@@ -399,7 +449,8 @@ export default function AdminMerchantsPage() {
         {
             key: 'frozen',
             title: '冻结',
-            className: 'w-[80px]',
+            defaultWidth: 80,
+            minWidth: 50,
             render: (row) => (
                 <div className="text-xs text-[#9ca3af]">
                     ¥{Number(row.frozenBalance || 0).toFixed(2)}
@@ -409,7 +460,8 @@ export default function AdminMerchantsPage() {
         {
             key: 'vip',
             title: '会员',
-            className: 'w-[90px] text-center',
+            defaultWidth: 90,
+            minWidth: 60,
             render: (row) => (
                 <div>
                     {row.vip ? (
@@ -428,7 +480,8 @@ export default function AdminMerchantsPage() {
         {
             key: 'status',
             title: '状态',
-            className: 'w-[80px] text-center',
+            defaultWidth: 80,
+            minWidth: 60,
             render: (row) => {
                 const conf = statusLabels[row.status] || statusLabels[0];
                 return <Badge variant="soft" color={conf.color}>{conf.text}</Badge>;
@@ -437,7 +490,8 @@ export default function AdminMerchantsPage() {
         {
             key: 'referrer',
             title: '推荐人',
-            className: 'w-[120px]',
+            defaultWidth: 120,
+            minWidth: 60,
             render: (row) => (
                 <div className="text-xs">
                     {row.referrerName ? (
@@ -454,7 +508,8 @@ export default function AdminMerchantsPage() {
         {
             key: 'note',
             title: '备注',
-            className: 'w-[100px]',
+            defaultWidth: 100,
+            minWidth: 60,
             render: (row) => (
                 <div className="max-w-[100px] truncate text-xs text-danger-400" title={row.note || ''}>
                     {row.note || '-'}
@@ -464,7 +519,9 @@ export default function AdminMerchantsPage() {
         {
             key: 'createdAt',
             title: '注册时间',
-            className: 'w-[100px]',
+            defaultWidth: 100,
+            minWidth: 60,
+            sortable: true,
             render: (row) => (
                 <div className="text-xs text-[#6b7280]">
                     {formatDate(row.createdAt)}
@@ -474,7 +531,8 @@ export default function AdminMerchantsPage() {
         {
             key: 'actions',
             title: '操作',
-            className: 'w-[480px]',
+            defaultWidth: 480,
+            minWidth: 300,
             render: (row) => (
                 <div className="flex flex-wrap items-center gap-1.5">
                     <Button size="sm" variant="outline" onClick={() => router.push(`/admin/shops?merchantId=${row.id}`)}>
@@ -494,7 +552,7 @@ export default function AdminMerchantsPage() {
                     </Button>
                     {!row.vip && (
                         <Button size="sm" variant="outline" className="text-warning-500" onClick={() => openSetVip(row)}>
-                            设VIP
+                            设vip
                         </Button>
                     )}
                     <Button size="sm" variant="outline" onClick={() => openEdit(row)}>
@@ -562,12 +620,26 @@ export default function AdminMerchantsPage() {
 
             {/* 商家列表 */}
             <Card className="overflow-hidden bg-white">
-                <Table
+                <div className="mb-4 flex items-center justify-end border-b border-[#e5e7eb] pb-3">
+                    <Button variant="ghost" size="sm" onClick={() => setShowColumnSettings(true)}>
+                        ☰ 列设置
+                    </Button>
+                </div>
+                <EnhancedTable
                     columns={columns}
                     data={merchants}
                     rowKey={(r) => r.id}
                     loading={loading}
                     emptyText="暂无商家数据"
+                    columnConfig={columnConfig}
+                    onColumnConfigChange={updateLocalConfig}
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={(field, order) => {
+                        setSortField(field);
+                        setSortOrder(order);
+                        loadMerchants();
+                    }}
                 />
                 <div className="mt-4 flex justify-end px-6 pb-6">
                     <Pagination
@@ -578,6 +650,16 @@ export default function AdminMerchantsPage() {
                     />
                 </div>
             </Card>
+
+            {/* 列设置面板 */}
+            <ColumnSettingsPanel
+                open={showColumnSettings}
+                onClose={() => setShowColumnSettings(false)}
+                columns={columnMeta}
+                config={columnConfig}
+                onSave={savePreferences}
+                onReset={resetPreferences}
+            />
 
             {/* 调整余额弹窗 */}
             <Modal

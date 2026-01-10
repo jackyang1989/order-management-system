@@ -191,6 +191,11 @@ export class SystemGlobalConfig {
   @Column({ type: 'text', default: '["taobao"]' })
   enabledPlatforms: string;
 
+  // ============ 收款账户配置 ============
+  // 是否需要填写银行卡信息（关闭后只需上传收款码）
+  @Column({ default: true })
+  requireBankInfo: boolean;
+
   @UpdateDateColumn()
   updatedAt: Date;
 }
@@ -340,4 +345,8 @@ export class UpdateSystemGlobalConfigDto {
   @IsOptional()
   @IsString()
   enabledPlatforms?: string;
+
+  // 收款账户配置
+  @IsOptional()
+  requireBankInfo?: boolean;
 }

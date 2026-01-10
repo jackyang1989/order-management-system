@@ -9,6 +9,7 @@ import { Badge } from '../../../../components/ui/badge';
 import { Input } from '../../../../components/ui/input';
 import { Select } from '../../../../components/ui/select';
 import { Modal } from '../../../../components/ui/modal';
+import Image from 'next/image';
 
 interface BankCard {
     id: string;
@@ -25,6 +26,8 @@ interface BankCard {
     idCard: string;
     idCardFrontImage: string;
     idCardBackImage: string;
+    wechatQrCode?: string;
+    alipayQrCode?: string;
     isDefault: boolean;
     status: number;
     rejectReason: string;
@@ -303,24 +306,67 @@ export default function AdminFinanceBankPage() {
                                 <div className="flex flex-wrap gap-4">
                                     {detailModal.idCardFrontImage && (
                                         <div className="text-center">
-                                            <img
+                                            <Image
                                                 src={detailModal.idCardFrontImage}
                                                 alt="身份证正面"
+                                                width={180}
+                                                height={120}
                                                 className="h-[120px] w-[180px] cursor-pointer rounded border border-[#e5e7eb] object-cover"
                                                 onClick={() => setImageModal(detailModal.idCardFrontImage)}
+                                                unoptimized
                                             />
                                             <div className="mt-1 text-xs text-[#6b7280]">身份证正面</div>
                                         </div>
                                     )}
                                     {detailModal.idCardBackImage && (
                                         <div className="text-center">
-                                            <img
+                                            <Image
                                                 src={detailModal.idCardBackImage}
                                                 alt="身份证背面"
+                                                width={180}
+                                                height={120}
                                                 className="h-[120px] w-[180px] cursor-pointer rounded border border-[#e5e7eb] object-cover"
                                                 onClick={() => setImageModal(detailModal.idCardBackImage)}
+                                                unoptimized
                                             />
                                             <div className="mt-1 text-xs text-[#6b7280]">身份证背面</div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Payment QR Codes */}
+                        {(detailModal.wechatQrCode || detailModal.alipayQrCode) && (
+                            <div>
+                                <h4 className="mb-3 border-b border-[#f3f4f6] pb-2 text-sm font-medium text-[#4b5563]">收款码</h4>
+                                <div className="flex flex-wrap gap-4">
+                                    {detailModal.wechatQrCode && (
+                                        <div className="text-center">
+                                            <Image
+                                                src={detailModal.wechatQrCode}
+                                                alt="微信收款码"
+                                                width={120}
+                                                height={120}
+                                                className="h-[120px] w-[120px] cursor-pointer rounded border border-green-200 object-cover"
+                                                onClick={() => setImageModal(detailModal.wechatQrCode!)}
+                                                unoptimized
+                                            />
+                                            <div className="mt-1 text-xs text-green-600">微信收款码</div>
+                                        </div>
+                                    )}
+                                    {detailModal.alipayQrCode && (
+                                        <div className="text-center">
+                                            <Image
+                                                src={detailModal.alipayQrCode}
+                                                alt="支付宝收款码"
+                                                width={120}
+                                                height={120}
+                                                className="h-[120px] w-[120px] cursor-pointer rounded border border-blue-200 object-cover"
+                                                onClick={() => setImageModal(detailModal.alipayQrCode!)}
+                                                unoptimized
+                                            />
+                                            <div className="mt-1 text-xs text-blue-600">支付宝收款码</div>
                                         </div>
                                     )}
                                 </div>
@@ -364,7 +410,7 @@ export default function AdminFinanceBankPage() {
                     onClick={() => setImageModal(null)}
                     className="fixed inset-0 z-[1100] flex cursor-zoom-out items-center justify-center bg-black/80"
                 >
-                    <img src={imageModal} alt="预览" className="max-h-[90%] max-w-[90%] object-contain" />
+                    <Image src={imageModal} alt="预览" width={800} height={600} className="max-h-[90%] max-w-[90%] object-contain" unoptimized />
                 </div>
             )}
 

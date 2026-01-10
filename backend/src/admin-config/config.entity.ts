@@ -613,6 +613,14 @@ export const DEFAULT_CONFIGS = [
 
   // 支付设置
   {
+    key: 'require_bank_info',
+    value: 'true',
+    group: 'payment',
+    label: '需要填写银行卡信息',
+    valueType: 'boolean',
+    description: '关闭后用户/商家添加收款账户时只需上传收款码，无需填写银行卡信息',
+  },
+  {
     key: 'alipay_account',
     value: '',
     group: 'payment',

@@ -10,6 +10,8 @@ import { Button } from '../../../components/ui/button';
 import { Modal } from '../../../components/ui/modal';
 import { isAuthenticated } from '../../../services/authService';
 import { fetchBankCards, addBankCard, deleteBankCard, setDefaultBankCard, BankCard } from '../../../services/userService';
+import { BASE_URL } from '../../../../apiConfig';
+import Image from 'next/image';
 
 export default function PaymentSettingsPage() {
     const router = useRouter();
@@ -17,13 +19,35 @@ export default function PaymentSettingsPage() {
     const [cards, setCards] = useState<BankCard[]>([]);
     const [showAddModal, setShowAddModal] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [requireBankInfo, setRequireBankInfo] = useState(true); // 系统配置：是否需要银行卡信息
 
     const [form, setForm] = useState({
         bankName: '', accountName: '', cardNumber: '', phone: '',
         province: '', city: '', branchName: '', alipayQrCode: '', wechatQrCode: ''
     });
 
-    useEffect(() => { if (!isAuthenticated()) { router.push('/login'); return; } loadCards(); }, []);
+    // 图片上传状态
+    const [uploadingAlipay, setUploadingAlipay] = useState(false);
+    const [uploadingWechat, setUploadingWechat] = useState(false);
+    const [imageModal, setImageModal] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!isAuthenticated()) { router.push('/login'); return; }
+        loadCards();
+        loadSystemConfig();
+    }, []);
+
+    const loadSystemConfig = async () => {
+        try {
+            const res = await fetch(`${BASE_URL}/system-config/public`);
+            const json = await res.json();
+            if (json.success && json.data) {
+                setRequireBankInfo(json.data.requireBankInfo !== false);
+            }
+        } catch (error) {
+            console.error('Load system config error:', error);
+        }
+    };
 
     const loadCards = async () => {
         setLoading(true);
@@ -32,20 +56,74 @@ export default function PaymentSettingsPage() {
         finally { setLoading(false); }
     };
 
+    const handleImageUpload = async (file: File, type: 'alipay' | 'wechat') => {
+        if (type === 'alipay') setUploadingAlipay(true);
+        else setUploadingWechat(true);
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${BASE_URL}/upload/image`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            const json = await res.json();
+
+            if (json.success && json.url) {
+                if (type === 'alipay') {
+                    setForm(f => ({ ...f, alipayQrCode: json.url }));
+                } else {
+                    setForm(f => ({ ...f, wechatQrCode: json.url }));
+                }
+                toastSuccess('上传成功');
+            } else {
+                toastError(json.message || '上传失败');
+            }
+        } catch (error) {
+            toastError('上传失败');
+        } finally {
+            if (type === 'alipay') setUploadingAlipay(false);
+            else setUploadingWechat(false);
+        }
+    };
+
     const handleAddCard = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!form.bankName || !form.accountName || !form.cardNumber) { toastError('请填写完整必填信息'); return; }
+
+        // 根据系统配置验证必填项
+        if (requireBankInfo) {
+            if (!form.bankName || !form.accountName || !form.cardNumber) {
+                toastError('请填写完整银行卡信息');
+                return;
+            }
+        }
+
+        // 收款码至少需要一个
+        if (!form.alipayQrCode && !form.wechatQrCode) {
+            toastError('请至少上传一个收款码（微信或支付宝）');
+            return;
+        }
+
         setSubmitting(true);
         try {
             const result = await addBankCard(form);
-            if (result.success) { toastSuccess('银行卡添加成功'); setShowAddModal(false); setForm({ bankName: '', accountName: '', cardNumber: '', phone: '', province: '', city: '', branchName: '', alipayQrCode: '', wechatQrCode: '' }); loadCards(); }
-            else { toastError(result.message || '添加失败'); }
+            if (result.success) {
+                toastSuccess('收款账户添加成功');
+                setShowAddModal(false);
+                setForm({ bankName: '', accountName: '', cardNumber: '', phone: '', province: '', city: '', branchName: '', alipayQrCode: '', wechatQrCode: '' });
+                loadCards();
+            } else {
+                toastError(result.message || '添加失败');
+            }
         } catch (error) { toastError('网络错误'); }
         finally { setSubmitting(false); }
     };
 
     const handleDeleteCard = async (id: string) => {
-        if (!confirm('确定要删除这张银行卡吗？')) return;
+        if (!confirm('确定要删除这个收款账户吗？')) return;
         try {
             const result = await deleteBankCard(id);
             if (result.success) { toastSuccess('删除成功'); loadCards(); }
@@ -67,7 +145,7 @@ export default function PaymentSettingsPage() {
             <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
                 <div className="mx-auto flex h-14 max-w-[515px] items-center px-4">
                     <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
-                    <h1 className="flex-1 text-base font-medium text-slate-800">银行卡管理</h1>
+                    <h1 className="flex-1 text-base font-medium text-slate-800">收款账户管理</h1>
                     <button onClick={() => setShowAddModal(true)} className="text-sm font-medium text-primary-500">添加</button>
                 </div>
             </header>
@@ -78,8 +156,8 @@ export default function PaymentSettingsPage() {
                 ) : cards.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center text-slate-400">
                         <div className="mb-3 text-4xl">💳</div>
-                        <p className="text-sm">暂未绑定银行卡</p>
-                        <Button className="mt-4 bg-primary-500" onClick={() => setShowAddModal(true)}>立即绑定</Button>
+                        <p className="text-sm">暂未添加收款账户</p>
+                        <Button className="mt-4 bg-primary-500" onClick={() => setShowAddModal(true)}>立即添加</Button>
                     </div>
                 ) : (
                     <div className="space-y-4">
@@ -88,14 +166,31 @@ export default function PaymentSettingsPage() {
                                 {card.isDefault && <div className="absolute right-0 top-0 rounded-bl-lg bg-primary-500 px-3 py-1 text-[10px] text-white">默认</div>}
                                 <div className="p-4">
                                     <div className="mb-4 flex items-center gap-3">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-xl">🏦</div>
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-xl">💳</div>
                                         <div>
-                                            <div className="font-bold text-slate-800">{card.bankName}</div>
+                                            <div className="font-bold text-slate-800">{card.bankName || '收款账户'}</div>
                                             <div className="text-xs text-slate-400">{card.accountName}</div>
                                         </div>
                                     </div>
-                                    <div className="mb-4 text-lg font-medium tracking-wider text-slate-700">
-                                        **** **** **** {card.cardNumber.slice(-4)}
+                                    {card.cardNumber && (
+                                        <div className="mb-3 text-lg font-medium tracking-wider text-slate-700">
+                                            **** **** **** {card.cardNumber.slice(-4)}
+                                        </div>
+                                    )}
+                                    {/* 收款码显示 */}
+                                    <div className="mb-3 flex gap-3">
+                                        {card.wechatQrCode && (
+                                            <div className="flex items-center gap-2 rounded bg-green-50 px-2 py-1 text-xs text-green-600">
+                                                <span>微信收款码</span>
+                                                <span className="text-green-500">✓</span>
+                                            </div>
+                                        )}
+                                        {card.alipayQrCode && (
+                                            <div className="flex items-center gap-2 rounded bg-blue-50 px-2 py-1 text-xs text-blue-600">
+                                                <span>支付宝收款码</span>
+                                                <span className="text-blue-500">✓</span>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
                                         {!card.isDefault && <button onClick={() => handleSetDefault(card.id)} className="text-xs text-primary-500">设为默认</button>}
@@ -110,50 +205,169 @@ export default function PaymentSettingsPage() {
                 <div className="mt-6 rounded-lg bg-amber-50 p-4 text-xs text-amber-700 leading-relaxed">
                     <div className="mb-2 font-bold flex items-center gap-1">⚠️ 绑定须知</div>
                     <ul className="list-disc pl-4 space-y-1">
-                        <li>请务必填写正确的开户行及分支行信息，否则将导致提现失败。</li>
-                        <li>银行卡持卡人姓名必须与实名认证姓名一致。</li>
-                        <li>建议绑定主流银行卡（招商、工商、建设等）以获得更快的到账体验。</li>
+                        <li>请上传清晰的收款码图片，确保能被正常扫描。</li>
+                        {requireBankInfo && <li>请务必填写正确的开户行及分支行信息，否则将导致提现失败。</li>}
+                        {requireBankInfo && <li>银行卡持卡人姓名必须与实名认证姓名一致。</li>}
+                        <li>收款码将用于接收任务佣金，请确保账户正常可用。</li>
                     </ul>
                 </div>
             </ProfileContainer>
 
             {/* Add Card Modal */}
-            <Modal title="添加银行卡" open={showAddModal} onClose={() => setShowAddModal(false)}>
+            <Modal title="添加收款账户" open={showAddModal} onClose={() => setShowAddModal(false)} className="max-w-md">
                 <form onSubmit={handleAddCard} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="mb-1 block text-xs text-slate-500">银行名称 <span className="text-danger-400">*</span></label>
-                            <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="如：招商银行" value={form.bankName} onChange={e => setForm(f => ({ ...f, bankName: e.target.value }))} />
-                        </div>
-                        <div>
-                            <label className="mb-1 block text-xs text-slate-500">持卡人姓名 <span className="text-danger-400">*</span></label>
-                            <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="姓名" value={form.accountName} onChange={e => setForm(f => ({ ...f, accountName: e.target.value }))} />
-                        </div>
-                    </div>
+                    {/* 收款码上传区域 */}
                     <div>
-                        <label className="mb-1 block text-xs text-slate-500">银行卡号 <span className="text-danger-400">*</span></label>
-                        <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="请输入银行卡号" value={form.cardNumber} onChange={e => setForm(f => ({ ...f, cardNumber: e.target.value }))} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="mb-1 block text-xs text-slate-500">省份</label>
-                            <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800" placeholder="省份" value={form.province} onChange={e => setForm(f => ({ ...f, province: e.target.value }))} />
+                        <label className="mb-2 block text-sm font-medium text-slate-700">收款码上传 <span className="text-danger-400">*</span></label>
+                        <div className="grid grid-cols-2 gap-4">
+                            {/* 微信收款码 */}
+                            <div className="text-center">
+                                <div className="mb-1 text-xs text-slate-500">微信收款码</div>
+                                {form.wechatQrCode ? (
+                                    <div className="relative">
+                                        <Image
+                                            src={form.wechatQrCode}
+                                            alt="微信收款码"
+                                            width={120}
+                                            height={120}
+                                            className="mx-auto h-[120px] w-[120px] cursor-pointer rounded border border-green-200 object-cover"
+                                            onClick={() => setImageModal(form.wechatQrCode)}
+                                            unoptimized
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setForm(f => ({ ...f, wechatQrCode: '' }))}
+                                            className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white"
+                                        >×</button>
+                                    </div>
+                                ) : (
+                                    <label className={cn(
+                                        "flex h-[120px] w-[120px] mx-auto cursor-pointer flex-col items-center justify-center rounded border-2 border-dashed border-green-300 bg-green-50 text-green-500 transition-colors hover:bg-green-100",
+                                        uploadingWechat && "opacity-50 cursor-not-allowed"
+                                    )}>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            disabled={uploadingWechat}
+                                            onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'wechat')}
+                                        />
+                                        {uploadingWechat ? (
+                                            <span className="text-xs">上传中...</span>
+                                        ) : (
+                                            <>
+                                                <span className="text-2xl">+</span>
+                                                <span className="text-xs">点击上传</span>
+                                            </>
+                                        )}
+                                    </label>
+                                )}
+                            </div>
+                            {/* 支付宝收款码 */}
+                            <div className="text-center">
+                                <div className="mb-1 text-xs text-slate-500">支付宝收款码</div>
+                                {form.alipayQrCode ? (
+                                    <div className="relative">
+                                        <Image
+                                            src={form.alipayQrCode}
+                                            alt="支付宝收款码"
+                                            width={120}
+                                            height={120}
+                                            className="mx-auto h-[120px] w-[120px] cursor-pointer rounded border border-blue-200 object-cover"
+                                            onClick={() => setImageModal(form.alipayQrCode)}
+                                            unoptimized
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setForm(f => ({ ...f, alipayQrCode: '' }))}
+                                            className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white"
+                                        >×</button>
+                                    </div>
+                                ) : (
+                                    <label className={cn(
+                                        "flex h-[120px] w-[120px] mx-auto cursor-pointer flex-col items-center justify-center rounded border-2 border-dashed border-blue-300 bg-blue-50 text-blue-500 transition-colors hover:bg-blue-100",
+                                        uploadingAlipay && "opacity-50 cursor-not-allowed"
+                                    )}>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            disabled={uploadingAlipay}
+                                            onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'alipay')}
+                                        />
+                                        {uploadingAlipay ? (
+                                            <span className="text-xs">上传中...</span>
+                                        ) : (
+                                            <>
+                                                <span className="text-2xl">+</span>
+                                                <span className="text-xs">点击上传</span>
+                                            </>
+                                        )}
+                                    </label>
+                                )}
+                            </div>
                         </div>
+                        <div className="mt-2 text-center text-xs text-slate-400">至少上传一个收款码</div>
+                    </div>
+
+                    {/* 银行卡信息（根据系统配置显示） */}
+                    {requireBankInfo && (
+                        <>
+                            <div className="border-t border-slate-200 pt-4">
+                                <label className="mb-2 block text-sm font-medium text-slate-700">银行卡信息</label>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="mb-1 block text-xs text-slate-500">银行名称 <span className="text-danger-400">*</span></label>
+                                    <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="如：招商银行" value={form.bankName} onChange={e => setForm(f => ({ ...f, bankName: e.target.value }))} />
+                                </div>
+                                <div>
+                                    <label className="mb-1 block text-xs text-slate-500">持卡人姓名 <span className="text-danger-400">*</span></label>
+                                    <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="姓名" value={form.accountName} onChange={e => setForm(f => ({ ...f, accountName: e.target.value }))} />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="mb-1 block text-xs text-slate-500">银行卡号 <span className="text-danger-400">*</span></label>
+                                <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="请输入银行卡号" value={form.cardNumber} onChange={e => setForm(f => ({ ...f, cardNumber: e.target.value }))} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="mb-1 block text-xs text-slate-500">省份</label>
+                                    <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800" placeholder="省份" value={form.province} onChange={e => setForm(f => ({ ...f, province: e.target.value }))} />
+                                </div>
+                                <div>
+                                    <label className="mb-1 block text-xs text-slate-500">城市</label>
+                                    <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800" placeholder="城市" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="mb-1 block text-xs text-slate-500">支行信息</label>
+                                <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="如：某某支行" value={form.branchName} onChange={e => setForm(f => ({ ...f, branchName: e.target.value }))} />
+                            </div>
+                        </>
+                    )}
+
+                    {/* 如果不需要银行卡信息，只显示收款人信息 */}
+                    {!requireBankInfo && (
                         <div>
-                            <label className="mb-1 block text-xs text-slate-500">城市</label>
-                            <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800" placeholder="城市" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} />
+                            <label className="mb-1 block text-xs text-slate-500">收款人姓名 <span className="text-danger-400">*</span></label>
+                            <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="请输入收款人姓名" value={form.accountName} onChange={e => setForm(f => ({ ...f, accountName: e.target.value }))} />
                         </div>
-                    </div>
-                    <div>
-                        <label className="mb-1 block text-xs text-slate-500">支行信息 <span className="text-danger-400">*</span></label>
-                        <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="如：某某支行" value={form.branchName} onChange={e => setForm(f => ({ ...f, branchName: e.target.value }))} />
-                    </div>
+                    )}
+
                     <div className="flex gap-3 pt-2">
                         <Button variant="secondary" onClick={() => setShowAddModal(false)} className="flex-1">取消</Button>
                         <Button type="submit" loading={submitting} className="flex-1 bg-primary-500 hover:bg-primary-600">确定</Button>
                     </div>
                 </form>
             </Modal>
+
+            {/* Image Preview Modal */}
+            {imageModal && (
+                <div onClick={() => setImageModal(null)} className="fixed inset-0 z-[1100] flex cursor-zoom-out items-center justify-center bg-black/80">
+                    <Image src={imageModal} alt="预览" width={400} height={400} className="max-h-[90%] max-w-[90%] object-contain" unoptimized />
+                </div>
+            )}
         </div>
     );
 }

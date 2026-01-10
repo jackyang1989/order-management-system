@@ -83,6 +83,8 @@ export interface BankCard {
     province?: string;
     city?: string;
     branchName?: string;
+    wechatQrCode?: string;
+    alipayQrCode?: string;
     isDefault: boolean;
     status: number;
     createdAt: string;

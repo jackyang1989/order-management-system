@@ -47,6 +47,8 @@ export class SystemConfigController {
         starThresholds: config.starThresholds,
         starPriceLimits: config.starPriceLimits,
         firstAccountVipDays: config.firstAccountVipDays,
+        // 收款账户配置
+        requireBankInfo: config.requireBankInfo,
       },
     };
   }

@@ -560,7 +560,8 @@ export default function AdminUsersPage() {
         {
             key: 'balance',
             title: '本金/银锭',
-            className: 'w-[120px]',
+            defaultWidth: 120,
+            minWidth: 80,
             render: (row) => (
                 <div className="text-sm">
                     <div className="font-medium text-success-500">¥{Number(row.balance || 0).toFixed(2)}</div>
@@ -571,7 +572,8 @@ export default function AdminUsersPage() {
         {
             key: 'frozen',
             title: '冻结',
-            className: 'w-[90px]',
+            defaultWidth: 90,
+            minWidth: 60,
             render: (row) => (
                 <div className="text-xs text-[#9ca3af]">
                     <div>本金: {Number(row.frozenBalance || 0).toFixed(2)}</div>
@@ -582,7 +584,8 @@ export default function AdminUsersPage() {
         {
             key: 'vip',
             title: 'VIP',
-            className: 'w-[90px] text-center',
+            defaultWidth: 90,
+            minWidth: 60,
             render: (row) => (
                 <div>
                     {row.vip ? (
@@ -601,7 +604,8 @@ export default function AdminUsersPage() {
         {
             key: 'invitedBy',
             title: '推荐人',
-            className: 'w-[80px]',
+            defaultWidth: 80,
+            minWidth: 50,
             render: (row) => (
                 <div className="text-xs">{row.invitedByName || row.invitedBy || '-'}</div>
             ),
@@ -609,7 +613,8 @@ export default function AdminUsersPage() {
         {
             key: 'monthlyTaskCount',
             title: '月单量',
-            className: 'w-[70px] text-center',
+            defaultWidth: 70,
+            minWidth: 50,
             render: (row) => (
                 <span className="text-sm font-medium">{row.monthlyTaskCount || row.mcTaskNum || 0}</span>
             ),
@@ -617,7 +622,9 @@ export default function AdminUsersPage() {
         {
             key: 'lastLoginAt',
             title: '最后登录',
-            className: 'w-[100px]',
+            defaultWidth: 100,
+            minWidth: 60,
+            sortable: true,
             render: (row) => (
                 <div className="text-xs text-[#9ca3af]">
                     {row.lastLoginAt ? new Date(row.lastLoginAt).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-'}
@@ -639,7 +646,8 @@ export default function AdminUsersPage() {
         {
             key: 'note',
             title: '备注',
-            className: 'w-[100px]',
+            defaultWidth: 100,
+            minWidth: 60,
             render: (row) => (
                 <div className="max-w-[100px] truncate text-xs text-danger-400" title={row.note || ''}>
                     {row.note || '-'}
@@ -649,7 +657,8 @@ export default function AdminUsersPage() {
         {
             key: 'actions',
             title: '操作',
-            className: 'w-[450px]',
+            defaultWidth: 450,
+            minWidth: 300,
             render: (row) => (
                 <div className="flex flex-wrap items-center gap-1">
                     <Button size="sm" variant="outline" className="text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
@@ -755,12 +764,26 @@ export default function AdminUsersPage() {
 
             {/* 用户列表 */}
             <Card className="overflow-hidden bg-white">
-                <Table
+                <div className="mb-4 flex items-center justify-end border-b border-[#e5e7eb] pb-3">
+                    <Button variant="ghost" size="sm" onClick={() => setShowColumnSettings(true)}>
+                        ☰ 列设置
+                    </Button>
+                </div>
+                <EnhancedTable
                     columns={columns}
                     data={users}
                     rowKey={(r) => r.id}
                     loading={loading}
                     emptyText="暂无用户数据"
+                    columnConfig={columnConfig}
+                    onColumnConfigChange={updateLocalConfig}
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={(field, order) => {
+                        setSortField(field);
+                        setSortOrder(order);
+                        loadUsers();
+                    }}
                 />
                 <div className="mt-4 flex justify-end px-6 pb-6">
                     <Pagination
@@ -771,6 +794,16 @@ export default function AdminUsersPage() {
                     />
                 </div>
             </Card>
+
+            {/* 列设置面板 */}
+            <ColumnSettingsPanel
+                open={showColumnSettings}
+                onClose={() => setShowColumnSettings(false)}
+                columns={columnMeta}
+                config={columnConfig}
+                onSave={savePreferences}
+                onReset={resetPreferences}
+            />
 
             {/* 充值/扣款弹窗 */}
             <Modal
