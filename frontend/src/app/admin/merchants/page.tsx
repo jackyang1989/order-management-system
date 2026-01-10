@@ -14,6 +14,7 @@ import { Table, Column } from '../../../components/ui/table';
 import { Modal } from '../../../components/ui/modal';
 import { Pagination } from '../../../components/ui/pagination';
 import { adminService, AdminMerchant } from '../../../services/adminService';
+import { BASE_URL } from '../../../../apiConfig';
 
 const statusLabels: Record<number, { text: string; color: 'amber' | 'green' | 'red' | 'slate' }> = {
     0: { text: '待审核', color: 'amber' },
@@ -47,6 +48,14 @@ export default function AdminMerchantsPage() {
     // Message form states
     const [messageTitle, setMessageTitle] = useState('');
     const [messageContent, setMessageContent] = useState('');
+
+    // Edit form states
+    const [editPhone, setEditPhone] = useState('');
+    const [editQQ, setEditQQ] = useState('');
+    const [editCompanyName, setEditCompanyName] = useState('');
+    const [editBalance, setEditBalance] = useState('');
+    const [editSilver, setEditSilver] = useState('');
+    const [editVipExpireAt, setEditVipExpireAt] = useState('');
 
     // Add merchant form states
     const [newUsername, setNewUsername] = useState('');
@@ -177,6 +186,31 @@ export default function AdminMerchantsPage() {
         setActiveModal('note');
     };
 
+    const submitNote = async () => {
+        if (!selectedMerchant) return;
+        try {
+            const token = localStorage.getItem('adminToken');
+            const res = await fetch(`${BASE_URL}/admin/merchants/${selectedMerchant.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ note: noteContent })
+            });
+            if (res.ok) {
+                toastSuccess('备注保存成功');
+                setActiveModal(null);
+                loadMerchants();
+            } else {
+                const json = await res.json();
+                toastError(json.message || '保存失败');
+            }
+        } catch (e) {
+            toastError('保存失败');
+        }
+    };
+
     const openPassword = (m: AdminMerchant) => {
         setSelectedMerchant(m);
         setNewPassword('');
@@ -211,7 +245,7 @@ export default function AdminMerchantsPage() {
         }
         try {
             const token = localStorage.getItem('adminToken');
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/messages`, {
+            const res = await fetch(`${BASE_URL}/messages`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -234,6 +268,49 @@ export default function AdminMerchantsPage() {
             }
         } catch (e) {
             toastError('发送失败');
+        }
+    };
+
+    const openEdit = (m: AdminMerchant) => {
+        setSelectedMerchant(m);
+        setEditPhone(m.phone || '');
+        setEditQQ(m.qq || '');
+        setEditCompanyName(m.companyName || '');
+        setEditBalance(String(m.balance || 0));
+        setEditSilver(String(m.silver || 0));
+        setEditVipExpireAt(m.vipExpireAt ? new Date(m.vipExpireAt).toISOString().split('T')[0] : '');
+        setActiveModal('edit');
+    };
+
+    const submitEdit = async () => {
+        if (!selectedMerchant) return;
+        try {
+            const token = localStorage.getItem('adminToken');
+            const res = await fetch(`${BASE_URL}/admin/merchants/${selectedMerchant.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    phone: editPhone,
+                    qq: editQQ || undefined,
+                    companyName: editCompanyName || undefined,
+                    balance: editBalance ? Number(editBalance) : undefined,
+                    silver: editSilver ? Number(editSilver) : undefined,
+                    vipExpireAt: editVipExpireAt || undefined,
+                })
+            });
+            if (res.ok) {
+                toastSuccess('修改成功');
+                setActiveModal(null);
+                loadMerchants();
+            } else {
+                const json = await res.json();
+                toastError(json.message || '修改失败');
+            }
+        } catch (e) {
+            toastError('修改失败');
         }
     };
 
@@ -402,6 +479,9 @@ export default function AdminMerchantsPage() {
                             设VIP
                         </Button>
                     )}
+                    <Button size="sm" variant="outline" onClick={() => openEdit(row)}>
+                        编辑
+                    </Button>
                     <Button size="sm" variant="outline" onClick={() => openNote(row)}>
                         备注
                     </Button>
@@ -608,7 +688,7 @@ export default function AdminMerchantsPage() {
                         <Button variant="secondary" onClick={() => setActiveModal(null)}>
                             取消
                         </Button>
-                        <Button onClick={() => { toastSuccess('备注保存成功'); setActiveModal(null); }}>
+                        <Button onClick={submitNote}>
                             保存
                         </Button>
                     </div>
@@ -669,6 +749,73 @@ export default function AdminMerchantsPage() {
                         </Button>
                         <Button onClick={submitMessage}>
                             发送
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* 编辑商家弹窗 */}
+            <Modal
+                title={`编辑商家 - ${selectedMerchant?.username}`}
+                open={activeModal === 'edit'}
+                onClose={() => setActiveModal(null)}
+                className="max-w-lg"
+            >
+                <div className="space-y-4">
+                    <div className="rounded-md border border-[#e5e7eb] bg-[#f9fafb] p-3">
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div><span className="text-[#6b7280]">用户名:</span> {selectedMerchant?.username}</div>
+                            <div><span className="text-[#6b7280]">当前本金:</span> <span className="text-success-500">¥{Number(selectedMerchant?.balance || 0).toFixed(2)}</span></div>
+                            <div><span className="text-[#6b7280]">当前银锭:</span> <span className="text-primary-600">{Number(selectedMerchant?.silver || 0).toFixed(2)}</span></div>
+                            <div><span className="text-[#6b7280]">VIP状态:</span> {selectedMerchant?.vip ? <span className="text-warning-500">VIP</span> : '普通'}</div>
+                        </div>
+                    </div>
+                    <Input
+                        label="手机号"
+                        placeholder="请输入手机号"
+                        value={editPhone}
+                        onChange={(e) => setEditPhone(e.target.value)}
+                    />
+                    <Input
+                        label="QQ"
+                        placeholder="请输入QQ号"
+                        value={editQQ}
+                        onChange={(e) => setEditQQ(e.target.value)}
+                    />
+                    <Input
+                        label="公司名称"
+                        placeholder="请输入公司名称"
+                        value={editCompanyName}
+                        onChange={(e) => setEditCompanyName(e.target.value)}
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input
+                            label="本金余额"
+                            type="number"
+                            placeholder="请输入本金"
+                            value={editBalance}
+                            onChange={(e) => setEditBalance(e.target.value)}
+                        />
+                        <Input
+                            label="银锭余额"
+                            type="number"
+                            placeholder="请输入银锭"
+                            value={editSilver}
+                            onChange={(e) => setEditSilver(e.target.value)}
+                        />
+                    </div>
+                    <DateInput
+                        label="VIP到期时间"
+                        placeholder="YYYY-MM-DD"
+                        value={editVipExpireAt}
+                        onChange={(e) => setEditVipExpireAt(e.target.value)}
+                    />
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => setActiveModal(null)}>
+                            取消
+                        </Button>
+                        <Button onClick={submitEdit}>
+                            保存
                         </Button>
                     </div>
                 </div>

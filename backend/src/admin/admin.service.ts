@@ -159,6 +159,7 @@ export class AdminService {
     page = 1,
     limit = 20,
     status?: MerchantStatus,
+    keyword?: string,
   ): Promise<{
     data: Merchant[];
     total: number;
@@ -171,15 +172,30 @@ export class AdminService {
       query.where('merchant.status = :status', { status });
     }
 
+    if (keyword) {
+      const condition = status !== undefined ? 'andWhere' : 'where';
+      query[condition](
+        '(merchant.username ILIKE :keyword OR merchant.phone ILIKE :keyword OR merchant.qq ILIKE :keyword)',
+        { keyword: `%${keyword}%` },
+      );
+    }
+
     const total = await query.getCount();
     const data = await query
       .select([
         'merchant.id',
         'merchant.username',
         'merchant.phone',
+        'merchant.qq',
         'merchant.companyName',
         'merchant.balance',
+        'merchant.frozenBalance',
+        'merchant.silver',
+        'merchant.vip',
+        'merchant.vipExpireAt',
         'merchant.status',
+        'merchant.referrerId',
+        'merchant.note',
         'merchant.createdAt',
       ])
       .orderBy('merchant.createdAt', 'DESC')

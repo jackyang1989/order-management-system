@@ -109,6 +109,7 @@ export class AdminController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('status') status?: string,
+    @Query('keyword') keyword?: string,
   ) {
     const statusEnum =
       status !== undefined ? (parseInt(status) as MerchantStatus) : undefined;
@@ -116,6 +117,7 @@ export class AdminController {
       parseInt(page || '1'),
       parseInt(limit || '20'),
       statusEnum,
+      keyword,
     );
     return { success: true, ...result };
   }
@@ -149,6 +151,37 @@ export class AdminController {
       return {
         success: false,
         message: error.message || '创建失败',
+      };
+    }
+  }
+
+  @Put('merchants/:id')
+  async updateMerchant(
+    @Param('id') id: string,
+    @Body() body: {
+      phone?: string;
+      qq?: string;
+      companyName?: string;
+      balance?: number;
+      silver?: number;
+      vipExpireAt?: string;
+      note?: string;
+    },
+  ) {
+    try {
+      const result = await this.merchantsService.updateMerchantInfo(id, body);
+      if (!result.success) {
+        return { success: false, message: result.message };
+      }
+      return {
+        success: true,
+        message: '商家信息更新成功',
+        data: result.merchant,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || '更新失败',
       };
     }
   }

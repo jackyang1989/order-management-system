@@ -449,6 +449,49 @@ export class MerchantsService {
     return this.sanitize(merchant);
   }
 
+  async updateMerchantInfo(
+    id: string,
+    data: {
+      phone?: string;
+      qq?: string;
+      companyName?: string;
+      balance?: number;
+      silver?: number;
+      vipExpireAt?: string;
+      note?: string;
+    },
+  ): Promise<{ success: boolean; message?: string; merchant?: Merchant }> {
+    const merchant = await this.merchantsRepository.findOne({ where: { id } });
+    if (!merchant) {
+      return { success: false, message: '商家不存在' };
+    }
+
+    // 更新基本信息
+    if (data.phone !== undefined) merchant.phone = data.phone;
+    if (data.qq !== undefined) merchant.qq = data.qq;
+    if (data.companyName !== undefined) merchant.companyName = data.companyName;
+    if (data.note !== undefined) merchant.note = data.note;
+
+    // 更新余额
+    if (data.balance !== undefined) merchant.balance = data.balance;
+    if (data.silver !== undefined) merchant.silver = data.silver;
+
+    // 更新VIP到期时间
+    if (data.vipExpireAt !== undefined) {
+      if (data.vipExpireAt) {
+        const expireDate = new Date(data.vipExpireAt);
+        merchant.vipExpireAt = expireDate;
+        merchant.vip = expireDate > new Date();
+      } else {
+        merchant.vipExpireAt = null as any;
+        merchant.vip = false;
+      }
+    }
+
+    const updated = await this.merchantsRepository.save(merchant);
+    return { success: true, merchant: this.sanitize(updated) };
+  }
+
   private sanitize(merchant: Merchant): Merchant {
     const { password, payPassword, ...sanitized } = merchant;
     return { ...sanitized, password: '', payPassword: '' } as Merchant;
