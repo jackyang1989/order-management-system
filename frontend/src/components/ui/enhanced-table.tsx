@@ -207,7 +207,7 @@ export function EnhancedTable<T extends object>({
                                 style={{ width: localWidths[col.key] || col.defaultWidth || 120 }}
                             />
                         ))}
-                        {onColumnSettingsClick && <col style={{ width: 85 }} />}
+                        {onColumnSettingsClick && <col style={{ width: 60 }} />}
                     </colgroup>
                     <thead>
                         <tr className="border-b border-[#e5e7eb] bg-[#f9fafb]">
@@ -240,9 +240,8 @@ export function EnhancedTable<T extends object>({
                                     )}
                                 </th>
                             ))}
-                            {/* 列设置按钮 */}
                             {onColumnSettingsClick && (
-                                <th className="min-w-[85px] w-[85px] px-2 py-3 text-right">
+                                <th className="w-[60px] px-3 py-3 text-right">
                                     <button
                                         type="button"
                                         onClick={onColumnSettingsClick}
