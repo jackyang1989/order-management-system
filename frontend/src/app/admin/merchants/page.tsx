@@ -355,7 +355,7 @@ export default function AdminMerchantsPage() {
             render: (row) => (
                 <div>
                     <div className="font-medium text-[#3b4559]">{row.username}</div>
-                    <div className="text-xs text-[#9ca3af]">{row.phone}</div>
+                    <div className="text-xs text-[#9ca3af]">{row.phone || '未设置手机号'}</div>
                     {row.companyName && (
                         <div className="text-xs text-[#6b7280]">{row.companyName}</div>
                     )}
