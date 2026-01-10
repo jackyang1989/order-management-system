@@ -84,7 +84,6 @@ export default function AdminUsersPage() {
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState('');
-    const [wechatSearch, setWechatSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [vipFilter, setVipFilter] = useState<string>('all');
     const [verifyFilter, setVerifyFilter] = useState<string>('all');
@@ -133,7 +132,6 @@ export default function AdminUsersPage() {
         try {
             let url = `${BASE_URL}/admin/users?page=${page}&limit=20`;
             if (search) url += `&keyword=${encodeURIComponent(search)}`;
-            if (wechatSearch) url += `&wechat=${encodeURIComponent(wechatSearch)}`;
             if (statusFilter !== 'all') url += `&status=${statusFilter}`;
             if (vipFilter !== 'all') url += `&vip=${vipFilter}`;
             if (verifyFilter !== 'all') url += `&verifyStatus=${verifyFilter}`;
@@ -544,31 +542,31 @@ export default function AdminUsersPage() {
         {
             key: 'actions',
             title: '操作',
-            className: 'w-[440px]',
+            className: 'w-[380px]',
             render: (row) => (
-                <div className="grid grid-cols-4 items-center gap-2">
-                    <Button size="sm" variant="outline" className="whitespace-nowrap text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
+                <div className="flex flex-wrap items-center gap-1">
+                    <Button size="sm" variant="outline" className="text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
                         银锭
                     </Button>
-                    <Button size="sm" variant="outline" className="whitespace-nowrap text-success-500" onClick={() => window.location.href = `/admin/users/${row.id}/deposit`}>
+                    <Button size="sm" variant="outline" className="text-success-500" onClick={() => window.location.href = `/admin/users/${row.id}/deposit`}>
                         押金
                     </Button>
-                    <Button size="sm" variant="outline" className="whitespace-nowrap" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>
+                    <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>
                         买号
                     </Button>
-                    <Button size="sm" variant="outline" className="whitespace-nowrap" onClick={() => openEditModal(row)}>
-                        编辑资料
+                    <Button size="sm" variant="outline" onClick={() => openEditModal(row)}>
+                        编辑
                     </Button>
-                    <Button size="sm" variant="outline" className="whitespace-nowrap text-danger-400" onClick={() => { setNoteModal({ userId: row.id, username: row.username, currentNote: row.note || '' }); setNoteText(row.note || ''); }}>
+                    <Button size="sm" variant="outline" className="text-danger-400" onClick={() => { setNoteModal({ userId: row.id, username: row.username, currentNote: row.note || '' }); setNoteText(row.note || ''); }}>
                         备注
                     </Button>
-                    <Button size="sm" variant="outline" className="whitespace-nowrap" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
+                    <Button size="sm" variant="outline" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
                         改密码
                     </Button>
-                    <Button size="sm" variant="outline" className="whitespace-nowrap" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
+                    <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
                         消息
                     </Button>
-                    <Button size="sm" variant="outline" className="whitespace-nowrap text-amber-500" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.id}`}>
+                    <Button size="sm" variant="outline" className="text-amber-500" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.id}`}>
                         银行卡
                     </Button>
                 </div>
@@ -589,18 +587,11 @@ export default function AdminUsersPage() {
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <Input
-                        placeholder="用户名/手机号"
+                        placeholder="用户名/手机号/微信号"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                        className="w-44"
-                    />
-                    <Input
-                        placeholder="微信号"
-                        value={wechatSearch}
-                        onChange={(e) => setWechatSearch(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                        className="w-32"
+                        className="w-96"
                     />
                     <Select
                         value={statusFilter}
