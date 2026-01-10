@@ -10,6 +10,7 @@ import { Badge } from '../../../../components/ui/badge';
 import { Select } from '../../../../components/ui/select';
 import { Modal } from '../../../../components/ui/modal';
 import { Input } from '../../../../components/ui/input';
+import { DateInput } from '../../../../components/ui/date-input';
 import { PLATFORM_CONFIG, PLATFORM_NAME_MAP } from '../../../../constants/platformConfig';
 import Image from 'next/image';
 
@@ -273,7 +274,7 @@ function AdminBuyerAccountsPageContent() {
             star: a.star || 1,
             status: a.status,
             freezeUntil: a.freezeUntil ? a.freezeUntil.split('T')[0] : '',
-            remark: a.addressRemark || ''
+            remark: ''
         });
         setEditModal(a);
     };
@@ -605,8 +606,8 @@ function AdminBuyerAccountsPageContent() {
                                 </select>
                             </div>
                             <div>
-                                <label className="mb-1 block text-sm text-[#6b7280]">冻结到期时间 <span className="text-xs text-[#9ca3af]">(yyyy-mm-dd)</span></label>
-                                <Input type="date" value={editForm.freezeUntil} onChange={e => setEditForm({...editForm, freezeUntil: e.target.value})} />
+                                <label className="mb-1 block text-sm text-[#6b7280]">冻结到期时间</label>
+                                <DateInput value={editForm.freezeUntil} onChange={e => setEditForm({...editForm, freezeUntil: e.target.value})} />
                             </div>
                         </div>
 
