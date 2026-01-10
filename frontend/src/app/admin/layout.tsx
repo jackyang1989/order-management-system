@@ -296,7 +296,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             {/* Main content */}
             <div
                 className={cn(
-                    'flex flex-1 flex-col transition-all duration-200',
+                    'flex flex-1 flex-col overflow-hidden transition-all duration-200',
                     collapsed ? 'ml-[72px]' : 'ml-[220px]'
                 )}
             >
