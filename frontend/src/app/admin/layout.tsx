@@ -356,7 +356,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 </header>
 
                 {/* Page content */}
-                <main className="flex-1 p-6">
+                <main className="flex-1 p-6 min-w-0">
                     <div className="mx-auto w-full max-w-[1440px]">
                         {children}
                     </div>

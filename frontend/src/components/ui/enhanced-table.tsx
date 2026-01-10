@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, ReactNode, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, ReactNode, useCallback, useMemo, Fragment } from 'react';
 import { cn } from '../../lib/utils';
 
 // ===== Types =====
@@ -199,11 +199,15 @@ export function EnhancedTable<T extends object>({
                 <table className="w-full min-w-full border-collapse text-[14px]" style={{ tableLayout: 'fixed' }}>
                     <colgroup>
                         {selectable && <col style={{ width: 40 }} />}
-                        {visibleColumns.map((col) => (
-                            <col
-                                key={col.key}
-                                style={{ width: localWidths[col.key] || col.defaultWidth || 120 }}
-                            />
+                        {visibleColumns.map((col, idx) => (
+                            <Fragment key={col.key}>
+                                {idx === visibleColumns.length - 1 && (
+                                    <col style={{ width: 'auto' }} />
+                                )}
+                                <col
+                                    style={{ width: localWidths[col.key] || col.defaultWidth || 120 }}
+                                />
+                            </Fragment>
                         ))}
                         {onColumnSettingsClick && <col style={{ width: 85 }} />}
                     </colgroup>
@@ -215,28 +219,32 @@ export function EnhancedTable<T extends object>({
                                 </th>
                             )}
                             {visibleColumns.map((col, idx) => (
-                                <th
-                                    key={col.key}
-                                    className={cn(
-                                        'relative px-4 py-3 text-left text-[12px] font-semibold uppercase tracking-wider text-[#6b7280]',
-                                        col.sortable && 'cursor-pointer select-none hover:text-[#374151]'
+                                <Fragment key={col.key}>
+                                    {idx === visibleColumns.length - 1 && (
+                                        <th className="p-0 border-0" style={{ width: 'auto' }} />
                                     )}
-                                    style={{ width: localWidths[col.key] || col.defaultWidth || 120 }}
-                                    onClick={() => handleSortClick(col.key)}
-                                >
-                                    <div className="flex items-center">
-                                        <span className="truncate">{col.title}</span>
-                                        {col.sortable && (
-                                            <SortIcon
-                                                direction={sortField === col.key ? sortOrder : undefined}
-                                            />
+                                    <th
+                                        key={col.key}
+                                        className={cn(
+                                            'relative px-4 py-3 text-left text-[12px] font-semibold uppercase tracking-wider text-[#6b7280]',
+                                            col.sortable && 'cursor-pointer select-none hover:text-[#374151]'
                                         )}
-                                    </div>
-                                    {/* 可调宽度的分隔线 - 只在非最后一列显示 */}
-                                    {idx < visibleColumns.length - 1 && (
-                                        <ColumnResizer onResize={(delta) => handleResize(col.key, delta)} />
-                                    )}
-                                </th>
+                                        onClick={() => handleSortClick(col.key)}
+                                    >
+                                        <div className="flex items-center">
+                                            <span className="truncate">{col.title}</span>
+                                            {col.sortable && (
+                                                <SortIcon
+                                                    direction={sortField === col.key ? sortOrder : undefined}
+                                                />
+                                            )}
+                                        </div>
+                                        {/* 可调宽度的分隔线 - 只在非最后一列显示 */}
+                                        {idx < visibleColumns.length - 1 && (
+                                            <ColumnResizer onResize={(delta) => handleResize(col.key, delta)} />
+                                        )}
+                                    </th>
+                                </Fragment>
                             ))}
                             {/* 列设置按钮 */}
                             {onColumnSettingsClick && (
@@ -282,17 +290,21 @@ export function EnhancedTable<T extends object>({
                                             />
                                         </td>
                                     )}
-                                    {visibleColumns.map((col, colIdx) => (
-                                        <td
-                                            key={col.key}
-                                            className="px-4 py-3 text-[#3b4559] overflow-hidden"
-                                        >
-                                            <div className="break-words overflow-hidden">
-                                                {col.render
-                                                    ? col.render(row, idx)
-                                                    : ((row as Record<string, unknown>)[col.key] as ReactNode)}
-                                            </div>
-                                        </td>
+                                    {visibleColumns.map((col, idx) => (
+                                        <Fragment key={col.key}>
+                                            {idx === visibleColumns.length - 1 && (
+                                                <td className="p-0 border-0" style={{ width: 'auto' }} />
+                                            )}
+                                            <td
+                                                className="px-4 py-3 text-[#3b4559] overflow-hidden"
+                                            >
+                                                <div className="break-words overflow-hidden">
+                                                    {col.render
+                                                        ? col.render(row, idx)
+                                                        : ((row as Record<string, unknown>)[col.key] as ReactNode)}
+                                                </div>
+                                            </td>
+                                        </Fragment>
                                     ))}
                                     {onColumnSettingsClick && <td className="px-2 py-3" />}
                                 </tr>

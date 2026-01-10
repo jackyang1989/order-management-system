@@ -111,7 +111,7 @@ export default function AdminUsersPage() {
         { key: 'lastLoginAt', visible: true, width: 100, order: 9 },
         { key: 'createdAt', visible: true, width: 90, order: 10 },
         { key: 'note', visible: true, width: 100, order: 11 },
-        { key: 'actions', visible: true, width: 310, order: 12 },
+        { key: 'actions', visible: true, width: 310, order: 12, fixed: 'right' },
     ], []);
 
     // 列配置 Hook
