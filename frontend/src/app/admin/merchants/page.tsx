@@ -43,7 +43,7 @@ export default function AdminMerchantsPage() {
 
     // 默认列配置
     const defaultColumns: ColumnConfig[] = useMemo(() => [
-        { key: 'name', visible: true, width: 180, order: 0 },
+        { key: 'info', visible: true, width: 180, order: 0 },
         { key: 'phone', visible: true, width: 120, order: 1 },
         { key: 'wechat', visible: true, width: 100, order: 2 },
         { key: 'balance', visible: true, width: 120, order: 3 },
@@ -53,7 +53,7 @@ export default function AdminMerchantsPage() {
         { key: 'referrer', visible: true, width: 120, order: 7 },
         { key: 'note', visible: true, width: 100, order: 8 },
         { key: 'createdAt', visible: true, width: 100, order: 9 },
-        { key: 'actions', visible: true, width: 220, order: 10 },
+        { key: 'actions', visible: true, width: 310, order: 10 },
     ], []);
 
     // 列配置 Hook
@@ -402,11 +402,11 @@ export default function AdminMerchantsPage() {
 
     const columns: EnhancedColumn<AdminMerchant>[] = [
         {
-            key: 'name',
-            title: '商家名称',
+            key: 'info',
+            title: '商家信息',
+            defaultWidth: 180,
+            minWidth: 100,
             sortable: true,
-            defaultWidth: 150,
-            flexible: true,
             render: (row) => (
                 <div>
                     <div className="font-medium text-[#3b4559]">{row.username}</div>
@@ -531,8 +531,8 @@ export default function AdminMerchantsPage() {
         {
             key: 'actions',
             title: '操作',
-            defaultWidth: 220,
-            minWidth: 180,
+            defaultWidth: 310,
+            minWidth: 200,
             render: (row) => (
                 <div className="flex flex-wrap gap-1">
                     <Button size="sm" variant="outline" className="w-[65px]" onClick={() => router.push(`/admin/shops?merchantId=${row.id}`)}>

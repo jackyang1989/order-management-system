@@ -18,7 +18,6 @@ export interface EnhancedColumn<T> {
     defaultWidth?: number;
     minWidth?: number;
     sortable?: boolean;
-    flexible?: boolean;
 }
 
 export interface EnhancedTableProps<T> {
@@ -203,11 +202,7 @@ export function EnhancedTable<T extends object>({
                         {visibleColumns.map((col) => (
                             <col
                                 key={col.key}
-                                style={{
-                                    width: col.key === (columns.find(c => c.flexible)?.key || visibleColumns[0]?.key)
-                                        ? 'auto'
-                                        : (localWidths[col.key] || col.defaultWidth || 120)
-                                }}
+                                style={{ width: localWidths[col.key] || col.defaultWidth || 120 }}
                             />
                         ))}
                         {onColumnSettingsClick && <col style={{ width: 85 }} />}
@@ -229,34 +224,32 @@ export function EnhancedTable<T extends object>({
                                     style={{ width: localWidths[col.key] || col.defaultWidth || 120 }}
                                     onClick={() => handleSortClick(col.key)}
                                 >
-                                    <div className="flex items-center justify-between gap-2">
-                                        <div className="flex min-w-0 items-center">
-                                            <span className="truncate">{col.title}</span>
-                                            {col.sortable && (
-                                                <SortIcon
-                                                    direction={sortField === col.key ? sortOrder : undefined}
-                                                />
-                                            )}
-                                        </div>
-                                        {onColumnSettingsClick && idx === visibleColumns.length - 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onColumnSettingsClick();
-                                                }}
-                                                className="whitespace-nowrap text-[12px] text-primary-500 hover:text-primary-600"
-                                            >
-                                                <span className="relative -top-[1px] inline-block mr-0.5">☰</span> 列设置
-                                            </button>
+                                    <div className="flex items-center">
+                                        <span className="truncate">{col.title}</span>
+                                        {col.sortable && (
+                                            <SortIcon
+                                                direction={sortField === col.key ? sortOrder : undefined}
+                                            />
                                         )}
                                     </div>
-                                    {/* 可调宽度的分隔线 */}
+                                    {/* 可调宽度的分隔线 - 只在非最后一列显示 */}
                                     {idx < visibleColumns.length - 1 && (
                                         <ColumnResizer onResize={(delta) => handleResize(col.key, delta)} />
                                     )}
                                 </th>
                             ))}
+                            {/* 列设置按钮 */}
+                            {onColumnSettingsClick && (
+                                <th className="w-[85px] px-2 py-3 text-right">
+                                    <button
+                                        type="button"
+                                        onClick={onColumnSettingsClick}
+                                        className="whitespace-nowrap text-[12px] text-primary-500 hover:text-primary-600"
+                                    >
+                                        <span className="relative -top-[1px] inline-block mr-0.5">☰</span> 列设置
+                                    </button>
+                                </th>
+                            )}
                         </tr>
                     </thead>
                     <tbody>
@@ -301,6 +294,7 @@ export function EnhancedTable<T extends object>({
                                             </div>
                                         </td>
                                     ))}
+                                    {onColumnSettingsClick && <td className="px-2 py-3" />}
                                 </tr>
                             );
                         })}

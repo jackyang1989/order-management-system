@@ -111,7 +111,7 @@ export default function AdminUsersPage() {
         { key: 'lastLoginAt', visible: true, width: 100, order: 9 },
         { key: 'createdAt', visible: true, width: 90, order: 10 },
         { key: 'note', visible: true, width: 100, order: 11 },
-        { key: 'actions', visible: true, width: 220, order: 12 },
+        { key: 'actions', visible: true, width: 310, order: 12 },
     ], []);
 
     // 列配置 Hook
@@ -514,9 +514,9 @@ export default function AdminUsersPage() {
         {
             key: 'username',
             title: '用户名',
-            sortable: true,
             defaultWidth: 100,
-            flexible: true,
+            minWidth: 60,
+            sortable: true,
             render: (row) => (
                 <div>
                     <div className="font-medium text-[#3b4559]">{row.username}</div>
@@ -655,8 +655,8 @@ export default function AdminUsersPage() {
         {
             key: 'actions',
             title: '操作',
-            defaultWidth: 220,
-            minWidth: 180,
+            defaultWidth: 310,
+            minWidth: 200,
             render: (row) => (
                 <div className="flex flex-wrap gap-1">
                     <Button size="sm" variant="outline" className="w-[65px] text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
