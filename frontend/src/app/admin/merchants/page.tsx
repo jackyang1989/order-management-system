@@ -483,6 +483,9 @@ export default function AdminMerchantsPage() {
                     <Button size="sm" variant="outline" onClick={() => router.push(`/admin/merchants/balance?merchantId=${row.id}`)}>
                         流水
                     </Button>
+                    <Button size="sm" variant="outline" className="text-success-500" onClick={() => router.push(`/admin/merchants/${row.id}/deposit`)}>
+                        押金
+                    </Button>
                     <Button size="sm" variant="outline" onClick={() => openAdjustBalance(row)}>
                         调余额
                     </Button>

@@ -797,6 +797,12 @@ export default function AdminUsersPage() {
                         {/* 用户信息标题 */}
                         <h4 className="border-b border-[#e5e7eb] pb-2 text-sm font-medium">用户信息</h4>
 
+                        {/* 用户ID显示 */}
+                        <div className="rounded bg-[#f9fafb] p-3">
+                            <div className="text-xs text-[#6b7280]">用户ID</div>
+                            <div className="mt-1 select-all break-all font-mono text-sm text-[#374151]">{detailModal.id}</div>
+                        </div>
+
                         {/* 表格布局 */}
                         <div className="overflow-hidden rounded border border-[#e5e7eb]">
                             <table className="w-full text-sm">

@@ -78,6 +78,7 @@ function AdminBuyerAccountsPageContent() {
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
+    const [userInfo, setUserInfo] = useState<{ username: string; phone: string } | null>(null);
 
     // 筛选条件
     const [filterUsername, setFilterUsername] = useState<string>('');
@@ -146,7 +147,24 @@ function AdminBuyerAccountsPageContent() {
         setLoading(false);
     }, [page, filterStatus, filterPlatform, userId, filterUsername, filterPhone, filterPlatformAccount, filterAddress, filterRealName]);
 
+    // 加载用户信息（当有userId参数时）
+    const loadUserInfo = useCallback(async () => {
+        if (!userId) return;
+        try {
+            const res = await fetch(`${BASE_URL}/admin/users/${userId}`, {
+                headers: { 'Authorization': `Bearer ${getToken()}` }
+            });
+            const data = await res.json();
+            if (data.success && data.data) {
+                setUserInfo({ username: data.data.username, phone: data.data.phone });
+            }
+        } catch (error) {
+            console.error('获取用户信息失败:', error);
+        }
+    }, [userId]);
+
     useEffect(() => { loadAccounts(); }, [loadAccounts]);
+    useEffect(() => { loadUserInfo(); }, [loadUserInfo]);
 
     const handleSearch = () => {
         setPage(1);
@@ -301,7 +319,11 @@ function AdminBuyerAccountsPageContent() {
                         <span className="text-base font-medium">买号列表</span>
                         {userId && (
                             <span className="text-sm text-[#6b7280]">
-                                (用户ID: {userId})
+                                {userInfo ? (
+                                    <>用户: {userInfo.username} ({userInfo.phone})</>
+                                ) : (
+                                    <>用户ID: {userId.slice(0, 8)}...</>
+                                )}
                             </span>
                         )}
                         <span className="text-sm text-[#6b7280]">共 {total} 条记录</span>
@@ -583,7 +605,7 @@ function AdminBuyerAccountsPageContent() {
                                 </select>
                             </div>
                             <div>
-                                <label className="mb-1 block text-sm text-[#6b7280]">冻结到期时间</label>
+                                <label className="mb-1 block text-sm text-[#6b7280]">冻结到期时间 <span className="text-xs text-[#9ca3af]">(yyyy-mm-dd)</span></label>
                                 <Input type="date" value={editForm.freezeUntil} onChange={e => setEditForm({...editForm, freezeUntil: e.target.value})} />
                             </div>
                         </div>
