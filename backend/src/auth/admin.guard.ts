@@ -50,7 +50,7 @@ export class AdminGuard implements CanActivate {
 
     try {
       const payload = this.jwtService.verify(token, {
-        secret: process.env.JWT_SECRET,
+        secret: process.env.JWT_SECRET || 'order-mgmt-jwt-secret-2026',
       });
 
       // 检查是否是管理员用户

@@ -25,7 +25,7 @@ export class TablePreferencesController {
         @Request() req: any,
         @Param('tableKey') tableKey: string,
     ) {
-        const adminId = req.user?.id || req.user?.sub || 'default';
+        const adminId = req.user?.adminId || req.user?.userId || req.user?.id || req.user?.sub || 'default';
         const columns = await this.service.getPreferences(adminId, tableKey);
         const defaultColumns = this.service.getDefaultColumns(tableKey);
         return {
@@ -46,7 +46,7 @@ export class TablePreferencesController {
         @Param('tableKey') tableKey: string,
         @Body('columns') columns: ColumnConfig[],
     ) {
-        const adminId = req.user?.id || req.user?.sub || 'default';
+        const adminId = req.user?.adminId || req.user?.userId || req.user?.id || req.user?.sub || 'default';
         await this.service.savePreferences(adminId, tableKey, columns);
         return {
             success: true,
@@ -62,7 +62,7 @@ export class TablePreferencesController {
         @Request() req: any,
         @Param('tableKey') tableKey: string,
     ) {
-        const adminId = req.user?.id || req.user?.sub || 'default';
+        const adminId = req.user?.adminId || req.user?.userId || req.user?.id || req.user?.sub || 'default';
         const columns = await this.service.resetPreferences(adminId, tableKey);
         return {
             success: true,
