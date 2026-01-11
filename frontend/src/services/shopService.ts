@@ -2,7 +2,7 @@ import { BASE_URL } from '../../apiConfig';
 
 export interface Shop {
     id: string;
-    platform: 'TAOBAO' | 'TMALL' | 'JD' | 'PDD' | 'DOUYIN' | 'OTHER';
+    platform: string;  // 平台类型，如 TAOBAO, TMALL, JD 等
     shopName: string;
     accountName?: string;  // 可能为空
     contactName?: string;  // 可能为空

@@ -122,4 +122,25 @@ export class ShopsService {
       await this.shopsRepository.save(shop);
     }
   }
+
+  /**
+   * 管理员更新店铺信息（无sellerId限制）
+   */
+  async adminUpdate(id: string, data: Partial<Shop>): Promise<Shop> {
+    const shop = await this.shopsRepository.findOne({ where: { id } });
+    if (!shop) throw new BadRequestException('店铺不存在');
+
+    // If changing accountName, check unique
+    if (data.accountName && data.accountName !== shop.accountName) {
+      const exists = await this.shopsRepository.findOne({
+        where: { accountName: data.accountName },
+      });
+      if (exists && exists.id !== id) {
+        throw new BadRequestException('该店铺账号已被使用');
+      }
+    }
+
+    Object.assign(shop, data);
+    return this.shopsRepository.save(shop);
+  }
 }

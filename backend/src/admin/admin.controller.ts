@@ -15,7 +15,7 @@ import { AdminGuard, RequirePermissions } from '../auth/admin.guard';
 import { MerchantStatus } from '../merchants/merchant.entity';
 import { WithdrawalStatus } from '../withdrawals/withdrawal.entity';
 import { ShopsService } from '../shops/shops.service';
-import { ShopStatus } from '../shops/shop.entity';
+import { ShopStatus, ShopPlatform } from '../shops/shop.entity';
 import { BuyerAccountsService } from '../buyer-accounts/buyer-accounts.service';
 import { BuyerAccountStatus, UpdateBuyerAccountDto } from '../buyer-accounts/buyer-account.entity';
 import { MerchantsService } from '../merchants/merchants.service';
@@ -280,6 +280,32 @@ export class AdminController {
   @Get('shops')
   async getShops(@Query() query: any) {
     return this.shopsService.findAll(query);
+  }
+
+  @Put('shops/:id')
+  async updateShop(
+    @Param('id') id: string,
+    @Body() body: {
+      platform?: ShopPlatform;
+      shopName?: string;
+      accountName?: string;
+      contactName?: string;
+      mobile?: string;
+      province?: string;
+      city?: string;
+      district?: string;
+      detailAddress?: string;
+      url?: string;
+      needLogistics?: boolean;
+      expressCode?: string;
+    },
+  ) {
+    try {
+      const shop = await this.shopsService.adminUpdate(id, body);
+      return { success: true, message: '店铺信息更新成功', data: shop };
+    } catch (error: any) {
+      return { success: false, message: error.message || '更新失败' };
+    }
   }
 
   @Post('shops/:id/review')
