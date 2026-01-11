@@ -1,10 +1,14 @@
 import { Controller, Get, Put, Query, Body, UseGuards } from '@nestjs/common';
 import { SystemConfigService } from './system-config.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AdminConfigService } from '../admin-config/admin-config.service';
 
 @Controller('system-config')
 export class SystemConfigController {
-  constructor(private configService: SystemConfigService) { }
+  constructor(
+    private configService: SystemConfigService,
+    private adminConfigService: AdminConfigService,
+  ) { }
 
   /**
    * 公开配置接口 - 返回前端需要显示的非敏感配置
@@ -13,6 +17,10 @@ export class SystemConfigController {
   @Get('public')
   async getPublicConfig() {
     const config = await this.configService.getGlobalConfig();
+    // getBooleanValue defaults to false if not found, but we want default true if not set?
+    // The entity default for require_bank_info is 'true'.
+    const requireBankInfo = this.adminConfigService.getBooleanValue('require_bank_info', true);
+
     // 只返回非敏感的公开配置
     return {
       success: true,
@@ -48,7 +56,7 @@ export class SystemConfigController {
         starPriceLimits: config.starPriceLimits,
         firstAccountVipDays: config.firstAccountVipDays,
         // 收款账户配置
-        requireBankInfo: config.requireBankInfo,
+        requireBankInfo: requireBankInfo,
       },
     };
   }

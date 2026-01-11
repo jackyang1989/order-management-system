@@ -192,10 +192,6 @@ export class SystemGlobalConfig {
   enabledPlatforms: string;
 
   // ============ 收款账户配置 ============
-  // 是否需要填写银行卡信息（关闭后只需上传收款码）
-  @Column({ default: true })
-  requireBankInfo: boolean;
-
   @UpdateDateColumn()
   updatedAt: Date;
 }
@@ -346,7 +342,4 @@ export class UpdateSystemGlobalConfigDto {
   @IsString()
   enabledPlatforms?: string;
 
-  // 收款账户配置
-  @IsOptional()
-  requireBankInfo?: boolean;
 }
