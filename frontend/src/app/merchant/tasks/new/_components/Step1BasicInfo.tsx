@@ -274,7 +274,7 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                 ) : filteredShops.length === 0 ? (
                     <div className="rounded-md bg-amber-50 px-3 py-2.5 text-sm text-warning-500">暂无该平台已审核通过的店铺，请先到 <a href="/merchant/shops" className="text-primary-600">店铺管理</a> 绑定店铺。</div>
                 ) : (
-                    <Select value={data.shopId} onChange={handleShopChange} options={[{ value: '', label: '请选择店铺...' }, ...filteredShops.map(shop => ({ value: shop.id, label: `${shop.shopName} (${shop.accountName})` }))]} />
+                    <Select value={data.shopId} onChange={handleShopChange} options={[{ value: '', label: '请选择店铺...' }, ...filteredShops.map(shop => ({ value: shop.id, label: `${shop.shopName}${shop.accountName ? ` (${shop.accountName})` : ''}` }))]} />
                 )}
             </div>
 

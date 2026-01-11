@@ -133,7 +133,14 @@ export default function NewShopPage() {
                         <label className="mb-2 block font-medium">店铺后台截图 (验证用)</label>
                         <div onClick={() => document.getElementById('screenshot-upload')?.click()} className="cursor-pointer rounded border border-dashed border-[#d1d5db] bg-[#f9fafb] p-5 text-center hover:border-[#9ca3af]">
                             {formData.screenshot ? (
-                                <div className="text-sm text-success-400">已选择: {formData.screenshot.name}</div>
+                                <div className="flex flex-col items-center gap-2">
+                                    <img
+                                        src={URL.createObjectURL(formData.screenshot)}
+                                        alt="店铺截图预览"
+                                        className="max-h-[200px] max-w-full rounded object-contain"
+                                    />
+                                    <div className="text-sm text-[#10b981]">已选择: {formData.screenshot.name}</div>
+                                </div>
                             ) : (
                                 <>
                                     <div className="mb-2 text-2xl text-[#9ca3af]">📷</div>
