@@ -14,6 +14,7 @@ import {
 import { getProvinces, getCities, getDistricts } from "../../../data/chinaRegions";
 import { PLATFORM_CONFIG, PlatformConfig, PlatformImageConfig } from "../../../constants/platformConfig";
 import { fetchEnabledPlatforms, PlatformData } from "../../../services/systemConfigService";
+import { cn } from "../../../lib/utils";
 
 // 图片上传组件
 function ImageUploader({
@@ -52,43 +53,46 @@ function ImageUploader({
     return (
         <div className="space-y-2">
             <div className="flex items-center justify-between">
-                <label className="text-xs text-slate-500">
+                <label className="text-xs font-bold text-slate-500">
                     {config.label} {config.required && <span className="text-danger-400">*</span>}
                 </label>
                 {config.example && (
-                    <button type="button" onClick={() => setShowExample(true)} className="text-xs text-primary-500 hover:underline">
+                    <button type="button" onClick={() => setShowExample(true)} className="text-xs font-bold text-primary-600 hover:underline">
                         查看示例
                     </button>
                 )}
             </div>
-            <div className="relative">
+            <div className="relative group">
                 {value ? (
                     <div className="relative inline-block">
-                        <img src={value} alt={config.label} className="h-24 w-24 rounded-lg border border-slate-200 object-cover" />
+                        <img src={value} alt={config.label} className="h-24 w-24 rounded-2xl border-2 border-slate-100 object-cover shadow-sm transition-all group-hover:border-primary-500/50" />
                         <button
                             type="button"
                             onClick={() => onChange('')}
-                            className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-danger-400 text-xs text-white"
+                            className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white shadow-lg transition-transform active:scale-95"
                         >
                             ×
                         </button>
                     </div>
                 ) : (
-                    <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400 hover:border-blue-400 hover:text-primary-500">
-                        {uploading ? <Spinner size="sm" /> : (<><span className="text-2xl">+</span><span className="text-xs">上传图片</span></>)}
-                        <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                    <label className={cn(
+                        "flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400 transition-all hover:bg-slate-100 hover:border-primary-400 hover:text-primary-500",
+                        uploading && "opacity-50 cursor-not-allowed"
+                    )}>
+                        {uploading ? <Spinner size="sm" /> : (<><span className="text-2xl mb-1">+</span><span className="text-xs font-bold">上传图片</span></>)}
+                        <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" disabled={uploading} />
                     </label>
                 )}
             </div>
             {showExample && config.example && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowExample(false)}>
-                    <div className="max-w-sm rounded-lg bg-white p-4" onClick={e => e.stopPropagation()}>
-                        <div className="mb-2 text-sm font-medium text-slate-800">示例图片 - {config.label}</div>
-                        <div className="flex h-64 items-center justify-center rounded-lg bg-slate-100 text-sm text-slate-500">
+                <div className="fixed inset-0 z-[1100] flex cursor-zoom-out items-center justify-center bg-black/90 backdrop-blur-sm" onClick={() => setShowExample(false)}>
+                    <div className="max-w-sm rounded-[24px] bg-white p-6" onClick={e => e.stopPropagation()}>
+                        <div className="mb-4 text-base font-bold text-slate-900">示例图片 - {config.label}</div>
+                        <div className="flex h-64 items-center justify-center rounded-xl bg-slate-100 text-sm font-medium text-slate-400">
                             示例图片加载中...
                         </div>
-                        <div className="mt-3 text-center">
-                            <button onClick={() => setShowExample(false)} className="rounded-lg bg-primary-500 px-4 py-2 text-sm text-white">关闭</button>
+                        <div className="mt-6 text-center">
+                            <button onClick={() => setShowExample(false)} className="w-full rounded-xl bg-primary-600 py-3 text-sm font-bold text-white hover:bg-primary-700">关闭</button>
                         </div>
                     </div>
                 </div>
@@ -233,10 +237,6 @@ export default function BindAccountPage() {
             toastError(error);
             return;
         }
-        if (error) {
-            toastError(error);
-            return;
-        }
 
         setSubmitting(true);
         try {
@@ -262,56 +262,59 @@ export default function BindAccountPage() {
     const addressCities = form.province ? getCities(form.province) : [];
     const addressDistricts = form.province && form.city ? getDistricts(form.province, form.city) : [];
 
-
-
     return (
-        <div className="min-h-screen bg-slate-50 pb-20">
-            <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
-                <div className="mx-auto flex h-14 max-w-[515px] items-center px-4">
+        <div className="min-h-screen bg-[#F8FAFC] pb-24">
+            <header className="sticky top-0 z-10 mx-auto max-w-[515px] bg-[#F8FAFC]/80 backdrop-blur-md">
+                <div className="flex h-16 items-center justify-between px-6">
                     <button onClick={() => router.push('/profile/buyer-accounts')} className="mr-4 text-slate-600">←</button>
-                    <h1 className="flex-1 text-base font-medium text-slate-800">绑定买号</h1>
+                    <h1 className="flex-1 text-xl font-bold text-slate-900">绑定买号</h1>
                 </div>
             </header>
 
-            <div className="mx-auto max-w-[515px] space-y-4 px-4 py-4">
+            <div className="mx-auto max-w-[515px] space-y-6 px-4 pt-4">
                 {/* 动态温馨提示 */}
-
-                {/* 动态温馨提示 */}
-                <div className="rounded-lg bg-amber-50 p-3">
-                    <div className="mb-2 flex items-center gap-1 text-sm font-medium text-warning-500">
-                        ⚠️ 温馨提示 - {platformConfig.name}
+                <div className="rounded-[24px] bg-amber-50 p-6">
+                    <div className="mb-3 flex items-center gap-2 text-sm font-black text-amber-700">
+                        <span>⚠️</span>
+                        <span>温馨提示 - {platformConfig.name}</span>
                     </div>
-                    <div className="space-y-1 text-xs text-slate-600 leading-relaxed">
+                    <div className="space-y-2 text-xs font-medium text-amber-900/70 leading-relaxed">
                         {platformConfig.tips.map((tip, i) => (
-                            <p key={i}>{i + 1}. {tip}</p>
+                            <p key={i} className="flex gap-2">
+                                <span className="mt-1 block h-1 w-1 shrink-0 rounded-full bg-amber-400" />
+                                {tip}
+                            </p>
                         ))}
                     </div>
                 </div>
 
                 {/* 表单 */}
-                <Card className="border-slate-200 p-5">
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="rounded-[24px] bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         {/* 1. 平台选择 */}
                         <div>
-                            <label className="mb-1 block text-xs text-slate-500">选择平台 <span className="text-danger-400">*</span></label>
-                            <select
-                                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
-                                value={selectedPlatformId}
-                                onChange={e => handlePlatformChange(e.target.value)}
-                            >
-                                {platformList.map(p => (
-                                    <option key={p.id} value={p.id}>{p.name}</option>
-                                ))}
-                            </select>
+                            <label className="mb-1.5 block text-xs font-bold text-slate-500">选择平台 <span className="text-danger-400">*</span></label>
+                            <div className="relative">
+                                <select
+                                    className="w-full appearance-none rounded-xl border-none bg-slate-100 px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500 transition-all outline-none"
+                                    value={selectedPlatformId}
+                                    onChange={e => handlePlatformChange(e.target.value)}
+                                >
+                                    {platformList.map(p => (
+                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                    ))}
+                                </select>
+                                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">▼</div>
+                            </div>
                         </div>
 
                         {/* 2. 账号输入 - 动态Label */}
                         <div>
-                            <label className="mb-1 block text-xs text-slate-500">
+                            <label className="mb-1.5 block text-xs font-bold text-slate-500">
                                 {platformConfig.accountLabel} <span className="text-danger-400">*</span>
                             </label>
                             <input
-                                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
+                                className="w-full rounded-xl border-none bg-slate-100 px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500 transition-all placeholder:text-slate-400"
                                 placeholder={platformConfig.accountPlaceholder}
                                 value={form.platformAccount}
                                 onChange={e => updateForm('platformAccount', e.target.value)}
@@ -321,41 +324,47 @@ export default function BindAccountPage() {
                         {/* 3-4. 常用登录地 - 条件显示 */}
                         {platformConfig.hasLoginLocation && (
                             <div>
-                                <label className="mb-1 block text-xs text-slate-500">常用登录地 <span className="text-danger-400">*</span></label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <select
-                                        className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
-                                        value={form.loginProvince}
-                                        onChange={e => { updateForm('loginProvince', e.target.value); updateForm('loginCity', ''); }}
-                                    >
-                                        <option value="">选择省份</option>
-                                        {provinces.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-                                    </select>
-                                    <select
-                                        className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
-                                        value={form.loginCity}
-                                        onChange={e => updateForm('loginCity', e.target.value)}
-                                        disabled={!form.loginProvince}
-                                    >
-                                        <option value="">选择城市</option>
-                                        {loginCities.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                                    </select>
+                                <label className="mb-1.5 block text-xs font-bold text-slate-500">常用登录地 <span className="text-danger-400">*</span></label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="relative">
+                                        <select
+                                            className="w-full appearance-none rounded-xl border-none bg-slate-100 px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500 transition-all outline-none"
+                                            value={form.loginProvince}
+                                            onChange={e => { updateForm('loginProvince', e.target.value); updateForm('loginCity', ''); }}
+                                        >
+                                            <option value="">选择省份</option>
+                                            {provinces.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                                        </select>
+                                        <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400">▼</div>
+                                    </div>
+                                    <div className="relative">
+                                        <select
+                                            className="w-full appearance-none rounded-xl border-none bg-slate-100 px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500 transition-all outline-none disabled:opacity-50"
+                                            value={form.loginCity}
+                                            onChange={e => updateForm('loginCity', e.target.value)}
+                                            disabled={!form.loginProvince}
+                                        >
+                                            <option value="">选择城市</option>
+                                            {loginCities.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                                        </select>
+                                        <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400">▼</div>
+                                    </div>
                                 </div>
-                                <p className="mt-1 text-xs text-slate-400">请选择您账号的常用登录位置</p>
+                                <p className="mt-2 text-xs font-medium text-slate-400">请选择您账号的常用登录位置</p>
                             </div>
                         )}
 
                         {/* 收货信息区块 - 条件显示 */}
                         {platformConfig.hasAddress && (
                             <>
-                                <div className="border-t border-slate-200 pt-4">
-                                    <div className="mb-3 text-sm font-medium text-slate-700">收货信息</div>
+                                <div className="border-t border-slate-100 pt-6">
+                                    <div className="mb-4 text-sm font-bold text-slate-900">收货信息</div>
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-xs text-slate-500">收货人姓名 <span className="text-danger-400">*</span></label>
+                                    <label className="mb-1.5 block text-xs font-bold text-slate-500">收货人姓名 <span className="text-danger-400">*</span></label>
                                     <input
-                                        className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
+                                        className="w-full rounded-xl border-none bg-slate-100 px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500 transition-all placeholder:text-slate-400"
                                         placeholder="请输入收货人姓名"
                                         value={form.buyerName}
                                         onChange={e => updateForm('buyerName', e.target.value)}
@@ -363,29 +372,35 @@ export default function BindAccountPage() {
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-xs text-slate-500">收货地址 <span className="text-danger-400">*</span></label>
+                                    <label className="mb-1.5 block text-xs font-bold text-slate-500">收货地址 <span className="text-danger-400">*</span></label>
                                     <div className="grid grid-cols-3 gap-2">
-                                        <select className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-sm text-slate-800" value={form.province}
-                                            onChange={e => { updateForm('province', e.target.value); updateForm('city', ''); updateForm('district', ''); }}>
-                                            <option value="">省份</option>
-                                            {provinces.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-                                        </select>
-                                        <select className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-sm text-slate-800" value={form.city}
-                                            onChange={e => { updateForm('city', e.target.value); updateForm('district', ''); }} disabled={!form.province}>
-                                            <option value="">城市</option>
-                                            {addressCities.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                                        </select>
-                                        <select className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-sm text-slate-800" value={form.district}
-                                            onChange={e => updateForm('district', e.target.value)} disabled={!form.city}>
-                                            <option value="">区县</option>
-                                            {addressDistricts.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-                                        </select>
+                                        <div className="relative">
+                                            <select className="w-full appearance-none rounded-xl border-none bg-slate-100 px-2 py-3 text-sm font-medium text-slate-900 outline-none" value={form.province}
+                                                onChange={e => { updateForm('province', e.target.value); updateForm('city', ''); updateForm('district', ''); }}>
+                                                <option value="">省份</option>
+                                                {provinces.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="relative">
+                                            <select className="w-full appearance-none rounded-xl border-none bg-slate-100 px-2 py-3 text-sm font-medium text-slate-900 outline-none disabled:opacity-50" value={form.city}
+                                                onChange={e => { updateForm('city', e.target.value); updateForm('district', ''); }} disabled={!form.province}>
+                                                <option value="">城市</option>
+                                                {addressCities.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="relative">
+                                            <select className="w-full appearance-none rounded-xl border-none bg-slate-100 px-2 py-3 text-sm font-medium text-slate-900 outline-none disabled:opacity-50" value={form.district}
+                                                onChange={e => updateForm('district', e.target.value)} disabled={!form.city}>
+                                                <option value="">区县</option>
+                                                {addressDistricts.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-xs text-slate-500">详细地址 <span className="text-danger-400">*</span></label>
-                                    <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
+                                    <label className="mb-1.5 block text-xs font-bold text-slate-500">详细地址 <span className="text-danger-400">*</span></label>
+                                    <input className="w-full rounded-xl border-none bg-slate-100 px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500 transition-all placeholder:text-slate-400"
                                         placeholder="请输入具体的街道、门牌号等信息" value={form.fullAddress} onChange={e => updateForm('fullAddress', e.target.value)} />
                                 </div>
                             </>
@@ -395,21 +410,21 @@ export default function BindAccountPage() {
                         {platformConfig.hasSmsVerification && (
                             <>
                                 <div>
-                                    <label className="mb-1 block text-xs text-slate-500">手机号码 <span className="text-danger-400">*</span></label>
-                                    <div className="flex gap-2">
-                                        <input className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
+                                    <label className="mb-1.5 block text-xs font-bold text-slate-500">手机号码 <span className="text-danger-400">*</span></label>
+                                    <div className="flex gap-3">
+                                        <input className="flex-1 rounded-xl border-none bg-slate-100 px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500 transition-all placeholder:text-slate-400"
                                             placeholder="请输入11位手机号" maxLength={11} value={form.buyerPhone}
                                             onChange={e => updateForm('buyerPhone', e.target.value.replace(/\D/g, ''))} />
                                         <button type="button" onClick={handleSendSms} disabled={smsCountdown > 0}
-                                            className={`whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-white ${smsCountdown > 0 ? 'bg-slate-400' : 'bg-primary-500'}`}>
+                                            className={`whitespace-nowrap rounded-xl px-4 py-3 text-sm font-bold text-white transition-all active:scale-95 ${smsCountdown > 0 ? 'bg-slate-400 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700'}`}>
                                             {smsCountdown > 0 ? `${smsCountdown}s` : '发送验证码'}
                                         </button>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-xs text-slate-500">验证码 <span className="text-danger-400">*</span></label>
-                                    <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
+                                    <label className="mb-1.5 block text-xs font-bold text-slate-500">验证码 <span className="text-danger-400">*</span></label>
+                                    <input className="w-full rounded-xl border-none bg-slate-100 px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500 transition-all placeholder:text-slate-400"
                                         placeholder="请输入短信验证码" maxLength={6} value={form.smsCode}
                                         onChange={e => updateForm('smsCode', e.target.value.replace(/\D/g, ''))} />
                                 </div>
@@ -418,18 +433,23 @@ export default function BindAccountPage() {
 
                         {/* 实名认证姓名 - 条件显示 */}
                         {platformConfig.hasRealName && (
-                            <div>
-                                <label className="mb-1 block text-xs text-slate-500">实名认证姓名 <span className="text-danger-400">*</span></label>
-                                <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800"
-                                    placeholder="请输入实名认证的姓名" value={form.realName} onChange={e => updateForm('realName', e.target.value)} />
-                            </div>
+                            <>
+                                <div className="border-t border-slate-100 pt-6">
+                                    <div className="mb-4 text-sm font-bold text-slate-900">实名认证</div>
+                                </div>
+                                <div>
+                                    <label className="mb-1.5 block text-xs font-bold text-slate-500">实名认证姓名 <span className="text-danger-400">*</span></label>
+                                    <input className="w-full rounded-xl border-none bg-slate-100 px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500 transition-all placeholder:text-slate-400"
+                                        placeholder="请输入实名认证的姓名" value={form.realName} onChange={e => updateForm('realName', e.target.value)} />
+                                </div>
+                            </>
                         )}
 
                         {/* 动态图片上传区 */}
                         {platformConfig.requiredImages.length > 0 && (
                             <>
-                                <div className="border-t border-slate-200 pt-4">
-                                    <div className="mb-3 text-sm font-medium text-slate-700">
+                                <div className="border-t border-slate-100 pt-6">
+                                    <div className="mb-4 text-sm font-bold text-slate-900">
                                         资质截图（{platformConfig.requiredImages.filter(i => i.required).length}张必传）
                                     </div>
                                 </div>
@@ -448,11 +468,11 @@ export default function BindAccountPage() {
                         )}
 
                         <Button type="submit" loading={submitting} disabled={submitting}
-                            className="mt-2 w-full bg-primary-500 py-6 text-base font-medium hover:bg-primary-600">
+                            className="mt-4 w-full rounded-xl bg-primary-600 py-6 text-base font-bold shadow-lg shadow-primary-600/20 hover:bg-primary-700 active:scale-[0.98] transition-all">
                             提交申请
                         </Button>
                     </form>
-                </Card>
+                </div>
             </div>
         </div>
     );

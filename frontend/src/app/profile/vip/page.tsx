@@ -74,102 +74,108 @@ function VipContent() {
     const isBalanceSufficient = () => selectedPackage ? Number(getCurrentBalance()) >= selectedPackage.discountPrice : false;
 
     if (loading) {
-        return <div className="flex min-h-screen items-center justify-center bg-slate-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" /></div>;
+        return <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-600 border-t-transparent" /></div>;
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 pb-20">
+        <div className="min-h-screen bg-[#F8FAFC] pb-24 text-slate-900">
             {/* Header */}
-            <header className="sticky top-0 z-10 mx-auto max-w-[515px] border-b border-slate-200 bg-white">
-                <div className="flex h-14 items-center px-4">
+            <header className="sticky top-0 z-10 mx-auto max-w-[515px] bg-[#F8FAFC]/80 backdrop-blur-md">
+                <div className="flex h-16 items-center px-6">
                     <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
                     <div className="flex-1">
-                        <h1 className="text-base font-medium text-slate-800">VIP会员中心</h1>
-                        <p className="text-xs text-slate-400">{vipStatus.isVip ? `VIP会员 · 剩余${vipStatus.daysRemaining}天` : '开通VIP享受更多权益'}</p>
+                        <h1 className="text-xl font-bold text-slate-900">VIP会员中心</h1>
+                        <p className="mt-0.5 text-xs text-slate-500 font-medium">{vipStatus.isVip ? `VIP会员 · 剩余${vipStatus.daysRemaining}天` : '开通VIP享受更多权益'}</p>
                     </div>
                 </div>
             </header>
 
-            <div>
+            <div className="mx-auto max-w-[515px] space-y-6 px-4 pt-4">
                 {/* Balance Card */}
-                <div className="mx-4 mt-4 grid grid-cols-2 gap-3">
-                    <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-                        <div className="text-xl font-bold text-warning-400">{Number(userSilver || 0).toFixed(2)}</div>
-                        <div className="mt-1 text-xs text-slate-400">银锭余额</div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="rounded-[24px] bg-white p-5 text-center shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                        <div className="text-2xl font-black text-warning-500">{Number(userSilver || 0).toFixed(2)}</div>
+                        <div className="mt-1 text-xs font-bold text-slate-400">银锭余额</div>
                     </div>
-                    <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-                        <div className="text-xl font-bold text-slate-800">¥{Number(userBalance || 0).toFixed(2)}</div>
-                        <div className="mt-1 text-xs text-slate-400">本金余额</div>
+                    <div className="rounded-[24px] bg-white p-5 text-center shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                        <div className="text-2xl font-black text-slate-900">¥{Number(userBalance || 0).toFixed(2)}</div>
+                        <div className="mt-1 text-xs font-bold text-slate-400">本金余额</div>
                     </div>
                 </div>
 
                 {/* Tabs */}
-                <div className="mx-4 mt-4 flex rounded-lg border border-slate-200 bg-white p-1">
+                <div className="rounded-[20px] bg-white p-1.5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex">
                     {[{ key: 'recharge', label: '开通VIP' }, { key: 'records', label: '充值记录' }].map(tab => (
                         <button key={tab.key} onClick={() => setActiveTab(tab.key as 'recharge' | 'records')}
-                            className={cn('flex-1 rounded-md py-2 text-center text-sm font-medium transition-colors', activeTab === tab.key ? 'bg-primary-500 text-white' : 'text-slate-500')}>
+                            className={cn('flex-1 rounded-[16px] py-2.5 text-center text-sm font-bold transition-all', activeTab === tab.key ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20' : 'text-slate-500 hover:text-slate-700')}>
                             {tab.label}
                         </button>
                     ))}
                 </div>
 
                 {/* Content */}
-                <div className="mx-4 mt-4 rounded-xl border border-slate-200 bg-white p-4">
+                <div className="rounded-[24px] bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                     {activeTab === 'recharge' ? (
-                        <div className="space-y-5">
+                        <div className="space-y-8">
                             {/* Packages */}
                             <div>
-                                <div className="mb-3 text-sm font-medium text-slate-700">选择套餐</div>
-                                <div className="space-y-3">
+                                <div className="mb-4 text-sm font-bold text-slate-900">选择套餐</div>
+                                <div className="grid gap-4">
                                     {packages.map(pkg => (
                                         <div key={pkg.id} onClick={() => setSelectedPackage(pkg)}
-                                            className={cn('relative cursor-pointer rounded-xl border-2 p-4 transition-colors',
-                                                selectedPackage?.id === pkg.id ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-slate-50')}>
-                                            {selectedPackage?.id === pkg.id && <div className="absolute -top-2 right-3 rounded bg-primary-500 px-2 py-0.5 text-[10px] text-white">已选</div>}
+                                            className={cn('relative cursor-pointer overflow-hidden rounded-[20px] border-2 p-5 transition-all',
+                                                selectedPackage?.id === pkg.id ? 'border-primary-600 bg-primary-50/50 ring-4 ring-primary-100/50' : 'border-slate-100 bg-white hover:border-slate-200')}>
+                                            {selectedPackage?.id === pkg.id && <div className="absolute top-0 right-0 rounded-bl-xl bg-primary-600 px-3 py-1 text-[10px] font-bold text-white">已选</div>}
                                             <div className="flex items-center justify-between">
-                                                <span className="font-medium text-slate-800">{pkg.name}</span>
+                                                <span className="text-base font-black text-slate-900">{pkg.name}</span>
                                                 <div className="flex items-baseline gap-1">
-                                                    <span className="text-2xl font-bold text-primary-500">{pkg.discountPrice}</span>
-                                                    <span className="text-xs text-slate-400 line-through">¥{pkg.price}</span>
+                                                    <span className="text-2xl font-black text-primary-600">{pkg.discountPrice}</span>
+                                                    <span className="text-xs text-slate-400 line-through decoration-slate-400/50">¥{pkg.price}</span>
                                                 </div>
                                             </div>
-                                            <div className="mt-1 text-xs text-slate-500">{pkg.description}</div>
-                                            <div className="mt-2 flex flex-wrap gap-1">{pkg.benefits?.map((b, i) => <span key={i} className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-500">{b}</span>)}</div>
+                                            <div className="mt-2 text-xs font-medium text-slate-500">{pkg.description}</div>
+                                            <div className="mt-3 flex flex-wrap gap-2">{pkg.benefits?.map((b, i) => <span key={i} className="rounded-lg bg-slate-100 px-2 py-1 text-xs font-bold text-slate-500">{b}</span>)}</div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                             {/* Payment Methods */}
                             <div>
-                                <div className="mb-3 text-sm font-medium text-slate-700">支付方式</div>
-                                <div className="space-y-2">
+                                <div className="mb-4 text-sm font-bold text-slate-900">支付方式</div>
+                                <div className="space-y-3">
                                     {PAYMENT_METHODS.map(method => (
                                         <div key={method.key} onClick={() => setPaymentMethod(method.key)}
-                                            className={cn('flex cursor-pointer items-center gap-3 rounded-xl border-2 p-3 transition-colors',
-                                                paymentMethod === method.key ? 'border-blue-500 bg-blue-50' : 'border-slate-200')}>
+                                            className={cn('flex cursor-pointer items-center gap-4 rounded-[20px] border-2 p-4 transition-all',
+                                                paymentMethod === method.key ? 'border-primary-600 bg-primary-50/50' : 'border-slate-100 bg-white')}>
                                             <span className="text-2xl">{method.icon}</span>
                                             <div className="flex-1">
-                                                <div className="text-sm font-medium text-slate-800">{method.label}</div>
-                                                <div className="text-xs text-slate-400">{method.desc}</div>
+                                                <div className="text-sm font-bold text-slate-900">{method.label}</div>
+                                                <div className="mt-0.5 text-xs text-slate-400 font-medium">{method.desc}</div>
                                             </div>
-                                            {method.key !== 'alipay' && <span className={cn('text-sm font-medium', method.key === 'silver' ? 'text-warning-400' : 'text-slate-700')}>{method.key === 'silver' ? Number(userSilver || 0).toFixed(2) : `¥${Number(userBalance || 0).toFixed(2)}`}</span>}
-                                            <div className={cn('h-5 w-5 rounded-full border-4', paymentMethod === method.key ? 'border-blue-500' : 'border-slate-300')} />
+                                            {method.key !== 'alipay' && <span className={cn('text-sm font-bold', method.key === 'silver' ? 'text-warning-500' : 'text-slate-700')}>{method.key === 'silver' ? Number(userSilver || 0).toFixed(2) : `¥${Number(userBalance || 0).toFixed(2)}`}</span>}
+                                            <div className={cn('h-5 w-5 rounded-full border-[3px] transition-all', paymentMethod === method.key ? 'border-primary-600 bg-primary-600' : 'border-slate-200')} />
                                         </div>
                                     ))}
                                 </div>
                             </div>
                             {/* Submit Button */}
                             <button onClick={() => setShowConfirm(true)} disabled={!selectedPackage || (!isBalanceSufficient() && paymentMethod !== 'alipay')}
-                                className={cn('w-full rounded-xl py-3.5 text-center text-base font-medium text-white transition-colors',
-                                    (!selectedPackage || (!isBalanceSufficient() && paymentMethod !== 'alipay')) ? 'cursor-not-allowed bg-slate-300' : 'bg-primary-500')}>
+                                className={cn('w-full rounded-xl py-4 text-center text-base font-bold text-white transition-all shadow-lg active:scale-[0.98]',
+                                    (!selectedPackage || (!isBalanceSufficient() && paymentMethod !== 'alipay')) ? 'cursor-not-allowed bg-slate-300 shadow-none' : 'bg-primary-600 hover:bg-primary-700 shadow-primary-600/30')}>
                                 {paymentMethod !== 'alipay' && !isBalanceSufficient() ? '余额不足' : `立即开通 · ${selectedPackage?.discountPrice || 0}${paymentMethod === 'silver' ? '银锭' : '元'}`}
                             </button>
                             {/* Tips */}
-                            <div className="rounded-lg bg-amber-50 p-3 text-xs text-amber-700 leading-relaxed">
-                                <div className="mb-1 font-medium">温馨提示</div>
-                                <ul className="list-disc pl-4 space-y-0.5">
+                            <div className="rounded-[20px] bg-amber-50 p-5">
+                                <div className="mb-2 flex items-center gap-2 text-xs font-black text-amber-700">
+                                    <span>⚠️</span>
+                                    <span>温馨提示</span>
+                                </div>
+                                <ul className="pl-1 space-y-1.5">
                                     {VIP_TIPS.map((tip, index) => (
-                                        <li key={index}>{tip}</li>
+                                        <li key={index} className="flex gap-2 text-xs font-medium text-amber-900/70">
+                                            <span className="mt-1.5 block h-1 w-1 shrink-0 rounded-full bg-amber-400/50" />
+                                            <span className="flex-1 leading-relaxed">{tip}</span>
+                                        </li>
                                     ))}
                                 </ul>
                             </div>
@@ -177,20 +183,23 @@ function VipContent() {
                     ) : (
                         <div>
                             {records.length === 0 ? (
-                                <div className="py-12 text-center"><div className="mb-3 text-4xl">📋</div><div className="text-sm text-slate-400">暂无充值记录</div></div>
+                                <div className="py-20 text-center">
+                                    <div className="mb-4 text-5xl opacity-50">📋</div>
+                                    <div className="text-sm font-bold text-slate-300">暂无充值记录</div>
+                                </div>
                             ) : (
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     {records.map(record => (
-                                        <div key={record.id} className="rounded-xl bg-slate-50 p-4">
+                                        <div key={record.id} className="relative overflow-hidden rounded-[20px] bg-slate-50 p-5 transition-all hover:bg-slate-100">
                                             <div className="flex items-center justify-between">
-                                                <span className="font-medium text-slate-800">{record.packageName}</span>
-                                                <span className={cn('rounded-full px-2 py-0.5 text-xs', record.status === 'paid' ? 'bg-green-100 text-success-400' : 'bg-amber-100 text-warning-500')}>{record.status === 'paid' ? '已支付' : '待支付'}</span>
+                                                <span className="text-base font-bold text-slate-900">{record.packageName}</span>
+                                                <span className={cn('rounded-lg px-2.5 py-1 text-xs font-bold', record.status === 'paid' ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600')}>{record.status === 'paid' ? '已支付' : '待支付'}</span>
                                             </div>
-                                            <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
+                                            <div className="mt-3 flex items-center justify-between text-xs font-medium text-slate-400">
                                                 <span>{new Date(record.paidAt || record.createdAt).toLocaleString()}</span>
-                                                <span className="font-medium text-primary-500">{record.paymentMethod === 'silver' ? `${record.amount}银锭` : `¥${record.amount}`}</span>
+                                                <span className="text-base font-bold text-primary-600">{record.paymentMethod === 'silver' ? `${record.amount}银锭` : `¥${record.amount}`}</span>
                                             </div>
-                                            <div className="mt-1 text-xs text-slate-400">有效期: {new Date(record.vipStartAt).toLocaleDateString()} ~ {new Date(record.vipEndAt).toLocaleDateString()}</div>
+                                            <div className="mt-2 text-xs font-medium text-slate-400">有效期: {new Date(record.vipStartAt).toLocaleDateString()} ~ {new Date(record.vipEndAt).toLocaleDateString()}</div>
                                         </div>
                                     ))}
                                 </div>
@@ -202,18 +211,18 @@ function VipContent() {
 
             {/* Confirm Modal */}
             {showConfirm && selectedPackage && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-5">
-                    <div className="w-full max-w-sm rounded-2xl bg-white p-5">
-                        <div className="mb-4 text-center text-lg font-bold text-slate-800">确认支付</div>
-                        <div className="mb-4 rounded-xl bg-slate-50 p-4 text-sm">
-                            <div className="flex justify-between py-1"><span className="text-slate-500">套餐名称</span><span className="font-medium text-slate-800">{selectedPackage.name}</span></div>
-                            <div className="flex justify-between py-1"><span className="text-slate-500">有效期</span><span className="font-medium text-slate-800">{selectedPackage.days}天</span></div>
-                            <div className="flex justify-between py-1"><span className="text-slate-500">支付方式</span><span className="font-medium text-primary-500">{PAYMENT_METHODS.find(m => m.key === paymentMethod)?.label}</span></div>
-                            <div className="mt-2 border-t border-slate-200 pt-2 flex justify-between"><span className="text-slate-500">支付金额</span><span className="text-xl font-bold text-primary-500">{paymentMethod === 'silver' ? `${selectedPackage.discountPrice}银锭` : `¥${selectedPackage.discountPrice}`}</span></div>
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="w-full max-w-sm rounded-[32px] bg-white p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
+                        <div className="mb-6 text-center text-xl font-black text-slate-900">确认支付</div>
+                        <div className="mb-6 space-y-3 rounded-[24px] bg-slate-50 p-5">
+                            <div className="flex justify-between items-center text-sm"><span className="font-bold text-slate-400">套餐名称</span><span className="font-bold text-slate-900">{selectedPackage.name}</span></div>
+                            <div className="flex justify-between items-center text-sm"><span className="font-bold text-slate-400">有效期</span><span className="font-bold text-slate-900">{selectedPackage.days}天</span></div>
+                            <div className="flex justify-between items-center text-sm"><span className="font-bold text-slate-400">支付方式</span><span className="font-bold text-primary-600">{PAYMENT_METHODS.find(m => m.key === paymentMethod)?.label}</span></div>
+                            <div className="mt-3 border-t border-slate-200/50 pt-3 flex justify-between items-center"><span className="font-bold text-slate-400">支付金额</span><span className="text-xl font-black text-primary-600">{paymentMethod === 'silver' ? `${selectedPackage.discountPrice}银锭` : `¥${selectedPackage.discountPrice}`}</span></div>
                         </div>
                         <div className="flex gap-3">
-                            <button onClick={() => setShowConfirm(false)} disabled={processing} className="flex-1 rounded-xl border border-slate-200 py-3 text-sm font-medium text-slate-600">取消</button>
-                            <button onClick={handlePayment} disabled={processing} className={cn('flex-1 rounded-xl py-3 text-sm font-medium text-white', processing ? 'bg-slate-300' : 'bg-primary-500')}>{processing ? '处理中...' : '确认支付'}</button>
+                            <button onClick={() => setShowConfirm(false)} disabled={processing} className="flex-1 rounded-xl bg-slate-100 py-3.5 text-sm font-bold text-slate-600 hover:bg-slate-200 transition-colors">取消</button>
+                            <button onClick={handlePayment} disabled={processing} className={cn('flex-1 rounded-xl py-3.5 text-sm font-bold text-white shadow-lg shadow-primary-600/20 transition-all hover:bg-primary-700 active:scale-95', processing ? 'bg-slate-300 shadow-none' : 'bg-primary-600')}>{processing ? 'Processing...' : '确认支付'}</button>
                         </div>
                     </div>
                 </div>
@@ -226,7 +235,7 @@ function VipContent() {
 
 export default function VipPage() {
     return (
-        <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-slate-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" /></div>}>
+        <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-600 border-t-transparent" /></div>}>
             <VipContent />
         </Suspense>
     );
