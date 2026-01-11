@@ -16,7 +16,6 @@ import { ShopsService } from './shops.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Shop } from './shop.entity';
 import { UploadsService } from '../uploads/uploads.service';
-import { FileUsage } from '../uploads/upload.entity';
 
 @Controller('shops')
 @UseGuards(JwtAuthGuard)
@@ -42,24 +41,43 @@ export class ShopsController {
   ) {
     const sellerId = req.user.merchantId || req.user.userId;
 
+    console.log('Create shop - body:', JSON.stringify(body));
+    console.log('Create shop - body.screenshot:', body.screenshot);
+    console.log('Create shop - file:', file ? 'yes' : 'no');
+
     // 如果有上传截图文件，先上传并获取URL
     let screenshotUrl = '';
     if (file) {
-      const uploadResult = await this.uploadsService.uploadFile(
-        {
-          originalname: file.originalname,
-          mimetype: file.mimetype,
-          buffer: file.buffer,
-          size: file.size,
-        },
-        {
-          usage: FileUsage.SCREENSHOT,
+      try {
+        const uploadDto: any = {
+          usage: 'screenshot',  // 直接使用字符串值
           uploaderId: req.user.userId,
-          uploaderType: req.user.role,
-        },
-      );
-      if (uploadResult.success && uploadResult.data?.url) {
-        screenshotUrl = uploadResult.data.url;
+          uploaderType: req.user.role || 'MERCHANT',
+        };
+
+        console.log('Uploading shop screenshot with dto:', uploadDto);
+
+        const uploadResult = await this.uploadsService.uploadFile(
+          {
+            originalname: file.originalname,
+            mimetype: file.mimetype,
+            buffer: file.buffer,
+            size: file.size,
+          },
+          uploadDto,
+        );
+
+        console.log('Upload result:', uploadResult);
+
+        if (uploadResult.success && uploadResult.data?.url) {
+          screenshotUrl = uploadResult.data.url;
+        } else {
+          console.error('Screenshot upload failed:', uploadResult.message);
+          return { success: false, message: `截图上传失败：${uploadResult.message}` };
+        }
+      } catch (error) {
+        console.error('Screenshot upload error:', error);
+        return { success: false, message: `截图上传失败：${error.message}` };
       }
     }
 
@@ -74,7 +92,7 @@ export class ShopsController {
       city: body.city,
       district: body.district,
       detailAddress: body.detailAddress,
-      screenshot: screenshotUrl || undefined,
+      screenshot: screenshotUrl || body.screenshot || undefined,
     };
 
     const shop = await this.shopsService.create(sellerId, shopData);
