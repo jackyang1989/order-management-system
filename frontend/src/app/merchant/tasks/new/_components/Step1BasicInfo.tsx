@@ -5,6 +5,7 @@ import { TaskFormData, TaskEntryType, GoodsItem } from './types';
 import { fetchShops, Shop } from '../../../../../services/shopService';
 import { getShopPlatformCode } from '../../../../../constants/platformConfig';
 import { fetchEnabledPlatforms, PlatformData } from '../../../../../services/systemConfigService';
+import { fetchGoodsByShop, Goods } from '../../../../../services/goodsService';
 import { cn } from '../../../../../lib/utils';
 import { Button } from '../../../../../components/ui/button';
 import { Input } from '../../../../../components/ui/input';
@@ -47,11 +48,30 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     const [newGoodsUrl, setNewGoodsUrl] = useState('');
     const [newGoodsData, setNewGoodsData] = useState<Partial<GoodsItem>>({});
     const [fetchingGoods, setFetchingGoods] = useState(false);
+    // 商品库相关状态
+    const [showGoodsLibModal, setShowGoodsLibModal] = useState(false);
+    const [goodsLibList, setGoodsLibList] = useState<Goods[]>([]);
+    const [loadingGoodsLib, setLoadingGoodsLib] = useState(false);
 
     useEffect(() => { loadShops(); loadPlatforms(); }, []);
 
+    // 当店铺变化时，加载该店铺的商品库
+    useEffect(() => {
+        if (data.shopId) {
+            loadGoodsLib(data.shopId);
+        } else {
+            setGoodsLibList([]);
+        }
+    }, [data.shopId]);
+
     const loadShops = async () => { setLoadingShops(true); const shopList = await fetchShops(); setShops(shopList.filter(s => s.status === 1)); setLoadingShops(false); };
     const loadPlatforms = async () => { setLoadingPlatforms(true); const list = await fetchEnabledPlatforms(); setPlatforms(list); setLoadingPlatforms(false); };
+    const loadGoodsLib = async (shopId: string) => {
+        setLoadingGoodsLib(true);
+        const goods = await fetchGoodsByShop(shopId);
+        setGoodsLibList(goods);
+        setLoadingGoodsLib(false);
+    };
 
     // 将后端平台数据转换为任务平台格式
     const taskPlatforms = useMemo(() => {
@@ -154,6 +174,29 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
         setEditingGoods(null);
     };
 
+    // 从商品库选择商品
+    const handleSelectFromLib = (goods: Goods) => {
+        // 检查是否已添加
+        if (data.goodsList.some(g => g.goodsId === goods.id)) {
+            alert('该商品已添加');
+            return;
+        }
+        const goodsItem: GoodsItem = {
+            id: generateId(),
+            goodsId: goods.id,
+            name: goods.name,
+            image: goods.pcImg || '',
+            link: goods.link || '',
+            price: goods.price,
+            quantity: 1,
+            specName: goods.specName,
+            specValue: goods.specValue,
+            keyword: '', // 需要用户填写
+        };
+        onChange({ goodsList: [...data.goodsList, goodsItem] });
+        setShowGoodsLibModal(false);
+    };
+
     // 根据任务入口类型确定是否需要填写额外信息
     const getEntryTypeValid = () => {
         const entryType = data.taskEntryType || TaskEntryType.KEYWORD;
@@ -198,7 +241,7 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
 
             {/* Task Entry Type Selection */}
             <div className="mb-6">
-                <label className="mb-2 block text-sm font-medium text-[#374151]">任务类型（搜索入口）</label>
+                <label className="mb-2 block text-sm font-medium text-[#374151]">任务类型</label>
                 <div className="flex flex-wrap gap-3">
                     {TASK_ENTRY_TYPES.map(entry => (
                         <div
@@ -239,14 +282,25 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
             <div className="mb-6">
                 <div className="mb-3 flex items-center justify-between">
                     <label className="text-sm font-medium text-[#374151]">商品列表</label>
-                    <Button
-                        size="sm"
-                        onClick={handleAddGoods}
-                        className="flex items-center gap-1"
-                        disabled={!data.shopId}
-                    >
-                        <span>+</span> 添加商品
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => setShowGoodsLibModal(true)}
+                            className="flex items-center gap-1"
+                            disabled={!data.shopId}
+                        >
+                            📦 从商品库选择 {goodsLibList.length > 0 && `(${goodsLibList.length})`}
+                        </Button>
+                        <Button
+                            size="sm"
+                            onClick={handleAddGoods}
+                            className="flex items-center gap-1"
+                            disabled={!data.shopId}
+                        >
+                            <span>+</span> 手动添加
+                        </Button>
+                    </div>
                 </div>
 
                 {data.goodsList.length === 0 ? (
@@ -492,6 +546,68 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                         <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                             <Button variant="secondary" onClick={() => setShowAddGoodsModal(false)}>取消</Button>
                             <Button onClick={handleSaveGoods}>确认{editingGoods ? '修改' : '添加'}</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Goods Library Selection Modal */}
+            {showGoodsLibModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl">
+                        <div className="mb-4 flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-[#374151]">从商品库选择</h3>
+                            <button onClick={() => setShowGoodsLibModal(false)} className="text-[#9ca3af] hover:text-[#6b7280]">✕</button>
+                        </div>
+
+                        {loadingGoodsLib ? (
+                            <div className="flex items-center justify-center py-12 text-[#6b7280]">加载商品中...</div>
+                        ) : goodsLibList.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-12">
+                                <span className="mb-2 text-4xl">📦</span>
+                                <p className="mb-1 text-sm text-[#6b7280]">该店铺暂无商品</p>
+                                <p className="text-xs text-[#9ca3af]">请先到 <a href="/merchant/goods" className="text-primary-600">商品管理</a> 添加商品</p>
+                            </div>
+                        ) : (
+                            <div className="max-h-[400px] space-y-3 overflow-y-auto">
+                                {goodsLibList.map(goods => {
+                                    const isAdded = data.goodsList.some(g => g.goodsId === goods.id);
+                                    return (
+                                        <div key={goods.id} className={cn('flex items-center gap-4 rounded-lg border p-3', isAdded ? 'border-green-200 bg-green-50' : 'border-[#e5e7eb] bg-white hover:border-primary-200')}>
+                                            {/* 商品图片 */}
+                                            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[#e5e7eb] bg-[#f9fafb]">
+                                                {goods.pcImg ? (
+                                                    <img src={goods.pcImg} alt={goods.name} className="h-full w-full object-cover" />
+                                                ) : (
+                                                    <span className="text-xl text-[#9ca3af]">📷</span>
+                                                )}
+                                            </div>
+
+                                            {/* 商品信息 */}
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-sm font-medium text-[#374151]">{goods.name}</p>
+                                                <div className="mt-1 flex items-center gap-3 text-xs text-[#6b7280]">
+                                                    <span>价格: <span className="font-medium text-primary-600">¥{goods.price.toFixed(2)}</span></span>
+                                                    {goods.specValue && <span>规格: {goods.specValue}</span>}
+                                                </div>
+                                            </div>
+
+                                            {/* 选择按钮 */}
+                                            <div className="shrink-0">
+                                                {isAdded ? (
+                                                    <span className="text-sm text-green-600">已添加</span>
+                                                ) : (
+                                                    <Button size="sm" onClick={() => handleSelectFromLib(goods)}>选择</Button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        <div className="mt-4 flex justify-end border-t border-[#e5e7eb] pt-4">
+                            <Button variant="secondary" onClick={() => setShowGoodsLibModal(false)}>关闭</Button>
                         </div>
                     </div>
                 </div>
