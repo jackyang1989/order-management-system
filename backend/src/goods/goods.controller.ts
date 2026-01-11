@@ -23,8 +23,13 @@ export class GoodsController {
 
   @Get()
   async findAll(@Request() req, @Query() filter: GoodsFilterDto) {
-    const sellerId = req.user.sub;
+    const sellerId = req.user.merchantId || req.user.userId;
+    console.log('API findAll goods - sellerId:', sellerId);
+    console.log('API findAll goods - filter:', filter);
+
     const result = await this.goodsService.findAll(sellerId, filter);
+    console.log('API findAll goods - result count:', result.total);
+
     return { success: true, ...result };
   }
 
@@ -36,7 +41,7 @@ export class GoodsController {
 
   @Get(':id')
   async findOne(@Request() req, @Param('id') id: string) {
-    const sellerId = req.user.sub;
+    const sellerId = req.user.merchantId || req.user.userId;
     const goods = await this.goodsService.findOne(id, sellerId);
     if (!goods) {
       return { success: false, message: '商品不存在' };
@@ -46,7 +51,7 @@ export class GoodsController {
 
   @Post()
   async create(@Request() req, @Body() dto: CreateGoodsDto) {
-    const sellerId = req.user.sub;
+    const sellerId = req.user.merchantId || req.user.userId;
     const goods = await this.goodsService.create(sellerId, dto);
     return { success: true, message: '商品创建成功', data: goods };
   }
@@ -57,14 +62,14 @@ export class GoodsController {
     @Param('id') id: string,
     @Body() dto: UpdateGoodsDto,
   ) {
-    const sellerId = req.user.sub;
+    const sellerId = req.user.merchantId || req.user.userId;
     const goods = await this.goodsService.update(id, sellerId, dto);
     return { success: true, message: '商品更新成功', data: goods };
   }
 
   @Delete(':id')
   async delete(@Request() req, @Param('id') id: string) {
-    const sellerId = req.user.sub;
+    const sellerId = req.user.merchantId || req.user.userId;
     await this.goodsService.delete(id, sellerId);
     return { success: true, message: '商品删除成功' };
   }

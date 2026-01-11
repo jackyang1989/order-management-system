@@ -35,8 +35,11 @@ export class GoodsService {
     const queryBuilder = this.goodsRepository
       .createQueryBuilder('goods')
       .leftJoinAndSelect('goods.shop', 'shop')
-      .where('goods.sellerId = :sellerId', { sellerId })
-      .andWhere('goods.state = :state', { state: GoodsStatus.ACTIVE });
+      // .where('goods.sellerId = :sellerId', { sellerId }) // Temporarily disabled for debugging
+      .where('goods.state = :state', { state: GoodsStatus.ACTIVE });
+
+    // Log the sellerId we are supposed to be filtering by
+    console.log('DEBUG: Filtering by sellerId:', sellerId);
 
     if (filter?.shopId) {
       queryBuilder.andWhere('goods.shopId = :shopId', {
@@ -71,6 +74,8 @@ export class GoodsService {
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
+
+    console.log('DEBUG: Found goods:', data.map(g => ({ id: g.id, name: g.name, sellerId: g.sellerId })));
 
     return {
       data,
