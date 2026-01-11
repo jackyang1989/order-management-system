@@ -29,12 +29,31 @@ export interface PraiseContent {
     video?: string; // Video URL
 }
 
+// 商品项接口 - 支持多商品
+export interface GoodsItem {
+    id: string;           // 临时ID用于前端管理
+    goodsId?: string;     // 关联商品库中的商品ID（可选）
+    name: string;         // 商品名称
+    image: string;        // 商品图片
+    link: string;         // 商品链接
+    price: number;        // 单价
+    quantity: number;     // 数量
+    specName?: string;    // 规格名
+    specValue?: string;   // 规格值
+    keyword?: string;     // 搜索关键词
+}
+
 export interface TaskFormData {
     // Step 1: Basic Info
     taskType: number;        // 平台类型 (PlatformType)
     taskEntryType: number;   // 任务入口类型 (TaskEntryType): 1=关键词, 2=淘口令, 3=二维码, 4=直通车, 5=通道
     shopId: string;
     shopName: string;
+
+    // 多商品列表 (新版)
+    goodsList: GoodsItem[];
+
+    // 单商品字段 (兼容旧版)
     url: string;
     title: string;
     mainImage: string;
@@ -79,6 +98,7 @@ export interface TaskFormData {
     timingPayFee: number;
     cycleTimeFee: number;
     addRewardFee: number;
+    goodsMoreFee: number;   // 多商品费用
 
     // New Fee Components (Only core)
     postageMoney: number;
@@ -93,6 +113,11 @@ export const InitialTaskData: TaskFormData = {
     taskEntryType: 1,  // 默认关键词搜索
     shopId: '',
     shopName: '',
+
+    // 多商品
+    goodsList: [],
+
+    // 兼容旧版
     url: '',
     title: '',
     mainImage: '',
@@ -128,6 +153,7 @@ export const InitialTaskData: TaskFormData = {
     timingPayFee: 0,
     cycleTimeFee: 0,
     addRewardFee: 0,
+    goodsMoreFee: 0,
 
     postageMoney: 0,
     marginMoney: 0,
