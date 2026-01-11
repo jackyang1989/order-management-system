@@ -8,17 +8,17 @@ import { Repository } from 'typeorm';
 import {
   Goods,
   GoodsStatus,
-  CreateGoodsDto,
-  UpdateGoodsDto,
-  GoodsFilterDto,
 } from './goods.entity';
+import { CreateGoodsDto } from './dto/create-goods.dto';
+import { UpdateGoodsDto } from './dto/update-goods.dto';
+import { GoodsFilterDto } from './dto/goods-filter.dto';
 
 @Injectable()
 export class GoodsService {
   constructor(
     @InjectRepository(Goods)
     private goodsRepository: Repository<Goods>,
-  ) {}
+  ) { }
 
   async findAll(
     sellerId: string,

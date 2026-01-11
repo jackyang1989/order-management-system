@@ -11,13 +11,15 @@ import {
   Request,
 } from '@nestjs/common';
 import { GoodsService } from './goods.service';
-import { CreateGoodsDto, UpdateGoodsDto, GoodsFilterDto } from './goods.entity';
+import { CreateGoodsDto } from './dto/create-goods.dto';
+import { UpdateGoodsDto } from './dto/update-goods.dto';
+import { GoodsFilterDto } from './dto/goods-filter.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('goods')
 @UseGuards(JwtAuthGuard)
 export class GoodsController {
-  constructor(private readonly goodsService: GoodsService) {}
+  constructor(private readonly goodsService: GoodsService) { }
 
   @Get()
   async findAll(@Request() req, @Query() filter: GoodsFilterDto) {
