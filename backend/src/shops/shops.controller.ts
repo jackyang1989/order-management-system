@@ -20,8 +20,8 @@ export class ShopsController {
 
   @Get()
   async getMyShops(@Request() req: any) {
-    const user = req.user;
-    const shops = await this.shopsService.getMyShops(user.id);
+    const sellerId = req.user.merchantId || req.user.userId;
+    const shops = await this.shopsService.getMyShops(sellerId);
     return { success: true, data: shops };
   }
 
@@ -38,13 +38,15 @@ export class ShopsController {
     @Param('id') id: string,
     @Body() body: Partial<Shop>,
   ) {
-    const shop = await this.shopsService.update(id, req.user.id, body);
+    const sellerId = req.user.merchantId || req.user.userId;
+    const shop = await this.shopsService.update(id, sellerId, body);
     return { success: true, message: '修改成功，请等待审核', data: shop };
   }
 
   @Delete(':id')
   async delete(@Request() req: any, @Param('id') id: string) {
-    await this.shopsService.delete(id, req.user.id);
+    const sellerId = req.user.merchantId || req.user.userId;
+    await this.shopsService.delete(id, sellerId);
     return { success: true, message: '删除成功' };
   }
 }
