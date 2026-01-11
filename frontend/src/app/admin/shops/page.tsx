@@ -235,7 +235,7 @@ function ShopsContent() {
                             <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
                                 <th className="px-3 py-3 text-left text-sm font-medium">所属商家</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">平台</th>
-                                <th className="px-3 py-3 text-left text-sm font-medium">截图</th>
+                                <th className="px-3 py-3 text-left text-sm font-medium">后台截图</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">店铺名称</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">店铺账号</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">联系人/手机</th>

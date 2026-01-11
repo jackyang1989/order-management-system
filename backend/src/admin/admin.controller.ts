@@ -298,6 +298,7 @@ export class AdminController {
       url?: string;
       needLogistics?: boolean;
       expressCode?: string;
+      screenshot?: string;
     },
   ) {
     try {
