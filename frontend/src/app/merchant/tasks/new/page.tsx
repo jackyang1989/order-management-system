@@ -19,7 +19,7 @@ export default function NewTaskPage() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => { loadMerchantProfile(); }, []);
-    useEffect(() => { calculateFees(); }, [data.goodsPrice, data.count, data.isPraise, data.praiseType, data.isTimingPublish, data.isTimingPay, data.isCycleTime, data.addReward, data.isFreeShipping]);
+    useEffect(() => { calculateFees(); }, [data.goodsPrice, data.goodsList, data.count, data.isPraise, data.praiseType, data.isTimingPublish, data.isTimingPay, data.isCycleTime, data.addReward, data.isFreeShipping]);
 
     const loadMerchantProfile = async () => {
         const token = localStorage.getItem('merchantToken'); if (!token) return;
@@ -31,12 +31,19 @@ export default function NewTaskPage() {
         let praiseFeeUnit = 0; if (data.isPraise) { if (data.praiseType === 'text') praiseFeeUnit = 2.0; if (data.praiseType === 'image') praiseFeeUnit = 4.0; if (data.praiseType === 'video') praiseFeeUnit = 10.0; }
         const timingPublishFeeUnit = data.isTimingPublish ? 1.0 : 0; const timingPayFeeUnit = data.isTimingPay ? 1.0 : 0;
         const cycleTimeUnit = (data.isCycleTime && data.cycleTime && data.cycleTime > 0) ? (data.cycleTime * 1) : 0;
-        const addRewardUnit = Number(data.addReward || 0); const totalGoodsMoney = (data.goodsPrice || 0) * count;
+        const addRewardUnit = Number(data.addReward || 0);
+        // 多商品模式：计算goodsList总价；兼容单商品模式
+        const goodsListTotal = data.goodsList.reduce((sum, g) => sum + (g.price * g.quantity), 0);
+        const singleGoodsTotal = (data.goodsPrice || 0);
+        const perOrderGoodsPrice = goodsListTotal > 0 ? goodsListTotal : singleGoodsTotal;
+        const totalGoodsMoney = perOrderGoodsPrice * count;
+        // 多商品额外费用：每多一个商品加1元
+        const goodsMoreFeeUnit = data.goodsList.length > 1 ? (data.goodsList.length - 1) * 1 : 0;
         const isFreeShipping = data.isFreeShipping === 1; const postagePerOrder = isFreeShipping ? 0 : 10; const marginPerOrder = isFreeShipping ? 0 : 10;
         const totalPostage = postagePerOrder * count; const totalMargin = marginPerOrder * count; const totalDeposit = totalGoodsMoney + totalPostage + totalMargin;
-        const totalBaseService = baseFeePerOrder * count; const totalPraise = praiseFeeUnit * count; const totalTimingPublish = timingPublishFeeUnit * count; const totalTimingPay = timingPayFeeUnit * count; const totalCycle = cycleTimeUnit * count; const totalAddReward = addRewardUnit * count;
-        const totalCommission = totalBaseService + totalPraise + totalTimingPublish + totalTimingPay + totalCycle + totalAddReward;
-        if (totalDeposit !== data.totalDeposit || totalCommission !== data.totalCommission) { setData(prev => ({ ...prev, totalDeposit, totalCommission, baseServiceFee: baseFeePerOrder, praiseFee: praiseFeeUnit, timingPublishFee: timingPublishFeeUnit, timingPayFee: timingPayFeeUnit, cycleTimeFee: cycleTimeUnit, addRewardFee: addRewardUnit, postageMoney: totalPostage, marginMoney: totalMargin })); }
+        const totalBaseService = baseFeePerOrder * count; const totalPraise = praiseFeeUnit * count; const totalTimingPublish = timingPublishFeeUnit * count; const totalTimingPay = timingPayFeeUnit * count; const totalCycle = cycleTimeUnit * count; const totalAddReward = addRewardUnit * count; const totalGoodsMoreFee = goodsMoreFeeUnit * count;
+        const totalCommission = totalBaseService + totalPraise + totalTimingPublish + totalTimingPay + totalCycle + totalAddReward + totalGoodsMoreFee;
+        if (totalDeposit !== data.totalDeposit || totalCommission !== data.totalCommission || goodsMoreFeeUnit !== data.goodsMoreFee) { setData(prev => ({ ...prev, totalDeposit, totalCommission, baseServiceFee: baseFeePerOrder, praiseFee: praiseFeeUnit, timingPublishFee: timingPublishFeeUnit, timingPayFee: timingPayFeeUnit, cycleTimeFee: cycleTimeUnit, addRewardFee: addRewardUnit, goodsMoreFee: goodsMoreFeeUnit, postageMoney: totalPostage, marginMoney: totalMargin })); }
     };
 
     const handleDataChange = (updates: Partial<TaskFormData>) => { setData(prev => ({ ...prev, ...updates })); };
