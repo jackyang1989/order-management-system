@@ -8,13 +8,6 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
-import {
-  IsInt,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Min,
-} from 'class-validator';
 import { Merchant } from '../merchants/merchant.entity';
 import { Shop } from '../shops/shop.entity';
 
