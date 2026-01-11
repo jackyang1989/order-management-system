@@ -36,3 +36,11 @@
  GET /merchant/goods 200 in 64ms (compile: 51ms, render: 13ms)
  GET /merchant/shops 200 in 104ms (compile: 27ms, render: 76ms)
  GET /merchant/shops/edit/75a6423a-1015-408d-84c4-37327b39f730 200 in 116ms (compile: 48ms, render: 68ms)
+Persisting failed: Unable to write SST file 00012277.sst
+
+Caused by:
+    0: Failed to write value blocks
+    1: Failed to write value block
+    2: Failed to write compressed block
+    3: No space left on device (os error 28)
+[?25h
