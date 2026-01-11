@@ -358,14 +358,14 @@ export class CreateTaskDto {
 
   isFreeShipping?: number; // 1=包邮, 2=不包邮
 
-  // 浏览行为设置
-  needHuobi?: boolean;
-  huobiCount?: number;
-  needShoucang?: boolean;
-  needGuanzhu?: boolean;
-  needJiagou?: boolean;
-  needJialiao?: boolean;
-  jialiaoContent?: string;
+  // Browse Behavior Settings
+  needCompare?: boolean;      // 货比
+  compareCount?: number;      // 货比数量
+  needFavorite?: boolean;     // 收藏商品
+  needFollow?: boolean;       // 关注店铺
+  needAddCart?: boolean;      // 加入购物车
+  needContactCS?: boolean;    // 联系客服
+  contactCSContent?: string;  // 联系客服内容
 
   // 浏览时长设置
   totalBrowseMinutes?: number;

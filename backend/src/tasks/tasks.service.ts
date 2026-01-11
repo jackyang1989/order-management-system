@@ -334,13 +334,13 @@ export class TasksService implements OnModuleInit {
         isCycleTime: !!dto.isCycleTime,
         cycle: dto.cycleTime || 0,
 
-        // 浏览行为设置
-        needHuobi: !!dto.needHuobi,
-        huobiKeyword: dto.needHuobi ? `货比${dto.huobiCount || 3}家` : '',
-        needShoucang: !!dto.needShoucang,
-        needGuanzhu: !!dto.needGuanzhu,
-        needJiagou: !!dto.needJiagou,
-        needJialiao: !!dto.needJialiao,
+        // Browse Behavior Settings
+        needHuobi: !!dto.needCompare,
+        huobiKeyword: dto.needCompare ? `货比${dto.compareCount || 3}家` : '',
+        needShoucang: !!dto.needFavorite,
+        needGuanzhu: !!dto.needFollow,
+        needJiagou: !!dto.needAddCart,
+        needJialiao: !!dto.needContactCS,
 
         // 浏览时长设置
         totalBrowseMinutes: dto.totalBrowseMinutes || 15,

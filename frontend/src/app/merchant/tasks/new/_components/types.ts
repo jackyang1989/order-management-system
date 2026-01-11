@@ -75,14 +75,14 @@ export interface TaskFormData {
     praiseImgList: string[][]; // Images per order (max 5 per order)
     praiseVideoList: string[]; // Video URL per order (for video praise type)
 
-    // 浏览行为设置
-    needHuobi: boolean;      // 货比
-    huobiCount: number;      // 货比数量
-    needShoucang: boolean;   // 收藏
-    needGuanzhu: boolean;    // 关注店铺
-    needJiagou: boolean;     // 加购
-    needJialiao: boolean;    // 假聊
-    jialiaoContent: string;  // 假聊内容
+    // Browse Behavior Settings
+    needCompare: boolean;       // 货比 (compare with other products)
+    compareCount: number;       // 货比数量
+    needFavorite: boolean;      // 收藏商品
+    needFollow: boolean;        // 关注店铺
+    needAddCart: boolean;       // 加入购物车
+    needContactCS: boolean;     // 联系客服
+    contactCSContent: string;   // 联系客服内容
 
     // 浏览时长设置
     totalBrowseMinutes: number;  // 总浏览时长(分钟)
@@ -156,14 +156,14 @@ export const InitialTaskData: TaskFormData = {
     praiseImgList: [],
     praiseVideoList: [],
 
-    // 浏览行为设置
-    needHuobi: false,
-    huobiCount: 3,
-    needShoucang: false,
-    needGuanzhu: false,
-    needJiagou: false,
-    needJialiao: false,
-    jialiaoContent: '',
+    // Browse Behavior Settings
+    needCompare: false,
+    compareCount: 3,
+    needFavorite: false,
+    needFollow: false,
+    needAddCart: false,
+    needContactCS: false,
+    contactCSContent: '',
 
     // 浏览时长设置
     totalBrowseMinutes: 15,

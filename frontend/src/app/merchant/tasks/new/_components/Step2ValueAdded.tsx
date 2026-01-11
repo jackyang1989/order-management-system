@@ -81,15 +81,15 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
             <div className="mb-8">
                 <h3 className="mb-4 text-[15px] font-semibold text-[#374151]">浏览行为设置</h3>
                 <div className="rounded-md border border-[#e5e7eb] bg-white">
-                    {/* 货比 */}
+                    {/* Compare */}
                     <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-4 py-3">
-                        <input type="checkbox" checked={data.needHuobi} onChange={e => onChange({ needHuobi: e.target.checked })} />
+                        <input type="checkbox" checked={data.needCompare} onChange={e => onChange({ needCompare: e.target.checked })} />
                         <div className="flex flex-1 items-center justify-between">
                             <div><span className="text-sm">货比</span><span className="ml-2 text-xs text-[#9ca3af]">买手需先浏览其他商品再下单</span></div>
-                            {data.needHuobi && (
+                            {data.needCompare && (
                                 <div className="flex items-center gap-1">
                                     <span className="text-xs text-[#6b7280]">货比数量</span>
-                                    <select value={data.huobiCount || 3} onChange={e => onChange({ huobiCount: parseInt(e.target.value) })} className="rounded border border-[#e5e7eb] px-2 py-1 text-sm">
+                                    <select value={data.compareCount || 3} onChange={e => onChange({ compareCount: parseInt(e.target.value) })} className="rounded border border-[#e5e7eb] px-2 py-1 text-sm">
                                         <option value={2}>2家</option>
                                         <option value={3}>3家</option>
                                         <option value={5}>5家</option>
@@ -98,32 +98,32 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                             )}
                         </div>
                     </div>
-                    {/* 收藏 */}
+                    {/* Favorite */}
                     <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-4 py-3">
-                        <input type="checkbox" checked={data.needShoucang} onChange={e => onChange({ needShoucang: e.target.checked })} />
+                        <input type="checkbox" checked={data.needFavorite} onChange={e => onChange({ needFavorite: e.target.checked })} />
                         <div><span className="text-sm">收藏商品</span><span className="ml-2 text-xs text-[#9ca3af]">买手需收藏商品</span></div>
                     </div>
-                    {/* 关注店铺 */}
+                    {/* Follow Shop */}
                     <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-4 py-3">
-                        <input type="checkbox" checked={data.needGuanzhu} onChange={e => onChange({ needGuanzhu: e.target.checked })} />
+                        <input type="checkbox" checked={data.needFollow} onChange={e => onChange({ needFollow: e.target.checked })} />
                         <div><span className="text-sm">关注店铺</span><span className="ml-2 text-xs text-[#9ca3af]">买手需关注店铺</span></div>
                     </div>
-                    {/* 加购 */}
+                    {/* Add to Cart */}
                     <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-4 py-3">
-                        <input type="checkbox" checked={data.needJiagou} onChange={e => onChange({ needJiagou: e.target.checked })} />
+                        <input type="checkbox" checked={data.needAddCart} onChange={e => onChange({ needAddCart: e.target.checked })} />
                         <div><span className="text-sm">加入购物车</span><span className="ml-2 text-xs text-[#9ca3af]">买手需先加入购物车再下单</span></div>
                     </div>
-                    {/* 假聊 */}
+                    {/* Contact Customer Service */}
                     <div className="flex items-start gap-3 px-4 py-3">
-                        <input type="checkbox" checked={data.needJialiao} onChange={e => onChange({ needJialiao: e.target.checked })} className="mt-1" />
+                        <input type="checkbox" checked={data.needContactCS} onChange={e => onChange({ needContactCS: e.target.checked })} className="mt-1" />
                         <div className="flex-1">
-                            <div><span className="text-sm">假聊</span><span className="ml-2 text-xs text-[#9ca3af]">买手需与客服假聊</span></div>
-                            {data.needJialiao && (
+                            <div><span className="text-sm">联系客服</span><span className="ml-2 text-xs text-[#9ca3af]">买手需与客服沟通</span></div>
+                            {data.needContactCS && (
                                 <div className="mt-2">
                                     <textarea
-                                        value={data.jialiaoContent || ''}
-                                        onChange={e => onChange({ jialiaoContent: e.target.value })}
-                                        placeholder="请输入假聊内容，买手将按此内容与客服沟通"
+                                        value={data.contactCSContent || ''}
+                                        onChange={e => onChange({ contactCSContent: e.target.value })}
+                                        placeholder="请输入沟通内容，买手将按此内容与客服沟通"
                                         rows={2}
                                         className="w-full rounded-md border border-[#d1d5db] p-2 text-sm"
                                     />
