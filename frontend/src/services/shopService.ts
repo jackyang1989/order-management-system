@@ -1,5 +1,15 @@
 import { BASE_URL } from '../../apiConfig';
 
+// 获取完整的图片URL（处理相对路径）
+export const getFullImageUrl = (url?: string): string => {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+        return url;
+    }
+    // 相对路径，拼接后端基础URL
+    return `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 export interface Shop {
     id: string;
     platform: string;  // 平台类型，如 TAOBAO, TMALL, JD 等

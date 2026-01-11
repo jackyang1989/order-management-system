@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchShops, updateShop, uploadShopScreenshot, Shop } from '../../../../../services/shopService';
+import { fetchShops, updateShop, uploadShopScreenshot, getFullImageUrl, Shop } from '../../../../../services/shopService';
 import { cn } from '../../../../../lib/utils';
 import { Button } from '../../../../../components/ui/button';
 import { Card } from '../../../../../components/ui/card';
@@ -86,7 +86,7 @@ export default function EditShopPage({ params }: { params: Promise<{ id: string 
     // 获取当前显示的截图URL（新上传的优先）
     const displayScreenshot = formData.newScreenshot
         ? URL.createObjectURL(formData.newScreenshot)
-        : formData.screenshot;
+        : getFullImageUrl(formData.screenshot);
 
     return (
         <div className="mx-auto max-w-[800px] space-y-6 p-6">

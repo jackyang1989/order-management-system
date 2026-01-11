@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { BASE_URL } from '../../../../apiConfig';
+import { getFullImageUrl } from '../../../services/shopService';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
@@ -258,9 +259,9 @@ function ShopsContent() {
                                     <td className="px-3 py-3">{shop.platform}</td>
                                     <td className="px-3 py-3">
                                         {shop.screenshot ? (
-                                            <a href={shop.screenshot} target="_blank" rel="noopener noreferrer">
+                                            <a href={getFullImageUrl(shop.screenshot)} target="_blank" rel="noopener noreferrer">
                                                 <img
-                                                    src={shop.screenshot}
+                                                    src={getFullImageUrl(shop.screenshot)}
                                                     alt="店铺截图"
                                                     className="h-12 w-12 cursor-pointer rounded border border-[#e5e7eb] object-cover hover:opacity-80"
                                                 />
@@ -344,9 +345,9 @@ function ShopsContent() {
                     {editingShop?.screenshot && (
                         <div>
                             <label className="mb-1 block text-sm text-[#374151]">店铺后台截图</label>
-                            <a href={editingShop.screenshot} target="_blank" rel="noopener noreferrer">
+                            <a href={getFullImageUrl(editingShop.screenshot)} target="_blank" rel="noopener noreferrer">
                                 <img
-                                    src={editingShop.screenshot}
+                                    src={getFullImageUrl(editingShop.screenshot)}
                                     alt="店铺截图"
                                     className="max-h-[200px] max-w-full cursor-pointer rounded border border-[#e5e7eb] object-contain hover:opacity-80"
                                 />
@@ -491,9 +492,9 @@ function ShopsContent() {
                     {reviewingShop?.screenshot && (
                         <div>
                             <label className="mb-1 block text-sm text-[#374151]">店铺后台截图</label>
-                            <a href={reviewingShop.screenshot} target="_blank" rel="noopener noreferrer">
+                            <a href={getFullImageUrl(reviewingShop.screenshot)} target="_blank" rel="noopener noreferrer">
                                 <img
-                                    src={reviewingShop.screenshot}
+                                    src={getFullImageUrl(reviewingShop.screenshot)}
                                     alt="店铺截图"
                                     className="max-h-[200px] max-w-full cursor-pointer rounded border border-[#e5e7eb] object-contain hover:opacity-80"
                                 />
