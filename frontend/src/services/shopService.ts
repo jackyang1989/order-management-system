@@ -89,7 +89,7 @@ export const uploadShopScreenshot = async (file: File): Promise<{ success: boole
     const token = typeof window !== 'undefined' ? (localStorage.getItem('merchantToken') || localStorage.getItem('token')) : '';
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('usage', 'shop_screenshot');
+    formData.append('usage', 'screenshot');
 
     const res = await fetch(`${BASE_URL}/uploads/file`, {
         method: 'POST',
