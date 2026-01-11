@@ -22,6 +22,7 @@ interface Shop {
     district?: string;
     detailAddress?: string;
     url?: string;
+    screenshot?: string;
     needLogistics?: boolean;
     expressCode?: string;
     status: number;
@@ -233,11 +234,11 @@ function ShopsContent() {
                             <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
                                 <th className="px-3 py-3 text-left text-sm font-medium">所属商家</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">平台</th>
+                                <th className="px-3 py-3 text-left text-sm font-medium">截图</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">店铺名称</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">店铺账号</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">联系人/手机</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">发货地址</th>
-                                <th className="px-3 py-3 text-left text-sm font-medium">物流</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">状态</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">申请时间</th>
                                 <th className="px-3 py-3 text-left text-sm font-medium">操作</th>
@@ -255,6 +256,21 @@ function ShopsContent() {
                                         <div className="text-xs text-[#9ca3af]">{shop.merchant?.username}</div>
                                     </td>
                                     <td className="px-3 py-3">{shop.platform}</td>
+                                    <td className="px-3 py-3">
+                                        {shop.screenshot ? (
+                                            <a href={shop.screenshot} target="_blank" rel="noopener noreferrer">
+                                                <img
+                                                    src={shop.screenshot}
+                                                    alt="店铺截图"
+                                                    className="h-12 w-12 cursor-pointer rounded border border-[#e5e7eb] object-cover hover:opacity-80"
+                                                />
+                                            </a>
+                                        ) : (
+                                            <div className="flex h-12 w-12 items-center justify-center rounded border border-dashed border-[#d1d5db] bg-[#f9fafb] text-xs text-[#9ca3af]">
+                                                无
+                                            </div>
+                                        )}
+                                    </td>
                                     <td className="px-3 py-3 font-medium">{shop.shopName || '-'}</td>
                                     <td className="px-3 py-3 text-[#6b7280]">{shop.accountName || '-'}</td>
                                     <td className="px-3 py-3">
@@ -264,10 +280,6 @@ function ShopsContent() {
                                     <td className="px-3 py-3 text-xs text-[#6b7280]">
                                         {[shop.province, shop.city, shop.district].filter(Boolean).join(' ') || '-'}
                                         {shop.detailAddress && <div>{shop.detailAddress}</div>}
-                                    </td>
-                                    <td className="px-3 py-3 text-[#6b7280]">
-                                        <div>{shop.needLogistics !== false ? '需要物流' : '无需物流'}</div>
-                                        {shop.expressCode && <div className="text-xs text-[#9ca3af]">站点: {shop.expressCode}</div>}
                                     </td>
                                     <td className="px-3 py-3">
                                         <Badge variant="soft" color={statusConfig[shop.status]?.color || 'slate'}>
@@ -328,6 +340,21 @@ function ShopsContent() {
             {/* 编辑店铺弹窗 */}
             <Modal title="编辑店铺资料" open={editModal} onClose={() => setEditModal(false)}>
                 <div className="space-y-4">
+                    {/* 店铺截图显示 */}
+                    {editingShop?.screenshot && (
+                        <div>
+                            <label className="mb-1 block text-sm text-[#374151]">店铺后台截图</label>
+                            <a href={editingShop.screenshot} target="_blank" rel="noopener noreferrer">
+                                <img
+                                    src={editingShop.screenshot}
+                                    alt="店铺截图"
+                                    className="max-h-[200px] max-w-full cursor-pointer rounded border border-[#e5e7eb] object-contain hover:opacity-80"
+                                />
+                            </a>
+                            <div className="mt-1 text-xs text-[#9ca3af]">点击图片查看大图</div>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="mb-1 block text-sm text-[#374151]">店铺名称</label>
@@ -459,6 +486,21 @@ function ShopsContent() {
                             账号: {reviewingShop?.accountName || '-'}
                         </div>
                     </div>
+
+                    {/* 审核时显示截图 */}
+                    {reviewingShop?.screenshot && (
+                        <div>
+                            <label className="mb-1 block text-sm text-[#374151]">店铺后台截图</label>
+                            <a href={reviewingShop.screenshot} target="_blank" rel="noopener noreferrer">
+                                <img
+                                    src={reviewingShop.screenshot}
+                                    alt="店铺截图"
+                                    className="max-h-[200px] max-w-full cursor-pointer rounded border border-[#e5e7eb] object-contain hover:opacity-80"
+                                />
+                            </a>
+                            <div className="mt-1 text-xs text-[#9ca3af]">点击图片查看大图</div>
+                        </div>
+                    )}
 
                     {reviewAction === 'approve' ? (
                         <div className="text-sm text-[#374151]">

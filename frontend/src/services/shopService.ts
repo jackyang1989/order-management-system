@@ -12,6 +12,7 @@ export interface Shop {
     district?: string;
     detailAddress?: string;
     url?: string;
+    screenshot?: string;   // 店铺后台截图URL
     status: 0 | 1 | 2 | 3;
     auditRemark?: string;
 }
@@ -69,4 +70,27 @@ export const deleteShop = async (id: string): Promise<{ success: boolean; messag
         headers: getHeaders()
     });
     return res.json();
+};
+
+/**
+ * 上传店铺截图
+ */
+export const uploadShopScreenshot = async (file: File): Promise<{ success: boolean; message: string; url?: string }> => {
+    const token = typeof window !== 'undefined' ? (localStorage.getItem('merchantToken') || localStorage.getItem('token')) : '';
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('usage', 'shop_screenshot');
+
+    const res = await fetch(`${BASE_URL}/uploads/file`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        },
+        body: formData
+    });
+    const json = await res.json();
+    if (json.success && json.data?.url) {
+        return { success: true, message: '上传成功', url: json.data.url };
+    }
+    return { success: false, message: json.message || '上传失败' };
 };

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { createShop } from '../../../../services/shopService';
+import { createShop, uploadShopScreenshot } from '../../../../services/shopService';
 import { cn } from '../../../../lib/utils';
 import { Button } from '../../../../components/ui/button';
 import { Card } from '../../../../components/ui/card';
@@ -50,8 +50,24 @@ export default function NewShopPage() {
         if (!formData.shopName || !formData.accountName || !formData.contactName || !formData.mobile || !formData.url) { alert('请完善店铺基本信息'); return; }
         if (!validateMobile(formData.mobile)) { alert('请输入有效的11位手机号'); return; }
         setSubmitting(true);
+
+        // 准备提交数据
         const { screenshot, ...jsonData } = formData;
-        const res = await createShop(jsonData);
+        let screenshotUrl = '';
+
+        // 如果有截图，先上传
+        if (screenshot) {
+            const uploadRes = await uploadShopScreenshot(screenshot);
+            if (!uploadRes.success) {
+                alert('截图上传失败：' + uploadRes.message);
+                setSubmitting(false);
+                return;
+            }
+            screenshotUrl = uploadRes.url || '';
+        }
+
+        // 提交店铺信息
+        const res = await createShop({ ...jsonData, screenshot: screenshotUrl || undefined });
         setSubmitting(false);
         if (res.success) { alert('绑定申请已提交，请等待审核'); router.push('/merchant/shops'); } else alert(res.message);
     };

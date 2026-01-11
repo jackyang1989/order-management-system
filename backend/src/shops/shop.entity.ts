@@ -87,6 +87,9 @@ export class Shop {
   @Column({ nullable: true })
   auditRemark: string;
 
+  @Column({ nullable: true })
+  screenshot: string; // 店铺后台截图URL
+
   @CreateDateColumn()
   createdAt: Date;
 
