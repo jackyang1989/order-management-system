@@ -242,4 +242,40 @@ export class InviteService {
       requiredTasks: config.inviteUnlockThreshold,
     };
   }
+
+  /**
+   * 检查用户是否具备邀请资格（通用）
+   * 仅检查任务完成数门槛，不受 merchant_invite_enabled 影响
+   */
+  async checkInviteEligibility(userId: string): Promise<{
+    canInvite: boolean;
+    reason?: string;
+    completedTasks: number;
+    requiredTasks: number;
+  }> {
+    const config = await this.getInviteConfig();
+
+    // 获取用户完成的任务数
+    const completedTasks = await this.orderRepository.count({
+      where: {
+        userId,
+        status: OrderStatus.COMPLETED,
+      },
+    });
+
+    if (completedTasks < config.inviteUnlockThreshold) {
+      return {
+        canInvite: false,
+        reason: `需完成${config.inviteUnlockThreshold}单任务后解锁`,
+        completedTasks,
+        requiredTasks: config.inviteUnlockThreshold,
+      };
+    }
+
+    return {
+      canInvite: true,
+      completedTasks,
+      requiredTasks: config.inviteUnlockThreshold,
+    };
+  }
 }

@@ -30,6 +30,15 @@ export class InviteController {
   }
 
   /**
+   * 检查邀请资格（通用）
+   */
+  @Get('eligibility')
+  async checkEligibility(@Request() req) {
+    const result = await this.inviteService.checkInviteEligibility(req.user.userId);
+    return { success: true, data: result };
+  }
+
+  /**
    * 获取邀请记录
    * 对齐旧版: Invite::record()
    * 支持日期筛选
