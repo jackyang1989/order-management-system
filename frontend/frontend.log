@@ -24,3 +24,13 @@
  GET /merchant/shops 200 in 53ms (compile: 42ms, render: 11ms)
  GET /merchant/shops/edit/41363f04-4b3e-42da-ade2-0602b58d6450 200 in 263ms (compile: 250ms, render: 13ms)
 ✓ Compiled in 71ms
+ GET /merchant/shops 200 in 105ms (compile: 67ms, render: 38ms)
+ GET /merchant/shops/edit/41363f04-4b3e-42da-ade2-0602b58d6450 200 in 60ms (compile: 37ms, render: 23ms)
+ GET /merchant/shops/edit/41363f04-4b3e-42da-ade2-0602b58d6450 200 in 91ms (compile: 10ms, render: 81ms)
+ GET /admin/shops 200 in 92ms (compile: 53ms, render: 39ms)
+ GET /admin/shops 200 in 93ms (compile: 28ms, render: 65ms)
+ GET /merchant/shops/edit/41363f04-4b3e-42da-ade2-0602b58d6450 200 in 35ms (compile: 12ms, render: 23ms)
+✓ Compiled in 124ms
+✓ Compiled in 37ms
+ GET /merchant/shops/edit/41363f04-4b3e-42da-ade2-0602b58d6450 200 in 31ms (compile: 12ms, render: 19ms)
+ GET /merchant/goods 200 in 64ms (compile: 51ms, render: 13ms)

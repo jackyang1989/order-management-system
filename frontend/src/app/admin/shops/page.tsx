@@ -341,21 +341,6 @@ function ShopsContent() {
             {/* 编辑店铺弹窗 */}
             <Modal title="编辑店铺资料" open={editModal} onClose={() => setEditModal(false)}>
                 <div className="space-y-4">
-                    {/* 店铺截图显示 */}
-                    {editingShop?.screenshot && (
-                        <div>
-                            <label className="mb-1 block text-sm text-[#374151]">店铺后台截图</label>
-                            <a href={getFullImageUrl(editingShop.screenshot)} target="_blank" rel="noopener noreferrer">
-                                <img
-                                    src={getFullImageUrl(editingShop.screenshot)}
-                                    alt="店铺截图"
-                                    className="max-h-[200px] max-w-full cursor-pointer rounded border border-[#e5e7eb] object-contain hover:opacity-80"
-                                />
-                            </a>
-                            <div className="mt-1 text-xs text-[#9ca3af]">点击图片查看大图</div>
-                        </div>
-                    )}
-
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="mb-1 block text-sm text-[#374151]">店铺名称</label>
@@ -462,6 +447,21 @@ function ShopsContent() {
                             />
                         </div>
                     </div>
+
+                    {/* 店铺截图显示 */}
+                    {editingShop?.screenshot && (
+                        <div>
+                            <label className="mb-1 block text-sm text-[#374151]">店铺后台截图</label>
+                            <a href={getFullImageUrl(editingShop.screenshot)} target="_blank" rel="noopener noreferrer">
+                                <img
+                                    src={getFullImageUrl(editingShop.screenshot)}
+                                    alt="店铺截图"
+                                    className="max-h-[200px] max-w-full cursor-pointer rounded border border-[#e5e7eb] object-contain hover:opacity-80"
+                                />
+                            </a>
+                            <div className="mt-1 text-xs text-[#9ca3af]">点击图片查看大图</div>
+                        </div>
+                    )}
 
                     <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                         <Button variant="secondary" onClick={() => setEditModal(false)}>取消</Button>

@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import helmet from 'helmet';
 import compression from 'compression';
+import * as bodyParser from 'body-parser';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { DataSource } from 'typeorm';
@@ -19,12 +20,29 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
   // ============================================================
+  // 0. BODY PARSER - Increase request body size limit
+  // ============================================================
+  app.use(bodyParser.json({ limit: '50mb' }));
+  app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+
+  // ============================================================
   // 1. COMPRESSION - Gzip for reduced bandwidth
   // ============================================================
   app.use(compression({
     threshold: 1024, // Only compress responses > 1KB
     level: 6, // Compression level (1-9, 6 is balanced)
   }));
+
+  // ============================================================
+  // 1.5. STATIC FILES - Serve uploaded files
+  // ============================================================
+  const express = await import('express');
+  app.use('/uploads', express.default.static('uploads', {
+    maxAge: '7d', // Cache for 7 days
+    etag: true,
+    lastModified: true,
+  }));
+
 
   // ============================================================
   // 2. HELMET - HTTP Security Headers with CSP
