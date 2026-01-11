@@ -329,9 +329,9 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                                         <span className="truncate text-sm font-medium text-[#374151]">{goods.name}</span>
                                     </div>
                                     <div className="flex flex-wrap items-center gap-4 text-sm text-[#6b7280]">
-                                        <span>单价: <span className="font-medium text-primary-600">¥{goods.price.toFixed(2)}</span></span>
+                                        <span>单价: <span className="font-medium text-primary-600">¥{Number(goods.price).toFixed(2)}</span></span>
                                         <span>数量: <span className="font-medium">{goods.quantity}</span></span>
-                                        <span>小计: <span className="font-medium text-primary-600">¥{(goods.price * goods.quantity).toFixed(2)}</span></span>
+                                        <span>小计: <span className="font-medium text-primary-600">¥{(Number(goods.price) * goods.quantity).toFixed(2)}</span></span>
                                         {goods.keyword && <span>关键词: <span className="font-medium">{goods.keyword}</span></span>}
                                         {goods.specValue && <span>规格: {goods.specValue}</span>}
                                     </div>
@@ -587,7 +587,7 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                                             <div className="min-w-0 flex-1">
                                                 <p className="truncate text-sm font-medium text-[#374151]">{goods.name}</p>
                                                 <div className="mt-1 flex items-center gap-3 text-xs text-[#6b7280]">
-                                                    <span>价格: <span className="font-medium text-primary-600">¥{goods.price.toFixed(2)}</span></span>
+                                                    <span>价格: <span className="font-medium text-primary-600">¥{Number(goods.price).toFixed(2)}</span></span>
                                                     {goods.specValue && <span>规格: {goods.specValue}</span>}
                                                 </div>
                                             </div>
