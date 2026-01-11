@@ -77,6 +77,92 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                 </div>
             </div>
 
+            {/* Browse Behavior Settings */}
+            <div className="mb-8">
+                <h3 className="mb-4 text-[15px] font-semibold text-[#374151]">浏览行为设置</h3>
+                <div className="rounded-md border border-[#e5e7eb] bg-white">
+                    {/* 货比 */}
+                    <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-4 py-3">
+                        <input type="checkbox" checked={data.needHuobi} onChange={e => onChange({ needHuobi: e.target.checked })} />
+                        <div className="flex flex-1 items-center justify-between">
+                            <div><span className="text-sm">货比</span><span className="ml-2 text-xs text-[#9ca3af]">买手需先浏览其他商品再下单</span></div>
+                            {data.needHuobi && (
+                                <div className="flex items-center gap-1">
+                                    <span className="text-xs text-[#6b7280]">货比数量</span>
+                                    <select value={data.huobiCount || 3} onChange={e => onChange({ huobiCount: parseInt(e.target.value) })} className="rounded border border-[#e5e7eb] px-2 py-1 text-sm">
+                                        <option value={2}>2家</option>
+                                        <option value={3}>3家</option>
+                                        <option value={5}>5家</option>
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    {/* 收藏 */}
+                    <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-4 py-3">
+                        <input type="checkbox" checked={data.needShoucang} onChange={e => onChange({ needShoucang: e.target.checked })} />
+                        <div><span className="text-sm">收藏商品</span><span className="ml-2 text-xs text-[#9ca3af]">买手需收藏商品</span></div>
+                    </div>
+                    {/* 关注店铺 */}
+                    <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-4 py-3">
+                        <input type="checkbox" checked={data.needGuanzhu} onChange={e => onChange({ needGuanzhu: e.target.checked })} />
+                        <div><span className="text-sm">关注店铺</span><span className="ml-2 text-xs text-[#9ca3af]">买手需关注店铺</span></div>
+                    </div>
+                    {/* 加购 */}
+                    <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-4 py-3">
+                        <input type="checkbox" checked={data.needJiagou} onChange={e => onChange({ needJiagou: e.target.checked })} />
+                        <div><span className="text-sm">加入购物车</span><span className="ml-2 text-xs text-[#9ca3af]">买手需先加入购物车再下单</span></div>
+                    </div>
+                    {/* 假聊 */}
+                    <div className="flex items-start gap-3 px-4 py-3">
+                        <input type="checkbox" checked={data.needJialiao} onChange={e => onChange({ needJialiao: e.target.checked })} className="mt-1" />
+                        <div className="flex-1">
+                            <div><span className="text-sm">假聊</span><span className="ml-2 text-xs text-[#9ca3af]">买手需与客服假聊</span></div>
+                            {data.needJialiao && (
+                                <div className="mt-2">
+                                    <textarea
+                                        value={data.jialiaoContent || ''}
+                                        onChange={e => onChange({ jialiaoContent: e.target.value })}
+                                        placeholder="请输入假聊内容，买手将按此内容与客服沟通"
+                                        rows={2}
+                                        className="w-full rounded-md border border-[#d1d5db] p-2 text-sm"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Browse Time Settings */}
+            <div className="mb-8">
+                <h3 className="mb-4 text-[15px] font-semibold text-[#374151]">浏览时长设置</h3>
+                <div className="grid grid-cols-3 gap-4 rounded-md border border-[#e5e7eb] bg-white p-4">
+                    <div>
+                        <label className="mb-1.5 block text-sm text-[#374151]">总浏览时长</label>
+                        <div className="flex items-center gap-1">
+                            <input type="number" value={data.totalBrowseMinutes || 15} onChange={e => onChange({ totalBrowseMinutes: parseInt(e.target.value) || 15 })} min={5} max={60} className="w-20 rounded border border-[#e5e7eb] px-2 py-1.5 text-sm" />
+                            <span className="text-sm text-[#6b7280]">分钟</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label className="mb-1.5 block text-sm text-[#374151]">主商品浏览时长</label>
+                        <div className="flex items-center gap-1">
+                            <input type="number" value={data.mainBrowseMinutes || 8} onChange={e => onChange({ mainBrowseMinutes: parseInt(e.target.value) || 8 })} min={3} max={30} className="w-20 rounded border border-[#e5e7eb] px-2 py-1.5 text-sm" />
+                            <span className="text-sm text-[#6b7280]">分钟</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label className="mb-1.5 block text-sm text-[#374151]">副商品浏览时长</label>
+                        <div className="flex items-center gap-1">
+                            <input type="number" value={data.subBrowseMinutes || 2} onChange={e => onChange({ subBrowseMinutes: parseInt(e.target.value) || 2 })} min={1} max={10} className="w-20 rounded border border-[#e5e7eb] px-2 py-1.5 text-sm" />
+                            <span className="text-sm text-[#6b7280]">分钟</span>
+                        </div>
+                    </div>
+                </div>
+                <p className="mt-2 text-xs text-[#9ca3af]">设置买手浏览商品的最低时长要求，增加浏览真实性</p>
+            </div>
+
             {/* Praise Settings */}
             <div className="mb-8">
                 <h3 className="mb-4 text-[15px] font-semibold text-[#374151]">好评设置</h3>
@@ -222,11 +308,25 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                     </div>
                 </div>
                 {/* Cycle Time */}
-                <div className="flex items-center gap-3 px-3 py-3">
+                <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-3 py-3">
                     <input type="checkbox" checked={data.isCycleTime} onChange={e => onChange({ isCycleTime: e.target.checked })} />
                     <div className="flex flex-1 items-center justify-between">
                         <div><span className="text-sm">延长买号周期</span><span className="ml-2 text-xs text-[#9ca3af]">+1.0元/月</span></div>
                         {data.isCycleTime && <select value={data.cycleTime} onChange={e => onChange({ cycleTime: parseInt(e.target.value) })} className="rounded border border-[#e5e7eb]"><option value={30}>30天</option><option value={60}>60天</option><option value={90}>90天</option></select>}
+                    </div>
+                </div>
+                {/* 回购任务 */}
+                <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-3 py-3">
+                    <input type="checkbox" checked={data.isRepay} onChange={e => onChange({ isRepay: e.target.checked })} />
+                    <div className="flex flex-1 items-center justify-between">
+                        <div><span className="text-sm">回购任务</span><span className="ml-2 text-xs text-[#9ca3af]">只允许曾在该店铺完成过订单的买号接取</span></div>
+                    </div>
+                </div>
+                {/* 隔天任务 */}
+                <div className="flex items-center gap-3 px-3 py-3">
+                    <input type="checkbox" checked={data.isNextDay} onChange={e => onChange({ isNextDay: e.target.checked })} />
+                    <div className="flex flex-1 items-center justify-between">
+                        <div><span className="text-sm">隔天任务</span><span className="ml-2 text-xs text-[#9ca3af]">+0.5元/单，买手需隔天完成付款</span></div>
                     </div>
                 </div>
             </div>

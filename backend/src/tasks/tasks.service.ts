@@ -321,14 +321,47 @@ export class TasksService implements OnModuleInit {
 
         // Value Added Flags (Keep flags if present in DTO but no fees)
         isPraise: !!dto.isPraise,
-        isImgPraise: !!dto.isImgPraise,
-        isVideoPraise: !!dto.isVideoPraise,
+        isImgPraise: dto.praiseType === 'image',
+        isVideoPraise: dto.praiseType === 'video',
+        praiseFee: dto.praiseFee || 0,
         isTimingPublish: !!dto.isTimingPublish,
         publishTime: dto.publishTime ? new Date(dto.publishTime) : null,
+        isTimingPay: !!dto.isTimingPay,
+        timingTime: dto.timingPayTime ? new Date(dto.timingPayTime) : null,
+        timingPayFee: dto.timingPayFee || 0,
+        timingPublishFee: dto.timingPublishFee || 0,
 
         isCycleTime: !!dto.isCycleTime,
+        cycle: dto.cycleTime || 0,
 
-        // Removed redundant fields: gender, age, buyLimit
+        // 浏览行为设置
+        needHuobi: !!dto.needHuobi,
+        huobiKeyword: dto.needHuobi ? `货比${dto.huobiCount || 3}家` : '',
+        needShoucang: !!dto.needShoucang,
+        needGuanzhu: !!dto.needGuanzhu,
+        needJiagou: !!dto.needJiagou,
+        needJialiao: !!dto.needJialiao,
+
+        // 浏览时长设置
+        totalBrowseMinutes: dto.totalBrowseMinutes || 15,
+        mainBrowseMinutes: dto.mainBrowseMinutes || 8,
+        subBrowseMinutes: dto.subBrowseMinutes || 2,
+
+        // 特殊任务类型
+        isRepay: !!dto.isRepay,
+        isNextDay: !!dto.isNextDay,
+        nextDayFee: dto.nextDayFee || 0,
+
+        // 口令验证
+        isPasswordEnabled: !!dto.isPasswordEnabled,
+        checkPassword: dto.checkPassword || '',
+
+        // 多商品费用
+        goodsMoreFee: dto.goodsMoreFee || 0,
+
+        // 店铺信息
+        shopId: dto.shopId || null,
+        shopName: dto.shopName || '',
 
         claimedCount: 0,
         completedCount: 0,

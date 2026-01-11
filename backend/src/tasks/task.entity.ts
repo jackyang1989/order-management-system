@@ -325,21 +325,52 @@ export class CreateTaskDto {
   price?: number;
   count: number;
   shopName?: string;
+  shopId?: string;
   keyword?: string;
   mainImage?: string;
   goodsPrice: number;
   taoWord?: string;
+
+  // 多商品列表
+  goodsList?: Array<{
+    id: string;
+    goodsId?: string;
+    name: string;
+    image: string;
+    link: string;
+    price: number;
+    quantity: number;
+    specName?: string;
+    specValue?: string;
+    keyword?: string;
+  }>;
 
   // 增值服务字段
   isPraise?: boolean;
   praiseType?: string;
   praiseFee?: number;
   praiseList?: string[];
+  praiseImgList?: string[][];
+  praiseVideoList?: string[];
 
   isImgPraise?: boolean;
   isVideoPraise?: boolean;
 
   isFreeShipping?: number; // 1=包邮, 2=不包邮
+
+  // 浏览行为设置
+  needHuobi?: boolean;
+  huobiCount?: number;
+  needShoucang?: boolean;
+  needGuanzhu?: boolean;
+  needJiagou?: boolean;
+  needJialiao?: boolean;
+  jialiaoContent?: string;
+
+  // 浏览时长设置
+  totalBrowseMinutes?: number;
+  mainBrowseMinutes?: number;
+  subBrowseMinutes?: number;
 
   isTimingPublish?: boolean;
   publishTime?: string;
@@ -359,6 +390,13 @@ export class CreateTaskDto {
   // 口令验证
   isPasswordEnabled?: boolean; // 是否开启口令验证
   checkPassword?: string; // 商品口令 (4-10字)
+
+  // 费用相关
+  totalDeposit?: number;
+  totalCommission?: number;
+  baseServiceFee?: number;
+  goodsMoreFee?: number;
+  nextDayFee?: number;
 
   // 批量导入相关字段
   extraCommission?: number; // 额外佣金

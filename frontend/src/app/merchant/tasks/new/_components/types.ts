@@ -75,6 +75,20 @@ export interface TaskFormData {
     praiseImgList: string[][]; // Images per order (max 5 per order)
     praiseVideoList: string[]; // Video URL per order (for video praise type)
 
+    // 浏览行为设置
+    needHuobi: boolean;      // 货比
+    huobiCount: number;      // 货比数量
+    needShoucang: boolean;   // 收藏
+    needGuanzhu: boolean;    // 关注店铺
+    needJiagou: boolean;     // 加购
+    needJialiao: boolean;    // 假聊
+    jialiaoContent: string;  // 假聊内容
+
+    // 浏览时长设置
+    totalBrowseMinutes: number;  // 总浏览时长(分钟)
+    mainBrowseMinutes: number;   // 主商品浏览时长
+    subBrowseMinutes: number;    // 副商品浏览时长
+
     // Extra Services
     isTimingPublish: boolean;
     publishTime?: string;
@@ -86,6 +100,10 @@ export interface TaskFormData {
     cycleTime?: number; // Days
 
     addReward: number; // Extra money per order
+
+    // 特殊任务类型
+    isRepay: boolean;        // 回购任务
+    isNextDay: boolean;      // 隔天任务
 
     // Verify Code (口令验证)
     isPasswordEnabled: boolean; // 是否开启口令验证
@@ -99,6 +117,7 @@ export interface TaskFormData {
     cycleTimeFee: number;
     addRewardFee: number;
     goodsMoreFee: number;   // 多商品费用
+    nextDayFee: number;     // 隔天任务费用
 
     // New Fee Components (Only core)
     postageMoney: number;
@@ -137,16 +156,34 @@ export const InitialTaskData: TaskFormData = {
     praiseImgList: [],
     praiseVideoList: [],
 
+    // 浏览行为设置
+    needHuobi: false,
+    huobiCount: 3,
+    needShoucang: false,
+    needGuanzhu: false,
+    needJiagou: false,
+    needJialiao: false,
+    jialiaoContent: '',
+
+    // 浏览时长设置
+    totalBrowseMinutes: 15,
+    mainBrowseMinutes: 8,
+    subBrowseMinutes: 2,
+
     isTimingPublish: false,
     isTimingPay: false,
     isCycleTime: false,
     addReward: 0,
 
+    // 特殊任务类型
+    isRepay: false,
+    isNextDay: false,
+
     // Verify Code
     isPasswordEnabled: false,
     checkPassword: '',
 
-    // Defaults    // Fees
+    // Fees
     baseServiceFee: 0,
     praiseFee: 0,
     timingPublishFee: 0,
@@ -154,6 +191,7 @@ export const InitialTaskData: TaskFormData = {
     cycleTimeFee: 0,
     addRewardFee: 0,
     goodsMoreFee: 0,
+    nextDayFee: 0,
 
     postageMoney: 0,
     marginMoney: 0,
