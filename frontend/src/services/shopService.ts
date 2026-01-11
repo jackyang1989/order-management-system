@@ -4,9 +4,9 @@ export interface Shop {
     id: string;
     platform: 'TAOBAO' | 'TMALL' | 'JD' | 'PDD' | 'DOUYIN' | 'OTHER';
     shopName: string;
-    accountName: string;
-    contactName: string;
-    mobile: string;
+    accountName?: string;  // 可能为空
+    contactName?: string;  // 可能为空
+    mobile?: string;       // 可能为空
     province?: string;
     city?: string;
     district?: string;
@@ -25,9 +25,18 @@ const getHeaders = () => {
 };
 
 export const fetchShops = async (): Promise<Shop[]> => {
-    const res = await fetch(`${BASE_URL}/shops`, { headers: getHeaders() });
-    const json = await res.json();
-    return json.success ? json.data : [];
+    try {
+        const res = await fetch(`${BASE_URL}/shops`, { headers: getHeaders() });
+        const json = await res.json();
+        // 过滤掉无效数据
+        if (json.success && Array.isArray(json.data)) {
+            return json.data.filter((s: Shop | null | undefined) => s && s.id);
+        }
+        return [];
+    } catch (error) {
+        console.error('获取店铺列表失败:', error);
+        return [];
+    }
 };
 
 export const createShop = async (data: Partial<Shop> | FormData): Promise<{ success: boolean; message: string }> => {

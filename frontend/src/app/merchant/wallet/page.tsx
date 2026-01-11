@@ -294,7 +294,7 @@ export default function MerchantWalletPage() {
                                 {bankCards.filter(c => c.status === 1).length === 0 ? (
                                     <div className="rounded-md border border-[#e5e7eb] bg-[#f9fafb] p-4 text-center text-sm text-[#6b7280]">暂无可用银行卡，请先添加银行卡并等待审核通过</div>
                                 ) : (
-                                    <Select value={selectedBankCardId} onChange={v => setSelectedBankCardId(v)} options={bankCards.filter(c => c.status === 1).map(card => ({ value: card.id, label: `${card.bankName} - ${card.cardNumber.slice(-4)} (${card.accountName})` }))} />
+                                    <Select value={selectedBankCardId} onChange={v => setSelectedBankCardId(v)} options={bankCards.filter(c => c.status === 1).map(card => ({ value: card.id, label: `${card.bankName} - ${card.cardNumber.slice(-4)}${card.accountName ? ` (${card.accountName})` : ''}` }))} />
                                 )}
                             </div>
                         )}

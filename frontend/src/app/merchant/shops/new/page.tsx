@@ -50,9 +50,8 @@ export default function NewShopPage() {
         if (!formData.shopName || !formData.accountName || !formData.contactName || !formData.mobile || !formData.url) { alert('请完善店铺基本信息'); return; }
         if (!validateMobile(formData.mobile)) { alert('请输入有效的11位手机号'); return; }
         setSubmitting(true);
-        const data = new FormData();
-        Object.keys(formData).forEach(key => { const val = (formData as any)[key]; if (val !== null) data.append(key, val); });
-        const res = await createShop(data);
+        const { screenshot, ...jsonData } = formData;
+        const res = await createShop(jsonData);
         setSubmitting(false);
         if (res.success) { alert('绑定申请已提交，请等待审核'); router.push('/merchant/shops'); } else alert(res.message);
     };

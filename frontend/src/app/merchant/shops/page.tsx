@@ -63,9 +63,9 @@ export default function MerchantShopsPage() {
                                     return (
                                         <tr key={shop.id} className="border-b border-[#f3f4f6]">
                                             <td className="px-4 py-4 text-sm">{shop.platform}</td>
-                                            <td className="px-4 py-4 text-sm">{shop.shopName}</td>
-                                            <td className="px-4 py-4 text-sm">{shop.accountName}</td>
-                                            <td className="px-4 py-4 text-sm">{shop.contactName}</td>
+                                            <td className="px-4 py-4 text-sm">{shop.shopName || '-'}</td>
+                                            <td className="px-4 py-4 text-sm">{shop.accountName || '-'}</td>
+                                            <td className="px-4 py-4 text-sm">{shop.contactName || '-'}</td>
                                             <td className="px-4 py-4">
                                                 <Badge variant="soft" color={status.color}>{status.text}</Badge>
                                                 {shop.auditRemark && <div className="mt-1 text-xs text-danger-400">{shop.auditRemark}</div>}

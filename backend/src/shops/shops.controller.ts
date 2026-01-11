@@ -27,7 +27,8 @@ export class ShopsController {
 
   @Post()
   async create(@Request() req: any, @Body() body: Partial<Shop>) {
-    const shop = await this.shopsService.create(req.user.id, body);
+    const sellerId = req.user.merchantId || req.user.userId;
+    const shop = await this.shopsService.create(sellerId, body);
     return { success: true, message: '申请提交成功，请等待审核', data: shop };
   }
 

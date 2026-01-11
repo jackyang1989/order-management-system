@@ -64,7 +64,7 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
         }
     }, [data.shopId]);
 
-    const loadShops = async () => { setLoadingShops(true); const shopList = await fetchShops(); setShops(shopList.filter(s => s.status === 1)); setLoadingShops(false); };
+    const loadShops = async () => { setLoadingShops(true); const shopList = await fetchShops(); setShops(shopList.filter(s => s && s.status === 1)); setLoadingShops(false); };
     const loadPlatforms = async () => { setLoadingPlatforms(true); const list = await fetchEnabledPlatforms(); setPlatforms(list); setLoadingPlatforms(false); };
     const loadGoodsLib = async (shopId: string) => {
         setLoadingGoodsLib(true);
@@ -94,7 +94,7 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     };
 
     const platformCode = getShopPlatformCode(data.taskType);
-    const filteredShops = shops.filter(s => s.platform === platformCode || s.platform === 'OTHER');
+    const filteredShops = shops.filter(s => s && s.shopName && (s.platform === platformCode || s.platform === 'OTHER'));
 
     // 计算商品总价
     const totalGoodsPrice = useMemo(() => {
