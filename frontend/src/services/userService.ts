@@ -382,22 +382,6 @@ export const checkMerchantInviteEligibility = async (): Promise<MerchantInviteEl
     }
 };
 
-// 检查通用邀请资格
-export const checkInviteEligibility = async (): Promise<MerchantInviteEligibility> => {
-    try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${BASE_URL}/invite/eligibility`, {
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-        });
-        if (!response.ok) throw new Error('Failed to check invite eligibility');
-        const res = await response.json();
-        return res.data || { canInvite: false, reason: '未知错误', completedTasks: 0, requiredTasks: 10 };
-    } catch (error) {
-        console.error('Check invite eligibility error:', error);
-        return { canInvite: false, reason: '网络错误', completedTasks: 0, requiredTasks: 10 };
-    }
-};
-
 // ========== 资金记录 ==========
 
 export interface FundRecord {

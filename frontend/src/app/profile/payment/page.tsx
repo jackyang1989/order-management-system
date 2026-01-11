@@ -140,149 +140,109 @@ export default function PaymentSettingsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] pb-24">
-            {/* Minimal Header */}
-            <header className="sticky top-0 z-10 mx-auto max-w-[515px] bg-[#F8FAFC]/80 backdrop-blur-md">
-                <div className="flex h-16 items-center justify-between px-6">
+        <div className="min-h-screen bg-slate-50 pb-20">
+            {/* Header */}
+            <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
+                <div className="mx-auto flex h-14 max-w-[515px] items-center px-4">
                     <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
-                    <h1 className="flex-1 text-xl font-bold text-slate-900">收款账户管理</h1>
-                    <button onClick={() => setShowAddModal(true)} className="flex h-9 items-center rounded-full bg-primary-600 px-4 text-xs font-bold text-white transition-transform active:scale-95">添加</button>
+                    <h1 className="flex-1 text-base font-medium text-slate-800">收款账户管理</h1>
+                    <button onClick={() => setShowAddModal(true)} className="text-sm font-medium text-primary-500">添加</button>
                 </div>
             </header>
 
-            <div className="mx-auto max-w-[515px] space-y-6 px-4 pt-4">
+            <ProfileContainer className="py-4">
                 {loading ? (
-                    <div className="flex min-h-[50vh] items-center justify-center">
-                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-                    </div>
+                    <div className="py-12 text-center text-slate-400">加载中...</div>
                 ) : cards.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center rounded-[24px] bg-white p-12 text-center shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-                        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-50 text-4xl mb-4">💳</div>
-                        <p className="text-sm font-medium text-slate-400">暂未添加收款账户</p>
-                        <Button className="mt-6 h-10 rounded-full font-bold bg-primary-600 hover:bg-primary-700" onClick={() => setShowAddModal(true)}>立即添加</Button>
+                    <div className="rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center text-slate-400">
+                        <div className="mb-3 text-4xl">💳</div>
+                        <p className="text-sm">暂未添加收款账户</p>
+                        <Button className="mt-4 bg-primary-500" onClick={() => setShowAddModal(true)}>立即添加</Button>
                     </div>
                 ) : (
                     <div className="space-y-4">
                         {cards.map(card => (
-                            <div key={card.id} className={cn('relative overflow-hidden rounded-[24px] border-none bg-white p-6 transition-all shadow-[0_2px_10px_rgba(0,0,0,0.02)]', card.isDefault ? 'ring-2 ring-primary-600' : '')}>
-                                {card.isDefault && (
-                                    <div className="absolute right-0 top-0 rounded-bl-2xl bg-primary-600 px-4 py-1.5 text-[10px] font-bold text-white">
-                                        默认
+                            <Card key={card.id} className={cn('relative overflow-hidden border-slate-200 transition-all', card.isDefault ? 'border-blue-500 bg-blue-50/30' : 'bg-white')}>
+                                {card.isDefault && <div className="absolute right-0 top-0 rounded-bl-lg bg-primary-500 px-3 py-1 text-[10px] text-white">默认</div>}
+                                <div className="p-4">
+                                    <div className="mb-4 flex items-center gap-3">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-xl">💳</div>
+                                        <div>
+                                            <div className="font-bold text-slate-800">{card.bankName || '收款账户'}</div>
+                                            <div className="text-xs text-slate-400">{card.accountName}</div>
+                                        </div>
                                     </div>
-                                )}
-                                <div className="flex items-center gap-5 mb-6">
-                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-2xl">
-                                        💳
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="text-lg font-black text-slate-900">{card.bankName || '收款账户'}</div>
-                                        <div className="mt-1 text-xs font-medium text-slate-400">{card.accountName}</div>
-                                    </div>
-                                </div>
-
-                                {card.cardNumber && (
-                                    <div className="mb-6 rounded-xl bg-slate-50 p-4 font-mono text-lg font-bold tracking-wider text-slate-700 text-center">
-                                        **** **** **** {card.cardNumber.slice(-4)}
-                                    </div>
-                                )}
-
-                                {/* 收款码显示 */}
-                                <div className="mb-6 flex gap-3">
-                                    {card.wechatQrCode && (
-                                        <div className="flex items-center gap-2 rounded-xl bg-green-50 px-3 py-2 text-xs font-bold text-green-600">
-                                            <span>微信收款码</span>
-                                            <span className="text-green-500">✓</span>
+                                    {card.cardNumber && (
+                                        <div className="mb-3 text-lg font-medium tracking-wider text-slate-700">
+                                            **** **** **** {card.cardNumber.slice(-4)}
                                         </div>
                                     )}
-                                    {card.alipayQrCode && (
-                                        <div className="flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-xs font-bold text-blue-600">
-                                            <span>支付宝收款码</span>
-                                            <span className="text-blue-500">✓</span>
-                                        </div>
-                                    )}
+                                    {/* 收款码显示 */}
+                                    <div className="mb-3 flex gap-3">
+                                        {card.wechatQrCode && (
+                                            <div className="flex items-center gap-2 rounded bg-green-50 px-2 py-1 text-xs text-green-600">
+                                                <span>微信收款码</span>
+                                                <span className="text-green-500">✓</span>
+                                            </div>
+                                        )}
+                                        {card.alipayQrCode && (
+                                            <div className="flex items-center gap-2 rounded bg-blue-50 px-2 py-1 text-xs text-blue-600">
+                                                <span>支付宝收款码</span>
+                                                <span className="text-blue-500">✓</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+                                        {!card.isDefault && <button onClick={() => handleSetDefault(card.id)} className="text-xs text-primary-500">设为默认</button>}
+                                        <button onClick={() => handleDeleteCard(card.id)} className="text-xs text-danger-400">删除</button>
+                                    </div>
                                 </div>
-
-                                <div className="flex justify-end gap-3 pt-4 border-t border-slate-50">
-                                    {!card.isDefault && (
-                                        <button
-                                            onClick={() => handleSetDefault(card.id)}
-                                            className="rounded-lg px-3 py-2 text-xs font-bold text-primary-600 bg-primary-50 transition-colors hover:bg-primary-100"
-                                        >
-                                            设为默认
-                                        </button>
-                                    )}
-                                    <button
-                                        onClick={() => handleDeleteCard(card.id)}
-                                        className="rounded-lg px-3 py-2 text-xs font-bold text-danger-400 bg-red-50 transition-colors hover:bg-red-100"
-                                    >
-                                        删除
-                                    </button>
-                                </div>
-                            </div>
+                            </Card>
                         ))}
                     </div>
                 )}
 
-                <div className="rounded-[24px] bg-amber-50 p-6">
-                    <div className="mb-3 flex items-center gap-2 text-sm font-black text-amber-700">
-                        <span>⚠️</span>
-                        <span>绑定须知</span>
-                    </div>
-                    <ul className="space-y-2 text-xs font-medium text-amber-900/70">
-                        <li className="flex gap-2">
-                            <span className="mt-1 block h-1 w-1 shrink-0 rounded-full bg-amber-400" />
-                            请上传清晰的收款码图片，确保能被正常扫描。
-                        </li>
-                        {requireBankInfo && (
-                            <>
-                                <li className="flex gap-2">
-                                    <span className="mt-1 block h-1 w-1 shrink-0 rounded-full bg-amber-400" />
-                                    请务必填写正确的开户行及分支行信息，否则将导致提现失败。
-                                </li>
-                                <li className="flex gap-2">
-                                    <span className="mt-1 block h-1 w-1 shrink-0 rounded-full bg-amber-400" />
-                                    银行卡持卡人姓名必须与实名认证姓名一致。
-                                </li>
-                            </>
-                        )}
-                        <li className="flex gap-2">
-                            <span className="mt-1 block h-1 w-1 shrink-0 rounded-full bg-amber-400" />
-                            收款码将用于接收任务佣金，请确保账户正常可用。
-                        </li>
+                <div className="mt-6 rounded-lg bg-amber-50 p-4 text-xs text-amber-700 leading-relaxed">
+                    <div className="mb-2 font-bold flex items-center gap-1">⚠️ 绑定须知</div>
+                    <ul className="list-disc pl-4 space-y-1">
+                        <li>请上传清晰的收款码图片，确保能被正常扫描。</li>
+                        {requireBankInfo && <li>请务必填写正确的开户行及分支行信息，否则将导致提现失败。</li>}
+                        {requireBankInfo && <li>银行卡持卡人姓名必须与实名认证姓名一致。</li>}
+                        <li>收款码将用于接收任务佣金，请确保账户正常可用。</li>
                     </ul>
                 </div>
-            </div>
+            </ProfileContainer>
 
             {/* Add Card Modal */}
             <Modal title="添加收款账户" open={showAddModal} onClose={() => setShowAddModal(false)} className="max-w-md">
                 <form onSubmit={handleAddCard} className="space-y-4">
                     {/* 收款码上传区域 */}
                     <div>
-                        <label className="mb-2 block text-sm font-bold text-slate-700">收款码上传 <span className="text-danger-400">*</span></label>
+                        <label className="mb-2 block text-sm font-medium text-slate-700">收款码上传 <span className="text-danger-400">*</span></label>
                         <div className="grid grid-cols-2 gap-4">
                             {/* 微信收款码 */}
                             <div className="text-center">
-                                <div className="mb-1 text-xs font-medium text-slate-500">微信收款码</div>
+                                <div className="mb-1 text-xs text-slate-500">微信收款码</div>
                                 {form.wechatQrCode ? (
-                                    <div className="relative group">
+                                    <div className="relative">
                                         <Image
                                             src={form.wechatQrCode}
                                             alt="微信收款码"
                                             width={120}
                                             height={120}
-                                            className="mx-auto h-[120px] w-[120px] cursor-pointer rounded-2xl border-2 border-green-500/20 object-cover transition-colors group-hover:border-green-500"
+                                            className="mx-auto h-[120px] w-[120px] cursor-pointer rounded border border-green-200 object-cover"
                                             onClick={() => setImageModal(form.wechatQrCode)}
                                             unoptimized
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setForm(f => ({ ...f, wechatQrCode: '' }))}
-                                            className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white shadow-lg transition-transform active:scale-95"
+                                            className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white"
                                         >×</button>
                                     </div>
                                 ) : (
                                     <label className={cn(
-                                        "flex h-[120px] w-[120px] mx-auto cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-green-300 bg-green-50 text-green-500 transition-all hover:bg-green-100 hover:border-green-400",
+                                        "flex h-[120px] w-[120px] mx-auto cursor-pointer flex-col items-center justify-center rounded border-2 border-dashed border-green-300 bg-green-50 text-green-500 transition-colors hover:bg-green-100",
                                         uploadingWechat && "opacity-50 cursor-not-allowed"
                                     )}>
                                         <input
@@ -293,11 +253,11 @@ export default function PaymentSettingsPage() {
                                             onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'wechat')}
                                         />
                                         {uploadingWechat ? (
-                                            <span className="text-xs font-bold">上传中...</span>
+                                            <span className="text-xs">上传中...</span>
                                         ) : (
                                             <>
-                                                <span className="text-2xl mb-1">+</span>
-                                                <span className="text-xs font-bold">点击上传</span>
+                                                <span className="text-2xl">+</span>
+                                                <span className="text-xs">点击上传</span>
                                             </>
                                         )}
                                     </label>
@@ -305,27 +265,27 @@ export default function PaymentSettingsPage() {
                             </div>
                             {/* 支付宝收款码 */}
                             <div className="text-center">
-                                <div className="mb-1 text-xs font-medium text-slate-500">支付宝收款码</div>
+                                <div className="mb-1 text-xs text-slate-500">支付宝收款码</div>
                                 {form.alipayQrCode ? (
-                                    <div className="relative group">
+                                    <div className="relative">
                                         <Image
                                             src={form.alipayQrCode}
                                             alt="支付宝收款码"
                                             width={120}
                                             height={120}
-                                            className="mx-auto h-[120px] w-[120px] cursor-pointer rounded-2xl border-2 border-blue-500/20 object-cover transition-colors group-hover:border-blue-500"
+                                            className="mx-auto h-[120px] w-[120px] cursor-pointer rounded border border-blue-200 object-cover"
                                             onClick={() => setImageModal(form.alipayQrCode)}
                                             unoptimized
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setForm(f => ({ ...f, alipayQrCode: '' }))}
-                                            className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white shadow-lg transition-transform active:scale-95"
+                                            className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white"
                                         >×</button>
                                     </div>
                                 ) : (
                                     <label className={cn(
-                                        "flex h-[120px] w-[120px] mx-auto cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 text-blue-500 transition-all hover:bg-blue-100 hover:border-blue-400",
+                                        "flex h-[120px] w-[120px] mx-auto cursor-pointer flex-col items-center justify-center rounded border-2 border-dashed border-blue-300 bg-blue-50 text-blue-500 transition-colors hover:bg-blue-100",
                                         uploadingAlipay && "opacity-50 cursor-not-allowed"
                                     )}>
                                         <input
@@ -336,53 +296,53 @@ export default function PaymentSettingsPage() {
                                             onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'alipay')}
                                         />
                                         {uploadingAlipay ? (
-                                            <span className="text-xs font-bold">上传中...</span>
+                                            <span className="text-xs">上传中...</span>
                                         ) : (
                                             <>
-                                                <span className="text-2xl mb-1">+</span>
-                                                <span className="text-xs font-bold">点击上传</span>
+                                                <span className="text-2xl">+</span>
+                                                <span className="text-xs">点击上传</span>
                                             </>
                                         )}
                                     </label>
                                 )}
                             </div>
                         </div>
-                        <div className="mt-3 text-center text-xs font-medium text-slate-400">至少上传一个收款码</div>
+                        <div className="mt-2 text-center text-xs text-slate-400">至少上传一个收款码</div>
                     </div>
 
                     {/* 银行卡信息（根据系统配置显示） */}
                     {requireBankInfo && (
                         <>
-                            <div className="border-t border-slate-100 pt-6">
-                                <label className="mb-4 block text-sm font-bold text-slate-900">银行卡信息</label>
+                            <div className="border-t border-slate-200 pt-4">
+                                <label className="mb-2 block text-sm font-medium text-slate-700">银行卡信息</label>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="mb-1.5 block text-xs font-bold text-slate-500">银行名称 <span className="text-danger-400">*</span></label>
-                                    <input className="w-full rounded-xl border-none bg-slate-100 px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500 transition-all placeholder:text-slate-400" placeholder="如：招商银行" value={form.bankName} onChange={e => setForm(f => ({ ...f, bankName: e.target.value }))} />
+                                    <label className="mb-1 block text-xs text-slate-500">银行名称 <span className="text-danger-400">*</span></label>
+                                    <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="如：招商银行" value={form.bankName} onChange={e => setForm(f => ({ ...f, bankName: e.target.value }))} />
                                 </div>
                                 <div>
-                                    <label className="mb-1.5 block text-xs font-bold text-slate-500">持卡人姓名 <span className="text-danger-400">*</span></label>
-                                    <input className="w-full rounded-xl border-none bg-slate-100 px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500 transition-all placeholder:text-slate-400" placeholder="姓名" value={form.accountName} onChange={e => setForm(f => ({ ...f, accountName: e.target.value }))} />
+                                    <label className="mb-1 block text-xs text-slate-500">持卡人姓名 <span className="text-danger-400">*</span></label>
+                                    <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="姓名" value={form.accountName} onChange={e => setForm(f => ({ ...f, accountName: e.target.value }))} />
                                 </div>
                             </div>
                             <div>
-                                <label className="mb-1.5 block text-xs font-bold text-slate-500">银行卡号 <span className="text-danger-400">*</span></label>
-                                <input className="w-full rounded-xl border-none bg-slate-100 px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500 transition-all placeholder:text-slate-400" placeholder="请输入银行卡号" value={form.cardNumber} onChange={e => setForm(f => ({ ...f, cardNumber: e.target.value }))} />
+                                <label className="mb-1 block text-xs text-slate-500">银行卡号 <span className="text-danger-400">*</span></label>
+                                <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="请输入银行卡号" value={form.cardNumber} onChange={e => setForm(f => ({ ...f, cardNumber: e.target.value }))} />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="mb-1.5 block text-xs font-bold text-slate-500">省份</label>
-                                    <input className="w-full rounded-xl border-none bg-slate-100 px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500 transition-all placeholder:text-slate-400" placeholder="省份" value={form.province} onChange={e => setForm(f => ({ ...f, province: e.target.value }))} />
+                                    <label className="mb-1 block text-xs text-slate-500">省份</label>
+                                    <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800" placeholder="省份" value={form.province} onChange={e => setForm(f => ({ ...f, province: e.target.value }))} />
                                 </div>
                                 <div>
-                                    <label className="mb-1.5 block text-xs font-bold text-slate-500">城市</label>
-                                    <input className="w-full rounded-xl border-none bg-slate-100 px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500 transition-all placeholder:text-slate-400" placeholder="城市" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} />
+                                    <label className="mb-1 block text-xs text-slate-500">城市</label>
+                                    <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800" placeholder="城市" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} />
                                 </div>
                             </div>
                             <div>
-                                <label className="mb-1.5 block text-xs font-bold text-slate-500">支行信息</label>
-                                <input className="w-full rounded-xl border-none bg-slate-100 px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500 transition-all placeholder:text-slate-400" placeholder="如：某某支行" value={form.branchName} onChange={e => setForm(f => ({ ...f, branchName: e.target.value }))} />
+                                <label className="mb-1 block text-xs text-slate-500">支行信息</label>
+                                <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="如：某某支行" value={form.branchName} onChange={e => setForm(f => ({ ...f, branchName: e.target.value }))} />
                             </div>
                         </>
                     )}
@@ -390,22 +350,22 @@ export default function PaymentSettingsPage() {
                     {/* 如果不需要银行卡信息，只显示收款人信息 */}
                     {!requireBankInfo && (
                         <div>
-                            <label className="mb-1.5 block text-xs font-bold text-slate-500">收款人姓名 <span className="text-danger-400">*</span></label>
-                            <input className="w-full rounded-xl border-none bg-slate-100 px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500 transition-all placeholder:text-slate-400" placeholder="请输入收款人姓名" value={form.accountName} onChange={e => setForm(f => ({ ...f, accountName: e.target.value }))} />
+                            <label className="mb-1 block text-xs text-slate-500">收款人姓名 <span className="text-danger-400">*</span></label>
+                            <input className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-500" placeholder="请输入收款人姓名" value={form.accountName} onChange={e => setForm(f => ({ ...f, accountName: e.target.value }))} />
                         </div>
                     )}
 
-                    <div className="flex gap-3 pt-4">
-                        <Button variant="secondary" onClick={() => setShowAddModal(false)} className="flex-1 rounded-xl font-bold">取消</Button>
-                        <Button type="submit" loading={submitting} className="flex-1 rounded-xl bg-primary-600 font-bold hover:bg-primary-700">确定</Button>
+                    <div className="flex gap-3 pt-2">
+                        <Button variant="secondary" onClick={() => setShowAddModal(false)} className="flex-1">取消</Button>
+                        <Button type="submit" loading={submitting} className="flex-1 bg-primary-500 hover:bg-primary-600">确定</Button>
                     </div>
                 </form>
             </Modal>
 
             {/* Image Preview Modal */}
             {imageModal && (
-                <div onClick={() => setImageModal(null)} className="fixed inset-0 z-[1100] flex cursor-zoom-out items-center justify-center bg-black/90 backdrop-blur-sm">
-                    <Image src={imageModal} alt="预览" width={400} height={400} className="max-h-[90%] max-w-[90%] rounded-2xl object-contain shadow-2xl" unoptimized />
+                <div onClick={() => setImageModal(null)} className="fixed inset-0 z-[1100] flex cursor-zoom-out items-center justify-center bg-black/80">
+                    <Image src={imageModal} alt="预览" width={400} height={400} className="max-h-[90%] max-w-[90%] object-contain" unoptimized />
                 </div>
             )}
         </div>

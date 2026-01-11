@@ -50,8 +50,6 @@ export interface SystemGlobalConfig {
     inviteExpiryDays: number;
     // 平台开关配置
     enabledPlatforms: string;
-    // 收款账户配置
-    requireBankInfo: boolean;
     updatedAt: string;
 }
 

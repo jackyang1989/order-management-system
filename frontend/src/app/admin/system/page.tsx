@@ -370,8 +370,8 @@ export default function AdminSystemPage() {
                                     key={platform.id}
                                     onClick={() => togglePlatform(platform.id)}
                                     className={`cursor-pointer rounded-md border-2 p-4 text-center transition-all ${isEnabled
-                                        ? 'border-primary-500 bg-primary-50'
-                                        : 'border-[#e5e7eb] bg-[#f9fafb] opacity-60'
+                                            ? 'border-primary-500 bg-primary-50'
+                                            : 'border-[#e5e7eb] bg-[#f9fafb] opacity-60'
                                         }`}
                                 >
                                     <div className="mb-2 text-2xl">{platform.icon}</div>

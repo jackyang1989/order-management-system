@@ -12,9 +12,7 @@ import {
     InviteStats,
     InviteRecord,
     InviteConfig,
-    InviteConfig,
-    MerchantInviteEligibility,
-    checkInviteEligibility
+    MerchantInviteEligibility
 } from '../../services/userService';
 
 interface RecommendedTask {
@@ -39,7 +37,6 @@ export default function InvitePage() {
     const [inviteCode, setInviteCode] = useState('ADMIN');
     const [config, setConfig] = useState<InviteConfig | null>(null);
     const [merchantEligibility, setMerchantEligibility] = useState<MerchantInviteEligibility | null>(null);
-    const [inviteEligibility, setInviteEligibility] = useState<MerchantInviteEligibility | null>(null);
 
     // 日期筛选
     const [startDate, setStartDate] = useState('');
@@ -56,18 +53,16 @@ export default function InvitePage() {
             const user = getCurrentUser();
             if (user?.invitationCode) setInviteCode(user.invitationCode);
 
-            const [statsData, recordsData, configData, eligibilityData, inviteEligData] = await Promise.all([
+            const [statsData, recordsData, configData, eligibilityData] = await Promise.all([
                 fetchInviteStats(),
                 fetchInviteRecords(),
                 fetchInviteConfig(),
-                checkMerchantInviteEligibility(),
-                checkInviteEligibility()
+                checkMerchantInviteEligibility()
             ]);
             setStats(statsData);
             setRecords(recordsData);
             setConfig(configData);
             setMerchantEligibility(eligibilityData);
-            setInviteEligibility(inviteEligData);
 
             // Load recommended tasks
             try {
@@ -198,30 +193,14 @@ export default function InvitePage() {
 
                             {/* 买手邀请链接 */}
                             <div>
-                                <div className="mb-2 text-sm font-medium text-slate-700 flex items-center gap-2">
-                                    买手邀请链接
-                                    {!inviteEligibility?.canInvite && (
-                                        <span className="text-xs bg-amber-100 text-warning-500 px-2 py-0.5 rounded">
-                                            {inviteEligibility?.reason || '未解锁'}
-                                        </span>
-                                    )}
+                                <div className="mb-2 text-sm font-medium text-slate-700">买手邀请链接</div>
+                                <div className="flex gap-2">
+                                    <input type="text" value={inviteLink} readOnly className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600" />
+                                    <button onClick={() => handleCopyLink(false)} className={cn('whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium text-white', copied ? 'bg-green-500' : 'bg-primary-500')}>
+                                        {copied ? '已复制' : '复制链接'}
+                                    </button>
                                 </div>
-                                {inviteEligibility?.canInvite ? (
-                                    <>
-                                        <div className="flex gap-2">
-                                            <input type="text" value={inviteLink} readOnly className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600" />
-                                            <button onClick={() => handleCopyLink(false)} className={cn('whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium text-white', copied ? 'bg-green-500' : 'bg-primary-500')}>
-                                                {copied ? '已复制' : '复制链接'}
-                                            </button>
-                                        </div>
-                                        <div className="mt-2 text-xs text-slate-400">邀请码：<span className="font-medium text-primary-500">{inviteCode}</span></div>
-                                    </>
-                                ) : (
-                                    <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-500">
-                                        <p>完成 <span className="font-bold text-primary-500">{inviteEligibility?.requiredTasks || config?.inviteUnlockThreshold || 10}</span> 单任务后解锁买手邀请功能</p>
-                                        <p className="mt-1">当前进度：<span className="font-bold">{inviteEligibility?.completedTasks || 0}</span> / {inviteEligibility?.requiredTasks || config?.inviteUnlockThreshold || 10}</p>
-                                    </div>
-                                )}
+                                <div className="mt-2 text-xs text-slate-400">邀请码：<span className="font-medium text-primary-500">{inviteCode}</span></div>
                             </div>
 
                             {/* 商家邀请链接 - 仅当启用时显示 */}

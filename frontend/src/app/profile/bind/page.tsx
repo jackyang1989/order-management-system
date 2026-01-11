@@ -433,16 +433,11 @@ export default function BindAccountPage() {
 
                         {/* 实名认证姓名 - 条件显示 */}
                         {platformConfig.hasRealName && (
-                            <>
-                                <div className="border-t border-slate-100 pt-6">
-                                    <div className="mb-4 text-sm font-bold text-slate-900">实名认证</div>
-                                </div>
-                                <div>
-                                    <label className="mb-1.5 block text-xs font-bold text-slate-500">实名认证姓名 <span className="text-danger-400">*</span></label>
-                                    <input className="w-full rounded-xl border-none bg-slate-100 px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500 transition-all placeholder:text-slate-400"
-                                        placeholder="请输入实名认证的姓名" value={form.realName} onChange={e => updateForm('realName', e.target.value)} />
-                                </div>
-                            </>
+                            <div>
+                                <label className="mb-1.5 block text-xs font-bold text-slate-500">实名认证姓名 <span className="text-danger-400">*</span></label>
+                                <input className="w-full rounded-xl border-none bg-slate-100 px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500 transition-all placeholder:text-slate-400"
+                                    placeholder="请输入实名认证的姓名" value={form.realName} onChange={e => updateForm('realName', e.target.value)} />
+                            </div>
                         )}
 
                         {/* 动态图片上传区 */}
