@@ -8,6 +8,13 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
+import {
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 import { Merchant } from '../merchants/merchant.entity';
 import { Shop } from '../shops/shop.entity';
 
@@ -82,31 +89,101 @@ export class Goods {
 
 // DTOs
 export class CreateGoodsDto {
+  @IsString()
   shopId: string;
+
+  @IsString()
   name: string;
+
+  @IsOptional()
+  @IsString()
   link?: string;
+
+  @IsOptional()
+  @IsString()
   platformProductId?: string;
+
+  @IsOptional()
+  @IsString()
   verifyCode?: string;
+
+  @IsOptional()
+  @IsString()
   pcImg?: string; // JSON数组字符串
+
+  @IsOptional()
+  @IsString()
   specName?: string;
+
+  @IsOptional()
+  @IsString()
   specValue?: string;
+
+  @IsNumber()
+  @Min(0)
   price: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
   num?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
   showPrice?: number;
+
+  @IsOptional()
+  @IsString()
   goodsKeyId?: string;
 }
 
 export class UpdateGoodsDto {
+  @IsOptional()
+  @IsString()
   name?: string;
+
+  @IsOptional()
+  @IsString()
   link?: string;
+
+  @IsOptional()
+  @IsString()
   platformProductId?: string;
+
+  @IsOptional()
+  @IsString()
   verifyCode?: string;
+
+  @IsOptional()
+  @IsString()
   pcImg?: string;
+
+  @IsOptional()
+  @IsString()
   specName?: string;
+
+  @IsOptional()
+  @IsString()
   specValue?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
   price?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
   num?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
   showPrice?: number;
+
+  @IsOptional()
+  @IsString()
   goodsKeyId?: string;
 }
 

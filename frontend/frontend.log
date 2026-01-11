@@ -35,3 +35,4 @@
  GET /merchant/shops/edit/41363f04-4b3e-42da-ade2-0602b58d6450 200 in 31ms (compile: 12ms, render: 19ms)
  GET /merchant/goods 200 in 64ms (compile: 51ms, render: 13ms)
  GET /merchant/shops 200 in 104ms (compile: 27ms, render: 76ms)
+ GET /merchant/shops/edit/75a6423a-1015-408d-84c4-37327b39f730 200 in 116ms (compile: 48ms, render: 68ms)
