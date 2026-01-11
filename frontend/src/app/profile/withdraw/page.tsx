@@ -233,9 +233,9 @@ export default function WithdrawPage() {
                             ) : (
                                 <div
                                     className="cursor-pointer rounded-lg bg-amber-50 p-3 text-center text-sm text-amber-700"
-                                    onClick={() => router.push('/profile/bank')}
+                                    onClick={() => router.push('/profile/payment')}
                                 >
-                                    ⚠️ 请先绑定银行卡
+                                    ⚠️ 请先绑定收款账户
                                 </div>
                             )}
 
@@ -296,9 +296,9 @@ export default function WithdrawPage() {
                             ) : (
                                 <div
                                     className="cursor-pointer rounded-lg bg-amber-50 p-3 text-center text-sm text-amber-700"
-                                    onClick={() => router.push('/profile/bank')}
+                                    onClick={() => router.push('/profile/payment')}
                                 >
-                                    ⚠️ 请先绑定银行卡
+                                    ⚠️ 请先绑定收款账户
                                 </div>
                             )}
 
@@ -316,16 +316,22 @@ export default function WithdrawPage() {
                                 <div className="flex items-center justify-end space-x-2 border-b border-slate-100 p-4">
                                     <div className="flex items-center space-x-2">
                                         <input
-                                            type="date"
-                                            className="rounded border border-slate-200 px-2 py-1 text-sm outline-none focus:border-blue-500"
+                                            type={dateRange.from ? 'date' : 'text'}
+                                            placeholder="YYYY/MM/DD"
+                                            className="w-32 rounded border border-slate-200 px-2 py-1 text-sm outline-none focus:border-blue-500 text-center uppercase"
                                             value={dateRange.from || ''}
+                                            onFocus={(e) => e.target.type = 'date'}
+                                            onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
                                             onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
                                         />
                                         <span className="text-slate-400">-</span>
                                         <input
-                                            type="date"
-                                            className="rounded border border-slate-200 px-2 py-1 text-sm outline-none focus:border-blue-500"
+                                            type={dateRange.to ? 'date' : 'text'}
+                                            placeholder="YYYY/MM/DD"
+                                            className="w-32 rounded border border-slate-200 px-2 py-1 text-sm outline-none focus:border-blue-500 text-center uppercase"
                                             value={dateRange.to || ''}
+                                            onFocus={(e) => e.target.type = 'date'}
+                                            onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
                                             onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
                                         />
                                     </div>
