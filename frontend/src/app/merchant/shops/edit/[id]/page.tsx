@@ -88,6 +88,12 @@ export default function EditShopPage({ params }: { params: Promise<{ id: string 
         ? URL.createObjectURL(formData.newScreenshot)
         : getFullImageUrl(formData.screenshot);
 
+    console.log('Screenshot debug:', {
+        originalScreenshot: formData.screenshot,
+        displayScreenshot,
+        hasNewScreenshot: !!formData.newScreenshot
+    });
+
     return (
         <div className="mx-auto max-w-[800px] space-y-6 p-6">
             <h1 className="text-2xl font-medium">编辑店铺</h1>
