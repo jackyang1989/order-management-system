@@ -9,7 +9,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 @Controller('invite')
 @UseGuards(JwtAuthGuard)
 export class InviteController {
-  constructor(private readonly inviteService: InviteService) {}
+  constructor(private readonly inviteService: InviteService) { }
 
   /**
    * 获取邀请配置
@@ -26,6 +26,15 @@ export class InviteController {
   @Get('merchant-eligibility')
   async checkMerchantEligibility(@Request() req) {
     const result = await this.inviteService.canInviteMerchant(req.user.userId);
+    return { success: true, data: result };
+  }
+
+  /**
+   * 检查是否可以邀请好友（通用）
+   */
+  @Get('eligibility')
+  async checkEligibility(@Request() req) {
+    const result = await this.inviteService.checkInviteEligibility(req.user.userId);
     return { success: true, data: result };
   }
 

@@ -29,7 +29,7 @@ export class InviteService {
     @InjectRepository(Order)
     private orderRepository: Repository<Order>,
     private configService: AdminConfigService,
-  ) {}
+  ) { }
 
   /**
    * 获取邀请记录
@@ -218,6 +218,42 @@ export class InviteService {
         requiredTasks: config.inviteUnlockThreshold,
       };
     }
+
+    // 获取用户完成的任务数
+    const completedTasks = await this.orderRepository.count({
+      where: {
+        userId,
+        status: OrderStatus.COMPLETED,
+      },
+    });
+
+    if (completedTasks < config.inviteUnlockThreshold) {
+      return {
+        canInvite: false,
+        reason: `需完成${config.inviteUnlockThreshold}单任务后解锁`,
+        completedTasks,
+        requiredTasks: config.inviteUnlockThreshold,
+      };
+    }
+
+    return {
+      canInvite: true,
+      completedTasks,
+      requiredTasks: config.inviteUnlockThreshold,
+    };
+  }
+
+  /**
+   * 检查用户是否可以使用通用邀请功能（买手邀请）
+   * 只校验任务门槛，不受商家邀请开关影响
+   */
+  async checkInviteEligibility(userId: string): Promise<{
+    canInvite: boolean;
+    reason?: string;
+    completedTasks: number;
+    requiredTasks: number;
+  }> {
+    const config = await this.getInviteConfig();
 
     // 获取用户完成的任务数
     const completedTasks = await this.orderRepository.count({
