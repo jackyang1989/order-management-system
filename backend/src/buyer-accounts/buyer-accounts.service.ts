@@ -455,6 +455,15 @@ export class BuyerAccountsService {
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
+      relations: {
+        user: true,
+      },
+      select: {
+        user: {
+          username: true,
+          phone: true,
+        },
+      },
     });
 
     return { data, total, page, limit };
@@ -483,6 +492,15 @@ export class BuyerAccountsService {
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
+      relations: {
+        user: true,
+      },
+      select: {
+        user: {
+          username: true,
+          phone: true,
+        },
+      },
     });
 
     return { data, total, page, limit };
