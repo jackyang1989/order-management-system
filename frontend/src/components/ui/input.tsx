@@ -23,13 +23,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         )}
-        <div className="relative flex items-center">
+        <div className="relative flex items-center h-11">
           {leading && <span className="absolute left-3.5 z-10 text-slate-400">{leading}</span>}
           <input
             ref={ref}
             id={inputId}
             className={cn(
-              'w-full rounded-2xl border-none bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 placeholder:text-slate-400',
+              'h-full w-full rounded-2xl border-none bg-slate-50 px-4 text-sm font-medium text-slate-700 placeholder:text-slate-400',
               'transition-all focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:shadow-sm',
               'disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400',
               leading && 'pl-10',

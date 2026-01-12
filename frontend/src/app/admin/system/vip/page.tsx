@@ -8,6 +8,13 @@ import { Card } from '../../../../components/ui/card';
 import { Input } from '../../../../components/ui/input';
 import { Modal } from '../../../../components/ui/modal';
 
+const FeatureItem = ({ label, value, high }: { label: string; value: string; high: boolean }) => (
+    <div className="flex items-center justify-between text-sm">
+        <span className="text-slate-500">{label}</span>
+        <span className={cn("font-medium", high ? "text-slate-900" : "text-slate-500")}>{value}</span>
+    </div>
+);
+
 interface VipLevel {
     id: string;
     name: string;
@@ -136,19 +143,7 @@ export default function VipConfigPage() {
 
     const filteredLevels = vipLevels.filter(v => v.type === activeTab).sort((a, b) => a.level - b.level);
 
-    // Color map for VIP card backgrounds (mapping hex to Tailwind classes)
-    const getCardBgClass = (color: string) => {
-        const colorMap: Record<string, string> = {
-            '#1890ff': 'bg-primary-500',
-            '#52c41a': 'bg-green-500',
-            '#faad14': 'bg-warning-400',
-            '#eb2f96': 'bg-pink-500',
-            '#722ed1': 'bg-purple-500',
-            '#13c2c2': 'bg-cyan-500',
-            '#f5222d': 'bg-danger-400',
-        };
-        return colorMap[color] || 'bg-primary-500';
-    };
+
 
     return (
         <div className="space-y-6">
@@ -192,70 +187,94 @@ export default function VipConfigPage() {
                 <div className="py-16 text-center text-[#9ca3af]">加载中...</div>
             ) : (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5">
-                    {filteredLevels.map(vip => (
-                        <Card key={vip.id} className={cn('overflow-hidden p-0', !vip.isActive && 'opacity-60')}>
-                            {/* Card Header */}
-                            <div className={cn('relative p-5 text-white', getCardBgClass(vip.color))}>
-                                <div className={cn(
-                                    'absolute right-2.5 top-2.5 rounded-full px-3 py-1 text-xs',
-                                    vip.isActive ? 'bg-white/20' : 'bg-black/30'
-                                )}>
-                                    {vip.isActive ? '已启用' : '已禁用'}
-                                </div>
-                                <div className="mb-2 text-2xl font-bold">{vip.name}</div>
-                                <div className="text-sm opacity-90">
-                                    等级 {vip.level} · {vip.duration > 0 ? `${vip.duration}天` : '永久'}
-                                </div>
-                                <div className="mt-3 text-3xl font-bold">
-                                    ¥{vip.price}
-                                    {vip.duration > 0 && <span className="text-sm font-normal">/月</span>}
-                                </div>
-                            </div>
+                    {filteredLevels.map(vip => {
+                        // Map colors to text/bg shades
+                        let colorStyles = {
+                            text: 'text-primary-600',
+                            bg: 'bg-primary-50',
+                            border: 'border-primary-100',
+                            badge: 'bg-primary-100 text-primary-700'
+                        };
 
-                            {/* Card Body */}
-                            <div className="p-5">
-                                <div className="mb-4">
-                                    <div className="mb-3 font-medium text-[#374151]">权益配置</div>
-                                    <div className="space-y-2 text-sm text-[#6b7280]">
+                        if (vip.color === '#52c41a') colorStyles = { text: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100', badge: 'bg-green-100 text-green-700' };
+                        else if (vip.color === '#faad14') colorStyles = { text: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', badge: 'bg-amber-100 text-amber-700' };
+                        else if (vip.color === '#eb2f96') colorStyles = { text: 'text-pink-600', bg: 'bg-pink-50', border: 'border-pink-100', badge: 'bg-pink-100 text-pink-700' };
+                        else if (vip.color === '#722ed1') colorStyles = { text: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-100', badge: 'bg-purple-100 text-purple-700' };
+                        else if (vip.color === '#13c2c2') colorStyles = { text: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-100', badge: 'bg-cyan-100 text-cyan-700' };
+                        else if (vip.color === '#f5222d') colorStyles = { text: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', badge: 'bg-red-100 text-red-700' };
+
+                        return (
+                            <Card key={vip.id} className={cn(
+                                'relative overflow-hidden transition-all duration-300 hover:shadow-lg',
+                                !vip.isActive && 'opacity-60 grayscale-[0.5]',
+                                vip.isActive ? 'border border-slate-100 shadow-sm' : 'border border-dashed border-slate-200 shadow-none'
+                            )}>
+                                {/* Decorative Background Gradient */}
+                                <div className={cn("absolute right-0 top-0 h-32 w-32 translate-x-1/3 translate-y-[-1/3] rounded-full blur-3xl opacity-20", colorStyles.bg.replace('bg-', 'bg-'))}></div>
+
+                                <div className="p-6">
+                                    {/* Header Section */}
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div>
+                                            <div className={cn("text-lg font-bold mb-1", colorStyles.text)}>{vip.name}</div>
+                                            <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                                                Level {vip.level} · {vip.duration > 0 ? `${vip.duration}天` : '永久'}
+                                            </div>
+                                        </div>
+                                        <div className={cn("px-2.5 py-1 rounded-lg text-xs font-bold", vip.isActive ? colorStyles.badge : "bg-slate-100 text-slate-500")}>
+                                            {vip.isActive ? '启用中' : '已禁用'}
+                                        </div>
+                                    </div>
+
+                                    {/* Price Section */}
+                                    <div className="mb-6">
+                                        <div className="flex items-baseline">
+                                            <span className="text-3xl font-bold text-slate-800">¥{vip.price}</span>
+                                            {vip.duration > 0 && <span className="ml-1 text-sm text-slate-400 font-medium">/ {vip.duration}天</span>}
+                                        </div>
+                                    </div>
+
+                                    {/* Features List */}
+                                    <div className="space-y-3 mb-6">
                                         {activeTab === 'buyer' ? (
                                             <>
-                                                <div>📋 每日任务: {vip.dailyTaskLimit === 0 ? '无限制' : `${vip.dailyTaskLimit}个`}</div>
-                                                <div>💰 佣金加成: +{vip.commissionBonus}%</div>
-                                                <div>🏦 提现折扣: -{vip.withdrawFeeDiscount}%</div>
-                                                <div>⭐ 预约任务: {vip.canReserveTask ? '支持' : '不支持'}</div>
-                                                <div>🏅 VIP徽章: {vip.showVipBadge ? '显示' : '隐藏'}</div>
+                                                <FeatureItem label="每日任务" value={vip.dailyTaskLimit === 0 ? '无限制' : `${vip.dailyTaskLimit}个`} high={vip.dailyTaskLimit === 0} />
+                                                <FeatureItem label="佣金加成" value={`+${vip.commissionBonus}%`} high={vip.commissionBonus > 0} />
+                                                <FeatureItem label="提现折扣" value={`-${vip.withdrawFeeDiscount}%`} high={vip.withdrawFeeDiscount > 0} />
+                                                <FeatureItem label="预约任务" value={vip.canReserveTask ? '支持' : '不支持'} high={vip.canReserveTask} />
                                             </>
                                         ) : (
                                             <>
-                                                <div>📋 发布任务: {vip.publishTaskLimit === 0 ? '无限制' : `${vip.publishTaskLimit}个/天`}</div>
-                                                <div>💰 服务费折扣: -{vip.serviceFeeDiscount}%</div>
-                                                <div>⚡ 优先审核: {vip.priorityReview ? '支持' : '不支持'}</div>
-                                                <div>👨‍💼 专属客服: {vip.dedicatedSupport ? '支持' : '不支持'}</div>
+                                                <FeatureItem label="发布任务" value={vip.publishTaskLimit === 0 ? '无限制' : `${vip.publishTaskLimit}个/天`} high={vip.publishTaskLimit === 0} />
+                                                <FeatureItem label="服务费折扣" value={`-${vip.serviceFeeDiscount}%`} high={vip.serviceFeeDiscount > 0} />
+                                                <FeatureItem label="优先审核" value={vip.priorityReview ? '支持' : '不支持'} high={vip.priorityReview} />
+                                                <FeatureItem label="专属客服" value={vip.dedicatedSupport ? '支持' : '不支持'} high={vip.dedicatedSupport} />
                                             </>
                                         )}
                                     </div>
-                                </div>
 
-                                {/* Action Buttons */}
-                                <div className="flex gap-2 border-t border-[#f3f4f6] pt-4">
-                                    <Button size="sm" variant="secondary" className="flex-1" onClick={() => handleEdit(vip)}>编辑</Button>
-                                    <Button
-                                        size="sm"
-                                        className={cn(
-                                            'flex-1',
-                                            vip.isActive
-                                                ? 'border border-amber-400 bg-amber-50 text-warning-500 hover:bg-amber-100'
-                                                : 'border border-blue-400 bg-blue-50 text-primary-600 hover:bg-blue-100'
-                                        )}
-                                        onClick={() => handleToggle(vip.id)}
-                                    >
-                                        {vip.isActive ? '禁用' : '启用'}
-                                    </Button>
-                                    <Button size="sm" variant="destructive" onClick={() => handleDelete(vip.id)}>删除</Button>
+                                    {/* Action Buttons */}
+                                    <div className="flex gap-2 pt-4 border-t border-slate-50">
+                                        <Button size="sm" variant="outline" className="flex-1 h-9 rounded-xl font-medium" onClick={() => handleEdit(vip)}>编辑</Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className={cn(
+                                                'flex-1 h-9 rounded-xl font-medium',
+                                                vip.isActive ? 'text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-amber-200' : 'text-primary-600 hover:text-primary-700 hover:bg-primary-50 border-primary-200'
+                                            )}
+                                            onClick={() => handleToggle(vip.id)}
+                                        >
+                                            {vip.isActive ? '禁用' : '启用'}
+                                        </Button>
+                                        <Button size="sm" variant="ghost" className="h-9 w-9 rounded-xl text-slate-400 hover:text-danger-500 hover:bg-danger-50 p-0" onClick={() => handleDelete(vip.id)}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
+                                        </Button>
+                                    </div>
                                 </div>
-                            </div>
-                        </Card>
-                    ))}
+                            </Card>
+                        )
+                    })}
                 </div>
             )}
 

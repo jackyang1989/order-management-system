@@ -35,13 +35,13 @@ export function Select({
   const containerClasses = layoutClasses.length > 0 ? layoutClasses.join(' ') : 'w-full';
 
   return (
-    <div className={`relative ${containerClasses}`}>
+    <div className={`relative h-11 ${containerClasses}`}>
       <select
         value={value ?? ''}
         disabled={disabled}
         onChange={(event) => onChange?.(event.target.value)}
         className={cn(
-          'w-full appearance-none rounded-2xl border-none bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700',
+          'h-full w-full appearance-none rounded-2xl border-none bg-slate-50 px-4 text-sm font-medium text-slate-700',
           'transition-all focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:shadow-sm',
           'disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400',
           !value && 'text-slate-400',
