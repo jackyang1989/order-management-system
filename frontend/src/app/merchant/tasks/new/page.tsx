@@ -19,7 +19,7 @@ export default function NewTaskPage() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => { loadMerchantProfile(); }, []);
-    useEffect(() => { calculateFees(); }, [data.goodsPrice, data.goodsList, data.count, data.isPraise, data.praiseType, data.isTimingPublish, data.isTimingPay, data.isCycleTime, data.addReward, data.isFreeShipping, data.isNextDay]);
+    useEffect(() => { calculateFees(); }, [data.goodsPrice, data.goodsList, data.count, data.isPraise, data.praiseType, data.isTimingPublish, data.isTimingPay, data.isCycleTime, data.addReward, data.isFreeShipping, data.isNextDay, data.fastRefund]);
 
     const loadMerchantProfile = async () => {
         const token = localStorage.getItem('merchantToken'); if (!token) return;

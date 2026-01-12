@@ -72,8 +72,52 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
             {/* Shipping */}
             <div className="mb-8">
                 <h3 className="mb-4 text-[15px] font-semibold text-[#374151]">物流设置</h3>
-                <div className="flex gap-6">
-                    <label className="flex cursor-pointer items-center gap-2"><input type="radio" checked={data.isFreeShipping === 1} onChange={() => onChange({ isFreeShipping: 1 })} /><span>商家包邮 (默认)</span></label>
+                <div className="rounded-md border border-[#e5e7eb] bg-white p-4">
+                    {/* 包邮设置 */}
+                    <div className="mb-4 flex gap-6">
+                        <label className="flex cursor-pointer items-center gap-2">
+                            <input type="radio" checked={data.isFreeShipping === 1} onChange={() => onChange({ isFreeShipping: 1 })} />
+                            <span>商家包邮 (默认)</span>
+                        </label>
+                        <label className="flex cursor-pointer items-center gap-2">
+                            <input type="radio" checked={data.isFreeShipping === 2} onChange={() => onChange({ isFreeShipping: 2 })} />
+                            <span>不包邮 <span className="text-xs text-[#9ca3af]">(每单额外支出10元作为运费押金)</span></span>
+                        </label>
+                    </div>
+                    {/* 包裹重量 */}
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm text-[#374151]">包裹重量:</span>
+                        <input
+                            type="number"
+                            value={data.weight || 0}
+                            onChange={e => onChange({ weight: parseFloat(e.target.value) || 0 })}
+                            className="w-24 rounded border border-[#e5e7eb] px-2 py-1.5 text-sm"
+                            min="0"
+                            max="30"
+                            step="0.01"
+                        />
+                        <span className="text-sm text-[#6b7280]">kg (0-30kg)</span>
+                        <span className="text-xs text-[#9ca3af]">用于计算物流费用</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Order Memo/Notes */}
+            <div className="mb-8">
+                <h3 className="mb-4 text-[15px] font-semibold text-[#374151]">下单提示</h3>
+                <div className="rounded-md border border-[#e5e7eb] bg-white p-4">
+                    <textarea
+                        value={data.memo || ''}
+                        onChange={e => onChange({ memo: e.target.value.slice(0, 100) })}
+                        placeholder="买手接任务时可看见该提示，如：商品在第*页*行、聊天时不要问发货地和哪家快递等"
+                        rows={3}
+                        maxLength={100}
+                        className="w-full resize-y rounded-md border border-[#d1d5db] p-3 text-sm"
+                    />
+                    <div className="mt-1 flex items-center justify-between text-xs text-[#9ca3af]">
+                        <span>提示内容自由填写，非必填</span>
+                        <span>{(data.memo || '').length}/100</span>
+                    </div>
                 </div>
             </div>
 
@@ -323,10 +367,41 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                     </div>
                 </div>
                 {/* 隔天任务 */}
-                <div className="flex items-center gap-3 px-3 py-3">
+                <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-3 py-3">
                     <input type="checkbox" checked={data.isNextDay} onChange={e => onChange({ isNextDay: e.target.checked })} />
                     <div className="flex flex-1 items-center justify-between">
                         <div><span className="text-sm">隔天任务</span><span className="ml-2 text-xs text-[#9ca3af]">+0.5元/单，买手需隔天完成付款</span></div>
+                    </div>
+                </div>
+                {/* Fast Refund Service */}
+                <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-3 py-3">
+                    <input type="checkbox" checked={data.fastRefund} onChange={e => onChange({ fastRefund: e.target.checked })} />
+                    <div className="flex flex-1 items-center justify-between">
+                        <div>
+                            <span className="text-sm">快速返款服务</span>
+                            <span className="ml-2 text-xs text-[#9ca3af]">服务费0.6%</span>
+                            <span className="ml-2 cursor-help text-xs text-primary-500" title="开启后，买手确认收货后系统自动快速返款，无需等待平台结算周期">?</span>
+                        </div>
+                    </div>
+                </div>
+                {/* Order Interval */}
+                <div className="flex items-center gap-3 px-3 py-3">
+                    <input type="checkbox" checked={(data.orderInterval || 0) > 0} onChange={e => onChange({ orderInterval: e.target.checked ? 5 : 0 })} />
+                    <div className="flex flex-1 items-center justify-between">
+                        <div><span className="text-sm">任务接单间隔</span><span className="ml-2 text-xs text-[#9ca3af]">控制买手接单的时间间隔</span></div>
+                        {(data.orderInterval || 0) > 0 && (
+                            <div className="flex items-center gap-1">
+                                <input
+                                    type="number"
+                                    value={data.orderInterval}
+                                    onChange={e => onChange({ orderInterval: parseInt(e.target.value) || 0 })}
+                                    className="w-16 rounded border border-[#e5e7eb] px-1 py-1 text-center"
+                                    min="1"
+                                    max="60"
+                                />
+                                <span className="text-xs">分钟</span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

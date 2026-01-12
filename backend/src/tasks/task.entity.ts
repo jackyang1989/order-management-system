@@ -330,6 +330,7 @@ export class CreateTaskDto {
   mainImage?: string;
   goodsPrice: number;
   taoWord?: string;
+  terminal?: number; // 返款方式: 1=本佣货返, 2=本立佣货
 
   // 多商品列表
   goodsList?: Array<{
@@ -343,6 +344,22 @@ export class CreateTaskDto {
     specName?: string;
     specValue?: string;
     keyword?: string;
+    goodsSpec?: string; // 详情问答提示
+    keywords?: Array<{
+      keyword: string;
+      useCount?: number;
+      advancedSettings?: {
+        discount: string[];
+        spec1: string;
+        spec2: string;
+        compareKeyword: string;
+        backupKeyword: string;
+        sort: string;
+        minPrice: number;
+        maxPrice: number;
+        province: string;
+      };
+    }>;
   }>;
 
   // 增值服务字段
@@ -386,6 +403,12 @@ export class CreateTaskDto {
   // P0 Fix: 新任务类型
   isRepay?: boolean; // 回购任务
   isNextDay?: boolean; // 隔天任务
+
+  // P0 Fix: Order Settings
+  memo?: string;           // 下单提示/备注
+  weight?: number;         // 包裹重量
+  fastRefund?: boolean;    // 快速返款服务
+  orderInterval?: number;  // 任务接单间隔
 
   // 口令验证
   isPasswordEnabled?: boolean; // 是否开启口令验证

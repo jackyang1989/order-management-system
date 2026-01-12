@@ -29,6 +29,33 @@ export interface PraiseContent {
     video?: string; // Video URL
 }
 
+// 关键词高级设置
+export interface KeywordAdvancedSettings {
+    discount: string[];       // 折扣服务选项 (多选)
+    spec1: string;            // 规格1
+    spec2: string;            // 规格2
+    compareKeyword: string;   // 货比关键词 (必填)
+    backupKeyword: string;    // 备选关键词
+    sort: string;             // 排序方式
+    minPrice: number;         // 最低价
+    maxPrice: number;         // 最高价
+    province: string;         // 发货地
+}
+
+// 关键词配置
+export interface KeywordConfig {
+    keyword: string;                  // 搜索关键词
+    useCount?: number;                // 使用次数
+    advancedSettings?: KeywordAdvancedSettings;
+}
+
+// 下单规格配置
+export interface OrderSpecConfig {
+    specName: string;     // 规格名称（如：颜色、尺码）
+    specValue: string;    // 规格值（如：红色、XL）
+    quantity: number;     // 购买数量
+}
+
 // 商品项接口 - 支持多商品
 export interface GoodsItem {
     id: string;           // 临时ID用于前端管理
@@ -38,15 +65,21 @@ export interface GoodsItem {
     link: string;         // 商品链接
     price: number;        // 单价
     quantity: number;     // 数量
-    specName?: string;    // 规格名
-    specValue?: string;   // 规格值
-    keyword?: string;     // 搜索关键词
+    specName?: string;    // 规格名 (兼容旧版)
+    specValue?: string;   // 规格值 (兼容旧版)
+    keyword?: string;     // 搜索关键词 (兼容旧版单关键词)
+    keywords?: KeywordConfig[];  // 多关键词配置 (新版，最多5个)
+    goodsSpec?: string;   // 详情问答提示 (兼容旧版)
+    orderSpecs?: OrderSpecConfig[];  // 下单规格配置 (最多5个)
+    verifyCode?: string;  // 核对口令 (最多10字，必须是商品详情页有的文字)
+    shopId?: string;      // 所属店铺ID
 }
 
 export interface TaskFormData {
     // Step 1: Basic Info
     taskType: number;        // 平台类型 (PlatformType)
     taskEntryType: number;   // 任务入口类型 (TaskEntryType): 1=关键词, 2=淘口令, 3=二维码, 4=直通车, 5=通道
+    terminal: number;        // 返款方式: 1=本佣货返, 2=本立佣货
     shopId: string;
     shopName: string;
 
@@ -105,6 +138,12 @@ export interface TaskFormData {
     isRepay: boolean;        // 回购任务
     isNextDay: boolean;      // 隔天任务
 
+    // Step 2: Order Settings
+    memo: string;            // 下单提示/备注 (最多100字)
+    weight: number;          // 包裹重量 (0-30kg)
+    fastRefund: boolean;     // 快速返款服务 (0.6%费率)
+    orderInterval: number;   // 任务接单间隔 (分钟)
+
     // Verify Code (口令验证)
     isPasswordEnabled: boolean; // 是否开启口令验证
     checkPassword: string; // 商品口令 (4-10字)
@@ -130,6 +169,7 @@ export interface TaskFormData {
 export const InitialTaskData: TaskFormData = {
     taskType: 1,
     taskEntryType: 1,  // 默认关键词搜索
+    terminal: 1,       // 默认本佣货返
     shopId: '',
     shopName: '',
 
@@ -178,6 +218,12 @@ export const InitialTaskData: TaskFormData = {
     // 特殊任务类型
     isRepay: false,
     isNextDay: false,
+
+    // Order Settings
+    memo: '',
+    weight: 0,
+    fastRefund: false,
+    orderInterval: 0,
 
     // Verify Code
     isPasswordEnabled: false,

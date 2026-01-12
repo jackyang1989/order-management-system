@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { TaskFormData, TaskEntryType, GoodsItem } from './types';
+import { TaskFormData, TaskEntryType, GoodsItem, KeywordConfig, KeywordAdvancedSettings, OrderSpecConfig } from './types';
 import { fetchShops, Shop } from '../../../../../services/shopService';
 import { getShopPlatformCode } from '../../../../../constants/platformConfig';
 import { fetchEnabledPlatforms, PlatformData } from '../../../../../services/systemConfigService';
@@ -33,6 +33,45 @@ const TASK_ENTRY_TYPES = [
     { id: TaskEntryType.CHANNEL, name: '通道', icon: '🔗', desc: '通过指定通道链接进入' },
 ];
 
+// 返款方式类型定义
+const TERMINAL_TYPES = [
+    { id: 1, name: '本佣货返', desc: '买手垫付，商家返本金+佣金' },
+    { id: 2, name: '本立佣货', desc: '商家预付本金，买手收货后返' },
+];
+
+// 折扣服务选项
+const DISCOUNT_OPTIONS = [
+    { value: '0', label: '包邮' },
+    { value: '1', label: '公益宝贝' },
+    { value: '2', label: '全球购' },
+    { value: '3', label: '消费者保障' },
+    { value: '4', label: '货到付款' },
+    { value: '5', label: '淘金币抵钱' },
+    { value: '6', label: '天猫' },
+    { value: '7', label: '花呗分期' },
+    { value: '8', label: '7+天退货' },
+    { value: '9', label: '天猫超市' },
+    { value: '10', label: '天猫直送' },
+    { value: '11', label: '通用排序' },
+];
+
+// 排序方式选项
+const SORT_OPTIONS = [
+    { value: '0', label: '综合排序' },
+    { value: '1', label: '销量优先' },
+    { value: '2', label: '价格由高到低' },
+    { value: '3', label: '价格由低到高' },
+    { value: '4', label: '信用排序' },
+];
+
+// 省份选项
+const PROVINCE_OPTIONS = [
+    '北京', '上海', '广东', '浙江', '江苏', '福建', '山东', '河南',
+    '湖北', '湖南', '四川', '重庆', '天津', '河北', '山西', '辽宁',
+    '吉林', '黑龙江', '安徽', '江西', '广西', '海南', '贵州', '云南',
+    '陕西', '甘肃', '青海', '内蒙古', '宁夏', '新疆', '西藏'
+];
+
 interface StepProps { data: TaskFormData; onChange: (data: Partial<TaskFormData>) => void; onNext: () => void; }
 
 // 生成唯一ID
@@ -52,6 +91,24 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     const [showGoodsLibModal, setShowGoodsLibModal] = useState(false);
     const [goodsLibList, setGoodsLibList] = useState<Goods[]>([]);
     const [loadingGoodsLib, setLoadingGoodsLib] = useState(false);
+    // 关键词高级设置相关状态
+    const [showKeywordAdvancedModal, setShowKeywordAdvancedModal] = useState(false);
+    const [editingKeywordGoodsId, setEditingKeywordGoodsId] = useState<string>('');
+    const [editingKeywordIndex, setEditingKeywordIndex] = useState<number>(0);
+    const [advancedSettings, setAdvancedSettings] = useState<KeywordAdvancedSettings>({
+        discount: [],
+        spec1: '',
+        spec2: '',
+        compareKeyword: '',
+        backupKeyword: '',
+        sort: '0',
+        minPrice: 0,
+        maxPrice: 0,
+        province: '',
+    });
+    // 图片上传状态
+    const [uploadingQrCode, setUploadingQrCode] = useState(false);
+    const [uploadingChannel, setUploadingChannel] = useState(false);
 
     useEffect(() => { loadShops(); loadPlatforms(); }, []);
 
@@ -113,13 +170,159 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     const handleEditGoods = (goods: GoodsItem) => {
         setEditingGoods(goods);
         setNewGoodsUrl(goods.link);
-        setNewGoodsData(goods);
+        setNewGoodsData({
+            ...goods,
+            verifyCode: goods.verifyCode || '',
+            shopId: goods.shopId || data.shopId,
+        });
         setShowAddGoodsModal(true);
     };
 
     // 删除商品
     const handleDeleteGoods = (id: string) => {
         const newList = data.goodsList.filter(g => g.id !== id);
+        onChange({ goodsList: newList });
+    };
+
+    // 更新商品属性 (用于直接编辑价格/数量/关键词等)
+    const handleUpdateGoodsField = (id: string, field: keyof GoodsItem, value: unknown) => {
+        const newList = data.goodsList.map(g => {
+            if (g.id === id) {
+                return { ...g, [field]: value };
+            }
+            return g;
+        });
+        onChange({ goodsList: newList });
+    };
+
+    // 添加关键词到商品
+    const handleAddKeyword = (goodsId: string) => {
+        const newList = data.goodsList.map(g => {
+            if (g.id === goodsId) {
+                const keywords = g.keywords || [];
+                if (keywords.length >= 5) {
+                    alert('每个商品最多添加5个关键词');
+                    return g;
+                }
+                return { ...g, keywords: [...keywords, { keyword: '', useCount: 1 }] };
+            }
+            return g;
+        });
+        onChange({ goodsList: newList });
+    };
+
+    // 删除关键词
+    const handleRemoveKeyword = (goodsId: string, keywordIndex: number) => {
+        const newList = data.goodsList.map(g => {
+            if (g.id === goodsId && g.keywords) {
+                const newKeywords = g.keywords.filter((_, i) => i !== keywordIndex);
+                return { ...g, keywords: newKeywords };
+            }
+            return g;
+        });
+        onChange({ goodsList: newList });
+    };
+
+    // 更新关键词
+    const handleUpdateKeyword = (goodsId: string, keywordIndex: number, field: keyof KeywordConfig, value: unknown) => {
+        const newList = data.goodsList.map(g => {
+            if (g.id === goodsId && g.keywords) {
+                const newKeywords = g.keywords.map((kw, i) => {
+                    if (i === keywordIndex) {
+                        return { ...kw, [field]: value };
+                    }
+                    return kw;
+                });
+                return { ...g, keywords: newKeywords };
+            }
+            return g;
+        });
+        onChange({ goodsList: newList });
+    };
+
+    // 打开关键词高级设置
+    const handleOpenAdvancedSettings = (goodsId: string, keywordIndex: number) => {
+        const goods = data.goodsList.find(g => g.id === goodsId);
+        if (goods?.keywords?.[keywordIndex]?.advancedSettings) {
+            setAdvancedSettings(goods.keywords[keywordIndex].advancedSettings!);
+        } else {
+            setAdvancedSettings({
+                discount: [],
+                spec1: '',
+                spec2: '',
+                compareKeyword: '',
+                backupKeyword: '',
+                sort: '0',
+                minPrice: 0,
+                maxPrice: 0,
+                province: '',
+            });
+        }
+        setEditingKeywordGoodsId(goodsId);
+        setEditingKeywordIndex(keywordIndex);
+        setShowKeywordAdvancedModal(true);
+    };
+
+    // 保存关键词高级设置
+    const handleSaveAdvancedSettings = () => {
+        const newList = data.goodsList.map(g => {
+            if (g.id === editingKeywordGoodsId && g.keywords) {
+                const newKeywords = g.keywords.map((kw, i) => {
+                    if (i === editingKeywordIndex) {
+                        return { ...kw, advancedSettings: { ...advancedSettings } };
+                    }
+                    return kw;
+                });
+                return { ...g, keywords: newKeywords };
+            }
+            return g;
+        });
+        onChange({ goodsList: newList });
+        setShowKeywordAdvancedModal(false);
+    };
+
+    // 添加下单规格
+    const handleAddOrderSpec = (goodsId: string) => {
+        const newList = data.goodsList.map(g => {
+            if (g.id === goodsId) {
+                const orderSpecs = g.orderSpecs || [];
+                if (orderSpecs.length >= 5) {
+                    alert('每个商品最多添加5个下单规格');
+                    return g;
+                }
+                return { ...g, orderSpecs: [...orderSpecs, { specName: '', specValue: '', quantity: 1 }] };
+            }
+            return g;
+        });
+        onChange({ goodsList: newList });
+    };
+
+    // 删除下单规格
+    const handleRemoveOrderSpec = (goodsId: string, specIndex: number) => {
+        const newList = data.goodsList.map(g => {
+            if (g.id === goodsId && g.orderSpecs) {
+                const newSpecs = g.orderSpecs.filter((_, i) => i !== specIndex);
+                return { ...g, orderSpecs: newSpecs };
+            }
+            return g;
+        });
+        onChange({ goodsList: newList });
+    };
+
+    // 更新下单规格
+    const handleUpdateOrderSpec = (goodsId: string, specIndex: number, field: keyof OrderSpecConfig, value: string | number) => {
+        const newList = data.goodsList.map(g => {
+            if (g.id === goodsId && g.orderSpecs) {
+                const newSpecs = g.orderSpecs.map((spec, i) => {
+                    if (i === specIndex) {
+                        return { ...spec, [field]: value };
+                    }
+                    return spec;
+                });
+                return { ...g, orderSpecs: newSpecs };
+            }
+            return g;
+        });
         onChange({ goodsList: newList });
     };
 
@@ -140,6 +343,50 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
         }, 500);
     };
 
+    // 二维码图片上传
+    const handleQrCodeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploadingQrCode(true);
+        try {
+            const reader = new FileReader();
+            reader.onload = () => {
+                onChange({ qrCodeImage: reader.result as string });
+                setUploadingQrCode(false);
+            };
+            reader.onerror = () => {
+                alert('图片读取失败');
+                setUploadingQrCode(false);
+            };
+            reader.readAsDataURL(file);
+        } catch {
+            alert('图片上传失败');
+            setUploadingQrCode(false);
+        }
+    };
+
+    // 通道图片上传
+    const handleChannelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploadingChannel(true);
+        try {
+            const reader = new FileReader();
+            reader.onload = () => {
+                onChange({ channelUrl: reader.result as string });
+                setUploadingChannel(false);
+            };
+            reader.onerror = () => {
+                alert('图片读取失败');
+                setUploadingChannel(false);
+            };
+            reader.readAsDataURL(file);
+        } catch {
+            alert('图片上传失败');
+            setUploadingChannel(false);
+        }
+    };
+
     // 保存商品
     const handleSaveGoods = () => {
         if (!newGoodsData.name || !newGoodsData.price) {
@@ -158,6 +405,8 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
             specName: newGoodsData.specName,
             specValue: newGoodsData.specValue,
             keyword: newGoodsData.keyword,
+            verifyCode: newGoodsData.verifyCode,
+            shopId: newGoodsData.shopId || data.shopId,
         };
 
         let newList: GoodsItem[];
@@ -192,6 +441,8 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
             specName: goods.specName,
             specValue: goods.specValue,
             keyword: '', // 需要用户填写
+            verifyCode: goods.verifyCode || '', // 同步商品库中的核对口令
+            shopId: goods.shopId || data.shopId,
         };
         onChange({ goodsList: [...data.goodsList, goodsItem] });
         setShowGoodsLibModal(false);
@@ -278,6 +529,28 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                 )}
             </div>
 
+            {/* Terminal (Refund Type) Selection */}
+            <div className="mb-6">
+                <label className="mb-2 block text-sm font-medium text-[#374151]">返款方式</label>
+                <div className="flex gap-4">
+                    {TERMINAL_TYPES.map(t => (
+                        <div
+                            key={t.id}
+                            onClick={() => onChange({ terminal: t.id })}
+                            className={cn(
+                                'flex cursor-pointer flex-col rounded-md border px-5 py-3 transition-all',
+                                data.terminal === t.id
+                                    ? 'border-primary-500 bg-primary-50'
+                                    : 'border-[#e5e7eb] bg-white hover:border-[#d1d5db]'
+                            )}
+                        >
+                            <span className={cn('text-sm font-medium', data.terminal === t.id ? 'text-primary-600' : 'text-[#374151]')}>{t.name}</span>
+                            <span className="mt-0.5 text-xs text-[#9ca3af]">{t.desc}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
             {/* Goods List Section */}
             <div className="mb-6">
                 <div className="mb-3 flex items-center justify-between">
@@ -310,54 +583,201 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                         <p className="text-xs text-[#9ca3af]">请点击上方"添加商品"按钮添加任务商品</p>
                     </div>
                 ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                         {data.goodsList.map((goods, index) => (
-                            <div key={goods.id} className="flex items-center gap-4 rounded-lg border border-[#e5e7eb] bg-white p-4">
-                                {/* 商品图片 */}
-                                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[#e5e7eb] bg-[#f9fafb]">
-                                    {goods.image ? (
-                                        <img src={goods.image} alt={goods.name} className="h-full w-full object-cover" />
-                                    ) : (
-                                        <span className="text-2xl text-[#9ca3af]">📷</span>
-                                    )}
+                            <div key={goods.id} className="rounded-lg border border-[#e5e7eb] bg-white p-4">
+                                {/* 商品基本信息行 */}
+                                <div className="flex items-start gap-4">
+                                    {/* 商品图片 */}
+                                    <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[#e5e7eb] bg-[#f9fafb]">
+                                        {goods.image ? (
+                                            <img src={goods.image} alt={goods.name} className="h-full w-full object-cover" />
+                                        ) : (
+                                            <span className="text-2xl text-[#9ca3af]">📷</span>
+                                        )}
+                                    </div>
+
+                                    {/* 商品信息 */}
+                                    <div className="min-w-0 flex-1">
+                                        <div className="mb-2 flex items-center gap-2">
+                                            {/* 主商品/副商品标签 */}
+                                            {index === 0 ? (
+                                                <span className="rounded bg-primary-100 px-1.5 py-0.5 text-xs font-medium text-primary-600">主商品</span>
+                                            ) : index <= 2 ? (
+                                                <span className="rounded bg-[#fef3c7] px-1.5 py-0.5 text-xs font-medium text-amber-600">副商品{index}</span>
+                                            ) : (
+                                                <span className="rounded bg-[#e5e7eb] px-1.5 py-0.5 text-xs text-[#6b7280]">商品{index + 1}</span>
+                                            )}
+                                            <span className="truncate text-sm font-medium text-[#374151]">{goods.name}</span>
+                                            <div className="ml-auto flex shrink-0 items-center gap-2">
+                                                <button onClick={() => handleEditGoods(goods)} className="rounded px-2 py-1 text-xs text-primary-600 hover:bg-primary-50">编辑</button>
+                                                <button onClick={() => handleDeleteGoods(goods.id)} className="rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50">删除</button>
+                                            </div>
+                                        </div>
+
+                                        {/* 可编辑价格/数量行 */}
+                                        <div className="mb-3 flex flex-wrap items-center gap-4">
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-xs text-[#6b7280]">下单价格:</span>
+                                                <input
+                                                    type="number"
+                                                    value={goods.price}
+                                                    onChange={e => handleUpdateGoodsField(goods.id, 'price', parseFloat(e.target.value) || 0)}
+                                                    className="w-20 rounded border border-[#e5e7eb] px-2 py-1 text-sm"
+                                                    step="0.01"
+                                                    min="0"
+                                                />
+                                                <span className="text-xs text-[#6b7280]">元</span>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-xs text-[#6b7280]">下单数量:</span>
+                                                <input
+                                                    type="number"
+                                                    value={goods.quantity}
+                                                    onChange={e => handleUpdateGoodsField(goods.id, 'quantity', parseInt(e.target.value) || 1)}
+                                                    className="w-16 rounded border border-[#e5e7eb] px-2 py-1 text-sm"
+                                                    min="1"
+                                                />
+                                                <span className="text-xs text-[#6b7280]">件</span>
+                                            </div>
+                                            <span className="text-sm text-[#6b7280]">小计: <span className="font-medium text-primary-600">¥{(Number(goods.price) * goods.quantity).toFixed(2)}</span></span>
+                                        </div>
+
+                                        {/* 下单规格设置 (非必填) */}
+                                        <div className="mb-3">
+                                            <div className="mb-2 flex items-center justify-between">
+                                                <label className="text-xs font-medium text-[#374151]">下单规格设置 <span className="text-[#9ca3af]">(非必填)</span></label>
+                                                <button
+                                                    onClick={() => handleAddOrderSpec(goods.id)}
+                                                    disabled={(goods.orderSpecs?.length || 0) >= 5}
+                                                    className={cn(
+                                                        'text-xs',
+                                                        (goods.orderSpecs?.length || 0) >= 5
+                                                            ? 'cursor-not-allowed text-[#9ca3af]'
+                                                            : 'text-primary-600 hover:text-primary-700'
+                                                    )}
+                                                >
+                                                    + 添加下单规格 ({goods.orderSpecs?.length || 0}/5)
+                                                </button>
+                                            </div>
+
+                                            {(!goods.orderSpecs || goods.orderSpecs.length === 0) ? (
+                                                <div className="rounded bg-[#f9fafb] px-3 py-2 text-center text-xs text-[#9ca3af]">
+                                                    点击上方按钮添加下单规格，买手将按照规格购买商品
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-2">
+                                                    {goods.orderSpecs.map((spec, specIndex) => (
+                                                        <div key={specIndex} className="flex items-center gap-2 rounded bg-[#f9fafb] p-2">
+                                                            <span className="shrink-0 text-xs text-[#6b7280]">#{specIndex + 1}</span>
+                                                            <input
+                                                                type="text"
+                                                                value={spec.specName}
+                                                                onChange={e => handleUpdateOrderSpec(goods.id, specIndex, 'specName', e.target.value)}
+                                                                placeholder="规格名(如:颜色)"
+                                                                className="min-w-0 flex-1 rounded border border-[#e5e7eb] px-2 py-1 text-sm"
+                                                            />
+                                                            <input
+                                                                type="text"
+                                                                value={spec.specValue}
+                                                                onChange={e => handleUpdateOrderSpec(goods.id, specIndex, 'specValue', e.target.value)}
+                                                                placeholder="规格值(如:尺码)"
+                                                                className="min-w-0 flex-1 rounded border border-[#e5e7eb] px-2 py-1 text-sm"
+                                                            />
+                                                            <div className="flex shrink-0 items-center gap-1">
+                                                                <span className="text-xs text-[#6b7280]">数量</span>
+                                                                <input
+                                                                    type="number"
+                                                                    value={spec.quantity}
+                                                                    onChange={e => handleUpdateOrderSpec(goods.id, specIndex, 'quantity', parseInt(e.target.value) || 1)}
+                                                                    className="w-16 rounded border border-[#e5e7eb] px-1 py-1 text-center text-sm"
+                                                                    min="1"
+                                                                />
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleRemoveOrderSpec(goods.id, specIndex)}
+                                                                className="shrink-0 text-red-400 hover:text-red-600"
+                                                            >
+                                                                ×
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            <p className="mt-1 text-xs text-[#9ca3af]">设置后买手将按照指定规格和数量购买商品</p>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                {/* 商品信息 */}
-                                <div className="min-w-0 flex-1">
-                                    <div className="mb-1 flex items-center gap-2">
-                                        <span className="rounded bg-[#e5e7eb] px-1.5 py-0.5 text-xs text-[#6b7280]">商品{index + 1}</span>
-                                        <span className="truncate text-sm font-medium text-[#374151]">{goods.name}</span>
-                                    </div>
-                                    <div className="flex flex-wrap items-center gap-4 text-sm text-[#6b7280]">
-                                        <span>单价: <span className="font-medium text-primary-600">¥{Number(goods.price).toFixed(2)}</span></span>
-                                        <span>数量: <span className="font-medium">{goods.quantity}</span></span>
-                                        <span>小计: <span className="font-medium text-primary-600">¥{(Number(goods.price) * goods.quantity).toFixed(2)}</span></span>
-                                        {goods.keyword && <span>关键词: <span className="font-medium">{goods.keyword}</span></span>}
-                                        {goods.specValue && <span>规格: {goods.specValue}</span>}
-                                    </div>
-                                </div>
+                                {/* 关键词配置区域 (关键词入口时显示) */}
+                                {(data.taskEntryType || TaskEntryType.KEYWORD) === TaskEntryType.KEYWORD && (
+                                    <div className="mt-4 border-t border-[#f3f4f6] pt-4">
+                                        <div className="mb-2 flex items-center justify-between">
+                                            <label className="text-xs font-medium text-[#374151]">搜索关键词配置 <span className="text-red-500">*</span></label>
+                                            <button
+                                                onClick={() => handleAddKeyword(goods.id)}
+                                                disabled={(goods.keywords?.length || 0) >= 5}
+                                                className={cn(
+                                                    'text-xs',
+                                                    (goods.keywords?.length || 0) >= 5
+                                                        ? 'cursor-not-allowed text-[#9ca3af]'
+                                                        : 'text-primary-600 hover:text-primary-700'
+                                                )}
+                                            >
+                                                + 添加关键词 ({goods.keywords?.length || 0}/5)
+                                            </button>
+                                        </div>
 
-                                {/* 操作按钮 */}
-                                <div className="flex shrink-0 items-center gap-2">
-                                    <button
-                                        onClick={() => handleEditGoods(goods)}
-                                        className="rounded px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50"
-                                    >
-                                        编辑
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeleteGoods(goods.id)}
-                                        className="rounded px-3 py-1.5 text-sm text-red-500 hover:bg-red-50"
-                                    >
-                                        删除
-                                    </button>
-                                </div>
+                                        {(!goods.keywords || goods.keywords.length === 0) ? (
+                                            <div className="rounded bg-[#f9fafb] px-3 py-2 text-center text-xs text-[#9ca3af]">
+                                                请添加搜索关键词，买手将通过此关键词搜索商品
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                {goods.keywords.map((kw, kwIndex) => (
+                                                    <div key={kwIndex} className="flex items-center gap-2 rounded bg-[#f9fafb] p-2">
+                                                        <span className="text-xs text-[#6b7280]">#{kwIndex + 1}</span>
+                                                        <input
+                                                            type="text"
+                                                            value={kw.keyword}
+                                                            onChange={e => handleUpdateKeyword(goods.id, kwIndex, 'keyword', e.target.value)}
+                                                            placeholder="输入搜索关键词"
+                                                            className="flex-1 rounded border border-[#e5e7eb] px-2 py-1 text-sm"
+                                                        />
+                                                        <div className="flex items-center gap-1">
+                                                            <span className="text-xs text-[#6b7280]">使用次数</span>
+                                                            <input
+                                                                type="number"
+                                                                value={kw.useCount || 1}
+                                                                onChange={e => handleUpdateKeyword(goods.id, kwIndex, 'useCount', parseInt(e.target.value) || 1)}
+                                                                className="w-12 rounded border border-[#e5e7eb] px-1 py-1 text-center text-sm"
+                                                                min="1"
+                                                            />
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleOpenAdvancedSettings(goods.id, kwIndex)}
+                                                            className="rounded border border-[#e5e7eb] bg-white px-2 py-1 text-xs text-[#6b7280] hover:border-primary-300 hover:text-primary-600"
+                                                        >
+                                                            高级设置
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleRemoveKeyword(goods.id, kwIndex)}
+                                                            className="text-red-400 hover:text-red-600"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         ))}
 
                         {/* 商品汇总 */}
                         <div className="flex items-center justify-end gap-6 rounded-lg bg-[#f9fafb] px-4 py-3">
-                            <span className="text-sm text-[#6b7280]">共 <span className="font-semibold text-[#374151]">{data.goodsList.length}</span> 个商品</span>
+                            <span className="text-sm text-[#6b7280]">共 <span className="font-semibold text-[#374151]">{data.goodsList.length}</span> 个商品 (最多3个)</span>
                             <span className="text-sm text-[#6b7280]">商品总价: <span className="text-lg font-bold text-primary-600">¥{totalGoodsPrice.toFixed(2)}</span></span>
                         </div>
                     </div>
@@ -385,16 +805,35 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                         <div>
                             <label className="mb-1.5 block text-sm text-[#374151]">二维码图片 <span className="text-red-500">*</span></label>
                             <div className="flex items-start gap-4">
-                                <div className="flex h-[120px] w-[120px] items-center justify-center rounded-md border-2 border-dashed border-[#d1d5db] bg-white">
+                                <div className="relative">
                                     {data.qrCodeImage ? (
-                                        <img src={data.qrCodeImage} alt="QR Code" className="h-full w-full object-contain p-2" />
+                                        <div className="relative">
+                                            <img src={data.qrCodeImage} alt="QR Code" className="h-[120px] w-[120px] rounded-md border border-[#e5e7eb] object-contain p-2" />
+                                            <button
+                                                type="button"
+                                                onClick={() => onChange({ qrCodeImage: '' })}
+                                                className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-sm text-white hover:bg-red-600"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
                                     ) : (
-                                        <span className="text-4xl text-[#9ca3af]">📱</span>
+                                        <label className="flex h-[120px] w-[120px] cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-[#d1d5db] bg-white text-[#9ca3af] transition-colors hover:border-primary-400 hover:text-primary-500">
+                                            {uploadingQrCode ? (
+                                                <span className="text-sm">上传中...</span>
+                                            ) : (
+                                                <>
+                                                    <span className="text-3xl">+</span>
+                                                    <span className="text-xs">上传二维码</span>
+                                                </>
+                                            )}
+                                            <input type="file" accept="image/*" onChange={handleQrCodeUpload} className="hidden" />
+                                        </label>
                                     )}
                                 </div>
                                 <div className="flex-1">
-                                    <Input type="text" value={data.qrCodeImage || ''} onChange={e => onChange({ qrCodeImage: e.target.value })} placeholder="请输入二维码图片URL或上传图片" />
-                                    <p className="mt-1.5 text-xs text-[#6b7280]">买家将扫描此二维码进入商品页面</p>
+                                    <p className="text-xs text-[#6b7280]">请上传商品二维码图片，买家将扫描此二维码进入商品页面</p>
+                                    <p className="mt-1 text-xs text-[#9ca3af]">支持 JPG、PNG 格式，建议尺寸 200x200 以上</p>
                                 </div>
                             </div>
                         </div>
@@ -409,12 +848,42 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                         </div>
                     )}
 
-                    {/* 通道链接 */}
+                    {/* 通道图片上传 */}
                     {(data.taskEntryType || TaskEntryType.KEYWORD) === TaskEntryType.CHANNEL && (
                         <div>
-                            <label className="mb-1.5 block text-sm text-[#374151]">通道链接 <span className="text-red-500">*</span></label>
-                            <Input type="text" value={data.channelUrl || ''} onChange={e => onChange({ channelUrl: e.target.value })} placeholder="请输入通道跳转链接" />
-                            <p className="mt-1.5 text-xs text-[#6b7280]">买家将通过此链接直接进入指定的商品页面或活动页面</p>
+                            <label className="mb-1.5 block text-sm text-[#374151]">通道图片 <span className="text-red-500">*</span></label>
+                            <div className="flex items-start gap-4">
+                                <div className="relative">
+                                    {data.channelUrl ? (
+                                        <div className="relative">
+                                            <img src={data.channelUrl} alt="Channel" className="h-[120px] w-[120px] rounded-md border border-[#e5e7eb] object-contain p-2" />
+                                            <button
+                                                type="button"
+                                                onClick={() => onChange({ channelUrl: '' })}
+                                                className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-sm text-white hover:bg-red-600"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <label className="flex h-[120px] w-[120px] cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-[#d1d5db] bg-white text-[#9ca3af] transition-colors hover:border-primary-400 hover:text-primary-500">
+                                            {uploadingChannel ? (
+                                                <span className="text-sm">上传中...</span>
+                                            ) : (
+                                                <>
+                                                    <span className="text-3xl">+</span>
+                                                    <span className="text-xs">上传通道图片</span>
+                                                </>
+                                            )}
+                                            <input type="file" accept="image/*" onChange={handleChannelUpload} className="hidden" />
+                                        </label>
+                                    )}
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-xs text-[#6b7280]">请上传通道任务图片，买家将通过此通道进入指定的商品页面或活动页面</p>
+                                    <p className="mt-1 text-xs text-[#9ca3af]">支持 JPG、PNG 格式，建议尺寸 200x200 以上</p>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -441,11 +910,30 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
             {/* Add/Edit Goods Modal */}
             {showAddGoodsModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
+                    <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white p-6 shadow-xl">
                         <div className="mb-4 flex items-center justify-between">
                             <h3 className="text-lg font-semibold text-[#374151]">{editingGoods ? '编辑商品' : '添加商品'}</h3>
                             <button onClick={() => setShowAddGoodsModal(false)} className="text-[#9ca3af] hover:text-[#6b7280]">✕</button>
                         </div>
+
+                        {/* 所属店铺选择 (仅手动添加时显示，编辑时默认使用当前任务店铺) */}
+                        {!editingGoods && (
+                            <div className="mb-4">
+                                <label className="mb-1.5 block text-sm font-medium text-[#374151]">所属店铺 <span className="text-red-500">*</span></label>
+                                <Select
+                                    value={newGoodsData.shopId || data.shopId}
+                                    onChange={v => setNewGoodsData(prev => ({ ...prev, shopId: v }))}
+                                    options={[
+                                        { value: '', label: '请选择店铺...' },
+                                        ...filteredShops.map(shop => ({
+                                            value: shop.id,
+                                            label: `${shop.shopName}${shop.accountName ? ` (${shop.accountName})` : ''}`
+                                        }))
+                                    ]}
+                                />
+                                <p className="mt-1 text-xs text-[#6b7280]">商品将关联到选中的店铺</p>
+                            </div>
+                        )}
 
                         {/* 商品链接获取 */}
                         <div className="mb-4">
@@ -506,41 +994,18 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                             </div>
                         </div>
 
-                        {/* 规格 */}
-                        <div className="mb-4 grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="mb-1 block text-sm text-[#374151]">规格名</label>
-                                <Input
-                                    type="text"
-                                    value={newGoodsData.specName || ''}
-                                    onChange={e => setNewGoodsData(prev => ({ ...prev, specName: e.target.value }))}
-                                    placeholder="如：颜色"
-                                />
-                            </div>
-                            <div>
-                                <label className="mb-1 block text-sm text-[#374151]">规格值</label>
-                                <Input
-                                    type="text"
-                                    value={newGoodsData.specValue || ''}
-                                    onChange={e => setNewGoodsData(prev => ({ ...prev, specValue: e.target.value }))}
-                                    placeholder="如：红色"
-                                />
-                            </div>
+                        {/* 核对口令 */}
+                        <div className="mb-4">
+                            <label className="mb-1 block text-sm text-[#374151]">核对口令</label>
+                            <Input
+                                type="text"
+                                value={newGoodsData.verifyCode || ''}
+                                onChange={e => setNewGoodsData(prev => ({ ...prev, verifyCode: e.target.value.slice(0, 10) }))}
+                                placeholder="请输入核对口令"
+                                maxLength={10}
+                            />
+                            <p className="mt-1 text-xs text-[#6b7280]">请输入不超过10个字的核对口令，必须是商品详情页有的文字。买手做任务时需在详情页找到此口令进行核对。</p>
                         </div>
-
-                        {/* 关键词 (关键词入口时显示) */}
-                        {(data.taskEntryType || TaskEntryType.KEYWORD) === TaskEntryType.KEYWORD && (
-                            <div className="mb-4">
-                                <label className="mb-1 block text-sm text-[#374151]">搜索关键词 <span className="text-red-500">*</span></label>
-                                <Input
-                                    type="text"
-                                    value={newGoodsData.keyword || ''}
-                                    onChange={e => setNewGoodsData(prev => ({ ...prev, keyword: e.target.value }))}
-                                    placeholder="买家搜索此关键词找到商品"
-                                />
-                                <p className="mt-1 text-xs text-[#6b7280]">买家将通过此关键词在平台搜索找到您的商品</p>
-                            </div>
-                        )}
 
                         {/* 操作按钮 */}
                         <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
@@ -608,6 +1073,146 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
 
                         <div className="mt-4 flex justify-end border-t border-[#e5e7eb] pt-4">
                             <Button variant="secondary" onClick={() => setShowGoodsLibModal(false)}>关闭</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Keyword Advanced Settings Modal */}
+            {showKeywordAdvancedModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl">
+                        <div className="mb-4 flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-[#374151]">关键词高级设置</h3>
+                            <button onClick={() => setShowKeywordAdvancedModal(false)} className="text-[#9ca3af] hover:text-[#6b7280]">✕</button>
+                        </div>
+
+                        {/* 折扣服务多选 */}
+                        <div className="mb-4">
+                            <label className="mb-2 block text-sm font-medium text-[#374151]">折扣服务筛选</label>
+                            <div className="grid grid-cols-4 gap-2">
+                                {DISCOUNT_OPTIONS.map(opt => (
+                                    <label key={opt.value} className="flex cursor-pointer items-center gap-1.5 rounded border border-[#e5e7eb] px-2 py-1.5 text-sm hover:bg-[#f9fafb]">
+                                        <input
+                                            type="checkbox"
+                                            checked={advancedSettings.discount.includes(opt.value)}
+                                            onChange={e => {
+                                                if (e.target.checked) {
+                                                    setAdvancedSettings(prev => ({ ...prev, discount: [...prev.discount, opt.value] }));
+                                                } else {
+                                                    setAdvancedSettings(prev => ({ ...prev, discount: prev.discount.filter(v => v !== opt.value) }));
+                                                }
+                                            }}
+                                        />
+                                        <span>{opt.label}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* 商品规格 */}
+                        <div className="mb-4 grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="mb-1 block text-sm text-[#374151]">商品规格1</label>
+                                <Input
+                                    type="text"
+                                    value={advancedSettings.spec1}
+                                    onChange={e => setAdvancedSettings(prev => ({ ...prev, spec1: e.target.value }))}
+                                    placeholder="如：颜色"
+                                />
+                            </div>
+                            <div>
+                                <label className="mb-1 block text-sm text-[#374151]">商品规格2</label>
+                                <Input
+                                    type="text"
+                                    value={advancedSettings.spec2}
+                                    onChange={e => setAdvancedSettings(prev => ({ ...prev, spec2: e.target.value }))}
+                                    placeholder="如：尺码"
+                                />
+                            </div>
+                        </div>
+
+                        {/* 货比关键词 (必填) */}
+                        <div className="mb-4">
+                            <label className="mb-1 block text-sm text-[#374151]">货比关键词 <span className="text-red-500">*</span></label>
+                            <Input
+                                type="text"
+                                value={advancedSettings.compareKeyword}
+                                onChange={e => setAdvancedSettings(prev => ({ ...prev, compareKeyword: e.target.value }))}
+                                placeholder="买手货比时使用的关键词 (必填)"
+                                className={!advancedSettings.compareKeyword ? 'border-red-300' : ''}
+                            />
+                            <p className="mt-0.5 text-xs text-[#9ca3af]">买手进行货比浏览时使用此关键词搜索</p>
+                        </div>
+
+                        {/* 备选关键词 */}
+                        <div className="mb-4">
+                            <label className="mb-1 block text-sm text-[#374151]">备选关键词</label>
+                            <Input
+                                type="text"
+                                value={advancedSettings.backupKeyword}
+                                onChange={e => setAdvancedSettings(prev => ({ ...prev, backupKeyword: e.target.value }))}
+                                placeholder="主关键词找不到时使用"
+                            />
+                        </div>
+
+                        {/* 排序方式 */}
+                        <div className="mb-4">
+                            <label className="mb-1 block text-sm text-[#374151]">排序方式</label>
+                            <select
+                                value={advancedSettings.sort}
+                                onChange={e => setAdvancedSettings(prev => ({ ...prev, sort: e.target.value }))}
+                                className="w-full rounded border border-[#e5e7eb] px-3 py-2 text-sm"
+                            >
+                                {SORT_OPTIONS.map(opt => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* 价格范围 */}
+                        <div className="mb-4 grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="mb-1 block text-sm text-[#374151]">最低价格</label>
+                                <Input
+                                    type="number"
+                                    value={String(advancedSettings.minPrice || '')}
+                                    onChange={e => setAdvancedSettings(prev => ({ ...prev, minPrice: parseFloat(e.target.value) || 0 }))}
+                                    placeholder="0"
+                                    min="0"
+                                />
+                            </div>
+                            <div>
+                                <label className="mb-1 block text-sm text-[#374151]">最高价格</label>
+                                <Input
+                                    type="number"
+                                    value={String(advancedSettings.maxPrice || '')}
+                                    onChange={e => setAdvancedSettings(prev => ({ ...prev, maxPrice: parseFloat(e.target.value) || 0 }))}
+                                    placeholder="不限"
+                                    min="0"
+                                />
+                            </div>
+                        </div>
+
+                        {/* 发货地省份 */}
+                        <div className="mb-4">
+                            <label className="mb-1 block text-sm text-[#374151]">发货地省份</label>
+                            <select
+                                value={advancedSettings.province}
+                                onChange={e => setAdvancedSettings(prev => ({ ...prev, province: e.target.value }))}
+                                className="w-full rounded border border-[#e5e7eb] px-3 py-2 text-sm"
+                            >
+                                <option value="">不限</option>
+                                {PROVINCE_OPTIONS.map(p => (
+                                    <option key={p} value={p}>{p}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* 操作按钮 */}
+                        <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
+                            <Button variant="secondary" onClick={() => setShowKeywordAdvancedModal(false)}>取消</Button>
+                            <Button onClick={handleSaveAdvancedSettings}>保存设置</Button>
                         </div>
                     </div>
                 </div>

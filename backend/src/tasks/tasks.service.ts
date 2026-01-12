@@ -352,6 +352,11 @@ export class TasksService implements OnModuleInit {
         isNextDay: !!dto.isNextDay,
         nextDayFee: dto.nextDayFee || 0,
 
+        // P0 Fix: 返款方式和订单设置
+        terminal: dto.terminal || 1, // 默认本佣货返
+        memo: dto.memo || '',
+        unionInterval: dto.orderInterval || 0,
+
         // 口令验证
         isPasswordEnabled: !!dto.isPasswordEnabled,
         checkPassword: dto.checkPassword || '',

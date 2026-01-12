@@ -197,93 +197,111 @@ function OrdersPageContent() {
     const defaultBtn = (index_state: string) => { if (index_state === '4') return '确认返款'; if (index_state === '2') return '去收货'; return '查看详情'; };
     const defaultBtnClick = (index_state: string, id: string) => { if (!index_state || index_state === '4') router.push(`/orders/${id}`); else if (index_state === '2') router.push(`/orders/${id}/receive`); else router.push(`/orders/${id}`); };
 
-    const getStatusColor = (state: string) => { if (state.includes('完成')) return 'bg-green-50 text-success-400'; if (state.includes('取消') || state.includes('放弃') || state.includes('超时')) return 'bg-slate-100 text-slate-500'; if (state.includes('返款')) return 'bg-amber-50 text-warning-500'; return 'bg-blue-50 text-primary-600'; };
+    const getStatusColor = (state: string) => { if (state.includes('完成')) return 'bg-green-50 text-success-500'; if (state.includes('取消') || state.includes('放弃') || state.includes('超时')) return 'bg-slate-100 text-slate-500'; if (state.includes('返款')) return 'bg-amber-50 text-warning-500'; return 'bg-blue-50 text-primary-600'; };
 
     const totalPages = Math.ceil(total / pageSize);
 
     const QUICK_TABS = [{ key: '', label: '全部' }, { key: '1', label: '待发货' }, { key: '2', label: '待收货' }, { key: '3', label: '待返款' }, { key: '4', label: '待确认' }, { key: '5', label: '已完成' }, { key: '6', label: '已超时' }];
 
     return (
-        <div className="min-h-screen bg-slate-50 pb-20">
+        <div className="min-h-screen bg-[#F8FAFC] pb-20 text-slate-900">
             {/* Header Area */}
-            <div className="sticky top-0 z-20 mx-auto max-w-[515px] border-b border-slate-200 bg-white">
-                <div className="px-4">
-                    <div className="flex h-14 items-center">
-                        <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
-                        <h1 className="flex-1 text-base font-medium text-slate-800">任务管理</h1>
-                        <button onClick={() => setShowFilters(!showFilters)} className="text-sm text-primary-500">{showFilters ? '收起' : '筛选'}</button>
-                    </div>
-                    {/* Search */}
-                    <div className="flex gap-2 pb-3">
+            <div className="sticky top-0 z-20 mx-auto max-w-[515px] bg-[#F8FAFC]/80 backdrop-blur-md">
+                <div className="px-6 h-16 flex items-center justify-between">
+                    <button onClick={() => router.back()} className="mr-4 text-slate-600">←</button>
+                    <h1 className="flex-1 text-xl font-bold text-slate-900">任务管理</h1>
+                    <button onClick={() => setShowFilters(!showFilters)} className="text-sm font-bold text-primary-600 bg-white px-3 py-1.5 rounded-full">{showFilters ? '收起' : '筛选'}</button>
+                </div>
+                {/* Search */}
+                <div className="px-4 pb-4">
+                    <div className="flex gap-2">
                         <input type="text" placeholder="请输入任务编号" value={indexorder} onChange={(e) => setIndexorder(e.target.value)}
-                            className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400" />
-                        <button onClick={searchOrder} className="rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white">搜索</button>
+                            className="flex-1 rounded-xl border-none bg-white px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-primary-500/20 outline-none" />
+                        <button onClick={searchOrder} className="rounded-xl bg-primary-600 px-5 py-2 text-sm font-bold text-white active:scale-95 transition-transform">搜索</button>
                     </div>
                 </div>
             </div>
 
-            <div>
+            <div className="mx-auto max-w-[515px]">
                 {/* Filters Panel */}
                 {showFilters && (
-                    <div className="border-b border-slate-200 bg-white px-4 py-4">
-                        <div className="mb-3 grid grid-cols-2 gap-3">
+                    <div className="mx-4 mb-4 rounded-[24px] bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] space-y-4">
+                        <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <div className="mb-1 text-xs text-slate-500">任务状态</div>
-                                <select value={value1} onChange={(e) => getChooseValue(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                                    {STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                                </select>
+                                <div className="mb-2 text-xs font-bold text-slate-500">任务状态</div>
+                                <div className="relative">
+                                    <select value={value1} onChange={(e) => getChooseValue(e.target.value)} className="w-full appearance-none rounded-xl border-none bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-primary-500/20">
+                                        {STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                    </select>
+                                    <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">▼</div>
+                                </div>
                             </div>
                             <div>
-                                <div className="mb-1 text-xs text-slate-500">任务买号</div>
-                                <select value={value2} onChange={(e) => { setValue2(e.target.value); setCurrentPage(1); }} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                                    <option value="">全部买号</option>
-                                    {buynos.map(b => <option key={b.id} value={b.id}>{b.platformAccount}</option>)}
-                                </select>
-                            </div>
-                        </div>
-                        <div className="mb-3 grid grid-cols-2 gap-3">
-                            <div>
-                                <div className="mb-1 text-xs text-slate-500">返款方式</div>
-                                <select value={value4} onChange={(e) => { setValue4(e.target.value); setCurrentPage(1); }} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                                    {REFUND_TYPE_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <div className="mb-1 text-xs text-slate-500">平台筛选</div>
-                                <select value={platformFilter} onChange={(e) => { setPlatformFilter(e.target.value ? Number(e.target.value) : ''); setCurrentPage(1); }} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                                    {platformOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                                </select>
+                                <div className="mb-2 text-xs font-bold text-slate-500">任务买号</div>
+                                <div className="relative">
+                                    <select value={value2} onChange={(e) => { setValue2(e.target.value); setCurrentPage(1); }} className="w-full appearance-none rounded-xl border-none bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-primary-500/20">
+                                        <option value="">全部买号</option>
+                                        {buynos.map(b => <option key={b.id} value={b.id}>{b.platformAccount}</option>)}
+                                    </select>
+                                    <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">▼</div>
+                                </div>
                             </div>
                         </div>
-                        <div className="mb-3 grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <div className="mb-1 text-xs text-slate-500">任务类型</div>
-                                <select value={value3} onChange={(e) => { setValue3(e.target.value ? Number(e.target.value) : ''); setCurrentPage(1); }} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                                    {TASK_TYPE_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                                </select>
+                                <div className="mb-2 text-xs font-bold text-slate-500">返款方式</div>
+                                <div className="relative">
+                                    <select value={value4} onChange={(e) => { setValue4(e.target.value); setCurrentPage(1); }} className="w-full appearance-none rounded-xl border-none bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-primary-500/20">
+                                        {REFUND_TYPE_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                    </select>
+                                    <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">▼</div>
+                                </div>
                             </div>
                             <div>
-                                <div className="mb-1 text-xs text-slate-500">追评任务</div>
-                                <select value={value5} onChange={(e) => getZhuiPingValue(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                                    {REVIEW_STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                                </select>
+                                <div className="mb-2 text-xs font-bold text-slate-500">平台筛选</div>
+                                <div className="relative">
+                                    <select value={platformFilter} onChange={(e) => { setPlatformFilter(e.target.value ? Number(e.target.value) : ''); setCurrentPage(1); }} className="w-full appearance-none rounded-xl border-none bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-primary-500/20">
+                                        {platformOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                    </select>
+                                    <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">▼</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <div className="mb-2 text-xs font-bold text-slate-500">任务类型</div>
+                                <div className="relative">
+                                    <select value={value3} onChange={(e) => { setValue3(e.target.value ? Number(e.target.value) : ''); setCurrentPage(1); }} className="w-full appearance-none rounded-xl border-none bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-primary-500/20">
+                                        {TASK_TYPE_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                    </select>
+                                    <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">▼</div>
+                                </div>
+                            </div>
+                            <div>
+                                <div className="mb-2 text-xs font-bold text-slate-500">追评任务</div>
+                                <div className="relative">
+                                    <select value={value5} onChange={(e) => getZhuiPingValue(e.target.value)} className="w-full appearance-none rounded-xl border-none bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-primary-500/20">
+                                        {REVIEW_STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                    </select>
+                                    <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">▼</div>
+                                </div>
                             </div>
                         </div>
                         <div>
-                            <div className="mb-1 text-xs text-slate-500">任务起止时间</div>
+                            <div className="mb-2 text-xs font-bold text-slate-500">任务起止时间</div>
                             <div className="grid grid-cols-2 gap-3">
-                                <input type="date" value={datetime1} onChange={(e) => { setDatetime1(e.target.value); setCurrentPage(1); }} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700" />
-                                <input type="date" value={datetime2} onChange={(e) => { setDatetime2(e.target.value); setCurrentPage(1); getData(datetime1, e.target.value); }} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700" />
+                                <input type="date" value={datetime1} onChange={(e) => { setDatetime1(e.target.value); setCurrentPage(1); }} className="w-full rounded-xl border-none bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-primary-500/20" />
+                                <input type="date" value={datetime2} onChange={(e) => { setDatetime2(e.target.value); setCurrentPage(1); getData(datetime1, e.target.value); }} className="w-full rounded-xl border-none bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-primary-500/20" />
                             </div>
                         </div>
                     </div>
                 )}
 
                 {/* Quick Tabs */}
-                <div className="flex overflow-x-auto border-b border-slate-200 bg-white">
+                <div className="no-scrollbar flex overflow-x-auto px-4 pb-2">
                     {QUICK_TABS.map(tab => (
                         <button key={tab.key} onClick={() => getChooseValue(tab.key)}
-                            className={cn('flex-none whitespace-nowrap px-4 py-3 text-sm font-medium', value1 === tab.key ? 'border-b-2 border-blue-500 text-primary-500' : 'text-slate-500')}>
+                            className={cn('flex-none whitespace-nowrap px-4 py-2 text-sm font-bold mr-2 rounded-full transition-all', value1 === tab.key ? 'bg-primary-600 text-white' : 'bg-white text-slate-500')}>
                             {tab.label}
                         </button>
                     ))}
@@ -291,56 +309,76 @@ function OrdersPageContent() {
 
                 {/* Batch Select (when value1 === '4') */}
                 {value1 === '4' && (
-                    <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
-                        <label className="flex items-center gap-2 text-sm text-slate-600">
-                            <input type="checkbox" checked={selectAll} onChange={handleSelectAll} className="h-4 w-4 rounded border-slate-300" /> 全选
+                    <div className="mx-4 mt-2 flex items-center justify-between rounded-[20px] bg-white px-5 py-3 shadow-sm">
+                        <label className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                            <input type="checkbox" checked={selectAll} onChange={handleSelectAll} className="h-4 w-4 rounded-md border-slate-300 text-primary-600 focus:ring-primary-500" /> 全选
                         </label>
                         <button onClick={handleBatchConfirmRefund} disabled={selectedIds.length === 0}
-                            className={cn('rounded-full px-4 py-1.5 text-sm font-medium text-white', selectedIds.length > 0 ? 'bg-warning-400' : 'cursor-not-allowed bg-slate-300')}>
+                            className={cn('rounded-xl px-5 py-2 text-sm font-bold text-white transition-all', selectedIds.length > 0 ? 'bg-warning-500 active:scale-95' : 'cursor-not-allowed bg-slate-200')}>
                             确认返款 ({selectedIds.length})
                         </button>
                     </div>
                 )}
 
                 {/* Order List */}
-                <div className="mt-4 space-y-3 px-4">
+                <div className="mt-4 space-y-4 px-4 pb-8">
                     {loading ? (
-                        <div className="rounded-xl bg-white py-12 text-center text-slate-400">加载中...</div>
+                        <div className="rounded-[24px] bg-white py-16 text-center text-slate-400">
+                            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary-100 border-t-primary-500" />
+                            <div className="mt-4 text-xs font-bold">加载中...</div>
+                        </div>
                     ) : orders.length === 0 ? (
-                        <div className="rounded-xl border border-slate-200 bg-white py-12 text-center">
-                            <div className="mb-3 text-4xl">📦</div>
-                            <div className="text-sm text-slate-400">暂无订单</div>
+                        <div className="rounded-[24px] bg-white py-20 text-center shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                            <div className="mb-4 text-5xl opacity-30 grayscale">📦</div>
+                            <div className="text-sm font-bold text-slate-300">暂无订单数据</div>
                         </div>
                     ) : (
                         orders.map((order) => (
-                            <div key={order.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                            <div key={order.id} className="overflow-hidden rounded-[24px] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-all hover:shadow-md">
                                 {/* Order Header */}
-                                <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                                <div className="flex items-center justify-between border-b border-slate-50 px-5 py-4">
                                     <div className="flex items-center gap-3">
-                                        {value1 === '4' && <input type="checkbox" checked={order.checked || false} onChange={() => handleSelectOrder(order.id)} className="h-4 w-4 rounded border-slate-300" />}
-                                        {order.shopImg ? <img src={order.shopImg} alt="" className="h-9 w-9 rounded-lg object-cover" /> : <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-lg">🏪</div>}
+                                        {value1 === '4' && <input type="checkbox" checked={order.checked || false} onChange={() => handleSelectOrder(order.id)} className="h-5 w-5 rounded-md border-slate-300 text-primary-600 focus:ring-primary-500" />}
+                                        {order.shopImg ? <img src={order.shopImg} alt="" className="h-10 w-10 rounded-xl object-cover shadow-sm bg-slate-50" /> : <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-xl">🏪</div>}
                                         <div>
-                                            <div className="text-sm font-medium text-slate-800">{order.type}店铺：{order.shopName?.substring(0, 3)}...</div>
-                                            <div className="text-xs text-slate-400">任务类型：{order.taskType}</div>
+                                            <div className="text-sm font-bold text-slate-900">{order.type}店铺：{order.shopName?.substring(0, 3)}...</div>
+                                            <div className="mt-0.5 text-[10px] font-medium text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded inline-block">类型：{order.taskType}</div>
                                         </div>
                                     </div>
-                                    <span className={cn('rounded-full px-2.5 py-1 text-xs font-medium', getStatusColor(order.state))}>{order.state}</span>
+                                    <span className={cn('rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1', getStatusColor(order.state))}>
+                                        <span className="h-1.5 w-1.5 rounded-full bg-current opacity-50"></span>
+                                        {order.state}
+                                    </span>
                                 </div>
                                 {/* Order Body */}
-                                <div className="px-4 py-3">
-                                    <div className="mb-2 text-xs text-slate-400">任务编号：{order.taskNumber}</div>
-                                    <div className="grid grid-cols-2 gap-1 text-sm">
-                                        <div className="text-slate-500">买号：<span className="text-slate-700">{order.buynoAccount}</span></div>
-                                        <div className="text-slate-500">佣金：<span className="font-medium text-success-400">{order.commission}+{order.userDivided}银锭</span></div>
-                                        <div className="text-slate-500">垫付资金：<span className="font-medium text-primary-500">¥{order.userPrincipal}</span></div>
-                                        <div className="text-xs text-slate-400">{order.createdAt}</div>
+                                <div className="px-5 py-4">
+                                    <div className="mb-3 text-xs font-medium text-slate-400 flex items-center gap-2">
+                                        <span className="bg-slate-100 px-2 py-0.5 rounded text-slate-500">编号</span>
+                                        {order.taskNumber}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3 text-sm">
+                                        <div className="rounded-xl bg-slate-50 p-3">
+                                            <div className="text-[10px] text-slate-400 mb-1">买号</div>
+                                            <div className="font-bold text-slate-700">{order.buynoAccount}</div>
+                                        </div>
+                                        <div className="rounded-xl bg-slate-50 p-3">
+                                            <div className="text-[10px] text-slate-400 mb-1">佣金</div>
+                                            <div className="font-bold text-success-500">+{order.commission}+{order.userDivided}银锭</div>
+                                        </div>
+                                        <div className="rounded-xl bg-slate-50 p-3 col-span-2 flex items-center justify-between">
+                                            <div>
+                                                <div className="text-[10px] text-slate-400 mb-1">垫付资金</div>
+                                                <div className="font-bold text-slate-900">¥{order.userPrincipal}</div>
+                                            </div>
+                                            <div className="text-xs font-medium text-slate-400">{order.createdAt}</div>
+                                        </div>
                                     </div>
                                 </div>
                                 {/* Order Footer */}
-                                <div className="flex justify-end gap-2 border-t border-slate-100 px-4 py-3">
-                                    {!value5 && !value1 && <button onClick={() => defaultBtnClick(order.indexState, order.id)} className="rounded-full bg-warning-400 px-4 py-1.5 text-xs font-medium text-white">{defaultBtn(order.indexState)}</button>}
-                                    {(value5 || value1) && <button onClick={() => value5 ? chooseTiao2(order.reviewTaskId || '') : chooseTiao(order.id)} className="rounded-full bg-warning-400 px-4 py-1.5 text-xs font-medium text-white">{buttonvalue}</button>}
-                                    {value5 === '1' && order.reviewTaskId && <button onClick={() => goZhuiPin(order.reviewTaskId!)} className="rounded-full bg-primary-500 px-4 py-1.5 text-xs font-medium text-white">{buttonvalue2}</button>}
+                                <div className="flex justify-end gap-3 border-t border-slate-50 px-5 py-4 bg-slate-50/50">
+                                    {!value5 && !value1 && <button onClick={() => defaultBtnClick(order.indexState, order.id)} className="rounded-xl bg-white border border-slate-200 px-5 py-2 text-xs font-bold text-slate-600 active:scale-95 transition-all hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300">{defaultBtn(order.indexState)}</button>}
+                                    {(value5 || value1) && <button onClick={() => value5 ? chooseTiao2(order.reviewTaskId || '') : chooseTiao(order.id)} className="rounded-xl bg-white border border-slate-200 px-5 py-2 text-xs font-bold text-slate-600 active:scale-95 transition-all hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300">{buttonvalue}</button>}
+                                    {value5 === '1' && order.reviewTaskId && <button onClick={() => goZhuiPin(order.reviewTaskId!)} className="rounded-xl bg-primary-600 px-5 py-2 text-xs font-bold text-white active:scale-95 transition-all hover:bg-primary-700">{buttonvalue2}</button>}
                                 </div>
                             </div>
                         ))
@@ -349,15 +387,15 @@ function OrdersPageContent() {
 
                 {/* Pagination */}
                 {!loading && orders.length > 0 && (
-                    <div className="mt-4 text-center">
-                        <div className="mb-2 text-xs text-slate-400">共 {total} 条</div>
+                    <div className="mt-4 text-center pb-8">
+                        <div className="mb-3 text-xs font-medium text-slate-400/80">共 {total} 条数据</div>
                         {totalPages > 1 && (
-                            <div className="flex justify-center gap-2">
+                            <div className="flex items-center justify-center gap-3">
                                 <button onClick={() => setCurrentPage(Math.max(1, currentPage - 1))} disabled={currentPage === 1}
-                                    className={cn('rounded-lg border px-3 py-1.5 text-sm', currentPage === 1 ? 'border-slate-200 bg-slate-100 text-slate-400' : 'border-slate-200 bg-white text-slate-700')}>上一页</button>
-                                <span className="px-3 py-1.5 text-sm text-slate-500">{currentPage} / {totalPages}</span>
+                                    className={cn('h-10 w-10 text-xl flex items-center justify-center rounded-xl bg-white font-bold transition-all', currentPage === 1 ? 'opacity-50 cursor-not-allowed text-slate-300' : 'text-slate-600 active:scale-95')}>←</button>
+                                <span className="text-sm font-black text-slate-900 bg-white px-4 py-2 rounded-xl">{currentPage} / {totalPages}</span>
                                 <button onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages}
-                                    className={cn('rounded-lg border px-3 py-1.5 text-sm', currentPage === totalPages ? 'border-slate-200 bg-slate-100 text-slate-400' : 'border-slate-200 bg-white text-slate-700')}>下一页</button>
+                                    className={cn('h-10 w-10 text-xl flex items-center justify-center rounded-xl bg-white font-bold transition-all', currentPage === totalPages ? 'opacity-50 cursor-not-allowed text-slate-300' : 'text-slate-600 active:scale-95')}>→</button>
                             </div>
                         )}
                     </div>
@@ -371,7 +409,7 @@ function OrdersPageContent() {
 
 export default function OrdersPage() {
     return (
-        <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-slate-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" /></div>}>
+        <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-600 border-t-transparent" /></div>}>
             <OrdersPageContent />
         </Suspense>
     );
