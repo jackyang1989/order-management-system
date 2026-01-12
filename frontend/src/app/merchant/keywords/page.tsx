@@ -11,6 +11,15 @@ import { Select } from '../../../components/ui/select';
 import { Modal } from '../../../components/ui/modal';
 import { fetchShops, Shop } from '../../../services/shopService';
 
+// 排序方式选项 - 与任务发布页保持一致
+const SORT_OPTIONS = [
+    { value: '0', label: '综合排序' },
+    { value: '1', label: '销量排序' },
+    { value: '2', label: '价格升序' },
+    { value: '3', label: '价格降序' },
+    { value: '4', label: '信用排序' },
+];
+
 interface KeywordScheme {
     id: string;
     name: string;
@@ -22,8 +31,9 @@ interface KeywordScheme {
 interface KeywordDetail {
     id: string;
     keyword: string;
-    targetPrice: number;
-    orderType: string;
+    minPrice: number;
+    maxPrice: number;
+    sort: string;
     amount: number;
 }
 
@@ -41,7 +51,14 @@ export default function KeywordsPage() {
     const [loading, setLoading] = useState(false);
 
     const [isKeywordModalOpen, setIsKeywordModalOpen] = useState(false);
-    const [keywordForm, setKeywordForm] = useState({ id: '', keyword: '', targetPrice: '', orderType: 'comprehensive', amount: '1' });
+    const [keywordForm, setKeywordForm] = useState({
+        id: '',
+        keyword: '',
+        minPrice: '',
+        maxPrice: '',
+        sort: '0',
+        amount: '1'
+    });
 
     // 加载店铺列表
     useEffect(() => {
@@ -161,16 +178,17 @@ export default function KeywordsPage() {
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({
                     keyword: keywordForm.keyword,
-                    targetPrice: Number(keywordForm.targetPrice),
-                    orderType: keywordForm.orderType,
-                    amount: Number(keywordForm.amount)
+                    minPrice: Number(keywordForm.minPrice) || 0,
+                    maxPrice: Number(keywordForm.maxPrice) || 0,
+                    sort: keywordForm.sort,
+                    amount: Number(keywordForm.amount) || 1
                 })
             });
             const json = await res.json();
             if (json.success) {
                 fetchKeywords(schemeId);
                 setIsKeywordModalOpen(false);
-                setKeywordForm({ id: '', keyword: '', targetPrice: '', orderType: 'comprehensive', amount: '1' });
+                setKeywordForm({ id: '', keyword: '', minPrice: '', maxPrice: '', sort: '0', amount: '1' });
             } else {
                 alert(json.message);
             }
@@ -184,6 +202,21 @@ export default function KeywordsPage() {
             await fetch(`${BASE_URL}/keywords/details/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
             if (currentScheme) fetchKeywords(currentScheme.id);
         } catch (error) { console.error('Delete Keyword Failed:', error); }
+    };
+
+    // 获取排序方式显示文本
+    const getSortLabel = (sortValue: string) => {
+        const option = SORT_OPTIONS.find(opt => opt.value === sortValue);
+        return option ? option.label : '综合排序';
+    };
+
+    // 格式化价格区间显示
+    const formatPriceRange = (minPrice: number, maxPrice: number) => {
+        if (!minPrice && !maxPrice) return '-';
+        if (minPrice && maxPrice) return `¥${minPrice} - ¥${maxPrice}`;
+        if (minPrice) return `¥${minPrice} 起`;
+        if (maxPrice) return `¥${maxPrice} 以内`;
+        return '-';
     };
 
     return (
@@ -253,7 +286,7 @@ export default function KeywordsPage() {
                                 </p>
                             </div>
                             <Button
-                                onClick={() => { setKeywordForm({ id: '', keyword: '', targetPrice: '', orderType: 'comprehensive', amount: '1' }); setIsKeywordModalOpen(true); }}
+                                onClick={() => { setKeywordForm({ id: '', keyword: '', minPrice: '', maxPrice: '', sort: '0', amount: '1' }); setIsKeywordModalOpen(true); }}
                                 className="h-10 rounded-[14px] bg-primary-600 px-5 font-bold text-white shadow-lg shadow-primary-500/20 hover:bg-primary-700 hover:shadow-primary-500/30"
                             >
                                 + 添加关键词
@@ -273,7 +306,7 @@ export default function KeywordsPage() {
                                     <p className="mt-4 text-sm font-bold text-slate-400">暂无关键词配置</p>
                                     <Button
                                         variant="ghost"
-                                        onClick={() => { setKeywordForm({ id: '', keyword: '', targetPrice: '', orderType: 'comprehensive', amount: '1' }); setIsKeywordModalOpen(true); }}
+                                        onClick={() => { setKeywordForm({ id: '', keyword: '', minPrice: '', maxPrice: '', sort: '0', amount: '1' }); setIsKeywordModalOpen(true); }}
                                         className="mt-2 font-bold text-primary-600 hover:text-primary-700"
                                     >
                                         立即添加
@@ -281,12 +314,12 @@ export default function KeywordsPage() {
                                 </div>
                             ) : (
                                 <div className="overflow-hidden rounded-[24px] border border-slate-100 bg-white">
-                                    <table className="w-full min-w-[500px]">
+                                    <table className="w-full min-w-[600px]">
                                         <thead>
                                             <tr className="bg-slate-50/50">
                                                 <th className="px-6 py-4 text-left text-xs font-bold uppercase text-slate-400">关键词</th>
-                                                <th className="px-6 py-4 text-left text-xs font-bold uppercase text-slate-400">排序</th>
-                                                <th className="px-6 py-4 text-left text-xs font-bold uppercase text-slate-400">价格</th>
+                                                <th className="px-6 py-4 text-left text-xs font-bold uppercase text-slate-400">排序方式</th>
+                                                <th className="px-6 py-4 text-left text-xs font-bold uppercase text-slate-400">价格区间</th>
                                                 <th className="px-6 py-4 text-left text-xs font-bold uppercase text-slate-400">数量</th>
                                                 <th className="px-6 py-4 text-right text-xs font-bold uppercase text-slate-400">操作</th>
                                             </tr>
@@ -299,12 +332,12 @@ export default function KeywordsPage() {
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <span className="text-sm font-medium text-slate-500">
-                                                            {kw.orderType === 'comprehensive' ? '综合' : kw.orderType === 'sales' ? '销量' : '价格'}
+                                                            {getSortLabel(kw.sort)}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <span className="font-mono text-sm font-bold text-slate-700">
-                                                            {kw.targetPrice ? `¥${kw.targetPrice}` : '-'}
+                                                            {formatPriceRange(kw.minPrice, kw.maxPrice)}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4">
@@ -313,9 +346,19 @@ export default function KeywordsPage() {
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
-                                                        <div className="flex justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                                                        <div className="flex justify-end gap-2">
                                                             <button
-                                                                onClick={() => { setKeywordForm({ id: kw.id, keyword: kw.keyword, targetPrice: kw.targetPrice?.toString() || '', orderType: kw.orderType, amount: kw.amount?.toString() || '1' }); setIsKeywordModalOpen(true); }}
+                                                                onClick={() => {
+                                                                    setKeywordForm({
+                                                                        id: kw.id,
+                                                                        keyword: kw.keyword,
+                                                                        minPrice: kw.minPrice?.toString() || '',
+                                                                        maxPrice: kw.maxPrice?.toString() || '',
+                                                                        sort: kw.sort || '0',
+                                                                        amount: kw.amount?.toString() || '1'
+                                                                    });
+                                                                    setIsKeywordModalOpen(true);
+                                                                }}
                                                                 className="rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-primary-600 shadow-sm ring-1 ring-slate-200 hover:bg-primary-50 hover:ring-primary-100"
                                                             >
                                                                 编辑
@@ -368,35 +411,49 @@ export default function KeywordsPage() {
                         <div>
                             <label className="mb-2 block text-xs font-bold uppercase text-slate-400">排序方式</label>
                             <Select
-                                value={keywordForm.orderType}
-                                onChange={v => setKeywordForm({ ...keywordForm, orderType: v })}
-                                options={[{ value: 'comprehensive', label: '综合排序' }, { value: 'sales', label: '销量排序' }, { value: 'price', label: '价格排序' }]}
+                                value={keywordForm.sort}
+                                onChange={v => setKeywordForm({ ...keywordForm, sort: v })}
+                                options={SORT_OPTIONS}
                                 className="h-12 w-full appearance-none rounded-[16px] border-none bg-slate-50 px-4 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none"
                             />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="mb-2 block text-xs font-bold uppercase text-slate-400">卡位价格 (选填)</label>
+                        <div>
+                            <label className="mb-2 block text-xs font-bold uppercase text-slate-400">卡位价格区间 (选填)</label>
+                            <div className="grid grid-cols-2 gap-3">
                                 <div className="relative">
                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">¥</span>
                                     <Input
                                         type="number"
-                                        value={keywordForm.targetPrice}
-                                        onChange={e => setKeywordForm({ ...keywordForm, targetPrice: e.target.value })}
-                                        placeholder="0.00"
+                                        value={keywordForm.minPrice}
+                                        onChange={e => setKeywordForm({ ...keywordForm, minPrice: e.target.value })}
+                                        placeholder="最低价"
+                                        min="0"
+                                        className="h-12 rounded-[16px] border-none bg-slate-50 px-4 pl-8 font-bold text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary-500/20"
+                                    />
+                                </div>
+                                <div className="relative">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">¥</span>
+                                    <Input
+                                        type="number"
+                                        value={keywordForm.maxPrice}
+                                        onChange={e => setKeywordForm({ ...keywordForm, maxPrice: e.target.value })}
+                                        placeholder="最高价"
+                                        min="0"
                                         className="h-12 rounded-[16px] border-none bg-slate-50 px-4 pl-8 font-bold text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary-500/20"
                                     />
                                 </div>
                             </div>
-                            <div>
-                                <label className="mb-2 block text-xs font-bold uppercase text-slate-400">数量</label>
-                                <Input
-                                    type="number"
-                                    value={keywordForm.amount}
-                                    onChange={e => setKeywordForm({ ...keywordForm, amount: e.target.value })}
-                                    className="h-12 rounded-[16px] border-none bg-slate-50 px-4 font-bold text-slate-900 focus:ring-2 focus:ring-primary-500/20"
-                                />
-                            </div>
+                            <p className="mt-1.5 text-xs text-slate-400">设置后，任务发布时会自动应用到筛选设置</p>
+                        </div>
+                        <div>
+                            <label className="mb-2 block text-xs font-bold uppercase text-slate-400">数量</label>
+                            <Input
+                                type="number"
+                                value={keywordForm.amount}
+                                onChange={e => setKeywordForm({ ...keywordForm, amount: e.target.value })}
+                                min="1"
+                                className="h-12 rounded-[16px] border-none bg-slate-50 px-4 font-bold text-slate-900 focus:ring-2 focus:ring-primary-500/20"
+                            />
                         </div>
                     </div>
                     <div className="flex justify-end gap-3 pt-4 border-t border-slate-50">

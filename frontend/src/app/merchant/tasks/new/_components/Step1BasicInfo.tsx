@@ -159,6 +159,16 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
             return;
         }
 
+        // 获取第一个关键词的筛选设置作为商品筛选设置
+        const firstDetail = scheme.details[0];
+        const filterSettingsFromScheme: GoodsFilterSettings = {
+            discount: [],
+            sort: firstDetail.sort || '0',
+            minPrice: firstDetail.minPrice || 0,
+            maxPrice: firstDetail.maxPrice || 0,
+            province: firstDetail.province || '',
+        };
+
         const newList = data.goodsList.map(g => {
             if (g.id === selectingForGoodsId) {
                 // 将方案中的关键词转换为商品关键词配置格式
@@ -166,7 +176,8 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                     keyword: d.keyword,
                     useCount: d.amount || 1,
                 }));
-                return { ...g, keywords };
+                // 同时应用筛选设置
+                return { ...g, keywords, filterSettings: filterSettingsFromScheme };
             }
             return g;
         });
