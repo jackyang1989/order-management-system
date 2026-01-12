@@ -41,28 +41,12 @@ const TERMINAL_TYPES = [
     { id: 1, name: '本佣货返', desc: '买手垫付，商家返本金+佣金' },
 ];
 
-// 折扣服务选项
-const DISCOUNT_OPTIONS = [
-    { value: '0', label: '包邮' },
-    { value: '1', label: '公益宝贝' },
-    { value: '2', label: '全球购' },
-    { value: '3', label: '消费者保障' },
-    { value: '4', label: '货到付款' },
-    { value: '5', label: '淘金币抵钱' },
-    { value: '6', label: '天猫' },
-    { value: '7', label: '花呗分期' },
-    { value: '8', label: '7+天退货' },
-    { value: '9', label: '天猫超市' },
-    { value: '10', label: '天猫直送' },
-    { value: '11', label: '通用排序' },
-];
-
 // 排序方式选项
 const SORT_OPTIONS = [
     { value: '0', label: '综合排序' },
-    { value: '1', label: '销量优先' },
-    { value: '2', label: '价格由高到低' },
-    { value: '3', label: '价格由低到高' },
+    { value: '1', label: '销量排序' },
+    { value: '2', label: '价格升序' },
+    { value: '3', label: '价格降序' },
     { value: '4', label: '信用排序' },
 ];
 
@@ -1338,29 +1322,6 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                         <p className="mb-4 text-sm text-[#6b7280]">
                             {editingFilterKeywordIndex >= 0 ? '设置该关键词的搜索筛选条件' : '筛选设置将应用于该商品的所有关键词搜索'}
                         </p>
-
-                        {/* 折扣服务多选 */}
-                        <div className="mb-4">
-                            <label className="mb-2 block text-sm font-medium text-[#374151]">折扣服务筛选</label>
-                            <div className="grid grid-cols-4 gap-2">
-                                {DISCOUNT_OPTIONS.map(opt => (
-                                    <label key={opt.value} className="flex cursor-pointer items-center gap-1.5 rounded border border-[#e5e7eb] px-2 py-1.5 text-sm hover:bg-[#f9fafb]">
-                                        <input
-                                            type="checkbox"
-                                            checked={filterSettings.discount.includes(opt.value)}
-                                            onChange={e => {
-                                                if (e.target.checked) {
-                                                    setFilterSettings(prev => ({ ...prev, discount: [...prev.discount, opt.value] }));
-                                                } else {
-                                                    setFilterSettings(prev => ({ ...prev, discount: prev.discount.filter(v => v !== opt.value) }));
-                                                }
-                                            }}
-                                        />
-                                        <span>{opt.label}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
 
                         {/* 排序方式 */}
                         <div className="mb-4">
