@@ -135,10 +135,11 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
         setLoadingGoodsLib(false);
     };
 
-    // 加载关键词方案
-    const loadKeywordSchemes = async () => {
+    // 加载关键词方案（按当前店铺筛选）
+    const loadKeywordSchemes = async (shopId?: string) => {
         setLoadingSchemes(true);
-        const schemes = await fetchKeywordSchemes();
+        // 传入 shopId 只加载当前店铺的方案
+        const schemes = await fetchKeywordSchemes(shopId);
         setKeywordSchemes(schemes);
         setLoadingSchemes(false);
     };
@@ -146,7 +147,8 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     // 打开关键词方案选择弹窗
     const handleOpenSchemeSelector = (goodsId: string) => {
         setSelectingForGoodsId(goodsId);
-        loadKeywordSchemes();
+        // 只加载当前店铺的关键词方案
+        loadKeywordSchemes(data.shopId);
         setShowKeywordSchemeModal(true);
     };
 
