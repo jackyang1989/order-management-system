@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-interface TaskDetail { id: string; taskNumber: string; title: string; taskType: number; shopId: string; shopName: string; url: string; mainImage: string; keyword: string; taoWord?: string; goodsPrice: number; count: number; claimedCount: number; completedCount: number; status: number; isFreeShipping: number; isPraise: boolean; praiseType: string; praiseList: string[]; isTimingPublish: boolean; publishTime?: string; isTimingPay: boolean; timingPayTime?: string; isCycleTime: boolean; cycleTime?: number; addReward: number; totalDeposit: number; totalCommission: number; baseServiceFee: number; praiseFee: number; postageMoney: number; marginMoney: number; createdAt: string; updatedAt: string; }
+interface TaskDetail { id: string; taskNumber: string; title: string; taskType: number; shopId: string; shopName: string; url: string; mainImage: string; keyword: string; taoWord?: string; goodsPrice: number; count: number; claimedCount: number; completedCount: number; status: number; isFreeShipping: number; isPraise: boolean; praiseType: string; praiseList: string[]; isTimingPublish: boolean; publishTime?: string; isTimingPay: boolean; timingPayTime?: string; isCycleTime: boolean; cycleTime?: number; addReward: number; totalDeposit: number; totalCommission: number; baseServiceFee: number; praiseFee: number; shippingFee: number; margin: number; createdAt: string; updatedAt: string; }
 interface OrderItem { id: string; buynoAccount: string; status: string; productPrice: number; commission: number; createdAt: string; completedAt?: string; }
 
 const TaskTypeMap: Record<number, string> = { 1: '淘宝', 2: '天猫', 3: '京东', 4: '拼多多' };
@@ -173,14 +173,14 @@ export default function TaskDetailPage() {
                         <div className="px-6 py-5">
                             <h2 className="mb-5 text-base font-semibold">费用明细</h2>
                             <div className="grid gap-2.5 text-sm">
-                                <div className="flex justify-between"><span className="text-[#6b7280]">商品本金 × {task.count}</span><span>¥{(task.goodsPrice * task.count).toFixed(2)}</span></div>
-                                <div className="flex justify-between"><span className="text-[#6b7280]">基础服务费</span><span>¥{(task.baseServiceFee * task.count).toFixed(2)}</span></div>
-                                {task.praiseFee > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">好评费用</span><span>¥{(task.praiseFee * task.count).toFixed(2)}</span></div>}
-                                {task.postageMoney > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">邮费</span><span>¥{task.postageMoney.toFixed(2)}</span></div>}
-                                {task.marginMoney > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">保证金</span><span>¥{task.marginMoney.toFixed(2)}</span></div>}
+                                <div className="flex justify-between"><span className="text-[#6b7280]">商品本金 × {task.count}</span><span>¥{(Number(task.goodsPrice) * task.count).toFixed(2)}</span></div>
+                                <div className="flex justify-between"><span className="text-[#6b7280]">基础服务费</span><span>¥{(Number(task.baseServiceFee) * task.count).toFixed(2)}</span></div>
+                                {Number(task.praiseFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">好评费用</span><span>¥{(Number(task.praiseFee) * task.count).toFixed(2)}</span></div>}
+                                {Number(task.shippingFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">邮费</span><span>¥{Number(task.shippingFee).toFixed(2)}</span></div>}
+                                {Number(task.margin) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">保证金</span><span>¥{Number(task.margin).toFixed(2)}</span></div>}
                                 <div className="mt-1.5 border-t border-[#e5e7eb] pt-2.5">
-                                    <div className="flex justify-between font-semibold"><span>押金总计</span><span className="text-primary-600">¥{task.totalDeposit.toFixed(2)}</span></div>
-                                    <div className="mt-1.5 flex justify-between font-semibold"><span>佣金总计</span><span className="text-danger-400">¥{task.totalCommission.toFixed(2)}</span></div>
+                                    <div className="flex justify-between font-semibold"><span>押金总计</span><span className="text-primary-600">¥{Number(task.totalDeposit || 0).toFixed(2)}</span></div>
+                                    <div className="mt-1.5 flex justify-between font-semibold"><span>佣金总计</span><span className="text-danger-400">¥{Number(task.totalCommission || 0).toFixed(2)}</span></div>
                                 </div>
                             </div>
                         </div>
