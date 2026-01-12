@@ -155,7 +155,13 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
 
     // 计算商品总价
     const totalGoodsPrice = useMemo(() => {
-        return data.goodsList.reduce((sum, g) => sum + (g.price * g.quantity), 0);
+        return data.goodsList.reduce((sum, g) => {
+            // 优先使用规格数量之和，没有规格时用商品数量
+            const qty = g.orderSpecs && g.orderSpecs.length > 0
+                ? g.orderSpecs.reduce((s, spec) => s + (spec.quantity || 1), 0)
+                : (g.quantity || 1);
+            return sum + (g.price * qty);
+        }, 0);
     }, [data.goodsList]);
 
     // 添加商品
@@ -290,7 +296,10 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                     alert('每个商品最多添加5个下单规格');
                     return g;
                 }
-                return { ...g, orderSpecs: [...orderSpecs, { specName: '', specValue: '', quantity: 1 }] };
+                const newSpecs = [...orderSpecs, { specName: '', specValue: '', quantity: 1 }];
+                // 自动更新商品数量为规格数量之和
+                const newQuantity = newSpecs.reduce((sum, spec) => sum + (spec.quantity || 1), 0);
+                return { ...g, orderSpecs: newSpecs, quantity: newQuantity };
             }
             return g;
         });
@@ -302,7 +311,11 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
         const newList = data.goodsList.map(g => {
             if (g.id === goodsId && g.orderSpecs) {
                 const newSpecs = g.orderSpecs.filter((_, i) => i !== specIndex);
-                return { ...g, orderSpecs: newSpecs };
+                // 自动更新商品数量：规格为空时默认1，否则为规格数量之和
+                const newQuantity = newSpecs.length > 0
+                    ? newSpecs.reduce((sum, spec) => sum + (spec.quantity || 1), 0)
+                    : 1;
+                return { ...g, orderSpecs: newSpecs, quantity: newQuantity };
             }
             return g;
         });
@@ -319,7 +332,9 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                     }
                     return spec;
                 });
-                return { ...g, orderSpecs: newSpecs };
+                // 当规格数量变化时，自动更新商品数量
+                const newQuantity = newSpecs.reduce((sum, spec) => sum + (spec.quantity || 1), 0);
+                return { ...g, orderSpecs: newSpecs, quantity: newQuantity };
             }
             return g;
         });
@@ -631,16 +646,17 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                                             </div>
                                             <div className="flex items-center gap-1">
                                                 <span className="text-xs text-[#6b7280]">下单数量:</span>
-                                                <input
-                                                    type="number"
-                                                    value={goods.quantity}
-                                                    onChange={e => handleUpdateGoodsField(goods.id, 'quantity', parseInt(e.target.value) || 1)}
-                                                    className="w-16 rounded border border-[#e5e7eb] px-2 py-1 text-sm"
-                                                    min="1"
-                                                />
+                                                <span className="px-2 py-1 text-sm font-medium text-[#374151]">
+                                                    {goods.orderSpecs && goods.orderSpecs.length > 0
+                                                        ? goods.orderSpecs.reduce((sum, spec) => sum + (spec.quantity || 1), 0)
+                                                        : goods.quantity || 1}
+                                                </span>
                                                 <span className="text-xs text-[#6b7280]">件</span>
+                                                {goods.orderSpecs && goods.orderSpecs.length > 0 && (
+                                                    <span className="text-xs text-[#9ca3af]">(按规格计算)</span>
+                                                )}
                                             </div>
-                                            <span className="text-sm text-[#6b7280]">小计: <span className="font-medium text-primary-600">¥{(Number(goods.price) * goods.quantity).toFixed(2)}</span></span>
+                                            <span className="text-sm text-[#6b7280]">小计: <span className="font-medium text-primary-600">¥{(Number(goods.price) * (goods.orderSpecs && goods.orderSpecs.length > 0 ? goods.orderSpecs.reduce((sum, spec) => sum + (spec.quantity || 1), 0) : (goods.quantity || 1))).toFixed(2)}</span></span>
                                         </div>
 
                                         {/* 下单规格设置 (非必填) */}
@@ -972,26 +988,15 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                             </div>
                         </div>
 
-                        {/* 价格和数量 */}
-                        <div className="mb-4 grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="mb-1 block text-sm text-[#374151]">单价 (元) <span className="text-red-500">*</span></label>
-                                <Input
-                                    type="number"
-                                    value={String(newGoodsData.price || '')}
-                                    onChange={e => setNewGoodsData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                                    placeholder="0.00"
-                                />
-                            </div>
-                            <div>
-                                <label className="mb-1 block text-sm text-[#374151]">数量</label>
-                                <Input
-                                    type="number"
-                                    value={String(newGoodsData.quantity || 1)}
-                                    onChange={e => setNewGoodsData(prev => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
-                                    min="1"
-                                />
-                            </div>
+                        {/* 价格 */}
+                        <div className="mb-4">
+                            <label className="mb-1 block text-sm text-[#374151]">单价 (元) <span className="text-red-500">*</span></label>
+                            <Input
+                                type="number"
+                                value={String(newGoodsData.price || '')}
+                                onChange={e => setNewGoodsData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                                placeholder="0.00"
+                            />
                         </div>
 
                         {/* 核对口令 */}
