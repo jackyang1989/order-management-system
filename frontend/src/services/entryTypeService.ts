@@ -31,7 +31,7 @@ export const fetchEnabledEntryTypes = async (): Promise<EntryTypeData[]> => {
  */
 export const fetchAllEntryTypes = async (activeOnly: boolean = true): Promise<EntryTypeData[]> => {
     try {
-        const res = await api.get('/admin/entry-types', { params: { activeOnly } });
+        const res = await api.get(`/admin/entry-types?activeOnly=${activeOnly}`);
         if (res.data.success) {
             return res.data.data || [];
         }
