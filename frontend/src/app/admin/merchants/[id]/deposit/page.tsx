@@ -147,7 +147,7 @@ function MerchantDepositPageContent() {
                             押金 - {merchant?.username || '加载中...'}
                         </h2>
                         <p className="text-sm text-[#6b7280]">
-                            手机: {merchant?.phone || '-'} | 本金余额: ¥{(merchant?.balance || 0).toFixed(2)} | 冻结: ¥{(merchant?.frozenBalance || 0).toFixed(2)} | 银锭: {(merchant?.silver || 0).toFixed(2)}
+                            手机: {merchant?.phone || '-'} | 本金余额: ¥{Number(merchant?.balance || 0).toFixed(2)} | 冻结: ¥{Number(merchant?.frozenBalance || 0).toFixed(2)} | 银锭: {Number(merchant?.silver || 0).toFixed(2)}
                         </p>
                     </div>
                     <div className="flex gap-2">
