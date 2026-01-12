@@ -49,6 +49,7 @@ export interface KeywordConfig {
     keyword: string;                  // 搜索关键词
     useCount?: number;                // 使用次数
     advancedSettings?: KeywordAdvancedSettings;
+    filterSettings?: GoodsFilterSettings;  // 关键词筛选设置
 }
 
 // 下单规格配置

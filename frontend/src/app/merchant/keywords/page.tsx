@@ -142,7 +142,7 @@ export default function KeywordsPage() {
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({
                     name: `${shopName}的关键词`,
-                    description: '店铺默认关键词方案',
+                    description: '',
                     shopId: shopId
                 })
             });

@@ -98,6 +98,7 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     // 商品筛选设置相关状态
     const [showFilterSettingsModal, setShowFilterSettingsModal] = useState(false);
     const [editingFilterGoodsId, setEditingFilterGoodsId] = useState<string>('');
+    const [editingFilterKeywordIndex, setEditingFilterKeywordIndex] = useState<number>(-1); // -1 表示商品级别，>=0 表示关键词索引
     const [filterSettings, setFilterSettings] = useState<GoodsFilterSettings>({
         discount: [],
         sort: '0',
@@ -113,6 +114,8 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     const [keywordSchemes, setKeywordSchemes] = useState<KeywordScheme[]>([]);
     const [loadingSchemes, setLoadingSchemes] = useState(false);
     const [selectingForGoodsId, setSelectingForGoodsId] = useState<string>('');
+    // 多选关键词状态
+    const [selectedKeywordIds, setSelectedKeywordIds] = useState<Set<string>>(new Set());
 
     useEffect(() => { loadShops(); loadPlatforms(); loadEntryTypes(); }, []);
 
@@ -147,12 +150,93 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     // 打开关键词方案选择弹窗
     const handleOpenSchemeSelector = (goodsId: string) => {
         setSelectingForGoodsId(goodsId);
+        setSelectedKeywordIds(new Set()); // 重置选中状态
         // 只加载当前店铺的关键词方案
         loadKeywordSchemes(data.shopId);
         setShowKeywordSchemeModal(true);
     };
 
-    // 从方案中选择关键词并应用到商品
+    // 获取所有关键词（从所有方案中提取）
+    const allKeywords = useMemo(() => {
+        const keywords: Array<{ id: string; keyword: string; sort?: string; minPrice?: number; maxPrice?: number; province?: string; amount?: number }> = [];
+        keywordSchemes.forEach(scheme => {
+            if (scheme.details) {
+                scheme.details.forEach(d => {
+                    keywords.push({
+                        id: d.id,
+                        keyword: d.keyword,
+                        sort: d.sort,
+                        minPrice: d.minPrice,
+                        maxPrice: d.maxPrice,
+                        province: d.province,
+                        amount: d.amount,
+                    });
+                });
+            }
+        });
+        return keywords;
+    }, [keywordSchemes]);
+
+    // 切换关键词选中状态
+    const toggleKeywordSelection = (keywordId: string) => {
+        setSelectedKeywordIds(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(keywordId)) {
+                newSet.delete(keywordId);
+            } else {
+                newSet.add(keywordId);
+            }
+            return newSet;
+        });
+    };
+
+    // 确认选择关键词（多选）
+    const handleConfirmKeywordSelection = () => {
+        if (!selectingForGoodsId || selectedKeywordIds.size === 0) {
+            alert('请至少选择一个关键词');
+            return;
+        }
+
+        // 获取当前商品已有的关键词数量
+        const currentGoods = data.goodsList.find(g => g.id === selectingForGoodsId);
+        const currentKeywordCount = currentGoods?.keywords?.length || 0;
+        const remainingSlots = 10 - currentKeywordCount;
+
+        if (remainingSlots <= 0) {
+            alert('该商品关键词已达到上限(10个)');
+            return;
+        }
+
+        // 获取选中的关键词详情
+        const selectedKeywords = allKeywords.filter(kw => selectedKeywordIds.has(kw.id));
+        const keywordsToAdd = selectedKeywords.slice(0, remainingSlots);
+
+        const newList = data.goodsList.map(g => {
+            if (g.id === selectingForGoodsId) {
+                // 将选中的关键词添加到商品，每个关键词带有自己的筛选设置
+                const newKeywords: KeywordConfig[] = keywordsToAdd.map(kw => ({
+                    keyword: kw.keyword,
+                    useCount: kw.amount || 1,
+                    filterSettings: {
+                        discount: [],
+                        sort: kw.sort || '0',
+                        minPrice: kw.minPrice || 0,
+                        maxPrice: kw.maxPrice || 0,
+                        province: kw.province || '',
+                    },
+                }));
+                const existingKeywords = g.keywords || [];
+                return { ...g, keywords: [...existingKeywords, ...newKeywords] };
+            }
+            return g;
+        });
+        onChange({ goodsList: newList });
+        setShowKeywordSchemeModal(false);
+        setSelectingForGoodsId('');
+        setSelectedKeywordIds(new Set());
+    };
+
+    // 从方案中选择关键词并应用到商品 (保留用于兼容，但不再使用)
     const handleSelectScheme = (scheme: KeywordScheme) => {
         if (!selectingForGoodsId || !scheme.details || scheme.details.length === 0) {
             alert('该方案没有关键词');
@@ -172,7 +256,7 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
         const newList = data.goodsList.map(g => {
             if (g.id === selectingForGoodsId) {
                 // 将方案中的关键词转换为商品关键词配置格式
-                const keywords: KeywordConfig[] = scheme.details.slice(0, 5).map(d => ({
+                const keywords: KeywordConfig[] = scheme.details.slice(0, 10).map(d => ({
                     keyword: d.keyword,
                     useCount: d.amount || 1,
                 }));
@@ -276,8 +360,8 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
         const newList = data.goodsList.map(g => {
             if (g.id === goodsId) {
                 const keywords = g.keywords || [];
-                if (keywords.length >= 5) {
-                    alert('每个商品最多添加5个关键词');
+                if (keywords.length >= 10) {
+                    alert('每个商品最多添加10个关键词');
                     return g;
                 }
                 return { ...g, keywords: [...keywords, { keyword: '', useCount: 1 }] };
@@ -317,9 +401,13 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     };
 
     // 打开商品筛选设置
-    const handleOpenFilterSettings = (goodsId: string) => {
+    const handleOpenFilterSettings = (goodsId: string, keywordIndex: number = -1) => {
         const goods = data.goodsList.find(g => g.id === goodsId);
-        if (goods?.filterSettings) {
+        if (keywordIndex >= 0 && goods?.keywords?.[keywordIndex]?.filterSettings) {
+            // 关键词级别筛选设置
+            setFilterSettings({ ...goods.keywords[keywordIndex].filterSettings! });
+        } else if (goods?.filterSettings) {
+            // 商品级别筛选设置
             setFilterSettings({ ...goods.filterSettings });
         } else {
             setFilterSettings({
@@ -331,6 +419,7 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
             });
         }
         setEditingFilterGoodsId(goodsId);
+        setEditingFilterKeywordIndex(keywordIndex);
         setShowFilterSettingsModal(true);
     };
 
@@ -338,12 +427,25 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     const handleSaveFilterSettings = () => {
         const newList = data.goodsList.map(g => {
             if (g.id === editingFilterGoodsId) {
-                return { ...g, filterSettings: { ...filterSettings } };
+                if (editingFilterKeywordIndex >= 0 && g.keywords) {
+                    // 保存到关键词级别
+                    const newKeywords = g.keywords.map((kw, i) => {
+                        if (i === editingFilterKeywordIndex) {
+                            return { ...kw, filterSettings: { ...filterSettings } };
+                        }
+                        return kw;
+                    });
+                    return { ...g, keywords: newKeywords };
+                } else {
+                    // 保存到商品级别
+                    return { ...g, filterSettings: { ...filterSettings } };
+                }
             }
             return g;
         });
         onChange({ goodsList: newList });
         setShowFilterSettingsModal(false);
+        setEditingFilterKeywordIndex(-1);
     };
 
     // 添加下单规格
@@ -796,15 +898,7 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                                 {(data.taskEntryType || TaskEntryType.KEYWORD) === TaskEntryType.KEYWORD && index === 0 && (
                                     <div className="mt-4 border-t border-[#f3f4f6] pt-4">
                                         <div className="mb-2 flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <label className="text-xs font-medium text-[#374151]">搜索关键词配置 <span className="text-red-500">*</span></label>
-                                                <button
-                                                    onClick={() => handleOpenFilterSettings(goods.id)}
-                                                    className="rounded border border-[#e5e7eb] bg-white px-2 py-0.5 text-xs text-[#6b7280] hover:border-primary-300 hover:text-primary-600"
-                                                >
-                                                    筛选设置 {goods.filterSettings && (goods.filterSettings.discount.length > 0 || goods.filterSettings.sort !== '0' || goods.filterSettings.minPrice > 0 || goods.filterSettings.maxPrice > 0 || goods.filterSettings.province) ? '✓' : ''}
-                                                </button>
-                                            </div>
+                                            <label className="text-xs font-medium text-[#374151]">搜索关键词配置 <span className="text-red-500">*</span></label>
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => handleOpenSchemeSelector(goods.id)}
@@ -814,15 +908,15 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                                                 </button>
                                                 <button
                                                     onClick={() => handleAddKeyword(goods.id)}
-                                                    disabled={(goods.keywords?.length || 0) >= 5}
+                                                    disabled={(goods.keywords?.length || 0) >= 10}
                                                     className={cn(
                                                         'text-xs',
-                                                        (goods.keywords?.length || 0) >= 5
+                                                        (goods.keywords?.length || 0) >= 10
                                                             ? 'cursor-not-allowed text-[#9ca3af]'
                                                             : 'text-primary-600 hover:text-primary-700'
                                                     )}
                                                 >
-                                                    + 添加关键词 ({goods.keywords?.length || 0}/5)
+                                                    + 添加关键词 ({goods.keywords?.length || 0}/10)
                                                 </button>
                                             </div>
                                         </div>
@@ -854,6 +948,17 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                                                                     min="1"
                                                                 />
                                                             </div>
+                                                            <button
+                                                                onClick={() => handleOpenFilterSettings(goods.id, kwIndex)}
+                                                                className={cn(
+                                                                    "rounded border px-2 py-0.5 text-xs",
+                                                                    kw.filterSettings && (kw.filterSettings.discount.length > 0 || kw.filterSettings.sort !== '0' || kw.filterSettings.minPrice > 0 || kw.filterSettings.maxPrice > 0 || kw.filterSettings.province)
+                                                                        ? "border-primary-300 bg-primary-50 text-primary-600"
+                                                                        : "border-[#e5e7eb] bg-white text-[#6b7280] hover:border-primary-300 hover:text-primary-600"
+                                                                )}
+                                                            >
+                                                                筛选 {kw.filterSettings && (kw.filterSettings.discount.length > 0 || kw.filterSettings.sort !== '0' || kw.filterSettings.minPrice > 0 || kw.filterSettings.maxPrice > 0 || kw.filterSettings.province) ? '✓' : ''}
+                                                            </button>
                                                             <button
                                                                 onClick={() => handleRemoveKeyword(goods.id, kwIndex)}
                                                                 className="text-red-400 hover:text-red-600"
@@ -1224,11 +1329,15 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                     <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl">
                         <div className="mb-4 flex items-center justify-between">
-                            <h3 className="text-lg font-semibold text-[#374151]">商品筛选设置</h3>
+                            <h3 className="text-lg font-semibold text-[#374151]">
+                                {editingFilterKeywordIndex >= 0 ? `关键词 #${editingFilterKeywordIndex + 1} 筛选设置` : '商品筛选设置'}
+                            </h3>
                             <button onClick={() => setShowFilterSettingsModal(false)} className="text-[#9ca3af] hover:text-[#6b7280]">✕</button>
                         </div>
 
-                        <p className="mb-4 text-sm text-[#6b7280]">筛选设置将应用于该商品的所有关键词搜索</p>
+                        <p className="mb-4 text-sm text-[#6b7280]">
+                            {editingFilterKeywordIndex >= 0 ? '设置该关键词的搜索筛选条件' : '筛选设置将应用于该商品的所有关键词搜索'}
+                        </p>
 
                         {/* 折扣服务多选 */}
                         <div className="mb-4">
@@ -1324,52 +1433,70 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                             <button onClick={() => setShowKeywordSchemeModal(false)} className="text-[#9ca3af] hover:text-[#6b7280]">✕</button>
                         </div>
 
-                        <p className="mb-4 text-sm text-[#6b7280]">选择已保存的关键词，快速填充到商品关键词配置中</p>
+                        <p className="mb-4 text-sm text-[#6b7280]">
+                            勾选需要添加的关键词，可多选
+                            {selectedKeywordIds.size > 0 && <span className="ml-2 text-primary-600">已选择 {selectedKeywordIds.size} 个</span>}
+                        </p>
 
                         {loadingSchemes ? (
                             <div className="flex items-center justify-center py-12 text-[#6b7280]">加载中...</div>
-                        ) : keywordSchemes.length === 0 ? (
+                        ) : allKeywords.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-12">
                                 <span className="mb-2 text-4xl">📋</span>
                                 <p className="mb-1 text-sm text-[#6b7280]">暂无关键词</p>
                                 <p className="text-xs text-[#9ca3af]">请先到 <a href="/merchant/keywords" className="text-primary-600">关键词库</a> 添加关键词</p>
                             </div>
                         ) : (
-                            <div className="max-h-[400px] space-y-3 overflow-y-auto">
-                                {keywordSchemes.map(scheme => (
-                                    <div
-                                        key={scheme.id}
-                                        className="cursor-pointer rounded-lg border border-[#e5e7eb] bg-white p-4 transition-all hover:border-primary-300 hover:bg-primary-50/30"
-                                        onClick={() => handleSelectScheme(scheme)}
-                                    >
-                                        <div className="mb-2 flex items-center justify-between">
-                                            <span className="font-medium text-[#374151]">{scheme.name}</span>
-                                            <span className="rounded bg-[#f3f4f6] px-2 py-0.5 text-xs text-[#6b7280]">
-                                                {scheme.details?.length || 0} 个关键词
-                                            </span>
-                                        </div>
-                                        {scheme.description && (
-                                            <p className="mb-2 text-xs text-[#9ca3af]">{scheme.description}</p>
+                            <div className="max-h-[400px] space-y-2 overflow-y-auto">
+                                {allKeywords.map(kw => (
+                                    <label
+                                        key={kw.id}
+                                        className={cn(
+                                            'flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-all',
+                                            selectedKeywordIds.has(kw.id)
+                                                ? 'border-primary-400 bg-primary-50'
+                                                : 'border-[#e5e7eb] bg-white hover:border-primary-200 hover:bg-primary-50/30'
                                         )}
-                                        {scheme.details && scheme.details.length > 0 && (
-                                            <div className="flex flex-wrap gap-1">
-                                                {scheme.details.slice(0, 5).map((d, i) => (
-                                                    <span key={i} className="rounded bg-primary-50 px-2 py-0.5 text-xs text-primary-600">
-                                                        {d.keyword}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedKeywordIds.has(kw.id)}
+                                            onChange={() => toggleKeywordSelection(kw.id)}
+                                            className="h-4 w-4 rounded border-[#d1d5db] text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <div className="flex-1">
+                                            <span className="font-medium text-[#374151]">{kw.keyword}</span>
+                                            <div className="mt-1 flex flex-wrap gap-2 text-xs text-[#6b7280]">
+                                                {kw.sort && kw.sort !== '0' && (
+                                                    <span className="rounded bg-[#f3f4f6] px-1.5 py-0.5">
+                                                        排序: {SORT_OPTIONS.find(o => o.value === kw.sort)?.label || '综合'}
                                                     </span>
-                                                ))}
-                                                {scheme.details.length > 5 && (
-                                                    <span className="text-xs text-[#9ca3af]">+{scheme.details.length - 5} 更多</span>
+                                                )}
+                                                {(kw.minPrice || kw.maxPrice) && (
+                                                    <span className="rounded bg-[#f3f4f6] px-1.5 py-0.5">
+                                                        价格: ¥{kw.minPrice || 0}-¥{kw.maxPrice || '不限'}
+                                                    </span>
+                                                )}
+                                                {kw.amount && kw.amount > 1 && (
+                                                    <span className="rounded bg-[#f3f4f6] px-1.5 py-0.5">
+                                                        次数: {kw.amount}
+                                                    </span>
                                                 )}
                                             </div>
-                                        )}
-                                    </div>
+                                        </div>
+                                    </label>
                                 ))}
                             </div>
                         )}
 
-                        <div className="mt-4 flex justify-end border-t border-[#e5e7eb] pt-4">
-                            <Button variant="secondary" onClick={() => setShowKeywordSchemeModal(false)}>关闭</Button>
+                        <div className="mt-4 flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
+                            <Button variant="secondary" onClick={() => setShowKeywordSchemeModal(false)}>取消</Button>
+                            <Button
+                                onClick={handleConfirmKeywordSelection}
+                                disabled={selectedKeywordIds.size === 0}
+                            >
+                                确认选择 {selectedKeywordIds.size > 0 && `(${selectedKeywordIds.size})`}
+                            </Button>
                         </div>
                     </div>
                 </div>
