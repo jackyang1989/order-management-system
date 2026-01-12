@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { BASE_URL } from '../../../../apiConfig';
-import { cn, formatDate } from '../../../lib/utils';
+import { formatDate } from '../../../lib/utils';
 import { toastError, toastSuccess } from '../../../lib/toast';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
@@ -33,13 +33,16 @@ interface Task {
     taoWord: string;
     platformProductId: string;
     qrCode: string;
+    channelImages?: string;
     remark: string;
+    memo?: string;
     merchantId: string;
     merchant?: { id: string; username: string; merchantName: string; phone: string };
     goodsMoney: number;
     shippingFee: number;
     margin: number;
     extraReward: number;
+    extraCommission?: number;
     baseServiceFee: number;
     refundServiceFee: number;
     totalDeposit: number;
@@ -60,6 +63,23 @@ interface Task {
     praiseVideoList: string;
     isTimingPublish: boolean;
     publishTime: string;
+    isTimingPay: boolean;
+    timingTime?: string;
+    isRepay: boolean;
+    isNextDay: boolean;
+    cycle?: number;
+    unionInterval?: number;
+    needHuobi: boolean;
+    huobiKeyword?: string;
+    needShoucang: boolean;
+    needGuanzhu: boolean;
+    needJialiao: boolean;
+    needJiagou: boolean;
+    totalBrowseMinutes: number;
+    mainBrowseMinutes: number;
+    subBrowseMinutes: number;
+    isPasswordEnabled?: boolean;
+    checkPassword?: string;
     updatedAt: string;
     goodsNum?: number;
 }
@@ -407,163 +427,308 @@ export default function AdminTasksPage() {
                 onClose={() => setDetailModal(null)}
                 className="max-w-4xl"
             >
-                {detailModal && (
-                    <div className="max-h-[70vh] overflow-y-auto pr-2">
-                        {/* 顶部主图 */}
-                        {detailModal.mainImage && (
-                            <div className="mb-6 flex justify-center">
-                                <img
-                                    src={detailModal.mainImage}
-                                    alt="商品图"
-                                    className="h-48 rounded-md object-contain"
-                                />
-                            </div>
-                        )}
+                {detailModal && (() => {
+                    // 解析 JSON 字段
+                    const parsePraiseList = (jsonStr: string | undefined): string[] => {
+                        if (!jsonStr) return [];
+                        try { return JSON.parse(jsonStr) || []; } catch { return []; }
+                    };
+                    const parsePraiseImgList = (jsonStr: string | undefined): string[][] => {
+                        if (!jsonStr) return [];
+                        try { return JSON.parse(jsonStr) || []; } catch { return []; }
+                    };
+                    const parseChannelImages = (jsonStr: string | undefined): string[] => {
+                        if (!jsonStr) return [];
+                        try { return JSON.parse(jsonStr) || []; } catch { return []; }
+                    };
+                    const praiseTexts = parsePraiseList(detailModal.praiseList);
+                    const praiseImgs = parsePraiseImgList(detailModal.praiseImgList);
+                    const praiseVideos = parsePraiseList(detailModal.praiseVideoList);
+                    const channelImgs = parseChannelImages(detailModal.channelImages);
 
-                        {/* 基本信息 */}
-                        <div className="mb-6">
-                            <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">基本信息</h3>
-                            <div className="grid grid-cols-1 gap-4 rounded-md bg-[#f9fafb] p-4 sm:grid-cols-3">
-                                <div className="space-y-1">
-                                    <div className="text-[12px] text-[#6b7280]">任务编号</div>
-                                    <div className="text-[13px] font-medium text-[#3b4559]">{detailModal.taskNumber}</div>
+                    // 判断进店方式
+                    const getEntryMethod = () => {
+                        if (detailModal.qrCode) return { type: '二维码', content: <img src={detailModal.qrCode} alt="二维码" className="h-20 w-20 rounded border" /> };
+                        if (detailModal.taoWord) return { type: '淘口令', content: <code className="rounded bg-amber-50 px-2 py-1 text-sm text-amber-700">{detailModal.taoWord}</code> };
+                        if (channelImgs.length > 0) return { type: '通道', content: <div className="flex flex-wrap gap-2">{channelImgs.map((img, i) => <img key={i} src={img} alt="" className="h-16 w-16 rounded border object-cover" />)}</div> };
+                        return { type: '关键词', content: <span className="font-medium text-primary-600">{detailModal.keyword}</span> };
+                    };
+                    const entryMethod = getEntryMethod();
+
+                    // 浏览行为配置
+                    const browseActions = [
+                        { label: '货比', enabled: detailModal.needHuobi, extra: detailModal.huobiKeyword },
+                        { label: '收藏商品', enabled: detailModal.needShoucang },
+                        { label: '关注店铺', enabled: detailModal.needGuanzhu },
+                        { label: '加入购物车', enabled: detailModal.needJiagou },
+                        { label: '联系客服', enabled: detailModal.needJialiao }
+                    ];
+
+                    // 增值服务配置
+                    const valueAddedServices = [
+                        { label: '定时发布', enabled: detailModal.isTimingPublish, value: detailModal.publishTime ? formatDate(detailModal.publishTime) : '' },
+                        { label: '定时付款', enabled: detailModal.isTimingPay, value: detailModal.timingTime ? formatDate(detailModal.timingTime) : '' },
+                        { label: '回购任务', enabled: detailModal.isRepay },
+                        { label: '隔天任务', enabled: detailModal.isNextDay },
+                        { label: '延长周期', enabled: (detailModal.cycle || 0) > 0, value: detailModal.cycle ? `${detailModal.cycle}天` : '' },
+                        { label: '接单间隔', enabled: (detailModal.unionInterval || 0) > 0, value: detailModal.unionInterval ? `${detailModal.unionInterval}分钟` : '' }
+                    ];
+
+                    return (
+                        <div className="max-h-[70vh] overflow-y-auto pr-2">
+                            {/* 顶部主图 */}
+                            {detailModal.mainImage && (
+                                <div className="mb-6 flex justify-center">
+                                    <img src={detailModal.mainImage} alt="商品图" className="h-48 rounded-md object-contain" />
                                 </div>
-                                <div className="space-y-1">
-                                    <div className="text-[12px] text-[#6b7280]">平台</div>
-                                    <div className="text-[13px] font-medium text-[#3b4559]">{TASK_TYPE_NAMES[detailModal.taskType]}</div>
+                            )}
+
+                            {/* 基本信息 */}
+                            <div className="mb-6">
+                                <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">基本信息</h3>
+                                <div className="grid grid-cols-1 gap-4 rounded-md bg-[#f9fafb] p-4 sm:grid-cols-3">
+                                    <div className="space-y-1">
+                                        <div className="text-[12px] text-[#6b7280]">任务编号</div>
+                                        <div className="text-[13px] font-medium text-[#3b4559]">{detailModal.taskNumber}</div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <div className="text-[12px] text-[#6b7280]">平台</div>
+                                        <div className="text-[13px] font-medium text-[#3b4559]">{TASK_TYPE_NAMES[detailModal.taskType]}</div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <div className="text-[12px] text-[#6b7280]">状态</div>
+                                        <div>
+                                            <Badge variant="soft" color={statusLabels[detailModal.status]?.color}>
+                                                {statusLabels[detailModal.status]?.text}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1 sm:col-span-3">
+                                        <div className="text-[12px] text-[#6b7280]">标题</div>
+                                        <div className="text-[13px] font-medium text-[#3b4559]">{detailModal.title}</div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <div className="text-[12px] text-[#6b7280]">店铺</div>
+                                        <div className="text-[13px] font-medium text-[#3b4559]">{detailModal.shopName || '-'}</div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <div className="text-[12px] text-[#6b7280]">商家</div>
+                                        <div className="text-[13px] font-medium text-[#3b4559]">{detailModal.merchant?.username || detailModal.merchant?.merchantName || '-'}</div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <div className="text-[12px] text-[#6b7280]">结算方式</div>
+                                        <div className="text-[13px] font-medium text-[#3b4559]">{terminalLabels[detailModal.terminal] || '-'}</div>
+                                    </div>
                                 </div>
-                                <div className="space-y-1">
-                                    <div className="text-[12px] text-[#6b7280]">状态</div>
+                            </div>
+
+                            {/* 进店方式 */}
+                            <div className="mb-6">
+                                <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">进店方式</h3>
+                                <div className="rounded-md bg-[#f9fafb] p-4">
+                                    <div className="flex items-start gap-3">
+                                        <Badge variant="soft" color="blue">{entryMethod.type}</Badge>
+                                        <div className="flex-1">{entryMethod.content}</div>
+                                    </div>
+                                    {detailModal.url && (
+                                        <div className="mt-3">
+                                            <a href={detailModal.url} target="_blank" rel="noopener noreferrer" className="text-[13px] text-primary-500 hover:underline">查看商品链接 →</a>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* 浏览要求 */}
+                            <div className="mb-6">
+                                <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">浏览要求</h3>
+                                <div className="grid grid-cols-2 gap-4 rounded-md bg-[#f9fafb] p-4">
+                                    <div className="space-y-2">
+                                        <div className="text-[12px] font-medium text-[#3b4559]">浏览行为</div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {browseActions.map((action, i) => (
+                                                <Badge key={i} variant="soft" color={action.enabled ? 'green' : 'slate'}>
+                                                    {action.label}{action.enabled && action.extra && `: ${action.extra}`}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="text-[12px] font-medium text-[#3b4559]">浏览时长</div>
+                                        <div className="grid grid-cols-3 gap-2 text-center">
+                                            <div className="rounded bg-white p-2 border border-slate-200">
+                                                <div className="text-lg font-bold text-primary-600">{detailModal.totalBrowseMinutes || 15}</div>
+                                                <div className="text-[10px] text-[#6b7280]">总计/分钟</div>
+                                            </div>
+                                            <div className="rounded bg-white p-2 border border-slate-200">
+                                                <div className="text-lg font-bold text-success-600">{detailModal.mainBrowseMinutes || 8}</div>
+                                                <div className="text-[10px] text-[#6b7280]">主品/分钟</div>
+                                            </div>
+                                            <div className="rounded bg-white p-2 border border-slate-200">
+                                                <div className="text-lg font-bold text-warning-500">{detailModal.subBrowseMinutes || 2}</div>
+                                                <div className="text-[10px] text-[#6b7280]">副品/分钟</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 任务进度 */}
+                            <div className="mb-6">
+                                <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">任务进度</h3>
+                                <div className="grid grid-cols-2 gap-4 rounded-md bg-[#f9fafb] p-4 sm:grid-cols-4">
                                     <div>
-                                        <Badge variant="soft" color={statusLabels[detailModal.status]?.color}>
-                                            {statusLabels[detailModal.status]?.text}
+                                        <div className="text-[12px] text-[#6b7280]">总单数</div>
+                                        <div className="text-lg font-bold text-[#3b4559]">{detailModal.count}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[12px] text-[#6b7280]">已领取</div>
+                                        <div className="text-lg font-bold text-primary-600">{detailModal.claimedCount}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[12px] text-[#6b7280]">已完成</div>
+                                        <div className="text-lg font-bold text-success-500">{detailModal.completedCount || 0}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[12px] text-[#6b7280]">剩余</div>
+                                        <div className="text-lg font-bold text-warning-500">{detailModal.count - detailModal.claimedCount}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 费用信息 */}
+                            <div className="mb-6">
+                                <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">费用信息</h3>
+                                <div className="grid grid-cols-1 gap-4 rounded-md bg-[#f9fafb] p-4 sm:grid-cols-4">
+                                    <div>
+                                        <div className="text-[12px] text-[#6b7280]">商品单价</div>
+                                        <div className="text-[13px] font-medium text-[#3b4559]">¥{Number(detailModal.goodsPrice).toFixed(2)}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[12px] text-[#6b7280]">总押金</div>
+                                        <div className="text-[13px] font-medium text-primary-600">¥{Number(detailModal.totalDeposit || 0).toFixed(2)}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[12px] text-[#6b7280]">总佣金</div>
+                                        <div className="text-[13px] font-medium text-danger-400">¥{Number(detailModal.totalCommission || 0).toFixed(2)}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[12px] text-[#6b7280]">额外加赏</div>
+                                        <div className="text-[13px] font-medium text-warning-500">
+                                            {(detailModal.extraReward || detailModal.extraCommission || 0) > 0 ? `+¥${detailModal.extraReward || detailModal.extraCommission}/单` : '无'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 增值服务 */}
+                            <div className="mb-6">
+                                <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">增值服务</h3>
+                                <div className="grid grid-cols-2 gap-4 rounded-md bg-[#f9fafb] p-4 sm:grid-cols-4">
+                                    <div>
+                                        <div className="text-[12px] text-[#6b7280]">包邮</div>
+                                        <Badge variant="soft" color={detailModal.isFreeShipping ? 'green' : 'amber'} className="mt-1">
+                                            {detailModal.isFreeShipping ? '包邮' : '非包邮'}
+                                        </Badge>
+                                    </div>
+                                    {valueAddedServices.filter(s => s.enabled).map((service, i) => (
+                                        <div key={i}>
+                                            <div className="text-[12px] text-green-600">{service.label}</div>
+                                            <div className="text-[13px] font-medium text-green-700">{service.value || '是'}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* 好评设置 */}
+                            <div className="mb-6">
+                                <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">好评设置</h3>
+                                <div className="grid grid-cols-3 gap-4 rounded-md bg-[#f9fafb] p-4">
+                                    <div>
+                                        <div className="text-[12px] text-[#6b7280]">文字好评</div>
+                                        <Badge variant="soft" color={detailModal.isPraise ? 'green' : 'slate'} className="mt-1">
+                                            {detailModal.isPraise ? `${praiseTexts.length}条` : '未设置'}
+                                        </Badge>
+                                    </div>
+                                    <div>
+                                        <div className="text-[12px] text-[#6b7280]">图片好评</div>
+                                        <Badge variant="soft" color={detailModal.isImgPraise ? 'green' : 'slate'} className="mt-1">
+                                            {detailModal.isImgPraise ? `${praiseImgs.length}组` : '未设置'}
+                                        </Badge>
+                                    </div>
+                                    <div>
+                                        <div className="text-[12px] text-[#6b7280]">视频好评</div>
+                                        <Badge variant="soft" color={detailModal.isVideoPraise ? 'green' : 'slate'} className="mt-1">
+                                            {detailModal.isVideoPraise ? `${praiseVideos.length}个` : '未设置'}
                                         </Badge>
                                     </div>
                                 </div>
-                                <div className="space-y-1 sm:col-span-3">
-                                    <div className="text-[12px] text-[#6b7280]">标题</div>
-                                    <div className="text-[13px] font-medium text-[#3b4559]">{detailModal.title}</div>
+                            </div>
+
+                            {/* 好评内容详情 */}
+                            {detailModal.isPraise && praiseTexts.length > 0 && (
+                                <div className="mb-6">
+                                    <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">文字好评内容</h3>
+                                    <div className="rounded-md bg-[#f9fafb] p-4">
+                                        <div className="space-y-2">
+                                            {praiseTexts.map((txt: string, i: number) => (
+                                                <div key={i} className="text-[13px] text-[#3b4559] flex gap-2">
+                                                    <span className="text-[#9ca3af] font-mono shrink-0">{i + 1}.</span>
+                                                    <span>{txt}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="space-y-1">
-                                    <div className="text-[12px] text-[#6b7280]">店铺</div>
-                                    <div className="text-[13px] font-medium text-[#3b4559]">{detailModal.shopName || '-'}</div>
+                            )}
+
+                            {/* 图片好评预览 */}
+                            {detailModal.isImgPraise && praiseImgs.length > 0 && (
+                                <div className="mb-6">
+                                    <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">图片好评</h3>
+                                    <div className="rounded-md bg-[#f9fafb] p-4 space-y-3">
+                                        {praiseImgs.map((group: string[], i: number) => (
+                                            <div key={i} className="flex flex-wrap gap-2">
+                                                <span className="text-xs text-[#9ca3af]">第{i + 1}组:</span>
+                                                {group.map((img: string, j: number) => (
+                                                    <img key={j} src={img} alt="" className="h-16 w-16 rounded border object-cover" />
+                                                ))}
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                                <div className="space-y-1">
-                                    <div className="text-[12px] text-[#6b7280]">关键词</div>
-                                    <div className="text-[13px] font-medium text-[#3b4559]">{detailModal.keyword || '-'}</div>
+                            )}
+
+                            {/* 视频好评预览 */}
+                            {detailModal.isVideoPraise && praiseVideos.length > 0 && (
+                                <div className="mb-6">
+                                    <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">视频好评</h3>
+                                    <div className="rounded-md bg-[#f9fafb] p-4 space-y-3">
+                                        {praiseVideos.map((video: string, i: number) => (
+                                            <div key={i}>
+                                                <span className="text-xs text-[#9ca3af]">第{i + 1}个视频:</span>
+                                                <video src={video} controls className="mt-1 max-h-48 w-full rounded" />
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                                <div className="space-y-1">
-                                    <div className="text-[12px] text-[#6b7280]">结算方式</div>
-                                    <div className="text-[13px] font-medium text-[#3b4559]">{terminalLabels[detailModal.terminal] || '-'}</div>
+                            )}
+
+                            {/* 商家备注 */}
+                            {detailModal.memo && (
+                                <div className="mb-6">
+                                    <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">下单提示/商家备注</h3>
+                                    <div className="rounded-md bg-amber-50 p-4 text-sm text-amber-800 whitespace-pre-wrap">{detailModal.memo}</div>
                                 </div>
+                            )}
+
+                            <div className="mt-8 flex justify-end">
+                                <Button variant="secondary" onClick={() => setDetailModal(null)}>
+                                    关闭
+                                </Button>
                             </div>
                         </div>
-
-                        {/* 任务进度 */}
-                        <div className="mb-6">
-                            <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">任务进度</h3>
-                            <div className="grid grid-cols-2 gap-4 rounded-md bg-[#f9fafb] p-4 sm:grid-cols-4">
-                                <div>
-                                    <div className="text-[12px] text-[#6b7280]">总单数</div>
-                                    <div className="text-lg font-bold text-[#3b4559]">{detailModal.count}</div>
-                                </div>
-                                <div>
-                                    <div className="text-[12px] text-[#6b7280]">已领取</div>
-                                    <div className="text-lg font-bold text-primary-600">{detailModal.claimedCount}</div>
-                                </div>
-                                <div>
-                                    <div className="text-[12px] text-[#6b7280]">已完成</div>
-                                    <div className="text-lg font-bold text-success-500">{detailModal.completedCount || 0}</div>
-                                </div>
-                                <div>
-                                    <div className="text-[12px] text-[#6b7280]">剩余</div>
-                                    <div className="text-lg font-bold text-warning-500">
-                                        {detailModal.count - detailModal.claimedCount}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 费用信息 */}
-                        <div className="mb-6">
-                            <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">费用信息</h3>
-                            <div className="grid grid-cols-1 gap-4 rounded-md bg-[#f9fafb] p-4 sm:grid-cols-3">
-                                <div>
-                                    <div className="text-[12px] text-[#6b7280]">商品单价</div>
-                                    <div className="text-[13px] font-medium text-[#3b4559]">¥{Number(detailModal.goodsPrice).toFixed(2)}</div>
-                                </div>
-                                <div>
-                                    <div className="text-[12px] text-[#6b7280]">总押金</div>
-                                    <div className="text-[13px] font-medium text-[#3b4559]">¥{Number(detailModal.totalDeposit || 0).toFixed(2)}</div>
-                                </div>
-                                <div>
-                                    <div className="text-[12px] text-[#6b7280]">总佣金</div>
-                                    <div className="text-[13px] font-medium text-[#3b4559]">¥{Number(detailModal.totalCommission || 0).toFixed(2)}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 增值服务 */}
-                        <div>
-                            <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">增值服务</h3>
-                            <div className="grid grid-cols-2 gap-4 rounded-md bg-[#f9fafb] p-4 sm:grid-cols-4">
-                                <div>
-                                    <div className="text-[12px] text-[#6b7280]">文字好评</div>
-                                    <div className={cn("text-[13px] font-medium", detailModal.isPraise ? "text-success-500" : "text-[#9ca3af]")}>
-                                        {detailModal.isPraise ? '是' : '否'}
-                                    </div>
-                                </div>
-                                <div>
-                                    <div className="text-[12px] text-[#6b7280]">图片好评</div>
-                                    <div className={cn("text-[13px] font-medium", detailModal.isImgPraise ? "text-success-500" : "text-[#9ca3af]")}>
-                                        {detailModal.isImgPraise ? '是' : '否'}
-                                    </div>
-                                </div>
-                                <div>
-                                    <div className="text-[12px] text-[#6b7280]">视频好评</div>
-                                    <div className={cn("text-[13px] font-medium", detailModal.isVideoPraise ? "text-success-500" : "text-[#9ca3af]")}>
-                                        {detailModal.isVideoPraise ? '是' : '否'}
-                                    </div>
-                                </div>
-                                <div>
-                                    <div className="text-[12px] text-[#6b7280]">包邮</div>
-                                    <div className={cn("text-[13px] font-medium", detailModal.isFreeShipping ? "text-primary-600" : "text-[#9ca3af]")}>
-                                        {detailModal.isFreeShipping ? '是' : '否'}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 好评内容详情 */}
-                        {detailModal.isPraise && (
-                            <div className="mb-6">
-                                <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">好评具体内容</h3>
-                                <div className="rounded-md bg-[#f9fafb] p-4">
-                                    <div className="space-y-2">
-                                        {(() => {
-                                            try {
-                                                const list = detailModal.praiseList ? JSON.parse(detailModal.praiseList) : [];
-                                                if (!list || list.length === 0) return <div className="text-xs text-[#9ca3af]">无好评内容</div>;
-                                                return list.map((txt: string, i: number) => (
-                                                    <div key={i} className="text-[13px] text-[#3b4559] flex gap-2">
-                                                        <span className="text-[#9ca3af] font-mono shrink-0">{i + 1}.</span>
-                                                        <span>{txt}</span>
-                                                    </div>
-                                                ));
-                                            } catch (e) { return <div className="text-xs text-red-400">内容解析失败</div>; }
-                                        })()}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="mt-8 flex justify-end">
-                            <Button variant="secondary" onClick={() => setDetailModal(null)}>
-                                关闭
-                            </Button>
-                        </div>
-                    </div>
-                )}
+                    );
+                })()}
             </Modal>
         </div>
     );

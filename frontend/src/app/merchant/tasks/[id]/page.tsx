@@ -7,40 +7,208 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Modal } from '@/components/ui/modal';
 
-interface TaskDetail { id: string; taskNumber: string; title: string; taskType: number; shopId: string; shopName: string; url: string; mainImage: string; keyword: string; taoWord?: string; goodsPrice: number; count: number; claimedCount: number; completedCount: number; status: number; isFreeShipping: number; isPraise: boolean; praiseType: string; praiseList: string; praiseImgList: string; praiseVideoList: string; isTimingPublish: boolean; publishTime?: string; isTimingPay: boolean; timingPayTime?: string; isCycleTime: boolean; cycleTime?: number; addReward: number; totalDeposit: number; totalCommission: number; baseServiceFee: number; praiseFee: number; shippingFee: number; margin: number; createdAt: string; updatedAt: string; }
-interface OrderItem { id: string; buynoAccount: string; status: string; productPrice: number; commission: number; createdAt: string; completedAt?: string; }
+interface TaskDetail {
+    id: string;
+    taskNumber: string;
+    title: string;
+    taskType: number;
+    shopId: string;
+    shopName: string;
+    url: string;
+    mainImage: string;
+    keyword: string;
+    taoWord?: string;
+    qrCode?: string;
+    channelImages?: string;
+    goodsPrice: number;
+    count: number;
+    claimedCount: number;
+    completedCount: number;
+    status: number;
+    isFreeShipping: number | boolean;
+    isPraise: boolean;
+    praiseType: string;
+    praiseList: string;
+    praiseImgList: string;
+    praiseVideoList: string;
+    isImgPraise: boolean;
+    isVideoPraise: boolean;
+    isTimingPublish: boolean;
+    publishTime?: string;
+    isTimingPay: boolean;
+    timingTime?: string;
+    isCycleTime: boolean;
+    cycleTime?: number;
+    cycle?: number;
+    unionInterval?: number;
+    isRepay: boolean;
+    isNextDay: boolean;
+    terminal: number;
+    addReward: number;
+    extraCommission?: number;
+    totalDeposit: number;
+    totalCommission: number;
+    baseServiceFee: number;
+    praiseFee: number;
+    imgPraiseFee: number;
+    videoPraiseFee: number;
+    shippingFee: number;
+    margin: number;
+    memo?: string;
+    needHuobi: boolean;
+    huobiKeyword?: string;
+    needShoucang: boolean;
+    needGuanzhu: boolean;
+    needJialiao: boolean;
+    needJiagou: boolean;
+    totalBrowseMinutes: number;
+    mainBrowseMinutes: number;
+    subBrowseMinutes: number;
+    isPasswordEnabled?: boolean;
+    checkPassword?: string;
+    createdAt: string;
+    updatedAt: string;
+}
 
-const TaskTypeMap: Record<number, string> = { 1: '淘宝', 2: '天猫', 3: '京东', 4: '拼多多' };
-const TaskStatusMap: Record<number, { text: string; color: 'amber' | 'green' | 'blue' | 'red' | 'slate' }> = { 0: { text: '待支付', color: 'amber' }, 1: { text: '进行中', color: 'green' }, 2: { text: '已完成', color: 'blue' }, 3: { text: '已取消', color: 'red' }, 4: { text: '待审核', color: 'slate' } };
-const OrderStatusMap: Record<string, { text: string; color: 'blue' | 'amber' | 'green' | 'red' | 'slate' }> = { PENDING: { text: '进行中', color: 'blue' }, SUBMITTED: { text: '待审核', color: 'amber' }, APPROVED: { text: '已通过', color: 'green' }, REJECTED: { text: '已驳回', color: 'red' }, COMPLETED: { text: '已完成', color: 'slate' } };
+interface OrderItem {
+    id: string;
+    buynoAccount: string;
+    status: string;
+    productPrice: number;
+    commission: number;
+    createdAt: string;
+    completedAt?: string;
+}
+
+const TaskTypeMap: Record<number, string> = { 1: '淘宝', 2: '天猫', 3: '京东', 4: '拼多多', 5: '抖音', 6: '快手' };
+const TaskStatusMap: Record<number, { text: string; color: 'amber' | 'green' | 'blue' | 'red' | 'slate' }> = {
+    0: { text: '待支付', color: 'amber' },
+    1: { text: '进行中', color: 'green' },
+    2: { text: '已完成', color: 'blue' },
+    3: { text: '已取消', color: 'red' },
+    4: { text: '待审核', color: 'slate' }
+};
+const OrderStatusMap: Record<string, { text: string; color: 'blue' | 'amber' | 'green' | 'red' | 'slate' }> = {
+    PENDING: { text: '进行中', color: 'blue' },
+    SUBMITTED: { text: '待审核', color: 'amber' },
+    APPROVED: { text: '已通过', color: 'green' },
+    REJECTED: { text: '已驳回', color: 'red' },
+    COMPLETED: { text: '已完成', color: 'slate' }
+};
+const TerminalMap: Record<number, string> = { 1: '本佣货返', 2: '本立佣货' };
 
 export default function TaskDetailPage() {
-    const params = useParams(); const router = useRouter(); const taskId = params.id as string;
+    const params = useParams();
+    const router = useRouter();
+    const taskId = params.id as string;
     const [task, setTask] = useState<TaskDetail | null>(null);
     const [orders, setOrders] = useState<OrderItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [cancelling, setCancelling] = useState(false);
+    const [praiseModal, setPraiseModal] = useState<'text' | 'image' | 'video' | null>(null);
 
-    useEffect(() => { if (taskId) loadTaskDetail(); }, [taskId]);
+    useEffect(() => {
+        if (taskId) loadTaskDetail();
+    }, [taskId]);
 
     const loadTaskDetail = async () => {
-        const token = localStorage.getItem('merchantToken'); if (!token) { router.push('/merchant/login'); return; }
+        const token = localStorage.getItem('merchantToken');
+        if (!token) {
+            router.push('/merchant/login');
+            return;
+        }
         setLoading(true);
         try {
             const taskRes = await fetch(`${BASE_URL}/tasks/${taskId}`, { headers: { 'Authorization': `Bearer ${token}` } });
             const taskJson = await taskRes.json();
-            if (taskJson.success) setTask(taskJson.data); else { alert('任务不存在或无权访问'); router.push('/merchant/tasks'); return; }
+            if (taskJson.success) setTask(taskJson.data);
+            else {
+                alert('任务不存在或无权访问');
+                router.push('/merchant/tasks');
+                return;
+            }
             const ordersRes = await fetch(`${BASE_URL}/orders/task/${taskId}`, { headers: { 'Authorization': `Bearer ${token}` } });
-            const ordersJson = await ordersRes.json(); if (ordersJson.success) setOrders(ordersJson.data || []);
-        } catch (e) { console.error(e); } finally { setLoading(false); }
+            const ordersJson = await ordersRes.json();
+            if (ordersJson.success) setOrders(ordersJson.data || []);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleCancel = async () => {
         if (!confirm('确定要取消此任务吗？已冻结的资金将返还到您的账户。')) return;
-        const token = localStorage.getItem('merchantToken'); setCancelling(true);
-        try { const res = await fetch(`${BASE_URL}/tasks/${taskId}/cancel`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); const json = await res.json(); if (json.success) { alert('任务已取消，资金已返还'); loadTaskDetail(); } else alert(json.message || '取消失败'); }
-        catch { alert('网络错误'); } finally { setCancelling(false); }
+        const token = localStorage.getItem('merchantToken');
+        setCancelling(true);
+        try {
+            const res = await fetch(`${BASE_URL}/tasks/${taskId}/cancel`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+            const json = await res.json();
+            if (json.success) {
+                alert('任务已取消，资金已返还');
+                loadTaskDetail();
+            } else alert(json.message || '取消失败');
+        } catch {
+            alert('网络错误');
+        } finally {
+            setCancelling(false);
+        }
+    };
+
+    // 解析好评内容
+    const parsePraiseList = (jsonStr: string | undefined): string[] => {
+        if (!jsonStr) return [];
+        try {
+            return JSON.parse(jsonStr) || [];
+        } catch {
+            return [];
+        }
+    };
+
+    // 解析好评图片 (二维数组)
+    const parsePraiseImgList = (jsonStr: string | undefined): string[][] => {
+        if (!jsonStr) return [];
+        try {
+            return JSON.parse(jsonStr) || [];
+        } catch {
+            return [];
+        }
+    };
+
+    // 解析通道图片
+    const parseChannelImages = (jsonStr: string | undefined): string[] => {
+        if (!jsonStr) return [];
+        try {
+            return JSON.parse(jsonStr) || [];
+        } catch {
+            return [];
+        }
+    };
+
+    // 判断进店方式
+    const getEntryMethod = (t: TaskDetail): { type: string; content: React.ReactNode } => {
+        if (t.qrCode) {
+            return { type: '二维码', content: <img src={t.qrCode} alt="二维码" className="h-24 w-24 rounded border" /> };
+        }
+        if (t.taoWord) {
+            return { type: '淘口令', content: <code className="rounded bg-amber-50 px-2 py-1 text-sm text-amber-700">{t.taoWord}</code> };
+        }
+        const channelImgs = parseChannelImages(t.channelImages);
+        if (channelImgs.length > 0) {
+            return {
+                type: '通道',
+                content: (
+                    <div className="flex flex-wrap gap-2">
+                        {channelImgs.map((img, i) => (
+                            <img key={i} src={img} alt={`通道图${i + 1}`} className="h-20 w-20 rounded border object-cover" />
+                        ))}
+                    </div>
+                )
+            };
+        }
+        return { type: '关键词', content: <span className="font-medium text-primary-600">{t.keyword}</span> };
     };
 
     if (loading) return <div className="flex h-[400px] items-center justify-center text-[#6b7280]">加载中...</div>;
@@ -48,7 +216,8 @@ export default function TaskDetailPage() {
     if (!task) {
         return (
             <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
-                <div className="mb-4 text-5xl">📋</div><div className="mb-5 text-[#6b7280]">任务不存在</div>
+                <div className="mb-4 text-5xl">📋</div>
+                <div className="mb-5 text-[#6b7280]">任务不存在</div>
                 <Button onClick={() => router.push('/merchant/tasks')}>返回列表</Button>
             </div>
         );
@@ -59,15 +228,52 @@ export default function TaskDetailPage() {
     const pct = Math.max(0, Math.min(100, Math.round(progress / 5) * 5)) as
         | 0 | 5 | 10 | 15 | 20 | 25 | 30 | 35 | 40 | 45 | 50
         | 55 | 60 | 65 | 70 | 75 | 80 | 85 | 90 | 95 | 100;
-    const progressWidthClass = { 0: 'w-0', 5: 'w-[5%]', 10: 'w-[10%]', 15: 'w-[15%]', 20: 'w-[20%]', 25: 'w-[25%]', 30: 'w-[30%]', 35: 'w-[35%]', 40: 'w-[40%]', 45: 'w-[45%]', 50: 'w-[50%]', 55: 'w-[55%]', 60: 'w-[60%]', 65: 'w-[65%]', 70: 'w-[70%]', 75: 'w-[75%]', 80: 'w-[80%]', 85: 'w-[85%]', 90: 'w-[90%]', 95: 'w-[95%]', 100: 'w-full' } as const;
-    const statCards = [{ value: task.count, label: '总任务数', color: 'text-primary-600' }, { value: task.claimedCount, label: '已领取', color: 'text-warning-500' }, { value: task.completedCount, label: '已完成', color: 'text-success-600' }, { value: task.count - task.claimedCount, label: '剩余可接', color: 'text-[#6b7280]' }];
+    const progressWidthClass = {
+        0: 'w-0', 5: 'w-[5%]', 10: 'w-[10%]', 15: 'w-[15%]', 20: 'w-[20%]', 25: 'w-[25%]',
+        30: 'w-[30%]', 35: 'w-[35%]', 40: 'w-[40%]', 45: 'w-[45%]', 50: 'w-[50%]',
+        55: 'w-[55%]', 60: 'w-[60%]', 65: 'w-[65%]', 70: 'w-[70%]', 75: 'w-[75%]',
+        80: 'w-[80%]', 85: 'w-[85%]', 90: 'w-[90%]', 95: 'w-[95%]', 100: 'w-full'
+    } as const;
+    const statCards = [
+        { value: task.count, label: '总任务数', color: 'text-primary-600' },
+        { value: task.claimedCount, label: '已领取', color: 'text-warning-500' },
+        { value: task.completedCount, label: '已完成', color: 'text-success-600' },
+        { value: task.count - task.claimedCount, label: '剩余可接', color: 'text-[#6b7280]' }
+    ];
+    const entryMethod = getEntryMethod(task);
+    const praiseTexts = parsePraiseList(task.praiseList);
+    const praiseImgs = parsePraiseImgList(task.praiseImgList);
+    const praiseVideos = parsePraiseList(task.praiseVideoList);
+
+    // 浏览行为配置
+    const browseActions = [
+        { key: 'needHuobi', label: '货比', enabled: task.needHuobi, extra: task.huobiKeyword },
+        { key: 'needShoucang', label: '收藏商品', enabled: task.needShoucang },
+        { key: 'needGuanzhu', label: '关注店铺', enabled: task.needGuanzhu },
+        { key: 'needJiagou', label: '加入购物车', enabled: task.needJiagou },
+        { key: 'needJialiao', label: '联系客服', enabled: task.needJialiao }
+    ];
+
+    // 增值服务配置
+    const valueAddedServices = [
+        { label: '定时发布', enabled: task.isTimingPublish, value: task.publishTime ? new Date(task.publishTime).toLocaleString('zh-CN') : '' },
+        { label: '定时付款', enabled: task.isTimingPay, value: task.timingTime ? new Date(task.timingTime).toLocaleString('zh-CN') : '' },
+        { label: '回购任务', enabled: task.isRepay },
+        { label: '隔天任务', enabled: task.isNextDay },
+        { label: '延长周期', enabled: (task.cycle || 0) > 0, value: task.cycle ? `${task.cycle}天` : '' },
+        { label: '接单间隔', enabled: (task.unionInterval || 0) > 0, value: task.unionInterval ? `${task.unionInterval}分钟` : '' }
+    ];
+
+    const isFreeShipping = task.isFreeShipping === 1 || task.isFreeShipping === true;
 
     return (
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => router.push('/merchant/tasks')} className="flex h-9 items-center gap-1.5 rounded-md border border-[#e5e7eb] bg-white px-4 text-[13px] text-primary-500 hover:bg-[#eff6ff]">← 返回列表</button>
+                    <button onClick={() => router.push('/merchant/tasks')} className="flex h-9 items-center gap-1.5 rounded-md border border-[#e5e7eb] bg-white px-4 text-[13px] text-primary-500 hover:bg-[#eff6ff]">
+                        ← 返回列表
+                    </button>
                     <h1 className="text-2xl font-bold">任务详情</h1>
                 </div>
                 <Badge variant="soft" color={statusStyle.color} className="px-4 py-1.5 text-sm font-medium">{statusStyle.text}</Badge>
@@ -86,15 +292,166 @@ export default function TaskDetailPage() {
                                 <div className="min-w-0 flex-1">
                                     <div className="mb-2 text-base font-medium">{task.title}</div>
                                     <div className="mb-2 flex items-center gap-2 text-sm text-[#6b7280]">
-                                        <Badge variant="soft" color="blue" className="text-xs">{TaskTypeMap[task.taskType] || '未知平台'}</Badge>{task.shopName}
+                                        <Badge variant="soft" color="blue" className="text-xs">{TaskTypeMap[task.taskType] || '未知平台'}</Badge>
+                                        {task.shopName}
                                     </div>
                                     <div className="mb-2 text-xl font-bold text-danger-400">¥{Number(task.goodsPrice).toFixed(2)}</div>
-                                    <div className="text-[13px] text-[#6b7280]">关键词: <span className="text-primary-600">{task.keyword}</span></div>
                                     {task.url && <a href={task.url} target="_blank" rel="noopener noreferrer" className="text-[13px] text-primary-500">查看商品链接 →</a>}
                                 </div>
                             </div>
                         </div>
                     </Card>
+
+                    {/* Entry Method 进店方式 */}
+                    <Card className="bg-white" noPadding>
+                        <div className="px-6 py-5">
+                            <h2 className="mb-5 text-base font-semibold">进店方式</h2>
+                            <div className="space-y-3">
+                                <div className="flex items-start gap-4">
+                                    <Badge variant="soft" color="blue">{entryMethod.type}</Badge>
+                                    <div className="flex-1">{entryMethod.content}</div>
+                                </div>
+                                {task.keyword && entryMethod.type === '关键词' && (
+                                    <div className="text-sm text-[#6b7280]">
+                                        搜索关键词: <span className="font-medium text-primary-600">{task.keyword}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* Browse Requirements 浏览要求 */}
+                    <Card className="bg-white" noPadding>
+                        <div className="px-6 py-5">
+                            <h2 className="mb-5 text-base font-semibold">浏览要求</h2>
+                            <div className="grid grid-cols-2 gap-4">
+                                {/* 浏览行为 */}
+                                <div className="space-y-2">
+                                    <div className="text-sm font-medium text-[#3b4559]">浏览行为</div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {browseActions.map(action => (
+                                            <Badge
+                                                key={action.key}
+                                                variant="soft"
+                                                color={action.enabled ? 'green' : 'slate'}
+                                            >
+                                                {action.label}
+                                                {action.enabled && action.extra && `: ${action.extra}`}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </div>
+                                {/* 浏览时长 */}
+                                <div className="space-y-2">
+                                    <div className="text-sm font-medium text-[#3b4559]">浏览时长</div>
+                                    <div className="grid grid-cols-3 gap-2 text-center">
+                                        <div className="rounded bg-slate-50 p-2">
+                                            <div className="text-lg font-bold text-primary-600">{task.totalBrowseMinutes || 15}</div>
+                                            <div className="text-xs text-[#6b7280]">总计/分钟</div>
+                                        </div>
+                                        <div className="rounded bg-slate-50 p-2">
+                                            <div className="text-lg font-bold text-success-600">{task.mainBrowseMinutes || 8}</div>
+                                            <div className="text-xs text-[#6b7280]">主品/分钟</div>
+                                        </div>
+                                        <div className="rounded bg-slate-50 p-2">
+                                            <div className="text-lg font-bold text-warning-500">{task.subBrowseMinutes || 2}</div>
+                                            <div className="text-xs text-[#6b7280]">副品/分钟</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* Value Added Services 增值服务 */}
+                    <Card className="bg-white" noPadding>
+                        <div className="px-6 py-5">
+                            <h2 className="mb-5 text-base font-semibold">增值服务</h2>
+                            <div className="grid grid-cols-3 gap-4">
+                                {/* 结算方式 */}
+                                <div className="rounded-md border border-[#e5e7eb] p-3">
+                                    <div className="text-xs text-[#6b7280]">结算方式</div>
+                                    <div className="mt-1 text-sm font-medium text-[#3b4559]">{TerminalMap[task.terminal] || '未知'}</div>
+                                </div>
+                                {/* 包邮 */}
+                                <div className="rounded-md border border-[#e5e7eb] p-3">
+                                    <div className="text-xs text-[#6b7280]">运费</div>
+                                    <Badge variant="soft" color={isFreeShipping ? 'green' : 'amber'} className="mt-1">
+                                        {isFreeShipping ? '包邮' : '非包邮'}
+                                    </Badge>
+                                </div>
+                                {/* 加赏 */}
+                                <div className="rounded-md border border-[#e5e7eb] p-3">
+                                    <div className="text-xs text-[#6b7280]">额外加赏</div>
+                                    <div className="mt-1 text-sm font-medium text-warning-500">
+                                        {(task.addReward || task.extraCommission || 0) > 0 ? `+¥${task.addReward || task.extraCommission}/单` : '无'}
+                                    </div>
+                                </div>
+                                {/* 增值服务项 */}
+                                {valueAddedServices.filter(s => s.enabled).map((service, i) => (
+                                    <div key={i} className="rounded-md border border-green-200 bg-green-50 p-3">
+                                        <div className="text-xs text-green-600">{service.label}</div>
+                                        {service.value && <div className="mt-1 text-sm font-medium text-green-700">{service.value}</div>}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* Praise Settings 好评设置 */}
+                    <Card className="bg-white" noPadding>
+                        <div className="px-6 py-5">
+                            <h2 className="mb-5 text-base font-semibold">好评设置</h2>
+                            <div className="grid grid-cols-3 gap-4">
+                                {/* 文字好评 */}
+                                <div className="rounded-md border border-[#e5e7eb] p-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="text-xs text-[#6b7280]">文字好评</div>
+                                        {task.isPraise && praiseTexts.length > 0 && (
+                                            <button onClick={() => setPraiseModal('text')} className="text-xs text-primary-500 hover:underline">查看</button>
+                                        )}
+                                    </div>
+                                    <Badge variant="soft" color={task.isPraise ? 'green' : 'slate'} className="mt-1">
+                                        {task.isPraise ? `${praiseTexts.length}条` : '未设置'}
+                                    </Badge>
+                                </div>
+                                {/* 图片好评 */}
+                                <div className="rounded-md border border-[#e5e7eb] p-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="text-xs text-[#6b7280]">图片好评</div>
+                                        {task.isImgPraise && praiseImgs.length > 0 && (
+                                            <button onClick={() => setPraiseModal('image')} className="text-xs text-primary-500 hover:underline">查看</button>
+                                        )}
+                                    </div>
+                                    <Badge variant="soft" color={task.isImgPraise ? 'green' : 'slate'} className="mt-1">
+                                        {task.isImgPraise ? `${praiseImgs.length}组` : '未设置'}
+                                    </Badge>
+                                </div>
+                                {/* 视频好评 */}
+                                <div className="rounded-md border border-[#e5e7eb] p-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="text-xs text-[#6b7280]">视频好评</div>
+                                        {task.isVideoPraise && praiseVideos.length > 0 && (
+                                            <button onClick={() => setPraiseModal('video')} className="text-xs text-primary-500 hover:underline">查看</button>
+                                        )}
+                                    </div>
+                                    <Badge variant="soft" color={task.isVideoPraise ? 'green' : 'slate'} className="mt-1">
+                                        {task.isVideoPraise ? `${praiseVideos.length}个` : '未设置'}
+                                    </Badge>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* Merchant Memo 商家备注 */}
+                    {task.memo && (
+                        <Card className="bg-white" noPadding>
+                            <div className="px-6 py-5">
+                                <h2 className="mb-3 text-base font-semibold">下单提示/商家备注</h2>
+                                <div className="rounded bg-amber-50 p-4 text-sm text-amber-800 whitespace-pre-wrap">{task.memo}</div>
+                            </div>
+                        </Card>
+                    )}
 
                     {/* Task Progress */}
                     <Card className="bg-white" noPadding>
@@ -109,7 +466,10 @@ export default function TaskDetailPage() {
                                 ))}
                             </div>
                             <div>
-                                <div className="mb-1.5 flex justify-between text-[13px] text-[#6b7280]"><span>完成进度</span><span>{progress.toFixed(1)}%</span></div>
+                                <div className="mb-1.5 flex justify-between text-[13px] text-[#6b7280]">
+                                    <span>完成进度</span>
+                                    <span>{progress.toFixed(1)}%</span>
+                                </div>
                                 <div className="h-2 overflow-hidden rounded-full bg-[#e5e7eb]">
                                     <span className={cn('block h-full rounded-full bg-primary-500 transition-all', progressWidthClass[pct])} />
                                 </div>
@@ -119,7 +479,9 @@ export default function TaskDetailPage() {
 
                     {/* Orders List */}
                     <Card className="overflow-hidden bg-white" noPadding>
-                        <div className="border-b border-[#e5e7eb] px-6 py-4"><h2 className="text-base font-semibold">关联订单 ({orders.length})</h2></div>
+                        <div className="border-b border-[#e5e7eb] px-6 py-4">
+                            <h2 className="text-base font-semibold">关联订单 ({orders.length})</h2>
+                        </div>
                         {orders.length === 0 ? (
                             <div className="flex min-h-[180px] items-center justify-center text-[#6b7280]">暂无订单</div>
                         ) : (
@@ -139,7 +501,10 @@ export default function TaskDetailPage() {
                                             return (
                                                 <tr key={order.id} className="border-b border-[#e5e7eb]">
                                                     <td className="px-4 py-3.5 text-sm">{order.buynoAccount}</td>
-                                                    <td className="px-4 py-3.5"><div className="font-medium">¥{Number(order.productPrice).toFixed(2)}</div><div className="text-xs text-success-600">佣金 ¥{Number(order.commission).toFixed(2)}</div></td>
+                                                    <td className="px-4 py-3.5">
+                                                        <div className="font-medium">¥{Number(order.productPrice).toFixed(2)}</div>
+                                                        <div className="text-xs text-success-600">佣金 ¥{Number(order.commission).toFixed(2)}</div>
+                                                    </td>
                                                     <td className="px-4 py-3.5"><Badge variant="soft" color={orderStatus.color}>{orderStatus.text}</Badge></td>
                                                     <td className="px-4 py-3.5 text-[13px] text-[#6b7280]">{new Date(order.createdAt).toLocaleString('zh-CN')}</td>
                                                 </tr>
@@ -161,26 +526,11 @@ export default function TaskDetailPage() {
                             <div className="grid gap-3 text-sm">
                                 <div className="flex justify-between"><span className="text-[#6b7280]">任务编号</span><span className="font-mono text-primary-600">{task.taskNumber}</span></div>
                                 <div className="flex justify-between"><span className="text-[#6b7280]">创建时间</span><span>{new Date(task.createdAt).toLocaleString('zh-CN')}</span></div>
-                                <div className="flex justify-between"><span className="text-[#6b7280]">包邮</span><span>{task.isFreeShipping === 1 ? '是' : '否'}</span></div>
-                                <div className="flex justify-between"><span className="text-[#6b7280]">好评要求</span><span>{task.isPraise ? (task.praiseType === 'text' ? '文字好评' : task.praiseType === 'image' ? '图片好评' : '视频好评') : '无'}</span></div>
-                                {task.isPraise && (
-                                    <div className="mt-2 rounded bg-slate-50 p-3">
-                                        <div className="mb-2 text-xs font-semibold text-slate-500">好评内容:</div>
-                                        <div className="space-y-2">
-                                            {(() => {
-                                                try {
-                                                    const list = task.praiseList ? JSON.parse(task.praiseList) : [];
-                                                    return list.map((txt: string, i: number) => (
-                                                        <div key={i} className="text-xs text-slate-700 border-l-2 border-primary-200 pl-2">
-                                                            {i + 1}. {txt}
-                                                        </div>
-                                                    ));
-                                                } catch (e) { return <div className="text-xs text-red-400">解析失败</div>; }
-                                            })()}
-                                        </div>
-                                    </div>
+                                <div className="flex justify-between"><span className="text-[#6b7280]">结算方式</span><span>{TerminalMap[task.terminal] || '未知'}</span></div>
+                                <div className="flex justify-between"><span className="text-[#6b7280]">包邮</span><span>{isFreeShipping ? '是' : '否'}</span></div>
+                                {task.isPasswordEnabled && task.checkPassword && (
+                                    <div className="flex justify-between"><span className="text-[#6b7280]">验证口令</span><span className="font-medium text-danger-400">{task.checkPassword}</span></div>
                                 )}
-                                {task.addReward > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">额外奖励</span><span className="text-warning-500">+¥{task.addReward}/单</span></div>}
                             </div>
                         </div>
                     </Card>
@@ -191,8 +541,10 @@ export default function TaskDetailPage() {
                             <h2 className="mb-5 text-base font-semibold">费用明细</h2>
                             <div className="grid gap-2.5 text-sm">
                                 <div className="flex justify-between"><span className="text-[#6b7280]">商品本金 × {task.count}</span><span>¥{(Number(task.goodsPrice) * task.count).toFixed(2)}</span></div>
-                                <div className="flex justify-between"><span className="text-[#6b7280]">基础服务费</span><span>¥{(Number(task.baseServiceFee) * task.count).toFixed(2)}</span></div>
-                                {Number(task.praiseFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">好评费用</span><span>¥{(Number(task.praiseFee) * task.count).toFixed(2)}</span></div>}
+                                <div className="flex justify-between"><span className="text-[#6b7280]">基础服务费</span><span>¥{(Number(task.baseServiceFee || 0) * task.count).toFixed(2)}</span></div>
+                                {Number(task.praiseFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">文字好评费</span><span>¥{(Number(task.praiseFee) * task.count).toFixed(2)}</span></div>}
+                                {Number(task.imgPraiseFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">图片好评费</span><span>¥{(Number(task.imgPraiseFee) * task.count).toFixed(2)}</span></div>}
+                                {Number(task.videoPraiseFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">视频好评费</span><span>¥{(Number(task.videoPraiseFee) * task.count).toFixed(2)}</span></div>}
                                 {Number(task.shippingFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">邮费</span><span>¥{Number(task.shippingFee).toFixed(2)}</span></div>}
                                 {Number(task.margin) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">保证金</span><span>¥{Number(task.margin).toFixed(2)}</span></div>}
                                 <div className="mt-1.5 border-t border-[#e5e7eb] pt-2.5">
@@ -205,10 +557,61 @@ export default function TaskDetailPage() {
 
                     {/* Actions */}
                     {task.status === 1 && task.claimedCount === 0 && (
-                        <button onClick={handleCancel} disabled={cancelling} className={cn('h-9 w-full rounded-md border border-danger-400 bg-white px-3 text-danger-400 hover:bg-[#fef2f2]', cancelling && 'cursor-not-allowed opacity-70')}>{cancelling ? '取消中...' : '取消任务'}</button>
+                        <button
+                            onClick={handleCancel}
+                            disabled={cancelling}
+                            className={cn('h-9 w-full rounded-md border border-danger-400 bg-white px-3 text-danger-400 hover:bg-[#fef2f2]', cancelling && 'cursor-not-allowed opacity-70')}
+                        >
+                            {cancelling ? '取消中...' : '取消任务'}
+                        </button>
                     )}
                 </div>
             </div>
+
+            {/* Praise Detail Modal */}
+            <Modal
+                title={praiseModal === 'text' ? '文字好评内容' : praiseModal === 'image' ? '图片好评' : '视频好评'}
+                open={!!praiseModal}
+                onClose={() => setPraiseModal(null)}
+                className="max-w-2xl"
+            >
+                <div className="max-h-[60vh] overflow-y-auto">
+                    {praiseModal === 'text' && (
+                        <div className="space-y-3">
+                            {praiseTexts.map((txt, i) => (
+                                <div key={i} className="rounded border border-slate-200 bg-slate-50 p-3">
+                                    <div className="mb-1 text-xs text-slate-400">第 {i + 1} 组</div>
+                                    <div className="text-sm text-slate-700">{txt}</div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {praiseModal === 'image' && (
+                        <div className="space-y-4">
+                            {praiseImgs.map((group, i) => (
+                                <div key={i} className="rounded border border-slate-200 p-3">
+                                    <div className="mb-2 text-xs text-slate-400">第 {i + 1} 组</div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {group.map((img, j) => (
+                                            <img key={j} src={img} alt="" className="h-24 w-24 rounded border object-cover" />
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {praiseModal === 'video' && (
+                        <div className="space-y-4">
+                            {praiseVideos.map((video, i) => (
+                                <div key={i} className="rounded border border-slate-200 p-3">
+                                    <div className="mb-2 text-xs text-slate-400">第 {i + 1} 个视频</div>
+                                    <video src={video} controls className="max-h-64 w-full rounded" />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </Modal>
         </div>
     );
 }
