@@ -28,7 +28,7 @@ const menuItems: MenuItem[] = [
     { key: '/merchant/dashboard', label: '工作台', icon: '📊' },
     { key: '/merchant/shops', label: '店铺管理', icon: '🏪' },
     { key: '/merchant/goods', label: '商品管理', icon: '🛒' },
-    { key: '/merchant/keywords', label: '关键词方案', icon: '🔑' },
+    { key: '/merchant/keywords', label: '关键词库', icon: '🔑' },
     { key: '/merchant/tasks', label: '任务管理', icon: '📋' },
     { key: '/merchant/orders', label: '订单审核', icon: '📦' },
     { key: '/merchant/reviews', label: '追评管理', icon: '⭐' },

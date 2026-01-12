@@ -810,7 +810,7 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                                                     onClick={() => handleOpenSchemeSelector(goods.id)}
                                                     className="rounded border border-primary-300 bg-primary-50 px-2 py-0.5 text-xs text-primary-600 hover:bg-primary-100"
                                                 >
-                                                    📋 从方案选择
+                                                    📋 从关键词库选择
                                                 </button>
                                                 <button
                                                     onClick={() => handleAddKeyword(goods.id)}
@@ -1320,19 +1320,19 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                     <div className="w-full max-w-xl rounded-lg bg-white p-6 shadow-xl">
                         <div className="mb-4 flex items-center justify-between">
-                            <h3 className="text-lg font-semibold text-[#374151]">从关键词方案选择</h3>
+                            <h3 className="text-lg font-semibold text-[#374151]">从关键词库选择</h3>
                             <button onClick={() => setShowKeywordSchemeModal(false)} className="text-[#9ca3af] hover:text-[#6b7280]">✕</button>
                         </div>
 
-                        <p className="mb-4 text-sm text-[#6b7280]">选择已保存的关键词方案，快速填充到商品关键词配置中</p>
+                        <p className="mb-4 text-sm text-[#6b7280]">选择已保存的关键词，快速填充到商品关键词配置中</p>
 
                         {loadingSchemes ? (
-                            <div className="flex items-center justify-center py-12 text-[#6b7280]">加载方案中...</div>
+                            <div className="flex items-center justify-center py-12 text-[#6b7280]">加载中...</div>
                         ) : keywordSchemes.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-12">
                                 <span className="mb-2 text-4xl">📋</span>
-                                <p className="mb-1 text-sm text-[#6b7280]">暂无关键词方案</p>
-                                <p className="text-xs text-[#9ca3af]">请先到 <a href="/merchant/keywords" className="text-primary-600">关键词管理</a> 创建方案</p>
+                                <p className="mb-1 text-sm text-[#6b7280]">暂无关键词</p>
+                                <p className="text-xs text-[#9ca3af]">请先到 <a href="/merchant/keywords" className="text-primary-600">关键词库</a> 添加关键词</p>
                             </div>
                         ) : (
                             <div className="max-h-[400px] space-y-3 overflow-y-auto">
