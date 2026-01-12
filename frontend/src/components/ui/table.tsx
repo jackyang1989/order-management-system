@@ -67,7 +67,7 @@ export function Table<T extends object>({
         <thead>
           <tr className="border-b border-[#e5e7eb] bg-[#f9fafb]">
             {selectable && (
-              <th className="w-10 px-3 py-3 text-left text-[12px] font-semibold uppercase tracking-wider text-[#6b7280]">
+              <th className="w-10 px-3 py-3 align-middle text-left text-[12px] font-semibold uppercase tracking-wider text-[#6b7280]">
                 <span className="sr-only">选择</span>
               </th>
             )}
@@ -75,7 +75,7 @@ export function Table<T extends object>({
               <th
                 key={col.key}
                 className={cn(
-                  'px-4 py-3 text-left text-[12px] font-semibold uppercase tracking-wider text-[#6b7280]',
+                  'px-4 py-3 align-middle text-left text-[12px] font-semibold uppercase tracking-wider text-[#6b7280]',
                   col.className
                 )}
               >
@@ -92,7 +92,7 @@ export function Table<T extends object>({
             return (
               <tr key={key} className="border-b border-[#e5e7eb] last:border-0 transition-colors hover:bg-[#f9fafb]">
                 {selectable && (
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-3 align-middle">
                     <input
                       type="checkbox"
                       className="h-4 w-4 rounded border-[#e5e7eb] text-primary-500 focus:ring-primary-500/20"
@@ -112,7 +112,7 @@ export function Table<T extends object>({
                   </td>
                 )}
                 {columns.map((col) => (
-                  <td key={col.key} className={cn('px-4 py-3 text-[#3b4559]', col.className)}>
+                  <td key={col.key} className={cn('px-4 py-3 align-middle text-[#3b4559]', col.className)}>
                     {col.render ? col.render(row, idx) : ((row as Record<string, unknown>)[col.key] as ReactNode)}
                   </td>
                 ))}

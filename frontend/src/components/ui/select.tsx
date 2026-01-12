@@ -31,8 +31,11 @@ export function Select({
     return options.find((opt) => opt.value === value)?.label || '';
   }, [options, value]);
 
+  const layoutClasses = className?.split(' ').filter(c => c.startsWith('w-') || c.startsWith('flex-') || c === 'grow' || c === 'shrink-0') || [];
+  const containerClasses = layoutClasses.length > 0 ? layoutClasses.join(' ') : 'w-full';
+
   return (
-    <div className="relative w-full">
+    <div className={`relative ${containerClasses}`}>
       <select
         value={value ?? ''}
         disabled={disabled}
@@ -42,7 +45,7 @@ export function Select({
           'transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20',
           'disabled:cursor-not-allowed disabled:bg-[#f9fafb] disabled:text-[#6b7280]',
           !value && 'text-[#9ca3af]',
-          className
+          className?.replace(layoutClasses[0] || '', '').trim()
         )}
       >
         <option value="" disabled>

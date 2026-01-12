@@ -17,7 +17,7 @@ export class KeywordsService {
     private goodsKeyRepository: Repository<GoodsKey>,
     @InjectRepository(KeywordDetail)
     private keywordDetailRepository: Repository<KeywordDetail>,
-  ) {}
+  ) { }
 
   // ============ 关键词方案 CRUD ============
   async findAllSchemes(sellerId: string): Promise<GoodsKey[]> {
@@ -48,6 +48,7 @@ export class KeywordsService {
     const scheme = this.goodsKeyRepository.create({
       sellerId,
       name: dto.name,
+      description: dto.description,
       platform: dto.platform,
     });
 
@@ -81,6 +82,9 @@ export class KeywordsService {
     }
 
     Object.assign(scheme, dto);
+    if (dto.description !== undefined) {
+      scheme.description = dto.description;
+    }
     await this.goodsKeyRepository.save(scheme);
     return this.findSchemeById(id) as Promise<GoodsKey>;
   }
@@ -199,6 +203,7 @@ export class KeywordsService {
       const scheme = this.goodsKeyRepository.create({
         sellerId,
         name: dto.name,
+        description: dto.description,
         platform: dto.platform,
       });
 
@@ -266,6 +271,7 @@ export class KeywordsService {
 
       // 更新方案名称
       scheme.name = dto.name;
+      if (dto.description !== undefined) scheme.description = dto.description;
       if (dto.platform) scheme.platform = dto.platform;
       await this.goodsKeyRepository.save(scheme);
 

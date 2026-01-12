@@ -10,6 +10,8 @@ import {
   Index,
 } from 'typeorm';
 import { Merchant } from '../merchants/merchant.entity';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, IsNumber, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
 // 关键词方案平台类型
 export enum KeywordPlatform {
@@ -40,6 +42,9 @@ export class GoodsKey {
 
   @Column({ length: 100 })
   name: string; // 方案名称
+
+  @Column({ type: 'text', nullable: true })
+  description: string; // 方案描述
 
   @Column({ type: 'int', default: KeywordPlatform.TAOBAO })
   platform: KeywordPlatform; // 平台 1淘宝 2天猫 3飞猪
@@ -103,34 +108,103 @@ export class KeywordDetail {
 
 // ============ DTOs ============
 export class CreateKeywordDetailDto {
+  @IsString()
+  @IsNotEmpty()
   keyword: string;
+
+  @IsOptional()
+  @IsEnum(KeywordTerminal)
   terminal?: KeywordTerminal;
+
+  @IsOptional()
+  @IsString()
   discount?: string;
+
+  @IsOptional()
+  @IsString()
   filter?: string;
+
+  @IsOptional()
+  @IsString()
   sort?: string;
+
+  @IsOptional()
+  @IsNumber()
   maxPrice?: number;
+
+  @IsOptional()
+  @IsNumber()
   minPrice?: number;
+
+  @IsOptional()
+  @IsString()
   province?: string;
 }
 
 export class CreateGoodsKeyDto {
+  @IsString()
+  @IsNotEmpty()
   name: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsEnum(KeywordPlatform)
   platform?: KeywordPlatform;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateKeywordDetailDto)
   details?: CreateKeywordDetailDto[];
 }
 
 export class UpdateGoodsKeyDto {
+  @IsOptional()
+  @IsString()
   name?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsEnum(KeywordPlatform)
   platform?: KeywordPlatform;
 }
 
 export class UpdateKeywordDetailDto {
+  @IsOptional()
+  @IsString()
   keyword?: string;
+
+  @IsOptional()
+  @IsEnum(KeywordTerminal)
   terminal?: KeywordTerminal;
+
+  @IsOptional()
+  @IsString()
   discount?: string;
+
+  @IsOptional()
+  @IsString()
   filter?: string;
+
+  @IsOptional()
+  @IsString()
   sort?: string;
+
+  @IsOptional()
+  @IsNumber()
   maxPrice?: number;
+
+  @IsOptional()
+  @IsNumber()
   minPrice?: number;
+
+  @IsOptional()
+  @IsString()
   province?: string;
 }

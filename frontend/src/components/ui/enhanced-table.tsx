@@ -217,7 +217,7 @@ export function EnhancedTable<T extends object>({
                     <thead>
                         <tr className="border-b border-[#e5e7eb] bg-[#f9fafb]">
                             {selectable && (
-                                <th className="px-3 py-3 text-left text-[12px] font-semibold uppercase tracking-wider text-[#6b7280]">
+                                <th className="px-3 py-3 align-middle text-left text-[12px] font-semibold uppercase tracking-wider text-[#6b7280]">
                                     <span className="sr-only">选择</span>
                                 </th>
                             )}
@@ -227,7 +227,7 @@ export function EnhancedTable<T extends object>({
                                     <th
                                         key={col.key}
                                         className={cn(
-                                            'relative px-4 py-3 text-left text-[12px] font-semibold uppercase tracking-wider text-[#6b7280]',
+                                            'relative px-4 py-3 align-middle text-left text-[12px] font-semibold uppercase tracking-wider text-[#6b7280]',
                                             col.sortable && 'cursor-pointer select-none hover:text-[#374151]',
                                             col.headerClassName
                                         )}
@@ -275,7 +275,7 @@ export function EnhancedTable<T extends object>({
                                     className="border-b border-[#e5e7eb] transition-colors last:border-0 hover:bg-[#f9fafb]"
                                 >
                                     {selectable && (
-                                        <td className="px-3 py-3">
+                                        <td className="px-3 py-3 align-middle">
                                             <input
                                                 type="checkbox"
                                                 className="h-4 w-4 rounded border-[#e5e7eb] text-primary-500 focus:ring-primary-500/20"
@@ -298,7 +298,7 @@ export function EnhancedTable<T extends object>({
                                         <td
                                             key={col.key}
                                             className={cn(
-                                                "px-4 py-3 text-[#3b4559]",
+                                                "px-4 py-3 align-middle text-[#3b4559]",
                                                 col.key !== 'actions' && 'overflow-hidden',
                                                 col.cellClassName
                                             )}
