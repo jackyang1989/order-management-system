@@ -47,7 +47,7 @@ export default function KeywordsPage() {
 
     useEffect(() => {
         fetchSchemes();
-        fetchSystemConfig();
+        fetchPlatforms();
     }, []);
 
     useEffect(() => {
@@ -55,36 +55,15 @@ export default function KeywordsPage() {
         else setKeywords([]);
     }, [selectedScheme]);
 
-    const fetchSystemConfig = async () => {
+    const fetchPlatforms = async () => {
         try {
-            const token = localStorage.getItem('merchantToken');
-            const res = await fetch(`${BASE_URL}/system-config/global`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            // Unauthenticated public endpoint for active platforms
+            const res = await fetch(`${BASE_URL}/platforms`);
             const json = await res.json();
-            if (json.success && json.data?.enabledPlatforms) {
-                let enabled: string[] = [];
-                try {
-                    enabled = typeof json.data.enabledPlatforms === 'string'
-                        ? JSON.parse(json.data.enabledPlatforms)
-                        : json.data.enabledPlatforms;
-                } catch (e) {
-                    console.error('Failed to parse enabledPlatforms', e);
-                    enabled = ['taobao', 'jd', 'pdd'];
-                }
-
-                const platformMap: Record<string, string> = {
-                    'taobao': '淘宝/天猫',
-                    'tmall': '天猫',
-                    'jd': '京东',
-                    'pdd': '拼多多',
-                    'douyin': '抖音',
-                    'kuaishou': '快手'
-                };
-
-                const newPlatforms = enabled.map(p => ({
-                    value: p,
-                    label: platformMap[p] || p
+            if (json.success && Array.isArray(json.data)) {
+                const newPlatforms = json.data.map((p: any) => ({
+                    value: p.code,
+                    label: p.name
                 }));
 
                 if (newPlatforms.length > 0) {
@@ -92,7 +71,7 @@ export default function KeywordsPage() {
                 }
             }
         } catch (error) {
-            console.error('Failed to fetch system config:', error);
+            console.error('Failed to fetch platforms:', error);
         }
     };
 
@@ -411,9 +390,7 @@ export default function KeywordsPage() {
                                 options={platforms}
                                 className="h-12 w-full appearance-none rounded-[16px] border-none bg-slate-50 px-4 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none"
                             />
-                            <div className="pointer-events-none absolute right-4 top-[42px] -translate-y-1/2 text-slate-400">
-                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                            </div>
+
                         </div>
                         <div className="relative">
                             <label className="mb-2 block text-xs font-bold uppercase text-slate-400">排序方式</label>
@@ -423,9 +400,7 @@ export default function KeywordsPage() {
                                 options={[{ value: 'comprehensive', label: '综合排序' }, { value: 'sales', label: '销量排序' }, { value: 'price', label: '价格排序' }]}
                                 className="h-12 w-full appearance-none rounded-[16px] border-none bg-slate-50 px-4 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none"
                             />
-                            <div className="pointer-events-none absolute right-4 top-[42px] -translate-y-1/2 text-slate-400">
-                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                            </div>
+
                         </div>
                         <div>
                             <label className="mb-2 block text-xs font-bold uppercase text-slate-400">卡位价格 (选填)</label>
