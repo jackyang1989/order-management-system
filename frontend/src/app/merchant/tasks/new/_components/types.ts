@@ -29,9 +29,10 @@ export interface PraiseContent {
     video?: string; // Video URL
 }
 
-// 关键词高级设置 (简化版 - 只保留货比关键词)
+// 关键词高级设置
 export interface KeywordAdvancedSettings {
-    compareKeyword: string;   // 货比关键词 (可选，不填则用搜索关键词)
+    compareKeyword?: string;  // 货比关键词 (可选，不填则用搜索关键词)
+    backupKeyword?: string;   // 备用关键词 (找不到商品时使用)
 }
 
 // 商品筛选设置 (商品级别，所有关键词共享)
@@ -171,7 +172,7 @@ export interface TaskFormData {
 export const InitialTaskData: TaskFormData = {
     taskType: 1,
     taskEntryType: 1,  // 默认关键词搜索
-    terminal: 1,       // 默认本佣货返
+    terminal: 2,       // 默认本立佣货
     shopId: '',
     shopName: '',
 

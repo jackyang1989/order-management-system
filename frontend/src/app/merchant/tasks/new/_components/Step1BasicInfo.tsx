@@ -450,17 +450,17 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     // 根据任务入口类型确定是否需要填写额外信息
     const getEntryTypeValid = () => {
         const entryType = data.taskEntryType || TaskEntryType.KEYWORD;
-        // 如果有商品，检查每个商品是否有关键词（关键词入口时）
+        // 如果有商品，检查主商品（第一个商品）是否有关键词（关键词入口时）
+        // 副商品不需要关键词，直接在店内找
         if (entryType === TaskEntryType.KEYWORD) {
-            // 检查 keywords 数组（新版多关键词）或者 keyword 字段（兼容旧版）
-            return data.goodsList.length > 0 && data.goodsList.every(g => {
-                // 新版：检查 keywords 数组是否有至少一个非空关键词
-                if (g.keywords && g.keywords.length > 0) {
-                    return g.keywords.some(kw => kw.keyword && kw.keyword.trim() !== '');
-                }
-                // 兼容旧版：检查 keyword 字段
-                return g.keyword && g.keyword.trim() !== '';
-            });
+            if (data.goodsList.length === 0) return false;
+            const mainGoods = data.goodsList[0]; // 主商品
+            // 新版：检查 keywords 数组是否有至少一个非空关键词
+            if (mainGoods.keywords && mainGoods.keywords.length > 0) {
+                return mainGoods.keywords.some(kw => kw.keyword && kw.keyword.trim() !== '');
+            }
+            // 兼容旧版：检查 keyword 字段
+            return mainGoods.keyword && mainGoods.keyword.trim() !== '';
         }
         switch (entryType) {
             case TaskEntryType.TAOWORD:
@@ -717,8 +717,8 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                                     </div>
                                 </div>
 
-                                {/* 关键词配置区域 (关键词入口时显示) */}
-                                {(data.taskEntryType || TaskEntryType.KEYWORD) === TaskEntryType.KEYWORD && (
+                                {/* 关键词配置区域 (仅主商品显示，副商品直接在店内找不需要关键词) */}
+                                {(data.taskEntryType || TaskEntryType.KEYWORD) === TaskEntryType.KEYWORD && index === 0 && (
                                     <div className="mt-4 border-t border-[#f3f4f6] pt-4">
                                         <div className="mb-2 flex items-center justify-between">
                                             <div className="flex items-center gap-3">
@@ -778,32 +778,61 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                                                                 ×
                                                             </button>
                                                         </div>
-                                                        {/* 主商品的第一个关键词显示货比关键词设置 */}
+                                                        {/* 主商品的第一个关键词显示高级设置 */}
                                                         {index === 0 && kwIndex === 0 && (
-                                                            <div className="mt-2 flex items-center gap-2 border-t border-[#e5e7eb] pt-2">
-                                                                <span className="shrink-0 text-xs text-[#6b7280]">货比关键词:</span>
-                                                                <input
-                                                                    type="text"
-                                                                    value={kw.advancedSettings?.compareKeyword || ''}
-                                                                    onChange={e => {
-                                                                        const newList = data.goodsList.map(g => {
-                                                                            if (g.id === goods.id && g.keywords) {
-                                                                                const newKeywords = g.keywords.map((k, i) => {
-                                                                                    if (i === 0) {
-                                                                                        return { ...k, advancedSettings: { compareKeyword: e.target.value } };
-                                                                                    }
-                                                                                    return k;
-                                                                                });
-                                                                                return { ...g, keywords: newKeywords };
-                                                                            }
-                                                                            return g;
-                                                                        });
-                                                                        onChange({ goodsList: newList });
-                                                                    }}
-                                                                    placeholder="不填则使用搜索关键词"
-                                                                    className="flex-1 rounded border border-[#e5e7eb] px-2 py-1 text-sm"
-                                                                />
-                                                                <span className="shrink-0 text-xs text-[#9ca3af]">用于货比浏览</span>
+                                                            <div className="mt-2 space-y-2 border-t border-[#e5e7eb] pt-2">
+                                                                {/* 货比关键词 */}
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="w-20 shrink-0 text-xs text-[#6b7280]">货比关键词:</span>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={kw.advancedSettings?.compareKeyword || ''}
+                                                                        onChange={e => {
+                                                                            const newList = data.goodsList.map(g => {
+                                                                                if (g.id === goods.id && g.keywords) {
+                                                                                    const newKeywords = g.keywords.map((k, i) => {
+                                                                                        if (i === 0) {
+                                                                                            return { ...k, advancedSettings: { ...k.advancedSettings, compareKeyword: e.target.value } };
+                                                                                        }
+                                                                                        return k;
+                                                                                    });
+                                                                                    return { ...g, keywords: newKeywords };
+                                                                                }
+                                                                                return g;
+                                                                            });
+                                                                            onChange({ goodsList: newList });
+                                                                        }}
+                                                                        placeholder="不填则使用搜索关键词"
+                                                                        className="flex-1 rounded border border-[#e5e7eb] px-2 py-1 text-sm"
+                                                                    />
+                                                                    <span className="shrink-0 text-xs text-[#9ca3af]">用于货比浏览</span>
+                                                                </div>
+                                                                {/* 备用关键词 */}
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="w-20 shrink-0 text-xs text-[#6b7280]">备用关键词:</span>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={kw.advancedSettings?.backupKeyword || ''}
+                                                                        onChange={e => {
+                                                                            const newList = data.goodsList.map(g => {
+                                                                                if (g.id === goods.id && g.keywords) {
+                                                                                    const newKeywords = g.keywords.map((k, i) => {
+                                                                                        if (i === 0) {
+                                                                                            return { ...k, advancedSettings: { ...k.advancedSettings, backupKeyword: e.target.value } };
+                                                                                        }
+                                                                                        return k;
+                                                                                    });
+                                                                                    return { ...g, keywords: newKeywords };
+                                                                                }
+                                                                                return g;
+                                                                            });
+                                                                            onChange({ goodsList: newList });
+                                                                        }}
+                                                                        placeholder="搜索关键词找不到时使用"
+                                                                        className="flex-1 rounded border border-[#e5e7eb] px-2 py-1 text-sm"
+                                                                    />
+                                                                </div>
+                                                                <p className="text-xs text-[#9ca3af]">备用关键词用于买手搜索关键词找不到商品时的备选搜索</p>
                                                             </div>
                                                         )}
                                                     </div>
