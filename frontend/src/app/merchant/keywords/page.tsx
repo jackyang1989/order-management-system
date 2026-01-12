@@ -39,12 +39,62 @@ export default function KeywordsPage() {
     const [schemeForm, setSchemeForm] = useState({ id: '', name: '', description: '' });
     const [keywordForm, setKeywordForm] = useState({ id: '', keyword: '', targetPrice: '', searchEngine: 'taobao', orderType: 'comprehensive', amount: '1' });
 
-    useEffect(() => { fetchSchemes(); }, []);
+    const [platforms, setPlatforms] = useState<{ label: string; value: string }[]>([
+        { value: 'taobao', label: '淘宝/天猫' },
+        { value: 'jd', label: '京东' },
+        { value: 'pdd', label: '拼多多' }
+    ]);
+
+    useEffect(() => {
+        fetchSchemes();
+        fetchSystemConfig();
+    }, []);
 
     useEffect(() => {
         if (selectedScheme) fetchKeywords(selectedScheme.id);
         else setKeywords([]);
     }, [selectedScheme]);
+
+    const fetchSystemConfig = async () => {
+        try {
+            const token = localStorage.getItem('merchantToken');
+            const res = await fetch(`${BASE_URL}/system-config/global`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (json.success && json.data?.enabledPlatforms) {
+                let enabled: string[] = [];
+                try {
+                    enabled = typeof json.data.enabledPlatforms === 'string'
+                        ? JSON.parse(json.data.enabledPlatforms)
+                        : json.data.enabledPlatforms;
+                } catch (e) {
+                    console.error('Failed to parse enabledPlatforms', e);
+                    enabled = ['taobao', 'jd', 'pdd'];
+                }
+
+                const platformMap: Record<string, string> = {
+                    'taobao': '淘宝/天猫',
+                    'tmall': '天猫',
+                    'jd': '京东',
+                    'pdd': '拼多多',
+                    'douyin': '抖音',
+                    'kuaishou': '快手'
+                };
+
+                const newPlatforms = enabled.map(p => ({
+                    value: p,
+                    label: platformMap[p] || p
+                }));
+
+                if (newPlatforms.length > 0) {
+                    setPlatforms(newPlatforms);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch system config:', error);
+        }
+    };
 
     const fetchSchemes = async () => {
         try {
@@ -101,7 +151,7 @@ export default function KeywordsPage() {
             const method = keywordForm.id ? 'PUT' : 'POST';
             const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ keyword: keywordForm.keyword, targetPrice: Number(keywordForm.targetPrice), searchEngine: keywordForm.searchEngine, orderType: keywordForm.orderType, amount: Number(keywordForm.amount) }) });
             const json = await res.json();
-            if (json.success) { fetchKeywords(selectedScheme.id); setIsKeywordModalOpen(false); setKeywordForm({ id: '', keyword: '', targetPrice: '', searchEngine: 'taobao', orderType: 'comprehensive', amount: '1' }); }
+            if (json.success) { fetchKeywords(selectedScheme.id); setIsKeywordModalOpen(false); setKeywordForm({ id: '', keyword: '', targetPrice: '', searchEngine: platforms[0]?.value || 'taobao', orderType: 'comprehensive', amount: '1' }); }
             else alert(json.message);
         } catch (error) { console.error('Keyword Op Failed:', error); }
     };
@@ -113,6 +163,11 @@ export default function KeywordsPage() {
             await fetch(`${BASE_URL}/keywords/details/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
             if (selectedScheme) fetchKeywords(selectedScheme.id);
         } catch (error) { console.error('Delete Keyword Failed:', error); }
+    };
+
+    const getPlatformLabel = (value: string) => {
+        const found = platforms.find(p => p.value === value);
+        return found ? found.label : (value === 'taobao' ? '淘宝/天猫' : value === 'jd' ? '京东' : value === 'pdd' ? '拼多多' : value);
     };
 
     return (
@@ -200,7 +255,7 @@ export default function KeywordsPage() {
                                 </p>
                             </div>
                             <Button
-                                onClick={() => { setKeywordForm({ id: '', keyword: '', targetPrice: '', searchEngine: 'taobao', orderType: 'comprehensive', amount: '1' }); setIsKeywordModalOpen(true); }}
+                                onClick={() => { setKeywordForm({ id: '', keyword: '', targetPrice: '', searchEngine: platforms[0]?.value || 'taobao', orderType: 'comprehensive', amount: '1' }); setIsKeywordModalOpen(true); }}
                                 className="h-10 rounded-[14px] bg-primary-600 px-5 font-bold text-white shadow-lg shadow-primary-500/20 hover:bg-primary-700 hover:shadow-primary-500/30"
                             >
                                 + 添加关键词
@@ -213,7 +268,7 @@ export default function KeywordsPage() {
                                     <thead>
                                         <tr className="bg-slate-50/50">
                                             <th className="px-6 py-4 text-left text-xs font-bold uppercase text-slate-400">关键词</th>
-                                            <th className="px-6 py-4 text-left text-xs font-bold uppercase text-slate-400">搜索引擎</th>
+                                            <th className="px-6 py-4 text-left text-xs font-bold uppercase text-slate-400">平台分类</th>
                                             <th className="px-6 py-4 text-left text-xs font-bold uppercase text-slate-400">排序方式</th>
                                             <th className="px-6 py-4 text-left text-xs font-bold uppercase text-slate-400">卡位价格</th>
                                             <th className="px-6 py-4 text-left text-xs font-bold uppercase text-slate-400">数量</th>
@@ -229,11 +284,12 @@ export default function KeywordsPage() {
                                                 <td className="px-6 py-4">
                                                     <span className={cn(
                                                         "inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-bold",
-                                                        kw.searchEngine === 'taobao' ? "bg-orange-50 text-orange-600" :
+                                                        (kw.searchEngine === 'taobao' || kw.searchEngine === 'tmall') ? "bg-orange-50 text-orange-600" :
                                                             kw.searchEngine === 'jd' ? "bg-red-50 text-red-600" :
-                                                                "bg-emerald-50 text-emerald-600"
+                                                                kw.searchEngine === 'pdd' ? "bg-emerald-50 text-emerald-600" :
+                                                                    "bg-slate-100 text-slate-600"
                                                     )}>
-                                                        {kw.searchEngine === 'taobao' ? '淘宝/天猫' : kw.searchEngine === 'jd' ? '京东' : '拼多多'}
+                                                        {getPlatformLabel(kw.searchEngine)}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4">
@@ -254,7 +310,7 @@ export default function KeywordsPage() {
                                                 <td className="px-6 py-4 text-right">
                                                     <div className="flex justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
                                                         <button
-                                                            onClick={() => { setKeywordForm({ id: kw.id, keyword: kw.keyword, targetPrice: kw.targetPrice?.toString() || '', searchEngine: kw.searchEngine, orderType: kw.orderType, amount: kw.amount.toString() }); setIsKeywordModalOpen(true); }}
+                                                            onClick={() => { setKeywordForm({ id: kw.id, keyword: kw.keyword, targetPrice: kw.targetPrice?.toString() || '', searchEngine: kw.searchEngine || platforms[0]?.value || 'taobao', orderType: kw.orderType, amount: kw.amount?.toString() || '1' }); setIsKeywordModalOpen(true); }}
                                                             className="rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-primary-600 shadow-sm ring-1 ring-slate-200 hover:bg-primary-50 hover:ring-primary-100"
                                                         >
                                                             编辑
@@ -278,7 +334,7 @@ export default function KeywordsPage() {
                                     <p className="mt-4 text-sm font-bold text-slate-400">暂无关键词配置</p>
                                     <Button
                                         variant="ghost"
-                                        onClick={() => { setKeywordForm({ id: '', keyword: '', targetPrice: '', searchEngine: 'taobao', orderType: 'comprehensive', amount: '1' }); setIsKeywordModalOpen(true); }}
+                                        onClick={() => { setKeywordForm({ id: '', keyword: '', targetPrice: '', searchEngine: platforms[0]?.value || 'taobao', orderType: 'comprehensive', amount: '1' }); setIsKeywordModalOpen(true); }}
                                         className="mt-2 font-bold text-primary-600 hover:text-primary-700"
                                     >
                                         立即添加
@@ -348,11 +404,11 @@ export default function KeywordsPage() {
                             />
                         </div>
                         <div className="relative">
-                            <label className="mb-2 block text-xs font-bold uppercase text-slate-400">搜索引擎</label>
+                            <label className="mb-2 block text-xs font-bold uppercase text-slate-400">平台分类</label>
                             <Select
                                 value={keywordForm.searchEngine}
                                 onChange={v => setKeywordForm({ ...keywordForm, searchEngine: v })}
-                                options={[{ value: 'taobao', label: '淘宝/天猫' }, { value: 'jd', label: '京东' }, { value: 'pdd', label: '拼多多' }]}
+                                options={platforms}
                                 className="h-12 w-full appearance-none rounded-[16px] border-none bg-slate-50 px-4 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none"
                             />
                             <div className="pointer-events-none absolute right-4 top-[42px] -translate-y-1/2 text-slate-400">

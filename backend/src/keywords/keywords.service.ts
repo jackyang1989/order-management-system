@@ -220,6 +220,8 @@ export class KeywordsService {
           maxPrice: d.maxPrice,
           minPrice: d.minPrice,
           province: d.province,
+          amount: d.amount,
+          searchEngine: d.searchEngine,
           goodsKeyId: savedScheme.id,
         }),
       );
@@ -289,6 +291,8 @@ export class KeywordsService {
           maxPrice: d.maxPrice,
           minPrice: d.minPrice,
           province: d.province,
+          amount: d.amount,
+          searchEngine: d.searchEngine,
           goodsKeyId: schemeId,
         }),
       );

@@ -99,6 +99,12 @@ export class KeywordDetail {
   @Column({ length: 50, nullable: true })
   province: string; // 发货地（省）
 
+  @Column({ type: 'int', default: 1 })
+  amount: number; // 数量
+
+  @Column({ length: 50, default: 'taobao' })
+  searchEngine: string; // 搜索引擎/平台 (taobao, jd, pdd, etc)
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -139,6 +145,14 @@ export class CreateKeywordDetailDto {
   @IsOptional()
   @IsString()
   province?: string;
+
+  @IsOptional()
+  @IsNumber()
+  amount?: number;
+
+  @IsOptional()
+  @IsString()
+  searchEngine?: string;
 }
 
 export class CreateGoodsKeyDto {
@@ -207,4 +221,12 @@ export class UpdateKeywordDetailDto {
   @IsOptional()
   @IsString()
   province?: string;
+
+  @IsOptional()
+  @IsNumber()
+  amount?: number;
+
+  @IsOptional()
+  @IsString()
+  searchEngine?: string;
 }
