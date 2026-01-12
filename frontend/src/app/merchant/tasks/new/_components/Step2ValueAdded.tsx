@@ -20,8 +20,6 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
         setPraiseFees(getPraiseFees(config));
     };
 
-    const ensurePraiseArrays = (count: number) => { let newList = [...data.praiseList]; if (newList.length !== count) newList = Array(count).fill(''); return newList; };
-
     const handlePraiseChange = (type: 'text' | 'image' | 'video' | 'none') => {
         const count = data.count || 1;
         const resetData: Partial<TaskFormData> = {
@@ -312,19 +310,10 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
             <div className="mb-8">
                 <h3 className="mb-4 text-[15px] font-semibold text-[#374151]">其它增值服务</h3>
                 {/* Verify Code Switch */}
-                <div className="flex items-start gap-3 border-b border-[#f3f4f6] px-3 py-3">
-                    <input type="checkbox" checked={data.isPasswordEnabled} onChange={e => onChange({ isPasswordEnabled: e.target.checked })} className="mt-1" />
-                    <div className="flex flex-1 flex-col">
+                <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-3 py-3">
+                    <input type="checkbox" checked={data.isPasswordEnabled} onChange={e => onChange({ isPasswordEnabled: e.target.checked })} />
+                    <div className="flex flex-1 items-center justify-between">
                         <div><span className="text-sm">开启口令验证</span><span className="ml-2 text-xs text-[#9ca3af]">买手需在商品详情页找到口令进行核对</span></div>
-                        {data.isPasswordEnabled && (
-                            <div className="mt-2">
-                                <input type="text" value={data.checkPassword || ''} onChange={e => onChange({ checkPassword: e.target.value })} placeholder="请输入4-10个字的核对口令" minLength={4} maxLength={10} className={cn('w-[300px] rounded border px-2 py-1.5 text-sm', data.checkPassword && (data.checkPassword.length < 4 || data.checkPassword.length > 10) ? 'border-red-500' : 'border-[#e5e7eb]')} />
-                                <div className="mt-1 text-xs text-[#6b7280]">口令需为4-10个详情页文字，买手做任务时需在详情页找到并输入完整口令。</div>
-                                {data.checkPassword && (data.checkPassword.length < 4 || data.checkPassword.length > 10) && (
-                                    <div className="mt-1 text-xs text-danger-400">口令需为4-10个字符</div>
-                                )}
-                            </div>
-                        )}
                     </div>
                 </div>
                 {/* Timing Publish */}
