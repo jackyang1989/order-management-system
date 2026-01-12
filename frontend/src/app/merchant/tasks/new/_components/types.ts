@@ -29,13 +29,14 @@ export interface PraiseContent {
     video?: string; // Video URL
 }
 
-// 关键词高级设置
+// 关键词高级设置 (简化版 - 只保留货比关键词)
 export interface KeywordAdvancedSettings {
+    compareKeyword: string;   // 货比关键词 (可选，不填则用搜索关键词)
+}
+
+// 商品筛选设置 (商品级别，所有关键词共享)
+export interface GoodsFilterSettings {
     discount: string[];       // 折扣服务选项 (多选)
-    spec1: string;            // 规格1
-    spec2: string;            // 规格2
-    compareKeyword: string;   // 货比关键词 (必填)
-    backupKeyword: string;    // 备选关键词
     sort: string;             // 排序方式
     minPrice: number;         // 最低价
     maxPrice: number;         // 最高价
@@ -73,6 +74,7 @@ export interface GoodsItem {
     orderSpecs?: OrderSpecConfig[];  // 下单规格配置 (最多5个)
     verifyCode?: string;  // 核对口令 (最多10字，必须是商品详情页有的文字)
     shopId?: string;      // 所属店铺ID
+    filterSettings?: GoodsFilterSettings;  // 商品筛选设置 (商品级别)
 }
 
 export interface TaskFormData {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { TaskFormData, TaskEntryType, GoodsItem, KeywordConfig, KeywordAdvancedSettings, OrderSpecConfig } from './types';
+import { TaskFormData, TaskEntryType, GoodsItem, KeywordConfig, KeywordAdvancedSettings, OrderSpecConfig, GoodsFilterSettings } from './types';
 import { fetchShops, Shop } from '../../../../../services/shopService';
 import { getShopPlatformCode } from '../../../../../constants/platformConfig';
 import { fetchEnabledPlatforms, PlatformData } from '../../../../../services/systemConfigService';
@@ -91,16 +91,11 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     const [showGoodsLibModal, setShowGoodsLibModal] = useState(false);
     const [goodsLibList, setGoodsLibList] = useState<Goods[]>([]);
     const [loadingGoodsLib, setLoadingGoodsLib] = useState(false);
-    // 关键词高级设置相关状态
-    const [showKeywordAdvancedModal, setShowKeywordAdvancedModal] = useState(false);
-    const [editingKeywordGoodsId, setEditingKeywordGoodsId] = useState<string>('');
-    const [editingKeywordIndex, setEditingKeywordIndex] = useState<number>(0);
-    const [advancedSettings, setAdvancedSettings] = useState<KeywordAdvancedSettings>({
+    // 商品筛选设置相关状态
+    const [showFilterSettingsModal, setShowFilterSettingsModal] = useState(false);
+    const [editingFilterGoodsId, setEditingFilterGoodsId] = useState<string>('');
+    const [filterSettings, setFilterSettings] = useState<GoodsFilterSettings>({
         discount: [],
-        spec1: '',
-        spec2: '',
-        compareKeyword: '',
-        backupKeyword: '',
         sort: '0',
         minPrice: 0,
         maxPrice: 0,
@@ -246,27 +241,34 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
         onChange({ goodsList: newList });
     };
 
-    // 打开关键词高级设置
-    const handleOpenAdvancedSettings = (goodsId: string, keywordIndex: number) => {
+    // 打开商品筛选设置
+    const handleOpenFilterSettings = (goodsId: string) => {
         const goods = data.goodsList.find(g => g.id === goodsId);
-        if (goods?.keywords?.[keywordIndex]?.advancedSettings) {
-            setAdvancedSettings(goods.keywords[keywordIndex].advancedSettings!);
+        if (goods?.filterSettings) {
+            setFilterSettings({ ...goods.filterSettings });
         } else {
-            setAdvancedSettings({
+            setFilterSettings({
                 discount: [],
-                spec1: '',
-                spec2: '',
-                compareKeyword: '',
-                backupKeyword: '',
                 sort: '0',
                 minPrice: 0,
                 maxPrice: 0,
                 province: '',
             });
         }
-        setEditingKeywordGoodsId(goodsId);
-        setEditingKeywordIndex(keywordIndex);
-        setShowKeywordAdvancedModal(true);
+        setEditingFilterGoodsId(goodsId);
+        setShowFilterSettingsModal(true);
+    };
+
+    // 保存商品筛选设置
+    const handleSaveFilterSettings = () => {
+        const newList = data.goodsList.map(g => {
+            if (g.id === editingFilterGoodsId) {
+                return { ...g, filterSettings: { ...filterSettings } };
+            }
+            return g;
+        });
+        onChange({ goodsList: newList });
+        setShowFilterSettingsModal(false);
     };
 
     // 保存关键词高级设置
@@ -468,7 +470,15 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
         const entryType = data.taskEntryType || TaskEntryType.KEYWORD;
         // 如果有商品，检查每个商品是否有关键词（关键词入口时）
         if (entryType === TaskEntryType.KEYWORD) {
-            return data.goodsList.length > 0 && data.goodsList.every(g => g.keyword && g.keyword.trim() !== '');
+            // 检查 keywords 数组（新版多关键词）或者 keyword 字段（兼容旧版）
+            return data.goodsList.length > 0 && data.goodsList.every(g => {
+                // 新版：检查 keywords 数组是否有至少一个非空关键词
+                if (g.keywords && g.keywords.length > 0) {
+                    return g.keywords.some(kw => kw.keyword && kw.keyword.trim() !== '');
+                }
+                // 兼容旧版：检查 keyword 字段
+                return g.keyword && g.keyword.trim() !== '';
+            });
         }
         switch (entryType) {
             case TaskEntryType.TAOWORD:
@@ -729,7 +739,15 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                                 {(data.taskEntryType || TaskEntryType.KEYWORD) === TaskEntryType.KEYWORD && (
                                     <div className="mt-4 border-t border-[#f3f4f6] pt-4">
                                         <div className="mb-2 flex items-center justify-between">
-                                            <label className="text-xs font-medium text-[#374151]">搜索关键词配置 <span className="text-red-500">*</span></label>
+                                            <div className="flex items-center gap-3">
+                                                <label className="text-xs font-medium text-[#374151]">搜索关键词配置 <span className="text-red-500">*</span></label>
+                                                <button
+                                                    onClick={() => handleOpenFilterSettings(goods.id)}
+                                                    className="rounded border border-[#e5e7eb] bg-white px-2 py-0.5 text-xs text-[#6b7280] hover:border-primary-300 hover:text-primary-600"
+                                                >
+                                                    筛选设置 {goods.filterSettings && (goods.filterSettings.discount.length > 0 || goods.filterSettings.sort !== '0' || goods.filterSettings.minPrice > 0 || goods.filterSettings.maxPrice > 0 || goods.filterSettings.province) ? '✓' : ''}
+                                                </button>
+                                            </div>
                                             <button
                                                 onClick={() => handleAddKeyword(goods.id)}
                                                 disabled={(goods.keywords?.length || 0) >= 5}
@@ -751,37 +769,61 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                                         ) : (
                                             <div className="space-y-2">
                                                 {goods.keywords.map((kw, kwIndex) => (
-                                                    <div key={kwIndex} className="flex items-center gap-2 rounded bg-[#f9fafb] p-2">
-                                                        <span className="text-xs text-[#6b7280]">#{kwIndex + 1}</span>
-                                                        <input
-                                                            type="text"
-                                                            value={kw.keyword}
-                                                            onChange={e => handleUpdateKeyword(goods.id, kwIndex, 'keyword', e.target.value)}
-                                                            placeholder="输入搜索关键词"
-                                                            className="flex-1 rounded border border-[#e5e7eb] px-2 py-1 text-sm"
-                                                        />
-                                                        <div className="flex items-center gap-1">
-                                                            <span className="text-xs text-[#6b7280]">使用次数</span>
+                                                    <div key={kwIndex} className="rounded bg-[#f9fafb] p-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-xs text-[#6b7280]">#{kwIndex + 1}</span>
                                                             <input
-                                                                type="number"
-                                                                value={kw.useCount || 1}
-                                                                onChange={e => handleUpdateKeyword(goods.id, kwIndex, 'useCount', parseInt(e.target.value) || 1)}
-                                                                className="w-12 rounded border border-[#e5e7eb] px-1 py-1 text-center text-sm"
-                                                                min="1"
+                                                                type="text"
+                                                                value={kw.keyword}
+                                                                onChange={e => handleUpdateKeyword(goods.id, kwIndex, 'keyword', e.target.value)}
+                                                                placeholder="输入搜索关键词"
+                                                                className="flex-1 rounded border border-[#e5e7eb] px-2 py-1 text-sm"
                                                             />
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="text-xs text-[#6b7280]">使用次数</span>
+                                                                <input
+                                                                    type="number"
+                                                                    value={kw.useCount || 1}
+                                                                    onChange={e => handleUpdateKeyword(goods.id, kwIndex, 'useCount', parseInt(e.target.value) || 1)}
+                                                                    className="w-12 rounded border border-[#e5e7eb] px-1 py-1 text-center text-sm"
+                                                                    min="1"
+                                                                />
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleRemoveKeyword(goods.id, kwIndex)}
+                                                                className="text-red-400 hover:text-red-600"
+                                                            >
+                                                                ×
+                                                            </button>
                                                         </div>
-                                                        <button
-                                                            onClick={() => handleOpenAdvancedSettings(goods.id, kwIndex)}
-                                                            className="rounded border border-[#e5e7eb] bg-white px-2 py-1 text-xs text-[#6b7280] hover:border-primary-300 hover:text-primary-600"
-                                                        >
-                                                            高级设置
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleRemoveKeyword(goods.id, kwIndex)}
-                                                            className="text-red-400 hover:text-red-600"
-                                                        >
-                                                            ×
-                                                        </button>
+                                                        {/* 主商品的第一个关键词显示货比关键词设置 */}
+                                                        {index === 0 && kwIndex === 0 && (
+                                                            <div className="mt-2 flex items-center gap-2 border-t border-[#e5e7eb] pt-2">
+                                                                <span className="shrink-0 text-xs text-[#6b7280]">货比关键词:</span>
+                                                                <input
+                                                                    type="text"
+                                                                    value={kw.advancedSettings?.compareKeyword || ''}
+                                                                    onChange={e => {
+                                                                        const newList = data.goodsList.map(g => {
+                                                                            if (g.id === goods.id && g.keywords) {
+                                                                                const newKeywords = g.keywords.map((k, i) => {
+                                                                                    if (i === 0) {
+                                                                                        return { ...k, advancedSettings: { compareKeyword: e.target.value } };
+                                                                                    }
+                                                                                    return k;
+                                                                                });
+                                                                                return { ...g, keywords: newKeywords };
+                                                                            }
+                                                                            return g;
+                                                                        });
+                                                                        onChange({ goodsList: newList });
+                                                                    }}
+                                                                    placeholder="不填则使用搜索关键词"
+                                                                    className="flex-1 rounded border border-[#e5e7eb] px-2 py-1 text-sm"
+                                                                />
+                                                                <span className="shrink-0 text-xs text-[#9ca3af]">用于货比浏览</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ))}
                                             </div>
@@ -1083,36 +1125,13 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                 </div>
             )}
 
-            {/* Keyword Advanced Settings Modal */}
+            {/* Keyword Advanced Settings Modal (简化版 - 只保留货比关键词) */}
             {showKeywordAdvancedModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl">
+                    <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
                         <div className="mb-4 flex items-center justify-between">
                             <h3 className="text-lg font-semibold text-[#374151]">关键词高级设置</h3>
                             <button onClick={() => setShowKeywordAdvancedModal(false)} className="text-[#9ca3af] hover:text-[#6b7280]">✕</button>
-                        </div>
-
-                        {/* 折扣服务多选 */}
-                        <div className="mb-4">
-                            <label className="mb-2 block text-sm font-medium text-[#374151]">折扣服务筛选</label>
-                            <div className="grid grid-cols-4 gap-2">
-                                {DISCOUNT_OPTIONS.map(opt => (
-                                    <label key={opt.value} className="flex cursor-pointer items-center gap-1.5 rounded border border-[#e5e7eb] px-2 py-1.5 text-sm hover:bg-[#f9fafb]">
-                                        <input
-                                            type="checkbox"
-                                            checked={advancedSettings.discount.includes(opt.value)}
-                                            onChange={e => {
-                                                if (e.target.checked) {
-                                                    setAdvancedSettings(prev => ({ ...prev, discount: [...prev.discount, opt.value] }));
-                                                } else {
-                                                    setAdvancedSettings(prev => ({ ...prev, discount: prev.discount.filter(v => v !== opt.value) }));
-                                                }
-                                            }}
-                                        />
-                                        <span>{opt.label}</span>
-                                    </label>
-                                ))}
-                            </div>
                         </div>
 
                         {/* 货比关键词 */}
@@ -1124,26 +1143,58 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                                 onChange={e => setAdvancedSettings(prev => ({ ...prev, compareKeyword: e.target.value }))}
                                 placeholder="不填则默认使用主商品的第一个搜索关键词"
                             />
-                            <p className="mt-0.5 text-xs text-[#9ca3af]">买手进行货比浏览时使用此关键词搜索，不填则自动使用主商品的第一个搜索关键词</p>
+                            <p className="mt-1 text-xs text-[#9ca3af]">买手进行货比浏览时使用此关键词搜索，不填则自动使用主商品的第一个搜索关键词</p>
                         </div>
 
-                        {/* 备选关键词 */}
+                        {/* 操作按钮 */}
+                        <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
+                            <Button variant="secondary" onClick={() => setShowKeywordAdvancedModal(false)}>取消</Button>
+                            <Button onClick={handleSaveAdvancedSettings}>保存设置</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Goods Filter Settings Modal (商品筛选设置弹窗) */}
+            {showFilterSettingsModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl">
+                        <div className="mb-4 flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-[#374151]">商品筛选设置</h3>
+                            <button onClick={() => setShowFilterSettingsModal(false)} className="text-[#9ca3af] hover:text-[#6b7280]">✕</button>
+                        </div>
+
+                        <p className="mb-4 text-sm text-[#6b7280]">筛选设置将应用于该商品的所有关键词搜索</p>
+
+                        {/* 折扣服务多选 */}
                         <div className="mb-4">
-                            <label className="mb-1 block text-sm text-[#374151]">备选关键词</label>
-                            <Input
-                                type="text"
-                                value={advancedSettings.backupKeyword}
-                                onChange={e => setAdvancedSettings(prev => ({ ...prev, backupKeyword: e.target.value }))}
-                                placeholder="主关键词找不到时使用"
-                            />
+                            <label className="mb-2 block text-sm font-medium text-[#374151]">折扣服务筛选</label>
+                            <div className="grid grid-cols-4 gap-2">
+                                {DISCOUNT_OPTIONS.map(opt => (
+                                    <label key={opt.value} className="flex cursor-pointer items-center gap-1.5 rounded border border-[#e5e7eb] px-2 py-1.5 text-sm hover:bg-[#f9fafb]">
+                                        <input
+                                            type="checkbox"
+                                            checked={filterSettings.discount.includes(opt.value)}
+                                            onChange={e => {
+                                                if (e.target.checked) {
+                                                    setFilterSettings(prev => ({ ...prev, discount: [...prev.discount, opt.value] }));
+                                                } else {
+                                                    setFilterSettings(prev => ({ ...prev, discount: prev.discount.filter(v => v !== opt.value) }));
+                                                }
+                                            }}
+                                        />
+                                        <span>{opt.label}</span>
+                                    </label>
+                                ))}
+                            </div>
                         </div>
 
                         {/* 排序方式 */}
                         <div className="mb-4">
                             <label className="mb-1 block text-sm text-[#374151]">排序方式</label>
                             <select
-                                value={advancedSettings.sort}
-                                onChange={e => setAdvancedSettings(prev => ({ ...prev, sort: e.target.value }))}
+                                value={filterSettings.sort}
+                                onChange={e => setFilterSettings(prev => ({ ...prev, sort: e.target.value }))}
                                 className="w-full rounded border border-[#e5e7eb] px-3 py-2 text-sm"
                             >
                                 {SORT_OPTIONS.map(opt => (
@@ -1158,8 +1209,8 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                                 <label className="mb-1 block text-sm text-[#374151]">最低价格</label>
                                 <Input
                                     type="number"
-                                    value={String(advancedSettings.minPrice || '')}
-                                    onChange={e => setAdvancedSettings(prev => ({ ...prev, minPrice: parseFloat(e.target.value) || 0 }))}
+                                    value={String(filterSettings.minPrice || '')}
+                                    onChange={e => setFilterSettings(prev => ({ ...prev, minPrice: parseFloat(e.target.value) || 0 }))}
                                     placeholder="0"
                                     min="0"
                                 />
@@ -1168,8 +1219,8 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                                 <label className="mb-1 block text-sm text-[#374151]">最高价格</label>
                                 <Input
                                     type="number"
-                                    value={String(advancedSettings.maxPrice || '')}
-                                    onChange={e => setAdvancedSettings(prev => ({ ...prev, maxPrice: parseFloat(e.target.value) || 0 }))}
+                                    value={String(filterSettings.maxPrice || '')}
+                                    onChange={e => setFilterSettings(prev => ({ ...prev, maxPrice: parseFloat(e.target.value) || 0 }))}
                                     placeholder="不限"
                                     min="0"
                                 />
@@ -1180,8 +1231,8 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                         <div className="mb-4">
                             <label className="mb-1 block text-sm text-[#374151]">发货地省份</label>
                             <select
-                                value={advancedSettings.province}
-                                onChange={e => setAdvancedSettings(prev => ({ ...prev, province: e.target.value }))}
+                                value={filterSettings.province}
+                                onChange={e => setFilterSettings(prev => ({ ...prev, province: e.target.value }))}
                                 className="w-full rounded border border-[#e5e7eb] px-3 py-2 text-sm"
                             >
                                 <option value="">不限</option>
@@ -1193,8 +1244,8 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
 
                         {/* 操作按钮 */}
                         <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
-                            <Button variant="secondary" onClick={() => setShowKeywordAdvancedModal(false)}>取消</Button>
-                            <Button onClick={handleSaveAdvancedSettings}>保存设置</Button>
+                            <Button variant="secondary" onClick={() => setShowFilterSettingsModal(false)}>取消</Button>
+                            <Button onClick={handleSaveFilterSettings}>保存设置</Button>
                         </div>
                     </div>
                 </div>

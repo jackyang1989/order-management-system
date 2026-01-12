@@ -349,17 +349,24 @@ export class CreateTaskDto {
       keyword: string;
       useCount?: number;
       advancedSettings?: {
-        discount: string[];
-        spec1: string;
-        spec2: string;
-        compareKeyword: string;
-        backupKeyword: string;
-        sort: string;
-        minPrice: number;
-        maxPrice: number;
-        province: string;
+        compareKeyword: string;  // 货比关键词 (简化版，只保留这个)
       };
     }>;
+    // 商品筛选设置 (商品级别，所有关键词共享)
+    filterSettings?: {
+      discount: string[];    // 折扣服务选项 (多选)
+      sort: string;          // 排序方式
+      minPrice: number;      // 最低价
+      maxPrice: number;      // 最高价
+      province: string;      // 发货地
+    };
+    orderSpecs?: Array<{
+      specName: string;
+      specValue: string;
+      quantity: number;
+    }>;
+    verifyCode?: string;     // 核对口令
+    shopId?: string;
   }>;
 
   // 增值服务字段
