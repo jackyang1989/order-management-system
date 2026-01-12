@@ -1,15 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { BASE_URL } from '../../../../apiConfig';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TASK_TYPE_NAMES, TASK_PLATFORMS } from '@/constants/platformConfig';
+import { TASK_TYPE_NAMES, getFilteredTaskPlatforms } from '@/constants/platformConfig';
+import { fetchEnabledPlatforms, PlatformData } from '@/services/systemConfigService';
 
 interface Task { id: string; taskNumber: string; title: string; taskType: number; goodsPrice: number; count: number; claimedCount: number; totalCommission: number; status: number; createdAt: string; }
+
+// 平台代码到任务类型ID的映射
+const PLATFORM_CODE_TO_TASK_TYPE: Record<string, number> = {
+    'taobao': 1,
+    'tmall': 2,
+    'jd': 3,
+    'pdd': 4,
+    'douyin': 5,
+    'kuaishou': 6,
+    'xhs': 7,
+    'xianyu': 8,
+    '1688': 9,
+};
 
 const TaskStatusMap: Record<number, { text: string; color: 'amber' | 'green' | 'blue' | 'red' | 'slate' }> = {
     0: { text: '待支付', color: 'amber' }, 1: { text: '进行中', color: 'green' }, 2: { text: '已完成', color: 'blue' }, 3: { text: '已取消', color: 'red' }, 4: { text: '待审核', color: 'slate' },
@@ -23,8 +37,23 @@ export default function MerchantTasksPage() {
     const [loading, setLoading] = useState(true);
     const [tasks, setTasks] = useState<Task[]>([]);
     const [filter, setFilter] = useState({ status: 'all', taskType: 'all' });
+    const [enabledPlatforms, setEnabledPlatforms] = useState<PlatformData[]>([]);
 
-    useEffect(() => { const token = localStorage.getItem('merchantToken'); if (!token) { router.push('/merchant/login'); return; } loadTasks(); }, [router]);
+    useEffect(() => { const token = localStorage.getItem('merchantToken'); if (!token) { router.push('/merchant/login'); return; } loadPlatforms(); loadTasks(); }, [router]);
+
+    const loadPlatforms = async () => {
+        const platforms = await fetchEnabledPlatforms();
+        setEnabledPlatforms(platforms);
+    };
+
+    // 根据后台启用的平台过滤任务平台列表
+    const filteredTaskPlatforms = useMemo(() => {
+        if (enabledPlatforms.length === 0) return [];
+        const enabledTaskTypes = enabledPlatforms
+            .map(p => PLATFORM_CODE_TO_TASK_TYPE[p.code])
+            .filter(Boolean);
+        return getFilteredTaskPlatforms(enabledTaskTypes);
+    }, [enabledPlatforms]);
 
     const loadTasks = async () => {
         setLoading(true);
@@ -72,7 +101,7 @@ export default function MerchantTasksPage() {
                             className="h-10 w-[120px] rounded-[12px] border-none bg-slate-50 px-3 text-[14px] font-medium text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none"
                         >
                             <option value="all">全部</option>
-                            {TASK_PLATFORMS.map(p => <option key={p.id} value={String(p.id)}>{p.name}</option>)}
+                            {filteredTaskPlatforms.map(p => <option key={p.id} value={String(p.id)}>{p.name}</option>)}
                         </select>
                     </div>
                     <div className="flex-1" />

@@ -5,6 +5,7 @@ import { TaskFormData, TaskEntryType, GoodsItem, KeywordConfig, OrderSpecConfig,
 import { fetchShops, Shop } from '../../../../../services/shopService';
 import { getShopPlatformCode } from '../../../../../constants/platformConfig';
 import { fetchEnabledPlatforms, PlatformData } from '../../../../../services/systemConfigService';
+import { fetchEnabledEntryTypes, EntryTypeData } from '../../../../../services/entryTypeService';
 import { fetchGoodsByShop, Goods } from '../../../../../services/goodsService';
 import { cn } from '../../../../../lib/utils';
 import { Button } from '../../../../../components/ui/button';
@@ -82,6 +83,8 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     const [loadingShops, setLoadingShops] = useState(true);
     const [platforms, setPlatforms] = useState<PlatformData[]>([]);
     const [loadingPlatforms, setLoadingPlatforms] = useState(true);
+    const [entryTypes, setEntryTypes] = useState<EntryTypeData[]>([]);
+    const [loadingEntryTypes, setLoadingEntryTypes] = useState(true);
     const [showAddGoodsModal, setShowAddGoodsModal] = useState(false);
     const [editingGoods, setEditingGoods] = useState<GoodsItem | null>(null);
     const [newGoodsUrl, setNewGoodsUrl] = useState('');
@@ -105,7 +108,7 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     const [uploadingQrCode, setUploadingQrCode] = useState(false);
     const [uploadingChannel, setUploadingChannel] = useState(false);
 
-    useEffect(() => { loadShops(); loadPlatforms(); }, []);
+    useEffect(() => { loadShops(); loadPlatforms(); loadEntryTypes(); }, []);
 
     // 当店铺变化时，加载该店铺的商品库
     useEffect(() => {
@@ -118,6 +121,7 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
 
     const loadShops = async () => { setLoadingShops(true); const shopList = await fetchShops(); setShops(shopList.filter(s => s && s.status === 1)); setLoadingShops(false); };
     const loadPlatforms = async () => { setLoadingPlatforms(true); const list = await fetchEnabledPlatforms(); setPlatforms(list); setLoadingPlatforms(false); };
+    const loadEntryTypes = async () => { setLoadingEntryTypes(true); const list = await fetchEnabledEntryTypes(); setEntryTypes(list); setLoadingEntryTypes(false); };
     const loadGoodsLib = async (shopId: string) => {
         setLoadingGoodsLib(true);
         const goods = await fetchGoodsByShop(shopId);
@@ -136,6 +140,20 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                 platformCode: p.code.toUpperCase(),
             }));
     }, [platforms]);
+
+    // 将后端入口类型数据转换为任务入口类型格式
+    const taskEntryTypes = useMemo(() => {
+        if (entryTypes.length === 0) {
+            // 如果后端没有返回数据，使用默认的静态数据
+            return TASK_ENTRY_TYPES;
+        }
+        return entryTypes.map(e => ({
+            id: e.value,
+            name: e.name,
+            icon: e.icon || '🔍',
+            desc: TASK_ENTRY_TYPES.find(t => t.id === e.value)?.desc || '',
+        }));
+    }, [entryTypes]);
 
     const handlePlatformChange = (type: number) => { onChange({ taskType: type, shopId: '', shopName: '', goodsList: [] }); };
     const handleEntryTypeChange = (entryType: number) => { onChange({ taskEntryType: entryType }); };
@@ -501,7 +519,7 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
             <div className="mb-6">
                 <label className="mb-2 block text-sm font-medium text-[#374151]">任务类型</label>
                 <div className="flex flex-wrap gap-3">
-                    {TASK_ENTRY_TYPES.map(entry => (
+                    {taskEntryTypes.map(entry => (
                         <div
                             key={entry.id}
                             onClick={() => handleEntryTypeChange(entry.id)}

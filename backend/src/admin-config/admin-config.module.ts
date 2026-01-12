@@ -10,6 +10,10 @@ import { Platform } from './platform.entity';
 import { PlatformService } from './platform.service';
 import { PlatformController } from './platform.controller';
 import { PlatformPublicController } from './platform-public.controller';
+import { EntryType } from './entry-type.entity';
+import { EntryTypeService } from './entry-type.service';
+import { EntryTypeController } from './entry-type.controller';
+import { EntryTypePublicController } from './entry-type-public.controller';
 import { DeliveryWarehouse } from './delivery-warehouse.entity';
 import { DeliveryWarehouseService } from './delivery-warehouse.service';
 import { DeliveryWarehouseController } from './delivery-warehouse.controller';
@@ -28,6 +32,7 @@ import { TablePreferencesController } from './table-preferences.controller';
             SystemConfig,
             CommissionRate,
             Platform,
+            EntryType,
             DeliveryWarehouse,
             VipLevel,
             TablePreference,
@@ -38,6 +43,8 @@ import { TablePreferencesController } from './table-preferences.controller';
         CommissionRateController,
         PlatformController,
         PlatformPublicController,
+        EntryTypeController,
+        EntryTypePublicController,
         DeliveryWarehouseController,
         VipLevelController,
         TablePreferencesController,
@@ -47,6 +54,7 @@ import { TablePreferencesController } from './table-preferences.controller';
         AdminConfigService,
         CommissionRateService,
         PlatformService,
+        EntryTypeService,
         DeliveryWarehouseService,
         VipLevelService,
         TablePreferencesService,
@@ -55,6 +63,7 @@ import { TablePreferencesController } from './table-preferences.controller';
         AdminConfigService,
         CommissionRateService,
         PlatformService,
+        EntryTypeService,
         DeliveryWarehouseService,
         VipLevelService,
         TablePreferencesService,

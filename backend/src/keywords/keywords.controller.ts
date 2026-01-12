@@ -26,14 +26,14 @@ export class KeywordsController {
   // ============ 关键词方案 ============
   @Get('schemes')
   async findAllSchemes(@Request() req) {
-    const sellerId = req.user.sub;
+    const sellerId = req.user.merchantId;
     const schemes = await this.keywordsService.findAllSchemes(sellerId);
     return { success: true, data: schemes };
   }
 
   @Get('schemes/:id')
   async findSchemeById(@Request() req, @Param('id') id: string) {
-    const sellerId = req.user.sub;
+    const sellerId = req.user.merchantId;
     const scheme = await this.keywordsService.findSchemeById(id, sellerId);
     if (!scheme) {
       return { success: false, message: '关键词方案不存在' };
@@ -43,7 +43,7 @@ export class KeywordsController {
 
   @Post('schemes')
   async createScheme(@Request() req, @Body() dto: CreateGoodsKeyDto) {
-    const sellerId = req.user.sub;
+    const sellerId = req.user.merchantId;
     const scheme = await this.keywordsService.createScheme(sellerId, dto);
     return { success: true, message: '关键词方案创建成功', data: scheme };
   }
@@ -54,14 +54,14 @@ export class KeywordsController {
     @Param('id') id: string,
     @Body() dto: UpdateGoodsKeyDto,
   ) {
-    const sellerId = req.user.sub;
+    const sellerId = req.user.merchantId;
     const scheme = await this.keywordsService.updateScheme(id, sellerId, dto);
     return { success: true, message: '关键词方案更新成功', data: scheme };
   }
 
   @Delete('schemes/:id')
   async deleteScheme(@Request() req, @Param('id') id: string) {
-    const sellerId = req.user.sub;
+    const sellerId = req.user.merchantId;
     await this.keywordsService.deleteScheme(id, sellerId);
     return { success: true, message: '关键词方案删除成功' };
   }
@@ -79,7 +79,7 @@ export class KeywordsController {
     @Param('schemeId') schemeId: string,
     @Body() dto: CreateKeywordDetailDto,
   ) {
-    const sellerId = req.user.sub;
+    const sellerId = req.user.merchantId;
     const detail = await this.keywordsService.addKeywordDetail(
       schemeId,
       sellerId,
@@ -94,7 +94,7 @@ export class KeywordsController {
     @Param('detailId') detailId: string,
     @Body() dto: UpdateKeywordDetailDto,
   ) {
-    const sellerId = req.user.sub;
+    const sellerId = req.user.merchantId;
     const detail = await this.keywordsService.updateKeywordDetail(
       detailId,
       sellerId,
@@ -108,7 +108,7 @@ export class KeywordsController {
     @Request() req,
     @Param('detailId') detailId: string,
   ) {
-    const sellerId = req.user.sub;
+    const sellerId = req.user.merchantId;
     await this.keywordsService.deleteKeywordDetail(detailId, sellerId);
     return { success: true, message: '关键词删除成功' };
   }
