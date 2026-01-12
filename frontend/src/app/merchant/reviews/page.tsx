@@ -116,44 +116,59 @@ export default function MerchantReviewsPage() {
     };
 
     const statsCards = [
-        { label: '待支付', value: stats.unpaid, color: 'text-amber-500', bg: 'bg-amber-50', statusFilter: ReviewTaskStatus.UNPAID },
-        { label: '待确认', value: stats.uploaded, color: 'text-indigo-500', bg: 'bg-indigo-50', statusFilter: ReviewTaskStatus.UPLOADED },
-        { label: '已完成', value: stats.completed, color: 'text-emerald-500', bg: 'bg-emerald-50', statusFilter: ReviewTaskStatus.COMPLETED },
-        { label: '已取消', value: stats.cancelled + stats.rejected, color: 'text-slate-500', bg: 'bg-slate-50', statusFilter: undefined },
+        { label: '待支付', value: stats.unpaid, color: 'text-amber-500', bg: 'bg-amber-50', icon: '💰', statusFilter: ReviewTaskStatus.UNPAID },
+        { label: '待确认', value: stats.uploaded, color: 'text-indigo-500', bg: 'bg-indigo-50', icon: '📸', statusFilter: ReviewTaskStatus.UPLOADED },
+        { label: '已完成', value: stats.completed, color: 'text-emerald-500', bg: 'bg-emerald-50', icon: '✅', statusFilter: ReviewTaskStatus.COMPLETED },
+        { label: '已取消', value: stats.cancelled + stats.rejected, color: 'text-slate-500', bg: 'bg-slate-50', icon: '🚫', statusFilter: undefined },
     ];
 
     return (
-        <div className="space-y-6">
-            <h1 className="text-xl font-bold text-slate-900">追评管理</h1>
+        <div className="space-y-8">
+            <h1 className="text-2xl font-black text-slate-900">追评管理</h1>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 {statsCards.map((stat, idx) => (
                     <Card
                         key={idx}
                         onClick={() => setFilter(stat.statusFilter)}
                         className={cn(
-                            'cursor-pointer border-0 p-6 transition-all hover:-translate-y-1 hover:shadow-lg',
+                            'group cursor-pointer overflow-hidden border-0 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl',
                             filter === stat.statusFilter
-                                ? 'bg-white ring-2 ring-primary-500 shadow-lg shadow-primary-500/10'
-                                : 'bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)]'
+                                ? 'bg-white ring-2 ring-primary-500 shadow-xl shadow-primary-500/10'
+                                : 'bg-white shadow-lg shadow-slate-200/50 hover:shadow-primary-500/10'
                         )}
+                        noPadding
                     >
-                        <div className={cn('mb-2 text-4xl font-black', stat.color)}>{stat.value}</div>
-                        <div className="text-sm font-bold text-slate-400">{stat.label}</div>
+                        <div className="relative p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <div className="text-sm font-bold text-slate-400">{stat.label}</div>
+                                    <div className={cn('mt-2 text-4xl font-black tracking-tight', stat.color)}>{stat.value}</div>
+                                </div>
+                                <div className={cn('flex h-12 w-12 items-center justify-center rounded-[16px] text-2xl transition-transform group-hover:scale-110', stat.bg)}>
+                                    {stat.icon}
+                                </div>
+                            </div>
+                        </div>
                     </Card>
                 ))}
             </div>
 
             {/* Tasks Table */}
-            <Card className="overflow-hidden border-0 bg-white p-0 shadow-[0_2px_10px_rgba(0,0,0,0.02)] rounded-[24px]">
-                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
-                    <h2 className="text-lg font-bold text-slate-900">任务列表</h2>
+            <Card className="overflow-hidden border-0 bg-white p-0 shadow-xl shadow-slate-200/50 rounded-[32px]" noPadding>
+                <div className="flex items-center justify-between border-b border-slate-100 px-8 py-6">
+                    <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-500">
+                            <span className="text-xl">📋</span>
+                        </div>
+                        <h2 className="text-lg font-bold text-slate-900">任务列表</h2>
+                    </div>
                     <Button
                         size="sm"
                         variant={filter === undefined ? 'primary' : 'secondary'}
                         onClick={() => setFilter(undefined)}
-                        className="h-9 rounded-full px-4 text-xs font-bold"
+                        className="h-10 rounded-xl px-6 font-bold"
                     >
                         显示全部
                     </Button>
@@ -162,43 +177,55 @@ export default function MerchantReviewsPage() {
                 {loading ? (
                     <div className="py-20 text-center font-bold text-slate-400">加载中...</div>
                 ) : tasks.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <div className="mb-4 text-5xl opacity-20">📝</div>
-                        <div className="font-bold text-slate-400">暂无追评任务</div>
+                    <div className="flex flex-col items-center justify-center py-24 text-center">
+                        <div className="mb-4 text-6xl opacity-20 filter grayscale">📝</div>
+                        <div className="text-lg font-bold text-slate-400">暂无追评任务</div>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-slate-50 bg-slate-50/50">
-                                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-slate-400">任务编号</th>
-                                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-slate-400">费用</th>
-                                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-slate-400">买手佣金</th>
-                                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-slate-400">创建时间</th>
-                                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-slate-400">状态</th>
-                                    <th className="px-6 py-4 text-center text-xs font-black uppercase tracking-wider text-slate-400">操作</th>
+                                    <th className="px-8 py-5 text-left text-xs font-black uppercase tracking-wider text-slate-400">任务编号</th>
+                                    <th className="px-8 py-5 text-left text-xs font-black uppercase tracking-wider text-slate-400">费用</th>
+                                    <th className="px-8 py-5 text-left text-xs font-black uppercase tracking-wider text-slate-400">买手佣金</th>
+                                    <th className="px-8 py-5 text-left text-xs font-black uppercase tracking-wider text-slate-400">创建时间</th>
+                                    <th className="px-8 py-5 text-left text-xs font-black uppercase tracking-wider text-slate-400">状态</th>
+                                    <th className="px-8 py-5 text-center text-xs font-black uppercase tracking-wider text-slate-400">操作</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
-                                {tasks.map(task => (
-                                    <tr key={task.id} className="transition-colors hover:bg-slate-50/50">
-                                        <td className="px-6 py-4 text-sm font-bold text-slate-700">{task.taskNumber}</td>
-                                        <td className="px-6 py-4 text-sm font-black text-slate-900">¥{Number(task.money).toFixed(2)}</td>
-                                        <td className="px-6 py-4 text-sm font-black text-emerald-500">¥{Number(task.userMoney).toFixed(2)}</td>
-                                        <td className="px-6 py-4 text-xs font-medium text-slate-400">{new Date(task.createdAt).toLocaleString('zh-CN')}</td>
-                                        <td className="px-6 py-4">
-                                            <Badge variant={statusLabels[task.state]?.color as any || 'slate'} rounded>
+                                {tasks.map((task, idx) => (
+                                    <tr
+                                        key={task.id}
+                                        className={cn(
+                                            "group transition-all hover:bg-slate-50/80",
+                                            idx % 2 === 0 ? "bg-white" : "bg-slate-50/20"
+                                        )}
+                                    >
+                                        <td className="px-8 py-5">
+                                            <div className="font-bold text-slate-700">{task.taskNumber}</div>
+                                            {task.platformOrderNumber && <div className="text-xs text-slate-400 mt-1">订单: {task.platformOrderNumber}</div>}
+                                        </td>
+                                        <td className="px-8 py-5 text-sm font-black text-slate-900">¥{Number(task.money).toFixed(2)}</td>
+                                        <td className="px-8 py-5 text-sm font-black text-emerald-500">¥{Number(task.userMoney).toFixed(2)}</td>
+                                        <td className="px-8 py-5 text-xs font-medium text-slate-400">{new Date(task.createdAt).toLocaleString('zh-CN')}</td>
+                                        <td className="px-8 py-5">
+                                            <Badge variant={statusLabels[task.state]?.color as any || 'slate'} rounded className="px-3 py-1 text-xs">
                                                 {statusLabels[task.state]?.text || '未知'}
                                             </Badge>
                                         </td>
-                                        <td className="px-6 py-4 text-center">
+                                        <td className="px-8 py-5 text-center">
                                             <Button
                                                 size="sm"
                                                 variant={task.state === ReviewTaskStatus.UPLOADED ? 'primary' : 'secondary'}
                                                 onClick={() => setSelectedTask(task)}
-                                                className="h-8 rounded-full px-4 text-xs font-bold"
+                                                className={cn(
+                                                    "h-9 rounded-xl px-5 text-xs font-bold transition-transform active:scale-95",
+                                                    task.state === ReviewTaskStatus.UPLOADED ? "shadow-md shadow-primary-500/20" : "bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300"
+                                                )}
                                             >
-                                                {task.state === ReviewTaskStatus.UPLOADED ? '审核' : '查看'}
+                                                {task.state === ReviewTaskStatus.UPLOADED ? '审核' : '详情'}
                                             </Button>
                                         </td>
                                     </tr>
@@ -214,62 +241,73 @@ export default function MerchantReviewsPage() {
                 title={`追评详情 - ${statusLabels[selectedTask?.state ?? 0]?.text || ''}`}
                 open={selectedTask !== null}
                 onClose={() => setSelectedTask(null)}
-                className="max-w-lg rounded-[32px]"
+                className="max-w-xl rounded-[32px]"
             >
                 {selectedTask && (
-                    <div className="space-y-6">
+                    <div className="space-y-8">
                         {/* Task Info */}
-                        <div className="rounded-[20px] bg-slate-50 p-6">
-                            <div className="mb-3 flex justify-between text-sm">
-                                <span className="font-bold text-slate-500">任务编号</span>
-                                <span className="font-bold text-slate-900">{selectedTask.taskNumber}</span>
-                            </div>
-                            <div className="mb-3 flex justify-between text-sm">
-                                <span className="font-bold text-slate-500">追评费用</span>
-                                <span className="font-black text-slate-900">¥{Number(selectedTask.money).toFixed(2)}</span>
-                            </div>
-                            <div className="mb-3 flex justify-between text-sm">
-                                <span className="font-bold text-slate-500">买手佣金</span>
-                                <span className="font-black text-emerald-500">¥{Number(selectedTask.userMoney).toFixed(2)}</span>
-                            </div>
-                            {selectedTask.platformOrderNumber && (
-                                <div className="flex justify-between text-sm">
-                                    <span className="font-bold text-slate-500">平台订单号</span>
-                                    <span className="font-bold text-slate-900">{selectedTask.platformOrderNumber}</span>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="col-span-2 rounded-[24px] bg-slate-50 p-6">
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm font-bold text-slate-500">任务编号</span>
+                                        <span className="font-bold text-slate-900 bg-white px-3 py-1 rounded-lg border border-slate-100">{selectedTask.taskNumber}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm font-bold text-slate-500">平台订单号</span>
+                                        <span className="font-bold text-slate-900">{selectedTask.platformOrderNumber || '-'}</span>
+                                    </div>
                                 </div>
-                            )}
+                            </div>
+
+                            <div className="rounded-[24px] bg-indigo-50 p-5">
+                                <div className="text-xs font-bold text-indigo-400 mb-1">追评费用</div>
+                                <div className="text-2xl font-black text-indigo-600">¥{Number(selectedTask.money).toFixed(2)}</div>
+                            </div>
+                            <div className="rounded-[24px] bg-emerald-50 p-5">
+                                <div className="text-xs font-bold text-emerald-500 mb-1">买手佣金</div>
+                                <div className="text-2xl font-black text-emerald-600">¥{Number(selectedTask.userMoney).toFixed(2)}</div>
+                            </div>
                         </div>
 
                         {/* Submitted Images */}
                         {selectedTask.img && parseImages(selectedTask.img).length > 0 && (
                             <div>
-                                <h3 className="mb-3 text-xs font-bold uppercase text-slate-400">买手上传的追评截图</h3>
-                                <div className="flex flex-wrap gap-2">
+                                <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-400">买手上传的追评截图</h3>
+                                <div className="grid grid-cols-3 gap-3">
                                     {parseImages(selectedTask.img).map((img, idx) => (
-                                        <div key={idx} className="relative h-24 w-24 overflow-hidden rounded-[16px] border border-slate-100 shadow-sm transition-transform hover:scale-105">
-                                            <img src={img} alt="" className="h-full w-full object-cover cursor-pointer" onClick={() => window.open(img, '_blank')} />
+                                        <div key={idx} className="group relative aspect-square overflow-hidden rounded-[20px] bg-slate-100 ring-1 ring-slate-100 transition-all hover:ring-primary-500 hover:ring-2 hover:shadow-lg">
+                                            <img src={img} alt="" className="h-full w-full object-cover cursor-pointer transition-transform duration-500 group-hover:scale-110" onClick={() => window.open(img, '_blank')} />
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/10 pointer-events-none">
+                                                <span className="opacity-0 transition-opacity group-hover:opacity-100 text-white text-2xl drop-shadow-md">🔍</span>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
-                                {selectedTask.uploadTime && <div className="mt-2 text-xs font-medium text-slate-400">上传时间: {new Date(selectedTask.uploadTime).toLocaleString('zh-CN')}</div>}
+                                {selectedTask.uploadTime && (
+                                    <div className="mt-3 flex items-center gap-2 text-xs font-medium text-slate-400">
+                                        <span>⏰</span>
+                                        <span>上传时间: {new Date(selectedTask.uploadTime).toLocaleString('zh-CN')}</span>
+                                    </div>
+                                )}
                             </div>
                         )}
 
                         {/* Actions */}
-                        <div className="flex justify-end gap-3 pt-4 border-t border-slate-50">
+                        <div className="flex justify-end gap-4 pt-6 border-t border-slate-100">
                             {selectedTask.state === ReviewTaskStatus.UPLOADED ? (
                                 <>
-                                    <Button variant="secondary" onClick={() => handleCancel(selectedTask.id)} disabled={processing} className="rounded-[14px]">取消任务</Button>
-                                    <Button onClick={() => handleConfirm(selectedTask.id)} disabled={processing} className="rounded-[14px] bg-emerald-500 hover:bg-emerald-600 font-bold text-white shadow-none">{processing ? '处理中...' : '确认完成'}</Button>
+                                    <Button variant="secondary" onClick={() => handleCancel(selectedTask.id)} disabled={processing} className="rounded-[16px] h-12 px-6 font-bold text-slate-500 hover:text-red-500 hover:bg-red-50">取消任务</Button>
+                                    <Button onClick={() => handleConfirm(selectedTask.id)} disabled={processing} className="rounded-[16px] h-12 px-8 bg-primary-600 hover:bg-primary-700 font-bold text-white shadow-lg shadow-primary-500/20 active:scale-95 transition-all">{processing ? '处理中...' : '确认完成'}</Button>
                                 </>
                             ) : (
                                 (selectedTask.state === ReviewTaskStatus.UNPAID || selectedTask.state === ReviewTaskStatus.PAID || selectedTask.state === ReviewTaskStatus.APPROVED) ? (
                                     <>
-                                        <Button variant="secondary" onClick={() => handleCancel(selectedTask.id)} disabled={processing} className="rounded-[14px]">取消任务</Button>
-                                        <Button variant="secondary" onClick={() => setSelectedTask(null)} className="rounded-[14px]">关闭</Button>
+                                        <Button variant="secondary" onClick={() => handleCancel(selectedTask.id)} disabled={processing} className="rounded-[16px] h-12 px-6 font-bold text-slate-500 hover:text-red-500 hover:bg-red-50">取消任务</Button>
+                                        <Button variant="secondary" onClick={() => setSelectedTask(null)} className="rounded-[16px] h-12 px-8 font-bold">关闭</Button>
                                     </>
                                 ) : (
-                                    <Button variant="secondary" onClick={() => setSelectedTask(null)} className="rounded-[14px]">关闭</Button>
+                                    <Button variant="secondary" onClick={() => setSelectedTask(null)} className="rounded-[16px] h-12 w-full font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">关闭详情</Button>
                                 )
                             )}
                         </div>
@@ -279,3 +317,4 @@ export default function MerchantReviewsPage() {
         </div>
     );
 }
+
