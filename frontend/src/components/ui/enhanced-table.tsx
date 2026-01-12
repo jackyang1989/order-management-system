@@ -217,7 +217,7 @@ export function EnhancedTable<T extends object>({
                     <thead>
                         <tr className="bg-slate-50/80">
                             {selectable && (
-                                <th className="px-3 py-4 align-middle text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                                <th className="px-3 py-3 align-middle text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">
                                     <span className="sr-only">选择</span>
                                 </th>
                             )}
@@ -227,7 +227,7 @@ export function EnhancedTable<T extends object>({
                                     <th
                                         key={col.key}
                                         className={cn(
-                                            'relative px-4 py-4 align-middle text-left text-[11px] font-bold uppercase tracking-wider text-slate-400',
+                                            'relative px-4 py-3 align-middle text-left text-[11px] font-bold uppercase tracking-wider text-slate-400',
                                             col.sortable && 'cursor-pointer select-none hover:text-slate-600',
                                             col.headerClassName
                                         )}

@@ -66,7 +66,7 @@ export default function AdminHelpCenterPage() {
             });
             const json = await res.json();
             if (json.success) {
-                setArticles(json.data?.items || json.data || []);
+                setArticles(json.data?.list || json.data?.items || []);
                 setTotal(json.data?.total || 0);
             }
         } catch (e) {
@@ -213,7 +213,7 @@ export default function AdminHelpCenterPage() {
                     <div className="overflow-x-auto">
                         <table className="min-w-[800px] w-full border-collapse">
                             <thead>
-                                <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
+                                <tr className="bg-slate-50/80 border-b border-slate-50">
                                     <th className="px-4 py-3.5 text-left text-sm font-medium">标题</th>
                                     <th className="px-4 py-3.5 text-left text-sm font-medium">类型</th>
                                     <th className="px-4 py-3.5 text-center text-sm font-medium">排序</th>
@@ -225,7 +225,7 @@ export default function AdminHelpCenterPage() {
                             </thead>
                             <tbody>
                                 {articles.map(a => (
-                                    <tr key={a.id} className="border-b border-[#f3f4f6]">
+                                    <tr key={a.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
                                         <td className="px-4 py-3.5">
                                             <div className="font-medium text-[#3b4559]">{a.title}</div>
                                             <div className="text-xs text-[#9ca3af] line-clamp-1 max-w-[300px]">
@@ -332,7 +332,7 @@ export default function AdminHelpCenterPage() {
                             onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                             placeholder="请输入内容，支持Markdown格式"
                             rows={12}
-                            className="w-full resize-y rounded-md border border-[#d1d5db] px-3 py-2 text-sm font-mono focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            className="w-full resize-y rounded-2xl border-none bg-slate-50 px-4 py-3 text-sm font-mono text-slate-700 transition-all focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:shadow-sm"
                         />
                     </div>
                     <div className="flex justify-end gap-3 pt-4">

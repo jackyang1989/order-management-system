@@ -659,39 +659,41 @@ export default function AdminUsersPage() {
             minWidth: 200,
             render: (row) => (
                 <div className="flex flex-wrap gap-1">
-                    <Button size="sm" variant="outline" className="w-[65px] text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
-                        银锭
-                    </Button>
-                    <Button size="sm" variant="outline" className="w-[65px] text-success-500" onClick={() => window.location.href = `/admin/users/${row.id}/deposit`}>
-                        押金
-                    </Button>
-                    <Button size="sm" variant="outline" className="w-[65px]" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>
-                        买号
-                    </Button>
-                    <Button size="sm" variant="outline" className="w-[65px]" onClick={() => openEditModal(row)}>
-                        编辑
-                    </Button>
-                    <Button size="sm" variant="outline" className="w-[65px] text-danger-400" onClick={() => { setNoteModal({ userId: row.id, username: row.username, currentNote: row.note || '' }); setNoteText(row.note || ''); }}>
-                        备注
-                    </Button>
-                    <Button size="sm" variant="outline" className="w-[65px]" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
-                        改密码
-                    </Button>
-                    <Button size="sm" variant="outline" className="w-[65px]" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
-                        消息
-                    </Button>
-                    <Button size="sm" variant="outline" className="w-[65px] text-amber-500" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.id}`}>
-                        银行卡
-                    </Button>
-                    {row.isBanned ? (
-                        <Button size="sm" variant="outline" className="w-[65px] text-green-600" onClick={() => handleUnban(row.id)}>
-                            解封
+                    <div className="flex flex-wrap gap-1">
+                        <Button size="sm" variant="outline" className="min-w-[60px] text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
+                            银锭
                         </Button>
-                    ) : (
-                        <Button size="sm" variant="outline" className="w-[65px] text-red-500" onClick={() => setBanModal({ userId: row.id, username: row.username })}>
-                            封禁
+                        <Button size="sm" variant="outline" className="min-w-[60px] text-success-500" onClick={() => window.location.href = `/admin/users/${row.id}/deposit`}>
+                            押金
                         </Button>
-                    )}
+                        <Button size="sm" variant="outline" className="min-w-[60px]" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>
+                            买号
+                        </Button>
+                        <Button size="sm" variant="outline" className="min-w-[60px]" onClick={() => openEditModal(row)}>
+                            编辑
+                        </Button>
+                        <Button size="sm" variant="outline" className="min-w-[60px] text-danger-400" onClick={() => { setNoteModal({ userId: row.id, username: row.username, currentNote: row.note || '' }); setNoteText(row.note || ''); }}>
+                            备注
+                        </Button>
+                        <Button size="sm" variant="outline" className="min-w-[60px]" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
+                            改密码
+                        </Button>
+                        <Button size="sm" variant="outline" className="min-w-[60px]" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
+                            消息
+                        </Button>
+                        <Button size="sm" variant="outline" className="min-w-[60px] text-amber-500" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.id}`}>
+                            银行卡
+                        </Button>
+                        {row.isBanned ? (
+                            <Button size="sm" variant="outline" className="min-w-[60px] text-green-600" onClick={() => handleUnban(row.id)}>
+                                解封
+                            </Button>
+                        ) : (
+                            <Button size="sm" variant="outline" className="min-w-[60px] text-red-500" onClick={() => setBanModal({ userId: row.id, username: row.username })}>
+                                封禁
+                            </Button>
+                        )}
+                    </div>
                 </div>
             ),
         },
