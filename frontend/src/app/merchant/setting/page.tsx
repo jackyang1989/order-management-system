@@ -154,10 +154,10 @@ export default function MerchantSettingPage() {
     if (loading) return <div className="flex h-screen items-center justify-center font-bold text-slate-400">加载中...</div>;
 
     return (
-        <div className="mx-auto max-w-4xl space-y-8">
-            <h1 className="text-2xl font-black text-slate-900">账户设置</h1>
+        <div className="mx-auto max-w-7xl space-y-8">
+            <h1 className="text-3xl font-black text-slate-900">账户设置</h1>
 
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                 {/* Left Column: Basic Info */}
                 <Card className="col-span-2 rounded-[32px] border-0 bg-white p-8 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                     <div className="mb-8 flex items-center justify-between">

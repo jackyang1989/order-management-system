@@ -10,6 +10,7 @@ import { cn } from '../../../../../lib/utils';
 import { Button } from '../../../../../components/ui/button';
 import { Input } from '../../../../../components/ui/input';
 import { Select } from '../../../../../components/ui/select';
+import { Card } from '../../../../../components/ui/card';
 
 // 平台代码到任务类型ID的映射
 const PLATFORM_CODE_TO_TASK_TYPE: Record<string, number> = {

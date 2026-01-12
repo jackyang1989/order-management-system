@@ -103,18 +103,25 @@ export default function EditShopPage({ params }: { params: Promise<{ id: string 
                     {/* Platform */}
                     <div>
                         <label className="mb-2 block text-sm font-bold text-slate-700">平台类型</label>
-                        <Select
-                            value={formData.platform || 'TAOBAO'}
-                            onChange={v => setFormData({ ...formData, platform: v as any })}
-                            options={[
-                                { value: 'TAOBAO', label: '淘宝' },
-                                { value: 'TMALL', label: '天猫' },
-                                { value: 'JD', label: '京东' },
-                                { value: 'PDD', label: '拼多多' },
-                                { value: 'DOUYIN', label: '抖音' },
-                            ]}
-                            className="h-12 w-full appearance-none rounded-[16px] border-none bg-slate-50 px-4 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none"
-                        />
+                        <div className="relative">
+                            <Select
+                                value={formData.platform || 'TAOBAO'}
+                                onChange={v => setFormData({ ...formData, platform: v as any })}
+                                options={[
+                                    { value: 'TAOBAO', label: '淘宝' },
+                                    { value: 'TMALL', label: '天猫' },
+                                    { value: 'JD', label: '京东' },
+                                    { value: 'PDD', label: '拼多多' },
+                                    { value: 'DOUYIN', label: '抖音' },
+                                ]}
+                                className="h-12 w-full appearance-none rounded-[16px] border-none bg-slate-50 px-4 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none"
+                            />
+                            <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Shop Name & Account */}
@@ -181,29 +188,44 @@ export default function EditShopPage({ params }: { params: Promise<{ id: string 
                     <div>
                         <label className="mb-2 block text-sm font-bold text-slate-700">发货地址</label>
                         <div className="mb-3 grid grid-cols-3 gap-3">
-                            <Select
-                                value={formData.province || ''}
-                                onChange={v => setFormData({ ...formData, province: v, city: '', district: '' })}
-                                placeholder="请选择省份"
-                                options={getProvinces()}
-                                className="h-12 w-full appearance-none rounded-[16px] border-none bg-slate-50 px-4 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none"
-                            />
-                            <Select
-                                value={formData.city || ''}
-                                onChange={v => setFormData({ ...formData, city: v, district: '' })}
-                                placeholder="请选择城市"
-                                options={formData.province ? getCities(formData.province) : []}
-                                disabled={!formData.province}
-                                className="h-12 w-full appearance-none rounded-[16px] border-none bg-slate-50 px-4 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none disabled:opacity-50"
-                            />
-                            <Select
-                                value={formData.district || ''}
-                                onChange={v => setFormData({ ...formData, district: v })}
-                                placeholder="请选择区县"
-                                options={formData.province && formData.city ? getDistricts(formData.province, formData.city) : []}
-                                disabled={!formData.city}
-                                className="h-12 w-full appearance-none rounded-[16px] border-none bg-slate-50 px-4 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none disabled:opacity-50"
-                            />
+                            <div className="relative">
+                                <Select
+                                    value={formData.province || ''}
+                                    onChange={v => setFormData({ ...formData, province: v, city: '', district: '' })}
+                                    placeholder="请选择省份"
+                                    options={getProvinces()}
+                                    className="h-12 w-full appearance-none rounded-[16px] border-none bg-slate-50 px-4 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none"
+                                />
+                                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                </div>
+                            </div>
+                            <div className="relative">
+                                <Select
+                                    value={formData.city || ''}
+                                    onChange={v => setFormData({ ...formData, city: v, district: '' })}
+                                    placeholder="请选择城市"
+                                    options={formData.province ? getCities(formData.province) : []}
+                                    disabled={!formData.province}
+                                    className="h-12 w-full appearance-none rounded-[16px] border-none bg-slate-50 px-4 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none disabled:opacity-50"
+                                />
+                                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                </div>
+                            </div>
+                            <div className="relative">
+                                <Select
+                                    value={formData.district || ''}
+                                    onChange={v => setFormData({ ...formData, district: v })}
+                                    placeholder="请选择区县"
+                                    options={formData.province && formData.city ? getDistricts(formData.province, formData.city) : []}
+                                    disabled={!formData.city}
+                                    className="h-12 w-full appearance-none rounded-[16px] border-none bg-slate-50 px-4 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none disabled:opacity-50"
+                                />
+                                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                </div>
+                            </div>
                         </div>
                         <Input
                             placeholder="详细地址"
