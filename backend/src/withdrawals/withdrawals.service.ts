@@ -23,7 +23,7 @@ import { Merchant } from '../merchants/merchant.entity';
 import { BankCardsService } from '../bank-cards/bank-cards.service';
 import { UsersService } from '../users/users.service';
 import { FinanceRecordsService } from '../finance-records/finance-records.service';
-import { SystemConfigService } from '../system-config/system-config.service';
+import { AdminConfigService } from '../admin-config/admin-config.service';
 
 @Injectable()
 export class WithdrawalsService {
@@ -36,7 +36,7 @@ export class WithdrawalsService {
     private bankCardsService: BankCardsService,
     private usersService: UsersService,
     private financeRecordsService: FinanceRecordsService,
-    private systemConfigService: SystemConfigService,
+    private configService: AdminConfigService,
   ) { }
 
   /**
@@ -53,21 +53,13 @@ export class WithdrawalsService {
     actualAmount: number;
     rewardPrice?: number;
   }> {
-    const config = await this.systemConfigService.getGlobalConfig();
-
     if (type === WithdrawalType.BALANCE) {
       // 本金提现手续费
-      // parse comma separated string "45,80" if needed? 
-      // UserFeeMaxPrice is string in entity? checking entity...
-      // In SystemGlobalConfig entity: userFeeMaxPrice is string.
-      // In legacy code it logic was: if amount <= userFeeMaxPrice then fee = userCashFree.
-
-      const userFeeMaxPrice = parseFloat(config.userFeeMaxPrice) || 100;
-      // userCashFree is string in entity? 
-      const userCashFree = parseFloat(config.userCashFree) || 2;
+      const userFeeThreshold = this.configService.getNumberValue('user_withdraw_fee_threshold', 100);
+      const userCashFree = this.configService.getNumberValue('user_withdraw_fee_free', 2);
 
       let fee = 0;
-      if (amount <= userFeeMaxPrice) {
+      if (amount <= userFeeThreshold) {
         fee = userCashFree;
       }
 
@@ -75,7 +67,7 @@ export class WithdrawalsService {
       return { fee, actualAmount };
     } else {
       // 银锭提现: 按单价折算
-      const rewardPrice = config.rewardPrice || 1;
+      const rewardPrice = this.configService.getNumberValue('silver_to_rmb_rate', 1);
       // 银锭转换为人民币金额，取整
       const actualAmount = Math.floor(amount * rewardPrice);
       const fee = 0;
@@ -87,20 +79,19 @@ export class WithdrawalsService {
   /**
    * 获取提现配置（供前端显示）
    */
-  async getWithdrawalConfig(): Promise<{
+  getWithdrawalConfig(): {
     userMinMoney: number;
     userMinReward: number;
     userFeeMaxPrice: number;
     userCashFree: number;
     rewardPrice: number;
-  }> {
-    const config = await this.systemConfigService.getGlobalConfig();
+  } {
     return {
-      userMinMoney: config.userMinMoney,
-      userMinReward: config.userMinReward,
-      userFeeMaxPrice: parseFloat(config.userFeeMaxPrice) || 0,
-      userCashFree: parseFloat(config.userCashFree) || 0,
-      rewardPrice: config.rewardPrice,
+      userMinMoney: this.configService.getNumberValue('user_min_withdraw', 100),
+      userMinReward: this.configService.getNumberValue('user_min_silver_withdraw', 100),
+      userFeeMaxPrice: this.configService.getNumberValue('user_withdraw_fee_threshold', 100),
+      userCashFree: this.configService.getNumberValue('user_withdraw_fee_free', 2),
+      rewardPrice: this.configService.getNumberValue('silver_to_rmb_rate', 1),
     };
   }
 

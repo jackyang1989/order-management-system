@@ -1,5 +1,5 @@
 import { Controller, Get, Put, Body, UseGuards } from '@nestjs/common';
-import { SystemConfigService } from '../system-config/system-config.service';
+import { AdminConfigService } from '../admin-config/admin-config.service';
 import { DingdanxiaService } from './dingdanxia.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -7,7 +7,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 export class ApiConfigController {
   constructor(
-    private configService: SystemConfigService,
+    private configService: AdminConfigService,
     private dingdanxiaService: DingdanxiaService,
   ) { }
 
@@ -16,15 +16,16 @@ export class ApiConfigController {
    */
   @Get()
   async getApiConfigs() {
-    const config = await this.configService.getGlobalConfig();
+    const apiKey = this.configService.getValue('dingdanxia_api_key');
+    const enabled = this.configService.getBooleanValue('dingdanxia_enabled', false);
 
     return {
       success: true,
       data: {
         dingdanxia: {
-          apiKey: config.dingdanxiaApiKey ? this.maskApiKey(config.dingdanxiaApiKey) : null,
-          enabled: !!config.dingdanxiaEnabled,
-          hasKey: !!config.dingdanxiaApiKey,
+          apiKey: apiKey ? this.maskApiKey(apiKey) : null,
+          enabled: enabled,
+          hasKey: !!apiKey,
         },
       },
     };
@@ -37,18 +38,12 @@ export class ApiConfigController {
   async updateDingdanxiaConfig(
     @Body() data: { apiKey?: string; enabled?: boolean },
   ) {
-    const updates: any = {};
-
     if (data.apiKey !== undefined) {
-      updates.dingdanxiaApiKey = data.apiKey;
+      await this.configService.updateConfig('dingdanxia_api_key', data.apiKey);
     }
 
     if (data.enabled !== undefined) {
-      updates.dingdanxiaEnabled = data.enabled;
-    }
-
-    if (Object.keys(updates).length > 0) {
-      await this.configService.updateGlobalConfig(updates);
+      await this.configService.updateConfig('dingdanxia_enabled', String(data.enabled));
     }
 
     return {

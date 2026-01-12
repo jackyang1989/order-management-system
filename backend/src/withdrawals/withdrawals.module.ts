@@ -7,7 +7,7 @@ import { Merchant } from '../merchants/merchant.entity';
 import { BankCardsModule } from '../bank-cards/bank-cards.module';
 import { UsersModule } from '../users/users.module';
 import { FinanceRecordsModule } from '../finance-records/finance-records.module';
-import { SystemConfigModule } from '../system-config/system-config.module';
+import { AdminConfigModule } from '../admin-config/admin-config.module';
 
 @Module({
   imports: [
@@ -15,7 +15,7 @@ import { SystemConfigModule } from '../system-config/system-config.module';
     BankCardsModule,
     UsersModule,
     FinanceRecordsModule,
-    SystemConfigModule,
+    AdminConfigModule,
   ],
   providers: [WithdrawalsService],
   controllers: [WithdrawalsController],

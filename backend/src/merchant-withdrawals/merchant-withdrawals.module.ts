@@ -6,14 +6,14 @@ import { MerchantWithdrawalsController } from './merchant-withdrawals.controller
 import { MerchantBankCardsModule } from '../merchant-bank-cards/merchant-bank-cards.module';
 import { FinanceRecordsModule } from '../finance-records/finance-records.module';
 import { Merchant } from '../merchants/merchant.entity';
-import { SystemConfigModule } from '../system-config/system-config.module';
+import { AdminConfigModule } from '../admin-config/admin-config.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([MerchantWithdrawal, Merchant]),
     MerchantBankCardsModule,
     FinanceRecordsModule,
-    SystemConfigModule,
+    AdminConfigModule,
   ],
   controllers: [MerchantWithdrawalsController],
   providers: [MerchantWithdrawalsService],

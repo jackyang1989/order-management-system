@@ -15,7 +15,7 @@ import {
 import { Merchant } from '../merchants/merchant.entity';
 import { MerchantBankCardsService } from '../merchant-bank-cards/merchant-bank-cards.service';
 import { FinanceRecordsService } from '../finance-records/finance-records.service';
-import { SystemConfigService } from '../system-config/system-config.service';
+import { AdminConfigService } from '../admin-config/admin-config.service';
 
 @Injectable()
 export class MerchantWithdrawalsService {
@@ -26,7 +26,7 @@ export class MerchantWithdrawalsService {
     private merchantRepository: Repository<Merchant>,
     private bankCardsService: MerchantBankCardsService,
     private financeRecordsService: FinanceRecordsService,
-    private systemConfigService: SystemConfigService,
+    private configService: AdminConfigService,
   ) { }
 
   async findAllByMerchant(merchantId: string): Promise<MerchantWithdrawal[]> {
@@ -55,8 +55,7 @@ export class MerchantWithdrawalsService {
           throw new NotFoundException('银行卡不存在');
         }
 
-        const config = await this.systemConfigService.getGlobalConfig();
-        const minAmount = config.sellerMinMoney || 100;
+        const minAmount = this.configService.getNumberValue('seller_min_withdraw', 100);
 
         if (createDto.amount < minAmount) {
           throw new BadRequestException(`商家最低提现金额为${minAmount}元`);
@@ -67,7 +66,7 @@ export class MerchantWithdrawalsService {
         let actualAmount = createDto.amount;
 
         if (withdrawalType === MerchantWithdrawalType.BALANCE) {
-          const rate = config.sellerCashFee || 0;
+          const rate = this.configService.getNumberValue('seller_withdraw_fee_rate', 0);
           // sellerCashFee is rate?  sellerCashFee (decimal 12,3). 
           // If rate is e.g. 0.01 (1%), then fee = amount * 0.01.
           // Need to confirm if it represents percentage or fixed amount. 

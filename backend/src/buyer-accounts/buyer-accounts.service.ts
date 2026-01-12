@@ -13,7 +13,7 @@ import {
   UpdateBuyerAccountDto,
 } from './buyer-account.entity';
 import { UsersService } from '../users/users.service';
-import { SystemConfigService } from '../system-config/system-config.service';
+import { AdminConfigService } from '../admin-config/admin-config.service';
 
 @Injectable()
 export class BuyerAccountsService {
@@ -21,7 +21,7 @@ export class BuyerAccountsService {
     @InjectRepository(BuyerAccount)
     private buyerAccountsRepository: Repository<BuyerAccount>,
     private usersService: UsersService,
-    private systemConfigService: SystemConfigService,
+    private configService: AdminConfigService,
   ) { }
 
   async findAllByUser(
@@ -246,7 +246,10 @@ export class BuyerAccountsService {
     }
 
     // P1: 从动态配置读取星级限价
-    const starPriceLimits = await this.systemConfigService.getStarPriceLimits();
+    const starPriceLimits = this.configService.getJsonValue<Record<number, number>>(
+      'star_price_limits',
+      { 1: 100, 2: 500, 3: 1000, 4: 2000, 5: 99999 },
+    );
     const priceLimit = starPriceLimits[account.star] || 100;
     if (productPrice > priceLimit) {
       return {
@@ -312,7 +315,10 @@ export class BuyerAccountsService {
       account.totalTaskCount = (account.totalTaskCount || 0) + 1;
 
       // P1: 从动态配置读取升星阶梯
-      const starThresholds = await this.systemConfigService.getStarThresholds();
+      const starThresholds = this.configService.getJsonValue<Record<string, number>>(
+        'star_thresholds',
+        { '2': 30, '3': 60, '4': 90, '5': 120 },
+      );
       const totalTasks = account.totalTaskCount;
       let newStar = 1; // 默认1星
 
@@ -424,7 +430,7 @@ export class BuyerAccountsService {
       // 如果之前没有APPROVED的买号，说明是首个
       if (approvedCount === 0) {
         // P1: 从动态配置读取VIP天数
-        const vipDays = await this.systemConfigService.getFirstAccountVipDays();
+        const vipDays = this.configService.getNumberValue('first_account_vip_days', 7);
         await this.usersService.grantVip(account.userId, vipDays);
       }
 
