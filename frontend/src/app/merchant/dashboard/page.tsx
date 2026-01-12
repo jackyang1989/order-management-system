@@ -10,10 +10,10 @@ interface MerchantStats { balance: number; frozenBalance: number; totalTasks: nu
 interface Merchant { id: string; username: string; phone: string; companyName: string; balance: number; frozenBalance: number; }
 
 const colorMap: Record<string, { bg: string; text: string }> = {
-    green: { bg: 'bg-[#f9fafb]', text: 'text-[#6b7280]' },
-    yellow: { bg: 'bg-[#f9fafb]', text: 'text-[#6b7280]' },
-    blue: { bg: 'bg-[#f9fafb]', text: 'text-primary-600' },
-    pink: { bg: 'bg-[#f9fafb]', text: 'text-[#6b7280]' },
+    green: { bg: 'bg-emerald-50', text: 'text-emerald-600' },
+    yellow: { bg: 'bg-amber-50', text: 'text-amber-600' },
+    blue: { bg: 'bg-blue-50', text: 'text-primary-600' },
+    pink: { bg: 'bg-pink-50', text: 'text-pink-600' },
 };
 
 export default function MerchantDashboard() {
@@ -48,23 +48,23 @@ export default function MerchantDashboard() {
         return (
             <div className="flex min-h-[400px] items-center justify-center">
                 <div className="text-center">
-                    <div className="mb-3 text-4xl">🏪</div>
-                    <div className="text-[14px] text-[#7c889a]">加载数据中...</div>
+                    <div className="mb-3 text-4xl animate-bounce">🏪</div>
+                    <div className="text-[14px] font-medium text-slate-400">加载数据中...</div>
                 </div>
             </div>
         );
     }
 
     const StatCard = ({ title, value, icon, colorKey }: { title: string; value: string | number; icon: string; colorKey: string }) => {
-        const colors = colorMap[colorKey] || { bg: 'bg-[#f9fafb]', text: 'text-[#6b7280]' };
+        const colors = colorMap[colorKey] || { bg: 'bg-slate-50', text: 'text-slate-600' };
         return (
-            <div className="overflow-hidden rounded-md border border-[#e5e7eb] bg-white p-5">
+            <div className="group relative overflow-hidden rounded-[24px] bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-all hover:-translate-y-1 hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)]">
                 <div className="flex items-center justify-between">
                     <div>
-                        <div className="mb-1.5 text-[13px] text-[#6b7280]">{title}</div>
-                        <div className={`text-2xl font-bold ${colors.text}`}>{value}</div>
+                        <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">{title}</div>
+                        <div className={`text-2xl font-black tracking-tight ${colors.text}`}>{value}</div>
                     </div>
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-md text-xl ${colors.bg}`}>{icon}</div>
+                    <div className={`flex h-14 w-14 items-center justify-center rounded-[20px] text-2xl transition-transform group-hover:scale-110 ${colors.bg}`}>{icon}</div>
                 </div>
             </div>
         );
@@ -73,13 +73,16 @@ export default function MerchantDashboard() {
     return (
         <div className="space-y-6">
             {/* Welcome Banner */}
-            <div className="flex items-center justify-between overflow-hidden rounded-md border border-[#e5e7eb] bg-white px-8 py-6 text-[#3b4559]">
+            <div className="flex items-center justify-between overflow-hidden rounded-[24px] bg-white px-8 py-8 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                 <div>
-                    <h2 className="mb-2 text-xl font-semibold">欢迎回来，{merchant?.username || merchant?.companyName || '商家'}</h2>
-                    <p className="text-[14px] text-[#6b7280]">今天是 {formatDate(new Date())}，准备好处理新订单了吗？</p>
+                    <h2 className="mb-1 text-2xl font-black text-slate-900">欢迎回来，{merchant?.username || merchant?.companyName || '商家'}</h2>
+                    <p className="text-[14px] font-medium text-slate-400">今天是 {formatDate(new Date())}，准备好处理新订单了吗？</p>
                 </div>
-                <Button onClick={() => router.push('/merchant/tasks/new')} className="flex items-center gap-2">
-                    <span>+</span> 发布新任务
+                <Button
+                    onClick={() => router.push('/merchant/tasks/new')}
+                    className="h-12 rounded-[20px] bg-primary-600 px-6 text-base font-bold text-white shadow-none transition-all active:scale-95"
+                >
+                    <span className="mr-2 text-xl">+</span> 发布新任务
                 </Button>
             </div>
 
@@ -92,21 +95,21 @@ export default function MerchantDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                <div className="overflow-hidden rounded-md border border-[#e5e7eb] bg-white">
-                    <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 py-4">
-                        <h3 className="text-[15px] font-semibold text-[#3b4559]">最近任务</h3>
-                        <span onClick={() => router.push('/merchant/tasks')} className="cursor-pointer text-[13px] text-primary-600 hover:text-primary-700">查看全部 →</span>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <div className="overflow-hidden rounded-[24px] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                    <div className="flex items-center justify-between border-b border-slate-50 px-8 py-6">
+                        <h3 className="text-lg font-bold text-slate-900">最近任务</h3>
+                        <span onClick={() => router.push('/merchant/tasks')} className="cursor-pointer text-[13px] font-bold text-primary-600 hover:text-primary-700">查看全部 →</span>
                     </div>
-                    <div className="flex min-h-[220px] items-center justify-center px-6 text-center text-[14px] text-[#6b7280]">暂无任务，点击上方按钮发布新任务</div>
+                    <div className="flex min-h-[220px] items-center justify-center px-6 text-center text-[14px] font-medium text-slate-400">暂无任务，点击上方按钮发布新任务</div>
                 </div>
 
-                <div className="overflow-hidden rounded-md border border-[#e5e7eb] bg-white">
-                    <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 py-4">
-                        <h3 className="text-[15px] font-semibold text-[#3b4559]">待审核订单</h3>
-                        <span onClick={() => router.push('/merchant/orders')} className="cursor-pointer text-[13px] text-primary-600 hover:text-primary-700">查看全部 →</span>
+                <div className="overflow-hidden rounded-[24px] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                    <div className="flex items-center justify-between border-b border-slate-50 px-8 py-6">
+                        <h3 className="text-lg font-bold text-slate-900">待审核订单</h3>
+                        <span onClick={() => router.push('/merchant/orders')} className="cursor-pointer text-[13px] font-bold text-primary-600 hover:text-primary-700">查看全部 →</span>
                     </div>
-                    <div className="flex min-h-[220px] items-center justify-center px-6 text-center text-[14px] text-[#6b7280]">暂无待审核订单</div>
+                    <div className="flex min-h-[220px] items-center justify-center px-6 text-center text-[14px] font-medium text-slate-400">暂无待审核订单</div>
                 </div>
             </div>
         </div>

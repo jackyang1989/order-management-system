@@ -242,30 +242,33 @@ export default function MerchantOrdersPage() {
                         onClick={() => stat.filterKey && setFilter(stat.filterKey)}
                         disabled={!stat.filterKey}
                         className={cn(
-                            'rounded-md border p-5 text-left transition-all',
+                            'group relative overflow-hidden rounded-[24px] bg-white p-5 text-left transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)]',
                             filter === stat.filterKey
-                                ? 'border-primary-500 bg-primary-50'
-                                : 'border-[#e5e7eb] bg-white hover:border-[#d1d5db]',
+                                ? 'shadow-[0_4px_12px_rgba(59,130,246,0.1)] ring-2 ring-primary-500 ring-offset-2'
+                                : 'shadow-[0_2px_10px_rgba(0,0,0,0.02)]',
                             !stat.filterKey && 'cursor-default'
                         )}
                     >
-                        <div className={cn('text-3xl font-bold', stat.colorClass)}>{stat.value}</div>
-                        <div className="mt-1 text-sm text-[#6b7280]">{stat.label}</div>
+                        <div className={cn('text-3xl font-black tracking-tight', stat.colorClass)}>{stat.value}</div>
+                        <div className="mt-1 text-[11px] font-bold uppercase text-slate-400">{stat.label}</div>
+                        {filter === stat.filterKey && (
+                            <div className="absolute -right-4 -top-4 h-12 w-12 rounded-full bg-primary-500/10" />
+                        )}
                     </button>
                 ))}
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
                 {['SUBMITTED', 'PENDING_SHIP', 'SHIPPED', 'RECEIVED', 'COMPLETED', 'REJECTED'].map(status => (
                     <button
                         key={status}
                         onClick={() => setFilter(status)}
                         className={cn(
-                            'h-[36px] rounded-md px-4 text-sm font-medium transition-colors',
+                            'h-[40px] whitespace-nowrap rounded-full px-5 text-[13px] font-bold transition-all',
                             filter === status
-                                ? 'bg-primary-500 text-white'
-                                : 'border border-[#e5e7eb] bg-white text-[#6b7280] hover:bg-[#eff6ff]'
+                                ? 'bg-primary-600 text-white shadow-none'
+                                : 'bg-white text-slate-500 hover:bg-slate-50 shadow-[0_2px_10px_rgba(0,0,0,0.02)]'
                         )}
                     >
                         {statusConfig[status]?.text || status}
@@ -273,86 +276,98 @@ export default function MerchantOrdersPage() {
                 ))}
             </div>
 
-            {/* Orders Table */}
-            <div className="overflow-hidden rounded-md border border-[#e5e7eb] bg-white">
+            {/* Orders Table - Card Style */}
+            <div className="overflow-hidden rounded-[24px] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                 {loading ? (
-                    <div className="flex min-h-[200px] items-center justify-center text-[#6b7280]">加载中...</div>
+                    <div className="flex min-h-[400px] items-center justify-center text-slate-400 font-medium">加载中...</div>
                 ) : orders.length === 0 ? (
-                    <div className="flex min-h-[200px] items-center justify-center text-[#6b7280]">暂无订单</div>
+                    <div className="flex min-h-[400px] flex-col items-center justify-center text-center">
+                        <div className="mb-3 text-4xl opacity-50">📂</div>
+                        <div className="text-[14px] font-medium text-slate-400">暂无订单数据</div>
+                    </div>
                 ) : (
-                    <table className="w-full">
-                        <thead>
-                            <tr className="border-b border-[#e5e7eb] bg-[#f9fafb]">
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#6b7280]">任务</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#6b7280]">买号</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#6b7280]">金额</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#6b7280]">状态</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#6b7280]">提交时间</th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-[#6b7280]">操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {orders.map(order => (
-                                <tr key={order.id} className="border-b border-[#e5e7eb] last:border-0 hover:bg-[#f9fafb]">
-                                    <td className="px-4 py-3">
-                                        <div className="font-medium text-[#3b4559]">{order.taskTitle}</div>
-                                        <div className="mt-0.5 text-xs text-[#9ca3af]">{order.platform}</div>
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-[#6b7280]">{order.buynoAccount}</td>
-                                    <td className="px-4 py-3">
-                                        <div className="font-medium text-[#3b4559]">¥{Number(order.productPrice).toFixed(2)}</div>
-                                        <div className="mt-0.5 text-xs text-success-600">佣金 ¥{Number(order.commission).toFixed(2)}</div>
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <span className={cn('inline-block rounded-md px-2.5 py-1 text-xs font-medium', statusConfig[order.status]?.className)}>
-                                            {statusConfig[order.status]?.text || order.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-[#6b7280]">
-                                        {new Date(order.completedAt || order.createdAt).toLocaleString('zh-CN')}
-                                    </td>
-                                    <td className="px-4 py-3 text-center">
-                                        <div className="flex items-center justify-center gap-2">
-                                            {order.status === 'SUBMITTED' && (
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="border-b border-slate-50 bg-slate-50/50">
+                                    <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">任务</th>
+                                    <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">买号</th>
+                                    <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">金额</th>
+                                    <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">状态</th>
+                                    <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">提交时间</th>
+                                    <th className="px-6 py-4 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {orders.map((order, index) => (
+                                    <tr
+                                        key={order.id}
+                                        className={cn(
+                                            "group border-b border-slate-50 transition-colors hover:bg-slate-50/50",
+                                            index === orders.length - 1 && "border-0"
+                                        )}
+                                    >
+                                        <td className="px-6 py-5">
+                                            <div className="font-bold text-slate-900">{order.taskTitle}</div>
+                                            <div className="mt-1 text-xs font-medium text-slate-400">{order.platform}</div>
+                                        </td>
+                                        <td className="px-6 py-5 text-sm font-medium text-slate-500">{order.buynoAccount}</td>
+                                        <td className="px-6 py-5">
+                                            <div className="font-bold text-slate-900">¥{Number(order.productPrice).toFixed(2)}</div>
+                                            <div className="mt-1 text-xs font-bold text-emerald-500">佣金 ¥{Number(order.commission).toFixed(2)}</div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <span className={cn('inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold', statusConfig[order.status]?.className)}>
+                                                {statusConfig[order.status]?.text || order.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-5 text-sm font-medium text-slate-400">
+                                            {new Date(order.completedAt || order.createdAt).toLocaleString('zh-CN')}
+                                        </td>
+                                        <td className="px-6 py-5 text-center">
+                                            <div className="flex items-center justify-center gap-3">
+                                                {order.status === 'SUBMITTED' && (
+                                                    <Button
+                                                        size="sm"
+                                                        className="h-8 rounded-[12px] bg-primary-600 px-4 text-xs font-bold text-white shadow-none hover:bg-primary-700"
+                                                        onClick={() => setSelectedOrder(order)}
+                                                    >
+                                                        审核
+                                                    </Button>
+                                                )}
+                                                {order.status === 'PENDING_SHIP' && (
+                                                    <Button
+                                                        size="sm"
+                                                        className="h-8 rounded-[12px] bg-orange-500 px-4 text-xs font-bold text-white shadow-none hover:bg-orange-600"
+                                                        onClick={() => openShipModal(order.id)}
+                                                    >
+                                                        发货
+                                                    </Button>
+                                                )}
+                                                {order.status === 'RECEIVED' && (
+                                                    <Button
+                                                        size="sm"
+                                                        className="h-8 rounded-[12px] bg-purple-500 px-4 text-xs font-bold text-white shadow-none hover:bg-purple-600"
+                                                        onClick={() => openReturnModal(order)}
+                                                    >
+                                                        返款
+                                                    </Button>
+                                                )}
                                                 <Button
                                                     size="sm"
-                                                    variant="primary"
+                                                    variant="secondary"
+                                                    className="h-8 rounded-[12px] border-none bg-slate-100 px-4 text-xs font-bold text-slate-600 shadow-none hover:bg-slate-200"
                                                     onClick={() => setSelectedOrder(order)}
                                                 >
-                                                    审核
+                                                    查看
                                                 </Button>
-                                            )}
-                                            {order.status === 'PENDING_SHIP' && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="primary"
-                                                    onClick={() => openShipModal(order.id)}
-                                                >
-                                                    发货
-                                                </Button>
-                                            )}
-                                            {order.status === 'RECEIVED' && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="primary"
-                                                    onClick={() => openReturnModal(order)}
-                                                >
-                                                    返款
-                                                </Button>
-                                            )}
-                                            <Button
-                                                size="sm"
-                                                variant="secondary"
-                                                onClick={() => setSelectedOrder(order)}
-                                            >
-                                                查看
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
             </div>
 
@@ -361,34 +376,36 @@ export default function MerchantOrdersPage() {
                 open={!!selectedOrder}
                 onClose={() => setSelectedOrder(null)}
                 title={`订单详情 - ${selectedOrder?.status === 'SUBMITTED' ? '待审核' : statusConfig[selectedOrder?.status || '']?.text || ''}`}
-                className="max-w-2xl"
+                className="max-w-2xl rounded-[32px]"
             >
                 {selectedOrder && (
-                    <div className="space-y-5">
+                    <div className="space-y-6">
                         {/* Order Info */}
-                        <div className="grid grid-cols-2 gap-3 rounded-md bg-[#f9fafb] p-4 text-sm">
-                            <div><span className="text-[#6b7280]">任务：</span>{selectedOrder.taskTitle}</div>
-                            <div><span className="text-[#6b7280]">平台：</span>{selectedOrder.platform}</div>
-                            <div><span className="text-[#6b7280]">买号：</span>{selectedOrder.buynoAccount}</div>
-                            <div><span className="text-[#6b7280]">金额：</span>¥{Number(selectedOrder.productPrice).toFixed(2)}</div>
+                        <div className="grid grid-cols-2 gap-4 rounded-[20px] bg-slate-50 p-5 text-sm">
+                            <div><span className="font-bold text-slate-400">任务：</span><span className="font-medium text-slate-700">{selectedOrder.taskTitle}</span></div>
+                            <div><span className="font-bold text-slate-400">平台：</span><span className="font-medium text-slate-700">{selectedOrder.platform}</span></div>
+                            <div><span className="font-bold text-slate-400">买号：</span><span className="font-medium text-slate-700">{selectedOrder.buynoAccount}</span></div>
+                            <div><span className="font-bold text-slate-400">金额：</span><span className="font-bold text-slate-900">¥{Number(selectedOrder.productPrice).toFixed(2)}</span></div>
                         </div>
 
                         {/* Step Screenshots */}
                         <div>
-                            <h3 className="mb-3 text-sm font-semibold text-[#3b4559]">提交凭证</h3>
-                            <div className="grid grid-cols-3 gap-3">
+                            <h3 className="mb-4 text-sm font-bold text-slate-900">提交凭证</h3>
+                            <div className="grid grid-cols-3 gap-4">
                                 {selectedOrder.stepData.filter(s => s.submitted).map(step => (
-                                    <div key={step.step} className="rounded-md border border-[#e5e7eb] p-3">
-                                        <div className="mb-2 text-xs font-medium text-[#6b7280]">{step.title}</div>
+                                    <div key={step.step} className="rounded-[16px] border border-slate-100 p-3 bg-white hover:shadow-sm transition-shadow">
+                                        <div className="mb-2 text-xs font-bold text-slate-400">{step.title}</div>
                                         {step.screenshot ? (
-                                            <img
-                                                src={step.screenshot.startsWith('http') ? step.screenshot : `${BASE_URL}${step.screenshot}`}
-                                                alt={step.title}
-                                                className="w-full cursor-pointer rounded"
-                                                onClick={() => window.open(step.screenshot, '_blank')}
-                                            />
+                                            <div className="overflow-hidden rounded-[12px]">
+                                                <img
+                                                    src={step.screenshot.startsWith('http') ? step.screenshot : `${BASE_URL}${step.screenshot}`}
+                                                    alt={step.title}
+                                                    className="w-full cursor-pointer transition-transform hover:scale-110"
+                                                    onClick={() => window.open(step.screenshot, '_blank')}
+                                                />
+                                            </div>
                                         ) : (
-                                            <div className="flex h-20 items-center justify-center rounded bg-[#f9fafb] text-xs text-[#9ca3af]">
+                                            <div className="flex h-20 items-center justify-center rounded-[12px] bg-slate-50 text-xs font-medium text-slate-400">
                                                 无截图
                                             </div>
                                         )}
@@ -399,7 +416,7 @@ export default function MerchantOrdersPage() {
 
                         {/* Action Buttons */}
                         {selectedOrder.status === 'SUBMITTED' && (
-                            <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-5">
+                            <div className="flex justify-end gap-3 border-t border-slate-50 pt-5">
                                 <Button
                                     variant="secondary"
                                     onClick={() => {
@@ -407,7 +424,7 @@ export default function MerchantOrdersPage() {
                                         handleReview(selectedOrder.id, false, reason || undefined);
                                     }}
                                     disabled={reviewing}
-                                    className="border-danger-400 text-danger-500 hover:bg-danger-50"
+                                    className="rounded-[16px] border-none bg-red-50 font-bold text-danger-500 hover:bg-red-100 shadow-none"
                                 >
                                     驳回
                                 </Button>
@@ -415,6 +432,7 @@ export default function MerchantOrdersPage() {
                                     onClick={() => handleReview(selectedOrder.id, true)}
                                     disabled={reviewing}
                                     loading={reviewing}
+                                    className="rounded-[16px] bg-primary-600 font-bold text-white shadow-none hover:bg-primary-700"
                                 >
                                     通过
                                 </Button>
@@ -422,8 +440,8 @@ export default function MerchantOrdersPage() {
                         )}
 
                         {selectedOrder.status !== 'SUBMITTED' && (
-                            <div className="border-t border-[#e5e7eb] pt-5 text-right">
-                                <Button variant="secondary" onClick={() => setSelectedOrder(null)}>
+                            <div className="border-t border-slate-100 pt-5 text-right">
+                                <Button variant="secondary" className="rounded-[16px] border-none bg-slate-100 font-bold text-slate-600 hover:bg-slate-200 shadow-none" onClick={() => setSelectedOrder(null)}>
                                     关闭
                                 </Button>
                             </div>
@@ -437,37 +455,42 @@ export default function MerchantOrdersPage() {
                 open={showShipModal}
                 onClose={() => setShowShipModal(false)}
                 title="填写物流信息"
-                className="max-w-md"
+                className="max-w-md rounded-[32px]"
             >
-                <div className="space-y-4">
+                <div className="space-y-5">
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">快递公司</label>
-                        <select
-                            value={deliveryCompany}
-                            onChange={(e) => setDeliveryCompany(e.target.value)}
-                            className="h-10 w-full rounded-md border border-[#d1d5db] px-3 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-                        >
-                            <option value="">请选择快递公司...</option>
-                            {deliveryCompanies.map(company => (
-                                <option key={company} value={company}>{company}</option>
-                            ))}
-                        </select>
+                        <label className="mb-2 block text-sm font-bold text-slate-700">快递公司</label>
+                        <div className="relative">
+                            <select
+                                value={deliveryCompany}
+                                onChange={(e) => setDeliveryCompany(e.target.value)}
+                                className="h-12 w-full appearance-none rounded-[16px] border-none bg-slate-50 px-4 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none"
+                            >
+                                <option value="">请选择快递公司...</option>
+                                {deliveryCompanies.map(company => (
+                                    <option key={company} value={company}>{company}</option>
+                                ))}
+                            </select>
+                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                                <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
+                            </div>
+                        </div>
                     </div>
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">快递单号</label>
+                        <label className="mb-2 block text-sm font-bold text-slate-700">快递单号</label>
                         <input
                             type="text"
                             value={deliveryNumber}
                             onChange={(e) => setDeliveryNumber(e.target.value)}
                             placeholder="请输入快递单号"
-                            className="h-10 w-full rounded-md border border-[#d1d5db] px-3 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                            className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-primary-500/20 outline-none"
                         />
                     </div>
                     <div className="flex justify-end gap-3 pt-4">
-                        <Button variant="secondary" onClick={() => setShowShipModal(false)}>
+                        <Button variant="secondary" className="rounded-[16px] border-none bg-slate-100 font-bold text-slate-600 hover:bg-slate-200 shadow-none" onClick={() => setShowShipModal(false)}>
                             取消
                         </Button>
-                        <Button onClick={handleShip} loading={shipping} disabled={shipping}>
+                        <Button className="rounded-[16px] bg-primary-600 font-bold text-white shadow-none hover:bg-primary-700" onClick={handleShip} loading={shipping} disabled={shipping}>
                             确认发货
                         </Button>
                     </div>
@@ -479,29 +502,29 @@ export default function MerchantOrdersPage() {
                 open={showReturnModal}
                 onClose={() => setShowReturnModal(false)}
                 title="确认返款"
-                className="max-w-md"
+                className="max-w-md rounded-[32px]"
             >
-                <div className="space-y-4">
-                    <div className="rounded-md bg-[#f9fafb] p-4 text-sm">
-                        <p className="text-[#6b7280]">返款金额包含商品本金和佣金，请确认金额无误后操作。</p>
+                <div className="space-y-5">
+                    <div className="rounded-[20px] bg-slate-50 p-5 text-sm">
+                        <p className="font-medium text-slate-500">返款金额包含商品本金和佣金，请确认金额无误后操作。</p>
                     </div>
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">返款金额 (元)</label>
+                        <label className="mb-2 block text-sm font-bold text-slate-700">返款金额 (元)</label>
                         <input
                             type="number"
                             value={returnAmount}
                             onChange={(e) => setReturnAmount(parseFloat(e.target.value) || 0)}
                             step="0.01"
                             min="0"
-                            className="h-10 w-full rounded-md border border-[#d1d5db] px-3 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                            className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none"
                         />
-                        <p className="mt-1.5 text-xs text-[#6b7280]">可在原金额80%-120%范围内调整</p>
+                        <p className="mt-2 text-xs font-bold text-slate-400">可在原金额80%-120%范围内调整</p>
                     </div>
                     <div className="flex justify-end gap-3 pt-4">
-                        <Button variant="secondary" onClick={() => setShowReturnModal(false)}>
+                        <Button variant="secondary" className="rounded-[16px] border-none bg-slate-100 font-bold text-slate-600 hover:bg-slate-200 shadow-none" onClick={() => setShowReturnModal(false)}>
                             取消
                         </Button>
-                        <Button onClick={handleReturn} loading={returning} disabled={returning}>
+                        <Button className="rounded-[16px] bg-primary-600 font-bold text-white shadow-none hover:bg-primary-700" onClick={handleReturn} loading={returning} disabled={returning}>
                             确认返款
                         </Button>
                     </div>

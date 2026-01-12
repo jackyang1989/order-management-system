@@ -86,34 +86,34 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
     }
 
     return (
-        <div className="flex min-h-screen overflow-x-hidden bg-[#f9fafb]">
+        <div className="flex min-h-screen overflow-x-hidden bg-[#F8FAFC]">
             {/* Sidebar */}
             <aside
                 className={cn(
-                    'custom-scrollbar fixed left-0 top-0 z-40 h-screen overflow-y-auto border-r border-[#e5e7eb] bg-white transition-all duration-200',
+                    'custom-scrollbar fixed left-0 top-0 z-40 h-screen overflow-y-auto border-r border-slate-100 bg-white transition-all duration-200',
                     collapsed ? 'w-[72px]' : 'w-[240px]'
                 )}
             >
                 {/* Logo */}
                 <div
                     className={cn(
-                        'flex h-16 items-center border-b border-[#e5e7eb]',
+                        'flex h-16 items-center border-b border-slate-50',
                         collapsed ? 'justify-center' : 'px-5'
                     )}
                 >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary-100">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-blue-50">
                         <span className="text-lg">🏪</span>
                     </div>
                     {!collapsed && (
                         <div className="ml-3">
-                            <div className="text-[15px] font-semibold text-[#3b4559]">商家工作台</div>
-                            <div className="text-[11px] text-[#94a3b8]">Merchant Portal</div>
+                            <div className="text-[15px] font-bold text-slate-900">商家工作台</div>
+                            <div className="text-[11px] font-medium text-slate-400">Merchant Portal</div>
                         </div>
                     )}
                 </div>
 
                 {/* Menu */}
-                <nav className="p-3">
+                <nav className="space-y-1 p-3">
                     {menuItems.map((item) => {
                         const isActive = pathname === item.key;
 
@@ -122,16 +122,16 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
                                 key={item.key}
                                 onClick={() => handleMenuClick(item.key)}
                                 className={cn(
-                                    'mb-1 flex w-full items-center rounded-md px-3 py-2.5 text-left text-[14px] transition-all',
+                                    'flex w-full items-center rounded-[16px] px-3 py-3 text-left transition-all',
                                     isActive
-                                        ? 'bg-primary-50 font-medium text-primary-600'
-                                        : 'text-[#5a6577] hover:bg-[#f9fafb] hover:text-[#3b4559]',
+                                        ? 'bg-primary-600 font-bold text-white shadow-md shadow-primary-600/20'
+                                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900',
                                     collapsed && 'justify-center px-0'
                                 )}
                             >
-                                <span className="text-[17px]">{item.icon}</span>
+                                <span className="text-[18px]">{item.icon}</span>
                                 {!collapsed && (
-                                    <span className="ml-3">{item.label}</span>
+                                    <span className="ml-3 text-[14px]">{item.label}</span>
                                 )}
                             </button>
                         );
@@ -146,35 +146,35 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
                     collapsed ? 'ml-[72px]' : 'ml-[240px]'
                 )}
             >
-                {/* Header */}
-                <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#e5e7eb] bg-white px-6">
+                {/* Header - Sticky Frosted */}
+                <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-100/50 bg-[#F8FAFC]/80 px-6 backdrop-blur-md">
                     <div className="flex items-center gap-5">
                         <button
                             onClick={() => setCollapsed(!collapsed)}
-                            className="flex h-9 w-9 items-center justify-center rounded-md text-[#7c889a] transition-colors hover:bg-[#f9fafb] hover:text-[#3b4559]"
+                            className="flex h-9 w-9 items-center justify-center rounded-[12px] text-slate-400 transition-colors hover:bg-white hover:text-slate-600"
                         >
                             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 {collapsed ? (
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                                 ) : (
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h8m-8 6h16" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h8m-8 6h16" />
                                 )}
                             </svg>
                         </button>
 
                         {/* Balance card */}
                         {merchant && (
-                            <div className="flex items-center gap-5 rounded-md border border-[#e5e7eb] bg-white px-4 py-2">
+                            <div className="flex items-center gap-5 rounded-[16px] bg-white px-4 py-2 shadow-sm">
                                 <div>
-                                    <div className="text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">可用余额</div>
-                                    <div className="text-[15px] font-semibold text-primary-600">
+                                    <div className="text-[10px] font-bold uppercase text-slate-400">可用余额</div>
+                                    <div className="text-[14px] font-black text-slate-900">
                                         ¥{Number(merchant.balance).toFixed(2)}
                                     </div>
                                 </div>
-                                <div className="h-6 w-px bg-[#e5e7eb]" />
+                                <div className="h-6 w-px bg-slate-100" />
                                 <div>
-                                    <div className="text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">冻结余额</div>
-                                    <div className="text-[15px] font-semibold text-warning-500">
+                                    <div className="text-[10px] font-bold uppercase text-slate-400">冻结余额</div>
+                                    <div className="text-[14px] font-black text-warning-500">
                                         ¥{Number(merchant.frozenBalance || 0).toFixed(2)}
                                     </div>
                                 </div>
@@ -186,33 +186,33 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
                     <div className="relative">
                         <button
                             onClick={() => setShowDropdown(!showDropdown)}
-                            className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-[#f9fafb]"
+                            className="flex items-center gap-3 rounded-[16px] px-3 py-2 transition-colors hover:bg-white/50"
                         >
-                            <span className="text-[14px] text-[#5a6577]">{merchant?.username || '商家'}</span>
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-[13px] font-medium text-primary-600">
+                            <span className="text-[14px] font-bold text-slate-700">{merchant?.username || '商家'}</span>
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-[13px] font-bold text-primary-600">
                                 {merchant?.username?.charAt(0).toUpperCase() || 'M'}
                             </div>
                         </button>
 
                         {showDropdown && (
-                            <div className="absolute right-0 top-full mt-2 w-44 overflow-hidden rounded-md border border-[#e5e7eb] bg-white">
+                            <div className="absolute right-0 top-full mt-2 w-44 overflow-hidden rounded-[20px] border border-slate-100 bg-white shadow-xl shadow-slate-200/50">
                                 <button
                                     onClick={() => {
                                         router.push('/merchant/setting');
                                         setShowDropdown(false);
                                     }}
-                                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-[14px] text-[#5a6577] transition-colors hover:bg-[#f9fafb] hover:text-[#3b4559]"
+                                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-[14px] font-medium text-slate-600 transition-colors hover:bg-slate-50"
                                 >
                                     <span>⚙️</span>
                                     <span>账户设置</span>
                                 </button>
-                                <div className="border-t border-[#e5eaef]" />
+                                <div className="border-t border-slate-50" />
                                 <button
                                     onClick={() => {
                                         handleLogout();
                                         setShowDropdown(false);
                                     }}
-                                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-[14px] text-[#5a6577] transition-colors hover:bg-[#f9fafb] hover:text-[#3b4559]"
+                                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-[14px] font-medium text-danger-500 transition-colors hover:bg-red-50"
                                 >
                                     <span>🚪</span>
                                     <span>退出登录</span>
