@@ -40,6 +40,48 @@ export class TasksService implements OnModuleInit {
     }
   }
 
+  /**
+   * 获取货比关键词
+   * 规则：
+   * 1. 如果主商品的第一个关键词有设置 compareKeyword，使用它
+   * 2. 否则，使用主商品的第一个搜索关键词
+   * 3. 多商品时，只显示主商品(第一个商品)的货比关键词
+   */
+  private getHuobiKeyword(dto: CreateTaskDto): string {
+    if (!dto.needCompare) {
+      return '';
+    }
+
+    // 优先从主商品的关键词高级设置中获取货比关键词
+    if (dto.goodsList && dto.goodsList.length > 0) {
+      const mainGoods = dto.goodsList[0]; // 主商品是第一个商品
+
+      // 检查主商品的第一个关键词是否有设置 compareKeyword
+      if (mainGoods.keywords && mainGoods.keywords.length > 0) {
+        const firstKeyword = mainGoods.keywords[0];
+        if (firstKeyword.advancedSettings?.compareKeyword) {
+          return firstKeyword.advancedSettings.compareKeyword;
+        }
+        // 没有设置 compareKeyword，使用第一个搜索关键词
+        if (firstKeyword.keyword) {
+          return firstKeyword.keyword;
+        }
+      }
+
+      // 兼容旧版单关键词模式
+      if (mainGoods.keyword) {
+        return mainGoods.keyword;
+      }
+    }
+
+    // 兼容旧版单商品模式
+    if (dto.keyword) {
+      return dto.keyword;
+    }
+
+    return '';
+  }
+
   private async seedTasks() {
     // Mock data adapted to new schema
     const seedTasks: Partial<Task>[] = [
@@ -336,7 +378,7 @@ export class TasksService implements OnModuleInit {
 
         // Browse Behavior Settings
         needHuobi: !!dto.needCompare,
-        huobiKeyword: dto.needCompare ? `货比${dto.compareCount || 3}家` : '',
+        huobiKeyword: this.getHuobiKeyword(dto),
         needShoucang: !!dto.needFavorite,
         needGuanzhu: !!dto.needFollow,
         needJiagou: !!dto.needAddCart,

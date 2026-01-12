@@ -1115,39 +1115,16 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                             </div>
                         </div>
 
-                        {/* 商品规格 */}
-                        <div className="mb-4 grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="mb-1 block text-sm text-[#374151]">商品规格1</label>
-                                <Input
-                                    type="text"
-                                    value={advancedSettings.spec1}
-                                    onChange={e => setAdvancedSettings(prev => ({ ...prev, spec1: e.target.value }))}
-                                    placeholder="如：颜色"
-                                />
-                            </div>
-                            <div>
-                                <label className="mb-1 block text-sm text-[#374151]">商品规格2</label>
-                                <Input
-                                    type="text"
-                                    value={advancedSettings.spec2}
-                                    onChange={e => setAdvancedSettings(prev => ({ ...prev, spec2: e.target.value }))}
-                                    placeholder="如：尺码"
-                                />
-                            </div>
-                        </div>
-
-                        {/* 货比关键词 (必填) */}
+                        {/* 货比关键词 */}
                         <div className="mb-4">
-                            <label className="mb-1 block text-sm text-[#374151]">货比关键词 <span className="text-red-500">*</span></label>
+                            <label className="mb-1 block text-sm text-[#374151]">货比关键词</label>
                             <Input
                                 type="text"
                                 value={advancedSettings.compareKeyword}
                                 onChange={e => setAdvancedSettings(prev => ({ ...prev, compareKeyword: e.target.value }))}
-                                placeholder="买手货比时使用的关键词 (必填)"
-                                className={!advancedSettings.compareKeyword ? 'border-red-300' : ''}
+                                placeholder="不填则默认使用主商品的第一个搜索关键词"
                             />
-                            <p className="mt-0.5 text-xs text-[#9ca3af]">买手进行货比浏览时使用此关键词搜索</p>
+                            <p className="mt-0.5 text-xs text-[#9ca3af]">买手进行货比浏览时使用此关键词搜索，不填则自动使用主商品的第一个搜索关键词</p>
                         </div>
 
                         {/* 备选关键词 */}
