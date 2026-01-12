@@ -54,6 +54,10 @@ interface Task {
     taskTimeLimit: number;
     isFreeShipping: boolean;
     isPresale: boolean;
+    praiseType: string;
+    praiseList: string;
+    praiseImgList: string;
+    praiseVideoList: string;
     isTimingPublish: boolean;
     publishTime: string;
     updatedAt: string;
@@ -529,6 +533,29 @@ export default function AdminTasksPage() {
                                 </div>
                             </div>
                         </div>
+
+                        {/* 好评内容详情 */}
+                        {detailModal.isPraise && (
+                            <div className="mb-6">
+                                <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">好评具体内容</h3>
+                                <div className="rounded-md bg-[#f9fafb] p-4">
+                                    <div className="space-y-2">
+                                        {(() => {
+                                            try {
+                                                const list = detailModal.praiseList ? JSON.parse(detailModal.praiseList) : [];
+                                                if (!list || list.length === 0) return <div className="text-xs text-[#9ca3af]">无好评内容</div>;
+                                                return list.map((txt: string, i: number) => (
+                                                    <div key={i} className="text-[13px] text-[#3b4559] flex gap-2">
+                                                        <span className="text-[#9ca3af] font-mono shrink-0">{i + 1}.</span>
+                                                        <span>{txt}</span>
+                                                    </div>
+                                                ));
+                                            } catch (e) { return <div className="text-xs text-red-400">内容解析失败</div>; }
+                                        })()}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="mt-8 flex justify-end">
                             <Button variant="secondary" onClick={() => setDetailModal(null)}>

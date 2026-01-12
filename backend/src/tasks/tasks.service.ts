@@ -363,8 +363,12 @@ export class TasksService implements OnModuleInit {
 
         // Value Added Flags (Keep flags if present in DTO but no fees)
         isPraise: !!dto.isPraise,
+        praiseType: dto.praiseType || 'none',
+        praiseList: dto.praiseList ? JSON.stringify(dto.praiseList) : '[]',
         isImgPraise: dto.praiseType === 'image',
+        praiseImgList: dto.praiseImgList ? JSON.stringify(dto.praiseImgList) : '[]',
         isVideoPraise: dto.praiseType === 'video',
+        praiseVideoList: dto.praiseVideoList ? JSON.stringify(dto.praiseVideoList) : '[]',
         praiseFee: dto.praiseFee || 0,
         isTimingPublish: !!dto.isTimingPublish,
         publishTime: dto.publishTime ? new Date(dto.publishTime) : null,

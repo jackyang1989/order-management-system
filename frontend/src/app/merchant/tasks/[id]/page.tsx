@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-interface TaskDetail { id: string; taskNumber: string; title: string; taskType: number; shopId: string; shopName: string; url: string; mainImage: string; keyword: string; taoWord?: string; goodsPrice: number; count: number; claimedCount: number; completedCount: number; status: number; isFreeShipping: number; isPraise: boolean; praiseType: string; praiseList: string[]; isTimingPublish: boolean; publishTime?: string; isTimingPay: boolean; timingPayTime?: string; isCycleTime: boolean; cycleTime?: number; addReward: number; totalDeposit: number; totalCommission: number; baseServiceFee: number; praiseFee: number; shippingFee: number; margin: number; createdAt: string; updatedAt: string; }
+interface TaskDetail { id: string; taskNumber: string; title: string; taskType: number; shopId: string; shopName: string; url: string; mainImage: string; keyword: string; taoWord?: string; goodsPrice: number; count: number; claimedCount: number; completedCount: number; status: number; isFreeShipping: number; isPraise: boolean; praiseType: string; praiseList: string; praiseImgList: string; praiseVideoList: string; isTimingPublish: boolean; publishTime?: string; isTimingPay: boolean; timingPayTime?: string; isCycleTime: boolean; cycleTime?: number; addReward: number; totalDeposit: number; totalCommission: number; baseServiceFee: number; praiseFee: number; shippingFee: number; margin: number; createdAt: string; updatedAt: string; }
 interface OrderItem { id: string; buynoAccount: string; status: string; productPrice: number; commission: number; createdAt: string; completedAt?: string; }
 
 const TaskTypeMap: Record<number, string> = { 1: '淘宝', 2: '天猫', 3: '京东', 4: '拼多多' };
@@ -92,7 +92,7 @@ export default function TaskDetailPage() {
                                     <div className="text-[13px] text-[#6b7280]">关键词: <span className="text-primary-600">{task.keyword}</span></div>
                                     {task.url && <a href={task.url} target="_blank" rel="noopener noreferrer" className="text-[13px] text-primary-500">查看商品链接 →</a>}
                                 </div>
-                        </div>
+                            </div>
                         </div>
                     </Card>
 
@@ -163,6 +163,23 @@ export default function TaskDetailPage() {
                                 <div className="flex justify-between"><span className="text-[#6b7280]">创建时间</span><span>{new Date(task.createdAt).toLocaleString('zh-CN')}</span></div>
                                 <div className="flex justify-between"><span className="text-[#6b7280]">包邮</span><span>{task.isFreeShipping === 1 ? '是' : '否'}</span></div>
                                 <div className="flex justify-between"><span className="text-[#6b7280]">好评要求</span><span>{task.isPraise ? (task.praiseType === 'text' ? '文字好评' : task.praiseType === 'image' ? '图片好评' : '视频好评') : '无'}</span></div>
+                                {task.isPraise && (
+                                    <div className="mt-2 rounded bg-slate-50 p-3">
+                                        <div className="mb-2 text-xs font-semibold text-slate-500">好评内容:</div>
+                                        <div className="space-y-2">
+                                            {(() => {
+                                                try {
+                                                    const list = task.praiseList ? JSON.parse(task.praiseList) : [];
+                                                    return list.map((txt: string, i: number) => (
+                                                        <div key={i} className="text-xs text-slate-700 border-l-2 border-primary-200 pl-2">
+                                                            {i + 1}. {txt}
+                                                        </div>
+                                                    ));
+                                                } catch (e) { return <div className="text-xs text-red-400">解析失败</div>; }
+                                            })()}
+                                        </div>
+                                    </div>
+                                )}
                                 {task.addReward > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">额外奖励</span><span className="text-warning-500">+¥{task.addReward}/单</span></div>}
                             </div>
                         </div>

@@ -137,17 +137,29 @@ export class Task {
   @Column({ default: false })
   isPraise: boolean; // 文字好评
 
+  @Column({ nullable: true })
+  praiseType: string;
+
+  @Column({ type: 'text', nullable: true })
+  praiseList: string; // JSON string of string[]
+
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   praiseFee: number;
 
   @Column({ default: false })
   isImgPraise: boolean; // 图片好评
 
+  @Column({ type: 'text', nullable: true })
+  praiseImgList: string; // JSON string of string[][]
+
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   imgPraiseFee: number;
 
   @Column({ default: false })
   isVideoPraise: boolean; // 视频好评
+
+  @Column({ type: 'text', nullable: true })
+  praiseVideoList: string; // JSON string of string[]
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   videoPraiseFee: number;
