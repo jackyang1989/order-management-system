@@ -1476,11 +1476,11 @@ export class OrdersService {
       });
     }
 
-    // 假聊步骤
+    // 联系客服步骤
     if (task.needJialiao) {
       steps.push({
         step: stepNumber++,
-        title: '假聊截图',
+        title: '联系客服截图',
         description: '与店家客服聊天并截图（按商家要求内容聊天）',
         submitted: false,
       });

@@ -308,7 +308,7 @@ export class Task {
   needGuanzhu: boolean; // 关注
 
   @Column({ default: false })
-  needJialiao: boolean; // 假聊
+  needJialiao: boolean; // 联系客服
 
   @Column({ default: false })
   needJiagou: boolean; // 加购

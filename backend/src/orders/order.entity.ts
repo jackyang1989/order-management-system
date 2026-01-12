@@ -149,7 +149,7 @@ export class Order {
   keyword: string; // 搜索关键词
 
   @Column({ type: 'text', nullable: true })
-  chatImg: string; // 聊天截图（假聊）
+  chatImg: string; // 聊天截图（联系客服）
 
   @Column({ type: 'text', nullable: true })
   orderDetailImg: string; // 订单详情截图

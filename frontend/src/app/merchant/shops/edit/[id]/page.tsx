@@ -8,6 +8,7 @@ import { Button } from '../../../../../components/ui/button';
 import { Card } from '../../../../../components/ui/card';
 import { Input } from '../../../../../components/ui/input';
 import { Select } from '../../../../../components/ui/select';
+import { fetchEnabledPlatforms, PlatformData } from '../../../../../services/systemConfigService';
 import { getProvinces, getCities, getDistricts } from '../../../../../data/chinaRegions';
 
 interface EditFormData extends Partial<Shop> {
@@ -19,6 +20,7 @@ export default function EditShopPage({ params }: { params: Promise<{ id: string 
     const { id } = use(params);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [platforms, setPlatforms] = useState<PlatformData[]>([]);
     const [formData, setFormData] = useState<EditFormData>({
         platform: 'TAOBAO',
         shopName: '',
@@ -37,7 +39,13 @@ export default function EditShopPage({ params }: { params: Promise<{ id: string 
     useEffect(() => { loadShop(); }, [id]);
 
     const loadShop = async () => {
-        const shops = await fetchShops();
+        // 并行加载店铺信息和启用平台列表
+        const [shops, platformList] = await Promise.all([
+            fetchShops(),
+            fetchEnabledPlatforms()
+        ]);
+
+        setPlatforms(platformList);
         const shop = shops.find(s => s.id === id);
         if (shop) {
             setFormData({ ...shop, newScreenshot: null });
@@ -107,13 +115,10 @@ export default function EditShopPage({ params }: { params: Promise<{ id: string 
                             <Select
                                 value={formData.platform || 'TAOBAO'}
                                 onChange={v => setFormData({ ...formData, platform: v as any })}
-                                options={[
-                                    { value: 'TAOBAO', label: '淘宝' },
-                                    { value: 'TMALL', label: '天猫' },
-                                    { value: 'JD', label: '京东' },
-                                    { value: 'PDD', label: '拼多多' },
-                                    { value: 'DOUYIN', label: '抖音' },
-                                ]}
+                                options={platforms.map(p => ({
+                                    value: p.code.toUpperCase(),
+                                    label: p.name
+                                }))}
                                 className="h-12 w-full appearance-none rounded-[16px] border-none bg-slate-50 px-4 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none"
                             />
 
