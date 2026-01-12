@@ -177,27 +177,25 @@ const configGroups: ConfigGroup[] = [
     },
 ];
 
-// 可用的平台列表
-const ALL_PLATFORMS = [
-    { id: 'taobao', name: '淘宝', icon: '🟠' },
-    { id: 'tmall', name: '天猫', icon: '🔴' },
-    { id: 'jd', name: '京东', icon: '🔴' },
-    { id: 'pdd', name: '拼多多', icon: '🟢' },
-    { id: 'douyin', name: '抖音', icon: '📱' },
-    { id: 'kuaishou', name: '快手', icon: '📱' },
-    { id: 'xianyu', name: '闲鱼', icon: '🟡' },
-    { id: 'ali1688', name: '1688', icon: '🟠' },
-    { id: 'xiaohongshu', name: '小红书', icon: '🔴' },
-];
+interface Platform {
+    id: string;
+    code: string;
+    name: string;
+    icon?: string;
+    isActive: boolean;
+    sortOrder: number;
+}
 
 export default function AdminSystemPage() {
     const [config, setConfig] = useState<SystemGlobalConfig | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [platforms, setPlatforms] = useState<Platform[]>([]);
 
     useEffect(() => {
         loadConfig();
+        loadPlatforms();
     }, []);
 
     const loadConfig = async () => {
@@ -210,6 +208,15 @@ export default function AdminSystemPage() {
             setError(err.message || '加载配置失败');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadPlatforms = async () => {
+        try {
+            const response = await api.get<{ success: boolean; data: Platform[] }>('/admin/platforms?activeOnly=false');
+            setPlatforms(response.data?.data || []);
+        } catch (err: any) {
+            console.error('加载平台失败:', err);
         }
     };
 
@@ -235,23 +242,13 @@ export default function AdminSystemPage() {
         setConfig({ ...config, [key]: value });
     };
 
-    // 获取已启用的平台列表
-    const getEnabledPlatforms = (): string[] => {
-        if (!config?.enabledPlatforms) return ['taobao'];
+    const togglePlatform = async (platform: Platform) => {
         try {
-            return JSON.parse(config.enabledPlatforms);
-        } catch {
-            return ['taobao'];
+            await api.put(`/admin/platforms/${platform.id}/toggle`, { isActive: !platform.isActive });
+            loadPlatforms();
+        } catch (err) {
+            console.error('切换平台失败:', err);
         }
-    };
-
-    // 切换平台启用状态
-    const togglePlatform = (platformId: string) => {
-        const enabled = getEnabledPlatforms();
-        const newEnabled = enabled.includes(platformId)
-            ? enabled.filter(id => id !== platformId)
-            : [...enabled, platformId];
-        handleChange('enabledPlatforms', JSON.stringify(newEnabled));
     };
 
     const renderField = (field: ConfigField) => {
@@ -362,19 +359,18 @@ export default function AdminSystemPage() {
                 </div>
                 <div className="p-6">
                     <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5">
-                        {ALL_PLATFORMS.map(platform => {
-                            const enabled = getEnabledPlatforms();
-                            const isEnabled = enabled.includes(platform.id);
+                        {platforms.sort((a, b) => a.sortOrder - b.sortOrder).map(platform => {
+                            const isEnabled = platform.isActive;
                             return (
                                 <div
                                     key={platform.id}
-                                    onClick={() => togglePlatform(platform.id)}
+                                    onClick={() => togglePlatform(platform)}
                                     className={`cursor-pointer rounded-md border-2 p-4 text-center transition-all ${isEnabled
                                         ? 'border-primary-500 bg-primary-50'
                                         : 'border-[#e5e7eb] bg-[#f9fafb] opacity-60'
                                         }`}
                                 >
-                                    <div className="mb-2 text-2xl">{platform.icon}</div>
+                                    <div className="mb-2 text-2xl">{platform.icon || '🛒'}</div>
                                     <div className={`text-[13px] font-medium ${isEnabled ? 'text-primary-600' : 'text-[#6b7280]'}`}>
                                         {platform.name}
                                     </div>

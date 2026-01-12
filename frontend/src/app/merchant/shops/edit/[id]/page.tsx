@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { fetchShops, updateShop, uploadShopScreenshot, getFullImageUrl, Shop } from '../../../../../services/shopService';
 import { cn } from '../../../../../lib/utils';
@@ -9,6 +9,7 @@ import { Card } from '../../../../../components/ui/card';
 import { Input } from '../../../../../components/ui/input';
 import { Select } from '../../../../../components/ui/select';
 import { fetchEnabledPlatforms, PlatformData } from '../../../../../services/systemConfigService';
+import { PLATFORM_NAME_MAP } from '../../../../../constants/platformConfig';
 import { getProvinces, getCities, getDistricts } from '../../../../../data/chinaRegions';
 
 interface EditFormData extends Partial<Shop> {
@@ -91,6 +92,24 @@ export default function EditShopPage({ params }: { params: Promise<{ id: string 
 
     if (loading) return <div className="flex min-h-[400px] items-center justify-center font-medium text-slate-400">加载中...</div>;
 
+    const platformOptions = useMemo(() => {
+        const options = platforms.map(p => ({
+            value: p.code.toUpperCase(),
+            label: p.name,
+        }));
+        const currentPlatform = (formData.platform || '').toString();
+        if (!currentPlatform) return options;
+        const currentValue = currentPlatform.toUpperCase();
+        const hasCurrent = options.some(option => option.value === currentValue);
+        if (hasCurrent) return options;
+        const platformId = currentPlatform.toLowerCase();
+        const fallbackName = PLATFORM_NAME_MAP[platformId] || platformId;
+        return [
+            ...options,
+            { value: currentValue, label: `${fallbackName} (已禁用)`, disabled: true },
+        ];
+    }, [platforms, formData.platform]);
+
     // 获取当前显示的截图URL（新上传的优先）
     const displayScreenshot = formData.newScreenshot
         ? URL.createObjectURL(formData.newScreenshot)
@@ -115,10 +134,7 @@ export default function EditShopPage({ params }: { params: Promise<{ id: string 
                             <Select
                                 value={formData.platform || 'TAOBAO'}
                                 onChange={v => setFormData({ ...formData, platform: v as any })}
-                                options={platforms.map(p => ({
-                                    value: p.code.toUpperCase(),
-                                    label: p.name
-                                }))}
+                                options={platformOptions}
                                 className="h-12 w-full appearance-none rounded-[16px] border-none bg-slate-50 px-4 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none"
                             />
 
