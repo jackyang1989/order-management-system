@@ -7,156 +7,352 @@ import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { Input } from '../../../components/ui/input';
 import { Modal } from '../../../components/ui/modal';
+import Image from 'next/image';
 
-interface MerchantInfo { id: string; username: string; phone: string; wechat?: string; companyName?: string; businessLicense?: string; contactName?: string; balance: number; silver: number; vip: boolean; vipExpireAt?: string; status: number; createdAt: string; }
+interface MerchantProfile {
+    id: string;
+    username: string;
+    mobile: string;
+    email: string;
+    avatar?: string;
+    qq?: string;
+    wechat?: string;
+}
 
 export default function MerchantSettingPage() {
-    const [merchant, setMerchant] = useState<MerchantInfo | null>(null);
+    const [profile, setProfile] = useState<MerchantProfile>({ id: '', username: '', mobile: '', email: '' });
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
-    const [formData, setFormData] = useState({ phone: '', wechat: '', companyName: '', contactName: '' });
-    const [passwordForm, setPasswordForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    const [saving, setSaving] = useState(false);
+    const [formData, setFormData] = useState<MerchantProfile>({ id: '', username: '', mobile: '', email: '' });
+
+    // Password Modal
     const [showPasswordModal, setShowPasswordModal] = useState(false);
-    const [message, setMessage] = useState({ type: '', text: '' });
+    const [passwordForm, setPasswordForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    const [changingPassword, setChangingPassword] = useState(false);
 
-    useEffect(() => { fetchMerchantInfo(); }, []);
+    // Avatar Upload
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
-    const fetchMerchantInfo = async () => {
+    useEffect(() => {
+        loadProfile();
+    }, []);
+
+    const loadProfile = async () => {
+        const token = localStorage.getItem('merchantToken');
+        if (!token) return;
         try {
-            const token = localStorage.getItem('merchantToken');
-            const res = await fetch(`${BASE_URL}/merchant/profile`, { headers: { Authorization: `Bearer ${token}` } });
-            const data = await res.json();
-            if (data.success) { setMerchant(data.data); setFormData({ phone: data.data.phone || '', wechat: data.data.wechat || '', companyName: data.data.companyName || '', contactName: data.data.contactName || '' }); }
-        } catch (error) { console.error('获取商家信息失败:', error); }
+            const res = await fetch(`${BASE_URL}/merchant/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const json = await res.json();
+            if (json.success) {
+                setProfile(json.data);
+                setFormData(json.data);
+            }
+        } catch (e) { console.error(e); }
         finally { setLoading(false); }
     };
 
-    const handleSave = async () => {
+    const handleAvatarUpload = async (file: File) => {
+        setUploadingAvatar(true);
         try {
+            const formData = new FormData();
+            formData.append('file', file);
             const token = localStorage.getItem('merchantToken');
-            const res = await fetch(`${BASE_URL}/merchant/profile`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(formData) });
-            const data = await res.json();
-            if (data.success) { setMessage({ type: 'success', text: '保存成功' }); setEditing(false); fetchMerchantInfo(); }
-            else setMessage({ type: 'error', text: data.message || '保存失败' });
-        } catch { setMessage({ type: 'error', text: '网络错误' }); }
-        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+            const res = await fetch(`${BASE_URL}/upload/image`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            const json = await res.json();
+            if (json.success && json.url) {
+                setFormData(prev => ({ ...prev, avatar: json.url }));
+                // If not in editing mode, auto save the avatar update
+                if (!editing) {
+                    await updateProfile({ ...profile, avatar: json.url });
+                }
+            } else {
+                alert(json.message || '上传失败');
+            }
+        } catch { alert('网络错误'); }
+        finally { setUploadingAvatar(false); }
+    };
+
+    const updateProfile = async (data: MerchantProfile) => {
+        const token = localStorage.getItem('merchantToken');
+        try {
+            const res = await fetch(`${BASE_URL}/merchant/profile`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(data)
+            });
+            const json = await res.json();
+            if (json.success) {
+                setProfile(data);
+                if (!editing) alert('头像更新成功');
+            } else {
+                alert(json.message || '更新失败');
+            }
+        } catch { alert('网络错误'); }
+    };
+
+    const handleSave = async () => {
+        setSaving(true);
+        const token = localStorage.getItem('merchantToken');
+        try {
+            const res = await fetch(`${BASE_URL}/merchant/profile`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(formData)
+            });
+            const json = await res.json();
+            if (json.success) {
+                setProfile(formData);
+                setEditing(false);
+                alert('保存成功');
+            } else {
+                alert(json.message || '保存失败');
+            }
+        } catch { alert('网络错误'); }
+        finally { setSaving(false); }
     };
 
     const handleChangePassword = async () => {
-        if (passwordForm.newPassword !== passwordForm.confirmPassword) { setMessage({ type: 'error', text: '两次密码输入不一致' }); return; }
-        if (passwordForm.newPassword.length < 6) { setMessage({ type: 'error', text: '密码长度至少6位' }); return; }
+        if (!passwordForm.oldPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+            alert('请填写完整');
+            return;
+        }
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+            alert('两次新密码输入不一致');
+            return;
+        }
+
+        setChangingPassword(true);
+        const token = localStorage.getItem('merchantToken');
         try {
-            const token = localStorage.getItem('merchantToken');
-            const res = await fetch(`${BASE_URL}/merchant/change-password`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ oldPassword: passwordForm.oldPassword, newPassword: passwordForm.newPassword }) });
-            const data = await res.json();
-            if (data.success) { setMessage({ type: 'success', text: '密码修改成功' }); setShowPasswordModal(false); setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' }); }
-            else setMessage({ type: 'error', text: data.message || '修改失败' });
-        } catch { setMessage({ type: 'error', text: '网络错误' }); }
-        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+            const res = await fetch(`${BASE_URL}/auth/merchant/change-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({
+                    oldPassword: passwordForm.oldPassword,
+                    newPassword: passwordForm.newPassword
+                })
+            });
+            const json = await res.json();
+            if (json.success) {
+                alert('密码修改成功，请重新登录');
+                setShowPasswordModal(false);
+                setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+                localStorage.removeItem('merchantToken');
+                window.location.href = '/merchant/login';
+            } else {
+                alert(json.message || '修改失败');
+            }
+        } catch { alert('网络错误'); }
+        finally { setChangingPassword(false); }
     };
 
-    if (loading) return <div className="flex h-[400px] items-center justify-center text-[#6b7280]">加载中...</div>;
+    if (loading) return <div className="flex h-screen items-center justify-center font-bold text-slate-400">加载中...</div>;
 
     return (
-        <div className="mx-auto max-w-3xl space-y-6">
-            <h1 className="text-2xl font-bold">账户设置</h1>
+        <div className="mx-auto max-w-4xl space-y-8">
+            <h1 className="text-2xl font-black text-slate-900">账户设置</h1>
 
-            {message.text && (
-                <div className={cn('rounded-md px-4 py-3', message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')}>{message.text}</div>
-            )}
-
-            {/* Basic Info */}
-            <Card className="bg-white p-6">
-                <div className="mb-5 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">基本信息</h2>
-                    {!editing ? (
-                        <Button size="sm" onClick={() => setEditing(true)}>编辑</Button>
-                    ) : (
-                        <div className="flex gap-2">
-                            <Button size="sm" variant="secondary" onClick={() => setEditing(false)}>取消</Button>
-                            <Button size="sm" onClick={handleSave}>保存</Button>
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+                {/* Left Column: Basic Info */}
+                <Card className="col-span-2 rounded-[32px] border-0 bg-white p-8 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                    <div className="mb-8 flex items-center justify-between">
+                        <div>
+                            <h2 className="text-xl font-bold text-slate-900">基本信息</h2>
+                            <p className="mt-1 text-sm font-medium text-slate-400">管理您的账户基本资料</p>
                         </div>
-                    )}
-                </div>
+                        {!editing ? (
+                            <Button
+                                onClick={() => setEditing(true)}
+                                className="h-10 rounded-[14px] bg-indigo-50 px-5 font-bold text-indigo-600 shadow-none hover:bg-indigo-100"
+                            >
+                                编辑资料
+                            </Button>
+                        ) : (
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => { setEditing(false); setFormData(profile); }}
+                                    className="h-10 rounded-[14px] border-none bg-slate-100 px-5 font-bold text-slate-600 shadow-none hover:bg-slate-200"
+                                >
+                                    取消
+                                </Button>
+                                <Button
+                                    onClick={handleSave}
+                                    disabled={saving}
+                                    className="h-10 rounded-[14px] bg-indigo-600 px-5 font-bold text-white shadow-none hover:bg-indigo-700"
+                                >
+                                    {saving ? '保存中...' : '保存更改'}
+                                </Button>
+                            </div>
+                        )}
+                    </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="mb-1 block text-sm text-[#6b7280]">用户名</label>
-                        <div className="rounded-md bg-[#f3f4f6] px-3 py-2.5 text-[#374151]">{merchant?.username}</div>
-                    </div>
-                    <div>
-                        <label className="mb-1 block text-sm text-[#6b7280]">手机号</label>
-                        {editing ? <Input type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
-                            : <div className="rounded-md bg-[#f3f4f6] px-3 py-2.5 text-[#374151]">{merchant?.phone || '-'}</div>}
-                    </div>
-                    <div>
-                        <label className="mb-1 block text-sm text-[#6b7280]">微信号</label>
-                        {editing ? <Input type="text" value={formData.wechat} onChange={e => setFormData({ ...formData, wechat: e.target.value })} />
-                            : <div className="rounded-md bg-[#f3f4f6] px-3 py-2.5 text-[#374151]">{merchant?.wechat || '-'}</div>}
-                    </div>
-                    <div>
-                        <label className="mb-1 block text-sm text-[#6b7280]">联系人</label>
-                        {editing ? <Input type="text" value={formData.contactName} onChange={e => setFormData({ ...formData, contactName: e.target.value })} />
-                            : <div className="rounded-md bg-[#f3f4f6] px-3 py-2.5 text-[#374151]">{merchant?.contactName || '-'}</div>}
-                    </div>
-                    <div className="col-span-2">
-                        <label className="mb-1 block text-sm text-[#6b7280]">公司名称</label>
-                        {editing ? <Input type="text" value={formData.companyName} onChange={e => setFormData({ ...formData, companyName: e.target.value })} />
-                            : <div className="rounded-md bg-[#f3f4f6] px-3 py-2.5 text-[#374151]">{merchant?.companyName || '-'}</div>}
-                    </div>
-                </div>
-            </Card>
+                    <div className="space-y-6">
+                        {/* Avatar */}
+                        <div className="flex items-center gap-6">
+                            <div className="relative group">
+                                <div className="h-24 w-24 overflow-hidden rounded-[24px] bg-slate-100 border-4 border-slate-50 shadow-sm">
+                                    {formData.avatar ? (
+                                        <Image src={formData.avatar} alt="Avatar" width={96} height={96} className="h-full w-full object-cover" unoptimized />
+                                    ) : (
+                                        <div className="flex h-full w-full items-center justify-center text-4xl">👨‍💼</div>
+                                    )}
+                                </div>
+                                <label className="absolute bottom-0 right-0 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg transition-transform hover:scale-110 active:scale-95">
+                                    <span className="text-xs">📷</span>
+                                    <input type="file" className="hidden" accept="image/*" onChange={e => e.target.files?.[0] && handleAvatarUpload(e.target.files[0])} disabled={uploadingAvatar} />
+                                </label>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900">{profile.username}</h3>
+                                <p className="text-sm font-medium text-slate-400">ID: {profile.id}</p>
+                            </div>
+                        </div>
 
-            {/* Account Status */}
-            <Card className="bg-white p-6">
-                <h2 className="mb-5 text-lg font-semibold">账户状态</h2>
-                <div className="grid grid-cols-3 gap-4">
-                    <div className="rounded-md bg-green-50 p-4 text-center">
-                        <div className="text-2xl font-bold text-success-400">¥{parseFloat(String(merchant?.balance || 0)).toFixed(2)}</div>
-                        <div className="mt-1 text-sm text-[#6b7280]">账户余额</div>
+                        {/* Form Fields */}
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div>
+                                <label className="mb-2 block text-xs font-bold uppercase text-slate-400">用户名</label>
+                                <Input disabled value={formData.username} className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 font-bold text-slate-500" />
+                            </div>
+                            <div>
+                                <label className="mb-2 block text-xs font-bold uppercase text-slate-400">手机号</label>
+                                <Input disabled value={formData.mobile} className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 font-bold text-slate-500" />
+                            </div>
+                            <div>
+                                <label className="mb-2 block text-xs font-bold uppercase text-slate-400">QQ</label>
+                                <Input
+                                    disabled={!editing}
+                                    value={formData.qq || ''}
+                                    onChange={e => setFormData({ ...formData, qq: e.target.value })}
+                                    placeholder={editing ? '请输入QQ号' : '未设置'}
+                                    className={cn(
+                                        "h-12 w-full rounded-[16px] border-none px-4 font-bold text-slate-900 transition-all",
+                                        editing ? "bg-slate-50 focus:ring-2 focus:ring-indigo-500/20" : "bg-transparent pl-0"
+                                    )}
+                                />
+                            </div>
+                            <div>
+                                <label className="mb-2 block text-xs font-bold uppercase text-slate-400">微信</label>
+                                <Input
+                                    disabled={!editing}
+                                    value={formData.wechat || ''}
+                                    onChange={e => setFormData({ ...formData, wechat: e.target.value })}
+                                    placeholder={editing ? '请输入微信号' : '未设置'}
+                                    className={cn(
+                                        "h-12 w-full rounded-[16px] border-none px-4 font-bold text-slate-900 transition-all",
+                                        editing ? "bg-slate-50 focus:ring-2 focus:ring-indigo-500/20" : "bg-transparent pl-0"
+                                    )}
+                                />
+                            </div>
+                        </div>
                     </div>
-                    <div className="rounded-md bg-amber-50 p-4 text-center">
-                        <div className="text-2xl font-bold text-warning-500">{parseFloat(String(merchant?.silver || 0)).toFixed(0)}</div>
-                        <div className="mt-1 text-sm text-[#6b7280]">银锭</div>
-                    </div>
-                    <div className={cn('rounded-md p-4 text-center', merchant?.vip ? 'bg-purple-50' : 'bg-[#f3f4f6]')}>
-                        <div className={cn('text-2xl font-bold', merchant?.vip ? 'text-purple-600' : 'text-[#9ca3af]')}>{merchant?.vip ? 'VIP' : '普通'}</div>
-                        <div className="mt-1 text-sm text-[#6b7280]">会员状态</div>
-                    </div>
-                </div>
-            </Card>
+                </Card>
 
-            {/* Security Settings */}
-            <Card className="bg-white p-6">
-                <h2 className="mb-5 text-lg font-semibold">安全设置</h2>
-                <div className="flex items-center justify-between border-b border-[#f3f4f6] py-3">
-                    <div>
-                        <div className="font-medium">登录密码</div>
-                        <div className="text-sm text-[#6b7280]">定期更换密码可以保护账户安全</div>
-                    </div>
-                    <Button variant="secondary" size="sm" onClick={() => setShowPasswordModal(true)}>修改密码</Button>
+                {/* Right Column: Security */}
+                <div className="space-y-6">
+                    <Card className="rounded-[32px] border-0 bg-white p-8 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                        <h2 className="mb-6 text-xl font-bold text-slate-900">账号安全</h2>
+
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between rounded-[20px] bg-slate-50 p-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">🔒</div>
+                                    <div>
+                                        <div className="text-sm font-bold text-slate-900">登录密码</div>
+                                        <div className="text-xs font-medium text-slate-400">定期修改密码保护账号安全</div>
+                                    </div>
+                                </div>
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => setShowPasswordModal(true)}
+                                    className="h-8 rounded-[10px] bg-white px-3 text-xs font-bold text-slate-600 hover:bg-slate-100"
+                                >
+                                    修改
+                                </Button>
+                            </div>
+
+                            <div className="flex items-center justify-between rounded-[20px] bg-slate-50 p-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600">📱</div>
+                                    <div>
+                                        <div className="text-sm font-bold text-slate-900">手机绑定</div>
+                                        <div className="text-xs font-medium text-slate-400">已绑定: {profile.mobile?.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')}</div>
+                                    </div>
+                                </div>
+                                <div className="text-xs font-bold text-emerald-500">已保护</div>
+                            </div>
+                        </div>
+                    </Card>
+
+                    <Card className="rounded-[32px] border-0 bg-gradient-to-br from-indigo-500 to-indigo-600 p-8 text-white shadow-lg shadow-indigo-500/20">
+                        <div className="mb-4 text-3xl">🛡️</div>
+                        <h3 className="mb-2 text-lg font-bold">安全贴士</h3>
+                        <p className="text-sm font-medium text-indigo-100 opacity-80">
+                            请不要将密码透露给他人。平台工作人员不会向您索要密码或验证码。建议每个月更改一次密码。
+                        </p>
+                    </Card>
                 </div>
-            </Card>
+            </div>
 
             {/* Password Modal */}
-            <Modal title="修改密码" open={showPasswordModal} onClose={() => { setShowPasswordModal(false); setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' }); }}>
-                <div className="space-y-4">
+            <Modal title="修改登录密码" open={showPasswordModal} onClose={() => setShowPasswordModal(false)} className="rounded-[32px]">
+                <div className="space-y-6">
                     <div>
-                        <label className="mb-1 block text-sm text-[#6b7280]">当前密码</label>
-                        <Input type="password" value={passwordForm.oldPassword} onChange={e => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })} />
+                        <label className="mb-2 block text-xs font-bold uppercase text-slate-400">原密码</label>
+                        <Input
+                            type="password"
+                            value={passwordForm.oldPassword}
+                            onChange={e => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })}
+                            placeholder="请输入当前密码"
+                            className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 font-bold text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                        />
                     </div>
                     <div>
-                        <label className="mb-1 block text-sm text-[#6b7280]">新密码</label>
-                        <Input type="password" value={passwordForm.newPassword} onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} />
+                        <label className="mb-2 block text-xs font-bold uppercase text-slate-400">新密码</label>
+                        <Input
+                            type="password"
+                            value={passwordForm.newPassword}
+                            onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                            placeholder="6-20位，包含字母和数字"
+                            className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 font-bold text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                        />
                     </div>
                     <div>
-                        <label className="mb-1 block text-sm text-[#6b7280]">确认新密码</label>
-                        <Input type="password" value={passwordForm.confirmPassword} onChange={e => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} />
+                        <label className="mb-2 block text-xs font-bold uppercase text-slate-400">确认新密码</label>
+                        <Input
+                            type="password"
+                            value={passwordForm.confirmPassword}
+                            onChange={e => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                            placeholder="请再次输入新密码"
+                            className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 font-bold text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                        />
                     </div>
-                </div>
-                <div className="mt-6 flex justify-end gap-3">
-                    <Button variant="secondary" onClick={() => { setShowPasswordModal(false); setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' }); }}>取消</Button>
-                    <Button onClick={handleChangePassword}>确认修改</Button>
+
+                    <div className="flex justify-end gap-3 pt-4 border-t border-slate-50">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setShowPasswordModal(false)}
+                            className="h-11 rounded-[16px] border-none bg-slate-100 px-6 font-bold text-slate-600 shadow-none hover:bg-slate-200"
+                        >
+                            取消
+                        </Button>
+                        <Button
+                            onClick={handleChangePassword}
+                            disabled={changingPassword}
+                            className={cn(
+                                "h-11 rounded-[16px] bg-indigo-600 px-6 font-bold text-white shadow-none hover:bg-indigo-700",
+                                changingPassword && "cursor-not-allowed opacity-70"
+                            )}
+                        >
+                            {changingPassword ? '修改中...' : '确认修改'}
+                        </Button>
+                    </div>
                 </div>
             </Modal>
         </div>

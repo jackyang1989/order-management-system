@@ -173,48 +173,62 @@ export default function MerchantBankPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-semibold">收款账户管理</h1>
-                    <p className="mt-1 text-sm text-[#6b7280]">绑定收款账户用于接收佣金</p>
+                    <h1 className="text-xl font-bold text-slate-900">收款账户管理</h1>
+                    <p className="mt-1 text-sm font-medium text-slate-400">绑定收款账户用于接收佣金</p>
                 </div>
-                <Button onClick={() => setShowAddModal(true)}>+ 添加收款账户</Button>
+                <Button
+                    onClick={() => setShowAddModal(true)}
+                    className="flex h-11 items-center gap-1.5 rounded-[16px] bg-primary-600 px-5 text-base font-bold text-white shadow-none transition-all active:scale-95 hover:bg-primary-700"
+                >
+                    + 添加收款账户
+                </Button>
             </div>
 
             {/* Cards List */}
             {loading ? (
-                <div className="py-16 text-center text-[#6b7280]">加载中...</div>
+                <div className="flex h-60 items-center justify-center font-medium text-slate-400">加载中...</div>
             ) : cards.length === 0 ? (
-                <Card className="bg-white py-16 text-center">
-                    <div className="mb-4 text-5xl">💳</div>
-                    <div className="mb-6 text-[#6b7280]">暂未添加收款账户</div>
-                    <Button onClick={() => setShowAddModal(true)}>立即添加</Button>
+                <Card className="flex flex-col items-center justify-center py-20 text-center rounded-[24px] shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                    <div className="mb-4 text-5xl opacity-20">💳</div>
+                    <div className="mb-6 font-medium text-slate-400">暂未添加收款账户</div>
+                    <Button
+                        onClick={() => setShowAddModal(true)}
+                        className="h-11 rounded-[16px] bg-primary-600 px-6 font-bold text-white shadow-none hover:bg-primary-700"
+                    >
+                        立即添加
+                    </Button>
                 </Card>
             ) : (
                 <div className="grid grid-cols-2 gap-5">
                     {cards.map(card => (
-                        <div key={card.id} className="relative min-h-[180px] rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-500 p-6 text-white">
+                        <div key={card.id} className="relative min-h-[180px] rounded-[24px] bg-gradient-to-br from-indigo-500 to-purple-600 p-6 text-white shadow-lg shadow-indigo-500/20">
                             {card.isDefault && (
-                                <span className="absolute right-4 top-4 rounded-full bg-white/20 px-3 py-1 text-xs">默认</span>
+                                <span className="absolute right-6 top-6 rounded-full bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur-sm">默认</span>
                             )}
-                            <div className="mb-4 text-lg font-semibold">{card.bankName || '收款账户'}</div>
+                            <div className="mb-4 text-lg font-bold">{card.bankName || '收款账户'}</div>
                             {card.cardNumber && (
-                                <div className="mb-4 font-mono text-xl tracking-wider">{maskCardNumber(card.cardNumber)}</div>
+                                <div className="mb-6 font-mono text-2xl font-bold tracking-wider opacity-90">{maskCardNumber(card.cardNumber)}</div>
                             )}
                             {/* 收款码标识 */}
-                            <div className="mb-4 flex gap-2">
+                            <div className="mb-6 flex gap-2">
                                 {card.wechatQrCode && (
-                                    <span className="rounded bg-white/20 px-2 py-1 text-xs">微信 ✓</span>
+                                    <span className="flex items-center gap-1 rounded-full bg-black/20 px-3 py-1 text-xs font-bold backdrop-blur-sm">
+                                        <span>💬</span> 微信
+                                    </span>
                                 )}
                                 {card.alipayQrCode && (
-                                    <span className="rounded bg-white/20 px-2 py-1 text-xs">支付宝 ✓</span>
+                                    <span className="flex items-center gap-1 rounded-full bg-black/20 px-3 py-1 text-xs font-bold backdrop-blur-sm">
+                                        <span>🔷</span> 支付宝
+                                    </span>
                                 )}
                             </div>
                             <div className="flex items-end justify-between">
-                                <div className="text-sm opacity-90">{card.cardHolder || card.accountName}</div>
-                                <div className="flex gap-3">
+                                <div className="text-sm font-medium opacity-80">{card.cardHolder || card.accountName}</div>
+                                <div className="flex gap-2">
                                     {!card.isDefault && (
-                                        <button onClick={() => handleSetDefault(card.id)} className="rounded-md bg-white/20 px-3 py-1.5 text-xs">设为默认</button>
+                                        <button onClick={() => handleSetDefault(card.id)} className="rounded-[10px] bg-white/20 px-3 py-1.5 text-xs font-bold backdrop-blur-sm transition-colors hover:bg-white/30">设为默认</button>
                                     )}
-                                    <button onClick={() => handleDelete(card.id)} className="rounded-md bg-white/20 px-3 py-1.5 text-xs">删除</button>
+                                    <button onClick={() => handleDelete(card.id)} className="rounded-[10px] bg-white/10 px-3 py-1.5 text-xs font-bold backdrop-blur-sm transition-colors hover:bg-red-500/50">删除</button>
                                 </div>
                             </div>
                         </div>
@@ -223,15 +237,15 @@ export default function MerchantBankPage() {
             )}
 
             {/* Add Modal */}
-            <Modal title="添加收款账户" open={showAddModal} onClose={() => { setShowAddModal(false); setForm({ bankName: '', cardNumber: '', cardHolder: '', isDefault: false, wechatQrCode: '', alipayQrCode: '' }); }} className="max-w-md">
-                <div className="space-y-4">
+            <Modal title="添加收款账户" open={showAddModal} onClose={() => { setShowAddModal(false); setForm({ bankName: '', cardNumber: '', cardHolder: '', isDefault: false, wechatQrCode: '', alipayQrCode: '' }); }} className="max-w-md rounded-[32px]">
+                <div className="space-y-6">
                     {/* 收款码上传区域 */}
                     <div>
-                        <label className="mb-2 block text-sm font-medium text-[#4b5563]">收款码上传 <span className="text-danger-400">*</span></label>
+                        <label className="mb-3 block text-xs font-bold uppercase text-slate-400">收款码上传 <span className="text-danger-400">*</span></label>
                         <div className="grid grid-cols-2 gap-4">
                             {/* 微信收款码 */}
                             <div className="text-center">
-                                <div className="mb-1 text-xs text-[#6b7280]">微信收款码</div>
+                                <div className="mb-2 text-xs font-bold text-slate-500">微信收款码</div>
                                 {form.wechatQrCode ? (
                                     <div className="relative inline-block">
                                         <Image
@@ -239,19 +253,19 @@ export default function MerchantBankPage() {
                                             alt="微信收款码"
                                             width={100}
                                             height={100}
-                                            className="h-[100px] w-[100px] cursor-pointer rounded border border-green-200 object-cover"
+                                            className="h-[100px] w-[100px] cursor-pointer rounded-[16px] border border-slate-200 object-cover shadow-sm"
                                             onClick={() => setImageModal(form.wechatQrCode)}
                                             unoptimized
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setForm(f => ({ ...f, wechatQrCode: '' }))}
-                                            className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white"
+                                            className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-danger-400 text-xs font-bold text-white shadow-sm"
                                         >×</button>
                                     </div>
                                 ) : (
                                     <label className={cn(
-                                        "flex h-[100px] w-[100px] mx-auto cursor-pointer flex-col items-center justify-center rounded border-2 border-dashed border-green-300 bg-green-50 text-green-500 transition-colors hover:bg-green-100",
+                                        "flex h-[100px] w-[100px] mx-auto cursor-pointer flex-col items-center justify-center rounded-[16px] border-2 border-dashed border-slate-200 bg-slate-50 text-slate-400 transition-all hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-500",
                                         uploadingWechat && "opacity-50 cursor-not-allowed"
                                     )}>
                                         <input
@@ -262,11 +276,11 @@ export default function MerchantBankPage() {
                                             onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'wechat')}
                                         />
                                         {uploadingWechat ? (
-                                            <span className="text-xs">上传中...</span>
+                                            <span className="text-xs font-bold">上传中...</span>
                                         ) : (
                                             <>
                                                 <span className="text-2xl">+</span>
-                                                <span className="text-xs">点击上传</span>
+                                                <span className="text-xs font-bold">微信</span>
                                             </>
                                         )}
                                     </label>
@@ -274,7 +288,7 @@ export default function MerchantBankPage() {
                             </div>
                             {/* 支付宝收款码 */}
                             <div className="text-center">
-                                <div className="mb-1 text-xs text-[#6b7280]">支付宝收款码</div>
+                                <div className="mb-2 text-xs font-bold text-slate-500">支付宝收款码</div>
                                 {form.alipayQrCode ? (
                                     <div className="relative inline-block">
                                         <Image
@@ -282,19 +296,19 @@ export default function MerchantBankPage() {
                                             alt="支付宝收款码"
                                             width={100}
                                             height={100}
-                                            className="h-[100px] w-[100px] cursor-pointer rounded border border-blue-200 object-cover"
+                                            className="h-[100px] w-[100px] cursor-pointer rounded-[16px] border border-slate-200 object-cover shadow-sm"
                                             onClick={() => setImageModal(form.alipayQrCode)}
                                             unoptimized
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setForm(f => ({ ...f, alipayQrCode: '' }))}
-                                            className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white"
+                                            className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-danger-400 text-xs font-bold text-white shadow-sm"
                                         >×</button>
                                     </div>
                                 ) : (
                                     <label className={cn(
-                                        "flex h-[100px] w-[100px] mx-auto cursor-pointer flex-col items-center justify-center rounded border-2 border-dashed border-blue-300 bg-blue-50 text-blue-500 transition-colors hover:bg-blue-100",
+                                        "flex h-[100px] w-[100px] mx-auto cursor-pointer flex-col items-center justify-center rounded-[16px] border-2 border-dashed border-slate-200 bg-slate-50 text-slate-400 transition-all hover:border-blue-400 hover:bg-blue-50 hover:text-blue-500",
                                         uploadingAlipay && "opacity-50 cursor-not-allowed"
                                     )}>
                                         <input
@@ -305,37 +319,37 @@ export default function MerchantBankPage() {
                                             onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'alipay')}
                                         />
                                         {uploadingAlipay ? (
-                                            <span className="text-xs">上传中...</span>
+                                            <span className="text-xs font-bold">上传中...</span>
                                         ) : (
                                             <>
                                                 <span className="text-2xl">+</span>
-                                                <span className="text-xs">点击上传</span>
+                                                <span className="text-xs font-bold">支付宝</span>
                                             </>
                                         )}
                                     </label>
                                 )}
                             </div>
                         </div>
-                        <div className="mt-2 text-center text-xs text-[#9ca3af]">至少上传一个收款码</div>
+                        <div className="mt-3 text-center text-xs font-medium text-slate-400">请至少上传一个收款码</div>
                     </div>
 
                     {/* 银行卡信息（根据系统配置显示） */}
                     {requireBankInfo && (
                         <>
-                            <div className="border-t border-[#e5e7eb] pt-4">
-                                <label className="mb-2 block text-sm font-medium text-[#4b5563]">银行卡信息</label>
+                            <div className="border-t border-slate-100 pt-4">
+                                <label className="mb-4 block text-sm font-bold text-slate-900">银行卡信息</label>
                             </div>
                             <div>
-                                <label className="mb-1.5 block text-sm text-[#4b5563]">开户银行 <span className="text-danger-400">*</span></label>
-                                <Select value={form.bankName} onChange={v => setForm({ ...form, bankName: v })} options={[{ value: '', label: '请选择银行' }, ...bankOptions.map(b => ({ value: b, label: b }))]} />
+                                <label className="mb-2 block text-xs font-bold uppercase text-slate-400">开户银行 <span className="text-danger-400">*</span></label>
+                                <Select value={form.bankName} onChange={v => setForm({ ...form, bankName: v })} options={[{ value: '', label: '请选择银行' }, ...bankOptions.map(b => ({ value: b, label: b }))]} className="h-12 w-full appearance-none rounded-[16px] border-none bg-slate-50 px-4 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none" />
                             </div>
                             <div>
-                                <label className="mb-1.5 block text-sm text-[#4b5563]">银行卡号 <span className="text-danger-400">*</span></label>
-                                <Input type="text" value={form.cardNumber} onChange={e => setForm({ ...form, cardNumber: e.target.value.replace(/\D/g, '') })} placeholder="请输入银行卡号" maxLength={19} />
+                                <label className="mb-2 block text-xs font-bold uppercase text-slate-400">银行卡号 <span className="text-danger-400">*</span></label>
+                                <Input type="text" value={form.cardNumber} onChange={e => setForm({ ...form, cardNumber: e.target.value.replace(/\D/g, '') })} placeholder="请输入银行卡号" maxLength={19} className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary-500/20 outline-none" />
                             </div>
                             <div>
-                                <label className="mb-1.5 block text-sm text-[#4b5563]">持卡人姓名 <span className="text-danger-400">*</span></label>
-                                <Input type="text" value={form.cardHolder} onChange={e => setForm({ ...form, cardHolder: e.target.value })} placeholder="请输入持卡人姓名" />
+                                <label className="mb-2 block text-xs font-bold uppercase text-slate-400">持卡人姓名 <span className="text-danger-400">*</span></label>
+                                <Input type="text" value={form.cardHolder} onChange={e => setForm({ ...form, cardHolder: e.target.value })} placeholder="请输入持卡人姓名" className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary-500/20 outline-none" />
                             </div>
                         </>
                     )}
@@ -343,26 +357,41 @@ export default function MerchantBankPage() {
                     {/* 如果不需要银行卡信息，只显示收款人信息 */}
                     {!requireBankInfo && (
                         <div>
-                            <label className="mb-1.5 block text-sm text-[#4b5563]">收款人姓名 <span className="text-danger-400">*</span></label>
-                            <Input type="text" value={form.cardHolder} onChange={e => setForm({ ...form, cardHolder: e.target.value })} placeholder="请输入收款人姓名" />
+                            <label className="mb-2 block text-xs font-bold uppercase text-slate-400">收款人姓名 <span className="text-danger-400">*</span></label>
+                            <Input type="text" value={form.cardHolder} onChange={e => setForm({ ...form, cardHolder: e.target.value })} placeholder="请输入收款人姓名" className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary-500/20 outline-none" />
                         </div>
                     )}
 
-                    <label className="flex cursor-pointer items-center gap-2">
-                        <input type="checkbox" checked={form.isDefault} onChange={e => setForm({ ...form, isDefault: e.target.checked })} />
-                        <span className="text-sm text-[#4b5563]">设为默认收款账户</span>
+                    <label className="flex cursor-pointer items-center gap-3 rounded-[12px] bg-slate-50 p-3">
+                        <input type="checkbox" checked={form.isDefault} onChange={e => setForm({ ...form, isDefault: e.target.checked })} className="h-4 w-4 accent-primary-600 rounded" />
+                        <span className="text-sm font-bold text-slate-600">设为默认收款账户</span>
                     </label>
                 </div>
-                <div className="mt-6 flex justify-end gap-3">
-                    <Button variant="secondary" onClick={() => { setShowAddModal(false); setForm({ bankName: '', cardNumber: '', cardHolder: '', isDefault: false, wechatQrCode: '', alipayQrCode: '' }); }}>取消</Button>
-                    <Button onClick={handleAdd} disabled={submitting} className={cn(submitting && 'cursor-not-allowed opacity-70')}>{submitting ? '添加中...' : '确定添加'}</Button>
+                <div className="mt-8 flex justify-end gap-3 border-t border-slate-50 pt-5">
+                    <Button
+                        variant="secondary"
+                        onClick={() => { setShowAddModal(false); setForm({ bankName: '', cardNumber: '', cardHolder: '', isDefault: false, wechatQrCode: '', alipayQrCode: '' }); }}
+                        className="h-11 rounded-[16px] border-none bg-slate-100 px-6 font-bold text-slate-600 shadow-none hover:bg-slate-200"
+                    >
+                        取消
+                    </Button>
+                    <Button
+                        onClick={handleAdd}
+                        disabled={submitting}
+                        className={cn(
+                            "h-11 rounded-[16px] bg-primary-600 px-6 font-bold text-white shadow-none hover:bg-primary-700",
+                            submitting && 'cursor-not-allowed opacity-70'
+                        )}
+                    >
+                        {submitting ? '添加中...' : '确定添加'}
+                    </Button>
                 </div>
             </Modal>
 
             {/* Image Preview Modal */}
             {imageModal && (
-                <div onClick={() => setImageModal(null)} className="fixed inset-0 z-[1100] flex cursor-zoom-out items-center justify-center bg-black/80">
-                    <Image src={imageModal} alt="预览" width={400} height={400} className="max-h-[90%] max-w-[90%] object-contain" unoptimized />
+                <div onClick={() => setImageModal(null)} className="fixed inset-0 z-[1100] flex cursor-zoom-out items-center justify-center bg-black/80 backdrop-blur-sm">
+                    <Image src={imageModal} alt="预览" width={400} height={400} className="max-h-[90%] max-w-[90%] rounded-[16px] object-contain shadow-2xl" unoptimized />
                 </div>
             )}
         </div>

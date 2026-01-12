@@ -11,10 +11,15 @@ export default function MerchantRootPage() {
     }, [router]);
 
     return (
-        <div className="flex h-screen items-center justify-center">
-            <div className="text-center">
-                <div className="mb-4 text-lg text-gray-600">正在跳转到商户后台...</div>
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent mx-auto"></div>
+        <div className="flex h-screen items-center justify-center bg-slate-50">
+            <div className="flex flex-col items-center">
+                <div className="relative mb-6 h-16 w-16">
+                    <div className="absolute h-full w-full animate-ping rounded-full bg-primary-200 opacity-75"></div>
+                    <div className="relative flex h-full w-full items-center justify-center rounded-full bg-primary-500 text-2xl shadow-lg">
+                        🏪
+                    </div>
+                </div>
+                <div className="text-lg font-bold text-slate-600">正在进入商户后台...</div>
             </div>
         </div>
     );

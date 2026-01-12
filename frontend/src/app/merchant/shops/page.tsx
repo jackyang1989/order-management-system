@@ -31,48 +31,62 @@ export default function MerchantShopsPage() {
     };
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-medium">店铺管理</h1>
-                <Button onClick={() => router.push('/merchant/shops/new')}>+ 绑定新店铺</Button>
+                <h1 className="text-xl font-bold text-slate-900">店铺管理</h1>
+                <Button
+                    onClick={() => router.push('/merchant/shops/new')}
+                    className="flex items-center gap-1.5 rounded-[16px] bg-primary-600 px-5 text-base font-bold text-white shadow-none transition-all active:scale-95 hover:bg-primary-700"
+                >
+                    + 绑定新店铺
+                </Button>
             </div>
 
             {/* Content */}
-            <Card className="bg-white p-6">
+            <Card className="rounded-[24px] bg-white p-0 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                 {loading ? (
-                    <div className="text-[#6b7280]">加载中...</div>
+                    <div className="flex min-h-[300px] items-center justify-center font-medium text-slate-400">加载中...</div>
                 ) : shops.length === 0 ? (
-                    <div className="py-10 text-center text-[#9ca3af]">暂无绑定店铺</div>
+                    <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
+                        <div className="mb-4 text-5xl opacity-50">🏪</div>
+                        <div className="mb-5 text-[14px] font-medium text-slate-400">暂无绑定店铺</div>
+                    </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="min-w-[700px] w-full border-collapse">
                             <thead>
-                                <tr className="bg-[#f9fafb]">
-                                    <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">平台</th>
-                                    <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">店铺名称</th>
-                                    <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">店铺账号</th>
-                                    <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">发件人</th>
-                                    <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">状态</th>
-                                    <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">操作</th>
+                                <tr className="border-b border-slate-50 bg-slate-50/50">
+                                    <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">平台</th>
+                                    <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">店铺名称</th>
+                                    <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">店铺账号</th>
+                                    <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">发件人</th>
+                                    <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">状态</th>
+                                    <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">操作</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {shops.map(shop => {
+                                {shops.map((shop, index) => {
                                     const status = statusMap[shop.status] || { text: '未知', color: 'slate' as const };
                                     return (
-                                        <tr key={shop.id} className="border-b border-[#f3f4f6]">
-                                            <td className="px-4 py-4 text-sm">{shop.platform}</td>
-                                            <td className="px-4 py-4 text-sm">{shop.shopName || '-'}</td>
-                                            <td className="px-4 py-4 text-sm">{shop.accountName || '-'}</td>
-                                            <td className="px-4 py-4 text-sm">{shop.contactName || '-'}</td>
-                                            <td className="px-4 py-4">
-                                                <Badge variant="soft" color={status.color}>{status.text}</Badge>
-                                                {shop.auditRemark && <div className="mt-1 text-xs text-danger-400">{shop.auditRemark}</div>}
+                                        <tr
+                                            key={shop.id}
+                                            className={cn(
+                                                "group border-b border-slate-50 transition-colors hover:bg-slate-50/50",
+                                                index === shops.length - 1 && "border-0"
+                                            )}
+                                        >
+                                            <td className="px-6 py-5 font-bold text-slate-900">{shop.platform}</td>
+                                            <td className="px-6 py-5 font-medium text-slate-700">{shop.shopName || '-'}</td>
+                                            <td className="px-6 py-5 text-sm text-slate-500">{shop.accountName || '-'}</td>
+                                            <td className="px-6 py-5 text-sm text-slate-500">{shop.contactName || '-'}</td>
+                                            <td className="px-6 py-5">
+                                                <Badge variant="soft" color={status.color} className="rounded-full px-2.5 font-bold">{status.text}</Badge>
+                                                {shop.auditRemark && <div className="mt-1.5 text-xs font-medium text-danger-400">{shop.auditRemark}</div>}
                                             </td>
-                                            <td className="px-4 py-4">
-                                                <button onClick={() => router.push(`/merchant/shops/edit/${shop.id}`)} className="mr-3 text-sm text-primary-500 hover:underline">修改</button>
-                                                <button onClick={() => handleDelete(shop.id)} className="text-sm text-danger-400 hover:underline">删除</button>
+                                            <td className="px-6 py-5">
+                                                <button onClick={() => router.push(`/merchant/shops/edit/${shop.id}`)} className="mr-3 text-sm font-bold text-primary-600 hover:text-primary-700 hover:underline">修改</button>
+                                                <button onClick={() => handleDelete(shop.id)} className="text-sm font-bold text-danger-400 hover:text-danger-500 hover:underline">删除</button>
                                             </td>
                                         </tr>
                                     );

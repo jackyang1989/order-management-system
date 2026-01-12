@@ -51,57 +51,74 @@ export default function MerchantBlacklistPage() {
     const resetForm = () => setForm({ accountName: '', type: BlacklistType.PERMANENT, endTime: '', reason: '' });
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-medium">黑名单管理</h1>
-                <Button onClick={() => setShowAddModal(true)}>+ 添加黑名单</Button>
+                <h1 className="text-2xl font-black text-slate-900">黑名单管理</h1>
+                <Button
+                    onClick={() => setShowAddModal(true)}
+                    className="h-11 rounded-[16px] bg-primary-600 px-6 font-bold text-white shadow-none hover:bg-primary-700"
+                >
+                    + 添加黑名单
+                </Button>
             </div>
 
             {/* Search */}
-            <Card noPadding className="bg-white">
-                <div className="flex items-center gap-3 p-4">
-                    <Input type="text" value={searchText} onChange={e => setSearchText(e.target.value)} placeholder="搜索买号..." className="w-[200px]" onKeyDown={e => e.key === 'Enter' && handleSearch()} />
-                    <Button onClick={handleSearch}>搜索</Button>
+            <Card className="rounded-[24px] border-0 bg-white p-2 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                <div className="flex items-center gap-3">
+                    <div className="flex-1 px-2">
+                        <Input
+                            type="text"
+                            value={searchText}
+                            onChange={e => setSearchText(e.target.value)}
+                            placeholder="搜索买号..."
+                            className="h-12 w-full border-none bg-transparent px-2 font-bold text-slate-900 placeholder:text-slate-300 focus:ring-0"
+                            onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                        />
+                    </div>
+                    <Button onClick={handleSearch} className="h-10 rounded-[14px] bg-primary-600 px-6 font-bold text-white shadow-none hover:bg-primary-700">搜索</Button>
                 </div>
             </Card>
 
             {/* List */}
-            <Card className="bg-white p-6">
+            <Card className="overflow-hidden rounded-[24px] border-0 bg-white p-0 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                 {loading ? (
-                    <div className="py-10 text-center text-[#6b7280]">加载中...</div>
+                    <div className="py-20 text-center font-bold text-slate-400">加载中...</div>
                 ) : blacklist.length === 0 ? (
-                    <div className="py-10 text-center text-[#9ca3af]">暂无黑名单记录</div>
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                        <div className="mb-4 text-5xl opacity-20">🚫</div>
+                        <div className="font-bold text-slate-400">暂无黑名单记录</div>
+                    </div>
                 ) : (
                     <>
                         <div className="overflow-x-auto">
-                            <table className="min-w-[700px] w-full border-collapse">
+                            <table className="w-full">
                                 <thead>
-                                    <tr className="bg-[#f9fafb]">
-                                        <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">买号</th>
-                                        <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">类型</th>
-                                        <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">结束时间</th>
-                                        <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">原因</th>
-                                        <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">添加时间</th>
-                                        <th className="border-b border-[#f3f4f6] px-4 py-4 text-left text-sm font-medium text-[#4b5563]">操作</th>
+                                    <tr className="border-b border-slate-50 bg-slate-50/50">
+                                        <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-slate-400">买号</th>
+                                        <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-slate-400">类型</th>
+                                        <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-slate-400">结束时间</th>
+                                        <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-slate-400">原因</th>
+                                        <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-slate-400">添加时间</th>
+                                        <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-slate-400">操作</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody className="divide-y divide-slate-50">
                                     {blacklist.map(item => (
-                                        <tr key={item.id} className="border-b border-[#f3f4f6]">
-                                            <td className="px-4 py-4 font-medium">{item.accountName}</td>
-                                            <td className="px-4 py-4">
-                                                <Badge variant="solid" color={item.type === BlacklistType.PERMANENT ? 'red' : 'amber'}>
+                                        <tr key={item.id} className="transition-colors hover:bg-slate-50/50">
+                                            <td className="px-6 py-4 text-sm font-bold text-slate-700">{item.accountName}</td>
+                                            <td className="px-6 py-4">
+                                                <Badge variant={item.type === BlacklistType.PERMANENT ? 'red' : 'amber'} rounded>
                                                     {item.type === BlacklistType.PERMANENT ? '永久拉黑' : '限时拉黑'}
                                                 </Badge>
                                             </td>
-                                            <td className="px-4 py-4 text-sm text-[#9ca3af]">
+                                            <td className="px-6 py-4 text-sm font-medium text-slate-400">
                                                 {item.type === BlacklistType.TEMPORARY && item.endTime ? new Date(item.endTime).toLocaleString() : '-'}
                                             </td>
-                                            <td className="px-4 py-4 text-sm">{item.reason || '-'}</td>
-                                            <td className="px-4 py-4 text-sm text-[#9ca3af]">{new Date(item.createdAt).toLocaleDateString()}</td>
-                                            <td className="px-4 py-4">
-                                                <button onClick={() => handleDelete(item.id)} className="text-sm text-danger-400 hover:underline">移除</button>
+                                            <td className="px-6 py-4 text-sm font-medium text-slate-500">{item.reason || '-'}</td>
+                                            <td className="px-6 py-4 text-sm font-medium text-slate-400">{new Date(item.createdAt).toLocaleDateString()}</td>
+                                            <td className="px-6 py-4">
+                                                <button onClick={() => handleDelete(item.id)} className="text-xs font-bold text-danger-400 hover:text-danger-600 hover:underline">移除</button>
                                             </td>
                                         </tr>
                                     ))}
@@ -111,10 +128,12 @@ export default function MerchantBlacklistPage() {
 
                         {/* Pagination */}
                         {totalPages > 1 && (
-                            <div className="mt-6 flex items-center justify-center gap-2">
-                                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className={cn('rounded border border-[#e5e7eb] px-4 py-2', page === 1 ? 'cursor-not-allowed bg-[#f3f4f6]' : 'bg-white')}>上一页</button>
-                                <span className="px-4">{page} / {totalPages} (共 {total} 条)</span>
-                                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className={cn('rounded border border-[#e5e7eb] px-4 py-2', page === totalPages ? 'cursor-not-allowed bg-[#f3f4f6]' : 'bg-white')}>下一页</button>
+                            <div className="border-t border-slate-50 p-4">
+                                <div className="flex items-center justify-center gap-2">
+                                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className={cn('flex h-9 w-9 items-center justify-center rounded-[10px] bg-slate-100 font-bold text-slate-500 hover:bg-slate-200', page === 1 && 'cursor-not-allowed opacity-50')}>&lt;</button>
+                                    <span className="text-sm font-bold text-slate-500">{page} / {totalPages}</span>
+                                    <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className={cn('flex h-9 w-9 items-center justify-center rounded-[10px] bg-slate-100 font-bold text-slate-500 hover:bg-slate-200', page === totalPages && 'cursor-not-allowed opacity-50')}>&gt;</button>
+                                </div>
                             </div>
                         )}
                     </>
@@ -122,30 +141,67 @@ export default function MerchantBlacklistPage() {
             </Card>
 
             {/* Add Modal */}
-            <Modal title="添加黑名单" open={showAddModal} onClose={() => { setShowAddModal(false); resetForm(); }}>
-                <div className="space-y-4">
+            <Modal title="添加黑名单" open={showAddModal} onClose={() => { setShowAddModal(false); resetForm(); }} className="rounded-[32px]">
+                <div className="space-y-6">
                     <div>
-                        <label className="mb-2 block text-sm">买号 <span className="text-danger-400">*</span></label>
-                        <Input type="text" value={form.accountName} onChange={e => setForm({ ...form, accountName: e.target.value })} placeholder="请输入买号" />
+                        <label className="mb-2 block text-xs font-bold uppercase text-slate-400">买号 <span className="text-danger-400">*</span></label>
+                        <Input
+                            type="text"
+                            value={form.accountName}
+                            onChange={e => setForm({ ...form, accountName: e.target.value })}
+                            placeholder="请输入买号"
+                            className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 font-bold text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary-500/20 outline-none"
+                        />
                     </div>
                     <div>
-                        <label className="mb-2 block text-sm">拉黑类型</label>
-                        <Select value={String(form.type)} onChange={v => setForm({ ...form, type: parseInt(v) })} options={[{ value: String(BlacklistType.PERMANENT), label: '永久拉黑' }, { value: String(BlacklistType.TEMPORARY), label: '限时拉黑' }]} />
+                        <label className="mb-2 block text-xs font-bold uppercase text-slate-400">拉黑类型</label>
+                        <Select
+                            value={String(form.type)}
+                            onChange={v => setForm({ ...form, type: parseInt(v) })}
+                            options={[{ value: String(BlacklistType.PERMANENT), label: '永久拉黑' }, { value: String(BlacklistType.TEMPORARY), label: '限时拉黑' }]}
+                            className="h-12 w-full appearance-none rounded-[16px] border-none bg-slate-50 px-4 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none"
+                        />
                     </div>
                     {form.type === BlacklistType.TEMPORARY && (
                         <div>
-                            <label className="mb-2 block text-sm">结束时间 <span className="text-danger-400">*</span></label>
-                            <Input type="datetime-local" value={form.endTime} onChange={e => setForm({ ...form, endTime: e.target.value })} />
+                            <label className="mb-2 block text-xs font-bold uppercase text-slate-400">结束时间 <span className="text-danger-400">*</span></label>
+                            <Input
+                                type="datetime-local"
+                                value={form.endTime}
+                                onChange={e => setForm({ ...form, endTime: e.target.value })}
+                                className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 font-bold text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none"
+                            />
                         </div>
                     )}
                     <div>
-                        <label className="mb-2 block text-sm">拉黑原因</label>
-                        <textarea value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} placeholder="可选填写拉黑原因" className="min-h-[80px] w-full resize-y rounded-md border border-[#e5e7eb] px-3 py-2.5 text-sm focus:border-primary-500 focus:outline-none" />
+                        <label className="mb-2 block text-xs font-bold uppercase text-slate-400">拉黑原因</label>
+                        <textarea
+                            value={form.reason}
+                            onChange={e => setForm({ ...form, reason: e.target.value })}
+                            placeholder="可选填写拉黑原因"
+                            className="min-h-[100px] w-full resize-y rounded-[16px] border-none bg-slate-50 p-4 text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary-500/20 outline-none"
+                        />
                     </div>
-                </div>
-                <div className="mt-6 flex justify-end gap-3">
-                    <Button variant="secondary" onClick={() => { setShowAddModal(false); resetForm(); }}>取消</Button>
-                    <Button onClick={handleAdd} disabled={submitting} className={cn(submitting && 'cursor-not-allowed opacity-70')}>{submitting ? '添加中...' : '确定添加'}</Button>
+
+                    <div className="flex justify-end gap-3 pt-4 border-t border-slate-50">
+                        <Button
+                            variant="secondary"
+                            onClick={() => { setShowAddModal(false); resetForm(); }}
+                            className="h-11 rounded-[16px] border-none bg-slate-100 px-6 font-bold text-slate-600 shadow-none hover:bg-slate-200"
+                        >
+                            取消
+                        </Button>
+                        <Button
+                            onClick={handleAdd}
+                            disabled={submitting}
+                            className={cn(
+                                "h-11 rounded-[16px] bg-primary-600 px-6 font-bold text-white shadow-none hover:bg-primary-700",
+                                submitting && "cursor-not-allowed opacity-70"
+                            )}
+                        >
+                            {submitting ? '添加中...' : '确定添加'}
+                        </Button>
+                    </div>
                 </div>
             </Modal>
         </div>
