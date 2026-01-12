@@ -7,6 +7,7 @@ import { getShopPlatformCode } from '../../../../../constants/platformConfig';
 import { fetchEnabledPlatforms, PlatformData } from '../../../../../services/systemConfigService';
 import { fetchEnabledEntryTypes, EntryTypeData } from '../../../../../services/entryTypeService';
 import { fetchGoodsByShop, Goods } from '../../../../../services/goodsService';
+import { fetchKeywordSchemes, KeywordScheme } from '../../../../../services/keywordSchemeService';
 import { cn } from '../../../../../lib/utils';
 import { Button } from '../../../../../components/ui/button';
 import { Input } from '../../../../../components/ui/input';
@@ -107,6 +108,11 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     // 图片上传状态
     const [uploadingQrCode, setUploadingQrCode] = useState(false);
     const [uploadingChannel, setUploadingChannel] = useState(false);
+    // 关键词方案相关状态
+    const [showKeywordSchemeModal, setShowKeywordSchemeModal] = useState(false);
+    const [keywordSchemes, setKeywordSchemes] = useState<KeywordScheme[]>([]);
+    const [loadingSchemes, setLoadingSchemes] = useState(false);
+    const [selectingForGoodsId, setSelectingForGoodsId] = useState<string>('');
 
     useEffect(() => { loadShops(); loadPlatforms(); loadEntryTypes(); }, []);
 
@@ -127,6 +133,44 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
         const goods = await fetchGoodsByShop(shopId);
         setGoodsLibList(goods);
         setLoadingGoodsLib(false);
+    };
+
+    // 加载关键词方案
+    const loadKeywordSchemes = async () => {
+        setLoadingSchemes(true);
+        const schemes = await fetchKeywordSchemes();
+        setKeywordSchemes(schemes);
+        setLoadingSchemes(false);
+    };
+
+    // 打开关键词方案选择弹窗
+    const handleOpenSchemeSelector = (goodsId: string) => {
+        setSelectingForGoodsId(goodsId);
+        loadKeywordSchemes();
+        setShowKeywordSchemeModal(true);
+    };
+
+    // 从方案中选择关键词并应用到商品
+    const handleSelectScheme = (scheme: KeywordScheme) => {
+        if (!selectingForGoodsId || !scheme.details || scheme.details.length === 0) {
+            alert('该方案没有关键词');
+            return;
+        }
+
+        const newList = data.goodsList.map(g => {
+            if (g.id === selectingForGoodsId) {
+                // 将方案中的关键词转换为商品关键词配置格式
+                const keywords: KeywordConfig[] = scheme.details.slice(0, 5).map(d => ({
+                    keyword: d.keyword,
+                    useCount: d.amount || 1,
+                }));
+                return { ...g, keywords };
+            }
+            return g;
+        });
+        onChange({ goodsList: newList });
+        setShowKeywordSchemeModal(false);
+        setSelectingForGoodsId('');
     };
 
     // 将后端平台数据转换为任务平台格式
@@ -748,18 +792,26 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                                                     筛选设置 {goods.filterSettings && (goods.filterSettings.discount.length > 0 || goods.filterSettings.sort !== '0' || goods.filterSettings.minPrice > 0 || goods.filterSettings.maxPrice > 0 || goods.filterSettings.province) ? '✓' : ''}
                                                 </button>
                                             </div>
-                                            <button
-                                                onClick={() => handleAddKeyword(goods.id)}
-                                                disabled={(goods.keywords?.length || 0) >= 5}
-                                                className={cn(
-                                                    'text-xs',
-                                                    (goods.keywords?.length || 0) >= 5
-                                                        ? 'cursor-not-allowed text-[#9ca3af]'
-                                                        : 'text-primary-600 hover:text-primary-700'
-                                                )}
-                                            >
-                                                + 添加关键词 ({goods.keywords?.length || 0}/5)
-                                            </button>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => handleOpenSchemeSelector(goods.id)}
+                                                    className="rounded border border-primary-300 bg-primary-50 px-2 py-0.5 text-xs text-primary-600 hover:bg-primary-100"
+                                                >
+                                                    📋 从方案选择
+                                                </button>
+                                                <button
+                                                    onClick={() => handleAddKeyword(goods.id)}
+                                                    disabled={(goods.keywords?.length || 0) >= 5}
+                                                    className={cn(
+                                                        'text-xs',
+                                                        (goods.keywords?.length || 0) >= 5
+                                                            ? 'cursor-not-allowed text-[#9ca3af]'
+                                                            : 'text-primary-600 hover:text-primary-700'
+                                                    )}
+                                                >
+                                                    + 添加关键词 ({goods.keywords?.length || 0}/5)
+                                                </button>
+                                            </div>
                                         </div>
 
                                         {(!goods.keywords || goods.keywords.length === 0) ? (
@@ -1245,6 +1297,66 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                         <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                             <Button variant="secondary" onClick={() => setShowFilterSettingsModal(false)}>取消</Button>
                             <Button onClick={handleSaveFilterSettings}>保存设置</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Keyword Scheme Selection Modal */}
+            {showKeywordSchemeModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="w-full max-w-xl rounded-lg bg-white p-6 shadow-xl">
+                        <div className="mb-4 flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-[#374151]">从关键词方案选择</h3>
+                            <button onClick={() => setShowKeywordSchemeModal(false)} className="text-[#9ca3af] hover:text-[#6b7280]">✕</button>
+                        </div>
+
+                        <p className="mb-4 text-sm text-[#6b7280]">选择已保存的关键词方案，快速填充到商品关键词配置中</p>
+
+                        {loadingSchemes ? (
+                            <div className="flex items-center justify-center py-12 text-[#6b7280]">加载方案中...</div>
+                        ) : keywordSchemes.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-12">
+                                <span className="mb-2 text-4xl">📋</span>
+                                <p className="mb-1 text-sm text-[#6b7280]">暂无关键词方案</p>
+                                <p className="text-xs text-[#9ca3af]">请先到 <a href="/merchant/keywords" className="text-primary-600">关键词管理</a> 创建方案</p>
+                            </div>
+                        ) : (
+                            <div className="max-h-[400px] space-y-3 overflow-y-auto">
+                                {keywordSchemes.map(scheme => (
+                                    <div
+                                        key={scheme.id}
+                                        className="cursor-pointer rounded-lg border border-[#e5e7eb] bg-white p-4 transition-all hover:border-primary-300 hover:bg-primary-50/30"
+                                        onClick={() => handleSelectScheme(scheme)}
+                                    >
+                                        <div className="mb-2 flex items-center justify-between">
+                                            <span className="font-medium text-[#374151]">{scheme.name}</span>
+                                            <span className="rounded bg-[#f3f4f6] px-2 py-0.5 text-xs text-[#6b7280]">
+                                                {scheme.details?.length || 0} 个关键词
+                                            </span>
+                                        </div>
+                                        {scheme.description && (
+                                            <p className="mb-2 text-xs text-[#9ca3af]">{scheme.description}</p>
+                                        )}
+                                        {scheme.details && scheme.details.length > 0 && (
+                                            <div className="flex flex-wrap gap-1">
+                                                {scheme.details.slice(0, 5).map((d, i) => (
+                                                    <span key={i} className="rounded bg-primary-50 px-2 py-0.5 text-xs text-primary-600">
+                                                        {d.keyword}
+                                                    </span>
+                                                ))}
+                                                {scheme.details.length > 5 && (
+                                                    <span className="text-xs text-[#9ca3af]">+{scheme.details.length - 5} 更多</span>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        <div className="mt-4 flex justify-end border-t border-[#e5e7eb] pt-4">
+                            <Button variant="secondary" onClick={() => setShowKeywordSchemeModal(false)}>关闭</Button>
                         </div>
                     </div>
                 </div>

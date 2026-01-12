@@ -20,9 +20,13 @@ export class KeywordsService {
   ) { }
 
   // ============ 关键词方案 CRUD ============
-  async findAllSchemes(sellerId: string): Promise<GoodsKey[]> {
+  async findAllSchemes(sellerId: string, shopId?: string): Promise<GoodsKey[]> {
+    const where: any = { sellerId };
+    if (shopId) {
+      where.shopId = shopId;
+    }
     return this.goodsKeyRepository.find({
-      where: { sellerId },
+      where,
       relations: ['details'],
       order: { createdAt: 'DESC' },
     });
@@ -47,6 +51,7 @@ export class KeywordsService {
   ): Promise<GoodsKey> {
     const scheme = this.goodsKeyRepository.create({
       sellerId,
+      shopId: dto.shopId,
       name: dto.name,
       description: dto.description,
       platform: dto.platform,
@@ -84,6 +89,9 @@ export class KeywordsService {
     Object.assign(scheme, dto);
     if (dto.description !== undefined) {
       scheme.description = dto.description;
+    }
+    if (dto.shopId !== undefined) {
+      scheme.shopId = dto.shopId;
     }
     await this.goodsKeyRepository.save(scheme);
     return this.findSchemeById(id) as Promise<GoodsKey>;

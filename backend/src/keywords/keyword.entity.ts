@@ -10,6 +10,7 @@ import {
   Index,
 } from 'typeorm';
 import { Merchant } from '../merchants/merchant.entity';
+import { Shop } from '../shops/shop.entity';
 import { IsString, IsNotEmpty, IsOptional, IsEnum, IsNumber, IsArray, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -39,6 +40,14 @@ export class GoodsKey {
   @ManyToOne(() => Merchant)
   @JoinColumn({ name: 'sellerId' })
   seller: Merchant;
+
+  @Column({ nullable: true })
+  @Index()
+  shopId: string; // 关联的店铺ID
+
+  @ManyToOne(() => Shop)
+  @JoinColumn({ name: 'shopId' })
+  shop: Shop;
 
   @Column({ length: 100 })
   name: string; // 方案名称
@@ -165,6 +174,10 @@ export class CreateGoodsKeyDto {
   description?: string;
 
   @IsOptional()
+  @IsString()
+  shopId?: string; // 关联的店铺ID
+
+  @IsOptional()
   @IsEnum(KeywordPlatform)
   platform?: KeywordPlatform;
 
@@ -183,6 +196,10 @@ export class UpdateGoodsKeyDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsString()
+  shopId?: string; // 关联的店铺ID
 
   @IsOptional()
   @IsEnum(KeywordPlatform)

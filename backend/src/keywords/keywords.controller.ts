@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   Request,
 } from '@nestjs/common';
@@ -25,9 +26,9 @@ export class KeywordsController {
 
   // ============ 关键词方案 ============
   @Get('schemes')
-  async findAllSchemes(@Request() req) {
+  async findAllSchemes(@Request() req, @Query('shopId') shopId?: string) {
     const sellerId = req.user.merchantId;
-    const schemes = await this.keywordsService.findAllSchemes(sellerId);
+    const schemes = await this.keywordsService.findAllSchemes(sellerId, shopId);
     return { success: true, data: schemes };
   }
 
