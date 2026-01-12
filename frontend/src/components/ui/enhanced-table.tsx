@@ -202,7 +202,7 @@ export function EnhancedTable<T extends object>({
     }
 
     return (
-        <div className={cn('overflow-hidden rounded-md border border-[#e5e7eb] bg-white', className)}>
+        <div className={cn('overflow-hidden rounded-[24px] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)]', className)}>
             <div className="w-full overflow-x-auto">
                 <table className="w-full min-w-full border-collapse text-[14px]" style={{ tableLayout: 'fixed' }}>
                     <colgroup>
@@ -215,9 +215,9 @@ export function EnhancedTable<T extends object>({
                         ))}
                     </colgroup>
                     <thead>
-                        <tr className="border-b border-[#e5e7eb] bg-[#f9fafb]">
+                        <tr className="bg-slate-50/80">
                             {selectable && (
-                                <th className="px-3 py-3 align-middle text-left text-[12px] font-semibold uppercase tracking-wider text-[#6b7280]">
+                                <th className="px-3 py-4 align-middle text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">
                                     <span className="sr-only">选择</span>
                                 </th>
                             )}
@@ -227,14 +227,14 @@ export function EnhancedTable<T extends object>({
                                     <th
                                         key={col.key}
                                         className={cn(
-                                            'relative px-4 py-3 align-middle text-left text-[12px] font-semibold uppercase tracking-wider text-[#6b7280]',
-                                            col.sortable && 'cursor-pointer select-none hover:text-[#374151]',
+                                            'relative px-4 py-4 align-middle text-left text-[11px] font-bold uppercase tracking-wider text-slate-400',
+                                            col.sortable && 'cursor-pointer select-none hover:text-slate-600',
                                             col.headerClassName
                                         )}
                                         onClick={() => handleSortClick(col.key)}
                                     >
                                         <div className={cn('flex items-center justify-between', col.headerClassName?.includes('text-right') && 'justify-end')}>
-                                            <div className="flex items-center">
+                                            <div className="flex items-center gap-1">
                                                 <span className="truncate">{col.title}</span>
                                                 {col.sortable && (
                                                     <SortIcon
@@ -251,7 +251,7 @@ export function EnhancedTable<T extends object>({
                                                     }}
                                                     className="ml-2 whitespace-nowrap text-[12px] text-primary-500 hover:text-primary-600"
                                                 >
-                                                    <span className="relative -top-[1px] inline-block mr-0.5">☰</span> 列设置
+                                                    <span className="relative -top-[1px] inline-block mr-0.5">☰</span>
                                                 </button>
                                             )}
                                         </div>
@@ -272,7 +272,7 @@ export function EnhancedTable<T extends object>({
                             return (
                                 <tr
                                     key={key}
-                                    className="border-b border-[#e5e7eb] transition-colors last:border-0 hover:bg-[#f9fafb]"
+                                    className="border-b border-slate-50 transition-colors last:border-0 hover:bg-slate-50/50"
                                 >
                                     {selectable && (
                                         <td className="px-3 py-3 align-middle">

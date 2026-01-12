@@ -750,7 +750,7 @@ export default function AdminMerchantsPage() {
                     <div>
                         <label className="mb-1.5 block text-sm font-medium text-[#374151]">禁用原因</label>
                         <textarea
-                            className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            className="min-h-[80px] w-full resize-y rounded-2xl border-none bg-slate-50 px-4 py-3 font-mono text-sm text-slate-700 transition-all focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:shadow-sm"
                             rows={3}
                             placeholder="请输入禁用原因"
                             value={banReason}
@@ -778,7 +778,7 @@ export default function AdminMerchantsPage() {
                     <div>
                         <label className="mb-1.5 block text-sm font-medium text-[#374151]">备注内容</label>
                         <textarea
-                            className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            className="min-h-[80px] w-full resize-y rounded-2xl border-none bg-slate-50 px-4 py-3 font-mono text-sm text-slate-700 transition-all focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:shadow-sm"
                             rows={3}
                             placeholder="请输入备注内容"
                             value={noteContent}

@@ -194,40 +194,41 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     }
 
     return (
-        <div className="flex min-h-screen overflow-x-hidden bg-[#f9fafb]">
+        <div className="flex min-h-screen overflow-x-hidden bg-[#F8FAFC]">
             {/* Sidebar */}
             <aside
                 className={cn(
-                    'custom-scrollbar fixed left-0 top-0 z-40 h-screen overflow-y-auto border-r border-[#e5e7eb] bg-white transition-all duration-200',
+                    'custom-scrollbar fixed left-4 top-4 z-40 h-[calc(100vh-32px)] overflow-y-auto rounded-[24px] border-none bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-all duration-200',
                     collapsed ? 'w-[72px]' : 'w-[220px]'
                 )}
             >
                 {/* Logo */}
                 <div
                     className={cn(
-                        'flex h-16 items-center border-b border-[#e5e7eb]',
-                        collapsed ? 'justify-center' : 'px-5'
+                        'flex h-20 items-center',
+                        collapsed ? 'justify-center' : 'px-6'
                     )}
                 >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary-100">
-                        <span className="text-lg">🛡️</span>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 text-xl">
+                        🛡️
                     </div>
                     {!collapsed && (
-                        <span className="ml-3 text-[15px] font-semibold text-[#3b4559]">
+                        <span className="ml-4 text-base font-bold text-slate-800">
                             管理后台
                         </span>
                     )}
                 </div>
 
                 {/* Menu */}
-                <nav className="p-3">
+                {/* Menu */}
+                <nav className="p-4 space-y-1">
                     {menuItems.map((item) => {
                         const hasChildren = item.children && item.children.length > 0;
                         const isOpen = openSections.includes(item.key);
                         const isActive = pathname === item.key;
 
                         return (
-                            <div key={item.key} className="mb-1">
+                            <div key={item.key}>
                                 <button
                                     onClick={() => {
                                         if (hasChildren) {
@@ -237,21 +238,21 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                         }
                                     }}
                                     className={cn(
-                                        'flex w-full items-center rounded-md px-3 py-2.5 text-left text-[14px] transition-all',
+                                        'flex w-full items-center rounded-[16px] px-3.5 py-3 text-left transition-all',
                                         isActive
-                                            ? 'bg-primary-50 text-primary-600 font-medium'
-                                            : 'text-[#5a6577] hover:bg-[#f9fafb] hover:text-[#3b4559]',
+                                            ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20'
+                                            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900',
                                         collapsed && 'justify-center px-0'
                                     )}
                                 >
-                                    <span className="text-[17px]">{item.icon}</span>
+                                    <span className={cn("text-lg", collapsed ? "mb-0" : "mr-3")}>{item.icon}</span>
                                     {!collapsed && (
                                         <>
-                                            <span className="ml-3 flex-1">{item.label}</span>
+                                            <span className="flex-1 text-sm font-bold">{item.label}</span>
                                             {hasChildren && (
                                                 <svg
                                                     className={cn(
-                                                        'h-4 w-4 text-[#9ca3af] transition-transform',
+                                                        'h-3.5 w-3.5 opacity-40 transition-transform',
                                                         isOpen && 'rotate-180'
                                                     )}
                                                     fill="none"
@@ -261,7 +262,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                                     <path
                                                         strokeLinecap="round"
                                                         strokeLinejoin="round"
-                                                        strokeWidth={2}
+                                                        strokeWidth={3}
                                                         d="M19 9l-7 7-7-7"
                                                     />
                                                 </svg>
@@ -272,16 +273,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
                                 {/* Sub menu */}
                                 {hasChildren && isOpen && !collapsed && (
-                                    <div className="ml-3 mt-1 border-l border-[#e5e7eb] pl-4">
+                                    <div className="ml-4 mt-1 border-l-2 border-slate-100 pl-3">
                                         {item.children?.map((child) => (
                                             <button
                                                 key={child.key}
                                                 onClick={() => handleMenuClick(child.key)}
                                                 className={cn(
-                                                    'block w-full rounded-md py-2 pl-2 pr-3 text-left text-[13px] transition-all',
+                                                    'block w-full rounded-[12px] px-3 py-2.5 text-left text-xs font-bold transition-all',
                                                     pathname === child.key
-                                                        ? 'bg-primary-50 font-medium text-primary-600'
-                                                        : 'text-[#6b7280] hover:bg-[#f9fafb] hover:text-[#3b4559]'
+                                                        ? 'bg-primary-50 text-primary-600'
+                                                        : 'text-slate-400 hover:bg-slate-50 hover:text-slate-700'
                                                 )}
                                             >
                                                 {child.label}
@@ -303,19 +304,20 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 )}
             >
                 {/* Header */}
-                <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#e5e7eb] bg-white px-6">
+                <header className="sticky top-0 z-30 flex h-20 items-center justify-between bg-[#F8FAFC]/80 px-8 backdrop-blur-md">
                     <button
                         onClick={() => setCollapsed(!collapsed)}
-                        className="flex h-9 w-9 items-center justify-center rounded-md text-[#6b7280] transition-colors hover:bg-[#f9fafb] hover:text-[#3b4559]"
+                        className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-400 shadow-sm transition-all hover:bg-slate-50 hover:text-slate-600 hover:shadow-md active:scale-95"
                     >
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             {collapsed ? (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                             ) : (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h8m-8 6h16" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h8m-8 6h16" />
                             )}
                         </svg>
                     </button>
+
 
                     {/* User dropdown */}
                     <div className="relative">

@@ -130,17 +130,17 @@ export default function AdminDashboardPage() {
     return (
         <div className="space-y-6">
             {/* 欢迎卡片 */}
-            <div className="overflow-hidden rounded-md bg-gradient-to-r from-primary-500 to-primary-600 px-8 py-7 text-white ">
+            <div className="overflow-hidden rounded-[24px] bg-gradient-to-r from-primary-600 to-indigo-600 px-8 py-8 text-white shadow-lg shadow-primary-600/20">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="mb-2 text-xl font-semibold">欢迎回来，管理员</h2>
-                        <p className="text-white/80">
-                            今日新增用户 <strong className="text-white">{stats?.todayUsers || 0}</strong> 人，新增订单 <strong className="text-white">{stats?.todayOrders || 0}</strong> 单
+                        <h2 className="mb-3 text-2xl font-bold">欢迎回来，管理员</h2>
+                        <p className="text-white/90 text-sm font-medium">
+                            今日新增用户 <strong className="text-xl mx-1">{stats?.todayUsers || 0}</strong> 人，新增订单 <strong className="text-xl mx-1">{stats?.todayOrders || 0}</strong> 单
                         </p>
                     </div>
                     <Button
-                        variant="outline"
-                        className="border-white/50 text-white hover:bg-white/20 hover:text-white"
+                        variant="ghost"
+                        className="rounded-full bg-white/20 px-6 text-white hover:bg-white/30 hover:text-white backdrop-blur-md border-none"
                         onClick={() => setPasswordModal(true)}
                     >
                         修改密码
@@ -153,15 +153,15 @@ export default function AdminDashboardPage() {
                 {statCards.map((item, idx) => (
                     <div
                         key={idx}
-                        className="overflow-hidden rounded-md border border-[#e5e7eb] bg-white p-5  transition-shadow hover:"
+                        className="group relative overflow-hidden rounded-[24px] bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-all hover:translate-y-[-2px] hover:shadow-lg"
                     >
-                        <div className="flex items-center gap-4">
-                            <div className={cn('flex h-12 w-12 items-center justify-center rounded-md text-xl', item.bgColor)}>
+                        <div className="flex items-center gap-5">
+                            <div className={cn('flex h-16 w-16 shrink-0 items-center justify-center rounded-[20px] text-3xl transition-transform group-hover:scale-110', item.bgColor)}>
                                 {item.icon}
                             </div>
                             <div>
-                                <div className="text-[13px] text-[#6b7280]">{item.label}</div>
-                                <div className={cn('text-2xl font-bold', item.textColor)}>{item.value}</div>
+                                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">{item.label}</div>
+                                <div className={cn('mt-1 text-3xl font-black tracking-tight', item.textColor)}>{item.value}</div>
                             </div>
                         </div>
                     </div>
@@ -171,26 +171,26 @@ export default function AdminDashboardPage() {
             {/* 快捷操作区 */}
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
                 {/* 待处理事项 */}
-                <div className="overflow-hidden rounded-md border border-[#e5e7eb] bg-white ">
-                    <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 py-4">
-                        <h3 className="text-[15px] font-semibold text-[#3b4559]">待处理事项</h3>
-                        <span className="text-lg">📈</span>
+                <div className="overflow-hidden rounded-[24px] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                    <div className="flex items-center justify-between px-6 py-5">
+                        <h3 className="text-lg font-bold text-slate-800">待处理事项</h3>
+                        <span className="text-2xl">📈</span>
                     </div>
-                    <div className="space-y-3 p-5">
+                    <div className="space-y-3 p-6 pt-0">
                         {quickActions.map((action, idx) => (
                             <button
                                 key={idx}
                                 onClick={() => router.push(action.path)}
-                                className="flex w-full items-center justify-between rounded-md border border-[#e5e7eb] bg-white px-4 py-3.5 transition-all hover:border-primary-200 hover:bg-primary-50"
+                                className="group flex w-full items-center justify-between rounded-[20px] bg-slate-50 px-5 py-4 transition-all hover:bg-white hover:shadow-md active:scale-[0.98]"
                             >
-                                <div className="flex items-center gap-3">
-                                    <span className="text-lg">{action.icon}</span>
-                                    <span className="text-[14px] text-[#3b4559]">{action.label}</span>
+                                <div className="flex items-center gap-4">
+                                    <span className="text-2xl transition-transform group-hover:scale-110">{action.icon}</span>
+                                    <span className="text-sm font-bold text-slate-700">{action.label}</span>
                                 </div>
                                 <span
                                     className={cn(
-                                        'flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-[12px] font-medium text-white',
-                                        action.count > 0 ? 'bg-warning-400' : 'bg-[#9ca3af]'
+                                        'flex h-7 min-w-7 items-center justify-center rounded-full px-2.5 text-xs font-bold text-white transition-transform group-hover:scale-110',
+                                        action.count > 0 ? 'bg-warning-500 shadow-warning-500/30 shadow-sm' : 'bg-slate-300'
                                     )}
                                 >
                                     {action.count}
@@ -201,49 +201,49 @@ export default function AdminDashboardPage() {
                 </div>
 
                 {/* 今日数据 */}
-                <div className="overflow-hidden rounded-md border border-[#e5e7eb] bg-white ">
-                    <div className="border-b border-[#e5e7eb] px-6 py-4">
-                        <h3 className="text-[15px] font-semibold text-[#3b4559]">今日数据</h3>
+                <div className="overflow-hidden rounded-[24px] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                    <div className="px-6 py-5">
+                        <h3 className="text-lg font-bold text-slate-800">今日数据</h3>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-3 lg:grid-cols-5">
-                        <div className="rounded-md bg-primary-50 p-4 text-center">
-                            <div className="text-[13px] text-[#6b7280]">新增用户</div>
-                            <div className="mt-2 text-xl font-bold text-primary-600">{stats?.todayUsers || 0}</div>
+                    <div className="grid grid-cols-2 gap-4 p-6 pt-0 sm:grid-cols-3 lg:grid-cols-5">
+                        <div className="rounded-[20px] bg-primary-50 p-4 text-center transition-transform hover:scale-105">
+                            <div className="text-xs font-bold text-primary-400">新增用户</div>
+                            <div className="mt-1 text-xl font-black text-primary-600">{stats?.todayUsers || 0}</div>
                         </div>
-                        <div className="rounded-md bg-success-50 p-4 text-center">
-                            <div className="text-[13px] text-[#6b7280]">新增订单</div>
-                            <div className="mt-2 text-xl font-bold text-success-500">{stats?.todayOrders || 0}</div>
+                        <div className="rounded-[20px] bg-success-50 p-4 text-center transition-transform hover:scale-105">
+                            <div className="text-xs font-bold text-success-400">新增订单</div>
+                            <div className="mt-1 text-xl font-black text-success-500">{stats?.todayOrders || 0}</div>
                         </div>
-                        <div className="rounded-md bg-[#f5f0ff] p-4 text-center">
-                            <div className="text-[13px] text-[#6b7280]">新增任务</div>
-                            <div className="mt-2 text-xl font-bold text-[#7c5ce0]">{stats?.todayTasks || 0}</div>
+                        <div className="rounded-[20px] bg-[#f5f0ff] p-4 text-center transition-transform hover:scale-105">
+                            <div className="text-xs font-bold text-[#9d8bf5]">新增任务</div>
+                            <div className="mt-1 text-xl font-black text-[#7c5ce0]">{stats?.todayTasks || 0}</div>
                         </div>
-                        <div className="rounded-md bg-warning-50 p-4 text-center">
-                            <div className="text-[13px] text-[#6b7280]">今日提现</div>
-                            <div className="mt-2 text-xl font-bold text-warning-500">¥{(stats?.todayWithdrawalAmount || 0).toFixed(2)}</div>
+                        <div className="rounded-[20px] bg-warning-50 p-4 text-center transition-transform hover:scale-105">
+                            <div className="text-xs font-bold text-warning-400">今日提现</div>
+                            <div className="mt-1 text-xl font-black text-warning-500">¥{(stats?.todayWithdrawalAmount || 0).toFixed(0)}</div>
                         </div>
-                        <div className="rounded-md bg-[#ecfdf5] p-4 text-center">
-                            <div className="text-[13px] text-[#6b7280]">今日充值</div>
-                            <div className="mt-2 text-xl font-bold text-[#10b981]">¥{(stats?.todayRechargeAmount || 0).toFixed(2)}</div>
+                        <div className="rounded-[20px] bg-[#ecfdf5] p-4 text-center transition-transform hover:scale-105">
+                            <div className="text-xs font-bold text-[#34d399]">今日充值</div>
+                            <div className="mt-1 text-xl font-black text-[#10b981]">¥{(stats?.todayRechargeAmount || 0).toFixed(0)}</div>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* 快捷入口 */}
-            <div className="overflow-hidden rounded-md border border-[#e5e7eb] bg-white ">
-                <div className="border-b border-[#e5e7eb] px-6 py-4">
-                    <h3 className="text-[15px] font-semibold text-[#3b4559]">快捷入口</h3>
+            <div className="overflow-hidden rounded-[24px] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                <div className="px-6 py-5">
+                    <h3 className="text-lg font-bold text-slate-800">快捷入口</h3>
                 </div>
-                <div className="grid grid-cols-3 gap-4 p-5 sm:grid-cols-4 md:grid-cols-6">
+                <div className="grid grid-cols-3 gap-4 p-6 pt-0 sm:grid-cols-4 md:grid-cols-6">
                     {quickLinks.map((item, idx) => (
                         <button
                             key={idx}
                             onClick={() => router.push(item.path)}
-                            className="flex flex-col items-center gap-2.5 rounded-md p-4 transition-all hover:bg-[#f9fafb]"
+                            className="group flex flex-col items-center gap-3 rounded-[20px] bg-slate-50 p-5 transition-all hover:bg-white hover:shadow-md hover:translate-y-[-2px] active:scale-[0.98]"
                         >
-                            <span className="text-2xl">{item.icon}</span>
-                            <span className="text-[13px] text-[#5a6577]">{item.label}</span>
+                            <span className="text-3xl transition-transform group-hover:scale-110">{item.icon}</span>
+                            <span className="text-xs font-bold text-slate-600 group-hover:text-slate-900">{item.label}</span>
                         </button>
                     ))}
                 </div>

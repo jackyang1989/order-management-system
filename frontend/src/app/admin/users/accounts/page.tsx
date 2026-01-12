@@ -698,7 +698,7 @@ function AdminBuyerAccountsPageContent() {
                                 <select
                                     value={editForm.star}
                                     onChange={e => setEditForm({ ...editForm, star: parseInt(e.target.value) })}
-                                    className="w-full rounded border border-[#d1d5db] px-3 py-2"
+                                    className="w-full rounded-2xl border-none bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 transition-all focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:shadow-sm"
                                 >
                                     {[1, 2, 3, 4, 5].map(s => <option key={s} value={s}>{s}星</option>)}
                                 </select>
@@ -715,7 +715,7 @@ function AdminBuyerAccountsPageContent() {
                             <select
                                 value={editForm.status}
                                 onChange={e => setEditForm({ ...editForm, status: parseInt(e.target.value) })}
-                                className="w-full rounded border border-[#d1d5db] px-3 py-2"
+                                className="w-full rounded-2xl border-none bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 transition-all focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:shadow-sm"
                             >
                                 <option value={0}>待审核</option>
                                 <option value={1}>已通过</option>
@@ -730,7 +730,7 @@ function AdminBuyerAccountsPageContent() {
                                 value={editForm.remark}
                                 onChange={e => setEditForm({ ...editForm, remark: e.target.value })}
                                 placeholder="请输入备注..."
-                                className="min-h-[60px] w-full resize-y rounded border border-[#d1d5db] p-2.5"
+                                className="min-h-[60px] w-full resize-y rounded-2xl border-none bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition-all focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:shadow-sm"
                             />
                         </div>
 

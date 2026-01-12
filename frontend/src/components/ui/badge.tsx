@@ -13,7 +13,7 @@ export interface BadgeProps {
 }
 
 export function Badge({ children, variant = 'soft', color = 'slate', size = 'md', className, style }: BadgeProps) {
-  const base = 'inline-flex items-center gap-1 rounded-md font-medium';
+  const base = 'inline-flex items-center gap-1.5 rounded-lg font-bold tracking-wide transition-colors';
 
   const sizes: Record<string, string> = {
     sm: 'px-2 py-0.5 text-[11px]',

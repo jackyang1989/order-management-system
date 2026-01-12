@@ -280,11 +280,11 @@ export default function AdminSystemPage() {
         if (field.type === 'textarea') {
             return (
                 <div key={field.key} className="flex flex-col gap-2">
-                    <label className="text-[13px] font-medium text-[#3b4559]">{field.label}</label>
+                    <label className="text-sm font-bold text-slate-700">{field.label}</label>
                     <textarea
                         value={String(value ?? '')}
                         onChange={e => handleChange(field.key, e.target.value)}
-                        className="min-h-[80px] resize-y rounded-md border border-[#e5e7eb] bg-white px-3.5 py-2.5 font-mono text-[13px] text-[#3b4559] transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                        className="min-h-[80px] w-full resize-y rounded-2xl border-none bg-slate-50 px-4 py-3 font-mono text-sm text-slate-700 transition-all focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:shadow-sm"
                         rows={3}
                     />
                     {field.description && (
@@ -296,7 +296,7 @@ export default function AdminSystemPage() {
 
         return (
             <div key={field.key} className="flex flex-col gap-2">
-                <label className="text-[13px] font-medium text-[#3b4559]">{field.label}</label>
+                <label className="text-sm font-bold text-slate-700">{field.label}</label>
                 <input
                     type={field.type}
                     value={value as string | number ?? ''}
@@ -304,7 +304,7 @@ export default function AdminSystemPage() {
                         const val = field.type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value;
                         handleChange(field.key, val);
                     }}
-                    className="rounded-md border border-[#e5e7eb] bg-white px-3.5 py-2.5 text-[14px] text-[#3b4559] transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                    className="w-full rounded-2xl border-none bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 transition-all focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:shadow-sm"
                     step={field.type === 'number' ? 'any' : undefined}
                 />
                 {field.description && (
@@ -370,8 +370,8 @@ export default function AdminSystemPage() {
                                     key={platform.id}
                                     onClick={() => togglePlatform(platform.id)}
                                     className={`cursor-pointer rounded-md border-2 p-4 text-center transition-all ${isEnabled
-                                            ? 'border-primary-500 bg-primary-50'
-                                            : 'border-[#e5e7eb] bg-[#f9fafb] opacity-60'
+                                        ? 'border-primary-500 bg-primary-50'
+                                        : 'border-[#e5e7eb] bg-[#f9fafb] opacity-60'
                                         }`}
                                 >
                                     <div className="mb-2 text-2xl">{platform.icon}</div>

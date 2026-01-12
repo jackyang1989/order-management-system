@@ -24,22 +24,22 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           </label>
         )}
         <div className="relative flex items-center">
-          {leading && <span className="absolute left-3 text-[#94a3b8]">{leading}</span>}
+          {leading && <span className="absolute left-3.5 z-10 text-slate-400">{leading}</span>}
           <input
             ref={ref}
             id={inputId}
             className={cn(
-              'w-full rounded-md border border-[#e5e7eb] bg-white px-3 py-2 text-[14px] text-[#3b4559] placeholder:text-[#9ca3af]',
-              'transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20',
-              'disabled:cursor-not-allowed disabled:bg-[#f9fafb] disabled:text-[#6b7280]',
+              'w-full rounded-2xl border-none bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 placeholder:text-slate-400',
+              'transition-all focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:shadow-sm',
+              'disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400',
               leading && 'pl-10',
               trailing && 'pr-10',
-              error && 'border-danger-400 focus:border-danger-400 focus:ring-danger-400/20',
+              error && 'ring-2 ring-danger-400/20 bg-danger-50 text-danger-600 placeholder:text-danger-300',
               className?.replace(layoutClasses[0] || '', '').trim()
             )}
             {...props}
           />
-          {trailing && <span className="absolute right-3 text-[#94a3b8]">{trailing}</span>}
+          {trailing && <span className="absolute right-3.5 z-10 text-slate-400">{trailing}</span>}
         </div>
         {error && <p className="mt-1.5 text-[13px] text-danger-400">{error}</p>}
       </div>
