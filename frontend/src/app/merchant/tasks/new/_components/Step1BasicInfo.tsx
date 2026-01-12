@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { TaskFormData, TaskEntryType, GoodsItem, KeywordConfig, KeywordAdvancedSettings, OrderSpecConfig, GoodsFilterSettings } from './types';
+import { TaskFormData, TaskEntryType, GoodsItem, KeywordConfig, OrderSpecConfig, GoodsFilterSettings } from './types';
 import { fetchShops, Shop } from '../../../../../services/shopService';
 import { getShopPlatformCode } from '../../../../../constants/platformConfig';
 import { fetchEnabledPlatforms, PlatformData } from '../../../../../services/systemConfigService';
@@ -35,8 +35,8 @@ const TASK_ENTRY_TYPES = [
 
 // 返款方式类型定义
 const TERMINAL_TYPES = [
-    { id: 1, name: '本佣货返', desc: '买手垫付，商家返本金+佣金' },
     { id: 2, name: '本立佣货', desc: '商家预付本金，买手收货后返' },
+    { id: 1, name: '本佣货返', desc: '买手垫付，商家返本金+佣金' },
 ];
 
 // 折扣服务选项
@@ -269,24 +269,6 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
         });
         onChange({ goodsList: newList });
         setShowFilterSettingsModal(false);
-    };
-
-    // 保存关键词高级设置
-    const handleSaveAdvancedSettings = () => {
-        const newList = data.goodsList.map(g => {
-            if (g.id === editingKeywordGoodsId && g.keywords) {
-                const newKeywords = g.keywords.map((kw, i) => {
-                    if (i === editingKeywordIndex) {
-                        return { ...kw, advancedSettings: { ...advancedSettings } };
-                    }
-                    return kw;
-                });
-                return { ...g, keywords: newKeywords };
-            }
-            return g;
-        });
-        onChange({ goodsList: newList });
-        setShowKeywordAdvancedModal(false);
     };
 
     // 添加下单规格
@@ -1120,36 +1102,6 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
 
                         <div className="mt-4 flex justify-end border-t border-[#e5e7eb] pt-4">
                             <Button variant="secondary" onClick={() => setShowGoodsLibModal(false)}>关闭</Button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Keyword Advanced Settings Modal (简化版 - 只保留货比关键词) */}
-            {showKeywordAdvancedModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-                        <div className="mb-4 flex items-center justify-between">
-                            <h3 className="text-lg font-semibold text-[#374151]">关键词高级设置</h3>
-                            <button onClick={() => setShowKeywordAdvancedModal(false)} className="text-[#9ca3af] hover:text-[#6b7280]">✕</button>
-                        </div>
-
-                        {/* 货比关键词 */}
-                        <div className="mb-4">
-                            <label className="mb-1 block text-sm text-[#374151]">货比关键词</label>
-                            <Input
-                                type="text"
-                                value={advancedSettings.compareKeyword}
-                                onChange={e => setAdvancedSettings(prev => ({ ...prev, compareKeyword: e.target.value }))}
-                                placeholder="不填则默认使用主商品的第一个搜索关键词"
-                            />
-                            <p className="mt-1 text-xs text-[#9ca3af]">买手进行货比浏览时使用此关键词搜索，不填则自动使用主商品的第一个搜索关键词</p>
-                        </div>
-
-                        {/* 操作按钮 */}
-                        <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
-                            <Button variant="secondary" onClick={() => setShowKeywordAdvancedModal(false)}>取消</Button>
-                            <Button onClick={handleSaveAdvancedSettings}>保存设置</Button>
                         </div>
                     </div>
                 </div>
