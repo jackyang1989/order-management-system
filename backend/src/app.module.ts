@@ -62,6 +62,7 @@ import { DeliveryWarehouse } from './admin-config/delivery-warehouse.entity';
 import { Platform } from './admin-config/platform.entity';
 import { VipLevel } from './admin-config/vip-level.entity';
 import { TablePreference } from './admin-config/table-preferences.entity';
+import { EntryType } from './admin-config/entry-type.entity';
 // admin-menus
 import { AdminMenu } from './admin-menus/admin-menu.entity';
 // admin-users
@@ -164,6 +165,7 @@ const ENTITIES = [
   Platform,
   VipLevel,
   TablePreference,
+  EntryType,
   // admin-menus
   AdminMenu,
   // admin-users
