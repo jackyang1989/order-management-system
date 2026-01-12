@@ -32,7 +32,7 @@ export function Select({
   }, [options, value]);
 
   return (
-    <div className={cn('relative', className)}>
+    <div className="relative w-full">
       <select
         value={value ?? ''}
         disabled={disabled}
@@ -41,7 +41,8 @@ export function Select({
           'w-full appearance-none rounded-md border border-[#e5e7eb] bg-white px-3 py-2 text-[14px] text-[#3b4559]',
           'transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20',
           'disabled:cursor-not-allowed disabled:bg-[#f9fafb] disabled:text-[#6b7280]',
-          !value && 'text-[#9ca3af]'
+          !value && 'text-[#9ca3af]',
+          className
         )}
       >
         <option value="" disabled>

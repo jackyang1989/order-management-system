@@ -108,7 +108,7 @@ export default function MerchantBlacklistPage() {
                                         <tr key={item.id} className="transition-colors hover:bg-slate-50/50">
                                             <td className="px-6 py-4 text-sm font-bold text-slate-700">{item.accountName}</td>
                                             <td className="px-6 py-4">
-                                                <Badge variant={item.type === BlacklistType.PERMANENT ? 'red' : 'amber'} rounded>
+                                                <Badge variant="solid" color={item.type === BlacklistType.PERMANENT ? 'red' : 'amber'} className="rounded-full">
                                                     {item.type === BlacklistType.PERMANENT ? '永久拉黑' : '限时拉黑'}
                                                 </Badge>
                                             </td>

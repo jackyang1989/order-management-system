@@ -129,29 +129,29 @@ export default function MerchantReviewsPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 {statsCards.map((stat, idx) => (
-                    <Card
-                        key={idx}
-                        onClick={() => setFilter(stat.statusFilter)}
-                        className={cn(
-                            'group cursor-pointer overflow-hidden border-0 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl',
-                            filter === stat.statusFilter
-                                ? 'bg-white ring-2 ring-primary-500 shadow-xl shadow-primary-500/10'
-                                : 'bg-white shadow-lg shadow-slate-200/50 hover:shadow-primary-500/10'
-                        )}
-                        noPadding
-                    >
-                        <div className="relative p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <div className="text-sm font-bold text-slate-400">{stat.label}</div>
-                                    <div className={cn('mt-2 text-4xl font-black tracking-tight', stat.color)}>{stat.value}</div>
-                                </div>
-                                <div className={cn('flex h-12 w-12 items-center justify-center rounded-[16px] text-2xl transition-transform group-hover:scale-110', stat.bg)}>
-                                    {stat.icon}
+                    <div key={idx} onClick={() => setFilter(stat.statusFilter)}>
+                        <Card
+                            className={cn(
+                                'group cursor-pointer overflow-hidden border-0 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl rounded-[24px]',
+                                filter === stat.statusFilter
+                                    ? 'bg-white ring-2 ring-primary-500 shadow-xl shadow-primary-500/10'
+                                    : 'bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] hover:shadow-primary-500/10'
+                            )}
+                            noPadding
+                        >
+                            <div className="relative p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <div className="text-sm font-bold text-slate-400">{stat.label}</div>
+                                        <div className={cn('mt-2 text-4xl font-black tracking-tight', stat.color)}>{stat.value}</div>
+                                    </div>
+                                    <div className={cn('flex h-12 w-12 items-center justify-center rounded-[16px] text-2xl transition-transform group-hover:scale-110', stat.bg)}>
+                                        {stat.icon}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </Card>
+                        </Card>
+                    </div>
                 ))}
             </div>
 
@@ -211,7 +211,7 @@ export default function MerchantReviewsPage() {
                                         <td className="px-8 py-5 text-sm font-black text-emerald-500">¥{Number(task.userMoney).toFixed(2)}</td>
                                         <td className="px-8 py-5 text-xs font-medium text-slate-400">{new Date(task.createdAt).toLocaleString('zh-CN')}</td>
                                         <td className="px-8 py-5">
-                                            <Badge variant={statusLabels[task.state]?.color as any || 'slate'} rounded className="px-3 py-1 text-xs">
+                                            <Badge variant="solid" color={statusLabels[task.state]?.color as any || 'slate'} className="rounded-full px-3 py-1 text-xs">
                                                 {statusLabels[task.state]?.text || '未知'}
                                             </Badge>
                                         </td>

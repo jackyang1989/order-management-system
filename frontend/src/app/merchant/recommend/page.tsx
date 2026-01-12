@@ -187,7 +187,7 @@ export default function MerchantRecommendPage() {
                                         <td className="px-8 py-4 font-bold text-slate-900">{record.username}</td>
                                         <td className="px-8 py-4 text-sm font-medium text-slate-400">{record.registerTime}</td>
                                         <td className="px-8 py-4">
-                                            <Badge variant={record.status === 'active' ? 'green' : 'slate'} rounded>
+                                            <Badge variant="solid" color={record.status === 'active' ? 'green' : 'slate'} className="rounded-full">
                                                 {record.status === 'active' ? '活跃' : '不活跃'}
                                             </Badge>
                                         </td>

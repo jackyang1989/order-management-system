@@ -8,7 +8,6 @@ import Step1BasicInfo from './_components/Step1BasicInfo';
 import Step2ValueAdded from './_components/Step2ValueAdded';
 import Step3Payment from './_components/Step3Payment';
 import { cn } from '../../../../lib/utils';
-import { Card } from '../../../../components/ui/card';
 
 interface MerchantProfile { balance: number; silver: number; username: string; }
 
@@ -34,10 +33,12 @@ export default function NewTaskPage() {
         const cycleTimeUnit = (data.isCycleTime && data.cycleTime && data.cycleTime > 0) ? (data.cycleTime * 1) : 0;
         const addRewardUnit = Number(data.addReward || 0);
         const nextDayFeeUnit = data.isNextDay ? 0.5 : 0;
+        // 多商品模式：计算goodsList总价；兼容单商品模式
         const goodsListTotal = data.goodsList.reduce((sum, g) => sum + (g.price * g.quantity), 0);
         const singleGoodsTotal = (data.goodsPrice || 0);
         const perOrderGoodsPrice = goodsListTotal > 0 ? goodsListTotal : singleGoodsTotal;
         const totalGoodsMoney = perOrderGoodsPrice * count;
+        // 多商品额外费用：每多一个商品加1元（原版为2银锭）
         const goodsMoreFeeUnit = data.goodsList.length > 1 ? (data.goodsList.length - 1) * 1 : 0;
         const isFreeShipping = data.isFreeShipping === 1; const postagePerOrder = isFreeShipping ? 0 : 10; const marginPerOrder = isFreeShipping ? 0 : 10;
         const totalPostage = postagePerOrder * count; const totalMargin = marginPerOrder * count; const totalDeposit = totalGoodsMoney + totalPostage + totalMargin;
@@ -51,6 +52,7 @@ export default function NewTaskPage() {
     const handleSubmit = async () => {
         setLoading(true); const token = localStorage.getItem('merchantToken');
         try {
+            // 口令验证校验
             if (data.isPasswordEnabled) {
                 if (!data.checkPassword || data.checkPassword.trim().length === 0) { alert('开启口令验证后必须填写口令'); setLoading(false); return; }
                 if (data.checkPassword.length < 4 || data.checkPassword.length > 10) { alert('口令需为4-10个详情页文字'); setLoading(false); return; }
@@ -65,38 +67,24 @@ export default function NewTaskPage() {
     const steps = [{ num: 1, label: '基础信息' }, { num: 2, label: '增值服务' }, { num: 3, label: '支付确认' }];
 
     return (
-        <div className="space-y-6">
-            <h1 className="text-3xl font-black text-slate-900">发布新任务</h1>
-
+        <div>
             {/* Steps Progress */}
-            <Card className="rounded-[32px] border-0 bg-white px-8 py-8 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-                <div className="mx-auto flex max-w-4xl items-center">
+            <div className="mb-2 border-b border-[#e5e7eb] bg-white px-8 py-6">
+                <div className="mx-auto flex max-w-7xl items-center">
                     {steps.map((s, i) => (
                         <div key={s.num} className={cn('flex items-center', i === 2 ? 'flex-none' : 'flex-1')}>
-                            <div className="relative flex flex-col items-center gap-3">
-                                <div className={cn(
-                                    'flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold transition-all duration-300',
-                                    step >= s.num ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' : 'bg-slate-100 text-slate-400'
-                                )}>
-                                    {step > s.num ? '✓' : s.num}
-                                </div>
-                                <div className={cn('text-sm font-bold transition-colors duration-300', step >= s.num ? 'text-primary-700' : 'text-slate-400')}>{s.label}</div>
+                            <div className={cn('flex items-center gap-2', step >= s.num ? 'opacity-100' : 'opacity-40')}>
+                                <div className={cn('flex h-8 w-8 items-center justify-center rounded-full font-bold', step >= s.num ? 'bg-primary-600 text-white' : 'bg-[#e5e7eb] text-[#6b7280]')}>{s.num}</div>
+                                <div className={cn('text-[#3b4559]', step >= s.num ? 'font-semibold' : 'font-normal')}>{s.label}</div>
                             </div>
-                            {i < 2 && (
-                                <div className="mx-4 mb-8 h-1 flex-1 rounded-full bg-slate-100">
-                                    <div
-                                        className="h-full rounded-full bg-primary-600 transition-all duration-500 ease-out"
-                                        style={{ width: step > s.num ? '100%' : '0%' }}
-                                    />
-                                </div>
-                            )}
+                            {i < 2 && <div className={cn('mx-4 h-0.5 flex-1', step > s.num ? 'bg-primary-600' : 'bg-[#e5e7eb]')} />}
                         </div>
                     ))}
                 </div>
-            </Card>
+            </div>
 
             {/* Content */}
-            <div className="mx-auto min-h-[600px] max-w-7xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="mx-auto my-6 min-h-[600px] max-w-7xl rounded-md bg-white">
                 {step === 1 && <Step1BasicInfo data={data} onChange={handleDataChange} onNext={() => setStep(2)} />}
                 {step === 2 && <Step2ValueAdded data={data} onChange={handleDataChange} onPrev={() => setStep(1)} onNext={() => setStep(3)} />}
                 {step === 3 && <Step3Payment data={data} merchant={merchant} onPrev={() => setStep(2)} onSubmit={handleSubmit} loading={loading} />}
@@ -104,4 +92,3 @@ export default function NewTaskPage() {
         </div>
     );
 }
-
