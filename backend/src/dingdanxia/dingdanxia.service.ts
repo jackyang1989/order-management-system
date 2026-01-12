@@ -1,7 +1,5 @@
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { SystemConfig } from '../system-config/system-config.entity';
+import { AdminConfigService } from '../admin-config/admin-config.service';
 
 export interface TklQueryResult {
   success: boolean;
@@ -29,25 +27,21 @@ export class DingdanxiaService {
   private readonly API_BASE_URL = 'http://api.tbk.dingdanxia.com';
 
   constructor(
-    @InjectRepository(SystemConfig)
-    private configRepository: Repository<SystemConfig>,
+    private configService: AdminConfigService,
   ) {}
 
   /**
    * 获取订单侠 API Key（从系统配置读取）
    */
-  private async getApiKey(): Promise<string | null> {
-    const config = await this.configRepository.findOne({
-      where: { key: 'dingdanxia_api_key' },
-    });
-    return config?.value || null;
+  private getApiKey(): string | null {
+    return this.configService.getValue('dingdanxia_api_key');
   }
 
   /**
    * 检查 API 是否已配置
    */
   async isConfigured(): Promise<boolean> {
-    const apiKey = await this.getApiKey();
+    const apiKey = this.getApiKey();
     return !!apiKey;
   }
 
@@ -58,7 +52,7 @@ export class DingdanxiaService {
     endpoint: string,
     data: Record<string, string>,
   ): Promise<any> {
-    const apiKey = await this.getApiKey();
+    const apiKey = this.getApiKey();
     if (!apiKey) {
       throw new HttpException(
         '订单侠 API Key 未配置',

@@ -5,7 +5,7 @@ import { User, CreateUserDto, UpdateUserDto } from './user.entity';
 import { FundRecord, FundType, FundAction } from './fund-record.entity';
 import { Order, OrderStatus } from '../orders/order.entity';
 import * as bcrypt from 'bcrypt';
-import { SYSTEM_CONFIG_FALLBACK } from '../system-config/system-config.fallback';
+import { AdminConfigService } from '../admin-config/admin-config.service';
 
 // 用户统计数据接口
 export interface UserProfileStats {
@@ -41,6 +41,7 @@ export class UsersService {
     private fundRecordRepository: Repository<FundRecord>,
     @InjectRepository(Order)
     private ordersRepository: Repository<Order>,
+    private configService: AdminConfigService,
   ) { }
 
   async findAll(): Promise<User[]> {
@@ -108,16 +109,18 @@ export class UsersService {
       vipExpireDate = new Date(createUserDto.vipExpireAt);
       isVip = vipExpireDate > new Date();
     } else {
+      const registerVipDays = this.configService.getNumberValue('user_vip_time', 7);
       vipExpireDate = new Date();
       vipExpireDate.setDate(
-        vipExpireDate.getDate() + SYSTEM_CONFIG_FALLBACK.REGISTER_VIP_DAYS,
+        vipExpireDate.getDate() + registerVipDays,
       );
       isVip = true;
     }
 
     // 管理员可以指定初始余额
+    const registerSilver = this.configService.getNumberValue('user_num', 0);
     const initialBalance = createUserDto.balance ?? 0;
-    const initialSilver = createUserDto.silver ?? SYSTEM_CONFIG_FALLBACK.REGISTER_SILVER;
+    const initialSilver = createUserDto.silver ?? registerSilver;
 
     const newUser = this.usersRepository.create({
       username: createUserDto.username,
@@ -138,14 +141,16 @@ export class UsersService {
     const savedUser = await this.usersRepository.save(newUser);
 
     // P0-1: 记录注册赠送银锭的财务记录
-    await this.fundRecordRepository.save({
-      userId: savedUser.id,
-      type: FundType.SILVER,
-      action: FundAction.IN,
-      amount: SYSTEM_CONFIG_FALLBACK.REGISTER_SILVER,
-      balance: SYSTEM_CONFIG_FALLBACK.REGISTER_SILVER,
-      description: '首次注册赠送银锭',
-    });
+    if (registerSilver > 0) {
+      await this.fundRecordRepository.save({
+        userId: savedUser.id,
+        type: FundType.SILVER,
+        action: FundAction.IN,
+        amount: registerSilver,
+        balance: registerSilver,
+        description: '首次注册赠送银锭',
+      });
+    }
 
     return this.sanitizeUser(savedUser);
   }
@@ -777,7 +782,7 @@ export class UsersService {
     });
 
     // 获取邀请解锁阈值配置 (默认10单)
-    const invitationNum = SYSTEM_CONFIG_FALLBACK.INVITATION_NUM || 10;
+    const invitationNum = this.configService.getNumberValue('invitation_num', 10);
 
     const isUnlocked = completedOrders >= invitationNum;
 

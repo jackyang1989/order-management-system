@@ -15,7 +15,6 @@ import { MerchantsModule } from './merchants/merchants.module';
 import { ReviewTasksModule } from './review-tasks/review-tasks.module';
 import { AdminModule } from './admin/admin.module';
 import { AdminConfigModule } from './admin-config/admin-config.module';
-import { SystemConfigModule } from './system-config/system-config.module';
 import { ShopsModule } from './shops/shops.module';
 import { GoodsModule } from './goods/goods.module';
 import { KeywordsModule } from './keywords/keywords.module';
@@ -122,11 +121,6 @@ import { SensitiveWord } from './sensitive-words/sensitive-word.entity';
 import { Shop } from './shops/shop.entity';
 // sms
 import { SmsLog } from './sms/sms.entity';
-// system-config
-import {
-  SystemConfig as SystemConfigEntity,
-  SystemGlobalConfig,
-} from './system-config/system-config.entity';
 // task-goods
 import { TaskGoods, TaskKeyword } from './task-goods/task-goods.entity';
 // tasks
@@ -226,9 +220,6 @@ const ENTITIES = [
   Shop,
   // sms
   SmsLog,
-  // system-config
-  SystemConfigEntity,
-  SystemGlobalConfig,
   // task-goods
   TaskGoods,
   TaskKeyword,
@@ -303,7 +294,6 @@ const ENTITIES = [
     ReviewTasksModule,
     AdminModule,
     AdminConfigModule,
-    SystemConfigModule,
     ShopsModule,
     GoodsModule,
     KeywordsModule,

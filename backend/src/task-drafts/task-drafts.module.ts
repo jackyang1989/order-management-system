@@ -5,13 +5,14 @@ import { TaskDraftsController } from './task-drafts.controller';
 import { TaskDraft } from './task-draft.entity';
 import { Task } from '../tasks/task.entity';
 import { User } from '../users/user.entity';
-import { SystemConfig } from '../system-config/system-config.entity';
 import { DingdanxiaModule } from '../dingdanxia/dingdanxia.module';
+import { AdminConfigModule } from '../admin-config/admin-config.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([TaskDraft, Task, User, SystemConfig]),
+        TypeOrmModule.forFeature([TaskDraft, Task, User]),
         DingdanxiaModule,
+        AdminConfigModule,
     ],
     controllers: [TaskDraftsController],
     providers: [TaskDraftsService],

@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { TaskDraft, TaskDraftStep } from './task-draft.entity';
 import { Task, TaskStatus, TaskTerminal, TaskVersion } from '../tasks/task.entity';
 import { User } from '../users/user.entity';
-import { SystemConfig } from '../system-config/system-config.entity';
+import { AdminConfigService } from '../admin-config/admin-config.service';
 
 @Injectable()
 export class TaskDraftsService {
@@ -15,8 +15,7 @@ export class TaskDraftsService {
         private taskRepository: Repository<Task>,
         @InjectRepository(User)
         private userRepository: Repository<User>,
-        @InjectRepository(SystemConfig)
-        private configRepository: Repository<SystemConfig>,
+        private configService: AdminConfigService,
     ) { }
 
     /**
