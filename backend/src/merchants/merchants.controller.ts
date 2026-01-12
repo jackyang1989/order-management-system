@@ -31,6 +31,7 @@ export class MerchantsController {
   async register(@Body() dto: CreateMerchantDto) {
     const merchant = await this.merchantsService.create(dto);
     const token = this.jwtService.sign({
+      sub: merchant.id, // 添加 sub 字段，确保 userId 正确
       merchantId: merchant.id,
       username: merchant.username,
       role: 'merchant',
@@ -62,6 +63,7 @@ export class MerchantsController {
     }
 
     const token = this.jwtService.sign({
+      sub: merchant.id, // 添加 sub 字段，确保 userId 正确
       merchantId: merchant.id,
       username: merchant.username,
       role: 'merchant',

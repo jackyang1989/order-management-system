@@ -230,9 +230,9 @@ export default function WithdrawPage() {
                             ) : (
                                 <div
                                     className="cursor-pointer rounded-[20px] bg-amber-50 p-4 text-center text-sm font-bold text-amber-600 transition-all active:scale-95"
-                                    onClick={() => router.push('/profile/bank')}
+                                    onClick={() => router.push('/profile/payment')}
                                 >
-                                    ⚠️ 暂无银行卡，请先绑定
+                                    ⚠️ 暂无收款账户，请先绑定
                                 </div>
                             )}
 
@@ -241,121 +241,126 @@ export default function WithdrawPage() {
                             </Button>
                         </form>
                     </div>
-                )}
+                )
+                }
 
-                {activeTab === 'silver' && (
-                    <div className="rounded-[24px] bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-                        <form onSubmit={handleWithdrawClick} className="space-y-6">
-                            <div className="rounded-[16px] bg-blue-50 p-3 text-xs font-bold text-blue-600 flex items-center gap-2">
-                                <span>ℹ️</span> 银锭提现手续费: {feeRate * 100}%
-                            </div>
+                {
+                    activeTab === 'silver' && (
+                        <div className="rounded-[24px] bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                            <form onSubmit={handleWithdrawClick} className="space-y-6">
+                                <div className="rounded-[16px] bg-blue-50 p-3 text-xs font-bold text-blue-600 flex items-center gap-2">
+                                    <span>ℹ️</span> 银锭提现手续费: {feeRate * 100}%
+                                </div>
 
-                            <div>
-                                <label className="mb-2 block text-xs font-bold text-slate-500">可提现银锭</label>
-                                <div className="text-3xl font-black text-slate-900 tracking-tight">{(balance.silver - balance.frozenSilver).toFixed(2)}</div>
-                            </div>
-
-                            <div>
-                                <label className="mb-2 block text-xs font-bold text-slate-500">提现数量</label>
-                                <input
-                                    type="number"
-                                    className="w-full rounded-[16px] border-none bg-slate-50 px-4 py-4 text-center text-xl font-bold text-slate-900 placeholder:text-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all"
-                                    placeholder="0"
-                                    value={amount}
-                                    onChange={(e) => setAmount(e.target.value)}
-                                />
-                            </div>
-
-                            {bankCards.length > 0 ? (
                                 <div>
-                                    <label className="mb-2 block text-xs font-bold text-slate-500">选择银行卡</label>
-                                    <div className="space-y-3">
-                                        {bankCards.map(c => (
-                                            <div
-                                                key={c.id}
-                                                onClick={() => setSelectedCard(c.id)}
-                                                className={cn(
-                                                    'flex cursor-pointer items-center rounded-[16px] border-2 p-4 transition-all active:scale-[0.98]',
-                                                    selectedCard === c.id
-                                                        ? 'border-primary-500 bg-primary-50'
-                                                        : 'border-transparent bg-slate-50 hover:bg-slate-100'
-                                                )}
-                                            >
-                                                <div className="flex-1">
-                                                    <div className="text-sm font-bold text-slate-900">{c.bankName}</div>
-                                                    <div className="text-xs font-medium text-slate-500">**** **** **** {c.cardNumber.slice(-4)}</div>
+                                    <label className="mb-2 block text-xs font-bold text-slate-500">可提现银锭</label>
+                                    <div className="text-3xl font-black text-slate-900 tracking-tight">{(balance.silver - balance.frozenSilver).toFixed(2)}</div>
+                                </div>
+
+                                <div>
+                                    <label className="mb-2 block text-xs font-bold text-slate-500">提现数量</label>
+                                    <input
+                                        type="number"
+                                        className="w-full rounded-[16px] border-none bg-slate-50 px-4 py-4 text-center text-xl font-bold text-slate-900 placeholder:text-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all"
+                                        placeholder="0"
+                                        value={amount}
+                                        onChange={(e) => setAmount(e.target.value)}
+                                    />
+                                </div>
+
+                                {bankCards.length > 0 ? (
+                                    <div>
+                                        <label className="mb-2 block text-xs font-bold text-slate-500">选择银行卡</label>
+                                        <div className="space-y-3">
+                                            {bankCards.map(c => (
+                                                <div
+                                                    key={c.id}
+                                                    onClick={() => setSelectedCard(c.id)}
+                                                    className={cn(
+                                                        'flex cursor-pointer items-center rounded-[16px] border-2 p-4 transition-all active:scale-[0.98]',
+                                                        selectedCard === c.id
+                                                            ? 'border-primary-500 bg-primary-50'
+                                                            : 'border-transparent bg-slate-50 hover:bg-slate-100'
+                                                    )}
+                                                >
+                                                    <div className="flex-1">
+                                                        <div className="text-sm font-bold text-slate-900">{c.bankName}</div>
+                                                        <div className="text-xs font-medium text-slate-500">**** **** **** {c.cardNumber.slice(-4)}</div>
+                                                    </div>
+                                                    {selectedCard === c.id && <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 text-[10px] text-white">✓</div>}
                                                 </div>
-                                                {selectedCard === c.id && <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 text-[10px] text-white">✓</div>}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            ) : (
-                                <div
-                                    className="cursor-pointer rounded-[20px] bg-amber-50 p-4 text-center text-sm font-bold text-amber-600 transition-all active:scale-95"
-                                    onClick={() => router.push('/profile/bank')}
-                                >
-                                    ⚠️ 暂无银行卡，请先绑定
-                                </div>
-                            )}
-
-                            <Button type="submit" className="w-full rounded-[16px] py-6 text-base font-bold shadow-lg shadow-primary-600/20 active:scale-95 transition-transform bg-primary-600 hover:bg-primary-700 disabled:opacity-50" disabled={bankCards.length === 0}>
-                                申请提现
-                            </Button>
-                        </form>
-                    </div>
-                )}
-
-                {activeTab === 'records' && (
-                    <div className="rounded-[24px] bg-white overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-                        {activeTab === 'records' && (
-                            <>
-                                <div className="flex items-center justify-end space-x-2 border-b border-slate-50 p-4 bg-slate-50/50">
-                                    <div className="flex items-center space-x-2">
-                                        <input
-                                            type="date"
-                                            className="rounded-lg border-none bg-white px-3 py-1.5 text-xs font-bold text-slate-600 outline-none focus:ring-2 focus:ring-primary-500/20"
-                                            value={dateRange.from || ''}
-                                            onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
-                                        />
-                                        <span className="text-slate-300 font-bold">-</span>
-                                        <input
-                                            type="date"
-                                            className="rounded-lg border-none bg-white px-3 py-1.5 text-xs font-bold text-slate-600 outline-none focus:ring-2 focus:ring-primary-500/20"
-                                            value={dateRange.to || ''}
-                                            onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
-                                        />
-                                    </div>
-                                </div>
-                                {records.length === 0 ? (
-                                    <div className="py-20 text-center">
-                                        <div className="mb-4 text-5xl opacity-30 grayscale">🧾</div>
-                                        <div className="text-sm font-bold text-slate-300">暂无提现记录</div>
+                                            ))}
+                                        </div>
                                     </div>
                                 ) : (
-                                    <div className="divide-y divide-slate-50">
-                                        {records.map(r => (
-                                            <div key={r.id} className="flex items-center justify-between p-5 transition-colors hover:bg-slate-50">
-                                                <div>
-                                                    <div className="text-lg font-black text-slate-900">¥{Number(r.amount).toFixed(2)}</div>
-                                                    <div className="mt-1 text-[10px] font-medium text-slate-400">{new Date(r.createdAt).toLocaleString('zh-CN')}</div>
-                                                </div>
-                                                <div className="text-right flex flex-col items-end">
-                                                    <div className="scale-90 origin-right">{getStatusBadge(r.status)}</div>
-                                                    {r.remark && <div className="mt-1 text-[10px] font-medium text-red-400 bg-red-50 px-1.5 py-0.5 rounded">{r.remark}</div>}
-                                                </div>
-                                            </div>
-                                        ))}
+                                    <div
+                                        className="cursor-pointer rounded-[20px] bg-amber-50 p-4 text-center text-sm font-bold text-amber-600 transition-all active:scale-95"
+                                        onClick={() => router.push('/profile/payment')}
+                                    >
+                                        ⚠️ 暂无收款账户，请先绑定
                                     </div>
                                 )}
-                            </>
-                        )}
-                    </div>
-                )}
-            </ProfileContainer>
+
+                                <Button type="submit" className="w-full rounded-[16px] py-6 text-base font-bold shadow-lg shadow-primary-600/20 active:scale-95 transition-transform bg-primary-600 hover:bg-primary-700 disabled:opacity-50" disabled={bankCards.length === 0}>
+                                    申请提现
+                                </Button>
+                            </form>
+                        </div>
+                    )
+                }
+
+                {
+                    activeTab === 'records' && (
+                        <div className="rounded-[24px] bg-white overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                            {activeTab === 'records' && (
+                                <>
+                                    <div className="flex items-center justify-end space-x-2 border-b border-slate-50 p-4 bg-slate-50/50">
+                                        <div className="flex items-center space-x-2">
+                                            <input
+                                                type="date"
+                                                className="rounded-lg border-none bg-white px-3 py-1.5 text-xs font-bold text-slate-600 outline-none focus:ring-2 focus:ring-primary-500/20"
+                                                value={dateRange.from || ''}
+                                                onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
+                                            />
+                                            <span className="text-slate-300 font-bold">-</span>
+                                            <input
+                                                type="date"
+                                                className="rounded-lg border-none bg-white px-3 py-1.5 text-xs font-bold text-slate-600 outline-none focus:ring-2 focus:ring-primary-500/20"
+                                                value={dateRange.to || ''}
+                                                onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
+                                            />
+                                        </div>
+                                    </div>
+                                    {records.length === 0 ? (
+                                        <div className="py-20 text-center">
+                                            <div className="mb-4 text-5xl opacity-30 grayscale">🧾</div>
+                                            <div className="text-sm font-bold text-slate-300">暂无提现记录</div>
+                                        </div>
+                                    ) : (
+                                        <div className="divide-y divide-slate-50">
+                                            {records.map(r => (
+                                                <div key={r.id} className="flex items-center justify-between p-5 transition-colors hover:bg-slate-50">
+                                                    <div>
+                                                        <div className="text-lg font-black text-slate-900">¥{Number(r.amount).toFixed(2)}</div>
+                                                        <div className="mt-1 text-[10px] font-medium text-slate-400">{new Date(r.createdAt).toLocaleString('zh-CN')}</div>
+                                                    </div>
+                                                    <div className="text-right flex flex-col items-end">
+                                                        <div className="scale-90 origin-right">{getStatusBadge(r.status)}</div>
+                                                        {r.remark && <div className="mt-1 text-[10px] font-medium text-red-400 bg-red-50 px-1.5 py-0.5 rounded">{r.remark}</div>}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    )
+                }
+            </ProfileContainer >
 
             {/* Confirm Modal */}
-            <Modal
+            < Modal
                 title="确认提现"
                 open={showConfirm}
                 onClose={() => { setShowConfirm(false); setCaptcha(''); setPayPassword(''); loadCaptcha(); }}
@@ -403,7 +408,7 @@ export default function WithdrawPage() {
                         </Button>
                     </form>
                 )}
-            </Modal>
-        </div>
+            </Modal >
+        </div >
     );
 }

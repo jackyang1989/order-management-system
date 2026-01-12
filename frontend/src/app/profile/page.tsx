@@ -49,7 +49,7 @@ export default function ProfilePage() {
 
     const menuItems = [
         { icon: '📁', label: '买号管理', href: '/profile/bind', desc: '管理绑定的买号' },
-        { icon: '🏦', label: '银行卡管理', href: '/profile/payment', desc: '提现账户设置' },
+        { icon: '🏦', label: '收款账户', href: '/profile/payment', desc: '管理收款账号' },
         { icon: '📊', label: '资金记录', href: '/profile/records', desc: '每一笔钱都有迹可循' },
         { icon: '💰', label: '提现中心', href: '/profile/withdraw', desc: '快速提取收益' },
         { icon: '👥', label: '邀请好友', href: '/invite', desc: '邀请返现赚不停' },

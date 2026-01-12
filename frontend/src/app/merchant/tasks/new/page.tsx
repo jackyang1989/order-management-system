@@ -52,10 +52,10 @@ export default function NewTaskPage() {
     const handleSubmit = async () => {
         setLoading(true); const token = localStorage.getItem('merchantToken');
         try {
-            // 口令验证校验
+            // 口令验证校验：检查商品列表中是否有商品设置了verifyCode
             if (data.isPasswordEnabled) {
-                if (!data.checkPassword || data.checkPassword.trim().length === 0) { alert('开启口令验证后必须填写口令'); setLoading(false); return; }
-                if (data.checkPassword.length < 4 || data.checkPassword.length > 10) { alert('口令需为4-10个详情页文字'); setLoading(false); return; }
+                const hasVerifyCode = data.goodsList.some(g => g.verifyCode && g.verifyCode.trim().length > 0);
+                if (!hasVerifyCode) { alert('开启口令验证后，请在第一步商品设置中至少为一个商品填写核对口令'); setLoading(false); return; }
             }
             if (data.isPraise && data.praiseType === 'text') { const filled = data.praiseList.filter(s => s && s.trim().length > 0); if (filled.length !== data.count) { alert(`请填写所有 ${data.count} 条好评内容`); setLoading(false); return; } }
             const payload = { ...data, goodsPrice: Number(data.goodsPrice), count: Number(data.count), addReward: Number(data.addReward), extraCommission: Number(data.addReward) };

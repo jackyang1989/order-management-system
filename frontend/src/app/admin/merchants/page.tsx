@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { cn, formatDate } from '../../../lib/utils';
+import { formatDate } from '../../../lib/utils';
 import { toastSuccess, toastError } from '../../../lib/toast';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
@@ -462,20 +462,24 @@ export default function AdminMerchantsPage() {
             title: '会员',
             defaultWidth: 90,
             minWidth: 60,
-            render: (row) => (
-                <div>
-                    {row.vip ? (
-                        <Badge variant="solid" color="amber">VIP</Badge>
-                    ) : (
-                        <Badge variant="soft" color="slate">普通</Badge>
-                    )}
-                    {row.vipExpireAt && (
-                        <div className="mt-0.5 text-[10px] text-[#9ca3af]">
-                            {formatDate(row.vipExpireAt)}
-                        </div>
-                    )}
-                </div>
-            ),
+            render: (row) => {
+                // 检查VIP是否有效（有vip标记且未过期）
+                const isVipValid = row.vip && row.vipExpireAt && new Date(row.vipExpireAt) > new Date();
+                return (
+                    <div>
+                        {isVipValid ? (
+                            <>
+                                <Badge variant="solid" color="amber">VIP</Badge>
+                                <div className="mt-0.5 text-[10px] text-[#9ca3af]">
+                                    {formatDate(row.vipExpireAt)}
+                                </div>
+                            </>
+                        ) : (
+                            <Badge variant="soft" color="slate">普通</Badge>
+                        )}
+                    </div>
+                );
+            },
         },
         {
             key: 'status',
@@ -550,7 +554,8 @@ export default function AdminMerchantsPage() {
                     <Button size="sm" variant="outline" className="w-[65px] text-primary-600" onClick={() => openMessage(row)}>
                         消息
                     </Button>
-                    {!row.vip && (
+                    {/* VIP过期或无VIP时显示设VIP按钮 */}
+                    {!(row.vip && row.vipExpireAt && new Date(row.vipExpireAt) > new Date()) && (
                         <Button size="sm" variant="outline" className="w-[65px] text-warning-500" onClick={() => openSetVip(row)}>
                             设VIP
                         </Button>
