@@ -61,6 +61,11 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { phone } });
   }
 
+  async findByIds(ids: string[]): Promise<User[]> {
+    if (!ids || ids.length === 0) return [];
+    return this.usersRepository.findByIds(ids);
+  }
+
   async findByInvitationCode(code: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { invitationCode: code } });
   }

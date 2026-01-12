@@ -455,18 +455,10 @@ export class BuyerAccountsService {
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
-      relations: {
-        user: true,
-      },
-      select: {
-        user: {
-          username: true,
-          phone: true,
-        },
-      },
     });
 
-    return { data, total, page, limit };
+    const accounts = await this.attachUsers(data);
+    return { data: accounts, total, page, limit };
   }
 
   /**
@@ -492,18 +484,24 @@ export class BuyerAccountsService {
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
-      relations: {
-        user: true,
-      },
-      select: {
-        user: {
-          username: true,
-          phone: true,
-        },
-      },
     });
 
-    return { data, total, page, limit };
+    return { data: await this.attachUsers(data), total, page, limit };
+  }
+
+  private async attachUsers(accounts: BuyerAccount[]): Promise<BuyerAccount[]> {
+    if (!accounts.length) return accounts;
+    const userIds = [...new Set(accounts.map((a) => a.userId))];
+    const users = await this.usersService.findByIds(userIds);
+    const userMap = new Map(users.map((u) => [u.id, u]));
+
+    return accounts.map((account) => {
+      const user = userMap.get(account.userId);
+      return {
+        ...account,
+        user: user ? { username: user.username, phone: user.phone } : undefined,
+      } as any;
+    });
   }
 
   /**

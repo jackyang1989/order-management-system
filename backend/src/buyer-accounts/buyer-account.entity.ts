@@ -5,10 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
-  ManyToOne,
-  JoinColumn,
 } from 'typeorm';
-import { User } from '../users/user.entity';
 import {
   IsString,
   IsNotEmpty,
@@ -37,10 +34,6 @@ export class BuyerAccount {
   @Column()
   @Index()
   userId: string; // 所属用户
-
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'userId' })
-  user: User;
 
   @Column({ type: 'varchar', length: 20, default: BuyerAccountPlatform.TAOBAO })
   platform: BuyerAccountPlatform;

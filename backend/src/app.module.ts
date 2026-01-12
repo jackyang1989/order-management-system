@@ -14,6 +14,7 @@ import { WithdrawalsModule } from './withdrawals/withdrawals.module';
 import { MerchantsModule } from './merchants/merchants.module';
 import { ReviewTasksModule } from './review-tasks/review-tasks.module';
 import { AdminModule } from './admin/admin.module';
+import { AdminConfigModule } from './admin-config/admin-config.module';
 import { SystemConfigModule } from './system-config/system-config.module';
 import { ShopsModule } from './shops/shops.module';
 import { GoodsModule } from './goods/goods.module';
@@ -301,6 +302,7 @@ const ENTITIES = [
     MerchantsModule,
     ReviewTasksModule,
     AdminModule,
+    AdminConfigModule,
     SystemConfigModule,
     ShopsModule,
     GoodsModule,
