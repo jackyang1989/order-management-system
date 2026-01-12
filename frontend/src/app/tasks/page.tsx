@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { cn } from '../../lib/utils';
 import { isAuthenticated, getToken } from '../../services/authService';
 import BottomNav from '../../components/BottomNav';
-import { fetchSystemConfig, getEnabledTaskTypes } from '../../services/systemConfigService';
+import { fetchEnabledPlatforms, getEnabledTaskTypesFromPlatforms } from '../../services/systemConfigService';
 import { TASK_TYPE_NAMES } from '../../constants/platformConfig';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
@@ -46,12 +46,12 @@ export default function TasksPage() {
 
     // 加载启用的平台列表
     useEffect(() => {
-        const loadConfig = async () => {
-            const config = await fetchSystemConfig();
-            const enabled = getEnabledTaskTypes(config);
+        const loadPlatforms = async () => {
+            const platforms = await fetchEnabledPlatforms();
+            const enabled = getEnabledTaskTypesFromPlatforms(platforms);
             setEnabledTaskTypes(enabled);
         };
-        loadConfig();
+        loadPlatforms();
     }, []);
 
     // 根据启用平台生成平台筛选选项

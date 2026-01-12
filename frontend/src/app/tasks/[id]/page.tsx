@@ -135,11 +135,11 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
     // 浏览行为配置
     const browseActions = [
-        { label: '货比', enabled: task.needHuobi, extra: task.huobiKeyword },
-        { label: '收藏商品', enabled: task.needShoucang },
-        { label: '关注店铺', enabled: task.needGuanzhu },
-        { label: '加入购物车', enabled: task.needJiagou },
-        { label: '联系客服', enabled: task.needJialiao }
+        { label: '货比', enabled: task.needCompare, extra: task.compareKeyword },
+        { label: '收藏商品', enabled: task.needFavorite },
+        { label: '关注店铺', enabled: task.needFollow },
+        { label: '加入购物车', enabled: task.needAddCart },
+        { label: '联系客服', enabled: task.needContactCS }
     ].filter(a => a.enabled);
 
     return (

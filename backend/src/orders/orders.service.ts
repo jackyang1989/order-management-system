@@ -1447,17 +1447,17 @@ export class OrdersService {
     });
 
     // 货比步骤 (如果任务需要)
-    if (task.needHuobi) {
+    if (task.needCompare) {
       steps.push({
         step: stepNumber++,
         title: '货比加购',
-        description: `搜索货比关键词"${task.huobiKeyword || task.keyword}"，浏览5家同类商品每家2分钟，将其中3个商家的货比商品加入购物车并截图`,
+        description: `搜索货比关键词"${task.compareKeyword || task.keyword}"，浏览5家同类商品每家2分钟，将其中3个商家的货比商品加入购物车并截图`,
         submitted: false,
       });
     }
 
     // 收藏步骤
-    if (task.needShoucang) {
+    if (task.needFavorite) {
       steps.push({
         step: stepNumber++,
         title: '收藏商品',
@@ -1467,7 +1467,7 @@ export class OrdersService {
     }
 
     // 关注店铺步骤
-    if (task.needGuanzhu) {
+    if (task.needFollow) {
       steps.push({
         step: stepNumber++,
         title: '关注店铺',
@@ -1477,7 +1477,7 @@ export class OrdersService {
     }
 
     // 联系客服步骤
-    if (task.needJialiao) {
+    if (task.needContactCS) {
       steps.push({
         step: stepNumber++,
         title: '联系客服截图',
@@ -1487,7 +1487,7 @@ export class OrdersService {
     }
 
     // 加购物车步骤
-    if (task.needJiagou) {
+    if (task.needAddCart) {
       steps.push({
         step: stepNumber++,
         title: '加入购物车',

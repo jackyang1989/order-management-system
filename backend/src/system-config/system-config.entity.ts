@@ -185,12 +185,6 @@ export class SystemGlobalConfig {
   @Column({ type: 'int', default: 30 })
   inviteExpiryDays: number;
 
-  // ============ 平台开关配置 ============
-  // 启用的平台列表，JSON格式: ["taobao","tmall","jd","pdd","douyin","kuaishou"]
-  // 默认只启用淘宝
-  @Column({ type: 'text', default: '["taobao"]' })
-  enabledPlatforms: string;
-
   // ============ 收款账户配置 ============
   // 是否需要填写银行卡信息（关闭后只需上传收款码）
   @Column({ default: true })
@@ -340,11 +334,6 @@ export class UpdateSystemGlobalConfigDto {
 
   @IsOptional()
   dingdanxiaEnabled?: boolean;
-
-  // 平台开关配置
-  @IsOptional()
-  @IsString()
-  enabledPlatforms?: string;
 
   // 收款账户配置
   @IsOptional()

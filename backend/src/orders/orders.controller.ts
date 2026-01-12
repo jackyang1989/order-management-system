@@ -484,12 +484,12 @@ export class OrdersController {
           subBrowseMinutes: task.subBrowseMinutes || 2,
 
           // 其他要求
-          needHuobi: task.needHuobi,
-          huobiKeyword: task.huobiKeyword || '',
-          needShoucang: task.needShoucang,
-          needGuanzhu: task.needGuanzhu,
-          needJialiao: task.needJialiao,
-          needJiagou: task.needJiagou,
+          needCompare: task.needCompare,
+          compareKeyword: task.compareKeyword || '',
+          needFavorite: task.needFavorite,
+          needFollow: task.needFollow,
+          needContactCS: task.needContactCS,
+          needAddCart: task.needAddCart,
 
           // 时间信息
           createdAt: order.createdAt,

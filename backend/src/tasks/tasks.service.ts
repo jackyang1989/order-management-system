@@ -47,7 +47,7 @@ export class TasksService implements OnModuleInit {
    * 2. 否则，使用主商品的第一个搜索关键词
    * 3. 多商品时，只显示主商品(第一个商品)的货比关键词
    */
-  private getHuobiKeyword(dto: CreateTaskDto): string {
+  private getCompareKeyword(dto: CreateTaskDto): string {
     if (!dto.needCompare) {
       return '';
     }
@@ -381,12 +381,12 @@ export class TasksService implements OnModuleInit {
         cycle: dto.cycleTime || 0,
 
         // Browse Behavior Settings
-        needHuobi: !!dto.needCompare,
-        huobiKeyword: this.getHuobiKeyword(dto),
-        needShoucang: !!dto.needFavorite,
-        needGuanzhu: !!dto.needFollow,
-        needJiagou: !!dto.needAddCart,
-        needJialiao: !!dto.needContactCS,
+        needCompare: !!dto.needCompare,
+        compareKeyword: this.getCompareKeyword(dto),
+        needFavorite: !!dto.needFavorite,
+        needFollow: !!dto.needFollow,
+        needAddCart: !!dto.needAddCart,
+        needContactCS: !!dto.needContactCS,
 
         // 浏览时长设置
         totalBrowseMinutes: dto.totalBrowseMinutes || 15,

@@ -59,8 +59,6 @@ interface SystemGlobalConfig {
     inviteRewardAmount: number;
     inviteMaxOrders: number;
     inviteExpiryDays: number;
-    // 平台开关配置
-    enabledPlatforms: string;
     updatedAt: string;
 }
 

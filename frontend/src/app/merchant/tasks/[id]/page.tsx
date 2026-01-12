@@ -57,12 +57,12 @@ interface TaskDetail {
     shippingFee: number;
     margin: number;
     memo?: string;
-    needHuobi: boolean;
-    huobiKeyword?: string;
-    needShoucang: boolean;
-    needGuanzhu: boolean;
-    needJialiao: boolean;
-    needJiagou: boolean;
+    needCompare: boolean;
+    compareKeyword?: string;
+    needFavorite: boolean;
+    needFollow: boolean;
+    needContactCS: boolean;
+    needAddCart: boolean;
     totalBrowseMinutes: number;
     mainBrowseMinutes: number;
     subBrowseMinutes: number;
@@ -247,11 +247,11 @@ export default function TaskDetailPage() {
 
     // 浏览行为配置
     const browseActions = [
-        { key: 'needHuobi', label: '货比', enabled: task.needHuobi, extra: task.huobiKeyword },
-        { key: 'needShoucang', label: '收藏商品', enabled: task.needShoucang },
-        { key: 'needGuanzhu', label: '关注店铺', enabled: task.needGuanzhu },
-        { key: 'needJiagou', label: '加入购物车', enabled: task.needJiagou },
-        { key: 'needJialiao', label: '联系客服', enabled: task.needJialiao }
+        { key: 'needCompare', label: '货比', enabled: task.needCompare, extra: task.compareKeyword },
+        { key: 'needFavorite', label: '收藏商品', enabled: task.needFavorite },
+        { key: 'needFollow', label: '关注店铺', enabled: task.needFollow },
+        { key: 'needAddCart', label: '加入购物车', enabled: task.needAddCart },
+        { key: 'needContactCS', label: '联系客服', enabled: task.needContactCS }
     ];
 
     // 增值服务配置

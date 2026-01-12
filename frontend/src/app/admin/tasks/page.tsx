@@ -69,12 +69,12 @@ interface Task {
     isNextDay: boolean;
     cycle?: number;
     unionInterval?: number;
-    needHuobi: boolean;
-    huobiKeyword?: string;
-    needShoucang: boolean;
-    needGuanzhu: boolean;
-    needJialiao: boolean;
-    needJiagou: boolean;
+    needCompare: boolean;
+    compareKeyword?: string;
+    needFavorite: boolean;
+    needFollow: boolean;
+    needContactCS: boolean;
+    needAddCart: boolean;
     totalBrowseMinutes: number;
     mainBrowseMinutes: number;
     subBrowseMinutes: number;
@@ -457,11 +457,11 @@ export default function AdminTasksPage() {
 
                     // 浏览行为配置
                     const browseActions = [
-                        { label: '货比', enabled: detailModal.needHuobi, extra: detailModal.huobiKeyword },
-                        { label: '收藏商品', enabled: detailModal.needShoucang },
-                        { label: '关注店铺', enabled: detailModal.needGuanzhu },
-                        { label: '加入购物车', enabled: detailModal.needJiagou },
-                        { label: '联系客服', enabled: detailModal.needJialiao }
+                        { label: '货比', enabled: detailModal.needCompare, extra: detailModal.compareKeyword },
+                        { label: '收藏商品', enabled: detailModal.needFavorite },
+                        { label: '关注店铺', enabled: detailModal.needFollow },
+                        { label: '加入购物车', enabled: detailModal.needAddCart },
+                        { label: '联系客服', enabled: detailModal.needContactCS }
                     ];
 
                     // 增值服务配置

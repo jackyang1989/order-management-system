@@ -30,12 +30,12 @@ export interface TaskItem {
     isImgPraise?: boolean;
     isVideoPraise?: boolean;
     memo?: string;
-    needHuobi?: boolean;
-    huobiKeyword?: string;
-    needShoucang?: boolean;
-    needGuanzhu?: boolean;
-    needJialiao?: boolean;
-    needJiagou?: boolean;
+    needCompare?: boolean;
+    compareKeyword?: string;
+    needFavorite?: boolean;
+    needFollow?: boolean;
+    needContactCS?: boolean;
+    needAddCart?: boolean;
     totalBrowseMinutes?: number;
     mainBrowseMinutes?: number;
     subBrowseMinutes?: number;
@@ -95,12 +95,12 @@ const normalizeTask = (raw: any): TaskItem => ({
     isImgPraise: raw?.isImgPraise,
     isVideoPraise: raw?.isVideoPraise,
     memo: raw?.memo,
-    needHuobi: raw?.needHuobi,
-    huobiKeyword: raw?.huobiKeyword,
-    needShoucang: raw?.needShoucang,
-    needGuanzhu: raw?.needGuanzhu,
-    needJialiao: raw?.needJialiao,
-    needJiagou: raw?.needJiagou,
+    needCompare: raw?.needCompare,
+    compareKeyword: raw?.compareKeyword,
+    needFavorite: raw?.needFavorite,
+    needFollow: raw?.needFollow,
+    needContactCS: raw?.needContactCS,
+    needAddCart: raw?.needAddCart,
     totalBrowseMinutes: raw?.totalBrowseMinutes,
     mainBrowseMinutes: raw?.mainBrowseMinutes,
     subBrowseMinutes: raw?.subBrowseMinutes,

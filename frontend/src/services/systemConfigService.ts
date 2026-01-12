@@ -48,8 +48,6 @@ export interface SystemGlobalConfig {
     inviteRewardAmount: number;
     inviteMaxOrders: number;
     inviteExpiryDays: number;
-    // 平台开关配置
-    enabledPlatforms: string;
     updatedAt: string;
 }
 
@@ -201,40 +199,21 @@ export function getInviteRewardAmount(config: SystemGlobalConfig | null): number
     return Number(config.inviteRewardAmount) || 1;
 }
 
-// 默认启用的平台列表
-const DEFAULT_ENABLED_PLATFORMS = ['taobao'];
-
-// 获取启用的平台ID列表
-export function getEnabledPlatforms(config: SystemGlobalConfig | null): string[] {
-    if (!config?.enabledPlatforms) return DEFAULT_ENABLED_PLATFORMS;
-    try {
-        const platforms = JSON.parse(config.enabledPlatforms);
-        return Array.isArray(platforms) ? platforms : DEFAULT_ENABLED_PLATFORMS;
-    } catch {
-        return DEFAULT_ENABLED_PLATFORMS;
-    }
-}
-
-// 检查平台是否启用
-export function isPlatformEnabled(config: SystemGlobalConfig | null, platformId: string): boolean {
-    const enabled = getEnabledPlatforms(config);
-    return enabled.includes(platformId);
-}
-
 // 获取启用的任务平台类型ID列表 (数字类型，对应 TaskType 枚举)
-// platformId (string) -> TaskType (number) 映射
-const PLATFORM_ID_TO_TASK_TYPE: Record<string, number> = {
+const PLATFORM_CODE_TO_TASK_TYPE: Record<string, number> = {
     'taobao': 1,  // TaskType.TAOBAO
     'tmall': 2,   // TaskType.TMALL
     'jd': 3,      // TaskType.JD
     'pdd': 4,     // TaskType.PDD
     'douyin': 5,  // TaskType.DOUYIN
-    'kuaishou': 6, // TaskType.KUAISHOU
+    'kuaishou': 6,
+    'xhs': 7,
+    'xianyu': 8,
+    '1688': 9,
 };
 
-export function getEnabledTaskTypes(config: SystemGlobalConfig | null): number[] {
-    const enabledPlatforms = getEnabledPlatforms(config);
-    return enabledPlatforms
-        .map(id => PLATFORM_ID_TO_TASK_TYPE[id])
+export function getEnabledTaskTypesFromPlatforms(platforms: PlatformData[]): number[] {
+    return platforms
+        .map(platform => PLATFORM_CODE_TO_TASK_TYPE[platform.code])
         .filter((t): t is number => t !== undefined);
 }

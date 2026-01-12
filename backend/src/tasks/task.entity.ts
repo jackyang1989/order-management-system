@@ -296,22 +296,22 @@ export class Task {
   // --- Missing Fields for OrdersService ---
 
   @Column({ default: false })
-  needHuobi: boolean; // 货比
+  needCompare: boolean; // 货比
 
   @Column({ nullable: true })
-  huobiKeyword: string; // 货比关键词
+  compareKeyword: string; // 货比关键词
 
   @Column({ default: false })
-  needShoucang: boolean; // 收藏
+  needFavorite: boolean; // 收藏商品
 
   @Column({ default: false })
-  needGuanzhu: boolean; // 关注
+  needFollow: boolean; // 关注店铺
 
   @Column({ default: false })
-  needJialiao: boolean; // 联系客服
+  needContactCS: boolean; // 联系客服
 
   @Column({ default: false })
-  needJiagou: boolean; // 加购
+  needAddCart: boolean; // 加入购物车
 
   @Column({ type: 'int', default: 15 })
   totalBrowseMinutes: number; // 总浏览时长
