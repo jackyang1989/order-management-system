@@ -328,19 +328,25 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 <div className="mb-3 text-sm font-bold text-slate-800">浏览要求</div>
 
                 {/* 浏览时长 */}
-                <div className="grid grid-cols-3 gap-2 text-center mb-3">
+                <div className={`grid gap-2 text-center mb-3 ${task.hasSubProduct !== false ? 'grid-cols-4' : 'grid-cols-3'}`}>
                     <div className="rounded bg-slate-50 p-2">
                         <div className="text-lg font-bold text-primary-600">{task.totalBrowseMinutes || 15}</div>
                         <div className="text-xs text-slate-400">总计/分钟</div>
                     </div>
                     <div className="rounded bg-slate-50 p-2">
+                        <div className="text-lg font-bold text-warning-500">{task.compareBrowseMinutes || 3}</div>
+                        <div className="text-xs text-slate-400">货比/分钟</div>
+                    </div>
+                    <div className="rounded bg-slate-50 p-2">
                         <div className="text-lg font-bold text-success-600">{task.mainBrowseMinutes || 8}</div>
                         <div className="text-xs text-slate-400">主品/分钟</div>
                     </div>
-                    <div className="rounded bg-slate-50 p-2">
-                        <div className="text-lg font-bold text-warning-500">{task.subBrowseMinutes || 2}</div>
-                        <div className="text-xs text-slate-400">副品/分钟</div>
-                    </div>
+                    {task.hasSubProduct !== false && (
+                        <div className="rounded bg-slate-50 p-2">
+                            <div className="text-lg font-bold text-slate-500">{task.subBrowseMinutes || 2}</div>
+                            <div className="text-xs text-slate-400">副品/分钟</div>
+                        </div>
+                    )}
                 </div>
 
                 {/* 浏览行为 */}

@@ -123,8 +123,10 @@ export interface TaskFormData {
 
     // 浏览时长设置
     totalBrowseMinutes: number;  // 总浏览时长(分钟)
+    compareBrowseMinutes: number; // 货比浏览时长
     mainBrowseMinutes: number;   // 主商品浏览时长
     subBrowseMinutes: number;    // 副商品浏览时长
+    hasSubProduct: boolean;      // 是否有副商品
 
     // Extra Services
     isTimingPublish: boolean;
@@ -211,8 +213,10 @@ export const InitialTaskData: TaskFormData = {
 
     // 浏览时长设置
     totalBrowseMinutes: 15,
+    compareBrowseMinutes: 3,
     mainBrowseMinutes: 8,
     subBrowseMinutes: 2,
+    hasSubProduct: true,
 
     isTimingPublish: false,
     isTimingPay: false,

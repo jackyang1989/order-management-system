@@ -521,8 +521,10 @@ export class OrdersController {
 
           // 浏览时长要求
           totalBrowseMinutes: task.totalBrowseMinutes || 15,
+          compareBrowseMinutes: task.compareBrowseMinutes || 3,
           mainBrowseMinutes: task.mainBrowseMinutes || 8,
           subBrowseMinutes: task.subBrowseMinutes || 2,
+          hasSubProduct: task.hasSubProduct !== false,
 
           // 其他要求
           needCompare: task.needCompare,

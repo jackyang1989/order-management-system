@@ -179,30 +179,56 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
             {/* Browse Time Settings */}
             <div className="mb-8">
                 <h3 className="mb-4 text-[15px] font-semibold text-[#374151]">浏览时长设置</h3>
-                <div className="grid grid-cols-3 gap-4 rounded-md border border-[#e5e7eb] bg-white p-4">
-                    <div>
-                        <label className="mb-1.5 block text-sm text-[#374151]">总浏览时长</label>
-                        <div className="flex items-center gap-1">
-                            <input type="number" value={data.totalBrowseMinutes || 15} onChange={e => onChange({ totalBrowseMinutes: parseInt(e.target.value) || 15 })} min={5} max={60} className="w-20 rounded border border-[#e5e7eb] px-2 py-1.5 text-sm" />
-                            <span className="text-sm text-[#6b7280]">分钟</span>
+                <div className="rounded-md border border-[#e5e7eb] bg-white p-4">
+                    <div className="grid grid-cols-4 gap-4">
+                        <div>
+                            <label className="mb-1.5 block text-sm text-[#374151]">总浏览时长</label>
+                            <div className="flex items-center gap-1">
+                                <input type="number" value={data.totalBrowseMinutes || 15} onChange={e => onChange({ totalBrowseMinutes: parseInt(e.target.value) || 15 })} min={5} max={60} className="w-20 rounded border border-[#e5e7eb] px-2 py-1.5 text-sm" />
+                                <span className="text-sm text-[#6b7280]">分钟</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="mb-1.5 block text-sm text-[#374151]">货比浏览时长</label>
+                            <div className="flex items-center gap-1">
+                                <input type="number" value={data.compareBrowseMinutes || 3} onChange={e => onChange({ compareBrowseMinutes: parseInt(e.target.value) || 3 })} min={1} max={10} className="w-20 rounded border border-[#e5e7eb] px-2 py-1.5 text-sm" />
+                                <span className="text-sm text-[#6b7280]">分钟</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="mb-1.5 block text-sm text-[#374151]">主商品浏览时长</label>
+                            <div className="flex items-center gap-1">
+                                <input type="number" value={data.mainBrowseMinutes || 8} onChange={e => onChange({ mainBrowseMinutes: parseInt(e.target.value) || 8 })} min={3} max={30} className="w-20 rounded border border-[#e5e7eb] px-2 py-1.5 text-sm" />
+                                <span className="text-sm text-[#6b7280]">分钟</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div className="mb-1.5 flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="hasSubProduct"
+                                    checked={data.hasSubProduct !== false}
+                                    onChange={e => onChange({ hasSubProduct: e.target.checked })}
+                                    className="h-4 w-4"
+                                />
+                                <label htmlFor="hasSubProduct" className="text-sm text-[#374151] cursor-pointer">副商品浏览时长</label>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <input
+                                    type="number"
+                                    value={data.subBrowseMinutes || 2}
+                                    onChange={e => onChange({ subBrowseMinutes: parseInt(e.target.value) || 2 })}
+                                    min={1}
+                                    max={10}
+                                    disabled={data.hasSubProduct === false}
+                                    className={`w-20 rounded border border-[#e5e7eb] px-2 py-1.5 text-sm ${data.hasSubProduct === false ? 'bg-gray-100 text-gray-400' : ''}`}
+                                />
+                                <span className="text-sm text-[#6b7280]">分钟</span>
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <label className="mb-1.5 block text-sm text-[#374151]">主商品浏览时长</label>
-                        <div className="flex items-center gap-1">
-                            <input type="number" value={data.mainBrowseMinutes || 8} onChange={e => onChange({ mainBrowseMinutes: parseInt(e.target.value) || 8 })} min={3} max={30} className="w-20 rounded border border-[#e5e7eb] px-2 py-1.5 text-sm" />
-                            <span className="text-sm text-[#6b7280]">分钟</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label className="mb-1.5 block text-sm text-[#374151]">副商品浏览时长</label>
-                        <div className="flex items-center gap-1">
-                            <input type="number" value={data.subBrowseMinutes || 2} onChange={e => onChange({ subBrowseMinutes: parseInt(e.target.value) || 2 })} min={1} max={10} className="w-20 rounded border border-[#e5e7eb] px-2 py-1.5 text-sm" />
-                            <span className="text-sm text-[#6b7280]">分钟</span>
-                        </div>
-                    </div>
+                    <p className="mt-3 text-xs text-[#9ca3af]">设置买手浏览商品的最低时长要求，增加浏览真实性。不勾选副商品则该任务无副商品浏览要求。</p>
                 </div>
-                <p className="mt-2 text-xs text-[#9ca3af]">设置买手浏览商品的最低时长要求，增加浏览真实性</p>
             </div>
 
             {/* Praise Settings */}

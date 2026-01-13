@@ -813,19 +813,25 @@ export default function AdminTasksPage() {
                                     </div>
                                     <div className="space-y-2">
                                         <div className="text-[12px] font-medium text-[#3b4559]">浏览时长</div>
-                                        <div className="grid grid-cols-3 gap-2 text-center">
+                                        <div className={`grid gap-2 text-center ${detailModal.hasSubProduct !== false ? 'grid-cols-4' : 'grid-cols-3'}`}>
                                             <div className="rounded bg-white p-2 border border-slate-200">
                                                 <div className="text-lg font-bold text-primary-600">{detailModal.totalBrowseMinutes || 15}</div>
                                                 <div className="text-[10px] text-[#6b7280]">总计/分钟</div>
                                             </div>
                                             <div className="rounded bg-white p-2 border border-slate-200">
+                                                <div className="text-lg font-bold text-warning-500">{detailModal.compareBrowseMinutes || 3}</div>
+                                                <div className="text-[10px] text-[#6b7280]">货比/分钟</div>
+                                            </div>
+                                            <div className="rounded bg-white p-2 border border-slate-200">
                                                 <div className="text-lg font-bold text-success-600">{detailModal.mainBrowseMinutes || 8}</div>
                                                 <div className="text-[10px] text-[#6b7280]">主品/分钟</div>
                                             </div>
-                                            <div className="rounded bg-white p-2 border border-slate-200">
-                                                <div className="text-lg font-bold text-warning-500">{detailModal.subBrowseMinutes || 2}</div>
-                                                <div className="text-[10px] text-[#6b7280]">副品/分钟</div>
-                                            </div>
+                                            {detailModal.hasSubProduct !== false && (
+                                                <div className="rounded bg-white p-2 border border-slate-200">
+                                                    <div className="text-lg font-bold text-slate-500">{detailModal.subBrowseMinutes || 2}</div>
+                                                    <div className="text-[10px] text-[#6b7280]">副品/分钟</div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

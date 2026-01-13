@@ -331,11 +331,17 @@ export class Task {
   @Column({ type: 'int', default: 15 })
   totalBrowseMinutes: number; // 总浏览时长
 
+  @Column({ type: 'int', default: 3 })
+  compareBrowseMinutes: number; // 货比浏览时长
+
   @Column({ type: 'int', default: 8 })
   mainBrowseMinutes: number; // 主商品浏览时长
 
   @Column({ type: 'int', default: 2 })
   subBrowseMinutes: number; // 副商品浏览时长
+
+  @Column({ default: true })
+  hasSubProduct: boolean; // 是否有副商品（控制副商品浏览时长显示）
 
   @CreateDateColumn()
   createdAt: Date;
@@ -420,8 +426,10 @@ export class CreateTaskDto {
 
   // 浏览时长设置
   totalBrowseMinutes?: number;
+  compareBrowseMinutes?: number;
   mainBrowseMinutes?: number;
   subBrowseMinutes?: number;
+  hasSubProduct?: boolean;
 
   isTimingPublish?: boolean;
   publishTime?: string;

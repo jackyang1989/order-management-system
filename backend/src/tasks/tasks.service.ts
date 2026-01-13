@@ -426,8 +426,10 @@ export class TasksService implements OnModuleInit {
 
         // 浏览时长设置
         totalBrowseMinutes: dto.totalBrowseMinutes || 15,
+        compareBrowseMinutes: dto.compareBrowseMinutes || 3,
         mainBrowseMinutes: dto.mainBrowseMinutes || 8,
         subBrowseMinutes: dto.subBrowseMinutes || 2,
+        hasSubProduct: dto.hasSubProduct !== false,
 
         // 特殊任务类型
         isRepay: !!dto.isRepay,

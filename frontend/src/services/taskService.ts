@@ -71,8 +71,10 @@ export interface TaskItem {
     contactCSContent?: string;
     needAddCart?: boolean;
     totalBrowseMinutes?: number;
+    compareBrowseMinutes?: number;
     mainBrowseMinutes?: number;
     subBrowseMinutes?: number;
+    hasSubProduct?: boolean;
     isRepay?: boolean;
     isNextDay?: boolean;
     count?: number;
@@ -144,8 +146,10 @@ const normalizeTask = (raw: any): TaskItem => ({
     needContactCS: raw?.needContactCS,
     needAddCart: raw?.needAddCart,
     totalBrowseMinutes: raw?.totalBrowseMinutes,
+    compareBrowseMinutes: raw?.compareBrowseMinutes,
     mainBrowseMinutes: raw?.mainBrowseMinutes,
     subBrowseMinutes: raw?.subBrowseMinutes,
+    hasSubProduct: raw?.hasSubProduct,
     isRepay: raw?.isRepay,
     isNextDay: raw?.isNextDay,
     count: raw?.count,

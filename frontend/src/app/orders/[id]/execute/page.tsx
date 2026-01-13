@@ -105,6 +105,13 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const [weight, setWeight] = useState(0); // 包裹重量
     const [fastRefund, setFastRefund] = useState(false); // 快速返款服务
 
+    // 浏览时长要求
+    const [totalBrowseMinutes, setTotalBrowseMinutes] = useState(15);
+    const [compareBrowseMinutes, setCompareBrowseMinutes] = useState(3);
+    const [mainBrowseMinutes, setMainBrowseMinutes] = useState(8);
+    const [subBrowseMinutes, setSubBrowseMinutes] = useState(2);
+    const [hasSubProduct, setHasSubProduct] = useState(true);
+
     // Step 1: 货比加购截图
     const [localFile2, setLocalFile2] = useState<{ file: File; content: string } | null>(null);
 
@@ -201,6 +208,11 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 setContactCSContent(data.contactCSContent || '');
                 setWeight(data.weight || 0);
                 setFastRefund(data.fastRefund || false);
+                setTotalBrowseMinutes(data.totalBrowseMinutes || 15);
+                setCompareBrowseMinutes(data.compareBrowseMinutes || 3);
+                setMainBrowseMinutes(data.mainBrowseMinutes || 8);
+                setSubBrowseMinutes(data.subBrowseMinutes || 2);
+                setHasSubProduct(data.hasSubProduct !== false);
                 setTaskTimeType('');
                 setTaskYsType('');
 
@@ -776,7 +788,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             <p>1. 禁止使用任何返利平台，若有使用请退出返利平台并清空{platformName || '平台'}缓存后再继续任务；</p>
                             <p>2. 必须按照商家给的关键词和渠道搜索进店，不可擅自加词或更换指定进店渠道，后台可看到进店关键词和渠道；</p>
                             {contactCSContent && <p>3. 必须联系客服并发送以下内容：<span style={{ fontWeight: 'bold', color: 'blue' }}>{contactCSContent}</span>；</p>}
-                            <p>{contactCSContent ? '4' : '3'}. 浏览主商品8分钟以上，副商品5分钟以上，然后随机浏览店铺其他2个商品各2分钟，浏览时间不够和未到支付步骤不要提前将购物车的商品下单付款，后台可看到各商品停留时间，总浏览时间低于15分钟无法提交订单；</p>
+                            <p>{contactCSContent ? '4' : '3'}. 货比浏览{compareBrowseMinutes}分钟以上，主商品浏览{mainBrowseMinutes}分钟以上{hasSubProduct ? `，副商品浏览${subBrowseMinutes}分钟以上` : ''}，然后随机浏览店铺其他2个商品各2分钟，浏览时间不够和未到支付步骤不要提前将购物车的商品下单付款，后台可看到各商品停留时间，总浏览时间低于{totalBrowseMinutes}分钟无法提交订单；</p>
                             <p>{contactCSContent ? '5' : '4'}. 禁止修改订单截图上的实付金额，所有支付优惠商家后台都可查到；</p>
                             <p>{contactCSContent ? '6' : '5'}. 请在倒计时结束前完成任务并在平台提交，超时任务取消且系统会自动扣除1银锭；</p>
                             <p>{contactCSContent ? '7' : '6'}. 请严格按要求认真完成任务，否则将根据处罚细则进行处罚。</p>
@@ -815,10 +827,13 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                 fontSize: '12px',
                             }}>壹</span>
                             <span style={{ fontWeight: 'bold' }}>货比加购</span>
+                            <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#e6a23c', fontWeight: 'bold' }}>
+                                浏览时长：{compareBrowseMinutes}分钟/家
+                            </span>
                         </div>
                         <div style={{ fontSize: '13px', color: '#666', lineHeight: '1.8' }}>
                             <p>1. {platformName || '平台'}APP搜索框，搜索货比关键词：<span style={{ color: 'red' }}>{mainProductFilter3}</span></p>
-                            <p>2. 根据搜索结果，浏览{compareCount}家同类商品，每家2分钟；</p>
+                            <p>2. 根据搜索结果，浏览{compareCount}家同类商品，每家{compareBrowseMinutes}分钟；</p>
                             <p>3. 将其中3个商家的货比商品加入购物车并截图；</p>
                             <p>4. 上传货比加购截图:</p>
                         </div>
@@ -863,6 +878,36 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                 fontSize: '12px',
                             }}>贰</span>
                             <span style={{ fontWeight: 'bold' }}>进店浏览</span>
+                        </div>
+
+                        {/* 浏览时长要求 */}
+                        <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-around', 
+                            background: '#f0f9eb', 
+                            borderRadius: '4px', 
+                            padding: '12px', 
+                            marginBottom: '15px',
+                            border: '1px solid #c2e7b0'
+                        }}>
+                            <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#409eff' }}>{totalBrowseMinutes}</div>
+                                <div style={{ fontSize: '11px', color: '#666' }}>总计/分钟</div>
+                            </div>
+                            <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#e6a23c' }}>{compareBrowseMinutes}</div>
+                                <div style={{ fontSize: '11px', color: '#666' }}>货比/分钟</div>
+                            </div>
+                            <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#67c23a' }}>{mainBrowseMinutes}</div>
+                                <div style={{ fontSize: '11px', color: '#666' }}>主品/分钟</div>
+                            </div>
+                            {hasSubProduct && (
+                                <div style={{ textAlign: 'center' }}>
+                                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#909399' }}>{subBrowseMinutes}</div>
+                                    <div style={{ fontSize: '11px', color: '#666' }}>副品/分钟</div>
+                                </div>
+                            )}
                         </div>
 
                         {/* 任务类型指引 */}

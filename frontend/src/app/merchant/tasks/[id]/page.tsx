@@ -501,19 +501,25 @@ export default function TaskDetailPage() {
                                 {/* 浏览时长 */}
                                 <div className="space-y-2">
                                     <div className="text-sm font-medium text-[#3b4559]">浏览时长</div>
-                                    <div className="grid grid-cols-3 gap-2 text-center">
+                                    <div className={`grid gap-2 text-center ${task.hasSubProduct !== false ? 'grid-cols-4' : 'grid-cols-3'}`}>
                                         <div className="rounded bg-slate-50 p-2">
                                             <div className="text-lg font-bold text-primary-600">{task.totalBrowseMinutes || 15}</div>
                                             <div className="text-xs text-[#6b7280]">总计/分钟</div>
                                         </div>
                                         <div className="rounded bg-slate-50 p-2">
+                                            <div className="text-lg font-bold text-warning-500">{task.compareBrowseMinutes || 3}</div>
+                                            <div className="text-xs text-[#6b7280]">货比/分钟</div>
+                                        </div>
+                                        <div className="rounded bg-slate-50 p-2">
                                             <div className="text-lg font-bold text-success-600">{task.mainBrowseMinutes || 8}</div>
                                             <div className="text-xs text-[#6b7280]">主品/分钟</div>
                                         </div>
-                                        <div className="rounded bg-slate-50 p-2">
-                                            <div className="text-lg font-bold text-warning-500">{task.subBrowseMinutes || 2}</div>
-                                            <div className="text-xs text-[#6b7280]">副品/分钟</div>
-                                        </div>
+                                        {task.hasSubProduct !== false && (
+                                            <div className="rounded bg-slate-50 p-2">
+                                                <div className="text-lg font-bold text-slate-500">{task.subBrowseMinutes || 2}</div>
+                                                <div className="text-xs text-[#6b7280]">副品/分钟</div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
