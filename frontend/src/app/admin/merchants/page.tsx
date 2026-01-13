@@ -592,7 +592,7 @@ export default function AdminMerchantsPage() {
                     <span className="text-base font-medium">商家列表</span>
                     <span className="text-sm text-[#6b7280]">共 {total} 条记录</span>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="mb-6 flex flex-wrap items-center gap-3">
                     <Input
                         placeholder="搜索商家名称/手机号..."
                         value={keyword}

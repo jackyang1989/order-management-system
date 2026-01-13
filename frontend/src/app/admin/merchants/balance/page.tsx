@@ -88,14 +88,14 @@ export default function AdminMerchantsBalancePage() {
     };
 
     return (
-        <div className="space-y-4">
-            {/* Filter Card */}
-            <Card className="bg-white">
+        <div className="space-y-6">
+            {/* Unified Card */}
+            <Card className="bg-white p-6">
                 <div className="mb-4 flex items-center justify-between">
                     <span className="text-base font-medium">商家余额记录</span>
                     <span className="text-[#6b7280]">共 {total} 条记录</span>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="mb-6 flex flex-wrap items-center gap-3">
                     <Input
                         placeholder="搜索商家名称..."
                         value={search}
@@ -115,76 +115,75 @@ export default function AdminMerchantsBalancePage() {
                     />
                     <Button onClick={handleSearch}>搜索</Button>
                 </div>
-            </Card>
 
-            {/* Table Card */}
-            <Card className="overflow-hidden bg-white p-0">
-                {loading ? (
-                    <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
-                ) : records.length === 0 ? (
-                    <div className="py-12 text-center text-[#9ca3af]">暂无记录</div>
-                ) : (
-                    <>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-[1000px] w-full border-collapse">
-                                <thead>
-                                    <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
-                                        <th className="px-4 py-3.5 text-left text-sm font-medium">商家</th>
-                                        <th className="px-4 py-3.5 text-left text-sm font-medium">类型</th>
-                                        <th className="px-4 py-3.5 text-center text-sm font-medium">账户</th>
-                                        <th className="px-4 py-3.5 text-right text-sm font-medium">变动金额</th>
-                                        <th className="px-4 py-3.5 text-right text-sm font-medium">变动前</th>
-                                        <th className="px-4 py-3.5 text-right text-sm font-medium">变动后</th>
-                                        <th className="px-4 py-3.5 text-left text-sm font-medium">备注</th>
-                                        <th className="px-4 py-3.5 text-left text-sm font-medium">时间</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {records.map(r => (
-                                        <tr key={r.id} className="border-b border-[#f3f4f6]">
-                                            <td className="px-4 py-3.5 font-medium">{r.username || '-'}</td>
-                                            <td className="px-4 py-3.5 text-[#6b7280]">{changeTypeLabels[r.changeType] || r.changeType}</td>
-                                            <td className="px-4 py-3.5 text-center">
-                                                <Badge variant="soft" color={moneyTypeLabels[r.moneyType]?.color || 'slate'}>
-                                                    {moneyTypeLabels[r.moneyType]?.text || '未知'}
-                                                </Badge>
-                                            </td>
-                                            <td className={cn('px-4 py-3.5 text-right font-medium', Number(r.amount) > 0 ? 'text-success-400' : 'text-danger-400')}>
-                                                {Number(r.amount) > 0 ? '+' : ''}{Number(r.amount).toFixed(2)}
-                                            </td>
-                                            <td className="px-4 py-3.5 text-right text-[#9ca3af]">{Number(r.beforeBalance || 0).toFixed(2)}</td>
-                                            <td className="px-4 py-3.5 text-right">{Number(r.afterBalance || 0).toFixed(2)}</td>
-                                            <td className="max-w-[150px] truncate px-4 py-3.5 text-[#6b7280]">{r.remark || '-'}</td>
-                                            <td className="px-4 py-3.5 text-xs text-[#9ca3af]">{r.createdAt ? new Date(r.createdAt).toLocaleString('zh-CN') : '-'}</td>
+                <div className="overflow-hidden">
+                    {loading ? (
+                        <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
+                    ) : records.length === 0 ? (
+                        <div className="py-12 text-center text-[#9ca3af]">暂无记录</div>
+                    ) : (
+                        <>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-[1000px] w-full border-collapse">
+                                    <thead>
+                                        <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
+                                            <th className="px-4 py-3.5 text-left text-sm font-medium">商家</th>
+                                            <th className="px-4 py-3.5 text-left text-sm font-medium">类型</th>
+                                            <th className="px-4 py-3.5 text-center text-sm font-medium">账户</th>
+                                            <th className="px-4 py-3.5 text-right text-sm font-medium">变动金额</th>
+                                            <th className="px-4 py-3.5 text-right text-sm font-medium">变动前</th>
+                                            <th className="px-4 py-3.5 text-right text-sm font-medium">变动后</th>
+                                            <th className="px-4 py-3.5 text-left text-sm font-medium">备注</th>
+                                            <th className="px-4 py-3.5 text-left text-sm font-medium">时间</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                        {records.map(r => (
+                                            <tr key={r.id} className="border-b border-[#f3f4f6]">
+                                                <td className="px-4 py-3.5 font-medium">{r.username || '-'}</td>
+                                                <td className="px-4 py-3.5 text-[#6b7280]">{changeTypeLabels[r.changeType] || r.changeType}</td>
+                                                <td className="px-4 py-3.5 text-center">
+                                                    <Badge variant="soft" color={moneyTypeLabels[r.moneyType]?.color || 'slate'}>
+                                                        {moneyTypeLabels[r.moneyType]?.text || '未知'}
+                                                    </Badge>
+                                                </td>
+                                                <td className={cn('px-4 py-3.5 text-right font-medium', Number(r.amount) > 0 ? 'text-success-400' : 'text-danger-400')}>
+                                                    {Number(r.amount) > 0 ? '+' : ''}{Number(r.amount).toFixed(2)}
+                                                </td>
+                                                <td className="px-4 py-3.5 text-right text-[#9ca3af]">{Number(r.beforeBalance || 0).toFixed(2)}</td>
+                                                <td className="px-4 py-3.5 text-right">{Number(r.afterBalance || 0).toFixed(2)}</td>
+                                                <td className="max-w-[150px] truncate px-4 py-3.5 text-[#6b7280]">{r.remark || '-'}</td>
+                                                <td className="px-4 py-3.5 text-xs text-[#9ca3af]">{r.createdAt ? new Date(r.createdAt).toLocaleString('zh-CN') : '-'}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
 
-                        <div className="flex items-center justify-end gap-2 p-4">
-                            <Button
-                                size="sm"
-                                variant="secondary"
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                disabled={page === 1}
-                                className={cn(page === 1 && 'cursor-not-allowed opacity-50')}
-                            >
-                                上一页
-                            </Button>
-                            <span className="px-3 text-sm text-[#6b7280]">第 {page} 页</span>
-                            <Button
-                                size="sm"
-                                variant="secondary"
-                                onClick={() => setPage(p => p + 1)}
-                                disabled={records.length < 20}
-                                className={cn(records.length < 20 && 'cursor-not-allowed opacity-50')}
-                            >
-                                下一页
-                            </Button>
-                        </div>
-                    </>
-                )}
+                            <div className="flex items-center justify-end gap-2 p-4">
+                                <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                                    disabled={page === 1}
+                                    className={cn(page === 1 && 'cursor-not-allowed opacity-50')}
+                                >
+                                    上一页
+                                </Button>
+                                <span className="px-3 text-sm text-[#6b7280]">第 {page} 页</span>
+                                <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    onClick={() => setPage(p => p + 1)}
+                                    disabled={records.length < 20}
+                                    className={cn(records.length < 20 && 'cursor-not-allowed opacity-50')}
+                                >
+                                    下一页
+                                </Button>
+                            </div>
+                        </>
+                    )}
+                </div>
             </Card>
         </div>
     );

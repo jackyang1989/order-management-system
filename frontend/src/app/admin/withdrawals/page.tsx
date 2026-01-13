@@ -313,8 +313,8 @@ export default function AdminWithdrawalsPage() {
     return (
         <div className="space-y-6">
             {/* 筛选栏 */}
-            <Card className="bg-white">
-                <div className="flex flex-wrap items-center gap-3">
+            <Card className="bg-white p-6">
+                <div className="mb-6 flex flex-wrap items-center gap-3">
                     <Input
                         placeholder="搜索用户名/手机号..."
                         value={keyword}
@@ -363,27 +363,28 @@ export default function AdminWithdrawalsPage() {
                         </>
                     )}
                 </div>
-            </Card>
 
-            {/* 提现列表 */}
-            <Card className="overflow-hidden bg-white">
-                <Table
-                    columns={columns}
-                    data={withdrawals}
-                    rowKey={(r) => r.id}
-                    loading={loading}
-                    emptyText="暂无提现记录"
-                    selectable={filter === '0'}
-                    selectedKeys={selectedRowKeys}
-                    onRowSelect={setSelectedRowKeys}
-                    getRowDisabled={(row) => String(row.status) !== '0'}
-                />
-            </Card>
+
+                <div className="overflow-hidden">
+                    <Table
+                        columns={columns}
+                        data={withdrawals}
+                        rowKey={(r) => r.id}
+                        loading={loading}
+                        emptyText="暂无提现记录"
+                        selectable={filter === '0'}
+                        selectedKeys={selectedRowKeys}
+                        onRowSelect={setSelectedRowKeys}
+                        getRowDisabled={(row) => String(row.status) !== '0'}
+                    />
+                </div>
+            </Card >
 
             {/* 拒绝弹窗 */}
-            <Modal
+            < Modal
                 title="拒绝提现"
-                open={!!rejectModal}
+                open={!!rejectModal
+                }
                 onClose={() => { setRejectModal(null); setRejectReason(''); }}
             >
                 <div className="space-y-4">
@@ -406,10 +407,10 @@ export default function AdminWithdrawalsPage() {
                         </Button>
                     </div>
                 </div>
-            </Modal>
+            </Modal >
 
             {/* 批量确认弹窗 */}
-            <Modal
+            < Modal
                 title={`确定${batchModal?.action === 'approve' ? '批量通过' : '批量拒绝'}？`}
                 open={!!batchModal}
                 onClose={() => setBatchModal(null)}
@@ -433,7 +434,7 @@ export default function AdminWithdrawalsPage() {
                         </Button>
                     </div>
                 </div>
-            </Modal>
-        </div>
+            </Modal >
+        </div >
     );
 }

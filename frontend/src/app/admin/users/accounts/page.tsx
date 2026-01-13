@@ -525,7 +525,7 @@ function AdminBuyerAccountsPageContent() {
                     </div>
                 </div>
                 {/* 筛选栏 */}
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="mb-6 flex flex-wrap items-center gap-3">
                     <Input
                         placeholder="用户名"
                         value={filterUsername}

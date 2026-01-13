@@ -143,13 +143,13 @@ export default function AdminTasksReviewsPage() {
                 </div>
             )}
 
-            {/* Filter Bar */}
-            <Card className="space-y-4 bg-white">
-                <div className="flex items-center justify-between">
-                    <span className="font-medium">追评任务审核</span>
+            {/* Unified Card */}
+            <Card className="bg-white p-6">
+                <div className="mb-4 flex items-center justify-between">
+                    <span className="text-base font-medium">追评任务审核</span>
                     <span className="text-[#6b7280]">共 {total} 条记录</span>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="mb-6 flex flex-wrap items-center gap-3">
                     <Input placeholder="搜索任务编号..." value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSearch()} className="w-52" />
                     <Select
                         value={stateFilter !== undefined ? String(stateFilter) : ''}
@@ -168,67 +168,66 @@ export default function AdminTasksReviewsPage() {
                     />
                     <Button onClick={handleSearch}>搜索</Button>
                 </div>
-            </Card>
 
-            {/* Task Table */}
-            <Card className="overflow-hidden bg-white p-0">
-                {loading ? (
-                    <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
-                ) : tasks.length === 0 ? (
-                    <div className="py-12 text-center text-[#9ca3af]">暂无追评任务</div>
-                ) : (
-                    <>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-[1000px] w-full border-collapse">
-                                <thead>
-                                    <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
-                                        <th className="px-4 py-3.5 text-left text-sm font-medium">任务编号</th>
-                                        <th className="px-4 py-3.5 text-left text-sm font-medium">平台订单号</th>
-                                        <th className="px-4 py-3.5 text-right text-sm font-medium">任务金额</th>
-                                        <th className="px-4 py-3.5 text-right text-sm font-medium">买手佣金</th>
-                                        <th className="px-4 py-3.5 text-center text-sm font-medium">状态</th>
-                                        <th className="px-4 py-3.5 text-left text-sm font-medium">创建时间</th>
-                                        <th className="px-4 py-3.5 text-center text-sm font-medium">操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {tasks.map(t => (
-                                        <tr key={t.id} className="border-b border-[#f3f4f6]">
-                                            <td className="px-4 py-3.5 font-mono text-primary-600">{t.taskNumber}</td>
-                                            <td className="px-4 py-3.5 font-mono text-[#6b7280]">{t.platformOrderNumber || '-'}</td>
-                                            <td className="px-4 py-3.5 text-right font-medium text-danger-400">¥{Number(t.money || 0).toFixed(2)}</td>
-                                            <td className="px-4 py-3.5 text-right text-success-400">¥{Number(t.userMoney || 0).toFixed(2)}</td>
-                                            <td className="px-4 py-3.5 text-center">
-                                                <Badge variant="soft" color={statusLabels[t.state]?.color || 'slate'}>{statusLabels[t.state]?.text || '未知'}</Badge>
-                                            </td>
-                                            <td className="px-4 py-3.5 text-xs text-[#9ca3af]">{t.createdAt ? new Date(t.createdAt).toLocaleString('zh-CN') : '-'}</td>
-                                            <td className="px-4 py-3.5 text-center">
-                                                <div className="flex justify-center gap-2">
-                                                    <Button size="sm" variant="secondary" onClick={() => setDetailModal(t)}>查看</Button>
-                                                    {t.state === 1 && (
-                                                        <>
-                                                            <Button size="sm" className="bg-green-500 hover:bg-success-400" onClick={() => setExamineModal({ id: t.id, action: 'approve' })}>通过</Button>
-                                                            <Button size="sm" variant="destructive" onClick={() => setExamineModal({ id: t.id, action: 'reject' })}>拒绝</Button>
-                                                        </>
-                                                    )}
-                                                    {t.state === 3 && (
-                                                        <Button size="sm" className="bg-warning-400 hover:bg-warning-500" onClick={() => handleRefund(t.id)}>返款</Button>
-                                                    )}
-                                                </div>
-                                            </td>
+                <div className="overflow-hidden">
+                    {loading ? (
+                        <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
+                    ) : tasks.length === 0 ? (
+                        <div className="py-12 text-center text-[#9ca3af]">暂无追评任务</div>
+                    ) : (
+                        <>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-[1000px] w-full border-collapse">
+                                    <thead>
+                                        <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
+                                            <th className="px-4 py-3.5 text-left text-sm font-medium">任务编号</th>
+                                            <th className="px-4 py-3.5 text-left text-sm font-medium">平台订单号</th>
+                                            <th className="px-4 py-3.5 text-right text-sm font-medium">任务金额</th>
+                                            <th className="px-4 py-3.5 text-right text-sm font-medium">买手佣金</th>
+                                            <th className="px-4 py-3.5 text-center text-sm font-medium">状态</th>
+                                            <th className="px-4 py-3.5 text-left text-sm font-medium">创建时间</th>
+                                            <th className="px-4 py-3.5 text-center text-sm font-medium">操作</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                        {tasks.map(t => (
+                                            <tr key={t.id} className="border-b border-[#f3f4f6]">
+                                                <td className="px-4 py-3.5 font-mono text-primary-600">{t.taskNumber}</td>
+                                                <td className="px-4 py-3.5 font-mono text-[#6b7280]">{t.platformOrderNumber || '-'}</td>
+                                                <td className="px-4 py-3.5 text-right font-medium text-danger-400">¥{Number(t.money || 0).toFixed(2)}</td>
+                                                <td className="px-4 py-3.5 text-right text-success-400">¥{Number(t.userMoney || 0).toFixed(2)}</td>
+                                                <td className="px-4 py-3.5 text-center">
+                                                    <Badge variant="soft" color={statusLabels[t.state]?.color || 'slate'}>{statusLabels[t.state]?.text || '未知'}</Badge>
+                                                </td>
+                                                <td className="px-4 py-3.5 text-xs text-[#9ca3af]">{t.createdAt ? new Date(t.createdAt).toLocaleString('zh-CN') : '-'}</td>
+                                                <td className="px-4 py-3.5 text-center">
+                                                    <div className="flex justify-center gap-2">
+                                                        <Button size="sm" variant="secondary" onClick={() => setDetailModal(t)}>查看</Button>
+                                                        {t.state === 1 && (
+                                                            <>
+                                                                <Button size="sm" className="bg-green-500 hover:bg-success-400" onClick={() => setExamineModal({ id: t.id, action: 'approve' })}>通过</Button>
+                                                                <Button size="sm" variant="destructive" onClick={() => setExamineModal({ id: t.id, action: 'reject' })}>拒绝</Button>
+                                                            </>
+                                                        )}
+                                                        {t.state === 3 && (
+                                                            <Button size="sm" className="bg-warning-400 hover:bg-warning-500" onClick={() => handleRefund(t.id)}>返款</Button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
 
-                        <div className="flex justify-end gap-2 border-t border-[#f3f4f6] p-4">
-                            <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className={cn(page === 1 && 'cursor-not-allowed opacity-50')}>上一页</Button>
-                            <span className="px-3 py-1.5 text-sm text-[#6b7280]">第 {page} 页</span>
-                            <Button size="sm" variant="secondary" onClick={() => setPage(p => p + 1)} disabled={tasks.length < 20} className={cn(tasks.length < 20 && 'cursor-not-allowed opacity-50')}>下一页</Button>
-                        </div>
-                    </>
-                )}
+                            <div className="flex justify-end gap-2 border-t border-[#f3f4f6] p-4">
+                                <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className={cn(page === 1 && 'cursor-not-allowed opacity-50')}>上一页</Button>
+                                <span className="px-3 py-1.5 text-sm text-[#6b7280]">第 {page} 页</span>
+                                <Button size="sm" variant="secondary" onClick={() => setPage(p => p + 1)} disabled={tasks.length < 20} className={cn(tasks.length < 20 && 'cursor-not-allowed opacity-50')}>下一页</Button>
+                            </div>
+                        </>
+                    )}
+                </div>
             </Card>
 
             {/* Detail Modal */}

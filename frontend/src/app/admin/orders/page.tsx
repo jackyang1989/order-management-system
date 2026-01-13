@@ -193,12 +193,12 @@ export default function AdminOrdersPage() {
 
     return (
         <div className="space-y-6">
-            <Card className="bg-white">
+            <Card className="bg-white p-6">
                 <div className="mb-4 flex items-center justify-between">
                     <span className="text-base font-medium">订单列表</span>
                     <span className="text-sm text-[#6b7280]">共 {total} 条记录</span>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="mb-6 flex flex-wrap items-center gap-3">
                     <Input
                         placeholder="搜索订单号/商品名..."
                         value={keyword}
@@ -233,25 +233,26 @@ export default function AdminOrdersPage() {
                         导出
                     </Button>
                 </div>
-            </Card>
 
-            <Card className="overflow-hidden bg-white">
-                <Table
-                    columns={columns}
-                    data={orders}
-                    rowKey={(r) => r.id}
-                    loading={loading}
-                    emptyText="暂无订单数据"
-                />
-                <div className="mt-4 flex justify-end px-6 pb-6">
-                    <Pagination
-                        current={page}
-                        total={total}
-                        pageSize={20}
-                        onChange={setPage}
+
+                <div className="overflow-hidden">
+                    <Table
+                        columns={columns}
+                        data={orders}
+                        rowKey={(r) => r.id}
+                        loading={loading}
+                        emptyText="暂无订单数据"
                     />
+                    <div className="mt-4 flex justify-end px-6 pb-6">
+                        <Pagination
+                            current={page}
+                            total={total}
+                            pageSize={20}
+                            onChange={setPage}
+                        />
+                    </div>
                 </div>
-            </Card>
+            </Card >
 
             <Modal
                 title="订单详情"
@@ -411,6 +412,6 @@ export default function AdminOrdersPage() {
                     </div>
                 )}
             </Modal>
-        </div>
+        </div >
     );
 }

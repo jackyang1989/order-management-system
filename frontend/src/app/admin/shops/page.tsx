@@ -186,155 +186,157 @@ function ShopsContent() {
     };
 
     return (
-        <div className="space-y-6 p-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-medium">
-                    店铺管理
-                    {merchantId && <span className="ml-2 text-base text-[#6b7280]">(筛选商家ID: {merchantId})</span>}
-                </h1>
-                {merchantId && (
-                    <Button variant="outline" onClick={() => window.location.href = '/admin/shops'}>
-                        查看全部
-                    </Button>
-                )}
-            </div>
+        <div className="space-y-6">
+            <Card className="bg-white p-6">
+                <div className="mb-4 flex items-center justify-between">
+                    <h1 className="text-xl font-medium">
+                        店铺管理
+                        {merchantId && <span className="ml-2 text-base text-[#6b7280]">(筛选商家ID: {merchantId})</span>}
+                    </h1>
+                    {merchantId && (
+                        <Button variant="outline" onClick={() => window.location.href = '/admin/shops'}>
+                            查看全部
+                        </Button>
+                    )}
+                </div>
 
-            {/* 筛选栏 */}
-            <div className="flex flex-wrap items-center gap-3">
-                <Input
-                    type="text"
-                    placeholder="搜索店铺名称/账号"
-                    value={searchText}
-                    onChange={e => setSearchText(e.target.value)}
-                    className="w-48"
-                />
-                <Select
-                    value={platformFilter}
-                    onChange={setPlatformFilter}
-                    options={platformOptions}
-                    className="w-32"
-                />
-                <Select
-                    value={statusFilter}
-                    onChange={setStatusFilter}
-                    options={[
-                        { value: '', label: '全部状态' },
-                        { value: '0', label: '待审核' },
-                        { value: '1', label: '正常' },
-                        { value: '2', label: '已拒绝' },
-                    ]}
-                    className="w-32"
-                />
-                <Button onClick={loadShops}>搜索</Button>
-            </div>
+                {/* 筛选栏 */}
+                <div className="mb-6 flex flex-wrap items-center gap-3">
+                    <Input
+                        type="text"
+                        placeholder="搜索店铺名称/账号"
+                        value={searchText}
+                        onChange={e => setSearchText(e.target.value)}
+                        className="w-48"
+                    />
+                    <Select
+                        value={platformFilter}
+                        onChange={setPlatformFilter}
+                        options={platformOptions}
+                        className="w-32"
+                    />
+                    <Select
+                        value={statusFilter}
+                        onChange={setStatusFilter}
+                        options={[
+                            { value: '', label: '全部状态' },
+                            { value: '0', label: '待审核' },
+                            { value: '1', label: '正常' },
+                            { value: '2', label: '已拒绝' },
+                        ]}
+                        className="w-32"
+                    />
+                    <Button onClick={loadShops}>搜索</Button>
+                </div>
 
-            <Card className="overflow-hidden bg-white p-0">
-                <div className="overflow-x-auto">
-                    <table className="min-w-[1200px] w-full border-collapse">
-                        <thead>
-                            <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
-                                <th className="px-3 py-3 text-left text-sm font-medium">所属商家</th>
-                                <th className="px-3 py-3 text-left text-sm font-medium">平台</th>
-                                <th className="px-3 py-3 text-left text-sm font-medium">后台截图</th>
-                                <th className="px-3 py-3 text-left text-sm font-medium">店铺名称</th>
-                                <th className="px-3 py-3 text-left text-sm font-medium">店铺账号</th>
-                                <th className="px-3 py-3 text-left text-sm font-medium">联系人/手机</th>
-                                <th className="px-3 py-3 text-left text-sm font-medium">发货地址</th>
-                                <th className="px-3 py-3 text-left text-sm font-medium">状态</th>
-                                <th className="px-3 py-3 text-left text-sm font-medium">申请时间</th>
-                                <th className="px-3 py-3 text-left text-sm font-medium">操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading ? (
-                                <tr><td colSpan={10} className="py-10 text-center text-[#9ca3af]">加载中...</td></tr>
-                            ) : shops.length === 0 ? (
-                                <tr><td colSpan={10} className="py-10 text-center text-[#9ca3af]">暂无数据</td></tr>
-                            ) : shops.map(shop => (
-                                <tr key={shop.id} className="border-b border-[#f3f4f6]">
-                                    <td className="px-3 py-3">
-                                        <div>{shop.merchant?.companyName || shop.merchant?.username || '--'}</div>
-                                        <div className="text-xs text-[#9ca3af]">{shop.merchant?.username}</div>
-                                    </td>
-                                    <td className="px-3 py-3">{shop.platform}</td>
-                                    <td className="px-3 py-3">
-                                        {shop.screenshot ? (
-                                            <a href={getFullImageUrl(shop.screenshot)} target="_blank" rel="noopener noreferrer">
-                                                <img
-                                                    src={getFullImageUrl(shop.screenshot)}
-                                                    alt="店铺截图"
-                                                    className="h-12 w-12 cursor-pointer rounded border border-[#e5e7eb] object-cover hover:opacity-80"
-                                                />
-                                            </a>
-                                        ) : (
-                                            <div className="flex h-12 w-12 items-center justify-center rounded border border-dashed border-[#d1d5db] bg-[#f9fafb] text-xs text-[#9ca3af]">
-                                                无
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td className="px-3 py-3 font-medium">{shop.shopName || '-'}</td>
-                                    <td className="px-3 py-3 text-[#6b7280]">{shop.accountName || '-'}</td>
-                                    <td className="px-3 py-3">
-                                        <div>{shop.contactName || '-'}</div>
-                                        <div className="text-xs text-[#9ca3af]">{shop.mobile || '-'}</div>
-                                    </td>
-                                    <td className="px-3 py-3 text-xs text-[#6b7280]">
-                                        {[shop.province, shop.city, shop.district].filter(Boolean).join(' ') || '-'}
-                                        {shop.detailAddress && <div>{shop.detailAddress}</div>}
-                                    </td>
-                                    <td className="px-3 py-3">
-                                        <Badge variant="soft" color={statusConfig[shop.status]?.color || 'slate'}>
-                                            {statusConfig[shop.status]?.text || '未知'}
-                                        </Badge>
-                                        {shop.auditRemark && <div className="mt-1 text-xs text-danger-400">{shop.auditRemark}</div>}
-                                    </td>
-                                    <td className="px-3 py-3 text-xs text-[#6b7280]">{new Date(shop.createdAt).toLocaleString()}</td>
-                                    <td className="px-3 py-3">
-                                        <div className="flex flex-wrap gap-2">
-                                            <button
-                                                onClick={() => openEditModal(shop)}
-                                                className="cursor-pointer border-none bg-transparent text-sm text-primary-500 hover:underline"
-                                            >
-                                                编辑
-                                            </button>
-                                            {shop.status === 0 && (
-                                                <>
+                <div className="overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-[1200px] w-full border-collapse">
+                            <thead>
+                                <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
+                                    <th className="px-3 py-3 text-left text-sm font-medium">所属商家</th>
+                                    <th className="px-3 py-3 text-left text-sm font-medium">平台</th>
+                                    <th className="px-3 py-3 text-left text-sm font-medium">后台截图</th>
+                                    <th className="px-3 py-3 text-left text-sm font-medium">店铺名称</th>
+                                    <th className="px-3 py-3 text-left text-sm font-medium">店铺账号</th>
+                                    <th className="px-3 py-3 text-left text-sm font-medium">联系人/手机</th>
+                                    <th className="px-3 py-3 text-left text-sm font-medium">发货地址</th>
+                                    <th className="px-3 py-3 text-left text-sm font-medium">状态</th>
+                                    <th className="px-3 py-3 text-left text-sm font-medium">申请时间</th>
+                                    <th className="px-3 py-3 text-left text-sm font-medium">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {loading ? (
+                                    <tr><td colSpan={10} className="py-10 text-center text-[#9ca3af]">加载中...</td></tr>
+                                ) : shops.length === 0 ? (
+                                    <tr><td colSpan={10} className="py-10 text-center text-[#9ca3af]">暂无数据</td></tr>
+                                ) : shops.map(shop => (
+                                    <tr key={shop.id} className="border-b border-[#f3f4f6]">
+                                        <td className="px-3 py-3">
+                                            <div>{shop.merchant?.companyName || shop.merchant?.username || '--'}</div>
+                                            <div className="text-xs text-[#9ca3af]">{shop.merchant?.username}</div>
+                                        </td>
+                                        <td className="px-3 py-3">{shop.platform}</td>
+                                        <td className="px-3 py-3">
+                                            {shop.screenshot ? (
+                                                <a href={getFullImageUrl(shop.screenshot)} target="_blank" rel="noopener noreferrer">
+                                                    <img
+                                                        src={getFullImageUrl(shop.screenshot)}
+                                                        alt="店铺截图"
+                                                        className="h-12 w-12 cursor-pointer rounded border border-[#e5e7eb] object-cover hover:opacity-80"
+                                                    />
+                                                </a>
+                                            ) : (
+                                                <div className="flex h-12 w-12 items-center justify-center rounded border border-dashed border-[#d1d5db] bg-[#f9fafb] text-xs text-[#9ca3af]">
+                                                    无
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="px-3 py-3 font-medium">{shop.shopName || '-'}</td>
+                                        <td className="px-3 py-3 text-[#6b7280]">{shop.accountName || '-'}</td>
+                                        <td className="px-3 py-3">
+                                            <div>{shop.contactName || '-'}</div>
+                                            <div className="text-xs text-[#9ca3af]">{shop.mobile || '-'}</div>
+                                        </td>
+                                        <td className="px-3 py-3 text-xs text-[#6b7280]">
+                                            {[shop.province, shop.city, shop.district].filter(Boolean).join(' ') || '-'}
+                                            {shop.detailAddress && <div>{shop.detailAddress}</div>}
+                                        </td>
+                                        <td className="px-3 py-3">
+                                            <Badge variant="soft" color={statusConfig[shop.status]?.color || 'slate'}>
+                                                {statusConfig[shop.status]?.text || '未知'}
+                                            </Badge>
+                                            {shop.auditRemark && <div className="mt-1 text-xs text-danger-400">{shop.auditRemark}</div>}
+                                        </td>
+                                        <td className="px-3 py-3 text-xs text-[#6b7280]">{new Date(shop.createdAt).toLocaleString()}</td>
+                                        <td className="px-3 py-3">
+                                            <div className="flex flex-wrap gap-2">
+                                                <button
+                                                    onClick={() => openEditModal(shop)}
+                                                    className="cursor-pointer border-none bg-transparent text-sm text-primary-500 hover:underline"
+                                                >
+                                                    编辑
+                                                </button>
+                                                {shop.status === 0 && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => openReviewModal(shop, 'approve')}
+                                                            className="cursor-pointer border-none bg-transparent text-sm text-success-400 hover:underline"
+                                                        >
+                                                            通过
+                                                        </button>
+                                                        <button
+                                                            onClick={() => openReviewModal(shop, 'reject')}
+                                                            className="cursor-pointer border-none bg-transparent text-sm text-danger-400 hover:underline"
+                                                        >
+                                                            拒绝
+                                                        </button>
+                                                    </>
+                                                )}
+                                                {shop.status === 1 && (
+                                                    <button
+                                                        onClick={() => openReviewModal(shop, 'reject')}
+                                                        className="cursor-pointer border-none bg-transparent text-sm text-warning-500 hover:underline"
+                                                    >
+                                                        禁用
+                                                    </button>
+                                                )}
+                                                {shop.status === 2 && (
                                                     <button
                                                         onClick={() => openReviewModal(shop, 'approve')}
                                                         className="cursor-pointer border-none bg-transparent text-sm text-success-400 hover:underline"
                                                     >
-                                                        通过
+                                                        恢复
                                                     </button>
-                                                    <button
-                                                        onClick={() => openReviewModal(shop, 'reject')}
-                                                        className="cursor-pointer border-none bg-transparent text-sm text-danger-400 hover:underline"
-                                                    >
-                                                        拒绝
-                                                    </button>
-                                                </>
-                                            )}
-                                            {shop.status === 1 && (
-                                                <button
-                                                    onClick={() => openReviewModal(shop, 'reject')}
-                                                    className="cursor-pointer border-none bg-transparent text-sm text-warning-500 hover:underline"
-                                                >
-                                                    禁用
-                                                </button>
-                                            )}
-                                            {shop.status === 2 && (
-                                                <button
-                                                    onClick={() => openReviewModal(shop, 'approve')}
-                                                    className="cursor-pointer border-none bg-transparent text-sm text-success-400 hover:underline"
-                                                >
-                                                    恢复
-                                                </button>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </Card>
 
@@ -530,7 +532,7 @@ function ShopsContent() {
                     </div>
                 </div>
             </Modal>
-        </div>
+        </div >
     );
 }
 

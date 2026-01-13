@@ -356,12 +356,12 @@ export default function AdminTasksPage() {
 
     return (
         <div className="space-y-6">
-            <Card className="bg-white">
+            <Card className="bg-white p-6">
                 <div className="mb-4 flex items-center justify-between">
                     <span className="text-base font-medium">任务列表</span>
                     <span className="text-sm text-[#6b7280]">共 {total} 条记录</span>
                 </div>
-                <div className="flex flex-wrap items-center gap-4">
+                <div className="mb-6 flex flex-wrap items-center gap-4">
                     <span className="text-[13px] font-medium text-[#3b4559]">状态筛选：</span>
                     <Tabs
                         value={String(filter ?? 'all')}
@@ -401,25 +401,26 @@ export default function AdminTasksPage() {
                         </Button>
                     </div>
                 </div>
-            </Card>
 
-            <Card className="overflow-hidden bg-white">
-                <Table
-                    columns={columns}
-                    data={tasks}
-                    rowKey={(r) => r.id}
-                    loading={loading}
-                    emptyText="暂无任务数据"
-                />
-                <div className="mt-4 flex justify-end px-6 pb-6">
-                    <Pagination
-                        current={page}
-                        total={total}
-                        pageSize={20}
-                        onChange={setPage}
+
+                <div className="overflow-hidden">
+                    <Table
+                        columns={columns}
+                        data={tasks}
+                        rowKey={(r) => r.id}
+                        loading={loading}
+                        emptyText="暂无任务数据"
                     />
+                    <div className="mt-4 flex justify-end px-6 pb-6">
+                        <Pagination
+                            current={page}
+                            total={total}
+                            pageSize={20}
+                            onChange={setPage}
+                        />
+                    </div>
                 </div>
-            </Card>
+            </Card >
 
             <Modal
                 title="任务详情"
@@ -730,6 +731,6 @@ export default function AdminTasksPage() {
                     );
                 })()}
             </Modal>
-        </div>
+        </div >
     );
 }
