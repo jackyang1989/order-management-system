@@ -62,9 +62,11 @@ export interface TaskItem {
     memo?: string;
     needCompare?: boolean;
     compareKeyword?: string;
+    compareCount?: number;
     needFavorite?: boolean;
     needFollow?: boolean;
     needContactCS?: boolean;
+    contactCSContent?: string;
     needAddCart?: boolean;
     totalBrowseMinutes?: number;
     mainBrowseMinutes?: number;
@@ -75,6 +77,11 @@ export interface TaskItem {
     claimedCount?: number;
     extraReward?: number;
     extraCommission?: number;
+    // 口令验证
+    isPasswordEnabled?: boolean;
+    checkPassword?: string;
+    // 包裹重量
+    weight?: number;
     // Multi-goods and multi-keywords from refactored version
     goodsList?: TaskGoodsItem[];
     keywords?: TaskKeywordItem[];

@@ -1,11 +1,8 @@
 'use client';
 
-import { 
-    PlatformLabels, 
-    TerminalLabels, 
-    OrderStatusLabels 
-} from '@/shared/taskSpec';
-import { formatDateTime, formatMoney } from '@/shared/formatters';
+import { useEffect, useState, use, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { BASE_URL } from '../../../../../apiConfig';
 
 // ===================== 类型定义 =====================
 interface TaskInfo {
@@ -251,6 +248,8 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         price: number;
                         num: number;
                         isMain: boolean;
+                        verifyCode?: string;
+                        orderSpecs?: { specName: string; specValue: string; quantity: number }[];
                         keywords?: {
                             id: string;
                             keyword: string;
@@ -904,20 +903,68 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
 
                         {tableData2.map((item, index) => (
                             <div key={index} style={{ marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '15px' }}>
+                                {/* 主/副商品标识 */}
+                                <div style={{
+                                    display: 'inline-block',
+                                    background: item.isMain ? '#409eff' : '#67c23a',
+                                    color: 'white',
+                                    fontSize: '11px',
+                                    padding: '2px 8px',
+                                    borderRadius: '10px',
+                                    marginBottom: '8px'
+                                }}>
+                                    {item.isMain ? '主商品' : '副商品'}
+                                </div>
+
                                 <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
                                     <img src={item.img} alt="商品" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
                                     <div style={{ flex: 1 }}>
-                                         <div style={{ fontSize: '13px', color: '#333' }}>{item.productName}</div>
-                                         <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>店铺：{item.dianpuName}</div>
-                                         {item.orderSpecs && item.orderSpecs.length > 0 && (
-                                             <div style={{ fontSize: '12px', color: '#409eff', marginTop: '5px', fontWeight: 'bold' }}>
-                                                 指定规格：{item.orderSpecs.map(s => `${s.specName}:${s.specValue}(x${s.quantity})`).join(', ')}
-                                             </div>
-                                         )}
-                                         <div style={{ fontSize: '12px', color: '#f56c6c', marginTop: '5px' }}>¥{item.buyPrice} x {item.buyNum}</div>
-
+                                        <div style={{ fontSize: '13px', color: '#333' }}>{item.productName}</div>
+                                        <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>店铺：{item.dianpuName}</div>
+                                        {item.specname && item.specifications && (
+                                            <div style={{ fontSize: '12px', color: '#409eff', marginTop: '5px', fontWeight: 'bold' }}>
+                                                规格：{item.specname} - {item.specifications}
+                                            </div>
+                                        )}
+                                        <div style={{ fontSize: '12px', color: '#f56c6c', marginTop: '5px' }}>¥{item.buyPrice} x {item.buyNum}</div>
                                     </div>
                                 </div>
+
+                                {/* 关键词及筛选设置显示 */}
+                                {item.keywords && item.keywords.length > 0 && (
+                                    <div style={{
+                                        background: '#f0f9eb',
+                                        padding: '10px',
+                                        borderRadius: '4px',
+                                        marginBottom: '10px',
+                                        fontSize: '12px'
+                                    }}>
+                                        <div style={{ fontWeight: 'bold', color: '#67c23a', marginBottom: '8px' }}>搜索关键词：</div>
+                                        {item.keywords.map((kw, kwIndex) => (
+                                            <div key={kwIndex} style={{
+                                                background: '#fff',
+                                                padding: '8px',
+                                                borderRadius: '4px',
+                                                marginBottom: kwIndex < item.keywords!.length - 1 ? '8px' : 0
+                                            }}>
+                                                <div style={{ color: '#f56c6c', fontWeight: 'bold' }}>
+                                                    关键词{kwIndex + 1}：{kw.keyword}
+                                                </div>
+                                                {/* 筛选设置 */}
+                                                <div style={{ marginTop: '5px', color: '#666' }}>
+                                                    {kw.sort && <span style={{ marginRight: '10px' }}>排序：{kw.sort}</span>}
+                                                    {kw.province && <span style={{ marginRight: '10px' }}>发货地：{kw.province}</span>}
+                                                    {(kw.minPrice > 0 || kw.maxPrice > 0) && (
+                                                        <span style={{ marginRight: '10px' }}>
+                                                            价格区间：¥{kw.minPrice || 0} - ¥{kw.maxPrice || '不限'}
+                                                        </span>
+                                                    )}
+                                                    {kw.discount && <span>折扣：{kw.discount}</span>}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
 
                                 {/* 核对输入 */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

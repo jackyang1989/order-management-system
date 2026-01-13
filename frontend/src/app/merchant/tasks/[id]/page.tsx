@@ -66,6 +66,7 @@ interface TaskDetail {
     memo?: string;
     needCompare: boolean;
     compareKeyword?: string;
+    compareCount?: number;
     needFavorite: boolean;
     needFollow: boolean;
     needContactCS: boolean;
