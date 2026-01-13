@@ -12,7 +12,11 @@ import { Table, Column } from '../../../components/ui/table';
 import { Modal } from '../../../components/ui/modal';
 import { Pagination } from '../../../components/ui/pagination';
 import { Tabs } from '../../../components/ui/tabs';
+
 import { TASK_TYPE_NAMES } from '../../../constants/platformConfig';
+import { EnhancedTable, EnhancedColumn } from '../../../components/ui/enhanced-table';
+import { ColumnSettingsPanel, ColumnConfig, ColumnMeta } from '../../../components/ui/column-settings-panel';
+import { useTablePreferences } from '../../../hooks/useTablePreferences';
 
 interface Task {
     id: string;
@@ -103,6 +107,53 @@ export default function AdminTasksPage() {
     const [exporting, setExporting] = useState(false);
     const [detailModal, setDetailModal] = useState<Task | null>(null);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+    // 排序状态
+    const [sortField, setSortField] = useState<string>('createdAt');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+    // 列设置面板状态
+    const [showColumnSettings, setShowColumnSettings] = useState(false);
+
+    // 默认列配置
+    const defaultColumns: ColumnConfig[] = useMemo(() => [
+        { key: 'checkbox', visible: true, width: 50, order: 0 },
+        { key: 'taskNumber', visible: true, width: 130, order: 1 },
+        { key: 'merchant', visible: true, width: 140, order: 2 },
+        { key: 'taskType', visible: true, width: 80, order: 3 },
+        { key: 'terminal', visible: true, width: 90, order: 4 },
+        { key: 'goodsPrice', visible: true, width: 100, order: 5 },
+        { key: 'progress', visible: true, width: 110, order: 6 },
+        { key: 'shipping', visible: true, width: 80, order: 7 },
+        { key: 'status', visible: true, width: 90, order: 8 },
+        { key: 'createdAt', visible: true, width: 100, order: 9 },
+        { key: 'actions', visible: true, width: 220, order: 10 },
+    ], []);
+
+    // 使用表格偏好设置 Hook
+    const {
+        columnConfig,
+        updateLocalConfig,
+        savePreferences,
+        resetPreferences
+    } = useTablePreferences({
+        tableKey: 'admin-tasks-list',
+        defaultColumns,
+    });
+
+    const columnMeta = useMemo(() => [
+        { key: 'checkbox', title: '选择' },
+        { key: 'taskNumber', title: '任务编号' },
+        { key: 'merchant', title: '商家' },
+        { key: 'taskType', title: '平台' },
+        { key: 'terminal', title: '返款方式' },
+        { key: 'goodsPrice', title: '商品售价' },
+        { key: 'progress', title: '已接/完成' },
+        { key: 'shipping', title: '邮费' },
+        { key: 'status', title: '状态' },
+        { key: 'createdAt', title: '发布时间' },
+        { key: 'actions', title: '操作' },
+    ], []);
 
     const statusOptions = useMemo(
         () =>
@@ -230,32 +281,12 @@ export default function AdminTasksPage() {
         }
     };
 
-    const columns: Column<Task>[] = [
-        {
-            key: 'checkbox',
-            title: (
-                <input
-                    type="checkbox"
-                    checked={tasks.length > 0 && selectedIds.length === tasks.length}
-                    onChange={toggleSelectAll}
-                    className="h-4 w-4 rounded border-[#d1d5db]"
-                />
-            ),
-            render: (row) => (
-                <input
-                    type="checkbox"
-                    checked={selectedIds.includes(row.id)}
-                    onChange={() => toggleSelect(row.id)}
-                    className="h-4 w-4 rounded border-[#d1d5db]"
-                />
-            ),
-            className: 'w-[50px]',
-        },
+    const columns: EnhancedColumn<Task>[] = [
         {
             key: 'taskNumber',
             title: '任务编号',
             render: (row) => <code className="text-[12px] text-[#6b7280]">{row.taskNumber}</code>,
-            className: 'w-[130px]',
+            cellClassName: 'w-[130px]',
         },
         {
             key: 'merchant',
@@ -266,13 +297,13 @@ export default function AdminTasksPage() {
                     <div className="text-xs text-[#9ca3af]">{row.shopName || '-'}</div>
                 </div>
             ),
-            className: 'w-[140px]',
+            cellClassName: 'w-[140px]',
         },
         {
             key: 'taskType',
             title: '平台',
             render: (row) => <span className="text-[#5a6577]">{TASK_TYPE_NAMES[row.taskType] || '其他'}</span>,
-            className: 'w-[80px]',
+            cellClassName: 'w-[80px]',
         },
         {
             key: 'terminal',
@@ -282,13 +313,13 @@ export default function AdminTasksPage() {
                     {terminalLabels[row.terminal] || '-'}
                 </Badge>
             ),
-            className: 'w-[90px]',
+            cellClassName: 'w-[90px]',
         },
         {
             key: 'goodsPrice',
             title: '商品售价',
             render: (row) => <span className="font-medium text-[#3b4559]">¥{Number(row.goodsPrice).toFixed(2)}</span>,
-            className: 'w-[100px] text-right',
+            cellClassName: 'w-[100px] text-right',
         },
         {
             key: 'progress',
@@ -302,7 +333,7 @@ export default function AdminTasksPage() {
                     <span className="text-[#6b7280]">{row.count}</span>
                 </div>
             ),
-            className: 'w-[110px]',
+            cellClassName: 'w-[110px]',
         },
         {
             key: 'shipping',
@@ -312,7 +343,7 @@ export default function AdminTasksPage() {
                     {row.isFreeShipping ? '包邮' : '非包邮'}
                 </Badge>
             ),
-            className: 'w-[80px] text-center',
+            cellClassName: 'w-[80px] text-center',
         },
         {
             key: 'status',
@@ -325,13 +356,13 @@ export default function AdminTasksPage() {
                     </Badge>
                 );
             },
-            className: 'w-[90px] text-center',
+            cellClassName: 'w-[90px] text-center',
         },
         {
             key: 'createdAt',
             title: '发布时间',
             render: (row) => <span className="text-xs text-[#6b7280]">{formatDate(row.createdAt)}</span>,
-            className: 'w-[100px]',
+            cellClassName: 'w-[100px]',
         },
         {
             key: 'actions',
@@ -350,7 +381,7 @@ export default function AdminTasksPage() {
                     </div>
                 </div>
             ),
-            className: 'w-[200px]',
+            cellClassName: 'w-[200px]',
         },
     ];
 
@@ -404,12 +435,24 @@ export default function AdminTasksPage() {
 
 
                 <div className="overflow-hidden">
-                    <Table
+                    <EnhancedTable
                         columns={columns}
                         data={tasks}
                         rowKey={(r) => r.id}
                         loading={loading}
                         emptyText="暂无任务数据"
+                        selectable
+                        selectedKeys={selectedIds}
+                        onRowSelect={(keys) => setSelectedIds(keys as string[])}
+                        columnConfig={columnConfig}
+                        onColumnConfigChange={updateLocalConfig}
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={(field, order) => {
+                            setSortField(field);
+                            setSortOrder(order);
+                        }}
+                        onColumnSettingsClick={() => setShowColumnSettings(true)}
                     />
                     <div className="mt-4 flex justify-end px-6 pb-6">
                         <Pagination
@@ -421,6 +464,16 @@ export default function AdminTasksPage() {
                     </div>
                 </div>
             </Card >
+
+            {/* 列设置面板 */}
+            <ColumnSettingsPanel
+                open={showColumnSettings}
+                onClose={() => setShowColumnSettings(false)}
+                columns={columnMeta}
+                config={columnConfig}
+                onSave={savePreferences}
+                onReset={resetPreferences}
+            />
 
             <Modal
                 title="任务详情"

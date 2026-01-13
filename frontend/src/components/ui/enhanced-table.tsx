@@ -252,6 +252,7 @@ export function EnhancedTable<T extends object>({
                                                     className="ml-2 whitespace-nowrap text-[12px] text-primary-500 hover:text-primary-600"
                                                 >
                                                     <span className="relative -top-[1px] inline-block mr-0.5">☰</span>
+                                                    列设置
                                                 </button>
                                             )}
                                         </div>
