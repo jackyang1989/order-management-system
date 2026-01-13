@@ -68,10 +68,10 @@ export class PresaleService {
             buyerAccountId,
             status: OrderStatus.PENDING,
             isPresale: true,
-            yfPrice: task.yfPrice,
-            wkPrice: task.wkPrice,
+            presaleDeposit: task.presaleDeposit,
+            finalPayment: task.finalPayment,
             goodsPrice: task.goodsPrice,
-            commission: task.commission,
+            commission: task.baseServiceFee,
             totalAmount: task.goodsPrice,
             okYf: false,
             okWk: false,
@@ -110,7 +110,7 @@ export class PresaleService {
         }
 
         order.keywordImg = data.yfScreenshot; // 复用字段存储预付款截图
-        order.orderNo = data.orderNo;
+        order.platformOrderNumber = data.orderNo || null;
         order.status = OrderStatus.SUBMITTED;
 
         return this.orderRepository.save(order);

@@ -376,8 +376,8 @@ export class OrdersService {
       silverPrepay: SILVER_PREPAY, // 记录押金金额
       // 预售任务字段
       isPresale: !!task.isPresale,
-      yfPrice: Number(task.yfPrice || 0),
-      wkPrice: Number(task.wkPrice || 0),
+      presaleDeposit: Number(task.presaleDeposit || 0),
+      finalPayment: Number(task.finalPayment || 0),
       okYf: false,
       okWk: false,
     });
@@ -1542,8 +1542,8 @@ export class OrdersService {
     // 根据任务类型生成不同的搜索说明
     if (task.qrCode) {
       desc = '打开淘宝APP，扫描二维码进入商品页面';
-    } else if (task.taoWord) {
-      desc = `复制淘口令"${task.taoWord}"，打开淘宝APP`;
+    } else if (task.itemToken) {
+      desc = `复制淘口令"${task.itemToken}"，打开淘宝APP`;
     } else if (task.keyword) {
       desc = `在淘宝APP搜索框手动输入关键词"${task.keyword}"，找到指定商品`;
     } else {
@@ -1674,7 +1674,7 @@ export class OrdersService {
           MessageUserType.MERCHANT,
           order.id,
           '预售定金已付',
-          `订单「${order.taskTitle}」的买手已支付定金${order.yfPrice}元，请等待尾款。`,
+          `订单「${order.taskTitle}」的买手已支付定金${order.presaleDeposit}元，请等待尾款。`,
         );
       }
     } catch (e) {
@@ -1742,7 +1742,7 @@ export class OrdersService {
           MessageUserType.MERCHANT,
           order.id,
           '预售尾款已付',
-          `订单「${order.taskTitle}」的买手已支付尾款${order.wkPrice}元，总计${Number(order.yfPrice) + Number(order.wkPrice)}元，请注意发货。`,
+          `订单「${order.taskTitle}」的买手已支付尾款${order.finalPayment}元，总计${Number(order.presaleDeposit) + Number(order.finalPayment)}元，请注意发货。`,
         );
       }
     } catch (e) {
@@ -1757,8 +1757,8 @@ export class OrdersService {
    */
   async getPresaleStatus(orderId: string, userId: string): Promise<{
     isPresale: boolean;
-    yfPrice: number;
-    wkPrice: number;
+    presaleDeposit: number;
+    finalPayment: number;
     totalPrice: number;
     okYf: boolean;
     okWk: boolean;
@@ -1774,8 +1774,8 @@ export class OrdersService {
     if (!order.isPresale) {
       return {
         isPresale: false,
-        yfPrice: 0,
-        wkPrice: 0,
+        presaleDeposit: 0,
+        finalPayment: 0,
         totalPrice: Number(order.productPrice),
         okYf: false,
         okWk: false,
@@ -1792,9 +1792,9 @@ export class OrdersService {
 
     return {
       isPresale: true,
-      yfPrice: Number(order.yfPrice),
-      wkPrice: Number(order.wkPrice),
-      totalPrice: Number(order.yfPrice) + Number(order.wkPrice),
+      presaleDeposit: Number(order.presaleDeposit),
+      finalPayment: Number(order.finalPayment),
+      totalPrice: Number(order.presaleDeposit) + Number(order.finalPayment),
       okYf: order.okYf,
       okWk: order.okWk,
       stage,

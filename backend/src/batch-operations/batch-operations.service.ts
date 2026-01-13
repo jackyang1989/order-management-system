@@ -747,13 +747,13 @@ export class BatchOperationsService {
       }
 
       // 3. 验证浮动范围 ±500元
-      const currentYfPrice = Number(order.yfPrice) || 0;
+      const currentYfPrice = Number(order.presaleDeposit) || 0;
       if (currentYfPrice - 500 > price || currentYfPrice + 500 < price) {
         return { success: false, message: '返款金额上下浮动不能超过500元！' };
       }
 
       // 4. 更新预付款金额
-      order.yfPrice = price;
+      order.presaleDeposit = price;
       await this.orderRepository.save(order);
 
       // 5. 记录日志
@@ -812,13 +812,13 @@ export class BatchOperationsService {
       }
 
       // 3. 验证浮动范围 ±100元
-      const currentWkPrice = Number(order.wkPrice) || 0;
+      const currentWkPrice = Number(order.finalPayment) || 0;
       if (currentWkPrice - 100 > price || currentWkPrice + 100 < price) {
         return { success: false, message: '尾款金额上下浮动不能超过100元！' };
       }
 
       // 4. 更新尾款金额
-      order.wkPrice = price;
+      order.finalPayment = price;
       await this.orderRepository.save(order);
 
       // 5. 记录日志

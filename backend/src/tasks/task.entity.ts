@@ -82,8 +82,8 @@ export class Task {
   @Column({ nullable: true })
   keyword: string; // 搜索关键词
 
-  @Column({ nullable: true })
-  taoWord: string; // 淘口令
+  @Column({ name: 'itemToken', length: 1500, nullable: true })
+  itemToken: string; // 淘口令/商品口令
 
   @Column({ nullable: true })
   platformProductId: string; // 平台商品ID（用于核对，原taobaoId）
@@ -228,11 +228,11 @@ export class Task {
   @Column({ default: false })
   isPresale: boolean; // 是否预售任务
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-  yfPrice: number; // 预付款
+  @Column({ name: 'presaleDeposit', type: 'decimal', precision: 10, scale: 2, default: 0 })
+  presaleDeposit: number; // 预付款 (Presale Deposit)
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-  wkPrice: number; // 尾款
+  @Column({ name: 'finalPayment', type: 'decimal', precision: 10, scale: 2, default: 0 })
+  finalPayment: number; // 尾款
 
   // --- 商品口令核对 ---
   @Column({ default: false })
@@ -252,7 +252,7 @@ export class Task {
   receiptTime: Date; // 最后接单时间
 
   // --- 包邮/备注 ---
-  @Column({ name: 'is_free_shiping', default: true })
+  @Column({ name: 'isFreeShipping', default: true })
   isFreeShipping: boolean; // 是否包邮
 
   @Column({ type: 'text', nullable: true })
@@ -341,7 +341,7 @@ export class CreateTaskDto {
   keyword?: string;
   mainImage?: string;
   goodsPrice: number;
-  taoWord?: string;
+  itemToken?: string;
   terminal?: number; // 返款方式: 1=本佣货返, 2=本立佣货
 
   // 多商品列表

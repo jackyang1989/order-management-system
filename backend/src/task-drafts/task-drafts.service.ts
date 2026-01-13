@@ -92,8 +92,8 @@ export class TaskDraftsService {
             praiseImages?: string;
             praiseVideo?: string;
             isPresale?: boolean;
-            yfPrice?: number;
-            wkPrice?: number;
+            presaleDeposit?: number;
+            finalPayment?: number;
             isTiming?: boolean;
             timingPublishTime?: Date;
             taskTimeLimit?: number;
@@ -182,8 +182,8 @@ export class TaskDraftsService {
             praiseImages: draft.praiseImages,
             praiseVideo: draft.praiseVideo,
             isPresale: draft.isPresale,
-            yfPrice: draft.yfPrice,
-            wkPrice: draft.wkPrice,
+            presaleDeposit: draft.presaleDeposit,
+            finalPayment: draft.finalPayment,
             isTiming: draft.isTiming,
             timingPublishTime: draft.timingPublishTime,
             taskTimeLimit: draft.taskTimeLimit,

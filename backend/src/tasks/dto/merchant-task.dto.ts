@@ -45,7 +45,7 @@ export class MerchantTaskDto {
 
   @IsString()
   @IsOptional()
-  taoWord?: string; // 淘口令
+  itemToken?: string; // 淘口令/商品口令
 
   @IsNumber()
   @Min(0)

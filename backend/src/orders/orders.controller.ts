@@ -457,7 +457,7 @@ export class OrdersController {
           title: task.title || '',
           url: task.url || '',
           keyword: task.keyword || '',
-          taoWord: task.taoWord || '',
+          itemToken: task.itemToken || '',
           qrCode: task.qrCode || '',
           goodsPrice: task.goodsPrice || 0,
           taskType: task.taskType,
@@ -644,9 +644,9 @@ export class OrdersController {
         return { success: false, message: '付款金额必须大于0' };
       }
 
-      const expectedWkPrice = parseFloat(String(order.wkPrice)) || 0;
-      const minPrice = expectedWkPrice - 100;
-      const maxPrice = expectedWkPrice + 100;
+      const expectedFinalPayment = parseFloat(String(order.finalPayment)) || 0;
+      const minPrice = expectedFinalPayment - 100;
+      const maxPrice = expectedFinalPayment + 100;
 
       if (paymentAmount < minPrice || paymentAmount > maxPrice) {
         return {
@@ -695,8 +695,8 @@ export class OrdersController {
           isPresale: order.isPresale,
           okYf: order.okYf,
           okWk: order.okWk,
-          yfPrice: order.yfPrice,
-          wkPrice: order.wkPrice,
+          presaleDeposit: order.presaleDeposit,
+          finalPayment: order.finalPayment,
           productName: task.title || order.productName,
         },
       };

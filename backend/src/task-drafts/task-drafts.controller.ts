@@ -95,8 +95,8 @@ export class TaskDraftsController {
             praiseImages?: string;
             praiseVideo?: string;
             isPresale?: boolean;
-            yfPrice?: number;
-            wkPrice?: number;
+            presaleDeposit?: number;
+            finalPayment?: number;
             isTiming?: boolean;
             timingPublishTime?: Date;
             taskTimeLimit?: number;

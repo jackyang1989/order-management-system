@@ -85,10 +85,10 @@ export class TaskDraft {
     isPresale: boolean;
 
     @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
-    yfPrice: number;
+    presaleDeposit: number;
 
     @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
-    wkPrice: number;
+    finalPayment: number;
 
     @Column({ type: 'boolean', default: false })
     isTiming: boolean;

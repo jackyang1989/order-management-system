@@ -12,7 +12,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+
+import { Task } from '../tasks/task.entity';
 
 // 订单状态
 export enum OrderStatus {
@@ -70,6 +74,10 @@ export class Order {
   @Column()
   @Index()
   taskId: string;
+
+  @ManyToOne(() => Task)
+  @JoinColumn({ name: 'taskId' })
+  task: Task;
 
   @Column()
   @Index()
@@ -164,11 +172,11 @@ export class Order {
   @Column({ default: false })
   isPresale: boolean; // 是否预售任务
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
-  yfPrice: number; // 预付款金额
+  @Column({ name: 'presaleDeposit', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  presaleDeposit: number; // 预付款金额 (Presale Deposit)
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
-  wkPrice: number; // 尾款金额
+  @Column({ name: 'finalPayment', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  finalPayment: number; // 尾款金额
 
   @Column({ default: false })
   okYf: boolean; // 预付款已付
