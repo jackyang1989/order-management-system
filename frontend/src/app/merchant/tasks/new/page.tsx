@@ -84,7 +84,9 @@ export default function NewTaskPage() {
                 goodsPrice: Number(data.goodsPrice), 
                 count: Number(data.count), 
                 addReward: Number(data.addReward), 
-                extraCommission: Number(data.addReward) 
+                extraCommission: Number(data.addReward),
+                // 自动根据商品数量计算hasSubProduct
+                hasSubProduct: data.goodsList && data.goodsList.length > 1
             };
             
             const res = await fetch(`${BASE_URL}/tasks`, { 

@@ -216,7 +216,7 @@ export const InitialTaskData: TaskFormData = {
     compareBrowseMinutes: 3,
     mainBrowseMinutes: 8,
     subBrowseMinutes: 2,
-    hasSubProduct: true,
+    hasSubProduct: false,  // 默认false，根据商品数量动态计算
 
     isTimingPublish: false,
     isTimingPay: false,

@@ -429,7 +429,7 @@ export class TasksService implements OnModuleInit {
         compareBrowseMinutes: dto.compareBrowseMinutes || 3,
         mainBrowseMinutes: dto.mainBrowseMinutes || 8,
         subBrowseMinutes: dto.subBrowseMinutes || 2,
-        hasSubProduct: dto.hasSubProduct !== false,
+        hasSubProduct: !!dto.hasSubProduct,  // 显式转换为boolean
 
         // 特殊任务类型
         isRepay: !!dto.isRepay,
@@ -487,15 +487,17 @@ export class TasksService implements OnModuleInit {
         for (const goods of dto.goodsList) {
           if (goods.keywords && goods.keywords.length > 0) {
             for (const kw of goods.keywords) {
+              // 筛选设置优先从关键词级别获取，其次从商品级别获取
+              const filterSettings = kw.filterSettings || goods.filterSettings || {};
               const taskKeyword = this.taskKeywordRepository.create({
                 taskId: task.id,
                 taskGoodsId: goods.id || undefined,
                 keyword: kw.keyword,
-                terminal: kw.advancedSettings?.terminal || 1,
-                sort: kw.advancedSettings?.sort || undefined,
-                province: kw.advancedSettings?.province || undefined,
-                minPrice: kw.advancedSettings?.minPrice || 0,
-                maxPrice: kw.advancedSettings?.maxPrice || 0,
+                terminal: 1,  // 默认手机端
+                sort: filterSettings.sort || undefined,
+                province: filterSettings.province || undefined,
+                minPrice: filterSettings.minPrice || 0,
+                maxPrice: filterSettings.maxPrice || 0,
               });
               taskKeywordsList.push(taskKeyword);
             }
