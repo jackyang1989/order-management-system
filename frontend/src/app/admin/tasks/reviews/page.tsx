@@ -149,11 +149,12 @@ export default function AdminTasksReviewsPage() {
                     <span className="text-base font-medium">追评任务审核</span>
                     <span className="text-[#6b7280]">共 {total} 条记录</span>
                 </div>
-                <div className="mb-6 flex flex-wrap items-center gap-3">
+                <div className="mb-6 flex items-center gap-3">
                     <Input placeholder="搜索任务编号..." value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSearch()} className="w-52" />
                     <Select
                         value={stateFilter !== undefined ? String(stateFilter) : ''}
                         onChange={v => { setStateFilter(v !== '' ? parseInt(v) : undefined); setPage(1); }}
+                        className="w-40"
                         options={[
                             { value: '', label: '全部状态' },
                             { value: '0', label: '未支付' },

@@ -117,32 +117,26 @@ export default function AdminTasksPage() {
 
     // 默认列配置
     const defaultColumns: ColumnConfig[] = useMemo(() => [
-        { key: 'checkbox', visible: true, width: 50, order: 0 },
-        { key: 'taskNumber', visible: true, width: 130, order: 1 },
-        { key: 'merchant', visible: true, width: 140, order: 2 },
-        { key: 'taskType', visible: true, width: 80, order: 3 },
-        { key: 'terminal', visible: true, width: 90, order: 4 },
-        { key: 'goodsPrice', visible: true, width: 100, order: 5 },
-        { key: 'progress', visible: true, width: 110, order: 6 },
-        { key: 'shipping', visible: true, width: 80, order: 7 },
-        { key: 'status', visible: true, width: 90, order: 8 },
-        { key: 'createdAt', visible: true, width: 100, order: 9 },
-        { key: 'actions', visible: true, width: 220, order: 10 },
+        { key: 'taskNumber', visible: true, width: 130, order: 0 },
+        { key: 'merchant', visible: true, width: 140, order: 1 },
+        { key: 'taskType', visible: true, width: 80, order: 2 },
+        { key: 'terminal', visible: true, width: 90, order: 3 },
+        { key: 'goodsPrice', visible: true, width: 100, order: 4 },
+        { key: 'progress', visible: true, width: 110, order: 5 },
+        { key: 'shipping', visible: true, width: 80, order: 6 },
+        { key: 'status', visible: true, width: 90, order: 7 },
+        { key: 'createdAt', visible: true, width: 100, order: 8 },
+        { key: 'actions', visible: true, width: 180, order: 9 },
     ], []);
 
-    // 使用表格偏好设置 Hook
-    const {
-        columnConfig,
-        updateLocalConfig,
-        savePreferences,
-        resetPreferences
-    } = useTablePreferences({
-        tableKey: 'admin-tasks-list',
+    // 列配置 Hook
+    const { columnConfig, savePreferences, resetPreferences, updateLocalConfig } = useTablePreferences({
+        tableKey: 'admin_tasks',
         defaultColumns,
     });
 
-    const columnMeta = useMemo(() => [
-        { key: 'checkbox', title: '选择' },
+    // 列元信息 (用于列设置面板)
+    const columnMeta: ColumnMeta[] = useMemo(() => [
         { key: 'taskNumber', title: '任务编号' },
         { key: 'merchant', title: '商家' },
         { key: 'taskType', title: '平台' },
@@ -154,6 +148,10 @@ export default function AdminTasksPage() {
         { key: 'createdAt', title: '发布时间' },
         { key: 'actions', title: '操作' },
     ], []);
+
+
+
+
 
     const statusOptions = useMemo(
         () =>
@@ -368,20 +366,21 @@ export default function AdminTasksPage() {
             key: 'actions',
             title: '操作',
             render: (row) => (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 whitespace-nowrap">
                     <Button size="sm" variant="secondary" onClick={() => setDetailModal(row)}>
                         详情
                     </Button>
-                    <div className="w-24">
-                        <Select
-                            value={String(row.status)}
-                            onChange={(value) => handleUpdateStatus(row.id, Number(value))}
-                            options={statusOptions}
-                        />
-                    </div>
+                    <Select
+                        value={String(row.status)}
+                        onChange={(value) => handleUpdateStatus(row.id, Number(value))}
+                        options={statusOptions}
+                        className="w-20"
+                        size="sm"
+                        placeholder="状态"
+                    />
                 </div>
             ),
-            cellClassName: 'w-[200px]',
+            cellClassName: 'w-[180px]',
         },
     ];
 
@@ -389,8 +388,22 @@ export default function AdminTasksPage() {
         <div className="space-y-6">
             <Card className="bg-white p-6">
                 <div className="mb-4 flex items-center justify-between">
-                    <span className="text-base font-medium">任务列表</span>
-                    <span className="text-sm text-[#6b7280]">共 {total} 条记录</span>
+                    <div className="flex items-center gap-4">
+                        <span className="text-base font-medium">任务列表</span>
+                        <span className="text-sm text-[#6b7280]">共 {total} 条记录</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button variant="secondary" onClick={loadTasks}>
+                            刷新
+                        </Button>
+                        <Button
+                            onClick={handleExport}
+                            loading={exporting}
+                            variant="success"
+                        >
+                            导出Excel
+                        </Button>
+                    </div>
                 </div>
                 <div className="mb-6 flex flex-wrap items-center gap-4">
                     <span className="text-[13px] font-medium text-[#3b4559]">状态筛选：</span>
@@ -420,16 +433,6 @@ export default function AdminTasksPage() {
                                 </Button>
                             </>
                         )}
-                        <Button variant="secondary" onClick={loadTasks}>
-                            刷新
-                        </Button>
-                        <Button
-                            onClick={handleExport}
-                            loading={exporting}
-                            variant="success"
-                        >
-                            导出Excel
-                        </Button>
                     </div>
                 </div>
 
