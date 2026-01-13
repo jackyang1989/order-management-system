@@ -88,8 +88,6 @@ export default function AdminCommissionPage() {
                 <div className="overflow-hidden">
                     {loading ? (
                         <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
-                    ) : rates.length === 0 ? (
-                        <div className="py-12 text-center text-[#9ca3af]">暂无佣金比例配置</div>
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full border-collapse">
@@ -102,19 +100,27 @@ export default function AdminCommissionPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {rates.map(rate => (
-                                        <tr key={rate.id} className="border-t border-[#f3f4f6]">
-                                            <td className="px-4 py-3.5">{Number(rate.maxGoodsPrice).toFixed(2)}</td>
-                                            <td className="px-4 py-3.5">{Number(rate.merchantReward).toFixed(2)}</td>
-                                            <td className="px-4 py-3.5">{Number(rate.userReward).toFixed(2)}</td>
-                                            <td className="px-4 py-3.5 text-center">
-                                                <div className="flex justify-center gap-2">
-                                                    <Button size="sm" variant="secondary" onClick={() => setEditing(rate)}>编辑</Button>
-                                                    <Button size="sm" variant="outline" className="text-red-500 hover:bg-red-50" onClick={() => handleDelete(rate.id)}>删除</Button>
-                                                </div>
+                                    {rates.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={4} className="px-4 py-12 text-center text-[#9ca3af]">
+                                                暂无佣金比例配置
                                             </td>
                                         </tr>
-                                    ))}
+                                    ) : (
+                                        rates.map(rate => (
+                                            <tr key={rate.id} className="border-t border-[#f3f4f6]">
+                                                <td className="px-4 py-3.5">{Number(rate.maxGoodsPrice).toFixed(2)}</td>
+                                                <td className="px-4 py-3.5">{Number(rate.merchantReward).toFixed(2)}</td>
+                                                <td className="px-4 py-3.5">{Number(rate.userReward).toFixed(2)}</td>
+                                                <td className="px-4 py-3.5 text-center">
+                                                    <div className="flex justify-center gap-2">
+                                                        <Button size="sm" variant="secondary" onClick={() => setEditing(rate)}>编辑</Button>
+                                                        <Button size="sm" variant="outline" className="text-red-500 hover:bg-red-50" onClick={() => handleDelete(rate.id)}>删除</Button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
                         </div>
