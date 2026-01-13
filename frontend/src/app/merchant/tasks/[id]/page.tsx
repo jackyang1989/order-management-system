@@ -165,7 +165,18 @@ export default function TaskDetailPage() {
         try {
             const taskRes = await fetch(`${BASE_URL}/tasks/${taskId}`, { headers: { 'Authorization': `Bearer ${token}` } });
             const taskJson = await taskRes.json();
-            if (taskJson.success) setTask(taskJson.data);
+            if (taskJson.success) {
+                console.log('📋 任务详情数据:', taskJson.data);
+                console.log('📝 好评相关字段:', {
+                    isPraise: taskJson.data.isPraise,
+                    isImgPraise: taskJson.data.isImgPraise,
+                    isVideoPraise: taskJson.data.isVideoPraise,
+                    praiseList: taskJson.data.praiseList,
+                    praiseImgList: taskJson.data.praiseImgList,
+                    praiseVideoList: taskJson.data.praiseVideoList
+                });
+                setTask(taskJson.data);
+            }
             else {
                 alert('任务不存在或无权访问');
                 router.push('/merchant/tasks');

@@ -395,15 +395,32 @@ export class TasksService implements OnModuleInit {
         baseServiceFee: baseFeePerOrder,
         userDivided: userDividedTotal, // 买手分成佣金总额
 
-        // Value Added Flags (Keep flags if present in DTO but no fees)
-        isPraise: !!dto.isPraise,
-        praiseType: dto.praiseType || 'none',
-        praiseList: dto.praiseList ? JSON.stringify(dto.praiseList) : '[]',
-        isImgPraise: dto.praiseType === 'image',
-        praiseImgList: dto.praiseImgList ? JSON.stringify(dto.praiseImgList) : '[]',
-        isVideoPraise: dto.praiseType === 'video',
-        praiseVideoList: dto.praiseVideoList ? JSON.stringify(dto.praiseVideoList) : '[]',
-        praiseFee: dto.praiseFee || 0,
+        // Value Added Flags - 智能检测好评内容
+        ...(() => {
+          // 检测是否有实际的好评内容
+          const hasPraiseText = dto.praiseList && Array.isArray(dto.praiseList) && dto.praiseList.some(t => t && t.trim().length > 0);
+          const hasPraiseImg = dto.praiseImgList && Array.isArray(dto.praiseImgList) && dto.praiseImgList.some(arr => arr && arr.length > 0);
+          const hasPraiseVideo = dto.praiseVideoList && Array.isArray(dto.praiseVideoList) && dto.praiseVideoList.some(v => v && v.trim().length > 0);
+
+          // 自动推断praiseType（优先级：video > image > text）
+          let actualPraiseType = dto.praiseType || 'none';
+          if (hasPraiseVideo) actualPraiseType = 'video';
+          else if (hasPraiseImg) actualPraiseType = 'image';
+          else if (hasPraiseText) actualPraiseType = 'text';
+
+          const actualIsPraise = actualPraiseType !== 'none';
+
+          return {
+            isPraise: actualIsPraise,
+            praiseType: actualPraiseType,
+            praiseList: hasPraiseText ? JSON.stringify(dto.praiseList) : '[]',
+            isImgPraise: actualPraiseType === 'image' || hasPraiseImg,
+            praiseImgList: hasPraiseImg ? JSON.stringify(dto.praiseImgList) : '[]',
+            isVideoPraise: actualPraiseType === 'video' || hasPraiseVideo,
+            praiseVideoList: hasPraiseVideo ? JSON.stringify(dto.praiseVideoList) : '[]',
+            praiseFee: dto.praiseFee || 0,
+          };
+        })(),
         isTimingPublish: !!dto.isTimingPublish,
         publishTime: dto.publishTime ? new Date(dto.publishTime) : null,
         isTimingPay: !!dto.isTimingPay,

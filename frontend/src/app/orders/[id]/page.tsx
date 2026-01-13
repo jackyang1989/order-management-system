@@ -414,18 +414,13 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                             </button>
                         )}
 
-                        {/* 待确认收货状态 */}
+                        {/* 待确认收货状态 - 去收货（好评） */}
                         {taskData.taskType === '待确认收货' && (
                             <button
-                                onClick={() => {
-                                    if (confirm('确定已收到货物？')) {
-                                        // TODO: Call confirm receive API
-                                        alertError('确认收货功能开发中');
-                                    }
-                                }}
+                                onClick={() => router.push(`/orders/${id}/receive`)}
                                 className="flex-1 rounded-lg bg-green-500 px-4 py-2.5 text-sm font-medium text-white active:bg-success-400"
                             >
-                                确认收货
+                                去收货
                             </button>
                         )}
 
