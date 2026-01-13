@@ -487,7 +487,7 @@ function AdminBuyerAccountsPageContent() {
     return (
         <div className="space-y-4">
             {/* Header */}
-            <Card className="bg-white">
+            <Card className="bg-white p-6">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <span className="text-base font-medium">买号列表</span>
@@ -588,43 +588,44 @@ function AdminBuyerAccountsPageContent() {
                     />
                     <Button onClick={handleSearch}>搜索</Button>
                     <Button variant="secondary" onClick={loadAccounts}>刷新</Button>
-                </div>
-            </Card>
 
-            {/* Table */}
-            <Card className="overflow-hidden bg-white p-0">
-                {filterStatus === '0' && accounts.length > 0 && (
-                    <div className="flex items-center gap-2 border-b border-[#e5e7eb] px-4 py-2 bg-[#f9fafb]">
-                        <input
-                            type="checkbox"
-                            checked={allPendingSelected}
-                            onChange={e => handleSelectAll(e.target.checked)}
-                            className="cursor-pointer h-4 w-4 rounded border-[#d1d5db]"
-                        />
-                        <span className="text-sm text-[#6b7280]">全选待审核</span>
-                    </div>
-                )}
-                <EnhancedTable
-                    columns={columns}
-                    data={accounts}
-                    rowKey={(r) => r.id}
-                    loading={loading}
-                    emptyText="暂无数据"
-                    columnConfig={columnConfig}
-                    onColumnConfigChange={updateLocalConfig}
-                    onColumnSettingsClick={() => setShowColumnSettings(true)}
-                    selectable={filterStatus === '0'}
-                    selectedKeys={Array.from(selectedIds)}
-                    onRowSelect={(keys) => setSelectedIds(new Set(keys.map(String)))}
-                    getRowDisabled={(row) => row.status !== 0}
-                />
-                {totalPages > 1 && (
-                    <div className="flex items-center justify-center gap-2 p-4">
-                        <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className={cn(page === 1 && 'cursor-not-allowed opacity-50')}>上一页</Button>
-                        <span className="px-4 text-sm text-[#6b7280]">{page} / {totalPages} (共 {total} 条)</span>
-                        <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className={cn(page === totalPages && 'cursor-not-allowed opacity-50')}>下一页</Button>
-                    </div>
-                )}
+                </div>
+
+                {/* Table */}
+                <div className="overflow-hidden">
+                    {filterStatus === '0' && accounts.length > 0 && (
+                        <div className="flex items-center gap-2 border-b border-[#e5e7eb] px-4 py-2 bg-[#f9fafb]">
+                            <input
+                                type="checkbox"
+                                checked={allPendingSelected}
+                                onChange={e => handleSelectAll(e.target.checked)}
+                                className="cursor-pointer h-4 w-4 rounded border-[#d1d5db]"
+                            />
+                            <span className="text-sm text-[#6b7280]">全选待审核</span>
+                        </div>
+                    )}
+                    <EnhancedTable
+                        columns={columns}
+                        data={accounts}
+                        rowKey={(r) => r.id}
+                        loading={loading}
+                        emptyText="暂无数据"
+                        columnConfig={columnConfig}
+                        onColumnConfigChange={updateLocalConfig}
+                        onColumnSettingsClick={() => setShowColumnSettings(true)}
+                        selectable={filterStatus === '0'}
+                        selectedKeys={Array.from(selectedIds)}
+                        onRowSelect={(keys) => setSelectedIds(new Set(keys.map(String)))}
+                        getRowDisabled={(row) => row.status !== 0}
+                    />
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-center gap-2 p-4">
+                            <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className={cn(page === 1 && 'cursor-not-allowed opacity-50')}>上一页</Button>
+                            <span className="px-4 text-sm text-[#6b7280]">{page} / {totalPages} (共 {total} 条)</span>
+                            <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className={cn(page === totalPages && 'cursor-not-allowed opacity-50')}>下一页</Button>
+                        </div>
+                    )}
+                </div>
             </Card>
 
             {/* 列设置面板 */}
@@ -788,11 +789,13 @@ function AdminBuyerAccountsPageContent() {
             </Modal>
 
             {/* Image Preview */}
-            {imageModal && (
-                <div onClick={() => setImageModal(null)} className="fixed inset-0 z-[1100] flex cursor-zoom-out items-center justify-center bg-black/80">
-                    <Image src={imageModal} alt="预览" width={800} height={600} className="max-h-[90%] max-w-[90%] object-contain" unoptimized />
-                </div>
-            )}
+            {
+                imageModal && (
+                    <div onClick={() => setImageModal(null)} className="fixed inset-0 z-[1100] flex cursor-zoom-out items-center justify-center bg-black/80">
+                        <Image src={imageModal} alt="预览" width={800} height={600} className="max-h-[90%] max-w-[90%] object-contain" unoptimized />
+                    </div>
+                )
+            }
 
             {/* Reject Modal */}
             <Modal title="拒绝买号" open={rejectingId !== null} onClose={() => { setRejectingId(null); setRejectReason(''); }} className="max-w-sm">
@@ -812,7 +815,7 @@ function AdminBuyerAccountsPageContent() {
                     </div>
                 </div>
             </Modal>
-        </div>
+        </div >
     );
 }
 

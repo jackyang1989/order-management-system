@@ -586,7 +586,8 @@ export default function AdminMerchantsPage() {
     return (
         <div className="space-y-6">
             {/* 搜索栏 */}
-            <Card className="bg-white">
+            {/* 搜索栏 */}
+            <Card className="bg-white p-6">
                 <div className="mb-4 flex items-center justify-between">
                     <span className="text-base font-medium">商家列表</span>
                     <span className="text-sm text-[#6b7280]">共 {total} 条记录</span>
@@ -620,35 +621,36 @@ export default function AdminMerchantsPage() {
                     <Button onClick={openAddMerchant}>
                         添加商家
                     </Button>
-                </div>
-            </Card>
 
-            {/* 商家列表 */}
-            <Card className="overflow-hidden bg-white">
-                <EnhancedTable
-                    columns={columns}
-                    data={merchants}
-                    rowKey={(r) => r.id}
-                    loading={loading}
-                    emptyText="暂无商家数据"
-                    columnConfig={columnConfig}
-                    onColumnConfigChange={updateLocalConfig}
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={(field, order) => {
-                        setSortField(field);
-                        setSortOrder(order);
-                        // 注意：后端暂不支持排序，这里只更新前端显示状态
-                    }}
-                    onColumnSettingsClick={() => setShowColumnSettings(true)}
-                />
-                <div className="mt-4 flex justify-end px-6 pb-6">
-                    <Pagination
-                        current={page}
-                        total={total}
-                        pageSize={10}
-                        onChange={setPage}
+                </div>
+
+                {/* 商家列表 */}
+                <div className="overflow-hidden">
+                    <EnhancedTable
+                        columns={columns}
+                        data={merchants}
+                        rowKey={(r) => r.id}
+                        loading={loading}
+                        emptyText="暂无商家数据"
+                        columnConfig={columnConfig}
+                        onColumnConfigChange={updateLocalConfig}
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={(field, order) => {
+                            setSortField(field);
+                            setSortOrder(order);
+                            // 注意：后端暂不支持排序，这里只更新前端显示状态
+                        }}
+                        onColumnSettingsClick={() => setShowColumnSettings(true)}
                     />
+                    <div className="mt-4 flex justify-end px-6 pb-6">
+                        <Pagination
+                            current={page}
+                            total={total}
+                            pageSize={10}
+                            onChange={setPage}
+                        />
+                    </div>
                 </div>
             </Card>
 
@@ -1007,6 +1009,6 @@ export default function AdminMerchantsPage() {
                     </div>
                 </div>
             </Modal>
-        </div>
+        </div >
     );
 }

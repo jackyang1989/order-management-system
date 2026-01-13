@@ -702,7 +702,8 @@ export default function AdminUsersPage() {
     return (
         <div className="space-y-6">
             {/* 搜索栏 */}
-            <Card className="bg-white">
+            {/* 搜索栏 */}
+            <Card className="bg-white p-6">
                 <div className="mb-4 flex items-center justify-between">
                     <span className="text-base font-medium">买手列表</span>
                     <div className="flex items-center gap-3">
@@ -713,7 +714,7 @@ export default function AdminUsersPage() {
                         </Button>
                     </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3 pb-4">
                     <Input
                         placeholder="用户名/手机号/微信号"
                         value={search}
@@ -760,34 +761,34 @@ export default function AdminUsersPage() {
                         刷新
                     </Button>
                 </div>
-            </Card>
 
-            {/* 用户列表 */}
-            <Card className="overflow-hidden bg-white">
-                <EnhancedTable
-                    columns={columns}
-                    data={users}
-                    rowKey={(r) => r.id}
-                    loading={loading}
-                    emptyText="暂无用户数据"
-                    columnConfig={columnConfig}
-                    onColumnConfigChange={updateLocalConfig}
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={(field, order) => {
-                        setSortField(field);
-                        setSortOrder(order);
-                        // 注意：后端暂不支持排序，这里只更新前端显示状态
-                    }}
-                    onColumnSettingsClick={() => setShowColumnSettings(true)}
-                />
-                <div className="mt-4 flex justify-end px-6 pb-6">
-                    <Pagination
-                        current={page}
-                        total={total}
-                        pageSize={20}
-                        onChange={setPage}
+                {/* 用户列表 */}
+                <div className="overflow-hidden">
+                    <EnhancedTable
+                        columns={columns}
+                        data={users}
+                        rowKey={(r) => r.id}
+                        loading={loading}
+                        emptyText="暂无用户数据"
+                        columnConfig={columnConfig}
+                        onColumnConfigChange={updateLocalConfig}
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={(field, order) => {
+                            setSortField(field);
+                            setSortOrder(order);
+                            // 注意：后端暂不支持排序，这里只更新前端显示状态
+                        }}
+                        onColumnSettingsClick={() => setShowColumnSettings(true)}
                     />
+                    <div className="mt-4 flex justify-end px-6 pb-6">
+                        <Pagination
+                            current={page}
+                            total={total}
+                            pageSize={20}
+                            onChange={setPage}
+                        />
+                    </div>
                 </div>
             </Card>
 
