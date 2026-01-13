@@ -371,7 +371,9 @@ export default function AdminTasksPage() {
             render: (row) => (
                 <div className="text-sm">
                     <div className="font-medium text-[#3b4559]">{row.merchant?.username || row.merchant?.merchantName || '-'}</div>
-                    <div className="text-xs text-[#9ca3af]">{row.shopName || '-'}</div>
+                    {row.shopName && (
+                        <div className="text-xs text-[#9ca3af]">{row.shopName}</div>
+                    )}
                 </div>
             ),
             cellClassName: 'w-[140px]',

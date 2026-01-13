@@ -126,7 +126,9 @@ export default function AdminOrdersPage() {
             render: (row) => (
                 <div className="text-sm">
                     <div className="font-medium text-[#3b4559]">{row.merchant?.username || '-'}</div>
-                    <div className="text-xs text-[#9ca3af]">{row.merchant?.shopName || '-'}</div>
+                    {row.merchant?.shopName && (
+                        <div className="text-xs text-[#9ca3af]">{row.merchant.shopName}</div>
+                    )}
                 </div>
             ),
         },
@@ -137,7 +139,9 @@ export default function AdminOrdersPage() {
             render: (row) => (
                 <div className="text-sm">
                     <div className="font-medium text-[#3b4559]">{row.userName || '-'}</div>
-                    <div className="text-xs text-[#9ca3af]">{row.buynoAccount || '-'}</div>
+                    {row.buynoAccount && (
+                        <div className="text-xs text-[#9ca3af]">{row.buynoAccount}</div>
+                    )}
                 </div>
             ),
         },

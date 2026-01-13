@@ -146,6 +146,7 @@ export default function TaskDetailPage() {
     const [orders, setOrders] = useState<OrderItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [cancelling, setCancelling] = useState(false);
+    const [showCancelModal, setShowCancelModal] = useState(false);
     const [praiseModal, setPraiseModal] = useState<'text' | 'image' | 'video' | null>(null);
 
     useEffect(() => {
@@ -178,17 +179,23 @@ export default function TaskDetailPage() {
         }
     };
 
-    const handleCancel = async () => {
-        if (!confirm('确定要取消此任务吗？已冻结的资金将返还到您的账户。')) return;
+    const handleCancelClick = () => {
+        setShowCancelModal(true);
+    };
+
+    const handleCancelConfirm = async () => {
         const token = localStorage.getItem('merchantToken');
         setCancelling(true);
+        setShowCancelModal(false);
         try {
             const res = await fetch(`${BASE_URL}/tasks/${taskId}/cancel`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
             const json = await res.json();
             if (json.success) {
                 alert('任务已取消，资金已返还');
                 loadTaskDetail();
-            } else alert(json.message || '取消失败');
+            } else {
+                alert(json.message || '取消失败');
+            }
         } catch {
             alert('网络错误');
         } finally {
@@ -721,7 +728,7 @@ export default function TaskDetailPage() {
                     {/* Actions */}
                     {task.status === 1 && task.claimedCount === 0 && (
                         <button
-                            onClick={handleCancel}
+                            onClick={handleCancelClick}
                             disabled={cancelling}
                             className={cn('h-9 w-full rounded-md border border-danger-400 bg-white px-3 text-danger-400 hover:bg-[#fef2f2]', cancelling && 'cursor-not-allowed opacity-70')}
                         >

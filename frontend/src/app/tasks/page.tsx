@@ -6,14 +6,10 @@ import { cn } from '../../lib/utils';
 import { isAuthenticated, getToken } from '../../services/authService';
 import BottomNav from '../../components/BottomNav';
 import { fetchEnabledPlatforms, getEnabledTaskTypesFromPlatforms } from '../../services/systemConfigService';
+import { fetchEnabledEntryTypes, EntryTypeData } from '../../services/entryTypeService';
 import { TASK_TYPE_NAMES } from '../../constants/platformConfig';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
-
-const TASK_TYPE_OPTIONS = [
-    { value: 0, label: '全部' }, { value: 1, label: '关键词' }, { value: 2, label: '淘口令' },
-    { value: 3, label: '二维码' }, { value: 4, label: '直通车' }, { value: 5, label: '通道任务' },
-];
 
 const TERMINAL_OPTIONS = [{ value: 1, label: '本佣货返' }, { value: 2, label: '本立佣货' }];
 
@@ -36,6 +32,8 @@ export default function TasksPage() {
     const [value5, setValue5] = useState<number | string>('');
     const [platformFilter, setPlatformFilter] = useState<number | string>(''); // 平台筛选
     const [enabledTaskTypes, setEnabledTaskTypes] = useState<number[]>([1, 2]); // 启用的平台类型
+    const [entryTypes, setEntryTypes] = useState<EntryTypeData[]>([]); // 入口类型列表
+    const [loadingFilters, setLoadingFilters] = useState(true); // 筛选选项加载状态
     const [op2count, setOp2count] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [total, setTotal] = useState(0);
@@ -44,14 +42,24 @@ export default function TasksPage() {
     const alertSuccess = useCallback((msg: string) => alert(msg), []);
     const alertError = useCallback((msg: string) => alert(msg), []);
 
-    // 加载启用的平台列表
+    // 加载启用的平台列表和入口类型
     useEffect(() => {
-        const loadPlatforms = async () => {
-            const platforms = await fetchEnabledPlatforms();
-            const enabled = getEnabledTaskTypesFromPlatforms(platforms);
-            setEnabledTaskTypes(enabled);
+        const loadFilters = async () => {
+            setLoadingFilters(true);
+            try {
+                const platforms = await fetchEnabledPlatforms();
+                const enabled = getEnabledTaskTypesFromPlatforms(platforms);
+                setEnabledTaskTypes(enabled);
+                
+                const types = await fetchEnabledEntryTypes();
+                setEntryTypes(types);
+            } catch (error) {
+                console.error('加载筛选选项失败:', error);
+            } finally {
+                setLoadingFilters(false);
+            }
         };
-        loadPlatforms();
+        loadFilters();
     }, []);
 
     // 根据启用平台生成平台筛选选项
@@ -65,6 +73,17 @@ export default function TasksPage() {
         });
         return options;
     }, [enabledTaskTypes]);
+
+    // 根据启用入口类型生成任务类型筛选选项
+    const taskTypeOptions = useMemo(() => {
+        const options = [{ value: '' as string | number, label: '全部类型' }];
+        entryTypes
+            .sort((a, b) => a.sortOrder - b.sortOrder)
+            .forEach(entryType => {
+                options.push({ value: entryType.value, label: entryType.name });
+            });
+        return options;
+    }, [entryTypes]);
 
     useEffect(() => { if (!isAuthenticated()) { router.push('/login'); return; } loadBuynos(); getData(); }, []);
     useEffect(() => { if (!loading) getData(); }, [value3, value4, value5, platformFilter, currentPage]);
@@ -162,7 +181,12 @@ export default function TasksPage() {
                             <div>
                                 <div className="mb-2 text-xs font-bold text-slate-500">平台筛选</div>
                                 <div className="relative">
-                                    <select value={platformFilter} onChange={(e) => { setPlatformFilter(e.target.value ? Number(e.target.value) : ''); setCurrentPage(1); }} className="w-full appearance-none rounded-xl border-none bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-primary-500/20">
+                                    <select 
+                                        value={platformFilter} 
+                                        onChange={(e) => { setPlatformFilter(e.target.value ? Number(e.target.value) : ''); setCurrentPage(1); }} 
+                                        className="w-full appearance-none rounded-xl border-none bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-primary-500/20"
+                                        disabled={loadingFilters}
+                                    >
                                         {platformOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                                     </select>
                                     <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">▼</div>
@@ -171,8 +195,13 @@ export default function TasksPage() {
                             <div>
                                 <div className="mb-2 text-xs font-bold text-slate-500">任务类型</div>
                                 <div className="relative">
-                                    <select value={value3} onChange={(e) => { setValue3(e.target.value ? Number(e.target.value) : ''); setCurrentPage(1); }} className="w-full appearance-none rounded-xl border-none bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-primary-500/20">
-                                        {TASK_TYPE_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                    <select 
+                                        value={value3} 
+                                        onChange={(e) => { setValue3(e.target.value ? Number(e.target.value) : ''); setCurrentPage(1); }} 
+                                        className="w-full appearance-none rounded-xl border-none bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-primary-500/20"
+                                        disabled={loadingFilters}
+                                    >
+                                        {taskTypeOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                                     </select>
                                     <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">▼</div>
                                 </div>
