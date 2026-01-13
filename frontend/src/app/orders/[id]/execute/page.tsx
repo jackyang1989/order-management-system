@@ -1,8 +1,11 @@
 'use client';
 
-import { useEffect, useState, use, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { BASE_URL } from '../../../../../apiConfig';
+import { 
+    PlatformLabels, 
+    TerminalLabels, 
+    OrderStatusLabels 
+} from '@/shared/taskSpec';
+import { formatDateTime, formatMoney } from '@/shared/formatters';
 
 // ===================== 类型定义 =====================
 interface TaskInfo {
@@ -33,6 +36,7 @@ interface GoodsInfo {
     key: string;
     goodsSpec: string;
     isMain?: boolean;
+    orderSpecs?: { specName: string; specValue: string; quantity: number }[];
     keywords?: {
         id: string;
         keyword: string;
@@ -92,6 +96,10 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const [sellTaskMemo, setSellTaskMemo] = useState('');
     const [receiverAddress, setReceiverAddress] = useState('');
     const [platformName, setPlatformName] = useState(''); // 动态平台名称
+    const [isFreeShipping, setIsFreeShipping] = useState(true);
+    const [checkPassword, setCheckPassword] = useState('');
+    const [compareCount, setCompareCount] = useState(3);
+    const [contactCSContent, setContactCSContent] = useState('');
     const [mainProductFilter3, setMainProductFilter3] = useState(''); // 货比关键词
     const [mainProductFilter1, setMainProductFilter1] = useState(''); // 颜色
     const [mainProductFilter2, setMainProductFilter2] = useState(''); // 尺码
@@ -188,6 +196,10 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 setMainProductFilter3(data.huobiKeyword || '');
                 setMainProductFilter4('');
                 setAdminLimitSwitch(data.isPasswordEnabled ? 1 : 0);
+                setCheckPassword(data.checkPassword || '');
+                setIsFreeShipping(data.isFreeShipping === 1 || data.isFreeShipping === true);
+                setCompareCount(data.compareCount || 3);
+                setContactCSContent(data.contactCSContent || '');
                 setTaskTimeType('');
                 setTaskYsType('');
 
@@ -265,8 +277,9 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         img: goods.pcImg || '',
                         imgdata: goods.pcImg ? [goods.pcImg] : [],
                         key: goods.keywords?.[0]?.keyword || data.keyword || '',
-                        goodsSpec: data.maskedPassword || '',
+                        goodsSpec: goods.verifyCode || data.maskedPassword || '',
                         isMain: goods.isMain,
+                        orderSpecs: goods.orderSpecs,
                         keywords: goods.keywords,
                     }));
 
@@ -759,10 +772,11 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         <div style={{ fontSize: '12px', color: '#f56c6c', lineHeight: '1.8' }}>
                             <p>1. 禁止使用任何返利平台，若有使用请退出返利平台并清空{platformName || '平台'}缓存后再继续任务；</p>
                             <p>2. 必须按照商家给的关键词和渠道搜索进店，不可擅自加词或更换指定进店渠道，后台可看到进店关键词和渠道；</p>
-                            <p>3. 浏览主商品8分钟以上，副商品5分钟以上，然后随机浏览店铺其他2个商品各2分钟，浏览时间不够和未到支付步骤不要提前将购物车的商品下单付款，后台可看到各商品停留时间，总浏览时间低于15分钟无法提交订单；</p>
-                            <p>4. 禁止修改订单截图上的实付金额，所有支付优惠商家后台都可查到；</p>
-                            <p>5. 请在倒计时结束前完成任务并在平台提交，超时任务取消且系统会自动扣除1银锭；</p>
-                            <p>6. 请严格按要求认真完成任务，否则将根据处罚细则进行处罚。</p>
+                            {contactCSContent && <p>3. 必须联系客服并发送以下内容：<span style={{ fontWeight: 'bold', color: 'blue' }}>{contactCSContent}</span>；</p>}
+                            <p>{contactCSContent ? '4' : '3'}. 浏览主商品8分钟以上，副商品5分钟以上，然后随机浏览店铺其他2个商品各2分钟，浏览时间不够和未到支付步骤不要提前将购物车的商品下单付款，后台可看到各商品停留时间，总浏览时间低于15分钟无法提交订单；</p>
+                            <p>{contactCSContent ? '5' : '4'}. 禁止修改订单截图上的实付金额，所有支付优惠商家后台都可查到；</p>
+                            <p>{contactCSContent ? '6' : '5'}. 请在倒计时结束前完成任务并在平台提交，超时任务取消且系统会自动扣除1银锭；</p>
+                            <p>{contactCSContent ? '7' : '6'}. 请严格按要求认真完成任务，否则将根据处罚细则进行处罚。</p>
                         </div>
                     </div>
 
@@ -801,7 +815,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         </div>
                         <div style={{ fontSize: '13px', color: '#666', lineHeight: '1.8' }}>
                             <p>1. {platformName || '平台'}APP搜索框，搜索货比关键词：<span style={{ color: 'red' }}>{mainProductFilter3}</span></p>
-                            <p>2. 根据搜索结果，浏览5家同类商品，每家2分钟；</p>
+                            <p>2. 根据搜索结果，浏览{compareCount}家同类商品，每家2分钟；</p>
                             <p>3. 将其中3个商家的货比商品加入购物车并截图；</p>
                             <p>4. 上传货比加购截图:</p>
                         </div>
@@ -893,9 +907,15 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                 <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
                                     <img src={item.img} alt="商品" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontSize: '13px', color: '#333' }}>{item.productName}</div>
-                                        <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>店铺：{item.dianpuName}</div>
-                                        <div style={{ fontSize: '12px', color: '#f56c6c', marginTop: '5px' }}>¥{item.buyPrice} x {item.buyNum}</div>
+                                         <div style={{ fontSize: '13px', color: '#333' }}>{item.productName}</div>
+                                         <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>店铺：{item.dianpuName}</div>
+                                         {item.orderSpecs && item.orderSpecs.length > 0 && (
+                                             <div style={{ fontSize: '12px', color: '#409eff', marginTop: '5px', fontWeight: 'bold' }}>
+                                                 指定规格：{item.orderSpecs.map(s => `${s.specName}:${s.specValue}(x${s.quantity})`).join(', ')}
+                                             </div>
+                                         )}
+                                         <div style={{ fontSize: '12px', color: '#f56c6c', marginTop: '5px' }}>¥{item.buyPrice} x {item.buyNum}</div>
+
                                     </div>
                                 </div>
 

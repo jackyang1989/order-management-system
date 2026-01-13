@@ -8,6 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Modal } from '@/components/ui/modal';
+import { 
+    PlatformLabels, 
+    TerminalLabels, 
+    TaskStatusLabels, 
+    TerminalType 
+} from '@/shared/taskSpec';
+import { formatDateTime, formatMoney } from '@/shared/formatters';
 
 interface TaskDetail {
     id: string;
@@ -74,6 +81,10 @@ interface TaskDetail {
     goodsList?: TaskGoodsItem[];
     // 多关键词列表
     keywords?: TaskKeywordItem[];
+    // 新增字段
+    fastRefund?: boolean;
+    weight?: number;
+    contactCSContent?: string;
 }
 
 // 任务商品项
@@ -116,22 +127,13 @@ interface OrderItem {
     completedAt?: string;
 }
 
-const TaskTypeMap: Record<number, string> = { 1: '淘宝', 2: '天猫', 3: '京东', 4: '拼多多', 5: '抖音', 6: '快手' };
-const TaskStatusMap: Record<number, { text: string; color: 'amber' | 'green' | 'blue' | 'red' | 'slate' }> = {
-    0: { text: '待支付', color: 'amber' },
-    1: { text: '进行中', color: 'green' },
-    2: { text: '已完成', color: 'blue' },
-    3: { text: '已取消', color: 'red' },
-    4: { text: '待审核', color: 'slate' }
-};
 const OrderStatusMap: Record<string, { text: string; color: 'blue' | 'amber' | 'green' | 'red' | 'slate' }> = {
-    PENDING: { text: '进行中', color: 'blue' },
+    PENDING: { text: '进行入', color: 'blue' },
     SUBMITTED: { text: '待审核', color: 'amber' },
     APPROVED: { text: '已通过', color: 'green' },
     REJECTED: { text: '已驳回', color: 'red' },
     COMPLETED: { text: '已完成', color: 'slate' }
 };
-const TerminalMap: Record<number, string> = { 1: '本佣货返', 2: '本立佣货' };
 
 export default function TaskDetailPage() {
     const params = useParams();
@@ -257,7 +259,10 @@ export default function TaskDetailPage() {
         );
     }
 
-    const statusStyle = TaskStatusMap[task.status] || { text: '未知', color: 'slate' as const };
+    const statusStyle = {
+        text: TaskStatusLabels[task.status] || '未知',
+        color: (task.status === 0 ? 'amber' : task.status === 1 ? 'green' : task.status === 2 ? 'blue' : task.status === 3 ? 'red' : 'slate') as 'amber' | 'green' | 'blue' | 'red' | 'slate'
+    };
     const progress = task.count > 0 ? (task.completedCount / task.count) * 100 : 0;
     const pct = Math.max(0, Math.min(100, Math.round(progress / 5) * 5)) as
         | 0 | 5 | 10 | 15 | 20 | 25 | 30 | 35 | 40 | 45 | 50
@@ -272,7 +277,7 @@ export default function TaskDetailPage() {
         { value: task.count, label: '总任务数', color: 'text-primary-600' },
         { value: task.claimedCount, label: '已领取', color: 'text-warning-500' },
         { value: task.completedCount, label: '已完成', color: 'text-success-600' },
-        { value: task.count - task.claimedCount, label: '剩余可接', color: 'text-[#6b7280]' }
+        { value: task.count - (task.claimedCount || 0), label: '剩余可接', color: 'text-[#6b7280]' }
     ];
     const entryMethod = getEntryMethod(task);
     const praiseTexts = parsePraiseList(task.praiseList);
@@ -281,21 +286,23 @@ export default function TaskDetailPage() {
 
     // 浏览行为配置
     const browseActions = [
-        { key: 'needCompare', label: '货比', enabled: task.needCompare, extra: task.compareKeyword },
+        { key: 'needCompare', label: '货比', enabled: task.needCompare, extra: task.needCompare ? `${task.compareCount || 3}家商品` : undefined },
         { key: 'needFavorite', label: '收藏商品', enabled: task.needFavorite },
         { key: 'needFollow', label: '关注店铺', enabled: task.needFollow },
         { key: 'needAddCart', label: '加入购物车', enabled: task.needAddCart },
-        { key: 'needContactCS', label: '联系客服', enabled: task.needContactCS }
+        { key: 'needContactCS', label: '联系客服', enabled: task.needContactCS, extra: task.contactCSContent }
     ];
 
     // 增值服务配置
     const valueAddedServices = [
-        { label: '定时发布', enabled: task.isTimingPublish, value: task.publishTime ? new Date(task.publishTime).toLocaleString('zh-CN') : '' },
-        { label: '定时付款', enabled: task.isTimingPay, value: task.timingTime ? new Date(task.timingTime).toLocaleString('zh-CN') : '' },
+        { label: '定时发布', enabled: task.isTimingPublish, value: task.publishTime ? formatDateTime(task.publishTime) : '' },
+        { label: '定时付款', enabled: task.isTimingPay, value: task.timingTime ? formatDateTime(task.timingTime) : '' },
         { label: '回购任务', enabled: task.isRepay },
         { label: '隔天任务', enabled: task.isNextDay },
         { label: '延长周期', enabled: (task.cycle || 0) > 0, value: task.cycle ? `${task.cycle}天` : '' },
-        { label: '接单间隔', enabled: (task.unionInterval || 0) > 0, value: task.unionInterval ? `${task.unionInterval}分钟` : '' }
+        { label: '接单间隔', enabled: (task.unionInterval || 0) > 0, value: task.unionInterval ? `${task.unionInterval}分钟` : '' },
+        { label: '快速返款', enabled: !!task.fastRefund },
+        { label: '包裹重量', enabled: (task.weight || 0) > 0, value: `${task.weight}kg` }
     ];
 
     const isFreeShipping = task.isFreeShipping === 1 || task.isFreeShipping === true;
@@ -372,10 +379,10 @@ export default function TaskDetailPage() {
                                     <div className="min-w-0 flex-1">
                                         <div className="mb-2 text-base font-medium">{task.title}</div>
                                         <div className="mb-2 flex items-center gap-2 text-sm text-[#6b7280]">
-                                            <Badge variant="soft" color="blue" className="text-xs">{TaskTypeMap[task.taskType] || '未知平台'}</Badge>
+                                            <Badge variant="soft" color="blue" className="text-xs">{PlatformLabels[task.taskType] || '未知平台'}</Badge>
                                             {task.shopName}
                                         </div>
-                                        <div className="mb-2 text-xl font-bold text-danger-400">¥{Number(task.goodsPrice).toFixed(2)}</div>
+                                        <div className="mb-2 text-xl font-bold text-danger-400">¥{formatMoney(task.goodsPrice)}</div>
                                         {task.url && <a href={task.url} target="_blank" rel="noopener noreferrer" className="text-[13px] text-primary-500">查看商品链接 →</a>}
                                     </div>
                                 </div>
@@ -644,8 +651,8 @@ export default function TaskDetailPage() {
                             <h2 className="mb-5 text-base font-semibold">任务信息</h2>
                             <div className="grid gap-3 text-sm">
                                 <div className="flex justify-between"><span className="text-[#6b7280]">任务编号</span><span className="font-mono text-primary-600">{task.taskNumber}</span></div>
-                                <div className="flex justify-between"><span className="text-[#6b7280]">创建时间</span><span>{new Date(task.createdAt).toLocaleString('zh-CN')}</span></div>
-                                <div className="flex justify-between"><span className="text-[#6b7280]">结算方式</span><span>{TerminalMap[task.terminal] || '未知'}</span></div>
+                                <div className="flex justify-between"><span className="text-[#6b7280]">创建时间</span><span>{formatDateTime(task.createdAt)}</span></div>
+                                <div className="flex justify-between"><span className="text-[#6b7280]">结算方式</span><span>{TerminalLabels[task.terminal] || '未知'}</span></div>
                                 <div className="flex justify-between"><span className="text-[#6b7280]">包邮</span><span>{isFreeShipping ? '是' : '否'}</span></div>
                                 {task.isPasswordEnabled && task.checkPassword && (
                                     <div className="flex justify-between"><span className="text-[#6b7280]">验证口令</span><span className="font-medium text-danger-400">{task.checkPassword}</span></div>
@@ -659,16 +666,16 @@ export default function TaskDetailPage() {
                         <div className="px-6 py-5">
                             <h2 className="mb-5 text-base font-semibold">费用明细</h2>
                             <div className="grid gap-2.5 text-sm">
-                                <div className="flex justify-between"><span className="text-[#6b7280]">商品本金 × {task.count}</span><span>¥{(Number(task.goodsPrice) * task.count).toFixed(2)}</span></div>
-                                <div className="flex justify-between"><span className="text-[#6b7280]">基础服务费</span><span>¥{(Number(task.baseServiceFee || 0) * task.count).toFixed(2)}</span></div>
-                                {Number(task.praiseFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">文字好评费</span><span>¥{(Number(task.praiseFee) * task.count).toFixed(2)}</span></div>}
-                                {Number(task.imgPraiseFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">图片好评费</span><span>¥{(Number(task.imgPraiseFee) * task.count).toFixed(2)}</span></div>}
-                                {Number(task.videoPraiseFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">视频好评费</span><span>¥{(Number(task.videoPraiseFee) * task.count).toFixed(2)}</span></div>}
-                                {Number(task.shippingFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">邮费</span><span>¥{Number(task.shippingFee).toFixed(2)}</span></div>}
-                                {Number(task.margin) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">保证金</span><span>¥{Number(task.margin).toFixed(2)}</span></div>}
+                                <div className="flex justify-between"><span className="text-[#6b7280]">商品本金 × {task.count}</span><span>¥{formatMoney(Number(task.goodsPrice) * task.count)}</span></div>
+                                <div className="flex justify-between"><span className="text-[#6b7280]">基础服务费</span><span>¥{formatMoney(Number(task.baseServiceFee || 0) * task.count)}</span></div>
+                                {Number(task.praiseFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">文字好评费</span><span>¥{formatMoney(Number(task.praiseFee) * task.count)}</span></div>}
+                                {Number(task.imgPraiseFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">图片好评费</span><span>¥{formatMoney(Number(task.imgPraiseFee) * task.count)}</span></div>}
+                                {Number(task.videoPraiseFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">视频好评费</span><span>¥{formatMoney(Number(task.videoPraiseFee) * task.count)}</span></div>}
+                                {Number(task.shippingFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">邮费</span><span>¥{formatMoney(task.shippingFee)}</span></div>}
+                                {Number(task.margin) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">保证金</span><span>¥{formatMoney(task.margin)}</span></div>}
                                 <div className="mt-1.5 border-t border-[#e5e7eb] pt-2.5">
-                                    <div className="flex justify-between font-semibold"><span>押金总计</span><span className="text-primary-600">¥{Number(task.totalDeposit || 0).toFixed(2)}</span></div>
-                                    <div className="mt-1.5 flex justify-between font-semibold"><span>佣金总计</span><span className="text-danger-400">¥{Number(task.totalCommission || 0).toFixed(2)}</span></div>
+                                    <div className="flex justify-between font-semibold"><span>押金总计</span><span className="text-primary-600">¥{formatMoney(task.totalDeposit || 0)}</span></div>
+                                    <div className="mt-1.5 flex justify-between font-semibold"><span>佣金总计</span><span className="text-danger-400">¥{formatMoney(task.totalCommission || 0)}</span></div>
                                 </div>
                             </div>
                         </div>

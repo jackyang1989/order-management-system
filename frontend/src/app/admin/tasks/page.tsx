@@ -13,12 +13,16 @@ import { Table, Column } from '../../../components/ui/table';
 import { Modal } from '../../../components/ui/modal';
 import { Pagination } from '../../../components/ui/pagination';
 
-import { TASK_TYPE_NAMES } from '../../../constants/platformConfig';
-import { EnhancedTable, EnhancedColumn } from '../../../components/ui/enhanced-table';
-import { ColumnSettingsPanel, ColumnConfig, ColumnMeta } from '../../../components/ui/column-settings-panel';
-import { useTablePreferences } from '../../../hooks/useTablePreferences';
+import { 
+    PlatformLabels, 
+    TerminalLabels, 
+    TaskStatusLabels,
+    OrderStatusLabels
+} from '@/shared/taskSpec';
+import { formatDateTime, formatMoney } from '@/shared/formatters';
 
 interface Task {
+
     id: string;
     taskNumber: string;
     title: string;
@@ -89,6 +93,11 @@ interface Task {
     // Multi-goods and multi-keywords from refactored version
     goodsList?: TaskGoodsItem[];
     keywords?: TaskKeywordItem[];
+    // 新增审计字段
+    fastRefund?: boolean;
+    weight?: number;
+    contactCSContent?: string;
+    compareCount?: number;
 }
 
 // Multi-goods item from task_goods table
@@ -121,15 +130,7 @@ interface TaskKeywordItem {
     province?: string;
 }
 
-const statusLabels: Record<number, { text: string; color: 'slate' | 'green' | 'blue' | 'red' | 'amber' }> = {
-    0: { text: '待支付', color: 'slate' },
-    1: { text: '进行中', color: 'green' },
-    2: { text: '已完成', color: 'blue' },
-    3: { text: '已取消', color: 'red' },
-    4: { text: '待审核', color: 'amber' },
-};
-
-const terminalLabels: Record<number, string> = { 1: '本佣货返', 2: '本立佣货' };
+const terminalLabels: Record<number, string> = TerminalLabels;
 
 export default function AdminTasksPage() {
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -189,9 +190,9 @@ export default function AdminTasksPage() {
 
     const statusOptions = useMemo(
         () =>
-            Object.entries(statusLabels).map(([k, v]) => ({
+            Object.entries(TaskStatusLabels).map(([k, v]) => ({
                 value: String(k),
-                label: v.text,
+                label: v,
             })),
         []
     );
@@ -340,7 +341,7 @@ export default function AdminTasksPage() {
         {
             key: 'taskType',
             title: '平台',
-            render: (row) => <span className="text-[#5a6577]">{TASK_TYPE_NAMES[row.taskType] || '其他'}</span>,
+            render: (row) => <span className="text-[#5a6577]">{PlatformLabels[row.taskType] || '其他'}</span>,
             cellClassName: 'w-[80px]',
         },
         {
@@ -387,10 +388,11 @@ export default function AdminTasksPage() {
             key: 'status',
             title: '状态',
             render: (row) => {
-                const config = statusLabels[row.status] || statusLabels[0];
+                const text = TaskStatusLabels[row.status] || '未知';
+                const color = (row.status === 0 ? 'slate' : row.status === 1 ? 'green' : row.status === 2 ? 'blue' : row.status === 3 ? 'red' : 'amber') as any;
                 return (
-                    <Badge variant="soft" color={config.color}>
-                        {config.text}
+                    <Badge variant="soft" color={color}>
+                        {text}
                     </Badge>
                 );
             },
@@ -399,7 +401,7 @@ export default function AdminTasksPage() {
         {
             key: 'createdAt',
             title: '发布时间',
-            render: (row) => <span className="text-xs text-[#6b7280]">{formatDate(row.createdAt)}</span>,
+            render: (row) => <span className="text-xs text-[#6b7280]">{formatDateTime(row.createdAt)}</span>,
             cellClassName: 'w-[100px]',
         },
         {
@@ -562,21 +564,23 @@ export default function AdminTasksPage() {
 
                     // 浏览行为配置
                     const browseActions = [
-                        { label: '货比', enabled: detailModal.needCompare, extra: detailModal.compareKeyword },
+                        { label: '货比', enabled: detailModal.needCompare, extra: detailModal.needCompare ? `${detailModal.compareCount || 3}家商品` : undefined },
                         { label: '收藏商品', enabled: detailModal.needFavorite },
                         { label: '关注店铺', enabled: detailModal.needFollow },
                         { label: '加入购物车', enabled: detailModal.needAddCart },
-                        { label: '联系客服', enabled: detailModal.needContactCS }
+                        { label: '联系客服', enabled: detailModal.needContactCS, extra: detailModal.contactCSContent }
                     ];
 
                     // 增值服务配置
                     const valueAddedServices = [
-                        { label: '定时发布', enabled: detailModal.isTimingPublish, value: detailModal.publishTime ? formatDate(detailModal.publishTime) : '' },
-                        { label: '定时付款', enabled: detailModal.isTimingPay, value: detailModal.timingTime ? formatDate(detailModal.timingTime) : '' },
+                        { label: '定时发布', enabled: detailModal.isTimingPublish, value: detailModal.publishTime ? formatDateTime(detailModal.publishTime) : '' },
+                        { label: '定时付款', enabled: detailModal.isTimingPay, value: detailModal.timingTime ? formatDateTime(detailModal.timingTime) : '' },
                         { label: '回购任务', enabled: detailModal.isRepay },
                         { label: '隔天任务', enabled: detailModal.isNextDay },
                         { label: '延长周期', enabled: (detailModal.cycle || 0) > 0, value: detailModal.cycle ? `${detailModal.cycle}天` : '' },
-                        { label: '接单间隔', enabled: (detailModal.unionInterval || 0) > 0, value: detailModal.unionInterval ? `${detailModal.unionInterval}分钟` : '' }
+                        { label: '接单间隔', enabled: (detailModal.unionInterval || 0) > 0, value: detailModal.unionInterval ? `${detailModal.unionInterval}分钟` : '' },
+                        { label: '快速返款', enabled: !!detailModal.fastRefund },
+                        { label: '包裹重量', enabled: (detailModal.weight || 0) > 0, value: `${detailModal.weight}kg` }
                     ];
 
                     return (

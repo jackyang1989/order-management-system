@@ -9,8 +9,15 @@ import { MockBuyerAccount } from '../../../mocks/userMock';
 import { isAuthenticated } from '../../../services/authService';
 import { cn } from '../../../lib/utils';
 
-const TaskTypeMap: Record<number, string> = { 1: '淘宝', 2: '天猫', 3: '京东', 4: '拼多多', 5: '抖音', 6: '快手' };
-const TerminalMap: Record<number, string> = { 1: '本佣货返', 2: '本立佣货' };
+import { 
+    PlatformLabels, 
+    TerminalLabels, 
+    TaskStatusLabels,
+} from '@/shared/taskSpec';
+import { formatDateTime, formatMoney } from '@/shared/formatters';
+
+const TaskTypeMap: Record<number, string> = PlatformLabels;
+const TerminalMap: Record<number, string> = TerminalLabels;
 
 export default function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
@@ -135,11 +142,11 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
     // 浏览行为配置
     const browseActions = [
-        { label: '货比', enabled: task.needCompare, extra: task.compareKeyword },
+        { label: '货比', enabled: task.needCompare, extra: task.needCompare ? `${task.compareCount || 3}家商品` : undefined },
         { label: '收藏商品', enabled: task.needFavorite },
         { label: '关注店铺', enabled: task.needFollow },
         { label: '加入购物车', enabled: task.needAddCart },
-        { label: '联系客服', enabled: task.needContactCS }
+        { label: '联系客服', enabled: task.needContactCS, extra: task.contactCSContent }
     ].filter(a => a.enabled);
 
     return (
@@ -356,10 +363,23 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                         <span className="text-slate-500">结算方式</span>
                         <span className="text-slate-700">{task.terminal ? TerminalMap[task.terminal] : '-'}</span>
                     </div>
-                    <div className="flex justify-between">
-                        <span className="text-slate-500">运费</span>
-                        <span className={isFreeShipping ? 'text-green-600' : 'text-amber-600'}>{isFreeShipping ? '包邮' : '非包邮'}</span>
-                    </div>
+                         <div className="flex justify-between">
+                             <span className="text-slate-500">运费</span>
+                             <span className={isFreeShipping ? 'text-green-600' : 'text-amber-600'}>{isFreeShipping ? '包邮' : '非包邮'}</span>
+                         </div>
+                         {task.isPasswordEnabled && task.checkPassword && (
+                             <div className="flex justify-between">
+                                 <span className="text-slate-500">验证口令</span>
+                                 <span className="text-danger-400 font-medium">{task.checkPassword}</span>
+                             </div>
+                         )}
+                         {(task.weight || 0) > 0 && (
+                             <div className="flex justify-between">
+                                 <span className="text-slate-500">包裹重量</span>
+                                 <span className="text-slate-700">{task.weight}kg</span>
+                             </div>
+                         )}
+
                     {(task.extraReward || 0) > 0 && (
                         <div className="flex justify-between">
                             <span className="text-slate-500">额外加赏</span>
