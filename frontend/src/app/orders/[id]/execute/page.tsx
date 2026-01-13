@@ -32,6 +32,18 @@ interface GoodsInfo {
     imgdata: string[];
     key: string;
     goodsSpec: string;
+    isMain?: boolean;
+    keywords?: {
+        id: string;
+        keyword: string;
+        terminal: number;
+        sort: string;
+        province: string;
+        minPrice: number;
+        maxPrice: number;
+        discount: string;
+        filter: string;
+    }[];
 }
 
 interface OrderGoods {
@@ -211,34 +223,88 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                     setZhongDuanmessage('温馨提示：此任务本金立返佣金货返，买手提交订单商家审核通过后平台24小时内将本金充值到买手本金账户，佣金在任务完成后24小时内返到买手银锭账户。');
                 }
 
-                // 构建 tableData2 (商品信息) - 使用任务数据
-                const goodsList: GoodsInfo[] = [{
-                    id: data.taskId,
-                    goodsId: data.platformProductId || data.taskId,
-                    productName: data.title || '',
-                    dianpuName: data.shopName || '',
-                    type: '',
-                    specname: '',
-                    specifications: '',
-                    buyNum: 1,
-                    buyPrice: String(data.goodsPrice || ''),
-                    input: '',
-                    inputnum: '',
-                    img: data.mainImage || '',
-                    imgdata: data.mainImage ? [data.mainImage] : [],
-                    key: data.keyword || '',
-                    goodsSpec: data.maskedPassword || '',
-                }];
+                // 构建 tableData2 (商品信息) - 支持多商品
+                let goodsList: GoodsInfo[] = [];
+
+                // 优先使用新版多商品数据
+                if (data.goodsList && data.goodsList.length > 0) {
+                    goodsList = data.goodsList.map((goods: {
+                        id: string;
+                        goodsId: string;
+                        name: string;
+                        pcImg: string;
+                        link: string;
+                        specName: string;
+                        specValue: string;
+                        price: number;
+                        num: number;
+                        isMain: boolean;
+                        keywords?: {
+                            id: string;
+                            keyword: string;
+                            terminal: number;
+                            sort: string;
+                            province: string;
+                            minPrice: number;
+                            maxPrice: number;
+                            discount: string;
+                            filter: string;
+                        }[];
+                    }) => ({
+                        id: goods.id,
+                        goodsId: goods.goodsId || goods.id,
+                        productName: goods.name || '',
+                        dianpuName: data.shopName || '',
+                        type: goods.isMain ? '主商品' : '副商品',
+                        specname: goods.specName || '',
+                        specifications: goods.specValue || '',
+                        buyNum: goods.num || 1,
+                        buyPrice: String(goods.price || ''),
+                        input: '',
+                        inputnum: '',
+                        img: goods.pcImg || '',
+                        imgdata: goods.pcImg ? [goods.pcImg] : [],
+                        key: goods.keywords?.[0]?.keyword || data.keyword || '',
+                        goodsSpec: data.maskedPassword || '',
+                        isMain: goods.isMain,
+                        keywords: goods.keywords,
+                    }));
+
+                    // 设置第一个商品的关键词为默认关键词
+                    if (goodsList.length > 0 && goodsList[0].keywords && goodsList[0].keywords.length > 0) {
+                        setKeyWord(goodsList[0].keywords[0].keyword);
+                    }
+                } else {
+                    // 兼容旧版单商品数据
+                    goodsList = [{
+                        id: data.taskId,
+                        goodsId: data.platformProductId || data.taskId,
+                        productName: data.title || '',
+                        dianpuName: data.shopName || '',
+                        type: '主商品',
+                        specname: '',
+                        specifications: '',
+                        buyNum: 1,
+                        buyPrice: String(data.goodsPrice || ''),
+                        input: '',
+                        inputnum: '',
+                        img: data.mainImage || '',
+                        imgdata: data.mainImage ? [data.mainImage] : [],
+                        key: data.keyword || '',
+                        goodsSpec: data.maskedPassword || '',
+                        isMain: true,
+                    }];
+                }
                 setTableData2(goodsList);
 
                 // 构建 tableData3 (订单商品表格)
-                const orderGoods: OrderGoods[] = [{
-                    id: data.taskId,
-                    dianpuName: data.shopName || '',
-                    productName: data.title || '',
-                    price: String(data.goodsPrice || ''),
-                    count: 1,
-                }];
+                const orderGoods: OrderGoods[] = goodsList.map(g => ({
+                    id: g.id,
+                    dianpuName: g.dianpuName,
+                    productName: g.productName,
+                    price: g.buyPrice,
+                    count: g.buyNum,
+                }));
                 setTableData3(orderGoods);
             } else {
                 alertError(res.message || '获取任务数据失败');

@@ -15,6 +15,7 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { TasksService } from '../tasks/tasks.service';
 import { DingdanxiaService } from '../dingdanxia/dingdanxia.service';
+import { TaskGoodsService } from '../task-goods/task-goods.service';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
@@ -23,6 +24,7 @@ export class OrdersController {
     private ordersService: OrdersService,
     private tasksService: TasksService,
     private dingdanxiaService: DingdanxiaService,
+    private taskGoodsService: TaskGoodsService,
   ) { }
 
   // ============ 管理员端订单管理 ============
@@ -436,7 +438,43 @@ export class OrdersController {
         return { success: false, message: '任务不存在' };
       }
 
-      // 构建脱敏口令
+      // 获取多商品数据
+      const taskGoodsList = await this.taskGoodsService.findByTaskId(task.id);
+      const taskKeywords = await this.taskGoodsService.findKeywordsByTaskId(task.id);
+
+      // 构建 goodsList 数据
+      const goodsList = taskGoodsList.map((goods, index) => {
+        // 找到属于这个商品的关键词（通过 taskGoodsId 匹配）
+        const goodsKeywords = taskKeywords.filter(kw => kw.taskGoodsId === goods.id);
+
+        return {
+          id: goods.id,
+          goodsId: goods.goodsId,
+          name: goods.name,
+          pcImg: goods.pcImg,
+          link: goods.link,
+          specName: goods.specName,
+          specValue: goods.specValue,
+          price: goods.price,
+          num: goods.num,
+          totalPrice: goods.totalPrice,
+          isMain: index === 0, // 第一个为主商品
+          // 关键词列表
+          keywords: goodsKeywords.map(kw => ({
+            id: kw.id,
+            keyword: kw.keyword,
+            terminal: kw.terminal,
+            sort: kw.sort,
+            province: kw.province,
+            minPrice: kw.minPrice,
+            maxPrice: kw.maxPrice,
+            discount: kw.discount,
+            filter: kw.filter,
+          })),
+        };
+      });
+
+      // 构建脱敏口令（兼容旧逻辑）
       const maskedPassword = task.isPasswordEnabled && task.checkPassword
         ? this.ordersService.maskPassword(task.checkPassword)
         : '';
@@ -472,6 +510,9 @@ export class OrdersController {
           isPraise: task.isPraise,
           isImgPraise: task.isImgPraise,
           isVideoPraise: task.isVideoPraise,
+          praiseList: task.praiseList,
+          praiseImgList: task.praiseImgList,
+          praiseVideoList: task.praiseVideoList,
 
           // 佣金信息
           commission: order.commission || 0,
@@ -505,6 +546,10 @@ export class OrdersController {
 
           // 商家备注
           memo: task.memo || '',
+
+          // 多商品数据
+          goodsList,
+          version: task.version || 1,
         },
       };
     } catch (error) {

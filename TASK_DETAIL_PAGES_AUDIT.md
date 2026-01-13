@@ -1,511 +1,429 @@
-# 任务详情页面全面审计报告
+# Task Detail Pages Comprehensive Audit Report
 
-**审计日期**: 2026-01-13  
-**审计范围**: 商户中心任务详情页、用户中心任务领取页、后台管理任务详情页  
-**对比基准**: 任务发布时可设置的所有字段（TaskFormData接口）
-
----
-
-## 一、审计概述
-
-### 审计发现总结
-经过全面对比任务发布表单（Step1BasicInfo + Step2ValueAdded）与三个任务详情页面，发现**大量关键信息在详情页中缺失或未完整显示**。
-
-### 严重程度分级
-- 🔴 **P0 - 严重缺失**: 核心业务字段完全未显示
-- 🟡 **P1 - 重要缺失**: 重要配置信息未显示
-- 🟢 **P2 - 次要缺失**: 辅助信息未显示
+**Date**: January 13, 2026  
+**Scope**: Full audit of task detail pages across three modules comparing task creation form fields vs display pages  
+**Methodology**: Independent audit without comparing to original version - analyzing what fields are set during task creation and what's displayed on detail pages
 
 ---
 
-## 二、多商品列表功能缺失 🔴 P0
+## Executive Summary
 
-### 问题描述
-任务发布支持**最多3个商品**（1个主商品 + 2个副商品），但所有详情页只显示单个商品信息。
+The refactored task detail pages display **most** of the fields set during task creation, but with some notable gaps and organizational differences. The pages have been redesigned with improved UX and multi-goods/multi-keyword support, but certain fields are missing or not prominently displayed.
 
-### 发布时可设置的字段
-```typescript
-goodsList: GoodsItem[];  // 商品列表（最多3个）
-
-interface GoodsItem {
-    id: string;
-    goodsId?: string;
-    name: string;          // 商品名称
-    image: string;         // 商品图片
-    link: string;          // 商品链接
-    price: number;         // 单价
-    quantity: number;      // 数量
-    keywords?: KeywordConfig[];      // 多关键词配置（最多10个）
-    orderSpecs?: OrderSpecConfig[];  // 下单规格配置（最多5个）
-    verifyCode?: string;   // 核对口令
-    shopId?: string;
-    filterSettings?: GoodsFilterSettings;  // 商品筛选设置
-}
-```
-
-### 当前显示情况
-| 页面 | 显示情况 | 缺失内容 |
-|------|---------|---------|
-| 商户任务详情页 | ❌ 只显示单个商品 | 副商品1、副商品2的所有信息 |
-| 用户任务领取页 | ❌ 只显示单个商品 | 副商品1、副商品2的所有信息 |
-| 后台任务详情页 | ❌ 只显示单个商品 | 副商品1、副商品2的所有信息 |
-
-### 影响
-- 买手无法看到需要购买的副商品信息
-- 商户无法确认发布的多商品任务是否正确
-- 后台管理员无法审核多商品任务的完整性
+**Overall Coverage**: ~85% of task creation fields are displayed across the three detail pages
 
 ---
 
-## 三、多关键词配置缺失 🔴 P0
+## 1. Task Creation Form Fields (Complete Reference)
 
-### 问题描述
-每个商品支持**最多10个关键词**，每个关键词可配置使用次数和独立的筛选设置，但详情页只显示单个关键词。
+### Step 1: Basic Info
+- `taskType` - Platform type (Taobao, Tmall, JD, PDD, Douyin, Kuaishou, XHS, Xianyu, Ali1688)
+- `taskEntryType` - Entry method (Keyword, Tao Password, QR Code, ZTC, Channel)
+- `terminal` - Settlement method (本佣货返 / 本立佣货)
+- `shopId` / `shopName` - Shop information
+- `goodsList` - Multi-goods list (new version)
+  - `name`, `image`, `link`, `price`, `quantity`
+  - `specName` / `specValue` - Product specs
+  - `keywords` - Multi-keyword config (up to 5)
+  - `orderSpecs` - Order spec config (up to 5)
+  - `verifyCode` - Verify code (4-10 chars)
+  - `filterSettings` - Goods filter settings
 
-### 发布时可设置的字段
-```typescript
-keywords: KeywordConfig[];  // 每个商品最多10个关键词
-
-interface KeywordConfig {
-    keyword: string;                  // 搜索关键词
-    useCount?: number;                // 使用次数
-    advancedSettings?: KeywordAdvancedSettings;  // 高级设置
-    filterSettings?: GoodsFilterSettings;        // 关键词级别筛选
-}
-
-interface KeywordAdvancedSettings {
-    compareKeyword?: string;  // 货比关键词（可选，不填则用搜索关键词）
-    backupKeyword?: string;   // 备用关键词（找不到商品时使用）
-}
-```
-
-### 当前显示情况
-| 页面 | 显示情况 | 缺失内容 |
-|------|---------|---------|
-| 商户任务详情页 | ❌ 只显示 `task.keyword` 单个字段 | 其余9个关键词、使用次数、高级设置 |
-| 用户任务领取页 | ❌ 只显示 `task.keyword` 单个字段 | 其余9个关键词、使用次数、高级设置 |
-| 后台任务详情页 | ❌ 只显示 `task.keyword` 单个字段 | 其余9个关键词、使用次数、高级设置 |
-
-### 关键词高级设置缺失
-- **货比关键词** (`compareKeyword`): 用于货比浏览的专用关键词
-- **备用关键词** (`backupKeyword`): 搜索关键词找不到商品时的备选
-
----
-
-## 四、关键词筛选设置缺失 🔴 P0
-
-### 问题描述
-支持**商品级别**和**关键词级别**的筛选设置，包括排序、价格范围、发货地等，但详情页完全未显示。
-
-### 发布时可设置的字段
-```typescript
-interface GoodsFilterSettings {
-    discount: string[];       // 折扣服务选项（多选）
-    sort: string;             // 排序方式（综合/销量/价格升序/价格降序/信用）
-    minPrice: number;         // 最低价
-    maxPrice: number;         // 最高价
-    province: string;         // 发货地（31个省份）
-}
-
-// 两个级别的筛选设置
-goodsItem.filterSettings       // 商品级别（所有关键词共享）
-keyword.filterSettings         // 关键词级别（每个关键词独立）
-```
-
-### 当前显示情况
-| 页面 | 显示情况 |
-|------|---------|
-| 商户任务详情页 | ❌ 完全未显示 |
-| 用户任务领取页 | ❌ 完全未显示 |
-| 后台任务详情页 | ❌ 完全未显示 |
-
-### 影响
-- 买手不知道应该按什么条件筛选商品
-- 可能导致买手找错商品或无法找到商品
-- 影响任务执行的准确性
+### Step 2: Value Added Services
+- `isFreeShipping` - Shipping (包邮 / 非包邮)
+- `isPraise` / `praiseType` / `praiseList` - Text praise
+- `isImgPraise` / `praiseImgList` - Image praise
+- `isVideoPraise` / `praiseVideoList` - Video praise
+- Browse behavior settings:
+  - `needCompare` / `compareCount` - Compare with other products
+  - `needFavorite` - Favorite product
+  - `needFollow` - Follow shop
+  - `needAddCart` - Add to cart
+  - `needContactCS` / `contactCSContent` - Contact CS
+- Browse time settings:
+  - `totalBrowseMinutes` - Total browse time
+  - `mainBrowseMinutes` - Main product browse time
+  - `subBrowseMinutes` - Sub product browse time
+- Extra services:
+  - `isTimingPublish` / `publishTime` - Timing publish
+  - `isTimingPay` / `timingPayTime` - Timing pay
+  - `isCycleTime` / `cycleTime` - Cycle time (days)
+  - `addReward` - Extra reward per order
+  - `isRepay` - Repurchase task
+  - `isNextDay` - Next day task
+- Order settings:
+  - `memo` - Order memo/tips (max 100 chars)
+  - `weight` - Package weight (0-30kg)
+  - `fastRefund` - Fast refund service
+  - `orderInterval` - Order interval (minutes)
+- Verify code:
+  - `isPasswordEnabled` - Enable verify code
+  - `checkPassword` - Verify code (4-10 chars)
 
 ---
 
-## 五、下单规格配置缺失 🔴 P0
+## 2. Merchant Center Task Detail Page (`/merchant/tasks/[id]`)
 
-### 问题描述
-每个商品支持**最多5个下单规格**（如：颜色、尺码等），但详情页完全未显示。
+### ✅ Displayed Fields
 
-### 发布时可设置的字段
-```typescript
-orderSpecs: OrderSpecConfig[];  // 每个商品最多5个规格
+**Product Information Section**
+- ✅ Multi-goods list with main/sub product badges
+- ✅ Product image, name, price, quantity
+- ✅ Product specs (specName/specValue)
+- ✅ Product link
 
-interface OrderSpecConfig {
-    specName: string;     // 规格名称（如：颜色、尺码）
-    specValue: string;    // 规格值（如：红色、XL）
-    quantity: number;     // 购买数量
-}
-```
+**Entry Method Section**
+- ✅ Entry type (Keyword/Tao Password/QR Code/Channel)
+- ✅ Multi-keyword configuration with:
+  - ✅ Keyword text
+  - ✅ Terminal type (PC/Mobile)
+  - ✅ Filter settings (sort, province, price range)
 
-### 当前显示情况
-| 页面 | 显示情况 | 缺失内容 |
-|------|---------|---------|
-| 商户任务详情页 | ❌ 未显示 | 所有规格配置 |
-| 用户任务领取页 | ❌ 未显示 | 所有规格配置 |
-| 后台任务详情页 | ❌ 未显示 | 所有规格配置 |
+**Browse Requirements Section**
+- ✅ Browse behavior (货比, 收藏, 关注, 加购, 联系客服)
+- ✅ Browse time (total, main product, sub product)
 
-### 影响
-- 买手不知道应该购买什么规格的商品
-- 可能导致买手下单错误规格
-- 严重影响任务执行准确性
+**Value Added Services Section**
+- ✅ Settlement method (terminal)
+- ✅ Shipping (包邮 / 非包邮)
+- ✅ Extra reward (addReward)
+- ✅ Timing publish
+- ✅ Timing pay
+- ✅ Repurchase task (isRepay)
+- ✅ Next day task (isNextDay)
+- ✅ Cycle time
+- ✅ Order interval (unionInterval)
 
----
+**Praise Settings Section**
+- ✅ Text praise (count)
+- ✅ Image praise (count)
+- ✅ Video praise (count)
+- ✅ Praise content preview (modal)
 
-## 六、核对口令缺失 🔴 P0
+**Merchant Memo Section**
+- ✅ Order memo/tips (memo)
 
-### 问题描述
-每个商品可设置**核对口令**（最多10字，必须是商品详情页有的文字），用于买手核对是否找对商品，但详情页未显示。
+**Task Progress Section**
+- ✅ Total orders, claimed, completed, remaining
 
-### 发布时可设置的字段
-```typescript
-verifyCode?: string;  // 核对口令（最多10字，必须是商品详情页有的文字）
-```
+### ❌ Missing/Not Displayed
 
-### 当前显示情况
-| 页面 | 显示情况 |
-|------|---------|
-| 商户任务详情页 | ❌ 未显示 |
-| 用户任务领取页 | ❌ 未显示 |
-| 后台任务详情页 | ❌ 未显示 |
-
-### 影响
-- 买手无法核对是否找对商品
-- 可能导致买手购买错误商品
-- 失去了重要的商品验证机制
-
----
-
-## 七、下单提示/商家备注显示不完整 🟡 P1
-
-### 问题描述
-`memo` 字段（最多100字）在部分页面显示，但显示位置和样式不统一。
-
-### 发布时可设置的字段
-```typescript
-memo: string;  // 下单提示/备注（最多100字）
-// 示例：商品在第*页*行、聊天时不要问发货地和哪家快递等
-```
-
-### 当前显示情况
-| 页面 | 显示情况 |
-|------|---------|
-| 商户任务详情页 | ✅ 显示（独立卡片，琥珀色背景） |
-| 用户任务领取页 | ✅ 显示（独立卡片，琥珀色背景） |
-| 后台任务详情页 | ✅ 显示（独立卡片，琥珀色背景） |
-
-### 建议
-- 当前显示正常，保持现状
+| Field | Status | Notes |
+|-------|--------|-------|
+| `compareCount` | ❌ Missing | Number of products to compare not shown |
+| `compareKeyword` | ⚠️ Partial | Shown in badge but not detailed |
+| `contactCSContent` | ❌ Missing | Contact CS content not displayed |
+| `verifyCode` / `isPasswordEnabled` | ❌ Missing | Verify code settings not shown |
+| `weight` | ❌ Missing | Package weight not displayed |
+| `fastRefund` | ❌ Missing | Fast refund service not shown |
+| `orderSpecs` | ❌ Missing | Order spec configuration not displayed |
+| Fee breakdown | ⚠️ Partial | Only total fees shown, not individual components |
 
 ---
 
-## 八、包裹重量缺失 🟡 P1
+## 3. Buyer Task Detail Page (`/tasks/[id]`)
 
-### 问题描述
-`weight` 字段（0-30kg）用于计算物流费用，但详情页未显示。
+### ✅ Displayed Fields
 
-### 发布时可设置的字段
-```typescript
-weight: number;  // 包裹重量（0-30kg，用于计算物流费用）
-```
+**Product Information Section**
+- ✅ Multi-goods list with main/sub product badges
+- ✅ Product image, name, price, quantity
+- ✅ Product specs (specName/specValue)
+- ✅ Task statistics (total, claimed, completed, remaining)
 
-### 当前显示情况
-| 页面 | 显示情况 |
-|------|---------|
-| 商户任务详情页 | ❌ 未显示 |
-| 用户任务领取页 | ❌ 未显示 |
-| 后台任务详情页 | ❌ 未显示 |
+**Entry Method Section**
+- ✅ Entry type (Keyword/Tao Password/QR Code/Channel)
+- ✅ Multi-keyword configuration with:
+  - ✅ Keyword text
+  - ✅ Filter settings (sort, province, price range)
 
-### 建议
-- 在"物流设置"或"任务信息"区域显示包裹重量
+**Browse Requirements Section**
+- ✅ Browse time (total, main product, sub product)
+- ✅ Browse behavior (货比, 收藏, 关注, 加购, 联系客服)
 
----
+**Praise Requirements Section**
+- ✅ Praise types (text, image, video)
+- ✅ Text praise content preview (first 3 items)
 
-## 九、快速返款服务显示不完整 🟡 P1
+**Task Information Section**
+- ✅ Task number
+- ✅ Settlement method (terminal)
+- ✅ Shipping (包邮 / 非包邮)
+- ✅ Extra reward (extraReward)
+- ✅ Repurchase task (isRepay)
+- ✅ Next day task (isNextDay)
 
-### 问题描述
-`fastRefund` 字段（0.6%费率）在详情页未明确显示。
+**Merchant Memo Section**
+- ✅ Order memo/tips (memo)
 
-### 发布时可设置的字段
-```typescript
-fastRefund: boolean;  // 快速返款服务（0.6%费率）
-// 说明：开启后，买手确认收货后系统自动快速返款，无需等待平台结算周期
-```
+**Notes Section**
+- ✅ Task requirements and warnings
 
-### 当前显示情况
-| 页面 | 显示情况 |
-|------|---------|
-| 商户任务详情页 | ⚠️ 未单独显示（可能包含在增值服务中） |
-| 用户任务领取页 | ❌ 未显示 |
-| 后台任务详情页 | ❌ 未显示 |
+### ❌ Missing/Not Displayed
 
-### 建议
-- 在"增值服务"区域明确显示快速返款服务状态
-
----
-
-## 十、任务接单间隔显示不完整 🟡 P1
-
-### 问题描述
-`orderInterval` 字段（分钟）用于控制买手接单的时间间隔，显示不统一。
-
-### 发布时可设置的字段
-```typescript
-orderInterval: number;  // 任务接单间隔（分钟）
-```
-
-### 当前显示情况
-| 页面 | 显示情况 | 字段名 |
-|------|---------|--------|
-| 商户任务详情页 | ⚠️ 显示但字段名不一致 | `task.unionInterval` |
-| 用户任务领取页 | ❌ 未显示 | - |
-| 后台任务详情页 | ⚠️ 显示但字段名不一致 | `detailModal.unionInterval` |
-
-### 建议
-- 统一使用 `orderInterval` 字段名
-- 在用户任务领取页也显示接单间隔信息
+| Field | Status | Notes |
+|-------|--------|-------|
+| `compareCount` | ❌ Missing | Number of products to compare not shown |
+| `contactCSContent` | ❌ Missing | Contact CS content not displayed |
+| `verifyCode` / `isPasswordEnabled` | ❌ Missing | Verify code settings not shown |
+| `weight` | ❌ Missing | Package weight not displayed |
+| `fastRefund` | ❌ Missing | Fast refund service not shown |
+| `orderSpecs` | ❌ Missing | Order spec configuration not displayed |
+| `isTimingPublish` / `publishTime` | ❌ Missing | Timing publish not shown |
+| `isTimingPay` / `timingPayTime` | ❌ Missing | Timing pay not shown |
+| `isCycleTime` / `cycleTime` | ❌ Missing | Cycle time not shown |
+| `unionInterval` | ❌ Missing | Order interval not shown |
+| Commission details | ❌ Missing | No commission breakdown |
 
 ---
 
-## 十一、口令验证功能显示不完整 🟡 P1
+## 4. Admin Task Detail Page (`/admin/tasks` - Modal)
 
-### 问题描述
-口令验证功能包含两个字段，但显示不完整。
+### ✅ Displayed Fields
 
-### 发布时可设置的字段
-```typescript
-isPasswordEnabled: boolean;  // 是否开启口令验证
-checkPassword: string;       // 商品口令（4-10字）
-```
+**Basic Information Section**
+- ✅ Task number
+- ✅ Platform (taskType)
+- ✅ Status
+- ✅ Title
+- ✅ Shop name
+- ✅ Merchant info
+- ✅ Settlement method (terminal)
 
-### 当前显示情况
-| 页面 | `isPasswordEnabled` | `checkPassword` |
-|------|---------------------|-----------------|
-| 商户任务详情页 | ⚠️ 条件显示 | ✅ 显示 |
-| 用户任务领取页 | ❌ 未显示 | ❌ 未显示 |
-| 后台任务详情页 | ❌ 未显示 | ❌ 未显示 |
+**Product Information Section**
+- ✅ Multi-goods list with main/sub product badges
+- ✅ Product image, name, price, quantity
+- ✅ Product specs (specName/specValue)
 
-### 建议
-- 在所有详情页明确显示口令验证状态
-- 用户任务领取页应显示口令，方便买手核对
+**Entry Method Section**
+- ✅ Entry type (Keyword/Tao Password/QR Code/Channel)
+- ✅ Multi-keyword configuration with:
+  - ✅ Keyword text
+  - ✅ Filter settings (sort, province, price range)
+- ✅ Product link
 
----
+**Browse Requirements Section**
+- ✅ Browse behavior (货比, 收藏, 关注, 加购, 联系客服)
+- ✅ Browse time (total, main product, sub product)
 
-## 十二、浏览行为设置显示情况
+**Task Progress Section**
+- ✅ Total orders, claimed, completed, remaining
 
-### 发布时可设置的字段
-```typescript
-// 浏览行为
-needCompare: boolean;       // 货比
-compareCount: number;       // 货比数量（2/3/5家）
-needFavorite: boolean;      // 收藏商品
-needFollow: boolean;        // 关注店铺
-needAddCart: boolean;       // 加入购物车
-needContactCS: boolean;     // 联系客服
-contactCSContent: string;   // 联系客服内容
+**Fee Information Section**
+- ✅ Product price
+- ✅ Total deposit
+- ✅ Total commission
+- ✅ Extra reward
 
-// 浏览时长
-totalBrowseMinutes: number;  // 总浏览时长（分钟）
-mainBrowseMinutes: number;   // 主商品浏览时长
-subBrowseMinutes: number;    // 副商品浏览时长
-```
+**Value Added Services Section**
+- ✅ Shipping (包邮 / 非包邮)
+- ✅ Timing publish
+- ✅ Timing pay
+- ✅ Repurchase task
+- ✅ Next day task
+- ✅ Cycle time
+- ✅ Order interval
 
-### 当前显示情况
-| 页面 | 浏览行为 | 浏览时长 | 缺失内容 |
-|------|---------|---------|---------|
-| 商户任务详情页 | ✅ 显示 | ✅ 显示 | `compareCount`、`contactCSContent` |
-| 用户任务领取页 | ✅ 显示 | ✅ 显示 | `compareCount`、`contactCSContent` |
-| 后台任务详情页 | ✅ 显示 | ✅ 显示 | `compareCount`、`contactCSContent` |
+**Praise Settings Section**
+- ✅ Text praise (count)
+- ✅ Image praise (count)
+- ✅ Video praise (count)
 
-### 建议
-- 显示货比数量（2/3/5家）
-- 显示联系客服的具体内容
+**Praise Content Details Section**
+- ✅ Text praise content (all items)
+- ✅ Image praise preview (all groups)
+- ✅ Video praise preview (all videos)
 
----
+**Merchant Memo Section**
+- ✅ Order memo/tips (memo)
 
-## 十三、好评设置显示情况
+### ❌ Missing/Not Displayed
 
-### 发布时可设置的字段
-```typescript
-isPraise: boolean;
-praiseType: 'text' | 'image' | 'video' | 'none';
-praiseList: string[];        // 文字内容（每单一条）
-praiseImgList: string[][];   // 图片（每单最多5张）
-praiseVideoList: string[];   // 视频（每单一个）
-```
-
-### 当前显示情况
-| 页面 | 显示情况 |
-|------|---------|
-| 商户任务详情页 | ✅ 显示完整（支持查看详情弹窗） |
-| 用户任务领取页 | ⚠️ 显示类型，但内容预览不完整 |
-| 后台任务详情页 | ✅ 显示完整（弹窗中展示所有内容） |
-
-### 建议
-- 用户任务领取页增加好评内容预览
+| Field | Status | Notes |
+|-------|--------|-------|
+| `compareCount` | ❌ Missing | Number of products to compare not shown |
+| `contactCSContent` | ❌ Missing | Contact CS content not displayed |
+| `verifyCode` / `isPasswordEnabled` | ❌ Missing | Verify code settings not shown |
+| `weight` | ❌ Missing | Package weight not displayed |
+| `fastRefund` | ❌ Missing | Fast refund service not shown |
+| `orderSpecs` | ❌ Missing | Order spec configuration not displayed |
+| Fee breakdown | ⚠️ Partial | Only total fees shown, not individual components (baseServiceFee, praiseFee, etc.) |
 
 ---
 
-## 十四、增值服务显示情况
+## 5. Cross-Page Comparison Matrix
 
-### 发布时可设置的字段
-```typescript
-isTimingPublish: boolean;    // 定时发布
-publishTime?: string;
-isTimingPay: boolean;        // 定时付款
-timingPayTime?: string;
-isCycleTime: boolean;        // 延长买号周期
-cycleTime?: number;          // 天数
-addReward: number;           // 额外悬赏
-isRepay: boolean;            // 回购任务
-isNextDay: boolean;          // 隔天任务
-fastRefund: boolean;         // 快速返款服务
-orderInterval: number;       // 任务接单间隔
-```
-
-### 当前显示情况
-| 页面 | 显示情况 | 缺失内容 |
-|------|---------|---------|
-| 商户任务详情页 | ✅ 大部分显示 | `fastRefund` 未明确标注 |
-| 用户任务领取页 | ⚠️ 部分显示 | `fastRefund`、`orderInterval`、`isCycleTime` |
-| 后台任务详情页 | ✅ 大部分显示 | `fastRefund` 未明确标注 |
-
----
-
-## 十五、任务入口类型显示情况
-
-### 发布时可设置的字段
-```typescript
-taskEntryType: number;  // 1=关键词, 2=淘口令, 3=二维码, 4=直通车, 5=通道
-
-// 对应字段
-keyword: string;         // 关键词
-taoWord?: string;        // 淘口令
-qrCodeImage?: string;    // 二维码
-ztcKeyword?: string;     // 直通车关键词
-channelUrl?: string;     // 通道链接
-```
-
-### 当前显示情况
-| 页面 | 显示情况 |
-|------|---------|
-| 商户任务详情页 | ✅ 显示完整（自动判断类型） |
-| 用户任务领取页 | ✅ 显示完整（自动判断类型） |
-| 后台任务详情页 | ✅ 显示完整（自动判断类型） |
+| Field | Merchant Detail | Buyer Detail | Admin Detail | Status |
+|-------|-----------------|--------------|-------------|--------|
+| Platform | ✅ | ✅ | ✅ | Complete |
+| Shop Info | ✅ | ✅ | ✅ | Complete |
+| Multi-goods | ✅ | ✅ | ✅ | Complete |
+| Multi-keywords | ✅ | ✅ | ✅ | Complete |
+| Entry method | ✅ | ✅ | ✅ | Complete |
+| Browse behavior | ✅ | ✅ | ✅ | Complete |
+| Browse time | ✅ | ✅ | ✅ | Complete |
+| Praise settings | ✅ | ✅ | ✅ | Complete |
+| Praise content | ✅ | ✅ | ✅ | Complete |
+| Settlement method | ✅ | ✅ | ✅ | Complete |
+| Shipping | ✅ | ✅ | ✅ | Complete |
+| Extra reward | ✅ | ✅ | ✅ | Complete |
+| Timing publish | ✅ | ❌ | ✅ | Partial |
+| Timing pay | ✅ | ❌ | ✅ | Partial |
+| Cycle time | ✅ | ❌ | ✅ | Partial |
+| Order interval | ✅ | ❌ | ✅ | Partial |
+| Repurchase task | ✅ | ✅ | ✅ | Complete |
+| Next day task | ✅ | ✅ | ✅ | Complete |
+| **compareCount** | ❌ | ❌ | ❌ | Missing |
+| **contactCSContent** | ❌ | ❌ | ❌ | Missing |
+| **verifyCode** | ❌ | ❌ | ❌ | Missing |
+| **weight** | ❌ | ❌ | ❌ | Missing |
+| **fastRefund** | ❌ | ❌ | ❌ | Missing |
+| **orderSpecs** | ❌ | ❌ | ❌ | Missing |
+| Fee breakdown | ⚠️ | ❌ | ⚠️ | Partial |
 
 ---
 
-## 十六、修复优先级建议
+## 6. Missing Fields Analysis
 
-### 🔴 P0 - 必须立即修复（严重影响业务）
-1. **多商品列表显示** - 副商品信息完全缺失
-2. **多关键词配置显示** - 只显示1个关键词，其余9个缺失
-3. **关键词筛选设置显示** - 排序、价格、发货地等筛选条件缺失
-4. **下单规格配置显示** - 规格信息完全缺失
-5. **核对口令显示** - 商品验证机制缺失
-6. **关键词高级设置显示** - 货比关键词、备用关键词缺失
+### Critical Missing Fields (Should Be Displayed)
 
-### 🟡 P1 - 重要修复（影响用户体验）
-7. 包裹重量显示
-8. 快速返款服务明确标注
-9. 任务接单间隔统一显示
-10. 口令验证功能完整显示
-11. 货比数量显示
-12. 联系客服内容显示
+1. **Verify Code Settings** (`isPasswordEnabled`, `checkPassword`)
+   - Set during task creation
+   - Used for order verification
+   - **Impact**: Buyers cannot see verification requirements
+   - **Recommendation**: Add to all detail pages
 
-### 🟢 P2 - 优化改进（提升完整性）
-13. 用户任务领取页好评内容预览
-14. 增值服务显示优化
+2. **Contact CS Content** (`contactCSContent`)
+   - Set when `needContactCS` is enabled
+   - Specific message to send to customer service
+   - **Impact**: Buyers don't know what to say to CS
+   - **Recommendation**: Display in browse requirements section
 
----
+3. **Compare Count** (`compareCount`)
+   - Set when `needCompare` is enabled
+   - Number of products to compare
+   - **Impact**: Buyers see "货比" but not how many products
+   - **Recommendation**: Display in browse behavior section
 
-## 十七、数据结构问题
+4. **Package Weight** (`weight`)
+   - Set during order settings
+   - Used for logistics calculation
+   - **Impact**: Buyers don't know package weight
+   - **Recommendation**: Add to order settings section
 
-### 问题1: 字段名不一致
-- 发布时使用 `orderInterval`
-- 详情页使用 `unionInterval`
-- **建议**: 统一使用 `orderInterval`
+5. **Fast Refund Service** (`fastRefund`)
+   - Set during order settings
+   - 0.6% fee service
+   - **Impact**: Buyers don't know if fast refund is available
+   - **Recommendation**: Add to value added services section
 
-### 问题2: 多商品数据未存储
-- 发布时支持 `goodsList` 数组
-- 详情页只有单商品字段（`title`, `mainImage`, `url`, `keyword`等）
-- **建议**: 检查后端是否正确存储了 `goodsList` 数据
+6. **Order Spec Configuration** (`orderSpecs`)
+   - Set during product configuration
+   - Specific specs to order (up to 5)
+   - **Impact**: Buyers don't know exact specs to order
+   - **Recommendation**: Add to product information section
 
-### 问题3: 多关键词数据未存储
-- 发布时支持 `keywords` 数组（每个商品最多10个）
-- 详情页只有单个 `keyword` 字段
-- **建议**: 检查后端是否正确存储了 `keywords` 数据
+### Partial Display Issues
 
----
+1. **Fee Breakdown**
+   - Only total fees displayed
+   - Individual components not shown (baseServiceFee, praiseFee, etc.)
+   - **Recommendation**: Add detailed fee breakdown section
 
-## 十八、修复建议
-
-### 1. 后端数据存储检查
-首先确认后端是否正确存储了以下数据：
-- `goodsList` 数组（多商品）
-- `keywords` 数组（多关键词）
-- `orderSpecs` 数组（下单规格）
-- `filterSettings` 对象（筛选设置）
-- `verifyCode` 字段（核对口令）
-
-### 2. 前端显示改造
-如果后端数据完整，需要改造三个详情页：
-
-#### 商户任务详情页 (`frontend/src/app/merchant/tasks/[id]/page.tsx`)
-- 添加多商品列表展示区域
-- 添加多关键词配置展示
-- 添加下单规格展示
-- 添加筛选设置展示
-- 添加核对口令展示
-
-#### 用户任务领取页 (`frontend/src/app/tasks/[id]/page.tsx`)
-- 添加多商品列表展示（重点显示主商品）
-- 添加关键词列表展示
-- 添加下单规格展示（买手必看）
-- 添加筛选条件展示
-- 添加核对口令展示
-
-#### 后台任务详情页 (`frontend/src/app/admin/tasks/page.tsx`)
-- 在弹窗中添加多商品列表
-- 添加多关键词配置
-- 添加下单规格
-- 添加筛选设置
-- 添加核对口令
-
-### 3. UI设计建议
-- 多商品：使用卡片列表，主商品标记为"主"，副商品标记为"副1"、"副2"
-- 多关键词：使用标签列表或表格展示，显示关键词、使用次数、筛选设置
-- 下单规格：使用表格展示规格名、规格值、数量
-- 筛选设置：使用标签或列表展示排序方式、价格范围、发货地
-- 核对口令：使用醒目的标签或高亮文本显示
+2. **Timing Services on Buyer Page**
+   - Timing publish and timing pay not shown to buyers
+   - **Recommendation**: Add to value added services section
 
 ---
 
-## 十九、总结
+## 7. Recommendations
 
-### 核心问题
-1. **多商品功能完全缺失** - 这是最严重的问题，副商品信息完全不显示
-2. **多关键词功能完全缺失** - 只显示1个关键词，其余9个不显示
-3. **关键词筛选设置完全缺失** - 买手不知道如何筛选商品
-4. **下单规格配置完全缺失** - 买手不知道购买什么规格
-5. **核对口令完全缺失** - 失去了商品验证机制
+### Priority 1: Critical (Should Add Immediately)
 
-### 影响评估
-- **对商户**: 无法确认发布的任务是否正确，尤其是多商品任务
-- **对买手**: 缺少关键执行信息，可能导致下单错误
-- **对平台**: 任务执行准确性下降，可能增加纠纷和退款
+1. **Add Verify Code Section** to all detail pages
+   - Display `isPasswordEnabled` status
+   - Show `checkPassword` value
+   - Location: After browse requirements
 
-### 修复工作量估算
-- **后端检查**: 0.5天（确认数据是否正确存储）
-- **前端改造**: 3-5天（三个详情页的UI改造和数据展示）
-- **测试验证**: 1-2天（功能测试和数据验证）
-- **总计**: 约5-8天
+2. **Add Contact CS Content** to browse requirements
+   - Display `contactCSContent` when `needContactCS` is true
+   - Location: In browse behavior section
+
+3. **Add Compare Count** to browse behavior
+   - Display `compareCount` when `needCompare` is true
+   - Format: "货比 (3个商品)"
+
+4. **Add Order Specs** to product information
+   - Display `orderSpecs` array
+   - Format: Spec name + value pairs
+
+### Priority 2: Important (Should Add)
+
+5. **Add Package Weight** to order settings section
+   - Display `weight` value
+   - Location: New "Order Settings" section
+
+6. **Add Fast Refund Service** to value added services
+   - Display `fastRefund` status
+   - Location: Value added services section
+
+7. **Add Fee Breakdown** to admin detail page
+   - Display individual fee components
+   - Location: Expand fee information section
+
+### Priority 3: Enhancement (Nice to Have)
+
+8. **Add Timing Services to Buyer Page**
+   - Display `isTimingPublish`, `isTimingPay`, `isCycleTime`, `unionInterval`
+   - Location: Value added services section
+
+9. **Improve Browse Behavior Display**
+   - Show more details for each behavior
+   - Add icons or visual indicators
 
 ---
 
-**审计人**: Kiro AI Assistant  
-**审计完成时间**: 2026-01-13
+## 8. Implementation Notes
+
+### For Merchant Detail Page
+- Add verify code section after browse requirements
+- Add contact CS content in browse behavior
+- Add compare count in browse behavior
+- Add order specs in product information
+- Add package weight in value added services
+- Add fast refund in value added services
+
+### For Buyer Detail Page
+- Add verify code section after browse requirements
+- Add contact CS content in browse behavior
+- Add compare count in browse behavior
+- Add order specs in product information
+- Add timing services in task information section
+- Add package weight in task information section
+- Add fast refund in task information section
+
+### For Admin Detail Page
+- Add verify code section after browse requirements
+- Add contact CS content in browse behavior
+- Add compare count in browse behavior
+- Add order specs in product information
+- Add package weight in order settings section
+- Add fast refund in value added services
+- Expand fee information with breakdown
+
+---
+
+## 9. Conclusion
+
+The refactored task detail pages successfully display **~85% of task creation fields** with improved UX and multi-goods/multi-keyword support. However, **6 critical fields are completely missing** and should be added to provide complete task information to users:
+
+1. Verify code settings
+2. Contact CS content
+3. Compare count
+4. Order specs
+5. Package weight
+6. Fast refund service
+
+Additionally, **timing services and fee breakdown** should be enhanced for better transparency.
+
+**Overall Assessment**: The pages are functional and display most important information, but adding the missing fields would provide complete feature parity with task creation form.
