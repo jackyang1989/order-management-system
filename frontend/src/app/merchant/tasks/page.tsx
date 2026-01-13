@@ -36,10 +36,13 @@ export default function MerchantTasksPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [tasks, setTasks] = useState<Task[]>([]);
-    const [filter, setFilter] = useState({ status: 'all', taskType: 'all' });
+    const [filter, setFilter] = useState<number | undefined>(undefined); // 改为 number | undefined，与后台管理一致
+    const [taskTypeFilter, setTaskTypeFilter] = useState<number | undefined>(undefined);
     const [enabledPlatforms, setEnabledPlatforms] = useState<PlatformData[]>([]);
 
-    useEffect(() => { const token = localStorage.getItem('merchantToken'); if (!token) { router.push('/merchant/login'); return; } loadPlatforms(); loadTasks(); }, [router]);
+    useEffect(() => { const token = localStorage.getItem('merchantToken'); if (!token) { router.push('/merchant/login'); return; } loadPlatforms(); }, [router]);
+    
+    useEffect(() => { loadTasks(); }, [filter, taskTypeFilter]); // 添加依赖，当筛选条件改变时重新加载
 
     const loadPlatforms = async () => {
         const platforms = await fetchEnabledPlatforms();
@@ -58,12 +61,13 @@ export default function MerchantTasksPage() {
     const loadTasks = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('merchantToken'); const query = new URLSearchParams();
-            // 添加 merchantId 参数以获取商家自己的任务
-            query.append('merchantId', 'current');
-            if (filter.status !== 'all') query.append('status', filter.status); if (filter.taskType !== 'all') query.append('taskType', filter.taskType);
-            const response = await fetch(`${BASE_URL}/tasks?${query.toString()}`, { headers: { 'Authorization': `Bearer ${token}` } });
-            const resData = await response.json(); if (resData.success && Array.isArray(resData.data)) setTasks(resData.data);
+            const token = localStorage.getItem('merchantToken'); 
+            let url = `${BASE_URL}/tasks?merchantId=current`;
+            if (filter !== undefined) url += `&status=${filter}`;
+            if (taskTypeFilter !== undefined) url += `&taskType=${taskTypeFilter}`;
+            const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+            const resData = await response.json(); 
+            if (resData.success && Array.isArray(resData.data)) setTasks(resData.data);
         } catch (error) { console.error('Load tasks error:', error); } finally { setLoading(false); }
     };
 
@@ -88,8 +92,8 @@ export default function MerchantTasksPage() {
                     <div className="flex items-center gap-2">
                         <span className="text-[13px] font-bold text-slate-400">状态:</span>
                         <select
-                            value={filter.status}
-                            onChange={e => setFilter({ ...filter, status: e.target.value })}
+                            value={String(filter ?? 'all')}
+                            onChange={e => setFilter(e.target.value === 'all' ? undefined : Number(e.target.value))}
                             className="h-10 w-[120px] rounded-[12px] border-none bg-slate-50 px-3 text-[14px] font-medium text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none"
                         >
                             <option value="all">全部</option><option value="1">进行中</option><option value="2">已完成</option><option value="3">已取消</option><option value="0">待支付</option>
@@ -98,8 +102,8 @@ export default function MerchantTasksPage() {
                     <div className="flex items-center gap-2">
                         <span className="text-[13px] font-bold text-slate-400">平台:</span>
                         <select
-                            value={filter.taskType}
-                            onChange={e => setFilter({ ...filter, taskType: e.target.value })}
+                            value={String(taskTypeFilter ?? 'all')}
+                            onChange={e => setTaskTypeFilter(e.target.value === 'all' ? undefined : Number(e.target.value))}
                             className="h-10 w-[120px] rounded-[12px] border-none bg-slate-50 px-3 text-[14px] font-medium text-slate-900 focus:ring-2 focus:ring-primary-500/20 outline-none"
                         >
                             <option value="all">全部</option>
