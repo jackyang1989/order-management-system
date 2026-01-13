@@ -52,42 +52,50 @@ interface Order {
     createdAt: string;
     completedAt: string;
     merchant?: { id: string; username: string; shopName?: string };
-    // 浏览要求
-    needCompare?: boolean;
-    compareCount?: number;
-    needFavorite?: boolean;
-    needFollow?: boolean;
-    needAddCart?: boolean;
-    needContactCS?: boolean;
-    contactCSContent?: string;
-    totalBrowseMinutes?: number;
-    compareBrowseMinutes?: number;
-    mainBrowseMinutes?: number;
-    subBrowseMinutes?: number;
-    hasSubProduct?: boolean;
-    // 增值服务
-    weight?: number;
-    fastRefund?: boolean;
-    extraReward?: number;
-    isPasswordEnabled?: boolean;
-    checkPassword?: string;
-    isFreeShipping?: boolean;
-    // 好评相关
-    isPraise?: boolean;
-    praiseList?: string[];
-    isImgPraise?: boolean;
-    praiseImgList?: string[];
-    isVideoPraise?: boolean;
-    praiseVideoList?: string[];
-    // 下单提示
-    memo?: string;
-    // 费用明细
-    baseServiceFee?: number;
-    praiseFee?: number;
-    imgPraiseFee?: number;
-    videoPraiseFee?: number;
-    shippingFee?: number;
-    margin?: number;
+    // Task关联数据
+    task?: {
+        shopName?: string;
+        // 浏览要求
+        needCompare?: boolean;
+        compareCount?: number;
+        needFavorite?: boolean;
+        needFollow?: boolean;
+        needAddCart?: boolean;
+        needContactCS?: boolean;
+        contactCSContent?: string;
+        totalBrowseMinutes?: number;
+        compareBrowseMinutes?: number;
+        mainBrowseMinutes?: number;
+        subBrowseMinutes?: number;
+        hasSubProduct?: boolean;
+        // 增值服务
+        weight?: number;
+        fastRefund?: boolean;
+        extraReward?: number;
+        addReward?: number;
+        isPasswordEnabled?: boolean;
+        checkPassword?: string;
+        isFreeShipping?: boolean;
+        // 好评相关 (JSON strings from backend)
+        isPraise?: boolean;
+        praiseList?: string;
+        isImgPraise?: boolean;
+        praiseImgList?: string;
+        isVideoPraise?: boolean;
+        praiseVideoList?: string;
+        // 下单提示
+        memo?: string;
+        // 费用明细
+        baseServiceFee?: number;
+        praiseFee?: number;
+        imgPraiseFee?: number;
+        videoPraiseFee?: number;
+        shippingFee?: number;
+        margin?: number;
+        goodsPrice?: number;
+        totalDeposit?: number;
+        totalCommission?: number;
+    };
 }
 
 const statusLabels: Record<string, { text: string; color: 'blue' | 'amber' | 'green' | 'red' | 'slate' }> = {
@@ -97,6 +105,22 @@ const statusLabels: Record<string, { text: string; color: 'blue' | 'amber' | 'gr
     REJECTED: { text: '已驳回', color: 'red' },
     COMPLETED: { text: '已完成', color: 'slate' },
     CANCELLED: { text: '已取消', color: 'slate' },
+};
+
+// 解析JSON字段的辅助函数
+const parsePraiseList = (jsonStr: string | undefined): string[] => {
+    if (!jsonStr) return [];
+    try { return JSON.parse(jsonStr) || []; } catch { return []; }
+};
+
+const parsePraiseImgList = (jsonStr: string | undefined): string[] => {
+    if (!jsonStr) return [];
+    try { return JSON.parse(jsonStr) || []; } catch { return []; }
+};
+
+const parsePraiseVideoList = (jsonStr: string | undefined): string[] => {
+    if (!jsonStr) return [];
+    try { return JSON.parse(jsonStr) || []; } catch { return []; }
 };
 
 export default function AdminOrdersPage() {
@@ -300,7 +324,14 @@ export default function AdminOrdersPage() {
                 onClose={() => setDetailModal(null)}
                 className="max-w-3xl"
             >
-                {detailModal && (
+                {detailModal && (() => {
+                    // 从task对象读取字段
+                    const task = detailModal.task || {};
+                    const praiseTexts = parsePraiseList(task.praiseList);
+                    const praiseImages = parsePraiseImgList(task.praiseImgList);
+                    const praiseVideos = parsePraiseVideoList(task.praiseVideoList);
+
+                    return (
                     <div className="max-h-[70vh] space-y-6 overflow-y-auto pr-2">
                         {/* 订单信息 */}
                         <div>
@@ -430,62 +461,62 @@ export default function AdminOrdersPage() {
                         )}
 
                         {/* Browse Requirements 浏览要求 */}
-                        {(detailModal.needCompare || detailModal.needFavorite || detailModal.needFollow || detailModal.needAddCart || detailModal.needContactCS) && (
+                        {(task.needCompare || task.needFavorite || task.needFollow || task.needAddCart || task.needContactCS) && (
                             <div>
                                 <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">浏览要求</h3>
                                 <div className="rounded-md bg-[#f9fafb] p-4">
                                     {/* 浏览时长 */}
-                                    <div className={`grid gap-3 text-center mb-4 ${detailModal.hasSubProduct ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                                    <div className={`grid gap-3 text-center mb-4 ${task.hasSubProduct ? 'grid-cols-4' : 'grid-cols-3'}`}>
                                         <div className="rounded-md bg-white p-3">
-                                            <div className="text-lg font-bold text-primary-600">{detailModal.totalBrowseMinutes || 15}</div>
+                                            <div className="text-lg font-bold text-primary-600">{task.totalBrowseMinutes || 15}</div>
                                             <div className="text-xs text-[#6b7280]">总计/分钟</div>
                                         </div>
                                         <div className="rounded-md bg-white p-3">
-                                            <div className="text-lg font-bold text-warning-500">{detailModal.compareBrowseMinutes || 3}</div>
+                                            <div className="text-lg font-bold text-warning-500">{task.compareBrowseMinutes || 3}</div>
                                             <div className="text-xs text-[#6b7280]">货比/分钟</div>
                                         </div>
                                         <div className="rounded-md bg-white p-3">
-                                            <div className="text-lg font-bold text-success-600">{detailModal.mainBrowseMinutes || 8}</div>
+                                            <div className="text-lg font-bold text-success-600">{task.mainBrowseMinutes || 8}</div>
                                             <div className="text-xs text-[#6b7280]">主品/分钟</div>
                                         </div>
-                                        {detailModal.hasSubProduct && (
+                                        {task.hasSubProduct && (
                                             <div className="rounded-md bg-white p-3">
-                                                <div className="text-lg font-bold text-[#6b7280]">{detailModal.subBrowseMinutes || 2}</div>
+                                                <div className="text-lg font-bold text-[#6b7280]">{task.subBrowseMinutes || 2}</div>
                                                 <div className="text-xs text-[#6b7280]">副品/分钟</div>
                                             </div>
                                         )}
                                     </div>
                                     {/* 浏览行为 */}
                                     <div className="flex flex-wrap gap-2">
-                                        {detailModal.needCompare && (
+                                        {task.needCompare && (
                                             <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
-                                                货比 ({detailModal.compareCount || 3}家)
+                                                货比 ({task.compareCount || 3}家)
                                             </span>
                                         )}
-                                        {detailModal.needFavorite && (
+                                        {task.needFavorite && (
                                             <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
                                                 收藏商品
                                             </span>
                                         )}
-                                        {detailModal.needFollow && (
+                                        {task.needFollow && (
                                             <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
                                                 关注店铺
                                             </span>
                                         )}
-                                        {detailModal.needAddCart && (
+                                        {task.needAddCart && (
                                             <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
                                                 加入购物车
                                             </span>
                                         )}
-                                        {detailModal.needContactCS && (
+                                        {task.needContactCS && (
                                             <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
                                                 联系客服
                                             </span>
                                         )}
                                     </div>
-                                    {detailModal.contactCSContent && (
+                                    {task.contactCSContent && (
                                         <div className="mt-3 rounded-md bg-blue-50 p-3 text-xs text-blue-700">
-                                            <span className="font-bold">客服内容：</span>{detailModal.contactCSContent}
+                                            <span className="font-bold">客服内容：</span>{task.contactCSContent}
                                         </div>
                                     )}
                                 </div>
@@ -493,38 +524,38 @@ export default function AdminOrdersPage() {
                         )}
 
                         {/* Value-added Services 增值服务 */}
-                        {(detailModal.weight || detailModal.fastRefund || detailModal.extraReward || detailModal.isPasswordEnabled) && (
+                        {(task.weight || task.fastRefund || task.extraReward || task.addReward || task.isPasswordEnabled) && (
                             <div>
                                 <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">增值服务</h3>
                                 <div className="grid grid-cols-2 gap-3">
-                                    {detailModal.weight && detailModal.weight > 0 && (
+                                    {task.weight && task.weight > 0 && (
                                         <div className="rounded-md bg-[#f9fafb] p-4">
                                             <div className="text-xs text-[#6b7280] mb-1">包裹重量</div>
-                                            <div className="text-sm font-medium">{detailModal.weight}kg</div>
+                                            <div className="text-sm font-medium">{task.weight}kg</div>
                                         </div>
                                     )}
-                                    {detailModal.fastRefund && (
+                                    {task.fastRefund && (
                                         <div className="rounded-md bg-green-50 p-4">
                                             <div className="text-xs text-[#6b7280] mb-1">快速返款</div>
                                             <div className="text-sm font-medium text-green-600">已开通</div>
                                         </div>
                                     )}
-                                    {detailModal.extraReward && detailModal.extraReward > 0 && (
+                                    {(task.extraReward || task.addReward) && ((task.extraReward ?? 0) > 0 || (task.addReward ?? 0) > 0) && (
                                         <div className="rounded-md bg-warning-50 p-4">
                                             <div className="text-xs text-[#6b7280] mb-1">额外赏金</div>
-                                            <div className="text-sm font-medium text-warning-600">+¥{detailModal.extraReward}/单</div>
+                                            <div className="text-sm font-medium text-warning-600">+¥{task.extraReward || task.addReward}/单</div>
                                         </div>
                                     )}
-                                    {detailModal.isPasswordEnabled && detailModal.checkPassword && (
+                                    {task.isPasswordEnabled && task.checkPassword && (
                                         <div className="rounded-md bg-purple-50 p-4">
                                             <div className="text-xs text-[#6b7280] mb-1">验证口令</div>
-                                            <div className="text-sm font-medium text-purple-600">{detailModal.checkPassword}</div>
+                                            <div className="text-sm font-medium text-purple-600">{task.checkPassword}</div>
                                         </div>
                                     )}
                                     <div className="rounded-md bg-[#f9fafb] p-4">
                                         <div className="text-xs text-[#6b7280] mb-1">运费</div>
-                                        <div className={`text-sm font-medium ${detailModal.isFreeShipping ? 'text-green-600' : 'text-amber-600'}`}>
-                                            {detailModal.isFreeShipping ? '包邮' : '非包邮'}
+                                        <div className={`text-sm font-medium ${task.isFreeShipping ? 'text-green-600' : 'text-amber-600'}`}>
+                                            {task.isFreeShipping ? '包邮' : '非包邮'}
                                         </div>
                                     </div>
                                 </div>
@@ -532,53 +563,53 @@ export default function AdminOrdersPage() {
                         )}
 
                         {/* Praise Details 好评详情 */}
-                        {(detailModal.isPraise || detailModal.isImgPraise || detailModal.isVideoPraise) && (
+                        {(task.isPraise || task.isImgPraise || task.isVideoPraise) && (
                             <div>
                                 <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">好评详情</h3>
                                 <div className="rounded-md bg-[#f9fafb] p-4">
                                     <div className="flex flex-wrap gap-2 mb-3">
-                                        {detailModal.isPraise && (
+                                        {task.isPraise && (
                                             <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
-                                                文字好评 ({detailModal.praiseList?.length || 0}条)
+                                                文字好评 ({praiseTexts.length}条)
                                             </span>
                                         )}
-                                        {detailModal.isImgPraise && (
+                                        {task.isImgPraise && (
                                             <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700 font-medium">
-                                                图片好评 ({detailModal.praiseImgList?.length || 0}张)
+                                                图片好评 ({praiseImages.length}张)
                                             </span>
                                         )}
-                                        {detailModal.isVideoPraise && (
+                                        {task.isVideoPraise && (
                                             <span className="rounded-full bg-purple-100 px-3 py-1 text-xs text-purple-700 font-medium">
-                                                视频好评 ({detailModal.praiseVideoList?.length || 0}个)
+                                                视频好评 ({praiseVideos.length}个)
                                             </span>
                                         )}
                                     </div>
                                     {/* 文字好评内容 */}
-                                    {detailModal.isPraise && detailModal.praiseList && detailModal.praiseList.length > 0 && (
+                                    {task.isPraise && praiseTexts.length > 0 && (
                                         <div className="rounded-md bg-white p-3 mb-3">
                                             <div className="text-xs text-[#6b7280] mb-2">好评内容：</div>
                                             <div className="space-y-2 max-h-32 overflow-y-auto">
-                                                {detailModal.praiseList.slice(0, 3).map((txt, i) => (
+                                                {praiseTexts.slice(0, 3).map((txt: string, i: number) => (
                                                     <div key={i} className="text-xs text-[#3b4559] border-l-2 border-primary-200 pl-2">
                                                         {i + 1}. {txt}
                                                     </div>
                                                 ))}
-                                                {detailModal.praiseList.length > 3 && (
-                                                    <div className="text-xs text-[#6b7280]">...共 {detailModal.praiseList.length} 条</div>
+                                                {praiseTexts.length > 3 && (
+                                                    <div className="text-xs text-[#6b7280]">...共 {praiseTexts.length} 条</div>
                                                 )}
                                             </div>
                                         </div>
                                     )}
                                     {/* 好评图片 */}
-                                    {detailModal.isImgPraise && detailModal.praiseImgList && detailModal.praiseImgList.length > 0 && (
+                                    {task.isImgPraise && praiseImages.length > 0 && (
                                         <div className="rounded-md bg-white p-3 mb-3">
                                             <div className="text-xs text-[#6b7280] mb-2">好评图片：</div>
                                             <div className="flex flex-wrap gap-2">
-                                                {detailModal.praiseImgList.map((img, i) => (
-                                                    <img 
-                                                        key={i} 
-                                                        src={img} 
-                                                        alt={`好评图${i + 1}`} 
+                                                {praiseImages.map((img: string, i: number) => (
+                                                    <img
+                                                        key={i}
+                                                        src={img}
+                                                        alt={`好评图${i + 1}`}
                                                         className="h-20 w-20 rounded-md object-cover cursor-pointer hover:opacity-80"
                                                         onClick={() => window.open(img, '_blank')}
                                                     />
@@ -587,11 +618,11 @@ export default function AdminOrdersPage() {
                                         </div>
                                     )}
                                     {/* 好评视频 */}
-                                    {detailModal.isVideoPraise && detailModal.praiseVideoList && detailModal.praiseVideoList.length > 0 && (
+                                    {task.isVideoPraise && praiseVideos.length > 0 && (
                                         <div className="rounded-md bg-white p-3">
                                             <div className="text-xs text-[#6b7280] mb-2">好评视频：</div>
                                             <div className="flex flex-wrap gap-2">
-                                                {detailModal.praiseVideoList.map((video, i) => (
+                                                {praiseVideos.map((_video: string, i: number) => (
                                                     <div key={i} className="relative h-20 w-20 rounded-md bg-slate-100 flex items-center justify-center cursor-pointer hover:bg-slate-200">
                                                         <span className="text-2xl">▶️</span>
                                                         <div className="absolute bottom-1 right-1 bg-black/50 text-white text-xs px-1 rounded">
@@ -607,55 +638,55 @@ export default function AdminOrdersPage() {
                         )}
 
                         {/* Merchant Memo 下单提示 */}
-                        {detailModal.memo && (
+                        {task.memo && (
                             <div>
                                 <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">下单提示</h3>
                                 <div className="rounded-md bg-amber-50 p-4 text-sm text-amber-800 whitespace-pre-wrap">
-                                    {detailModal.memo}
+                                    {task.memo}
                                 </div>
                             </div>
                         )}
 
                         {/* Fee Details 费用明细 */}
-                        {(detailModal.baseServiceFee || detailModal.praiseFee || detailModal.margin) && (
+                        {(task.baseServiceFee || task.praiseFee || task.margin) && (
                             <div>
                                 <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">费用明细</h3>
                                 <div className="rounded-md bg-[#f9fafb] p-4">
                                     <div className="space-y-2 text-sm">
-                                        {detailModal.baseServiceFee && (
+                                        {task.baseServiceFee && (
                                             <div className="flex justify-between">
                                                 <span className="text-[#6b7280]">基础服务费</span>
-                                                <span className="font-medium">¥{detailModal.baseServiceFee.toFixed(2)}</span>
+                                                <span className="font-medium">¥{task.baseServiceFee.toFixed(2)}</span>
                                             </div>
                                         )}
-                                        {detailModal.praiseFee && (
+                                        {task.praiseFee && (
                                             <div className="flex justify-between">
                                                 <span className="text-[#6b7280]">文字好评费</span>
-                                                <span className="font-medium">¥{detailModal.praiseFee.toFixed(2)}</span>
+                                                <span className="font-medium">¥{task.praiseFee.toFixed(2)}</span>
                                             </div>
                                         )}
-                                        {detailModal.imgPraiseFee && (
+                                        {task.imgPraiseFee && (
                                             <div className="flex justify-between">
                                                 <span className="text-[#6b7280]">图片好评费</span>
-                                                <span className="font-medium">¥{detailModal.imgPraiseFee.toFixed(2)}</span>
+                                                <span className="font-medium">¥{task.imgPraiseFee.toFixed(2)}</span>
                                             </div>
                                         )}
-                                        {detailModal.videoPraiseFee && (
+                                        {task.videoPraiseFee && (
                                             <div className="flex justify-between">
                                                 <span className="text-[#6b7280]">视频好评费</span>
-                                                <span className="font-medium">¥{detailModal.videoPraiseFee.toFixed(2)}</span>
+                                                <span className="font-medium">¥{task.videoPraiseFee.toFixed(2)}</span>
                                             </div>
                                         )}
-                                        {detailModal.shippingFee && (
+                                        {task.shippingFee && (
                                             <div className="flex justify-between">
                                                 <span className="text-[#6b7280]">邮费</span>
-                                                <span className="font-medium">¥{detailModal.shippingFee.toFixed(2)}</span>
+                                                <span className="font-medium">¥{task.shippingFee.toFixed(2)}</span>
                                             </div>
                                         )}
-                                        {detailModal.margin && (
+                                        {task.margin && (
                                             <div className="flex justify-between">
                                                 <span className="text-[#6b7280]">保证金</span>
-                                                <span className="font-medium">¥{detailModal.margin.toFixed(2)}</span>
+                                                <span className="font-medium">¥{task.margin.toFixed(2)}</span>
                                             </div>
                                         )}
                                         <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
@@ -688,7 +719,8 @@ export default function AdminOrdersPage() {
                             </Button>
                         </div>
                     </div>
-                )}
+                    );
+                })()}
             </Modal>
         </div >
     );

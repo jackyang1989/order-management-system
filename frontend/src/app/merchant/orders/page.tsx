@@ -32,42 +32,50 @@ interface Order {
         screenshot?: string;
         submitted: boolean;
     }[];
-    // 浏览要求
-    needCompare?: boolean;
-    compareCount?: number;
-    needFavorite?: boolean;
-    needFollow?: boolean;
-    needAddCart?: boolean;
-    needContactCS?: boolean;
-    contactCSContent?: string;
-    totalBrowseMinutes?: number;
-    compareBrowseMinutes?: number;
-    mainBrowseMinutes?: number;
-    subBrowseMinutes?: number;
-    hasSubProduct?: boolean;
-    // 增值服务
-    weight?: number;
-    fastRefund?: boolean;
-    extraReward?: number;
-    isPasswordEnabled?: boolean;
-    checkPassword?: string;
-    isFreeShipping?: boolean;
-    // 好评相关
-    isPraise?: boolean;
-    praiseList?: string[];
-    isImgPraise?: boolean;
-    praiseImgList?: string[];
-    isVideoPraise?: boolean;
-    praiseVideoList?: string[];
-    // 下单提示
-    memo?: string;
-    // 费用明细
-    baseServiceFee?: number;
-    praiseFee?: number;
-    imgPraiseFee?: number;
-    videoPraiseFee?: number;
-    shippingFee?: number;
-    margin?: number;
+    // Task关联数据
+    task?: {
+        shopName?: string;
+        // 浏览要求
+        needCompare?: boolean;
+        compareCount?: number;
+        needFavorite?: boolean;
+        needFollow?: boolean;
+        needAddCart?: boolean;
+        needContactCS?: boolean;
+        contactCSContent?: string;
+        totalBrowseMinutes?: number;
+        compareBrowseMinutes?: number;
+        mainBrowseMinutes?: number;
+        subBrowseMinutes?: number;
+        hasSubProduct?: boolean;
+        // 增值服务
+        weight?: number;
+        fastRefund?: boolean;
+        extraReward?: number;
+        addReward?: number;
+        isPasswordEnabled?: boolean;
+        checkPassword?: string;
+        isFreeShipping?: boolean;
+        // 好评相关 (JSON strings from backend)
+        isPraise?: boolean;
+        praiseList?: string;
+        isImgPraise?: boolean;
+        praiseImgList?: string;
+        isVideoPraise?: boolean;
+        praiseVideoList?: string;
+        // 下单提示
+        memo?: string;
+        // 费用明细
+        baseServiceFee?: number;
+        praiseFee?: number;
+        imgPraiseFee?: number;
+        videoPraiseFee?: number;
+        shippingFee?: number;
+        margin?: number;
+        goodsPrice?: number;
+        totalDeposit?: number;
+        totalCommission?: number;
+    };
 }
 
 interface Stats {
@@ -109,6 +117,22 @@ export default function MerchantOrdersPage() {
     const [returnOrderId, setReturnOrderId] = useState<string>('');
     const [returnAmount, setReturnAmount] = useState<number>(0);
     const [returning, setReturning] = useState(false);
+
+    // 解析JSON字段的辅助函数
+    const parsePraiseList = (jsonStr: string | undefined): string[] => {
+        if (!jsonStr) return [];
+        try { return JSON.parse(jsonStr) || []; } catch { return []; }
+    };
+
+    const parsePraiseImgList = (jsonStr: string | undefined): string[][] => {
+        if (!jsonStr) return [];
+        try { return JSON.parse(jsonStr) || []; } catch { return []; }
+    };
+
+    const parsePraiseVideoList = (jsonStr: string | undefined): string[] => {
+        if (!jsonStr) return [];
+        try { return JSON.parse(jsonStr) || []; } catch { return []; }
+    };
 
     useEffect(() => {
         loadData();
@@ -414,7 +438,14 @@ export default function MerchantOrdersPage() {
                 title={`订单详情 - ${selectedOrder?.status === 'SUBMITTED' ? '待审核' : statusConfig[selectedOrder?.status || '']?.text || ''}`}
                 className="max-w-2xl rounded-[32px]"
             >
-                {selectedOrder && (
+                {selectedOrder && (() => {
+                    // 从task对象读取字段
+                    const task = selectedOrder.task || {};
+                    const praiseTexts = parsePraiseList(task.praiseList);
+                    const praiseImages = parsePraiseImgList(task.praiseImgList);
+                    const praiseVideos = parsePraiseVideoList(task.praiseVideoList);
+
+                    return (
                     <div className="space-y-6">
                         {/* Order Info */}
                         <div className="grid grid-cols-2 gap-4 rounded-[20px] bg-slate-50 p-5 text-sm">
@@ -451,62 +482,62 @@ export default function MerchantOrdersPage() {
                         </div>
 
                         {/* Browse Requirements 浏览要求 */}
-                        {(selectedOrder.needCompare || selectedOrder.needFavorite || selectedOrder.needFollow || selectedOrder.needAddCart || selectedOrder.needContactCS) && (
+                        {(task.needCompare || task.needFavorite || task.needFollow || task.needAddCart || task.needContactCS) && (
                             <div>
                                 <h3 className="mb-4 text-sm font-bold text-slate-900">浏览要求</h3>
                                 <div className="rounded-[20px] bg-slate-50 p-5">
                                     {/* 浏览时长 */}
-                                    <div className={`grid gap-3 text-center mb-4 ${selectedOrder.hasSubProduct ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                                    <div className={`grid gap-3 text-center mb-4 ${task.hasSubProduct ? 'grid-cols-4' : 'grid-cols-3'}`}>
                                         <div className="rounded-[12px] bg-white p-3">
-                                            <div className="text-lg font-bold text-primary-600">{selectedOrder.totalBrowseMinutes || 15}</div>
+                                            <div className="text-lg font-bold text-primary-600">{task.totalBrowseMinutes || 15}</div>
                                             <div className="text-xs text-slate-400">总计/分钟</div>
                                         </div>
                                         <div className="rounded-[12px] bg-white p-3">
-                                            <div className="text-lg font-bold text-warning-500">{selectedOrder.compareBrowseMinutes || 3}</div>
+                                            <div className="text-lg font-bold text-warning-500">{task.compareBrowseMinutes || 3}</div>
                                             <div className="text-xs text-slate-400">货比/分钟</div>
                                         </div>
                                         <div className="rounded-[12px] bg-white p-3">
-                                            <div className="text-lg font-bold text-success-600">{selectedOrder.mainBrowseMinutes || 8}</div>
+                                            <div className="text-lg font-bold text-success-600">{task.mainBrowseMinutes || 8}</div>
                                             <div className="text-xs text-slate-400">主品/分钟</div>
                                         </div>
-                                        {selectedOrder.hasSubProduct && (
+                                        {task.hasSubProduct && (
                                             <div className="rounded-[12px] bg-white p-3">
-                                                <div className="text-lg font-bold text-slate-500">{selectedOrder.subBrowseMinutes || 2}</div>
+                                                <div className="text-lg font-bold text-slate-500">{task.subBrowseMinutes || 2}</div>
                                                 <div className="text-xs text-slate-400">副品/分钟</div>
                                             </div>
                                         )}
                                     </div>
                                     {/* 浏览行为 */}
                                     <div className="flex flex-wrap gap-2">
-                                        {selectedOrder.needCompare && (
+                                        {task.needCompare && (
                                             <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
-                                                货比 ({selectedOrder.compareCount || 3}家)
+                                                货比 ({task.compareCount || 3}家)
                                             </span>
                                         )}
-                                        {selectedOrder.needFavorite && (
+                                        {task.needFavorite && (
                                             <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
                                                 收藏商品
                                             </span>
                                         )}
-                                        {selectedOrder.needFollow && (
+                                        {task.needFollow && (
                                             <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
                                                 关注店铺
                                             </span>
                                         )}
-                                        {selectedOrder.needAddCart && (
+                                        {task.needAddCart && (
                                             <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
                                                 加入购物车
                                             </span>
                                         )}
-                                        {selectedOrder.needContactCS && (
+                                        {task.needContactCS && (
                                             <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
                                                 联系客服
                                             </span>
                                         )}
                                     </div>
-                                    {selectedOrder.contactCSContent && (
+                                    {task.contactCSContent && (
                                         <div className="mt-3 rounded-[12px] bg-blue-50 p-3 text-xs text-blue-700">
-                                            <span className="font-bold">客服内容：</span>{selectedOrder.contactCSContent}
+                                            <span className="font-bold">客服内容：</span>{task.contactCSContent}
                                         </div>
                                     )}
                                 </div>
@@ -514,38 +545,38 @@ export default function MerchantOrdersPage() {
                         )}
 
                         {/* Value-added Services 增值服务 */}
-                        {(selectedOrder.weight || selectedOrder.fastRefund || selectedOrder.extraReward || selectedOrder.isPasswordEnabled) && (
+                        {(task.weight || task.fastRefund || task.extraReward || task.addReward || task.isPasswordEnabled) && (
                             <div>
                                 <h3 className="mb-4 text-sm font-bold text-slate-900">增值服务</h3>
                                 <div className="grid grid-cols-2 gap-3">
-                                    {selectedOrder.weight && selectedOrder.weight > 0 && (
+                                    {task.weight && task.weight > 0 && (
                                         <div className="rounded-[16px] bg-slate-50 p-4">
                                             <div className="text-xs text-slate-400 mb-1">包裹重量</div>
-                                            <div className="text-sm font-bold text-slate-700">{selectedOrder.weight}kg</div>
+                                            <div className="text-sm font-bold text-slate-700">{task.weight}kg</div>
                                         </div>
                                     )}
-                                    {selectedOrder.fastRefund && (
+                                    {task.fastRefund && (
                                         <div className="rounded-[16px] bg-green-50 p-4">
                                             <div className="text-xs text-slate-400 mb-1">快速返款</div>
                                             <div className="text-sm font-bold text-green-600">已开通</div>
                                         </div>
                                     )}
-                                    {selectedOrder.extraReward && selectedOrder.extraReward > 0 && (
+                                    {(task.extraReward || task.addReward) && (task.extraReward! > 0 || task.addReward! > 0) && (
                                         <div className="rounded-[16px] bg-warning-50 p-4">
                                             <div className="text-xs text-slate-400 mb-1">额外赏金</div>
-                                            <div className="text-sm font-bold text-warning-600">+¥{selectedOrder.extraReward}/单</div>
+                                            <div className="text-sm font-bold text-warning-600">+¥{task.extraReward || task.addReward}/单</div>
                                         </div>
                                     )}
-                                    {selectedOrder.isPasswordEnabled && selectedOrder.checkPassword && (
+                                    {task.isPasswordEnabled && task.checkPassword && (
                                         <div className="rounded-[16px] bg-purple-50 p-4">
                                             <div className="text-xs text-slate-400 mb-1">验证口令</div>
-                                            <div className="text-sm font-bold text-purple-600">{selectedOrder.checkPassword}</div>
+                                            <div className="text-sm font-bold text-purple-600">{task.checkPassword}</div>
                                         </div>
                                     )}
                                     <div className="rounded-[16px] bg-slate-50 p-4">
                                         <div className="text-xs text-slate-400 mb-1">运费</div>
-                                        <div className={`text-sm font-bold ${selectedOrder.isFreeShipping ? 'text-green-600' : 'text-amber-600'}`}>
-                                            {selectedOrder.isFreeShipping ? '包邮' : '非包邮'}
+                                        <div className={`text-sm font-bold ${task.isFreeShipping ? 'text-green-600' : 'text-amber-600'}`}>
+                                            {task.isFreeShipping ? '包邮' : '非包邮'}
                                         </div>
                                     </div>
                                 </div>
@@ -553,38 +584,38 @@ export default function MerchantOrdersPage() {
                         )}
 
                         {/* Praise Requirements 好评要求 */}
-                        {(selectedOrder.isPraise || selectedOrder.isImgPraise || selectedOrder.isVideoPraise) && (
+                        {(task.isPraise || task.isImgPraise || task.isVideoPraise) && (
                             <div>
                                 <h3 className="mb-4 text-sm font-bold text-slate-900">好评要求</h3>
                                 <div className="rounded-[20px] bg-slate-50 p-5">
                                     <div className="flex flex-wrap gap-2 mb-3">
-                                        {selectedOrder.isPraise && (
+                                        {task.isPraise && (
                                             <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
-                                                文字好评 ({selectedOrder.praiseList?.length || 0}条)
+                                                文字好评 ({praiseTexts.length}条)
                                             </span>
                                         )}
-                                        {selectedOrder.isImgPraise && (
+                                        {task.isImgPraise && (
                                             <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700 font-medium">
-                                                图片好评 ({selectedOrder.praiseImgList?.length || 0}张)
+                                                图片好评 ({praiseImages.length}张)
                                             </span>
                                         )}
-                                        {selectedOrder.isVideoPraise && (
+                                        {task.isVideoPraise && (
                                             <span className="rounded-full bg-purple-100 px-3 py-1 text-xs text-purple-700 font-medium">
-                                                视频好评 ({selectedOrder.praiseVideoList?.length || 0}个)
+                                                视频好评 ({praiseVideos.length}个)
                                             </span>
                                         )}
                                     </div>
-                                    {selectedOrder.isPraise && selectedOrder.praiseList && selectedOrder.praiseList.length > 0 && (
+                                    {task.isPraise && praiseTexts.length > 0 && (
                                         <div className="rounded-[12px] bg-white p-3">
                                             <div className="text-xs text-slate-400 mb-2">好评内容（随机选择一条）：</div>
                                             <div className="space-y-2 max-h-32 overflow-y-auto">
-                                                {selectedOrder.praiseList.slice(0, 3).map((txt, i) => (
+                                                {praiseTexts.slice(0, 3).map((txt, i) => (
                                                     <div key={i} className="text-xs text-slate-600 border-l-2 border-primary-200 pl-2">
                                                         {i + 1}. {txt}
                                                     </div>
                                                 ))}
-                                                {selectedOrder.praiseList.length > 3 && (
-                                                    <div className="text-xs text-slate-400">...共 {selectedOrder.praiseList.length} 条</div>
+                                                {praiseTexts.length > 3 && (
+                                                    <div className="text-xs text-slate-400">...共 {praiseTexts.length} 条</div>
                                                 )}
                                             </div>
                                         </div>
@@ -594,55 +625,55 @@ export default function MerchantOrdersPage() {
                         )}
 
                         {/* Merchant Memo 下单提示 */}
-                        {selectedOrder.memo && (
+                        {task.memo && (
                             <div>
                                 <h3 className="mb-4 text-sm font-bold text-slate-900">下单提示</h3>
                                 <div className="rounded-[20px] bg-amber-50 p-5 text-sm text-amber-800 whitespace-pre-wrap">
-                                    {selectedOrder.memo}
+                                    {task.memo}
                                 </div>
                             </div>
                         )}
 
                         {/* Fee Details 费用明细 */}
-                        {(selectedOrder.baseServiceFee || selectedOrder.praiseFee || selectedOrder.margin) && (
+                        {(task.baseServiceFee || task.praiseFee || task.margin) && (
                             <div>
                                 <h3 className="mb-4 text-sm font-bold text-slate-900">费用明细</h3>
                                 <div className="rounded-[20px] bg-slate-50 p-5">
                                     <div className="space-y-2 text-sm">
-                                        {selectedOrder.baseServiceFee && (
+                                        {task.baseServiceFee && (
                                             <div className="flex justify-between">
                                                 <span className="text-slate-500">基础服务费</span>
-                                                <span className="font-medium">¥{selectedOrder.baseServiceFee.toFixed(2)}</span>
+                                                <span className="font-medium">¥{task.baseServiceFee.toFixed(2)}</span>
                                             </div>
                                         )}
-                                        {selectedOrder.praiseFee && (
+                                        {task.praiseFee && (
                                             <div className="flex justify-between">
                                                 <span className="text-slate-500">文字好评费</span>
-                                                <span className="font-medium">¥{selectedOrder.praiseFee.toFixed(2)}</span>
+                                                <span className="font-medium">¥{task.praiseFee.toFixed(2)}</span>
                                             </div>
                                         )}
-                                        {selectedOrder.imgPraiseFee && (
+                                        {task.imgPraiseFee && (
                                             <div className="flex justify-between">
                                                 <span className="text-slate-500">图片好评费</span>
-                                                <span className="font-medium">¥{selectedOrder.imgPraiseFee.toFixed(2)}</span>
+                                                <span className="font-medium">¥{task.imgPraiseFee.toFixed(2)}</span>
                                             </div>
                                         )}
-                                        {selectedOrder.videoPraiseFee && (
+                                        {task.videoPraiseFee && (
                                             <div className="flex justify-between">
                                                 <span className="text-slate-500">视频好评费</span>
-                                                <span className="font-medium">¥{selectedOrder.videoPraiseFee.toFixed(2)}</span>
+                                                <span className="font-medium">¥{task.videoPraiseFee.toFixed(2)}</span>
                                             </div>
                                         )}
-                                        {selectedOrder.shippingFee && (
+                                        {task.shippingFee && (
                                             <div className="flex justify-between">
                                                 <span className="text-slate-500">邮费</span>
-                                                <span className="font-medium">¥{selectedOrder.shippingFee.toFixed(2)}</span>
+                                                <span className="font-medium">¥{task.shippingFee.toFixed(2)}</span>
                                             </div>
                                         )}
-                                        {selectedOrder.margin && (
+                                        {task.margin && (
                                             <div className="flex justify-between">
                                                 <span className="text-slate-500">保证金</span>
-                                                <span className="font-medium">¥{selectedOrder.margin.toFixed(2)}</span>
+                                                <span className="font-medium">¥{task.margin.toFixed(2)}</span>
                                             </div>
                                         )}
                                         <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
@@ -687,7 +718,8 @@ export default function MerchantOrdersPage() {
                             </div>
                         )}
                     </div>
-                )}
+                    );
+                })()}
             </Modal>
 
             {/* Ship Modal */}
