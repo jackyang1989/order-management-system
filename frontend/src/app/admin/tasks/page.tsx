@@ -814,6 +814,12 @@ export default function AdminTasksPage() {
                                                 </Badge>
                                             ))}
                                         </div>
+                                        {/* 联系客服内容 */}
+                                        {detailModal.needContactCS && detailModal.contactCSContent && (
+                                            <div className="mt-3 rounded bg-blue-50 p-3 text-xs text-blue-700">
+                                                <span className="font-bold">客服内容：</span>{detailModal.contactCSContent}
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="space-y-2">
                                         <div className="text-[12px] font-medium text-[#3b4559]">浏览时长</div>
@@ -867,32 +873,79 @@ export default function AdminTasksPage() {
                             {/* 费用信息 */}
                             <div className="mb-6">
                                 <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">费用信息</h3>
-                                <div className="grid grid-cols-1 gap-4 rounded-md bg-[#f9fafb] p-4 sm:grid-cols-4">
-                                    <div>
-                                        <div className="text-[12px] text-[#6b7280]">商品本金（单）</div>
-                                        <div className="text-[13px] font-medium text-[#3b4559]">
-                                            ¥{(() => {
-                                                if (detailModal.goodsList && detailModal.goodsList.length > 0) {
-                                                    return detailModal.goodsList.reduce((sum, goods) => sum + Number(goods.totalPrice || 0), 0).toFixed(2);
-                                                }
-                                                return Number(detailModal.goodsPrice || 0).toFixed(2);
-                                            })()}
+                                <div className="rounded-md bg-[#f9fafb] p-4">
+                                    {/* 总览 */}
+                                    <div className="grid grid-cols-1 gap-4 mb-4 sm:grid-cols-4">
+                                        <div>
+                                            <div className="text-[12px] text-[#6b7280]">商品本金（单）</div>
+                                            <div className="text-[13px] font-medium text-[#3b4559]">
+                                                ¥{(() => {
+                                                    if (detailModal.goodsList && detailModal.goodsList.length > 0) {
+                                                        return detailModal.goodsList.reduce((sum, goods) => sum + Number(goods.totalPrice || 0), 0).toFixed(2);
+                                                    }
+                                                    return Number(detailModal.goodsPrice || 0).toFixed(2);
+                                                })()}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="text-[12px] text-[#6b7280]">总押金</div>
+                                            <div className="text-[13px] font-medium text-primary-600">¥{Number(detailModal.totalDeposit || 0).toFixed(2)}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-[12px] text-[#6b7280]">总佣金</div>
+                                            <div className="text-[13px] font-medium text-danger-400">¥{Number(detailModal.totalCommission || 0).toFixed(2)}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-[12px] text-[#6b7280]">额外赏金</div>
+                                            <div className="text-[13px] font-medium text-warning-500">
+                                                {(detailModal.extraReward || detailModal.extraCommission || 0) > 0 ? `+¥${(detailModal.extraReward || detailModal.extraCommission).toFixed(2)}/单` : '无'}
+                                            </div>
                                         </div>
                                     </div>
-                                    <div>
-                                        <div className="text-[12px] text-[#6b7280]">总押金</div>
-                                        <div className="text-[13px] font-medium text-primary-600">¥{Number(detailModal.totalDeposit || 0).toFixed(2)}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-[12px] text-[#6b7280]">总佣金</div>
-                                        <div className="text-[13px] font-medium text-danger-400">¥{Number(detailModal.totalCommission || 0).toFixed(2)}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-[12px] text-[#6b7280]">额外赏金</div>
-                                        <div className="text-[13px] font-medium text-warning-500">
-                                            {(detailModal.extraReward || detailModal.extraCommission || 0) > 0 ? `+¥${(detailModal.extraReward || detailModal.extraCommission).toFixed(2)}/单` : '无'}
+                                    {/* 费用明细 */}
+                                    {(detailModal.baseServiceFee || detailModal.praiseFee || detailModal.margin) && (
+                                        <div className="border-t border-slate-200 pt-4">
+                                            <div className="text-[12px] font-medium text-[#3b4559] mb-3">费用明细</div>
+                                            <div className="space-y-2 text-sm">
+                                                {detailModal.baseServiceFee && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-[#6b7280]">基础服务费</span>
+                                                        <span className="font-medium">¥{Number(detailModal.baseServiceFee).toFixed(2)}</span>
+                                                    </div>
+                                                )}
+                                                {detailModal.praiseFee && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-[#6b7280]">文字好评费</span>
+                                                        <span className="font-medium">¥{Number(detailModal.praiseFee).toFixed(2)}</span>
+                                                    </div>
+                                                )}
+                                                {detailModal.imgPraiseFee && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-[#6b7280]">图片好评费</span>
+                                                        <span className="font-medium">¥{Number(detailModal.imgPraiseFee).toFixed(2)}</span>
+                                                    </div>
+                                                )}
+                                                {detailModal.videoPraiseFee && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-[#6b7280]">视频好评费</span>
+                                                        <span className="font-medium">¥{Number(detailModal.videoPraiseFee).toFixed(2)}</span>
+                                                    </div>
+                                                )}
+                                                {detailModal.shippingFee && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-[#6b7280]">邮费</span>
+                                                        <span className="font-medium">¥{Number(detailModal.shippingFee).toFixed(2)}</span>
+                                                    </div>
+                                                )}
+                                                {detailModal.margin && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-[#6b7280]">保证金</span>
+                                                        <span className="font-medium">¥{Number(detailModal.margin).toFixed(2)}</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
 

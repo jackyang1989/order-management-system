@@ -88,6 +88,9 @@ interface TaskDetail {
     fastRefund?: boolean;
     weight?: number;
     contactCSContent?: string;
+    isPresale?: boolean; // 是否预售任务
+    presaleDeposit?: number; // 预付款
+    finalPayment?: number; // 尾款
 }
 
 // 任务商品项
@@ -585,6 +588,20 @@ export default function TaskDetailPage() {
                     <Card className="bg-white" noPadding>
                         <div className="px-6 py-5">
                             <h2 className="mb-5 text-base font-semibold">好评设置</h2>
+                            {/* 好评类型显示 */}
+                            {task.praiseType && (
+                                <div className="mb-4 rounded-lg border border-primary-200 bg-primary-50 p-3">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-[#6b7280]">好评类型:</span>
+                                        <Badge variant="soft" color="blue">
+                                            {task.praiseType === 'text' ? '文字好评' : 
+                                             task.praiseType === 'image' ? '图片好评' : 
+                                             task.praiseType === 'video' ? '视频好评' : 
+                                             task.praiseType}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            )}
                             <div className="grid grid-cols-3 gap-4">
                                 {/* 文字好评 */}
                                 <div className="rounded-md border border-[#e5e7eb] p-3">
@@ -713,6 +730,19 @@ export default function TaskDetailPage() {
                                 <div className="flex justify-between"><span className="text-[#6b7280]">包邮</span><span>{isFreeShipping ? '是' : '否'}</span></div>
                                 {task.isPasswordEnabled && task.checkPassword && (
                                     <div className="flex justify-between"><span className="text-[#6b7280]">验证口令</span><span className="font-medium text-danger-400">{task.checkPassword}</span></div>
+                                )}
+                                {task.isPresale && (
+                                    <>
+                                        <div className="mt-2 border-t border-[#e5e7eb] pt-2">
+                                            <Badge variant="soft" color="amber" className="w-full justify-center">预售任务</Badge>
+                                        </div>
+                                        {task.presaleDeposit && task.presaleDeposit > 0 && (
+                                            <div className="flex justify-between"><span className="text-[#6b7280]">预付款</span><span className="font-medium text-warning-500">¥{formatMoney(task.presaleDeposit)}</span></div>
+                                        )}
+                                        {task.finalPayment && task.finalPayment > 0 && (
+                                            <div className="flex justify-between"><span className="text-[#6b7280]">尾款</span><span className="font-medium text-warning-500">¥{formatMoney(task.finalPayment)}</span></div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>

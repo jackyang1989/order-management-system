@@ -73,7 +73,10 @@ export class OrdersService {
     status?: string;
     keyword?: string;
   }): Promise<{ data: Order[]; total: number }> {
-    const queryBuilder = this.ordersRepository.createQueryBuilder('order');
+    const queryBuilder = this.ordersRepository
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.task', 'task') // Load task data for admin order details
+      .leftJoinAndSelect('task.merchant', 'merchant'); // Load merchant data
 
     if (filter.status) {
       queryBuilder.andWhere('order.status = :status', { status: filter.status });
@@ -99,6 +102,8 @@ export class OrdersService {
   async findAll(userId: string, filter?: OrderFilterDto): Promise<Order[]> {
     const queryBuilder = this.ordersRepository
       .createQueryBuilder('order')
+      .leftJoinAndSelect('order.task', 'task') // Load task data for user order list
+      .leftJoinAndSelect('task.merchant', 'merchant') // Load merchant data
       .where('order.userId = :userId', { userId });
 
     if (filter) {
@@ -121,6 +126,8 @@ export class OrdersService {
   async findAllAndCount(userId: string, filter?: OrderFilterDto & { page?: number; limit?: number }): Promise<{ data: Order[]; total: number }> {
     const queryBuilder = this.ordersRepository
       .createQueryBuilder('order')
+      .leftJoinAndSelect('order.task', 'task') // Load task data
+      .leftJoinAndSelect('task.merchant', 'merchant') // Load merchant data
       .where('order.userId = :userId', { userId });
 
     if (filter) {
@@ -148,7 +155,10 @@ export class OrdersService {
   }
 
   async findOne(id: string): Promise<Order | null> {
-    return this.ordersRepository.findOne({ where: { id } });
+    return this.ordersRepository.findOne({
+      where: { id },
+      relations: ['task', 'task.merchant'] // Load task and merchant data for order details
+    });
   }
 
   async findByUserAndTask(
@@ -661,6 +671,8 @@ export class OrdersService {
 
     const queryBuilder = this.ordersRepository
       .createQueryBuilder('order')
+      .leftJoinAndSelect('order.task', 'task') // Load task data for order details
+      .leftJoinAndSelect('task.merchant', 'merchant') // Load merchant data
       .where('order.taskId IN (:...taskIds)', { taskIds });
 
     if (filter?.status) {
