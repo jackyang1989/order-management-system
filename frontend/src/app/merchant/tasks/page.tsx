@@ -62,9 +62,11 @@ export default function MerchantTasksPage() {
         setLoading(true);
         try {
             const token = localStorage.getItem('merchantToken'); 
-            let url = `${BASE_URL}/tasks?merchantId=current`;
-            if (filter !== undefined) url += `&status=${filter}`;
-            if (taskTypeFilter !== undefined) url += `&taskType=${taskTypeFilter}`;
+            let url = `${BASE_URL}/tasks/merchant`;
+            const params: string[] = [];
+            if (filter !== undefined) params.push(`status=${filter}`);
+            if (taskTypeFilter !== undefined) params.push(`taskType=${taskTypeFilter}`);
+            if (params.length > 0) url += `?${params.join('&')}`;
             const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
             const resData = await response.json(); 
             if (resData.success && Array.isArray(resData.data)) setTasks(resData.data);

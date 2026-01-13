@@ -29,21 +29,8 @@ export class TasksController {
   ) {}
 
   @Get()
-  @UseGuards(JwtAuthGuard)
-  async findAll(@Query() filter: TaskFilterDto, @Request() req) {
-    // 如果有 merchantId 参数且值为 'current'，返回当前商家的任务
-    if (filter.merchantId === 'current') {
-      const tasks = await this.tasksService.findByMerchant(
-        req.user.userId,
-        filter,
-      );
-      return {
-        success: true,
-        data: tasks,
-      };
-    }
-    
-    // 否则返回买手任务大厅（只显示进行中的任务）
+  async findAll(@Query() filter: TaskFilterDto) {
+    // 买手任务大厅（只显示进行中的任务）
     const tasks = await this.tasksService.findAll(filter);
     return {
       success: true,
