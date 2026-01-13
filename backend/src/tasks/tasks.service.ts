@@ -236,7 +236,10 @@ export class TasksService implements OnModuleInit {
     goodsList: TaskGoods[];
     keywords: TaskKeyword[];
   } | null> {
-    const task = await this.tasksRepository.findOne({ where: { id } });
+    const task = await this.tasksRepository.findOne({
+      where: { id },
+      relations: ['merchant'], // 加载关联的商家信息
+    });
     if (!task) {
       return null;
     }
@@ -284,7 +287,17 @@ export class TasksService implements OnModuleInit {
       // 2. 费用计算核心逻辑 (Core Calculation Algorithm)
       // 2.1 基础数值
       const count = dto.count || 1;
-      const goodsPrice = Number(dto.goodsPrice || 0);
+
+      // 计算商品价格：优先从 goodsList 计算，其次使用 dto.goodsPrice
+      let goodsPrice = Number(dto.goodsPrice || 0);
+      if (dto.goodsList && dto.goodsList.length > 0) {
+        // 从多商品列表计算总价
+        goodsPrice = dto.goodsList.reduce((sum: number, goods: any) => {
+          const price = Number(goods.price) || 0;
+          const quantity = goods.quantity || 1;
+          return sum + (price * quantity);
+        }, 0);
+      }
 
       // 2.2 押金部分 (Principal + Postage + Margin)
       const goodsMoney = goodsPrice * count;

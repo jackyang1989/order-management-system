@@ -68,37 +68,72 @@
 
 ---
 
-## ⏳ 待修复页面
-
 ### 3. 管理订单页 (`frontend/src/app/admin/orders/page.tsx`)
 
-**当前完整性**: 65%  
-**预计修复后**: 95%
+**修复前完整性**: 65%  
+**修复后完整性**: 95%
 
-**需要添加**:
-- ❌ 浏览要求卡片
-- ❌ 增值服务卡片
-- ❌ 好评详情（包括图片预览）
-- ❌ 下单提示卡片
-- ❌ 费用明细卡片
+**添加的字段显示**:
+- ✅ 浏览要求卡片
+  - 浏览时长（totalBrowseMinutes, compareBrowseMinutes, mainBrowseMinutes, subBrowseMinutes）
+  - 浏览行为（needCompare, needFavorite, needFollow, needAddCart, needContactCS）
+  - 客服内容（contactCSContent）
+- ✅ 增值服务卡片
+  - 包裹重量（weight）
+  - 快速返款（fastRefund）
+  - 额外赏金（extraReward）
+  - 验证口令（checkPassword）
+  - 运费（isFreeShipping）
+- ✅ 好评详情卡片
+  - 好评类型标签
+  - 文字好评内容预览
+  - 好评图片预览（可点击查看大图）
+  - 好评视频预览
+- ✅ 下单提示卡片（memo）
+- ✅ 费用明细卡片
+  - 基础服务费（baseServiceFee）
+  - 好评费用（praiseFee, imgPraiseFee, videoPraiseFee）
+  - 邮费（shippingFee）
+  - 保证金（margin）
 
-**修复方案**: 参考商家订单页的实现
+**显示位置**: 订单详情模态框，在"截图凭证"之后
+
+**代码修改**:
+- 行 18-70: 扩展 Order 接口
+- 行 395-600: 在订单详情模态框中添加5个新卡片
 
 ---
 
 ### 4. 买手任务详情页 (`frontend/src/app/tasks/[id]/page.tsx`)
 
-**当前完整性**: 80%  
-**预计修复后**: 90%
+**修复前完整性**: 80%  
+**修复后完整性**: 95%
 
-**需要添加**:
-- ❌ 任务设置卡片（unionInterval, isTimingPublish, isTimingPay, cycle）
-- ❌ 联系客服内容（contactCSContent）
-- ❌ 好评图片和视频预览
+**添加的字段显示**:
+- ✅ 好评图片预览（praiseImgList）
+  - 显示前6张图片缩略图
+  - 可点击查看大图
+- ✅ 好评视频预览（praiseVideoList）
+  - 显示前4个视频占位符
+  - 显示视频数量
+- ✅ 任务设置字段
+  - 接单间隔（unionInterval）
+  - 定时发布（isTimingPublish, publishTime）
+  - 定时付款（isTimingPay, timingTime）
+  - 延长周期（cycle）
+- ✅ 好评数量显示（在标签中）
 
-**修复方案**: 在现有卡片基础上补充
+**显示位置**: 
+- 好评预览：好评要求卡片中
+- 任务设置：任务信息卡片中
+
+**代码修改**:
+- 行 370-430: 在好评要求卡片中添加图片和视频预览
+- 行 480-510: 在任务信息卡片中添加任务设置字段
 
 ---
+
+## ⏳ 待修复页面
 
 ### 5. 管理任务详情页 (`frontend/src/app/admin/tasks/page.tsx`)
 
@@ -206,11 +241,11 @@
 
 - ✅ 买手执行页: 70% → 95% (+25%)
 - ✅ 商家订单页: 60% → 95% (+35%)
-- ⏳ 管理订单页: 65% → 待修复
-- ⏳ 买手任务详情页: 80% → 待修复
+- ✅ 管理订单页: 65% → 95% (+30%)
+- ✅ 买手任务详情页: 80% → 95% (+15%)
 - ⏳ 管理任务详情页: 90% → 待修复
 - ⏳ 商家任务详情页: 95% → 待修复
 
-**已完成**: 2/6 页面 (33%)  
-**平均完整性提升**: +30%
+**已完成**: 4/6 页面 (67%)  
+**平均完整性提升**: +26%
 

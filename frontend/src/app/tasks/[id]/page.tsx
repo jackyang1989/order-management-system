@@ -367,12 +367,12 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                     <div className="mb-3 text-sm font-bold text-slate-800">好评要求</div>
                     <div className="flex flex-wrap gap-2 mb-3">
                         {task.isPraise && <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-700">文字好评</span>}
-                        {task.isImgPraise && <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-700">图片好评</span>}
-                        {task.isVideoPraise && <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-700">视频好评</span>}
+                        {task.isImgPraise && <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-700">图片好评 ({task.praiseImgList?.length || 0}张)</span>}
+                        {task.isVideoPraise && <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-700">视频好评 ({task.praiseVideoList?.length || 0}个)</span>}
                     </div>
                     {/* 文字好评内容预览 */}
                     {task.isPraise && praiseTexts.length > 0 && (
-                        <div className="rounded bg-slate-50 p-3 space-y-2">
+                        <div className="rounded bg-slate-50 p-3 space-y-2 mb-3">
                             <div className="text-xs text-slate-500">好评内容（随机选择一条）：</div>
                             {praiseTexts.slice(0, 3).map((txt, i) => (
                                 <div key={i} className="text-xs text-slate-600 border-l-2 border-primary-200 pl-2">{i + 1}. {txt}</div>
@@ -380,6 +380,49 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                             {praiseTexts.length > 3 && (
                                 <div className="text-xs text-slate-400">...共 {praiseTexts.length} 条好评内容</div>
                             )}
+                        </div>
+                    )}
+                    {/* 好评图片预览 */}
+                    {task.isImgPraise && task.praiseImgList && task.praiseImgList.length > 0 && (
+                        <div className="rounded bg-slate-50 p-3 mb-3">
+                            <div className="text-xs text-slate-500 mb-2">好评图片预览：</div>
+                            <div className="flex flex-wrap gap-2">
+                                {task.praiseImgList.slice(0, 6).map((img, i) => (
+                                    <img 
+                                        key={i} 
+                                        src={img} 
+                                        alt={`好评图${i + 1}`} 
+                                        className="h-16 w-16 rounded border border-slate-200 object-cover cursor-pointer hover:opacity-80"
+                                        onClick={() => window.open(img, '_blank')}
+                                    />
+                                ))}
+                                {task.praiseImgList.length > 6 && (
+                                    <div className="h-16 w-16 rounded border border-slate-200 bg-slate-100 flex items-center justify-center text-xs text-slate-500">
+                                        +{task.praiseImgList.length - 6}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                    {/* 好评视频预览 */}
+                    {task.isVideoPraise && task.praiseVideoList && task.praiseVideoList.length > 0 && (
+                        <div className="rounded bg-slate-50 p-3">
+                            <div className="text-xs text-slate-500 mb-2">好评视频预览：</div>
+                            <div className="flex flex-wrap gap-2">
+                                {task.praiseVideoList.slice(0, 4).map((video, i) => (
+                                    <div key={i} className="relative h-16 w-16 rounded border border-slate-200 bg-slate-100 flex items-center justify-center cursor-pointer hover:bg-slate-200">
+                                        <span className="text-2xl">▶️</span>
+                                        <div className="absolute bottom-1 right-1 bg-black/50 text-white text-xs px-1 rounded">
+                                            {i + 1}
+                                        </div>
+                                    </div>
+                                ))}
+                                {task.praiseVideoList.length > 4 && (
+                                    <div className="h-16 w-16 rounded border border-slate-200 bg-slate-100 flex items-center justify-center text-xs text-slate-500">
+                                        +{task.praiseVideoList.length - 4}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>
@@ -436,6 +479,30 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                         <div className="flex justify-between">
                             <span className="text-slate-500">隔天任务</span>
                             <span className="text-amber-600">是（次日16:40前完成）</span>
+                        </div>
+                    )}
+                    {task.unionInterval && task.unionInterval > 0 && (
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">接单间隔</span>
+                            <span className="text-slate-700">{task.unionInterval}天</span>
+                        </div>
+                    )}
+                    {task.isTimingPublish && (
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">定时发布</span>
+                            <span className="text-blue-600">是{task.publishTime && ` (${task.publishTime})`}</span>
+                        </div>
+                    )}
+                    {task.isTimingPay && (
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">定时付款</span>
+                            <span className="text-blue-600">是{task.timingTime && ` (${task.timingTime})`}</span>
+                        </div>
+                    )}
+                    {task.cycle && task.cycle > 0 && (
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">延长周期</span>
+                            <span className="text-slate-700">{task.cycle}天</span>
                         </div>
                     )}
                 </div>
