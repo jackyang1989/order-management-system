@@ -618,7 +618,8 @@ export default function AdminTasksPage() {
                         { label: '延长周期', enabled: (detailModal.cycle || 0) > 0, value: detailModal.cycle ? `${detailModal.cycle}天` : '' },
                         { label: '接单间隔', enabled: (detailModal.unionInterval || 0) > 0, value: detailModal.unionInterval ? `${detailModal.unionInterval}分钟` : '' },
                         { label: '快速返款', enabled: !!detailModal.fastRefund },
-                        { label: '包裹重量', enabled: (detailModal.weight || 0) > 0, value: `${detailModal.weight}kg` }
+                        { label: '包裹重量', enabled: (detailModal.weight || 0) > 0, value: `${detailModal.weight}kg` },
+                        { label: '验证口令', enabled: !!detailModal.isPasswordEnabled, value: detailModal.checkPassword || '' }
                     ];
 
                     return (

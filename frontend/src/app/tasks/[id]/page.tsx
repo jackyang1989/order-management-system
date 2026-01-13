@@ -407,6 +407,12 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                                  <span className="text-slate-700">{task.weight}kg</span>
                              </div>
                          )}
+                         {task.fastRefund && (
+                             <div className="flex justify-between">
+                                 <span className="text-slate-500">快速返款</span>
+                                 <span className="text-green-600">已开通</span>
+                             </div>
+                         )}
 
                     {(task.extraReward || 0) > 0 && (
                         <div className="flex justify-between">
