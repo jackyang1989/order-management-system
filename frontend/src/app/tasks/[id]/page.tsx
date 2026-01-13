@@ -189,6 +189,34 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                                         <span className="text-danger-500 font-medium">¥{goods.price}</span>
                                         <span className="text-xs text-slate-400">x{goods.num}</span>
                                     </div>
+                                    {/* 下单规格显示 */}
+                                    {goods.orderSpecs && (() => {
+                                        try {
+                                            const specs = JSON.parse(goods.orderSpecs);
+                                            if (Array.isArray(specs) && specs.length > 0) {
+                                                return (
+                                                    <div className="mt-2 space-y-1">
+                                                        <div className="text-xs font-medium text-slate-500">下单规格:</div>
+                                                        {specs.map((spec: { specName: string; specValue: string; quantity: number }, idx: number) => (
+                                                            <div key={idx} className="flex items-center gap-2 rounded bg-slate-50 px-2 py-1 text-xs">
+                                                                <span className="text-slate-600">{spec.specName}: {spec.specValue}</span>
+                                                                <span className="text-slate-400">× {spec.quantity}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        } catch {
+                                            return null;
+                                        }
+                                    })()}
+                                    {/* 核对口令显示 */}
+                                    {goods.verifyCode && (
+                                        <div className="mt-1 text-xs text-slate-500">
+                                            核对口令: <span className="font-medium text-primary-600">{goods.verifyCode}</span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}

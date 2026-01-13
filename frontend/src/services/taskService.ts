@@ -15,6 +15,8 @@ export interface TaskGoodsItem {
     price: number;
     num: number;
     totalPrice: number;
+    orderSpecs?: string; // JSON string of { specName, specValue, quantity }[]
+    verifyCode?: string;
 }
 
 // Multi-keyword item from task_keywords table

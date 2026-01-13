@@ -101,6 +101,8 @@ interface TaskGoodsItem {
     price: number;
     num: number;
     totalPrice: number;
+    orderSpecs?: string; // JSON string of { specName, specValue, quantity }[]
+    verifyCode?: string;
 }
 
 // 任务关键词项
@@ -368,6 +370,34 @@ export default function TaskDetailPage() {
                                                     <a href={goods.link} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-500">
                                                         查看链接 →
                                                     </a>
+                                                )}
+                                                {/* 下单规格显示 */}
+                                                {goods.orderSpecs && (() => {
+                                                    try {
+                                                        const specs = JSON.parse(goods.orderSpecs);
+                                                        if (Array.isArray(specs) && specs.length > 0) {
+                                                            return (
+                                                                <div className="mt-2 space-y-1">
+                                                                    <div className="text-xs font-medium text-[#6b7280]">下单规格:</div>
+                                                                    {specs.map((spec: { specName: string; specValue: string; quantity: number }, idx: number) => (
+                                                                        <div key={idx} className="flex items-center gap-2 rounded bg-slate-100 px-2 py-1 text-xs">
+                                                                            <span className="text-[#374151]">{spec.specName}: {spec.specValue}</span>
+                                                                            <span className="text-[#6b7280]">× {spec.quantity}</span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            );
+                                                        }
+                                                        return null;
+                                                    } catch {
+                                                        return null;
+                                                    }
+                                                })()}
+                                                {/* 核对口令显示 */}
+                                                {goods.verifyCode && (
+                                                    <div className="mt-1 text-xs text-[#6b7280]">
+                                                        核对口令: <span className="font-medium text-primary-600">{goods.verifyCode}</span>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>

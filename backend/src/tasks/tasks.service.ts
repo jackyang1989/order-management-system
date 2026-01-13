@@ -458,6 +458,52 @@ export class TasksService implements OnModuleInit {
       });
 
       const savedTask = await queryRunner.manager.save(newTask);
+      const task = Array.isArray(savedTask) ? savedTask[0] : savedTask;
+
+      // 保存多商品列表 (如果有)
+      if (dto.goodsList && dto.goodsList.length > 0) {
+        const taskGoodsList = dto.goodsList.map((goods: any) => {
+          return this.taskGoodsRepository.create({
+            taskId: task.id,
+            goodsId: goods.goodsId || undefined,
+            name: goods.name,
+            pcImg: goods.image || undefined,
+            link: goods.link || undefined,
+            specName: goods.specName || undefined,
+            specValue: goods.specValue || undefined,
+            price: Number(goods.price) || 0,
+            num: goods.quantity || 1,
+            totalPrice: (Number(goods.price) || 0) * (goods.quantity || 1),
+            orderSpecs: goods.orderSpecs ? JSON.stringify(goods.orderSpecs) : undefined,
+            verifyCode: goods.verifyCode || undefined,
+          });
+        });
+        await queryRunner.manager.save(TaskGoods, taskGoodsList);
+
+        // 保存多关键词列表 (从商品的 keywords 字段中提取)
+        const taskKeywordsList: any[] = [];
+        for (const goods of dto.goodsList) {
+          if (goods.keywords && goods.keywords.length > 0) {
+            for (const kw of goods.keywords) {
+              const taskKeyword = this.taskKeywordRepository.create({
+                taskId: task.id,
+                taskGoodsId: goods.id || undefined,
+                keyword: kw.keyword,
+                terminal: kw.advancedSettings?.terminal || 1,
+                sort: kw.advancedSettings?.sort || undefined,
+                province: kw.advancedSettings?.province || undefined,
+                minPrice: kw.advancedSettings?.minPrice || 0,
+                maxPrice: kw.advancedSettings?.maxPrice || 0,
+              });
+              taskKeywordsList.push(taskKeyword);
+            }
+          }
+        }
+        if (taskKeywordsList.length > 0) {
+          await queryRunner.manager.save(TaskKeyword, taskKeywordsList);
+        }
+      }
+
       await queryRunner.commitTransaction();
 
       // 发送消息通知商家：任务发布成功
