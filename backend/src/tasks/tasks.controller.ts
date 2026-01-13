@@ -39,8 +39,8 @@ export class TasksController {
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const task = await this.tasksService.findOne(id);
-    if (!task) {
+    const result = await this.tasksService.findOneWithDetails(id);
+    if (!result) {
       return {
         success: false,
         message: '任务不存在',
@@ -48,7 +48,11 @@ export class TasksController {
     }
     return {
       success: true,
-      data: task,
+      data: {
+        ...result.task,
+        goodsList: result.goodsList,
+        keywords: result.keywords,
+      },
     };
   }
 

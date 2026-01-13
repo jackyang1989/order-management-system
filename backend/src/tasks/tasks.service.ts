@@ -16,6 +16,7 @@ import {
   CreateTaskDto,
   TaskFilterDto,
 } from './task.entity';
+import { TaskGoods, TaskKeyword } from '../task-goods/task-goods.entity';
 import { MerchantsService } from '../merchants/merchants.service';
 import { MessagesService } from '../messages/messages.service';
 import { MessageUserType } from '../messages/message.entity';
@@ -25,6 +26,10 @@ export class TasksService implements OnModuleInit {
   constructor(
     @InjectRepository(Task)
     private tasksRepository: Repository<Task>,
+    @InjectRepository(TaskGoods)
+    private taskGoodsRepository: Repository<TaskGoods>,
+    @InjectRepository(TaskKeyword)
+    private taskKeywordRepository: Repository<TaskKeyword>,
     @Inject(forwardRef(() => MerchantsService))
     private merchantsService: MerchantsService,
     @Inject(forwardRef(() => MessagesService))
@@ -207,6 +212,35 @@ export class TasksService implements OnModuleInit {
 
   async findOne(id: string): Promise<Task | null> {
     return this.tasksRepository.findOne({ where: { id } });
+  }
+
+  /**
+   * 获取任务详情（包含多商品和关键词）
+   * 用于详情页展示完整任务信息
+   */
+  async findOneWithDetails(id: string): Promise<{
+    task: Task;
+    goodsList: TaskGoods[];
+    keywords: TaskKeyword[];
+  } | null> {
+    const task = await this.tasksRepository.findOne({ where: { id } });
+    if (!task) {
+      return null;
+    }
+
+    // 获取关联的多商品
+    const goodsList = await this.taskGoodsRepository.find({
+      where: { taskId: id },
+      order: { createdAt: 'ASC' },
+    });
+
+    // 获取关联的关键词
+    const keywords = await this.taskKeywordRepository.find({
+      where: { taskId: id },
+      order: { createdAt: 'ASC' },
+    });
+
+    return { task, goodsList, keywords };
   }
 
   /**
