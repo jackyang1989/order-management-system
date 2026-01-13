@@ -125,6 +125,23 @@ export class TasksController {
     return claimResult;
   }
 
+  /**
+   * 取消任务（商家）
+   */
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/cancel')
+  async cancelTask(@Param('id') id: string, @Request() req) {
+    try {
+      const result = await this.tasksService.cancelTask(id, req.user.userId);
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || '取消任务失败',
+      };
+    }
+  }
+
   // ============ 商家端批量导入 ============
 
   /**

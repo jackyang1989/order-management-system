@@ -782,6 +782,37 @@ export default function TaskDetailPage() {
                     )}
                 </div>
             </Modal>
+
+            {/* Cancel Task Confirmation Modal */}
+            <Modal
+                title="取消任务"
+                open={showCancelModal}
+                onClose={() => setShowCancelModal(false)}
+                className="max-w-md"
+            >
+                <div className="space-y-4">
+                    <div className="text-sm text-slate-600">
+                        <p className="mb-2">确定要取消此任务吗？</p>
+                        <p className="text-xs text-slate-500">已冻结的资金将返还到您的账户。</p>
+                    </div>
+                    <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                        <Button 
+                            variant="secondary" 
+                            onClick={() => setShowCancelModal(false)}
+                            disabled={cancelling}
+                        >
+                            取消
+                        </Button>
+                        <Button 
+                            variant="destructive"
+                            onClick={handleCancelConfirm}
+                            disabled={cancelling}
+                        >
+                            {cancelling ? '取消中...' : '确认取消'}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }

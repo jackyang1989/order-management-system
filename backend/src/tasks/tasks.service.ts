@@ -592,6 +592,75 @@ export class TasksService implements OnModuleInit {
     };
   }
 
+  /**
+   * 取消任务（商家）
+   * 只有未被领取的任务才能取消
+   */
+  async cancelTask(
+    taskId: string,
+    merchantId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    const task = await this.tasksRepository.findOne({
+      where: { id: taskId },
+      relations: ['merchant'],
+    });
+
+    if (!task) {
+      throw new NotFoundException('任务不存在');
+    }
+
+    // 验证是否是任务所有者
+    if (task.merchantId !== merchantId) {
+      throw new BadRequestException('无权取消此任务');
+    }
+
+    // 只有进行中且未被领取的任务才能取消
+    if (task.status !== TaskStatus.ACTIVE) {
+      throw new BadRequestException('只有进行中的任务才能取消');
+    }
+
+    if (task.claimedCount > 0) {
+      throw new BadRequestException('任务已被领取，无法取消');
+    }
+
+    // 使用事务确保原子性
+    await this.dataSource.transaction(async (manager) => {
+      // 更新任务状态为已取消
+      await manager.update(Task, taskId, {
+        status: TaskStatus.CANCELLED,
+      });
+
+      // 解冻并返还资金到商家账户
+      const refundAmount = Number(task.totalDeposit);
+      if (refundAmount > 0) {
+        await this.merchantsService.unfreezeBalance(merchantId, refundAmount);
+        await this.merchantsService.addBalance(
+          merchantId,
+          refundAmount,
+          `取消任务退款 - ${task.taskNumber}`,
+        );
+      }
+    });
+
+    // 发送系统消息通知商家
+    try {
+      await this.messagesService.create({
+        userId: merchantId,
+        userType: MessageUserType.MERCHANT,
+        title: '任务已取消',
+        content: `您的任务 ${task.taskNumber} 已成功取消，冻结资金 ¥${Number(task.totalDeposit).toFixed(2)} 已返还到您的账户。`,
+        type: 'system',
+      });
+    } catch (error) {
+      console.error('发送取消任务通知失败:', error);
+    }
+
+    return {
+      success: true,
+      message: '任务已取消，资金已返还',
+    };
+  }
+
   async getAvailableCount(taskId: string): Promise<number> {
     const task = await this.tasksRepository.findOne({ where: { id: taskId } });
     if (!task) return 0;
