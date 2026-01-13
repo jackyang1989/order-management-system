@@ -1130,7 +1130,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             {/* ===================== 第三步 ===================== */}
             {active === 3 && (
                 <div style={{ margin: '10px' }}>
-                    {/* 伍：提交订单 */}
+                    {/* 订单商品核对表格 */}
                     <div style={{ background: '#fff', borderRadius: '8px', padding: '15px', marginBottom: '10px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
                             <span style={{
@@ -1145,8 +1145,69 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                 marginRight: '10px',
                                 fontSize: '12px',
                             }}>伍</span>
-                            <span style={{ fontWeight: 'bold' }}>提交订单</span>
+                            <span style={{ fontWeight: 'bold', color: '#f56c6c' }}>核对订单商品</span>
+                            <span style={{ fontSize: '11px', color: '#999', marginLeft: '8px' }}>(滑动查看)</span>
                         </div>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', minWidth: '400px', borderCollapse: 'collapse', fontSize: '12px' }}>
+                                <thead>
+                                    <tr style={{ background: '#f5f5f5' }}>
+                                        <th style={{ padding: '8px', border: '1px solid #e5e5e5', textAlign: 'left' }}>#</th>
+                                        <th style={{ padding: '8px', border: '1px solid #e5e5e5', textAlign: 'left' }}>店铺名称</th>
+                                        <th style={{ padding: '8px', border: '1px solid #e5e5e5', textAlign: 'left' }}>商品标题</th>
+                                        <th style={{ padding: '8px', border: '1px solid #e5e5e5', textAlign: 'right' }}>单价</th>
+                                        <th style={{ padding: '8px', border: '1px solid #e5e5e5', textAlign: 'center' }}>数量</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {tableData3.length > 0 ? tableData3.map((item, index) => (
+                                        <tr key={item.id}>
+                                            <td style={{ padding: '8px', border: '1px solid #e5e5e5' }}>{index + 1}</td>
+                                            <td style={{ padding: '8px', border: '1px solid #e5e5e5', whiteSpace: 'nowrap' }}>{item.dianpuName}</td>
+                                            <td style={{ padding: '8px', border: '1px solid #e5e5e5', whiteSpace: 'nowrap' }}>{item.productName}</td>
+                                            <td style={{ padding: '8px', border: '1px solid #e5e5e5', textAlign: 'right', color: '#f56c6c' }}>¥{item.price}</td>
+                                            <td style={{ padding: '8px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{item.count}</td>
+                                        </tr>
+                                    )) : (
+                                        <tr>
+                                            <td colSpan={5} style={{ padding: '15px', border: '1px solid #e5e5e5', textAlign: 'center', color: '#999' }}>暂无商品数据</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* 伍：提交订单 */}
+                    <div style={{ background: '#fff', borderRadius: '8px', padding: '15px', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
+                            <span style={{
+                                background: '#409eff',
+                                color: 'white',
+                                width: '24px',
+                                height: '24px',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginRight: '10px',
+                                fontSize: '12px',
+                            }}>陆</span>
+                            <span style={{ fontWeight: 'bold', color: '#f56c6c' }}>填写订单信息并提交</span>
+                        </div>
+
+                        {/* 温馨提示 - 付款注意事项 */}
+                        <div style={{ background: '#fff7e6', border: '1px solid #ffd591', borderRadius: '4px', padding: '12px', marginBottom: '15px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                                <span style={{ color: '#fa8c16', marginRight: '5px' }}>⚠️</span>
+                                <span style={{ fontWeight: 'bold', color: '#fa8c16', fontSize: '13px' }}>温馨提示</span>
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#333', lineHeight: '1.8' }}>
+                                <p>1. 请使用 <span style={{ color: '#f56c6c', fontWeight: 'bold' }}>{userBuynoAccount}</span> 下单和付款，付款完毕后请填写您的实付金额和订单号。</p>
+                                <p>2. 只能使用银行借记卡或支付宝付款，<span style={{ color: '#f56c6c' }}>不可使用信用卡、花呗付款，也不可使用村淘(农村淘宝)、淘宝客和返利平台下单</span>，提交后会进行审核一旦发现订单退款和买号降权处理。</p>
+                            </div>
+                        </div>
+
                         <div style={{ fontSize: '13px', color: '#666', lineHeight: '1.8', marginBottom: '15px' }}>
                             <p>1. 核对收货地址信息，确认无误后下单付款；</p>
                             <p>2. 将付款后的订单详情截图上传；</p>
