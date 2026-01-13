@@ -149,68 +149,68 @@ export default function AdminMessagesPage() {
 
     return (
         <div className="space-y-4">
-            <Card className="bg-white">
+            <Card className="bg-white p-6">
                 <div className="mb-4 flex items-center justify-between">
                     <span className="text-base font-medium">消息模板管理</span>
                     <div className="flex items-center gap-3">
-                        <span className="text-[#6b7280]">共 {templates.length} 个模板</span>
+                        <span className="text-sm text-[#6b7280]">共 {templates.length} 个模板</span>
                         <Button variant="secondary" onClick={handleInitTemplates}>初始化默认模板</Button>
                         <Button onClick={handleCreate}>+ 新建模板</Button>
                     </div>
                 </div>
-                <p className="text-sm text-[#6b7280]">
+                <p className="mb-6 text-sm text-[#6b7280]">
                     消息模板用于系统自动发送通知。模板内容支持变量，如 {'{orderNo}'}, {'{amount}'}, {'{userName}'} 等，系统会自动替换为实际值。
                 </p>
-            </Card>
 
-            <Card className="overflow-hidden bg-white p-0">
-                {loading ? (
-                    <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
-                ) : templates.length === 0 ? (
-                    <div className="py-12 text-center text-[#9ca3af]">暂无模板，点击"初始化默认模板"添加系统预设模板</div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-[900px] w-full border-collapse">
-                            <thead>
-                                <tr className="bg-[#f9fafb]">
-                                    <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-left text-sm font-medium text-[#374151]">模板代码</th>
-                                    <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-left text-sm font-medium text-[#374151]">模板名称</th>
-                                    <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-left text-sm font-medium text-[#374151]">消息标题</th>
-                                    <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-center text-sm font-medium text-[#374151]">类型</th>
-                                    <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-center text-sm font-medium text-[#374151]">状态</th>
-                                    <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-left text-sm font-medium text-[#374151]">更新时间</th>
-                                    <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-center text-sm font-medium text-[#374151]">操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {templates.map(template => (
-                                    <tr key={template.id} className="border-b border-[#f3f4f6]">
-                                        <td className="px-4 py-3.5 font-mono text-sm text-[#6b7280]">{template.code}</td>
-                                        <td className="px-4 py-3.5 font-medium">{template.name}</td>
-                                        <td className="max-w-[200px] truncate px-4 py-3.5 text-[#6b7280]">{template.title}</td>
-                                        <td className="px-4 py-3.5 text-center">
-                                            <Badge variant="soft" color="blue">{typeLabels[template.type] || '未知'}</Badge>
-                                        </td>
-                                        <td className="px-4 py-3.5 text-center">
-                                            <Badge variant="soft" color={template.isActive ? 'green' : 'slate'}>
-                                                {template.isActive ? '启用' : '禁用'}
-                                            </Badge>
-                                        </td>
-                                        <td className="px-4 py-3.5 text-xs text-[#9ca3af]">
-                                            {new Date(template.updatedAt).toLocaleString('zh-CN')}
-                                        </td>
-                                        <td className="px-4 py-3.5 text-center">
-                                            <div className="flex justify-center gap-2">
-                                                <Button size="sm" variant="secondary" onClick={() => handleEdit(template)}>编辑</Button>
-                                                <Button size="sm" variant="destructive" onClick={() => handleDelete(template.id)}>删除</Button>
-                                            </div>
-                                        </td>
+                <div className="overflow-hidden">
+                    {loading ? (
+                        <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
+                    ) : templates.length === 0 ? (
+                        <div className="py-12 text-center text-[#9ca3af]">暂无模板，点击"初始化默认模板"添加系统预设模板</div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-[900px] w-full border-collapse">
+                                <thead>
+                                    <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium text-[#374151]">模板代码</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium text-[#374151]">模板名称</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium text-[#374151]">消息标题</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium text-[#374151]">类型</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium text-[#374151]">状态</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium text-[#374151]">更新时间</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium text-[#374151]">操作</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                                </thead>
+                                <tbody>
+                                    {templates.map(template => (
+                                        <tr key={template.id} className="border-b border-[#f3f4f6]">
+                                            <td className="px-4 py-3.5 font-mono text-sm text-[#6b7280]">{template.code}</td>
+                                            <td className="px-4 py-3.5 font-medium">{template.name}</td>
+                                            <td className="max-w-[200px] truncate px-4 py-3.5 text-[#6b7280]">{template.title}</td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                <Badge variant="soft" color="blue">{typeLabels[template.type] || '未知'}</Badge>
+                                            </td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                <Badge variant="soft" color={template.isActive ? 'green' : 'slate'}>
+                                                    {template.isActive ? '启用' : '禁用'}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-4 py-3.5 text-xs text-[#9ca3af]">
+                                                {new Date(template.updatedAt).toLocaleString('zh-CN')}
+                                            </td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                <div className="flex justify-center gap-2">
+                                                    <Button size="sm" variant="secondary" onClick={() => handleEdit(template)}>编辑</Button>
+                                                    <Button size="sm" variant="destructive" onClick={() => handleDelete(template.id)}>删除</Button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             </Card>
 
             <Modal title={editingTemplate ? '编辑模板' : '新建模板'} open={showModal} onClose={() => setShowModal(false)} className="max-w-xl">

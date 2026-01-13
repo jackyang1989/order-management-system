@@ -133,9 +133,14 @@ export default function AdminBlacklistPage() {
     ];
 
     return (
-        <div className="space-y-4">
+        <Card className="bg-white p-6">
+            <div className="mb-4 flex items-center justify-between">
+                <span className="text-base font-medium">黑名单管理</span>
+                <span className="text-sm text-[#6b7280]">共 {total} 条记录</span>
+            </div>
+
             {/* Filter Bar */}
-            <Card className="flex flex-wrap items-center justify-between gap-3 bg-white">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                     <span className="text-[#6b7280]">状态筛选：</span>
                     {filterButtons.map(item => (
@@ -161,11 +166,11 @@ export default function AdminBlacklistPage() {
                     />
                     <Button onClick={handleSearch}>搜索</Button>
                 </div>
-            </Card>
+            </div>
 
             {/* Batch Actions */}
             {filter === 0 && (
-                <Card className="flex items-center gap-3 bg-white">
+                <div className="mb-4 flex items-center gap-3">
                     <span className="text-[#6b7280]">批量操作：</span>
                     <Button
                         onClick={() => handleBatchReview(true)}
@@ -182,11 +187,11 @@ export default function AdminBlacklistPage() {
                     >
                         批量拒绝
                     </Button>
-                </Card>
+                </div>
             )}
 
             {/* Table */}
-            <Card className="overflow-hidden bg-white p-0">
+            <div className="overflow-hidden">
                 {loading ? (
                     <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
                 ) : items.length === 0 ? (
@@ -251,8 +256,7 @@ export default function AdminBlacklistPage() {
                             </table>
                         </div>
 
-                        <div className="flex items-center justify-between border-t border-[#f3f4f6] p-4">
-                            <span className="text-[#9ca3af]">共 {total} 条记录</span>
+                        <div className="flex items-center justify-between border-t border-[#f3f4f6] pt-4">
                             <div className="flex items-center gap-2">
                                 <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className={cn(page === 1 && 'cursor-not-allowed opacity-50')}>上一页</Button>
                                 <span className="px-3 text-sm text-[#6b7280]">第 {page} 页</span>
@@ -261,7 +265,7 @@ export default function AdminBlacklistPage() {
                         </div>
                     </>
                 )}
-            </Card>
-        </div>
+            </div>
+        </Card>
     );
 }

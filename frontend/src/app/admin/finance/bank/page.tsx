@@ -164,38 +164,35 @@ export default function AdminFinanceBankPage() {
     };
 
     return (
-        <div className="space-y-4">
-            {/* Filter Card */}
-            <Card className="bg-white">
-                <div className="mb-4 flex items-center justify-between">
-                    <span className="text-base font-medium">银行卡审核</span>
-                    <span className="text-[#6b7280]">共 {total} 条记录</span>
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                    <Input
-                        placeholder="搜索持卡人/卡号..."
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                        className="w-52"
-                    />
-                    <Select
-                        value={statusFilter}
-                        onChange={v => { setStatusFilter(v); setPage(1); }}
-                        options={[
-                            { value: '', label: '全部状态' },
-                            { value: '0', label: '待审核' },
-                            { value: '1', label: '已通过' },
-                            { value: '2', label: '已拒绝' },
-                        ]}
-                        className="w-32"
-                    />
-                    <Button onClick={handleSearch}>搜索</Button>
-                </div>
-            </Card>
+        <>
+        <Card className="bg-white p-6">
+            <div className="mb-4 flex items-center justify-between">
+                <span className="text-base font-medium">银行卡审核</span>
+                <span className="text-[#6b7280]">共 {total} 条记录</span>
+            </div>
+            <div className="mb-6 flex flex-wrap items-center gap-3">
+                <Input
+                    placeholder="搜索持卡人/卡号..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                    className="w-52"
+                />
+                <Select
+                    value={statusFilter}
+                    onChange={v => { setStatusFilter(v); setPage(1); }}
+                    options={[
+                        { value: '', label: '全部状态' },
+                        { value: '0', label: '待审核' },
+                        { value: '1', label: '已通过' },
+                        { value: '2', label: '已拒绝' },
+                    ]}
+                    className="w-32"
+                />
+                <Button onClick={handleSearch}>搜索</Button>
+            </div>
 
-            {/* Table Card */}
-            <Card className="overflow-hidden bg-white p-0">
+            <div className="overflow-hidden">
                 {loading ? (
                     <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
                 ) : cards.length === 0 ? (
@@ -253,7 +250,7 @@ export default function AdminFinanceBankPage() {
                             </table>
                         </div>
 
-                        <div className="flex items-center justify-end gap-2 p-4">
+                        <div className="flex items-center justify-end gap-2 border-t border-[#f3f4f6] pt-4 mt-4">
                             <Button
                                 size="sm"
                                 variant="secondary"
@@ -276,7 +273,8 @@ export default function AdminFinanceBankPage() {
                         </div>
                     </>
                 )}
-            </Card>
+            </div>
+        </Card>
 
             {/* Detail Modal */}
             <Modal title="银行卡详情" open={detailModal !== null} onClose={() => setDetailModal(null)} className="max-w-xl">
@@ -441,6 +439,6 @@ export default function AdminFinanceBankPage() {
                     </div>
                 </div>
             </Modal>
-        </div>
+        </>
     );
 }

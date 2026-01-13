@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../../apiConfig';
-import { cn } from '../../../../lib/utils';
 import { Button } from '../../../../components/ui/button';
 import { Card } from '../../../../components/ui/card';
 import { Badge } from '../../../../components/ui/badge';
@@ -61,11 +60,6 @@ export default function SensitiveWordsPage() {
             }
         } catch (error) {
             console.error('加载失败:', error);
-            setWords([
-                { id: '1', word: '测试敏感词1', category: 'general', level: 1, isActive: true, createdAt: new Date().toISOString() },
-                { id: '2', word: '测试敏感词2', category: 'fraud', level: 2, isActive: true, createdAt: new Date().toISOString() },
-                { id: '3', word: '广告词汇', category: 'ad', level: 1, isActive: false, createdAt: new Date().toISOString() },
-            ]);
         } finally {
             setLoading(false);
         }
@@ -188,132 +182,120 @@ export default function SensitiveWordsPage() {
     };
 
     return (
-        <div className="space-y-6">
-            {/* Page Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-xl font-semibold">敏感词管理</h2>
-                    <p className="mt-1 text-sm text-[#6b7280]">管理系统敏感词过滤规则</p>
-                </div>
-                <div className="flex gap-3">
-                    <Button className="bg-success-400 hover:bg-success-500" onClick={() => setShowBatchModal(true)}>
-                        批量导入
-                    </Button>
-                    <Button onClick={() => {
-                        setEditingWord(null);
-                        setFormData({ word: '', category: 'general', level: 1, isActive: true });
-                        setShowModal(true);
-                    }}>
-                        + 添加敏感词
-                    </Button>
-                </div>
-            </div>
-
-            {/* Filter Area */}
-            <Card className="flex flex-wrap items-center gap-4 bg-white">
-                <Input
-                    placeholder="搜索敏感词..."
-                    value={searchKeyword}
-                    onChange={e => setSearchKeyword(e.target.value)}
-                    className="w-60"
-                />
-                <Select
-                    value={categoryFilter}
-                    onChange={setCategoryFilter}
-                    options={[
-                        { value: '', label: '全部分类' },
-                        ...categories.map(c => ({ value: c.value, label: c.label }))
-                    ]}
-                    className="w-32"
-                />
-            </Card>
-
+        <>
             {/* Stats Cards */}
-            <div className="grid grid-cols-4 gap-5">
-                <Card className="bg-white text-center">
-                    <div className="text-3xl font-bold text-primary-600">{words.length}</div>
+            <div className="mb-6 grid grid-cols-4 gap-4">
+                <Card className="bg-white p-5 text-center">
+                    <div className="text-2xl font-semibold text-primary-600">{words.length}</div>
                     <div className="mt-1 text-sm text-[#6b7280]">敏感词总数</div>
                 </Card>
-                <Card className="bg-white text-center">
-                    <div className="text-3xl font-bold text-success-400">{words.filter(w => w.isActive).length}</div>
+                <Card className="bg-white p-5 text-center">
+                    <div className="text-2xl font-semibold text-success-400">{words.filter(w => w.isActive).length}</div>
                     <div className="mt-1 text-sm text-[#6b7280]">启用中</div>
                 </Card>
-                <Card className="bg-white text-center">
-                    <div className="text-3xl font-bold text-warning-400">{words.filter(w => !w.isActive).length}</div>
+                <Card className="bg-white p-5 text-center">
+                    <div className="text-2xl font-semibold text-warning-400">{words.filter(w => !w.isActive).length}</div>
                     <div className="mt-1 text-sm text-[#6b7280]">已禁用</div>
                 </Card>
-                <Card className="bg-white text-center">
-                    <div className="text-3xl font-bold text-danger-400">{words.filter(w => w.level === 3).length}</div>
+                <Card className="bg-white p-5 text-center">
+                    <div className="text-2xl font-semibold text-danger-400">{words.filter(w => w.level === 3).length}</div>
                     <div className="mt-1 text-sm text-[#6b7280]">高危词汇</div>
                 </Card>
             </div>
 
-            {/* Word List */}
-            <Card className="overflow-hidden bg-white">
-                <div className="border-b border-[#f3f4f6] px-6 py-4 text-sm font-medium">
-                    敏感词列表 ({filteredWords.length})
+            {/* Main Card */}
+            <Card className="bg-white p-6">
+                <div className="mb-4 flex items-center justify-between">
+                    <span className="text-base font-medium">敏感词管理</span>
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm text-[#6b7280]">共 {filteredWords.length} 条记录</span>
+                        <Button className="bg-success-400 hover:bg-success-500" onClick={() => setShowBatchModal(true)}>
+                            批量导入
+                        </Button>
+                        <Button onClick={() => {
+                            setEditingWord(null);
+                            setFormData({ word: '', category: 'general', level: 1, isActive: true });
+                            setShowModal(true);
+                        }}>
+                            + 添加敏感词
+                        </Button>
+                    </div>
                 </div>
-                {loading ? (
-                    <div className="py-16 text-center text-[#9ca3af]">加载中...</div>
-                ) : filteredWords.length === 0 ? (
-                    <div className="py-16 text-center text-[#9ca3af]">
-                        <div className="mb-4 text-5xl">🔍</div>
-                        <div>暂无敏感词</div>
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-[800px] w-full border-collapse">
-                            <thead>
-                                <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
-                                    <th className="px-4 py-4 text-left text-sm font-medium">敏感词</th>
-                                    <th className="px-4 py-4 text-left text-sm font-medium">分类</th>
-                                    <th className="px-4 py-4 text-left text-sm font-medium">风险等级</th>
-                                    <th className="px-4 py-4 text-left text-sm font-medium">状态</th>
-                                    <th className="px-4 py-4 text-left text-sm font-medium">创建时间</th>
-                                    <th className="px-4 py-4 text-center text-sm font-medium">操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredWords.map(word => (
-                                    <tr key={word.id} className="border-b border-[#f3f4f6]">
-                                        <td className="px-4 py-4 font-medium">{word.word}</td>
-                                        <td className="px-4 py-4">{getCategoryLabel(word.category)}</td>
-                                        <td className="px-4 py-4">{getLevelBadge(word.level)}</td>
-                                        <td className="px-4 py-4">
-                                            <Badge variant="soft" color={word.isActive ? 'green' : 'slate'}>
-                                                {word.isActive ? '启用' : '禁用'}
-                                            </Badge>
-                                        </td>
-                                        <td className="px-4 py-4 text-xs text-[#6b7280]">
-                                            {new Date(word.createdAt).toLocaleString('zh-CN')}
-                                        </td>
-                                        <td className="px-4 py-4 text-center">
-                                            <div className="flex justify-center gap-2">
-                                                <Button
-                                                    size="sm"
-                                                    className={cn(
-                                                        word.isActive
-                                                            ? 'border border-amber-400 bg-amber-50 text-warning-500 hover:bg-amber-100'
-                                                            : 'border border-green-400 bg-green-50 text-success-400 hover:bg-green-100'
-                                                    )}
-                                                    onClick={() => handleToggleActive(word)}
-                                                >
-                                                    {word.isActive ? '禁用' : '启用'}
-                                                </Button>
-                                                <Button size="sm" variant="secondary" onClick={() => openEdit(word)}>
-                                                    编辑
-                                                </Button>
-                                                <Button size="sm" variant="destructive" onClick={() => handleDelete(word.id)}>
-                                                    删除
-                                                </Button>
-                                            </div>
-                                        </td>
+
+                <div className="mb-6 flex flex-wrap items-center gap-3">
+                    <Input
+                        placeholder="搜索敏感词..."
+                        value={searchKeyword}
+                        onChange={e => setSearchKeyword(e.target.value)}
+                        className="w-52"
+                    />
+                    <Select
+                        value={categoryFilter}
+                        onChange={setCategoryFilter}
+                        options={[
+                            { value: '', label: '全部分类' },
+                            ...categories.map(c => ({ value: c.value, label: c.label }))
+                        ]}
+                        className="w-32"
+                    />
+                </div>
+
+                <div className="overflow-hidden">
+                    {loading ? (
+                        <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
+                    ) : filteredWords.length === 0 ? (
+                        <div className="py-12 text-center text-[#9ca3af]">暂无敏感词</div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-[800px] w-full border-collapse">
+                                <thead>
+                                    <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">敏感词</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">分类</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">风险等级</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">状态</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">创建时间</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium">操作</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                                </thead>
+                                <tbody>
+                                    {filteredWords.map(word => (
+                                        <tr key={word.id} className="border-b border-[#f3f4f6]">
+                                            <td className="px-4 py-3.5 font-medium">{word.word}</td>
+                                            <td className="px-4 py-3.5">{getCategoryLabel(word.category)}</td>
+                                            <td className="px-4 py-3.5">{getLevelBadge(word.level)}</td>
+                                            <td className="px-4 py-3.5">
+                                                <Badge variant="soft" color={word.isActive ? 'green' : 'slate'}>
+                                                    {word.isActive ? '启用' : '禁用'}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-4 py-3.5 text-xs text-[#6b7280]">
+                                                {new Date(word.createdAt).toLocaleString('zh-CN')}
+                                            </td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                <div className="flex justify-center gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        onClick={() => handleToggleActive(word)}
+                                                    >
+                                                        {word.isActive ? '禁用' : '启用'}
+                                                    </Button>
+                                                    <Button size="sm" variant="secondary" onClick={() => openEdit(word)}>
+                                                        编辑
+                                                    </Button>
+                                                    <Button size="sm" variant="destructive" onClick={() => handleDelete(word.id)}>
+                                                        删除
+                                                    </Button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             </Card>
 
             {/* Add/Edit Modal */}
@@ -393,6 +375,6 @@ export default function SensitiveWordsPage() {
                     </div>
                 </div>
             </Modal>
-        </div>
+        </>
     );
 }

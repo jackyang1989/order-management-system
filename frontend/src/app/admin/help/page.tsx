@@ -179,14 +179,15 @@ export default function AdminHelpCenterPage() {
     };
 
     return (
-        <div className="space-y-4">
-            {/* Filter Bar */}
-            <Card className="bg-white">
+        <div className="space-y-6">
+            <Card className="bg-white p-6">
                 <div className="mb-4 flex items-center justify-between">
                     <span className="text-base font-medium">帮助中心管理</span>
-                    <Button onClick={openAddModal}>+ 添加文章</Button>
+                    <div className="flex items-center gap-3">
+                        <Button onClick={openAddModal}>+ 添加文章</Button>
+                    </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="mb-6 flex flex-wrap items-center gap-3">
                     <Select
                         value={typeFilter}
                         onChange={(v) => { setTypeFilter(v); setPage(1); }}
@@ -201,78 +202,77 @@ export default function AdminHelpCenterPage() {
                     <Button variant="secondary" onClick={loadArticles}>刷新</Button>
                     <span className="ml-auto text-sm text-[#6b7280]">共 {total} 条记录</span>
                 </div>
-            </Card>
 
-            {/* Article List */}
-            <Card className="overflow-hidden bg-white p-0">
-                {loading ? (
-                    <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
-                ) : articles.length === 0 ? (
-                    <div className="py-12 text-center text-[#9ca3af]">暂无文章</div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-[800px] w-full border-collapse">
-                            <thead>
-                                <tr className="bg-slate-50/80 border-b border-slate-50">
-                                    <th className="px-4 py-3.5 text-left text-sm font-medium">标题</th>
-                                    <th className="px-4 py-3.5 text-left text-sm font-medium">类型</th>
-                                    <th className="px-4 py-3.5 text-center text-sm font-medium">排序</th>
-                                    <th className="px-4 py-3.5 text-center text-sm font-medium">浏览量</th>
-                                    <th className="px-4 py-3.5 text-center text-sm font-medium">状态</th>
-                                    <th className="px-4 py-3.5 text-left text-sm font-medium">更新时间</th>
-                                    <th className="px-4 py-3.5 text-center text-sm font-medium">操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {articles.map(a => (
-                                    <tr key={a.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
-                                        <td className="px-4 py-3.5">
-                                            <div className="font-medium text-[#3b4559]">{a.title}</div>
-                                            <div className="text-xs text-[#9ca3af] line-clamp-1 max-w-[300px]">
-                                                {a.content.replace(/[#*`]/g, '').substring(0, 50)}...
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-3.5">
-                                            <Badge variant="soft" color={typeLabels[a.type]?.color || 'slate'}>
-                                                {typeLabels[a.type]?.text || a.type}
-                                            </Badge>
-                                        </td>
-                                        <td className="px-4 py-3.5 text-center">{a.sortOrder}</td>
-                                        <td className="px-4 py-3.5 text-center text-[#6b7280]">{a.viewCount}</td>
-                                        <td className="px-4 py-3.5 text-center">
-                                            <Badge variant="soft" color={a.isPublished ? 'green' : 'slate'}>
-                                                {a.isPublished ? '已发布' : '草稿'}
-                                            </Badge>
-                                        </td>
-                                        <td className="px-4 py-3.5 text-xs text-[#9ca3af]">
-                                            {a.updatedAt ? new Date(a.updatedAt).toLocaleString('zh-CN') : '-'}
-                                        </td>
-                                        <td className="px-4 py-3.5 text-center">
-                                            <div className="flex justify-center gap-2">
-                                                <Button size="sm" variant="secondary" onClick={() => openEditModal(a)}>编辑</Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant={a.isPublished ? 'outline' : 'primary'}
-                                                    onClick={() => handleTogglePublish(a.id)}
-                                                >
-                                                    {a.isPublished ? '取消发布' : '发布'}
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="text-red-500 hover:bg-red-50"
-                                                    onClick={() => setDeleteModal(a.id)}
-                                                >
-                                                    删除
-                                                </Button>
-                                            </div>
-                                        </td>
+                <div className="overflow-hidden">
+                    {loading ? (
+                        <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
+                    ) : articles.length === 0 ? (
+                        <div className="py-12 text-center text-[#9ca3af]">暂无文章</div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-[800px] w-full border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-50/80 border-b border-slate-50">
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">标题</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">类型</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium">排序</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium">浏览量</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium">状态</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">更新时间</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium">操作</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                                </thead>
+                                <tbody>
+                                    {articles.map(a => (
+                                        <tr key={a.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
+                                            <td className="px-4 py-3.5">
+                                                <div className="font-medium text-[#3b4559]">{a.title}</div>
+                                                <div className="text-xs text-[#9ca3af] line-clamp-1 max-w-[300px]">
+                                                    {a.content.replace(/[#*`]/g, '').substring(0, 50)}...
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3.5">
+                                                <Badge variant="soft" color={typeLabels[a.type]?.color || 'slate'}>
+                                                    {typeLabels[a.type]?.text || a.type}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-4 py-3.5 text-center">{a.sortOrder}</td>
+                                            <td className="px-4 py-3.5 text-center text-[#6b7280]">{a.viewCount}</td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                <Badge variant="soft" color={a.isPublished ? 'green' : 'slate'}>
+                                                    {a.isPublished ? '已发布' : '草稿'}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-4 py-3.5 text-xs text-[#9ca3af]">
+                                                {a.updatedAt ? new Date(a.updatedAt).toLocaleString('zh-CN') : '-'}
+                                            </td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                <div className="flex justify-center gap-2">
+                                                    <Button size="sm" variant="secondary" onClick={() => openEditModal(a)}>编辑</Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant={a.isPublished ? 'outline' : 'primary'}
+                                                        onClick={() => handleTogglePublish(a.id)}
+                                                    >
+                                                        {a.isPublished ? '取消发布' : '发布'}
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-red-500 hover:bg-red-50"
+                                                        onClick={() => setDeleteModal(a.id)}
+                                                    >
+                                                        删除
+                                                    </Button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             </Card>
 
             {/* Add/Edit Modal */}

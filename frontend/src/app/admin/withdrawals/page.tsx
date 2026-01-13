@@ -314,6 +314,10 @@ export default function AdminWithdrawalsPage() {
         <div className="space-y-6">
             {/* 筛选栏 */}
             <Card className="bg-white p-6">
+                <div className="mb-4 flex items-center justify-between">
+                    <span className="text-base font-medium">提现管理</span>
+                    <span className="text-sm text-[#6b7280]">共 {withdrawals.length} 条记录</span>
+                </div>
                 <div className="mb-6 flex flex-wrap items-center gap-3">
                     <Input
                         placeholder="搜索用户名/手机号..."

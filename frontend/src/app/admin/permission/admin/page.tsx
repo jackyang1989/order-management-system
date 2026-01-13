@@ -199,120 +199,120 @@ export default function AdminPage() {
 
     return (
         <div className="space-y-6">
-            {/* Page Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-xl font-semibold">管理员管理</h2>
-                    <p className="mt-1 text-sm text-[#6b7280]">管理后台管理员账号</p>
-                </div>
-                <Button onClick={() => {
-                    setEditingAdmin(null);
-                    setFormData({ username: '', password: '', realName: '', phone: '', email: '', roleId: '', status: 1 });
-                    setShowModal(true);
-                }}>
-                    + 添加管理员
-                </Button>
-            </div>
-
             {/* Stats Cards */}
             <div className="grid grid-cols-4 gap-5">
-                <Card className="bg-white text-center">
-                    <div className="text-3xl font-bold text-primary-600">{admins.length}</div>
+                <Card className="bg-white p-5 text-center">
+                    <div className="text-2xl font-semibold text-primary-600">{admins.length}</div>
                     <div className="mt-1 text-sm text-[#6b7280]">管理员总数</div>
                 </Card>
-                <Card className="bg-white text-center">
-                    <div className="text-3xl font-bold text-success-400">{admins.filter(a => a.status === 1).length}</div>
+                <Card className="bg-white p-5 text-center">
+                    <div className="text-2xl font-semibold text-success-400">{admins.filter(a => a.status === 1).length}</div>
                     <div className="mt-1 text-sm text-[#6b7280]">正常状态</div>
                 </Card>
-                <Card className="bg-white text-center">
-                    <div className="text-3xl font-bold text-warning-400">{admins.filter(a => a.status === 0).length}</div>
+                <Card className="bg-white p-5 text-center">
+                    <div className="text-2xl font-semibold text-warning-400">{admins.filter(a => a.status === 0).length}</div>
                     <div className="mt-1 text-sm text-[#6b7280]">已禁用</div>
                 </Card>
-                <Card className="bg-white text-center">
-                    <div className="text-3xl font-bold text-purple-600">{roles.length}</div>
+                <Card className="bg-white p-5 text-center">
+                    <div className="text-2xl font-semibold text-purple-600">{roles.length}</div>
                     <div className="mt-1 text-sm text-[#6b7280]">角色数量</div>
                 </Card>
             </div>
 
             {/* Admin List */}
-            <Card className="overflow-hidden bg-white">
-                <div className="border-b border-[#f3f4f6] px-6 py-4 text-sm font-medium">管理员列表</div>
-                {loading ? (
-                    <div className="py-16 text-center text-[#9ca3af]">加载中...</div>
-                ) : admins.length === 0 ? (
-                    <div className="py-16 text-center text-[#9ca3af]">
-                        <div className="mb-4 text-5xl">👤</div>
-                        <div>暂无管理员</div>
+            <Card className="bg-white p-6">
+                <div className="mb-4 flex items-center justify-between">
+                    <span className="text-base font-medium">管理员列表</span>
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm text-[#6b7280]">共 {admins.length} 条记录</span>
+                        <Button onClick={() => {
+                            setEditingAdmin(null);
+                            setFormData({ username: '', password: '', realName: '', phone: '', email: '', roleId: '', status: 1 });
+                            setShowModal(true);
+                        }}>
+                            + 添加管理员
+                        </Button>
                     </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-[900px] w-full border-collapse">
-                            <thead>
-                                <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
-                                    <th className="px-4 py-4 text-left text-sm font-medium">用户名</th>
-                                    <th className="px-4 py-4 text-left text-sm font-medium">姓名</th>
-                                    <th className="px-4 py-4 text-left text-sm font-medium">角色</th>
-                                    <th className="px-4 py-4 text-left text-sm font-medium">手机号</th>
-                                    <th className="px-4 py-4 text-left text-sm font-medium">状态</th>
-                                    <th className="px-4 py-4 text-left text-sm font-medium">最后登录</th>
-                                    <th className="px-4 py-4 text-center text-sm font-medium">操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {admins.map(admin => (
-                                    <tr key={admin.id} className="border-b border-[#f3f4f6]">
-                                        <td className="px-4 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-600 text-sm font-medium text-white">
-                                                    {admin.realName?.[0] || admin.username[0].toUpperCase()}
-                                                </div>
-                                                <span className="font-medium">{admin.username}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-4">{admin.realName || '-'}</td>
-                                        <td className="px-4 py-4">
-                                            <Badge variant="soft" color={admin.roleName === '超级管理员' ? 'blue' : 'slate'}>
-                                                {admin.roleName}
-                                            </Badge>
-                                        </td>
-                                        <td className="px-4 py-4 text-xs text-[#6b7280]">{admin.phone || '-'}</td>
-                                        <td className="px-4 py-4">
-                                            <Badge variant="soft" color={admin.status === 1 ? 'green' : 'red'}>
-                                                {admin.status === 1 ? '正常' : '禁用'}
-                                            </Badge>
-                                        </td>
-                                        <td className="px-4 py-4 text-xs text-[#6b7280]">
-                                            <div>{formatDate(admin.lastLoginAt)}</div>
-                                            {admin.lastLoginIp && <div className="text-[#9ca3af]">{admin.lastLoginIp}</div>}
-                                        </td>
-                                        <td className="px-4 py-4 text-center">
-                                            <div className="flex flex-wrap justify-center gap-2">
-                                                <Button size="sm" variant="secondary" onClick={() => openEdit(admin)}>编辑</Button>
-                                                <Button size="sm" className="border border-amber-400 bg-amber-50 text-warning-500 hover:bg-amber-100" onClick={() => handleResetPassword(admin.id)}>重置密码</Button>
-                                                {admin.username !== 'admin' && (
-                                                    <>
-                                                        <Button
-                                                            size="sm"
-                                                            className={cn(
-                                                                admin.status === 1
-                                                                    ? 'border border-amber-400 bg-amber-50 text-warning-500 hover:bg-amber-100'
-                                                                    : 'border border-green-400 bg-green-50 text-success-400 hover:bg-green-100'
-                                                            )}
-                                                            onClick={() => handleToggleStatus(admin)}
-                                                        >
-                                                            {admin.status === 1 ? '禁用' : '启用'}
-                                                        </Button>
-                                                        <Button size="sm" variant="destructive" onClick={() => handleDelete(admin.id)}>删除</Button>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </td>
+                </div>
+
+                <div className="overflow-hidden">
+                    {loading ? (
+                        <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
+                    ) : admins.length === 0 ? (
+                        <div className="py-12 text-center text-[#9ca3af]">
+                            <div className="mb-4 text-5xl">👤</div>
+                            <div>暂无管理员</div>
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-[900px] w-full border-collapse">
+                                <thead>
+                                    <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">用户名</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">姓名</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">角色</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">手机号</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">状态</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">最后登录</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium">操作</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                                </thead>
+                                <tbody>
+                                    {admins.map(admin => (
+                                        <tr key={admin.id} className="border-b border-[#f3f4f6]">
+                                            <td className="px-4 py-3.5">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-600 text-sm font-medium text-white">
+                                                        {admin.realName?.[0] || admin.username[0].toUpperCase()}
+                                                    </div>
+                                                    <span className="font-medium">{admin.username}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3.5">{admin.realName || '-'}</td>
+                                            <td className="px-4 py-3.5">
+                                                <Badge variant="soft" color={admin.roleName === '超级管理员' ? 'blue' : 'slate'}>
+                                                    {admin.roleName}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-4 py-3.5 text-xs text-[#6b7280]">{admin.phone || '-'}</td>
+                                            <td className="px-4 py-3.5">
+                                                <Badge variant="soft" color={admin.status === 1 ? 'green' : 'red'}>
+                                                    {admin.status === 1 ? '正常' : '禁用'}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-4 py-3.5 text-xs text-[#6b7280]">
+                                                <div>{formatDate(admin.lastLoginAt)}</div>
+                                                {admin.lastLoginIp && <div className="text-[#9ca3af]">{admin.lastLoginIp}</div>}
+                                            </td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                <div className="flex flex-wrap justify-center gap-2">
+                                                    <Button size="sm" variant="secondary" onClick={() => openEdit(admin)}>编辑</Button>
+                                                    <Button size="sm" className="border border-amber-400 bg-amber-50 text-warning-500 hover:bg-amber-100" onClick={() => handleResetPassword(admin.id)}>重置密码</Button>
+                                                    {admin.username !== 'admin' && (
+                                                        <>
+                                                            <Button
+                                                                size="sm"
+                                                                className={cn(
+                                                                    admin.status === 1
+                                                                        ? 'border border-amber-400 bg-amber-50 text-warning-500 hover:bg-amber-100'
+                                                                        : 'border border-green-400 bg-green-50 text-success-400 hover:bg-green-100'
+                                                                )}
+                                                                onClick={() => handleToggleStatus(admin)}
+                                                            >
+                                                                {admin.status === 1 ? '禁用' : '启用'}
+                                                            </Button>
+                                                            <Button size="sm" variant="destructive" onClick={() => handleDelete(admin.id)}>删除</Button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             </Card>
 
             {/* Add/Edit Modal */}

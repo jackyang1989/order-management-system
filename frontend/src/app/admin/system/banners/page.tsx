@@ -184,13 +184,15 @@ export default function AdminBannersPage() {
 
     return (
         <div className="space-y-4">
-            {/* Filter Bar */}
-            <Card className="bg-white">
+            <Card className="bg-white p-6">
                 <div className="mb-4 flex items-center justify-between">
                     <span className="text-base font-medium">轮播图管理</span>
-                    <Button onClick={openAddModal}>+ 添加轮播图</Button>
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm text-[#6b7280]">共 {banners.length} 条记录</span>
+                        <Button onClick={openAddModal}>+ 添加轮播图</Button>
+                    </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="mb-6 flex flex-wrap items-center gap-3">
                     <Select
                         value={positionFilter}
                         onChange={setPositionFilter}
@@ -204,80 +206,79 @@ export default function AdminBannersPage() {
                     />
                     <Button variant="secondary" onClick={loadBanners}>刷新</Button>
                 </div>
-            </Card>
 
-            {/* Banner List */}
-            <Card className="overflow-hidden bg-white p-0">
-                {loading ? (
-                    <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
-                ) : banners.length === 0 ? (
-                    <div className="py-12 text-center text-[#9ca3af]">暂无轮播图</div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-[800px] w-full border-collapse">
-                            <thead>
-                                <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
-                                    <th className="px-4 py-3.5 text-left text-sm font-medium">预览</th>
-                                    <th className="px-4 py-3.5 text-left text-sm font-medium">标题</th>
-                                    <th className="px-4 py-3.5 text-left text-sm font-medium">位置</th>
-                                    <th className="px-4 py-3.5 text-center text-sm font-medium">排序</th>
-                                    <th className="px-4 py-3.5 text-center text-sm font-medium">状态</th>
-                                    <th className="px-4 py-3.5 text-left text-sm font-medium">创建时间</th>
-                                    <th className="px-4 py-3.5 text-center text-sm font-medium">操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {banners.map(b => (
-                                    <tr key={b.id} className="border-b border-[#f3f4f6]">
-                                        <td className="px-4 py-3.5">
-                                            <img
-                                                src={b.imageUrl}
-                                                alt={b.title}
-                                                className="h-12 w-24 rounded object-cover"
-                                            />
-                                        </td>
-                                        <td className="px-4 py-3.5">
-                                            <div className="font-medium text-[#3b4559]">{b.title}</div>
-                                            {b.linkUrl && (
-                                                <div className="text-xs text-[#9ca3af] truncate max-w-[200px]">{b.linkUrl}</div>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3.5 text-[#6b7280]">{positionLabels[b.position] || b.position}</td>
-                                        <td className="px-4 py-3.5 text-center">{b.sort}</td>
-                                        <td className="px-4 py-3.5 text-center">
-                                            <Badge variant="soft" color={statusLabels[b.status]?.color || 'slate'}>
-                                                {statusLabels[b.status]?.text || '未知'}
-                                            </Badge>
-                                        </td>
-                                        <td className="px-4 py-3.5 text-xs text-[#9ca3af]">
-                                            {b.createdAt ? new Date(b.createdAt).toLocaleString('zh-CN') : '-'}
-                                        </td>
-                                        <td className="px-4 py-3.5 text-center">
-                                            <div className="flex justify-center gap-2">
-                                                <Button size="sm" variant="secondary" onClick={() => openEditModal(b)}>编辑</Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant={b.status === 1 ? 'outline' : 'primary'}
-                                                    onClick={() => handleToggleStatus(b.id)}
-                                                >
-                                                    {b.status === 1 ? '禁用' : '启用'}
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="text-red-500 hover:bg-red-50"
-                                                    onClick={() => setDeleteModal(b.id)}
-                                                >
-                                                    删除
-                                                </Button>
-                                            </div>
-                                        </td>
+                <div className="overflow-hidden">
+                    {loading ? (
+                        <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
+                    ) : banners.length === 0 ? (
+                        <div className="py-12 text-center text-[#9ca3af]">暂无轮播图</div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-[800px] w-full border-collapse">
+                                <thead>
+                                    <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">预览</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">标题</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">位置</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium">排序</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium">状态</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">创建时间</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium">操作</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                                </thead>
+                                <tbody>
+                                    {banners.map(b => (
+                                        <tr key={b.id} className="border-b border-[#f3f4f6]">
+                                            <td className="px-4 py-3.5">
+                                                <img
+                                                    src={b.imageUrl}
+                                                    alt={b.title}
+                                                    className="h-12 w-24 rounded object-cover"
+                                                />
+                                            </td>
+                                            <td className="px-4 py-3.5">
+                                                <div className="font-medium text-[#3b4559]">{b.title}</div>
+                                                {b.linkUrl && (
+                                                    <div className="text-xs text-[#9ca3af] truncate max-w-[200px]">{b.linkUrl}</div>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3.5 text-[#6b7280]">{positionLabels[b.position] || b.position}</td>
+                                            <td className="px-4 py-3.5 text-center">{b.sort}</td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                <Badge variant="soft" color={statusLabels[b.status]?.color || 'slate'}>
+                                                    {statusLabels[b.status]?.text || '未知'}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-4 py-3.5 text-xs text-[#9ca3af]">
+                                                {b.createdAt ? new Date(b.createdAt).toLocaleString('zh-CN') : '-'}
+                                            </td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                <div className="flex justify-center gap-2">
+                                                    <Button size="sm" variant="secondary" onClick={() => openEditModal(b)}>编辑</Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant={b.status === 1 ? 'outline' : 'primary'}
+                                                        onClick={() => handleToggleStatus(b.id)}
+                                                    >
+                                                        {b.status === 1 ? '禁用' : '启用'}
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-red-500 hover:bg-red-50"
+                                                        onClick={() => setDeleteModal(b.id)}
+                                                    >
+                                                        删除
+                                                    </Button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             </Card>
 
             {/* Add/Edit Modal */}
