@@ -815,7 +815,7 @@ export default function AdminTasksPage() {
                                     </div>
                                     <div className="space-y-2">
                                         <div className="text-[12px] font-medium text-[#3b4559]">浏览时长</div>
-                                        <div className={`grid gap-2 text-center ${detailModal.hasSubProduct !== false ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                                        <div className={`grid gap-2 text-center ${detailModal.hasSubProduct ? 'grid-cols-4' : 'grid-cols-3'}`}>
                                             <div className="rounded bg-white p-2 border border-slate-200">
                                                 <div className="text-lg font-bold text-primary-600">{detailModal.totalBrowseMinutes || 15}</div>
                                                 <div className="text-[10px] text-[#6b7280]">总计/分钟</div>
@@ -828,7 +828,7 @@ export default function AdminTasksPage() {
                                                 <div className="text-lg font-bold text-success-600">{detailModal.mainBrowseMinutes || 8}</div>
                                                 <div className="text-[10px] text-[#6b7280]">主品/分钟</div>
                                             </div>
-                                            {detailModal.hasSubProduct !== false && (
+                                            {detailModal.hasSubProduct && (
                                                 <div className="rounded bg-white p-2 border border-slate-200">
                                                     <div className="text-lg font-bold text-slate-500">{detailModal.subBrowseMinutes || 2}</div>
                                                     <div className="text-[10px] text-[#6b7280]">副品/分钟</div>
@@ -867,8 +867,15 @@ export default function AdminTasksPage() {
                                 <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">费用信息</h3>
                                 <div className="grid grid-cols-1 gap-4 rounded-md bg-[#f9fafb] p-4 sm:grid-cols-4">
                                     <div>
-                                        <div className="text-[12px] text-[#6b7280]">商品单价</div>
-                                        <div className="text-[13px] font-medium text-[#3b4559]">¥{Number(detailModal.goodsPrice).toFixed(2)}</div>
+                                        <div className="text-[12px] text-[#6b7280]">商品本金（单）</div>
+                                        <div className="text-[13px] font-medium text-[#3b4559]">
+                                            ¥{(() => {
+                                                if (detailModal.goodsList && detailModal.goodsList.length > 0) {
+                                                    return detailModal.goodsList.reduce((sum, goods) => sum + Number(goods.totalPrice || 0), 0).toFixed(2);
+                                                }
+                                                return Number(detailModal.goodsPrice || 0).toFixed(2);
+                                            })()}
+                                        </div>
                                     </div>
                                     <div>
                                         <div className="text-[12px] text-[#6b7280]">总押金</div>
@@ -879,9 +886,9 @@ export default function AdminTasksPage() {
                                         <div className="text-[13px] font-medium text-danger-400">¥{Number(detailModal.totalCommission || 0).toFixed(2)}</div>
                                     </div>
                                     <div>
-                                        <div className="text-[12px] text-[#6b7280]">额外加赏</div>
+                                        <div className="text-[12px] text-[#6b7280]">额外赏金</div>
                                         <div className="text-[13px] font-medium text-warning-500">
-                                            {(detailModal.extraReward || detailModal.extraCommission || 0) > 0 ? `+¥${detailModal.extraReward || detailModal.extraCommission}/单` : '无'}
+                                            {(detailModal.extraReward || detailModal.extraCommission || 0) > 0 ? `+¥${(detailModal.extraReward || detailModal.extraCommission).toFixed(2)}/单` : '无'}
                                         </div>
                                     </div>
                                 </div>

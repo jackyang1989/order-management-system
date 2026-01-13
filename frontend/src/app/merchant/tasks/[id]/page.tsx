@@ -508,7 +508,7 @@ export default function TaskDetailPage() {
                                 {/* 浏览时长 */}
                                 <div className="space-y-2">
                                     <div className="text-sm font-medium text-[#3b4559]">浏览时长</div>
-                                    <div className={`grid gap-2 text-center ${task.hasSubProduct !== false ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                                    <div className={`grid gap-2 text-center ${task.hasSubProduct ? 'grid-cols-4' : 'grid-cols-3'}`}>
                                         <div className="rounded bg-slate-50 p-2">
                                             <div className="text-lg font-bold text-primary-600">{task.totalBrowseMinutes || 15}</div>
                                             <div className="text-xs text-[#6b7280]">总计/分钟</div>
@@ -521,7 +521,7 @@ export default function TaskDetailPage() {
                                             <div className="text-lg font-bold text-success-600">{task.mainBrowseMinutes || 8}</div>
                                             <div className="text-xs text-[#6b7280]">主品/分钟</div>
                                         </div>
-                                        {task.hasSubProduct !== false && (
+                                        {task.hasSubProduct && (
                                             <div className="rounded bg-slate-50 p-2">
                                                 <div className="text-lg font-bold text-slate-500">{task.subBrowseMinutes || 2}</div>
                                                 <div className="text-xs text-[#6b7280]">副品/分钟</div>
@@ -710,11 +710,30 @@ export default function TaskDetailPage() {
                         <div className="px-6 py-5">
                             <h2 className="mb-5 text-base font-semibold">费用明细</h2>
                             <div className="grid gap-2.5 text-sm">
-                                <div className="flex justify-between"><span className="text-[#6b7280]">商品本金 × {task.count}</span><span>¥{formatMoney(Number(task.goodsPrice) * task.count)}</span></div>
+                                {/* 计算商品本金：如果有goodsList则从goodsList计算，否则使用goodsPrice */}
+                                {(() => {
+                                    let totalGoodsPrice = 0;
+                                    if (task.goodsList && task.goodsList.length > 0) {
+                                        // 从goodsList计算总价（单单商品总价）
+                                        totalGoodsPrice = task.goodsList.reduce((sum, goods) => sum + Number(goods.totalPrice || 0), 0);
+                                    } else {
+                                        // 兼容旧版单商品
+                                        totalGoodsPrice = Number(task.goodsPrice) || 0;
+                                    }
+                                    return (
+                                        <div className="flex justify-between">
+                                            <span className="text-[#6b7280]">商品本金 × {task.count}单</span>
+                                            <span>¥{formatMoney(totalGoodsPrice * task.count)}</span>
+                                        </div>
+                                    );
+                                })()}
                                 <div className="flex justify-between"><span className="text-[#6b7280]">基础服务费</span><span>¥{formatMoney(Number(task.baseServiceFee || 0) * task.count)}</span></div>
                                 {Number(task.praiseFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">文字好评费</span><span>¥{formatMoney(Number(task.praiseFee) * task.count)}</span></div>}
                                 {Number(task.imgPraiseFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">图片好评费</span><span>¥{formatMoney(Number(task.imgPraiseFee) * task.count)}</span></div>}
                                 {Number(task.videoPraiseFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">视频好评费</span><span>¥{formatMoney(Number(task.videoPraiseFee) * task.count)}</span></div>}
+                                {(task.addReward || task.extraCommission) && Number(task.addReward || task.extraCommission) > 0 && (
+                                    <div className="flex justify-between"><span className="text-[#6b7280]">额外赏金</span><span>¥{formatMoney(Number(task.addReward || task.extraCommission) * task.count)}</span></div>
+                                )}
                                 {Number(task.shippingFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">邮费</span><span>¥{formatMoney(task.shippingFee)}</span></div>}
                                 {Number(task.margin) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">保证金</span><span>¥{formatMoney(task.margin)}</span></div>}
                                 <div className="mt-1.5 border-t border-[#e5e7eb] pt-2.5">
