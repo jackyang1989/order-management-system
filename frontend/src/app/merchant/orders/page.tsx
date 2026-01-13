@@ -32,6 +32,42 @@ interface Order {
         screenshot?: string;
         submitted: boolean;
     }[];
+    // 浏览要求
+    needCompare?: boolean;
+    compareCount?: number;
+    needFavorite?: boolean;
+    needFollow?: boolean;
+    needAddCart?: boolean;
+    needContactCS?: boolean;
+    contactCSContent?: string;
+    totalBrowseMinutes?: number;
+    compareBrowseMinutes?: number;
+    mainBrowseMinutes?: number;
+    subBrowseMinutes?: number;
+    hasSubProduct?: boolean;
+    // 增值服务
+    weight?: number;
+    fastRefund?: boolean;
+    extraReward?: number;
+    isPasswordEnabled?: boolean;
+    checkPassword?: string;
+    isFreeShipping?: boolean;
+    // 好评相关
+    isPraise?: boolean;
+    praiseList?: string[];
+    isImgPraise?: boolean;
+    praiseImgList?: string[];
+    isVideoPraise?: boolean;
+    praiseVideoList?: string[];
+    // 下单提示
+    memo?: string;
+    // 费用明细
+    baseServiceFee?: number;
+    praiseFee?: number;
+    imgPraiseFee?: number;
+    videoPraiseFee?: number;
+    shippingFee?: number;
+    margin?: number;
 }
 
 interface Stats {
@@ -413,6 +449,210 @@ export default function MerchantOrdersPage() {
                                 ))}
                             </div>
                         </div>
+
+                        {/* Browse Requirements 浏览要求 */}
+                        {(selectedOrder.needCompare || selectedOrder.needFavorite || selectedOrder.needFollow || selectedOrder.needAddCart || selectedOrder.needContactCS) && (
+                            <div>
+                                <h3 className="mb-4 text-sm font-bold text-slate-900">浏览要求</h3>
+                                <div className="rounded-[20px] bg-slate-50 p-5">
+                                    {/* 浏览时长 */}
+                                    <div className={`grid gap-3 text-center mb-4 ${selectedOrder.hasSubProduct ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                                        <div className="rounded-[12px] bg-white p-3">
+                                            <div className="text-lg font-bold text-primary-600">{selectedOrder.totalBrowseMinutes || 15}</div>
+                                            <div className="text-xs text-slate-400">总计/分钟</div>
+                                        </div>
+                                        <div className="rounded-[12px] bg-white p-3">
+                                            <div className="text-lg font-bold text-warning-500">{selectedOrder.compareBrowseMinutes || 3}</div>
+                                            <div className="text-xs text-slate-400">货比/分钟</div>
+                                        </div>
+                                        <div className="rounded-[12px] bg-white p-3">
+                                            <div className="text-lg font-bold text-success-600">{selectedOrder.mainBrowseMinutes || 8}</div>
+                                            <div className="text-xs text-slate-400">主品/分钟</div>
+                                        </div>
+                                        {selectedOrder.hasSubProduct && (
+                                            <div className="rounded-[12px] bg-white p-3">
+                                                <div className="text-lg font-bold text-slate-500">{selectedOrder.subBrowseMinutes || 2}</div>
+                                                <div className="text-xs text-slate-400">副品/分钟</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {/* 浏览行为 */}
+                                    <div className="flex flex-wrap gap-2">
+                                        {selectedOrder.needCompare && (
+                                            <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
+                                                货比 ({selectedOrder.compareCount || 3}家)
+                                            </span>
+                                        )}
+                                        {selectedOrder.needFavorite && (
+                                            <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
+                                                收藏商品
+                                            </span>
+                                        )}
+                                        {selectedOrder.needFollow && (
+                                            <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
+                                                关注店铺
+                                            </span>
+                                        )}
+                                        {selectedOrder.needAddCart && (
+                                            <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
+                                                加入购物车
+                                            </span>
+                                        )}
+                                        {selectedOrder.needContactCS && (
+                                            <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
+                                                联系客服
+                                            </span>
+                                        )}
+                                    </div>
+                                    {selectedOrder.contactCSContent && (
+                                        <div className="mt-3 rounded-[12px] bg-blue-50 p-3 text-xs text-blue-700">
+                                            <span className="font-bold">客服内容：</span>{selectedOrder.contactCSContent}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Value-added Services 增值服务 */}
+                        {(selectedOrder.weight || selectedOrder.fastRefund || selectedOrder.extraReward || selectedOrder.isPasswordEnabled) && (
+                            <div>
+                                <h3 className="mb-4 text-sm font-bold text-slate-900">增值服务</h3>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {selectedOrder.weight && selectedOrder.weight > 0 && (
+                                        <div className="rounded-[16px] bg-slate-50 p-4">
+                                            <div className="text-xs text-slate-400 mb-1">包裹重量</div>
+                                            <div className="text-sm font-bold text-slate-700">{selectedOrder.weight}kg</div>
+                                        </div>
+                                    )}
+                                    {selectedOrder.fastRefund && (
+                                        <div className="rounded-[16px] bg-green-50 p-4">
+                                            <div className="text-xs text-slate-400 mb-1">快速返款</div>
+                                            <div className="text-sm font-bold text-green-600">已开通</div>
+                                        </div>
+                                    )}
+                                    {selectedOrder.extraReward && selectedOrder.extraReward > 0 && (
+                                        <div className="rounded-[16px] bg-warning-50 p-4">
+                                            <div className="text-xs text-slate-400 mb-1">额外赏金</div>
+                                            <div className="text-sm font-bold text-warning-600">+¥{selectedOrder.extraReward}/单</div>
+                                        </div>
+                                    )}
+                                    {selectedOrder.isPasswordEnabled && selectedOrder.checkPassword && (
+                                        <div className="rounded-[16px] bg-purple-50 p-4">
+                                            <div className="text-xs text-slate-400 mb-1">验证口令</div>
+                                            <div className="text-sm font-bold text-purple-600">{selectedOrder.checkPassword}</div>
+                                        </div>
+                                    )}
+                                    <div className="rounded-[16px] bg-slate-50 p-4">
+                                        <div className="text-xs text-slate-400 mb-1">运费</div>
+                                        <div className={`text-sm font-bold ${selectedOrder.isFreeShipping ? 'text-green-600' : 'text-amber-600'}`}>
+                                            {selectedOrder.isFreeShipping ? '包邮' : '非包邮'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Praise Requirements 好评要求 */}
+                        {(selectedOrder.isPraise || selectedOrder.isImgPraise || selectedOrder.isVideoPraise) && (
+                            <div>
+                                <h3 className="mb-4 text-sm font-bold text-slate-900">好评要求</h3>
+                                <div className="rounded-[20px] bg-slate-50 p-5">
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {selectedOrder.isPraise && (
+                                            <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
+                                                文字好评 ({selectedOrder.praiseList?.length || 0}条)
+                                            </span>
+                                        )}
+                                        {selectedOrder.isImgPraise && (
+                                            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700 font-medium">
+                                                图片好评 ({selectedOrder.praiseImgList?.length || 0}张)
+                                            </span>
+                                        )}
+                                        {selectedOrder.isVideoPraise && (
+                                            <span className="rounded-full bg-purple-100 px-3 py-1 text-xs text-purple-700 font-medium">
+                                                视频好评 ({selectedOrder.praiseVideoList?.length || 0}个)
+                                            </span>
+                                        )}
+                                    </div>
+                                    {selectedOrder.isPraise && selectedOrder.praiseList && selectedOrder.praiseList.length > 0 && (
+                                        <div className="rounded-[12px] bg-white p-3">
+                                            <div className="text-xs text-slate-400 mb-2">好评内容（随机选择一条）：</div>
+                                            <div className="space-y-2 max-h-32 overflow-y-auto">
+                                                {selectedOrder.praiseList.slice(0, 3).map((txt, i) => (
+                                                    <div key={i} className="text-xs text-slate-600 border-l-2 border-primary-200 pl-2">
+                                                        {i + 1}. {txt}
+                                                    </div>
+                                                ))}
+                                                {selectedOrder.praiseList.length > 3 && (
+                                                    <div className="text-xs text-slate-400">...共 {selectedOrder.praiseList.length} 条</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Merchant Memo 下单提示 */}
+                        {selectedOrder.memo && (
+                            <div>
+                                <h3 className="mb-4 text-sm font-bold text-slate-900">下单提示</h3>
+                                <div className="rounded-[20px] bg-amber-50 p-5 text-sm text-amber-800 whitespace-pre-wrap">
+                                    {selectedOrder.memo}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Fee Details 费用明细 */}
+                        {(selectedOrder.baseServiceFee || selectedOrder.praiseFee || selectedOrder.margin) && (
+                            <div>
+                                <h3 className="mb-4 text-sm font-bold text-slate-900">费用明细</h3>
+                                <div className="rounded-[20px] bg-slate-50 p-5">
+                                    <div className="space-y-2 text-sm">
+                                        {selectedOrder.baseServiceFee && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-500">基础服务费</span>
+                                                <span className="font-medium">¥{selectedOrder.baseServiceFee.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        {selectedOrder.praiseFee && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-500">文字好评费</span>
+                                                <span className="font-medium">¥{selectedOrder.praiseFee.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        {selectedOrder.imgPraiseFee && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-500">图片好评费</span>
+                                                <span className="font-medium">¥{selectedOrder.imgPraiseFee.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        {selectedOrder.videoPraiseFee && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-500">视频好评费</span>
+                                                <span className="font-medium">¥{selectedOrder.videoPraiseFee.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        {selectedOrder.shippingFee && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-500">邮费</span>
+                                                <span className="font-medium">¥{selectedOrder.shippingFee.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        {selectedOrder.margin && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-500">保证金</span>
+                                                <span className="font-medium">¥{selectedOrder.margin.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
+                                            <span className="font-bold text-slate-700">总计</span>
+                                            <span className="font-bold text-primary-600">¥{Number(selectedOrder.productPrice).toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Action Buttons */}
                         {selectedOrder.status === 'SUBMITTED' && (
