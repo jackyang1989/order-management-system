@@ -150,7 +150,7 @@ export class TasksService implements OnModuleInit {
     console.log('Seed tasks inserted successfully');
   }
 
-  async findAll(filter?: TaskFilterDto): Promise<Task[]> {
+  async findAll(filter?: TaskFilterDto): Promise<any[]> {
     const queryBuilder = this.tasksRepository
       .createQueryBuilder('task')
       .where('task.status = :status', { status: TaskStatus.ACTIVE });
@@ -179,7 +179,20 @@ export class TasksService implements OnModuleInit {
       }
     }
 
-    return queryBuilder.orderBy('task.createdAt', 'DESC').getMany();
+    const tasks = await queryBuilder.orderBy('task.createdAt', 'DESC').getMany();
+
+    // 转换任务数据为前端期望的格式
+    return tasks.map(task => ({
+      ...task,
+      randNum: task.taskNumber, // 任务编号显示
+      sellerName: task.shopName || '未知商家', // 商家名称
+      mobile: '', // 商家电话（如需要可从merchant表关联）
+      totalPrice: Number(task.goodsPrice) || 0, // 垫付资金（商品价格）
+      userReward: task.count > 0 ? Number((task.totalCommission / task.count).toFixed(2)) : 0, // 单笔佣金
+      userDivided: Number(task.userDivided) || 0, // 买手分成总额
+      num: task.count || 1, // 任务单数
+      progress: '0', // 进度百分比（前端会自己计算）
+    }));
   }
 
   async findByMerchant(

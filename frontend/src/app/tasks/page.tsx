@@ -129,10 +129,10 @@ export default function TasksPage() {
                 const token = getToken();
                 const response = await fetch(`${BASE_URL}/tasks/${task.id}/claim`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ buyerAccountId: value2, terminal: value4 }),
+                    body: JSON.stringify({ buynoId: value2, buynoAccount: value2 }),
                 });
                 const data = await response.json();
-                if (data.success) { alertSuccess(data.message || '添加任务成功'); setTimeout(() => { if (data.orderId) router.push(`/orders/${data.orderId}/execute`); else getData(); }, 3000); }
+                if (data.success) { alertSuccess(data.message || '添加任务成功'); setTimeout(() => { if (data.orderId) router.push(`/orders/${data.orderId}/execute`); else getData(); }, 1500); }
                 else alertError(data.message || '添加任务失败');
             } catch (error) { alertError('网络错误'); }
         }
