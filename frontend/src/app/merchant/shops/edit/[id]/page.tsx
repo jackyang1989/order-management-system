@@ -90,8 +90,6 @@ export default function EditShopPage({ params }: { params: Promise<{ id: string 
         }
     };
 
-    if (loading) return <div className="flex min-h-[400px] items-center justify-center font-medium text-slate-400">加载中...</div>;
-
     const platformOptions = useMemo(() => {
         const options = platforms.map(p => ({
             value: p.code.toUpperCase(),
@@ -109,6 +107,8 @@ export default function EditShopPage({ params }: { params: Promise<{ id: string 
             { value: currentValue, label: `${fallbackName} (已禁用)`, disabled: true },
         ];
     }, [platforms, formData.platform]);
+
+    if (loading) return <div className="flex min-h-[400px] items-center justify-center font-medium text-slate-400">加载中...</div>;
 
     // 获取当前显示的截图URL（新上传的优先）
     const displayScreenshot = formData.newScreenshot

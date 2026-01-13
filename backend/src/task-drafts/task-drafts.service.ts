@@ -214,10 +214,9 @@ export class TaskDraftsService {
      * 计算任务费用（核心费用计算逻辑）
      */
     private async calculateFees(draft: TaskDraft): Promise<void> {
-        // 获取系统配置
-        const getConfig = async (key: string, defaultValue: number): Promise<number> => {
-            const config = await this.configRepository.findOne({ where: { key } });
-            return config ? parseFloat(config.value) : defaultValue;
+        // 使用 AdminConfigService 获取配置
+        const getConfig = (key: string, defaultValue: number): number => {
+            return this.configService.getNumberValue(key, defaultValue);
         };
 
         const totalCount = draft.totalCount || 1;
@@ -225,18 +224,18 @@ export class TaskDraftsService {
         const commission = draft.commission || 0;
 
         // 1. 基础服务费（按平台类型和终端类型）
-        let baseFeeRate = await getConfig('base_fee_rate', 0.1);
+        let baseFeeRate = getConfig('base_fee_rate', 0.1);
         if (draft.terminal === TaskTerminal.BENLI_YONGHUO) {
-            baseFeeRate = await getConfig('benli_fee_rate', 0.15);
+            baseFeeRate = getConfig('benli_fee_rate', 0.15);
         }
         const baseFee = goodsPrice * baseFeeRate * totalCount;
 
         // 2. 好评费
         let praiseFee = 0;
         if (draft.praiseType) {
-            const textPraiseRate = await getConfig('text_praise_fee', 1);
-            const imagePraiseRate = await getConfig('image_praise_fee', 2);
-            const videoPraiseRate = await getConfig('video_praise_fee', 5);
+            const textPraiseRate = getConfig('text_praise_fee', 1);
+            const imagePraiseRate = getConfig('image_praise_fee', 2);
+            const videoPraiseRate = getConfig('video_praise_fee', 5);
 
             switch (draft.praiseType) {
                 case 1: // 文字好评
@@ -257,14 +256,14 @@ export class TaskDraftsService {
         // 3. 定时发布费
         let timingFee = 0;
         if (draft.isTiming) {
-            const timingPublishFee = await getConfig('timing_publish_fee', 0.5);
-            const timingPayFee = await getConfig('timing_pay_fee', 0.3);
+            const timingPublishFee = getConfig('timing_publish_fee', 0.5);
+            const timingPayFee = getConfig('timing_pay_fee', 0.3);
             timingFee = (timingPublishFee + timingPayFee) * totalCount;
         }
 
         // 4. 循环时间费
         if (draft.cycle && draft.cycle > 1) {
-            const cycleFee = await getConfig('cycle_fee', 0.2);
+            const cycleFee = getConfig('cycle_fee', 0.2);
             timingFee += cycleFee * draft.cycle * totalCount;
         }
 
