@@ -7,11 +7,11 @@ import { toastError, toastSuccess } from '../../../lib/toast';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
+import { Input } from '../../../components/ui/input';
 import { Select } from '../../../components/ui/select';
 import { Table, Column } from '../../../components/ui/table';
 import { Modal } from '../../../components/ui/modal';
 import { Pagination } from '../../../components/ui/pagination';
-import { Tabs } from '../../../components/ui/tabs';
 
 import { TASK_TYPE_NAMES } from '../../../constants/platformConfig';
 import { EnhancedTable, EnhancedColumn } from '../../../components/ui/enhanced-table';
@@ -102,6 +102,7 @@ export default function AdminTasksPage() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<number | undefined>(undefined);
+    const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [exporting, setExporting] = useState(false);
@@ -171,10 +172,16 @@ export default function AdminTasksPage() {
         try {
             let url = `${BASE_URL}/admin/tasks?page=${page}&limit=20`;
             if (filter !== undefined) url += `&status=${filter}`;
+            if (search) url += `&taskNumber=${encodeURIComponent(search)}`;
             const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
             const json = await res.json();
             if (json.success) { setTasks(json.data); setTotal(json.total || json.data.length); }
         } catch (e) { console.error(e); } finally { setLoading(false); }
+    };
+
+    const handleSearch = () => {
+        setPage(1);
+        loadTasks();
     };
 
     const toggleSelect = (id: string) => {
@@ -366,7 +373,7 @@ export default function AdminTasksPage() {
             key: 'actions',
             title: '操作',
             render: (row) => (
-                <div className="flex items-center gap-2 whitespace-nowrap">
+                <div className="flex items-center justify-between whitespace-nowrap">
                     <Button size="sm" variant="secondary" onClick={() => setDetailModal(row)}>
                         详情
                     </Button>
@@ -405,22 +412,30 @@ export default function AdminTasksPage() {
                         </Button>
                     </div>
                 </div>
-                <div className="mb-6 flex flex-wrap items-center gap-4">
-                    <span className="text-[13px] font-medium text-[#3b4559]">状态筛选：</span>
-                    <Tabs
+                <div className="mb-6 flex flex-wrap items-center gap-3">
+                    <Input
+                        placeholder="搜索任务编号..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                        className="w-52"
+                    />
+                    <Select
                         value={String(filter ?? 'all')}
                         onChange={(val) => {
                             setFilter(val === 'all' ? undefined : Number(val));
                             setPage(1);
                         }}
-                        items={[
-                            { key: 'all', label: '全部' },
-                            { key: '1', label: '进行中' },
-                            { key: '4', label: '待审核' },
-                            { key: '2', label: '已完成' },
-                            { key: '3', label: '已取消' },
+                        options={[
+                            { value: 'all', label: '全部状态' },
+                            { value: '1', label: '进行中' },
+                            { value: '4', label: '待审核' },
+                            { value: '2', label: '已完成' },
+                            { value: '3', label: '已取消' },
                         ]}
+                        className="w-32"
                     />
+                    <Button onClick={handleSearch}>搜索</Button>
                     <div className="ml-auto flex items-center gap-2">
                         {selectedIds.length > 0 && (
                             <>

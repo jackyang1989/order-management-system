@@ -83,47 +83,45 @@ export default function AdminFinanceRechargePage() {
     };
 
     return (
-        <div className="space-y-4">
-            <Card className="bg-white">
-                <div className="mb-4 flex items-center justify-between">
-                    <span className="text-base font-medium">充值记录</span>
-                    <span className="text-[#9ca3af]">共 {total} 条记录</span>
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                    <Input
-                        placeholder="搜索用户名/手机号..."
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                        className="w-52"
-                    />
-                    <Select
-                        value={userTypeFilter}
-                        onChange={v => { setUserTypeFilter(v); setPage(1); }}
-                        options={[
-                            { value: '', label: '全部用户' },
-                            { value: 'buyer', label: '买手' },
-                            { value: 'merchant', label: '商家' },
-                        ]}
-                        className="w-28"
-                    />
-                    <Select
-                        value={statusFilter}
-                        onChange={v => { setStatusFilter(v); setPage(1); }}
-                        options={[
-                            { value: '', label: '全部状态' },
-                            { value: '0', label: '待支付' },
-                            { value: '1', label: '已完成' },
-                            { value: '2', label: '已取消' },
-                        ]}
-                        className="w-28"
-                    />
-                    <Button onClick={handleSearch}>搜索</Button>
-                    <Button variant="secondary" onClick={loadRecords}>刷新</Button>
-                </div>
-            </Card>
+        <Card className="bg-white p-6">
+            <div className="mb-4 flex items-center justify-between">
+                <span className="text-base font-medium">充值记录</span>
+                <span className="text-[#6b7280]">共 {total} 条记录</span>
+            </div>
+            <div className="mb-6 flex flex-wrap items-center gap-3">
+                <Input
+                    placeholder="搜索用户名/手机号..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                    className="w-52"
+                />
+                <Select
+                    value={userTypeFilter}
+                    onChange={v => { setUserTypeFilter(v); setPage(1); }}
+                    options={[
+                        { value: '', label: '全部用户' },
+                        { value: 'buyer', label: '买手' },
+                        { value: 'merchant', label: '商家' },
+                    ]}
+                    className="w-28"
+                />
+                <Select
+                    value={statusFilter}
+                    onChange={v => { setStatusFilter(v); setPage(1); }}
+                    options={[
+                        { value: '', label: '全部状态' },
+                        { value: '0', label: '待支付' },
+                        { value: '1', label: '已完成' },
+                        { value: '2', label: '已取消' },
+                    ]}
+                    className="w-28"
+                />
+                <Button onClick={handleSearch}>搜索</Button>
+                <Button variant="secondary" onClick={loadRecords}>刷新</Button>
+            </div>
 
-            <Card className="overflow-hidden bg-white p-0">
+            <div className="overflow-hidden">
                 {loading ? (
                     <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
                 ) : records.length === 0 ? (
@@ -172,7 +170,7 @@ export default function AdminFinanceRechargePage() {
                             </table>
                         </div>
 
-                        <div className="flex items-center justify-end gap-2 p-4">
+                        <div className="flex items-center justify-end gap-2 border-t border-[#f3f4f6] pt-4 mt-4">
                             <Button
                                 size="sm"
                                 variant="secondary"
@@ -195,7 +193,7 @@ export default function AdminFinanceRechargePage() {
                         </div>
                     </>
                 )}
-            </Card>
-        </div>
+            </div>
+        </Card>
     );
 }

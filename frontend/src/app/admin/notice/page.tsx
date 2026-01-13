@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../../apiConfig';
-import { cn } from '../../../lib/utils';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
@@ -215,9 +214,8 @@ export default function AdminNoticePage() {
     };
 
     return (
-        <div className="space-y-4">
-            {/* Toolbar */}
-            <Card className="bg-white">
+        <div className="space-y-6">
+            <Card className="bg-white p-6">
                 <div className="mb-4 flex items-center justify-between">
                     <span className="text-base font-medium">公告管理</span>
                     <div className="flex items-center gap-3">
@@ -225,7 +223,7 @@ export default function AdminNoticePage() {
                         <Button onClick={handleCreate}>+ 发布公告</Button>
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="mb-6 flex items-center gap-3">
                     <Select
                         value={statusFilter}
                         onChange={(v) => { setStatusFilter(v); setPage(1); }}
@@ -238,88 +236,87 @@ export default function AdminNoticePage() {
                         className="w-32"
                     />
                 </div>
-            </Card>
 
-            {/* Notice List */}
-            <Card className="overflow-hidden bg-white">
-                {loading ? (
-                    <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
-                ) : notices.length === 0 ? (
-                    <div className="py-12 text-center text-[#9ca3af]">暂无公告</div>
-                ) : (
-                    <>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-[900px] w-full border-collapse">
-                                <thead>
-                                    <tr className="bg-[#f9fafb]">
-                                        <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-left text-sm font-medium text-[#374151]">标题</th>
-                                        <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-center text-sm font-medium text-[#374151]">类型</th>
-                                        <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-center text-sm font-medium text-[#374151]">目标</th>
-                                        <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-center text-sm font-medium text-[#374151]">状态</th>
-                                        <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-center text-sm font-medium text-[#374151]">置顶</th>
-                                        <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-right text-sm font-medium text-[#374151]">浏览</th>
-                                        <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-left text-sm font-medium text-[#374151]">发布时间</th>
-                                        <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-center text-sm font-medium text-[#374151]">操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {notices.map(notice => (
-                                        <tr key={notice.id} className="border-b border-[#f3f4f6]">
-                                            <td className="px-4 py-3.5">
-                                                <div className="flex items-center gap-2">
-                                                    {notice.isPopup && <Badge variant="solid" color="red">弹窗</Badge>}
-                                                    <span className="max-w-[200px] truncate font-medium">{notice.title}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3.5 text-center text-[#6b7280]">{typeLabels[notice.type] || '未知'}</td>
-                                            <td className="px-4 py-3.5 text-center">
-                                                <Badge variant="soft" color={targetLabels[notice.target]?.color || 'slate'}>
-                                                    {targetLabels[notice.target]?.text || '未知'}
-                                                </Badge>
-                                            </td>
-                                            <td className="px-4 py-3.5 text-center">
-                                                <Badge variant="soft" color={statusLabels[notice.status]?.color || 'slate'}>
-                                                    {statusLabels[notice.status]?.text || '未知'}
-                                                </Badge>
-                                            </td>
-                                            <td className="px-4 py-3.5 text-center">
-                                                {notice.isTop ? <span className="text-warning-400">★</span> : <span className="text-[#d1d5db]">☆</span>}
-                                            </td>
-                                            <td className="px-4 py-3.5 text-right text-[#6b7280]">{notice.viewCount}</td>
-                                            <td className="px-4 py-3.5 text-xs text-[#9ca3af]">
-                                                {notice.publishedAt ? new Date(notice.publishedAt).toLocaleString('zh-CN') : '-'}
-                                            </td>
-                                            <td className="px-4 py-3.5 text-center">
-                                                <div className="flex flex-wrap justify-center gap-1.5">
-                                                    <Button size="sm" variant="secondary" onClick={() => setDetailModal(notice)}>查看</Button>
-                                                    <Button size="sm" variant="secondary" onClick={() => handleEdit(notice)}>编辑</Button>
-                                                    {notice.status === 0 && (
-                                                        <Button size="sm" className="bg-success-400 hover:bg-success-500" onClick={() => handlePublish(notice.id)}>发布</Button>
-                                                    )}
-                                                    {notice.status === 1 && (
-                                                        <>
-                                                            <Button size="sm" className="border border-warning-400 bg-white text-warning-500 hover:bg-warning-50" onClick={() => handleUnpublish(notice.id)}>撤回</Button>
-                                                            <Button size="sm" className="border border-purple-500 bg-white text-purple-600 hover:bg-purple-50" onClick={() => handleToggleTop(notice.id)}>{notice.isTop ? '取消置顶' : '置顶'}</Button>
-                                                        </>
-                                                    )}
-                                                    {notice.status !== 2 && (
-                                                        <Button size="sm" variant="secondary" onClick={() => handleArchive(notice.id)}>归档</Button>
-                                                    )}
-                                                    <Button size="sm" variant="destructive" onClick={() => handleDelete(notice.id)}>删除</Button>
-                                                </div>
-                                            </td>
+                <div className="overflow-hidden">
+                    {loading ? (
+                        <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
+                    ) : notices.length === 0 ? (
+                        <div className="py-12 text-center text-[#9ca3af]">暂无公告</div>
+                    ) : (
+                        <>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-[900px] w-full border-collapse">
+                                    <thead>
+                                        <tr className="bg-[#f9fafb]">
+                                            <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-left text-sm font-medium text-[#374151]">标题</th>
+                                            <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-center text-sm font-medium text-[#374151]">类型</th>
+                                            <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-center text-sm font-medium text-[#374151]">目标</th>
+                                            <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-center text-sm font-medium text-[#374151]">状态</th>
+                                            <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-center text-sm font-medium text-[#374151]">置顶</th>
+                                            <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-right text-sm font-medium text-[#374151]">浏览</th>
+                                            <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-left text-sm font-medium text-[#374151]">发布时间</th>
+                                            <th className="border-b border-[#f3f4f6] px-4 py-3.5 text-center text-sm font-medium text-[#374151]">操作</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div className="flex justify-end gap-2 px-4 py-4">
-                            <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>上一页</Button>
-                            <span className="px-3 py-1.5 text-sm text-[#6b7280]">第 {page} 页</span>
-                            <Button size="sm" variant="secondary" onClick={() => setPage(p => p + 1)} disabled={notices.length < 20}>下一页</Button>
-                        </div>
-                    </>
-                )}
+                                    </thead>
+                                    <tbody>
+                                        {notices.map(notice => (
+                                            <tr key={notice.id} className="border-b border-[#f3f4f6]">
+                                                <td className="px-4 py-3.5">
+                                                    <div className="flex items-center gap-2">
+                                                        {notice.isPopup && <Badge variant="solid" color="red">弹窗</Badge>}
+                                                        <span className="max-w-[200px] truncate font-medium">{notice.title}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3.5 text-center text-[#6b7280]">{typeLabels[notice.type] || '未知'}</td>
+                                                <td className="px-4 py-3.5 text-center">
+                                                    <Badge variant="soft" color={targetLabels[notice.target]?.color || 'slate'}>
+                                                        {targetLabels[notice.target]?.text || '未知'}
+                                                    </Badge>
+                                                </td>
+                                                <td className="px-4 py-3.5 text-center">
+                                                    <Badge variant="soft" color={statusLabels[notice.status]?.color || 'slate'}>
+                                                        {statusLabels[notice.status]?.text || '未知'}
+                                                    </Badge>
+                                                </td>
+                                                <td className="px-4 py-3.5 text-center">
+                                                    {notice.isTop ? <span className="text-warning-400">★</span> : <span className="text-[#d1d5db]">☆</span>}
+                                                </td>
+                                                <td className="px-4 py-3.5 text-right text-[#6b7280]">{notice.viewCount}</td>
+                                                <td className="px-4 py-3.5 text-xs text-[#9ca3af]">
+                                                    {notice.publishedAt ? new Date(notice.publishedAt).toLocaleString('zh-CN') : '-'}
+                                                </td>
+                                                <td className="px-4 py-3.5 text-center">
+                                                    <div className="flex flex-wrap justify-center gap-1.5">
+                                                        <Button size="sm" variant="secondary" onClick={() => setDetailModal(notice)}>查看</Button>
+                                                        <Button size="sm" variant="secondary" onClick={() => handleEdit(notice)}>编辑</Button>
+                                                        {notice.status === 0 && (
+                                                            <Button size="sm" className="bg-success-400 hover:bg-success-500" onClick={() => handlePublish(notice.id)}>发布</Button>
+                                                        )}
+                                                        {notice.status === 1 && (
+                                                            <>
+                                                                <Button size="sm" className="border border-warning-400 bg-white text-warning-500 hover:bg-warning-50" onClick={() => handleUnpublish(notice.id)}>撤回</Button>
+                                                                <Button size="sm" className="border border-purple-500 bg-white text-purple-600 hover:bg-purple-50" onClick={() => handleToggleTop(notice.id)}>{notice.isTop ? '取消置顶' : '置顶'}</Button>
+                                                            </>
+                                                        )}
+                                                        {notice.status !== 2 && (
+                                                            <Button size="sm" variant="secondary" onClick={() => handleArchive(notice.id)}>归档</Button>
+                                                        )}
+                                                        <Button size="sm" variant="destructive" onClick={() => handleDelete(notice.id)}>删除</Button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div className="flex justify-end gap-2 border-t border-[#f3f4f6] pt-4 mt-4">
+                                <Button size="sm" variant="secondary" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>上一页</Button>
+                                <span className="px-3 py-1.5 text-sm text-[#6b7280]">第 {page} 页</span>
+                                <Button size="sm" variant="secondary" onClick={() => setPage(p => p + 1)} disabled={notices.length < 20}>下一页</Button>
+                            </div>
+                        </>
+                    )}
+                </div>
             </Card>
 
             {/* Detail Modal */}

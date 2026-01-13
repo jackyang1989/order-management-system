@@ -15,16 +15,42 @@ export interface TabsProps {
   onChange: (value: string) => void;
   size?: 'sm' | 'md';
   className?: string;
+  variant?: 'default' | 'pills';
 }
 
-export function Tabs({ items, value, onChange, size = 'md', className }: TabsProps) {
+export function Tabs({ items, value, onChange, size = 'md', className, variant = 'default' }: TabsProps) {
   const sizes: Record<string, string> = {
-    sm: 'px-3 py-1.5 text-[13px]',
-    md: 'px-4 py-2 text-[14px]',
+    sm: 'px-3 py-1.5 text-[12px]',
+    md: 'px-4 py-2 text-[13px]',
   };
 
+  if (variant === 'pills') {
+    return (
+      <div className={cn('flex items-center gap-2', className)}>
+        {items.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            disabled={item.disabled}
+            onClick={() => onChange(item.key)}
+            className={cn(
+              'rounded-full font-medium transition-all',
+              sizes[size],
+              value === item.key
+                ? 'bg-primary-500 text-white shadow-sm'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+              item.disabled && 'cursor-not-allowed opacity-50'
+            )}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div className={cn('flex w-full items-center gap-2 rounded-md border border-[#e5e7eb] bg-[#f9fafb] p-1', className)}>
+    <div className={cn('inline-flex items-center gap-1 rounded-2xl bg-slate-100 p-1', className)}>
       {items.map((item) => (
         <button
           key={item.key}
@@ -32,12 +58,12 @@ export function Tabs({ items, value, onChange, size = 'md', className }: TabsPro
           disabled={item.disabled}
           onClick={() => onChange(item.key)}
           className={cn(
-            'flex-1 rounded-md font-medium transition-colors',
+            'rounded-xl font-medium transition-all',
             sizes[size],
             value === item.key
-              ? 'bg-white text-[#3b4559] border border-[#e5e7eb]'
-              : 'text-[#7c889a] hover:text-[#5a6577]',
-            item.disabled && 'cursor-not-allowed text-[#94a3b8] hover:text-[#94a3b8]'
+              ? 'bg-white text-slate-800 shadow-sm'
+              : 'text-slate-500 hover:text-slate-700',
+            item.disabled && 'cursor-not-allowed opacity-50'
           )}
         >
           {item.label}

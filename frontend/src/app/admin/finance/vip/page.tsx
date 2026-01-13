@@ -69,27 +69,25 @@ export default function AdminFinanceVipPage() {
     };
 
     return (
-        <div className="space-y-4">
-            <Card className="bg-white">
-                <div className="mb-4 flex items-center justify-between">
-                    <span className="text-base font-medium">会员记录</span>
-                    <span className="text-[#6b7280]">共 {total} 条记录</span>
-                </div>
-                <div className="flex items-center gap-3">
-                    <Select
-                        value={userTypeFilter}
-                        onChange={v => { setUserTypeFilter(v); setPage(1); }}
-                        options={[
-                            { value: '', label: '全部用户类型' },
-                            { value: '1', label: '买手' },
-                            { value: '2', label: '商家' },
-                        ]}
-                        className="w-40"
-                    />
-                </div>
-            </Card>
+        <Card className="bg-white p-6">
+            <div className="mb-4 flex items-center justify-between">
+                <span className="text-base font-medium">会员记录</span>
+                <span className="text-[#6b7280]">共 {total} 条记录</span>
+            </div>
+            <div className="mb-6 flex items-center gap-3">
+                <Select
+                    value={userTypeFilter}
+                    onChange={v => { setUserTypeFilter(v); setPage(1); }}
+                    options={[
+                        { value: '', label: '全部用户类型' },
+                        { value: '1', label: '买手' },
+                        { value: '2', label: '商家' },
+                    ]}
+                    className="w-40"
+                />
+            </div>
 
-            <Card className="overflow-hidden bg-white p-0">
+            <div className="overflow-hidden">
                 {loading ? (
                     <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
                 ) : records.length === 0 ? (
@@ -133,7 +131,7 @@ export default function AdminFinanceVipPage() {
                             </table>
                         </div>
 
-                        <div className="flex items-center justify-end gap-2 p-4">
+                        <div className="flex items-center justify-end gap-2 border-t border-[#f3f4f6] pt-4 mt-4">
                             <Button
                                 size="sm"
                                 variant="secondary"
@@ -156,7 +154,7 @@ export default function AdminFinanceVipPage() {
                         </div>
                     </>
                 )}
-            </Card>
-        </div>
+            </div>
+        </Card>
     );
 }
