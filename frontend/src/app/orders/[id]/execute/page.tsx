@@ -104,6 +104,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const [adminLimitSwitch, setAdminLimitSwitch] = useState(0);
     const [weight, setWeight] = useState(0); // 包裹重量
     const [fastRefund, setFastRefund] = useState(false); // 快速返款服务
+    const [extraReward, setExtraReward] = useState(0); // 额外赏金
 
     // 浏览时长要求
     const [totalBrowseMinutes, setTotalBrowseMinutes] = useState(15);
@@ -111,6 +112,17 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const [mainBrowseMinutes, setMainBrowseMinutes] = useState(8);
     const [subBrowseMinutes, setSubBrowseMinutes] = useState(2);
     const [hasSubProduct, setHasSubProduct] = useState(true);
+
+    // 好评相关
+    const [isPraise, setIsPraise] = useState(false);
+    const [praiseList, setPraiseList] = useState<string[]>([]);
+    const [isImgPraise, setIsImgPraise] = useState(false);
+    const [praiseImgList, setPraiseImgList] = useState<string[]>([]);
+    const [isVideoPraise, setIsVideoPraise] = useState(false);
+    const [praiseVideoList, setPraiseVideoList] = useState<string[]>([]);
+    
+    // 下单提示
+    const [memo, setMemo] = useState('');
 
     // Step 1: 货比加购截图
     const [localFile2, setLocalFile2] = useState<{ file: File; content: string } | null>(null);
@@ -208,6 +220,17 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 setContactCSContent(data.contactCSContent || '');
                 setWeight(data.weight || 0);
                 setFastRefund(data.fastRefund || false);
+                setExtraReward(data.extraReward || data.addReward || 0);
+                setMemo(data.memo || '');
+                
+                // 好评要求
+                setIsPraise(data.isPraise || false);
+                setPraiseList(data.praiseList ? (typeof data.praiseList === 'string' ? JSON.parse(data.praiseList) : data.praiseList) : []);
+                setIsImgPraise(data.isImgPraise || false);
+                setPraiseImgList(data.praiseImgList ? (typeof data.praiseImgList === 'string' ? JSON.parse(data.praiseImgList) : data.praiseImgList) : []);
+                setIsVideoPraise(data.isVideoPraise || false);
+                setPraiseVideoList(data.praiseVideoList ? (typeof data.praiseVideoList === 'string' ? JSON.parse(data.praiseVideoList) : data.praiseVideoList) : []);
+                
                 setTotalBrowseMinutes(data.totalBrowseMinutes || 15);
                 setCompareBrowseMinutes(data.compareBrowseMinutes || 3);
                 setMainBrowseMinutes(data.mainBrowseMinutes || 8);
@@ -793,6 +816,119 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             <p>{contactCSContent ? '6' : '5'}. 请在倒计时结束前完成任务并在平台提交，超时任务取消且系统会自动扣除1银锭；</p>
                             <p>{contactCSContent ? '7' : '6'}. 请严格按要求认真完成任务，否则将根据处罚细则进行处罚。</p>
                         </div>
+                        
+                        {/* 好评要求提示 */}
+                        {(isPraise || isImgPraise || isVideoPraise) && (
+                            <div style={{ 
+                                marginTop: '12px', 
+                                padding: '10px', 
+                                background: '#fff7e6', 
+                                borderRadius: '4px',
+                                border: '1px solid #ffd591'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                                    <span style={{ color: '#fa8c16', marginRight: '5px' }}>⭐</span>
+                                    <span style={{ fontWeight: 'bold', color: '#fa8c16', fontSize: '13px' }}>好评要求</span>
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#333', lineHeight: '1.6' }}>
+                                    <p>此任务需要在收货后进行好评：</p>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                                        {isPraise && (
+                                            <span style={{ 
+                                                background: '#52c41a', 
+                                                color: 'white', 
+                                                padding: '2px 8px', 
+                                                borderRadius: '10px',
+                                                fontSize: '11px'
+                                            }}>
+                                                ✓ 文字好评 ({praiseList.length}条可选)
+                                            </span>
+                                        )}
+                                        {isImgPraise && (
+                                            <span style={{ 
+                                                background: '#1890ff', 
+                                                color: 'white', 
+                                                padding: '2px 8px', 
+                                                borderRadius: '10px',
+                                                fontSize: '11px'
+                                            }}>
+                                                ✓ 图片好评 ({praiseImgList.length}张)
+                                            </span>
+                                        )}
+                                        {isVideoPraise && (
+                                            <span style={{ 
+                                                background: '#722ed1', 
+                                                color: 'white', 
+                                                padding: '2px 8px', 
+                                                borderRadius: '10px',
+                                                fontSize: '11px'
+                                            }}>
+                                                ✓ 视频好评 ({praiseVideoList.length}个)
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p style={{ marginTop: '6px', color: '#fa8c16', fontSize: '11px' }}>
+                                        * 具体好评内容将在收货后显示，请注意查看
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* 额外赏金提示 */}
+                        {extraReward > 0 && (
+                            <div style={{ 
+                                marginTop: '12px', 
+                                padding: '10px', 
+                                background: '#fff1f0', 
+                                borderRadius: '4px',
+                                border: '1px solid #ffccc7'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <span style={{ color: '#f5222d', marginRight: '5px' }}>🎁</span>
+                                    <span style={{ fontWeight: 'bold', color: '#f5222d', fontSize: '13px' }}>
+                                        额外赏金：+¥{extraReward}/单
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* 下单提示 */}
+                        {memo && (
+                            <div style={{ 
+                                marginTop: '12px', 
+                                padding: '10px', 
+                                background: '#e6f7ff', 
+                                borderRadius: '4px',
+                                border: '1px solid #91d5ff'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                                    <span style={{ color: '#1890ff', marginRight: '5px' }}>📝</span>
+                                    <span style={{ fontWeight: 'bold', color: '#1890ff', fontSize: '13px' }}>商家特别提示</span>
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#333', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
+                                    {memo}
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* 验证口令提示 */}
+                        {checkPassword && (
+                            <div style={{ 
+                                marginTop: '12px', 
+                                padding: '10px', 
+                                background: '#fff0f6', 
+                                borderRadius: '4px',
+                                border: '1px solid #ffadd2'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                                    <span style={{ color: '#eb2f96', marginRight: '5px' }}>🔐</span>
+                                    <span style={{ fontWeight: 'bold', color: '#eb2f96', fontSize: '13px' }}>验证口令</span>
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#333' }}>
+                                    下单时需要输入验证口令：<span style={{ fontWeight: 'bold', color: '#eb2f96', fontSize: '14px' }}>{checkPassword}</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* 任务类型指引 */}
