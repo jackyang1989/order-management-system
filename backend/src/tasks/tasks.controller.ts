@@ -29,8 +29,36 @@ export class TasksController {
   ) {}
 
   @Get()
-  async findAll(@Query() filter: TaskFilterDto) {
+  @UseGuards(JwtAuthGuard)
+  async findAll(@Query() filter: TaskFilterDto, @Request() req) {
+    // 如果有 merchantId 参数且值为 'current'，返回当前商家的任务
+    if (filter.merchantId === 'current') {
+      const tasks = await this.tasksService.findByMerchant(
+        req.user.userId,
+        filter,
+      );
+      return {
+        success: true,
+        data: tasks,
+      };
+    }
+    
+    // 否则返回买手任务大厅（只显示进行中的任务）
     const tasks = await this.tasksService.findAll(filter);
+    return {
+      success: true,
+      data: tasks,
+    };
+  }
+
+  // 获取商户自己的任务列表 - 必须放在 @Get(':id') 之前
+  @UseGuards(JwtAuthGuard)
+  @Get('merchant')
+  async findMerchantTasks(@Query() filter: TaskFilterDto, @Request() req) {
+    const tasks = await this.tasksService.findByMerchant(
+      req.user.userId,
+      filter,
+    );
     return {
       success: true,
       data: tasks,
@@ -76,20 +104,6 @@ export class TasksController {
         message: error.message || '任务发布失败',
       };
     }
-  }
-
-  // 获取商户自己的任务列表
-  @UseGuards(JwtAuthGuard)
-  @Get('merchant')
-  async findMerchantTasks(@Query() filter: TaskFilterDto, @Request() req) {
-    const tasks = await this.tasksService.findByMerchant(
-      req.user.userId,
-      filter,
-    );
-    return {
-      success: true,
-      data: tasks,
-    };
   }
 
   @UseGuards(JwtAuthGuard)

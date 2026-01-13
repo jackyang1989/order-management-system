@@ -59,6 +59,8 @@ export default function MerchantTasksPage() {
         setLoading(true);
         try {
             const token = localStorage.getItem('merchantToken'); const query = new URLSearchParams();
+            // 添加 merchantId 参数以获取商家自己的任务
+            query.append('merchantId', 'current');
             if (filter.status !== 'all') query.append('status', filter.status); if (filter.taskType !== 'all') query.append('taskType', filter.taskType);
             const response = await fetch(`${BASE_URL}/tasks?${query.toString()}`, { headers: { 'Authorization': `Bearer ${token}` } });
             const resData = await response.json(); if (resData.success && Array.isArray(resData.data)) setTasks(resData.data);

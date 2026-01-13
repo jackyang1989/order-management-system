@@ -37,8 +37,8 @@ const TASK_ENTRY_TYPES = [
 
 // 返款方式类型定义
 const TERMINAL_TYPES = [
-    { id: 2, name: '本立佣货', desc: '商家预付本金，买手收货后返' },
-    { id: 1, name: '本佣货返', desc: '买手垫付，商家返本金+佣金' },
+    { id: 2, name: '本立佣货', desc: '本金立返，佣金货返' },
+    { id: 1, name: '本佣货返', desc: '买手垫付，本金和佣金货返' },
 ];
 
 // 排序方式选项

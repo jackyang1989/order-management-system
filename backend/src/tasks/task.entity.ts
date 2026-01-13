@@ -45,8 +45,8 @@ export function getTaskTypeName(taskType: number): string {
 
 // 任务类型（结算方式）
 export enum TaskTerminal {
-  BENYONG_HUOFAN = 1, // 本佣货返（买手垫付，商家返本金+佣金）
-  BENLI_YONGHUO = 2, // 本立佣货（商家预付本金，买手收货后返）
+  BENYONG_HUOFAN = 1, // 本佣货返（买手垫付，本金和佣金货返）
+  BENLI_YONGHUO = 2, // 本立佣货（本金立返，佣金货返）
 }
 
 // 任务版本
@@ -474,6 +474,7 @@ export class TaskFilterDto {
   search?: string;
   minCommission?: number;
   maxCommission?: number;
+  merchantId?: string; // 'current' 表示当前登录商家
 }
 
 export class ClaimTaskDto {

@@ -243,9 +243,9 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 setIsVideoPraise(data.isVideoPraise ? '1' : '');
 
                 if (data.terminal === 1) {
-                    setZhongDuanmessage('温馨提示：此任务本佣货返，任务完成后24小时内本金和佣金由平台返到买手账户。');
+                    setZhongDuanmessage('温馨提示：此任务本佣货返，买手垫付，本金和佣金货返，任务完成后24小时内由平台返到买手账户。');
                 } else {
-                    setZhongDuanmessage('温馨提示：此任务本金立返佣金货返，买手提交订单商家审核通过后平台24小时内将本金充值到买手本金账户，佣金在任务完成后24小时内返到买手银锭账户。');
+                    setZhongDuanmessage('温馨提示：此任务本立佣货，本金立返，佣金货返。买手提交订单商家审核通过后平台24小时内将本金充值到买手本金账户，佣金在任务完成后24小时内返到买手银锭账户。');
                 }
 
                 // 构建 tableData2 (商品信息) - 支持多商品

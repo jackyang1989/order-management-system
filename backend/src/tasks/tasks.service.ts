@@ -19,7 +19,7 @@ import {
 import { TaskGoods, TaskKeyword } from '../task-goods/task-goods.entity';
 import { MerchantsService } from '../merchants/merchants.service';
 import { MessagesService } from '../messages/messages.service';
-import { MessageUserType } from '../messages/message.entity';
+import { MessageUserType, MessageType } from '../messages/message.entity';
 
 @Injectable()
 export class TasksService implements OnModuleInit {
@@ -645,11 +645,11 @@ export class TasksService implements OnModuleInit {
     // 发送系统消息通知商家
     try {
       await this.messagesService.create({
-        userId: merchantId,
-        userType: MessageUserType.MERCHANT,
+        receiverId: merchantId,
+        receiverType: MessageUserType.MERCHANT,
         title: '任务已取消',
         content: `您的任务 ${task.taskNumber} 已成功取消，冻结资金 ¥${Number(task.totalDeposit).toFixed(2)} 已返还到您的账户。`,
-        type: 'system',
+        type: MessageType.SYSTEM,
       });
     } catch (error) {
       console.error('发送取消任务通知失败:', error);
