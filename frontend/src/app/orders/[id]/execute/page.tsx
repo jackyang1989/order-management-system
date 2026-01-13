@@ -102,6 +102,8 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const [mainProductFilter2, setMainProductFilter2] = useState(''); // 尺码
     const [mainProductFilter4, setMainProductFilter4] = useState(''); // 备选词
     const [adminLimitSwitch, setAdminLimitSwitch] = useState(0);
+    const [weight, setWeight] = useState(0); // 包裹重量
+    const [fastRefund, setFastRefund] = useState(false); // 快速返款服务
 
     // Step 1: 货比加购截图
     const [localFile2, setLocalFile2] = useState<{ file: File; content: string } | null>(null);
@@ -197,6 +199,8 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 setIsFreeShipping(data.isFreeShipping === 1 || data.isFreeShipping === true);
                 setCompareCount(data.compareCount || 3);
                 setContactCSContent(data.contactCSContent || '');
+                setWeight(data.weight || 0);
+                setFastRefund(data.fastRefund || false);
                 setTaskTimeType('');
                 setTaskYsType('');
 
@@ -966,6 +970,39 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                     </div>
                                 )}
 
+                                {/* 下单规格要求显示 */}
+                                {item.orderSpecs && item.orderSpecs.length > 0 && (
+                                    <div style={{
+                                        background: '#fff7e6',
+                                        padding: '10px',
+                                        borderRadius: '4px',
+                                        marginBottom: '10px',
+                                        fontSize: '12px',
+                                        border: '1px solid #ffd591'
+                                    }}>
+                                        <div style={{ fontWeight: 'bold', color: '#fa8c16', marginBottom: '8px' }}>⚠️ 下单规格要求：</div>
+                                        {item.orderSpecs.map((spec, specIndex) => (
+                                            <div key={specIndex} style={{
+                                                background: '#fff',
+                                                padding: '6px 10px',
+                                                borderRadius: '4px',
+                                                marginBottom: specIndex < item.orderSpecs!.length - 1 ? '6px' : 0,
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center'
+                                            }}>
+                                                <span style={{ color: '#333' }}>
+                                                    {spec.specName}：<span style={{ fontWeight: 'bold', color: '#fa8c16' }}>{spec.specValue}</span>
+                                                </span>
+                                                <span style={{ color: '#f56c6c', fontWeight: 'bold' }}>× {spec.quantity}</span>
+                                            </div>
+                                        ))}
+                                        <div style={{ marginTop: '8px', fontSize: '11px', color: '#f56c6c' }}>
+                                            请严格按照上述规格下单，规格错误可能导致审核不通过
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* 核对输入 */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                     {/* 商品链接核对 */}
@@ -1115,6 +1152,23 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             <p>2. 将付款后的订单详情截图上传；</p>
                             <p>3. 填写订单号和实际付款金额。</p>
                         </div>
+
+                        {/* 订单设置信息 */}
+                        {(weight > 0 || fastRefund) && (
+                            <div style={{ marginBottom: '15px', padding: '10px', background: '#e6f7ff', borderRadius: '4px', border: '1px solid #91d5ff' }}>
+                                <p style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', color: '#1890ff' }}>订单设置提醒：</p>
+                                {weight > 0 && (
+                                    <p style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                                        📦 包裹重量：<span style={{ fontWeight: 'bold' }}>{weight}kg</span>
+                                    </p>
+                                )}
+                                {fastRefund && (
+                                    <p style={{ fontSize: '12px', color: '#52c41a', marginBottom: '4px' }}>
+                                        ⚡ 快速返款服务：<span style={{ fontWeight: 'bold' }}>已开通</span>（0.6%费率）
+                                    </p>
+                                )}
+                            </div>
+                        )}
 
                         {/* 收货地址 */}
                         <div style={{ marginBottom: '15px', padding: '10px', background: '#f9f9f9', borderRadius: '4px' }}>
