@@ -5,6 +5,7 @@ import { AdminController } from './admin.controller';
 import { User } from '../users/user.entity';
 import { Merchant } from '../merchants/merchant.entity';
 import { Task } from '../tasks/task.entity';
+import { TaskGoods, TaskKeyword } from '../task-goods/task-goods.entity';
 import { Order } from '../orders/order.entity';
 import { Withdrawal } from '../withdrawals/withdrawal.entity';
 import { FinanceRecord } from '../finance-records/finance-record.entity';
@@ -18,7 +19,7 @@ import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Merchant, Task, Order, Withdrawal, FinanceRecord]),
+    TypeOrmModule.forFeature([User, Merchant, Task, TaskGoods, TaskKeyword, Order, Withdrawal, FinanceRecord]),
     ShopsModule,
     AuthModule,
     BuyerAccountsModule,

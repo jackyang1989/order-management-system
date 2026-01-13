@@ -2,6 +2,36 @@ import { BASE_URL } from '../../apiConfig';
 
 export type TaskStatus = 'ACTIVE' | 'PENDING' | 'CLOSED' | string;
 
+// Multi-goods item from task_goods table
+export interface TaskGoodsItem {
+    id: string;
+    taskId: string;
+    goodsId?: string;
+    name: string;
+    pcImg?: string;
+    link?: string;
+    specName?: string;
+    specValue?: string;
+    price: number;
+    num: number;
+    totalPrice: number;
+}
+
+// Multi-keyword item from task_keywords table
+export interface TaskKeywordItem {
+    id: string;
+    taskId: string;
+    taskGoodsId?: string;
+    keyword: string;
+    terminal: number;
+    discount?: string;
+    filter?: string;
+    sort?: string;
+    maxPrice: number;
+    minPrice: number;
+    province?: string;
+}
+
 export interface TaskItem {
     id: string;
     taskNumber?: string;
@@ -45,6 +75,9 @@ export interface TaskItem {
     claimedCount?: number;
     extraReward?: number;
     extraCommission?: number;
+    // Multi-goods and multi-keywords from refactored version
+    goodsList?: TaskGoodsItem[];
+    keywords?: TaskKeywordItem[];
 }
 
 export interface ContinueTaskItem {
@@ -110,6 +143,9 @@ const normalizeTask = (raw: any): TaskItem => ({
     claimedCount: raw?.claimedCount,
     extraReward: raw?.extraReward || raw?.extraCommission,
     extraCommission: raw?.extraCommission,
+    // Multi-goods and multi-keywords from refactored version
+    goodsList: Array.isArray(raw?.goodsList) ? raw.goodsList : undefined,
+    keywords: Array.isArray(raw?.keywords) ? raw.keywords : undefined,
 });
 
 const normalizeContinue = (raw: any): ContinueTaskItem => ({

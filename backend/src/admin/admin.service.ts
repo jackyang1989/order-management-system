@@ -4,6 +4,7 @@ import { Repository, Between, MoreThanOrEqual, LessThan } from 'typeorm';
 import { User } from '../users/user.entity';
 import { Merchant, MerchantStatus } from '../merchants/merchant.entity';
 import { Task, TaskStatus } from '../tasks/task.entity';
+import { TaskGoods, TaskKeyword } from '../task-goods/task-goods.entity';
 import { Order, OrderStatus } from '../orders/order.entity';
 import { Withdrawal, WithdrawalStatus } from '../withdrawals/withdrawal.entity';
 import { WithdrawalsService } from '../withdrawals/withdrawals.service';
@@ -18,6 +19,10 @@ export class AdminService {
     private merchantsRepository: Repository<Merchant>,
     @InjectRepository(Task)
     private tasksRepository: Repository<Task>,
+    @InjectRepository(TaskGoods)
+    private taskGoodsRepository: Repository<TaskGoods>,
+    @InjectRepository(TaskKeyword)
+    private taskKeywordRepository: Repository<TaskKeyword>,
     @InjectRepository(Order)
     private ordersRepository: Repository<Order>,
     @InjectRepository(Withdrawal)
@@ -244,7 +249,7 @@ export class AdminService {
     limit = 20,
     status?: number,
   ): Promise<{
-    data: Task[];
+    data: (Task & { goodsList?: TaskGoods[]; keywords?: TaskKeyword[] })[];
     total: number;
     page: number;
     totalPages: number;
@@ -256,11 +261,49 @@ export class AdminService {
     }
 
     const total = await query.getCount();
-    const data = await query
+    const tasks = await query
       .orderBy('task.createdAt', 'DESC')
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
+
+    // Fetch goodsList and keywords for each task
+    const taskIds = tasks.map(t => t.id);
+    const allGoodsList = taskIds.length > 0
+      ? await this.taskGoodsRepository.find({
+          where: taskIds.map(id => ({ taskId: id })),
+          order: { createdAt: 'ASC' },
+        })
+      : [];
+    const allKeywords = taskIds.length > 0
+      ? await this.taskKeywordRepository.find({
+          where: taskIds.map(id => ({ taskId: id })),
+          order: { createdAt: 'ASC' },
+        })
+      : [];
+
+    // Group by taskId
+    const goodsByTask = new Map<string, TaskGoods[]>();
+    const keywordsByTask = new Map<string, TaskKeyword[]>();
+    for (const goods of allGoodsList) {
+      if (!goodsByTask.has(goods.taskId)) {
+        goodsByTask.set(goods.taskId, []);
+      }
+      goodsByTask.get(goods.taskId)!.push(goods);
+    }
+    for (const keyword of allKeywords) {
+      if (!keywordsByTask.has(keyword.taskId)) {
+        keywordsByTask.set(keyword.taskId, []);
+      }
+      keywordsByTask.get(keyword.taskId)!.push(keyword);
+    }
+
+    // Attach to tasks
+    const data = tasks.map(task => ({
+      ...task,
+      goodsList: goodsByTask.get(task.id) || [],
+      keywords: keywordsByTask.get(task.id) || [],
+    }));
 
     return {
       data,

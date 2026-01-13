@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchTaskDetail, TaskItem } from '../../../services/taskService';
+import { fetchTaskDetail, TaskItem, TaskGoodsItem, TaskKeywordItem } from '../../../services/taskService';
 import { createOrder } from '../../../services/orderService';
 import { fetchBuyerAccounts } from '../../../services/userService';
 import { MockBuyerAccount } from '../../../mocks/userMock';
@@ -151,24 +151,61 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 <div className="w-7" />
             </header>
 
-            {/* Product Info Card */}
+            {/* Product Info Card - Multi-Goods Support */}
             <div className="mx-0 my-2.5 border-b border-slate-200 bg-white p-4">
-                <div className="flex gap-3">
-                    {task.mainImage && (
-                        <img src={task.mainImage} alt="" className="h-20 w-20 rounded-md border border-slate-200 object-cover shrink-0" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-slate-800 line-clamp-2">{task.title}</div>
-                        <div className="mt-1 flex items-center gap-2">
-                            <span className="rounded bg-primary-100 px-1.5 py-0.5 text-xs text-primary-600">{platformName}</span>
-                            <span className="text-xs text-slate-500">{task.shopName}</span>
-                        </div>
-                        <div className="mt-2 flex items-center justify-between">
-                            <span className="text-lg font-bold text-danger-400">¥{task.price}</span>
-                            <span className="text-sm text-success-500">佣金 ¥{task.commission}</span>
+                <div className="mb-3 text-sm font-bold text-slate-800">商品信息</div>
+
+                {/* Multi-goods list */}
+                {task.goodsList && task.goodsList.length > 0 ? (
+                    <div className="space-y-3">
+                        {task.goodsList.map((goods, index) => (
+                            <div key={goods.id} className="flex gap-3 rounded border border-slate-100 p-2">
+                                {goods.pcImg && (
+                                    <img src={goods.pcImg} alt="" className="h-16 w-16 rounded border border-slate-200 object-cover shrink-0" />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className={cn(
+                                            'rounded px-1.5 py-0.5 text-xs',
+                                            index === 0 ? 'bg-primary-100 text-primary-600' : 'bg-slate-100 text-slate-500'
+                                        )}>
+                                            {index === 0 ? '主商品' : `副商品${index}`}
+                                        </span>
+                                    </div>
+                                    <div className="text-sm text-slate-700 line-clamp-2">{goods.name}</div>
+                                    {goods.specName && goods.specValue && (
+                                        <div className="text-xs text-slate-400 mt-1">
+                                            规格：{goods.specName}: {goods.specValue}
+                                        </div>
+                                    )}
+                                    <div className="flex items-center justify-between mt-1">
+                                        <span className="text-danger-500 font-medium">¥{goods.price}</span>
+                                        <span className="text-xs text-slate-400">x{goods.num}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    /* Fallback: single product display */
+                    <div className="flex gap-3">
+                        {task.mainImage && (
+                            <img src={task.mainImage} alt="" className="h-20 w-20 rounded-md border border-slate-200 object-cover shrink-0" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-slate-800 line-clamp-2">{task.title}</div>
+                            <div className="mt-1 flex items-center gap-2">
+                                <span className="rounded bg-primary-100 px-1.5 py-0.5 text-xs text-primary-600">{platformName}</span>
+                                <span className="text-xs text-slate-500">{task.shopName}</span>
+                            </div>
+                            <div className="mt-2 flex items-center justify-between">
+                                <span className="text-lg font-bold text-danger-400">¥{task.price}</span>
+                                <span className="text-sm text-success-500">佣金 ¥{task.commission}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
+
                 {/* 任务统计 */}
                 {task.count && (
                     <div className="mt-3 flex justify-around border-t border-slate-100 pt-3">
@@ -186,15 +223,69 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                         </div>
                     </div>
                 )}
+
+                {/* Commission and platform info for multi-goods */}
+                {task.goodsList && task.goodsList.length > 0 && (
+                    <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
+                        <div className="flex items-center gap-2">
+                            <span className="rounded bg-primary-100 px-1.5 py-0.5 text-xs text-primary-600">{platformName}</span>
+                            <span className="text-xs text-slate-500">{task.shopName}</span>
+                        </div>
+                        <span className="text-sm text-success-500 font-medium">佣金 ¥{task.commission}</span>
+                    </div>
+                )}
             </div>
 
-            {/* Entry Method 进店方式 */}
+            {/* Entry Method 进店方式 - Multi-Keywords Support */}
             <div className="mx-0 my-2.5 border-b border-slate-200 bg-white p-4">
                 <div className="mb-3 flex items-center gap-2">
                     <span className="text-sm font-bold text-slate-800">进店方式</span>
-                    <span className="rounded bg-blue-100 px-1.5 py-0.5 text-xs text-blue-600">{entryMethod.type}</span>
+                    <span className="rounded bg-blue-100 px-1.5 py-0.5 text-xs text-blue-600">
+                        {task.keywords && task.keywords.length > 0 ? '关键词' : entryMethod.type}
+                    </span>
                 </div>
-                <div>{entryMethod.content}</div>
+
+                {/* Multi-keywords display */}
+                {task.keywords && task.keywords.length > 0 ? (
+                    <div className="space-y-3">
+                        {task.keywords.map((kw, index) => (
+                            <div key={kw.id} className="rounded border border-slate-100 p-3">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className={cn(
+                                        'rounded px-1.5 py-0.5 text-xs',
+                                        index === 0 ? 'bg-primary-100 text-primary-600' : 'bg-slate-100 text-slate-500'
+                                    )}>
+                                        关键词 {index + 1}
+                                    </span>
+                                </div>
+                                <div className="rounded bg-primary-50 px-3 py-2 mb-2">
+                                    <div className="text-base font-bold text-primary-600">{kw.keyword}</div>
+                                </div>
+                                {/* Filter settings */}
+                                <div className="flex flex-wrap gap-1.5 text-xs">
+                                    {kw.sort && (
+                                        <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">
+                                            排序: {kw.sort === 'default' ? '综合' : kw.sort === 'sales' ? '销量' : kw.sort}
+                                        </span>
+                                    )}
+                                    {kw.province && (
+                                        <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">
+                                            发货地: {kw.province}
+                                        </span>
+                                    )}
+                                    {(kw.minPrice > 0 || kw.maxPrice > 0) && (
+                                        <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">
+                                            价格: ¥{kw.minPrice || 0}-{kw.maxPrice || '不限'}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    /* Fallback: legacy entry method */
+                    <div>{entryMethod.content}</div>
+                )}
             </div>
 
             {/* Browse Requirements 浏览要求 */}

@@ -86,6 +86,39 @@ interface Task {
     checkPassword?: string;
     updatedAt: string;
     goodsNum?: number;
+    // Multi-goods and multi-keywords from refactored version
+    goodsList?: TaskGoodsItem[];
+    keywords?: TaskKeywordItem[];
+}
+
+// Multi-goods item from task_goods table
+interface TaskGoodsItem {
+    id: string;
+    taskId: string;
+    goodsId?: string;
+    name: string;
+    pcImg?: string;
+    link?: string;
+    specName?: string;
+    specValue?: string;
+    price: number;
+    num: number;
+    totalPrice: number;
+}
+
+// Multi-keyword item from task_keywords table
+interface TaskKeywordItem {
+    id: string;
+    taskId: string;
+    taskGoodsId?: string;
+    keyword: string;
+    terminal: number;
+    discount?: string;
+    filter?: string;
+    sort?: string;
+    maxPrice: number;
+    minPrice: number;
+    province?: string;
 }
 
 const statusLabels: Record<number, { text: string; color: 'slate' | 'green' | 'blue' | 'red' | 'amber' }> = {
@@ -594,18 +627,101 @@ export default function AdminTasksPage() {
                                 </div>
                             </div>
 
-                            {/* 进店方式 */}
+                            {/* 商品信息 - Multi-goods Support */}
+                            <div className="mb-6">
+                                <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">商品信息</h3>
+                                <div className="rounded-md bg-[#f9fafb] p-4">
+                                    {detailModal.goodsList && detailModal.goodsList.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {detailModal.goodsList.map((goods, index) => (
+                                                <div key={goods.id} className="flex gap-3 rounded border border-slate-200 bg-white p-3">
+                                                    {goods.pcImg && (
+                                                        <img src={goods.pcImg} alt="" className="h-16 w-16 rounded border border-slate-200 object-cover shrink-0" />
+                                                    )}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <Badge variant="soft" color={index === 0 ? 'blue' : 'slate'}>
+                                                                {index === 0 ? '主商品' : `副商品${index}`}
+                                                            </Badge>
+                                                        </div>
+                                                        <div className="text-sm text-slate-700 line-clamp-2">{goods.name}</div>
+                                                        {goods.specName && goods.specValue && (
+                                                            <div className="text-xs text-slate-400 mt-1">
+                                                                规格：{goods.specName}: {goods.specValue}
+                                                            </div>
+                                                        )}
+                                                        <div className="flex items-center justify-between mt-1">
+                                                            <span className="text-danger-500 font-medium">¥{goods.price}</span>
+                                                            <span className="text-xs text-slate-400">x{goods.num}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        /* Fallback: single product display */
+                                        <div className="flex gap-3">
+                                            {detailModal.mainImage && (
+                                                <img src={detailModal.mainImage} alt="" className="h-16 w-16 rounded border border-slate-200 object-cover shrink-0" />
+                                            )}
+                                            <div className="flex-1">
+                                                <div className="text-sm text-slate-700">{detailModal.title}</div>
+                                                <div className="text-danger-500 font-medium mt-1">¥{Number(detailModal.goodsPrice).toFixed(2)}</div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* 进店方式 - Multi-keywords Support */}
                             <div className="mb-6">
                                 <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">进店方式</h3>
                                 <div className="rounded-md bg-[#f9fafb] p-4">
-                                    <div className="flex items-start gap-3">
-                                        <Badge variant="soft" color="blue">{entryMethod.type}</Badge>
-                                        <div className="flex-1">{entryMethod.content}</div>
-                                    </div>
-                                    {detailModal.url && (
-                                        <div className="mt-3">
-                                            <a href={detailModal.url} target="_blank" rel="noopener noreferrer" className="text-[13px] text-primary-500 hover:underline">查看商品链接 →</a>
+                                    {detailModal.keywords && detailModal.keywords.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {detailModal.keywords.map((kw, index) => (
+                                                <div key={kw.id} className="rounded border border-slate-200 bg-white p-3">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <Badge variant="soft" color={index === 0 ? 'blue' : 'slate'}>
+                                                            关键词 {index + 1}
+                                                        </Badge>
+                                                    </div>
+                                                    <div className="rounded bg-primary-50 px-3 py-2 mb-2">
+                                                        <span className="text-base font-bold text-primary-600">{kw.keyword}</span>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1.5 text-xs">
+                                                        {kw.sort && (
+                                                            <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">
+                                                                排序: {kw.sort === 'default' ? '综合' : kw.sort === 'sales' ? '销量' : kw.sort}
+                                                            </span>
+                                                        )}
+                                                        {kw.province && (
+                                                            <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">
+                                                                发货地: {kw.province}
+                                                            </span>
+                                                        )}
+                                                        {(kw.minPrice > 0 || kw.maxPrice > 0) && (
+                                                            <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">
+                                                                价格: ¥{kw.minPrice || 0}-{kw.maxPrice || '不限'}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
+                                    ) : (
+                                        /* Fallback: legacy entry method */
+                                        <>
+                                            <div className="flex items-start gap-3">
+                                                <Badge variant="soft" color="blue">{entryMethod.type}</Badge>
+                                                <div className="flex-1">{entryMethod.content}</div>
+                                            </div>
+                                            {detailModal.url && (
+                                                <div className="mt-3">
+                                                    <a href={detailModal.url} target="_blank" rel="noopener noreferrer" className="text-[13px] text-primary-500 hover:underline">查看商品链接 →</a>
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </div>

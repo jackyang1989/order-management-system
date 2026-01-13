@@ -70,6 +70,40 @@ interface TaskDetail {
     checkPassword?: string;
     createdAt: string;
     updatedAt: string;
+    // 多商品列表
+    goodsList?: TaskGoodsItem[];
+    // 多关键词列表
+    keywords?: TaskKeywordItem[];
+}
+
+// 任务商品项
+interface TaskGoodsItem {
+    id: string;
+    taskId: string;
+    goodsId?: string;
+    name: string;
+    pcImg?: string;
+    link?: string;
+    specName?: string;
+    specValue?: string;
+    price: number;
+    num: number;
+    totalPrice: number;
+}
+
+// 任务关键词项
+interface TaskKeywordItem {
+    id: string;
+    taskId: string;
+    taskGoodsId?: string;
+    keyword: string;
+    terminal: number;
+    discount?: string;
+    filter?: string;
+    sort?: string;
+    maxPrice: number;
+    minPrice: number;
+    province?: string;
 }
 
 interface OrderItem {
@@ -283,38 +317,123 @@ export default function TaskDetailPage() {
             <div className="grid grid-cols-3 gap-6">
                 {/* Left Column (2/3) */}
                 <div className="col-span-2 space-y-6">
-                    {/* Product Info */}
+                    {/* Product Info - 多商品列表 */}
                     <Card className="bg-white" noPadding>
                         <div className="px-6 py-5">
-                            <h2 className="mb-5 text-base font-semibold">商品信息</h2>
-                            <div className="flex gap-4">
-                                {task.mainImage && <img src={task.mainImage} alt="" className="h-[120px] w-[120px] rounded-md border border-[#e5e7eb] object-cover" />}
-                                <div className="min-w-0 flex-1">
-                                    <div className="mb-2 text-base font-medium">{task.title}</div>
-                                    <div className="mb-2 flex items-center gap-2 text-sm text-[#6b7280]">
-                                        <Badge variant="soft" color="blue" className="text-xs">{TaskTypeMap[task.taskType] || '未知平台'}</Badge>
-                                        {task.shopName}
-                                    </div>
-                                    <div className="mb-2 text-xl font-bold text-danger-400">¥{Number(task.goodsPrice).toFixed(2)}</div>
-                                    {task.url && <a href={task.url} target="_blank" rel="noopener noreferrer" className="text-[13px] text-primary-500">查看商品链接 →</a>}
+                            <h2 className="mb-5 text-base font-semibold">
+                                商品信息
+                                {(task.goodsList?.length || 0) > 1 && (
+                                    <span className="ml-2 text-sm font-normal text-[#6b7280]">
+                                        (共{task.goodsList?.length}个商品)
+                                    </span>
+                                )}
+                            </h2>
+                            {/* 如果有多商品列表，显示列表；否则显示单商品 */}
+                            {task.goodsList && task.goodsList.length > 0 ? (
+                                <div className="space-y-4">
+                                    {task.goodsList.map((goods, index) => (
+                                        <div key={goods.id} className={cn(
+                                            "flex gap-4 rounded-lg p-3",
+                                            index === 0 ? "border-2 border-primary-200 bg-primary-50" : "border border-[#e5e7eb] bg-slate-50"
+                                        )}>
+                                            {goods.pcImg && (
+                                                <img src={goods.pcImg} alt="" className="h-[80px] w-[80px] rounded-md border border-[#e5e7eb] object-cover" />
+                                            )}
+                                            <div className="min-w-0 flex-1">
+                                                <div className="mb-1 flex items-center gap-2">
+                                                    <Badge variant="soft" color={index === 0 ? "blue" : "slate"} className="text-xs">
+                                                        {index === 0 ? '主商品' : `副商品${index}`}
+                                                    </Badge>
+                                                    {goods.specName && goods.specValue && (
+                                                        <span className="text-xs text-[#6b7280]">
+                                                            {goods.specName}: {goods.specValue}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="mb-1 text-sm font-medium line-clamp-2">{goods.name}</div>
+                                                <div className="flex items-center gap-4 text-sm">
+                                                    <span className="font-bold text-danger-400">¥{Number(goods.price).toFixed(2)}</span>
+                                                    <span className="text-[#6b7280]">×{goods.num}</span>
+                                                    <span className="text-[#6b7280]">小计: ¥{Number(goods.totalPrice).toFixed(2)}</span>
+                                                </div>
+                                                {goods.link && (
+                                                    <a href={goods.link} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-500">
+                                                        查看链接 →
+                                                    </a>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            </div>
+                            ) : (
+                                /* 兼容旧版单商品显示 */
+                                <div className="flex gap-4">
+                                    {task.mainImage && <img src={task.mainImage} alt="" className="h-[120px] w-[120px] rounded-md border border-[#e5e7eb] object-cover" />}
+                                    <div className="min-w-0 flex-1">
+                                        <div className="mb-2 text-base font-medium">{task.title}</div>
+                                        <div className="mb-2 flex items-center gap-2 text-sm text-[#6b7280]">
+                                            <Badge variant="soft" color="blue" className="text-xs">{TaskTypeMap[task.taskType] || '未知平台'}</Badge>
+                                            {task.shopName}
+                                        </div>
+                                        <div className="mb-2 text-xl font-bold text-danger-400">¥{Number(task.goodsPrice).toFixed(2)}</div>
+                                        {task.url && <a href={task.url} target="_blank" rel="noopener noreferrer" className="text-[13px] text-primary-500">查看商品链接 →</a>}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </Card>
 
-                    {/* Entry Method 进店方式 */}
+                    {/* Entry Method & Keywords 进店方式与关键词 */}
                     <Card className="bg-white" noPadding>
                         <div className="px-6 py-5">
                             <h2 className="mb-5 text-base font-semibold">进店方式</h2>
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 <div className="flex items-start gap-4">
                                     <Badge variant="soft" color="blue">{entryMethod.type}</Badge>
                                     <div className="flex-1">{entryMethod.content}</div>
                                 </div>
-                                {task.keyword && entryMethod.type === '关键词' && (
-                                    <div className="text-sm text-[#6b7280]">
-                                        搜索关键词: <span className="font-medium text-primary-600">{task.keyword}</span>
+
+                                {/* 多关键词列表 */}
+                                {task.keywords && task.keywords.length > 0 ? (
+                                    <div className="space-y-3">
+                                        <div className="text-sm font-medium text-[#3b4559]">关键词配置 ({task.keywords.length}个)</div>
+                                        <div className="space-y-2">
+                                            {task.keywords.map((kw, index) => (
+                                                <div key={kw.id} className="rounded-lg border border-[#e5e7eb] bg-slate-50 p-3">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <Badge variant="soft" color="blue" className="text-xs">
+                                                                关键词{index + 1}
+                                                            </Badge>
+                                                            <span className="font-medium text-primary-600">{kw.keyword}</span>
+                                                        </div>
+                                                        <Badge variant="soft" color="slate" className="text-xs">
+                                                            {kw.terminal === 1 ? '电脑端' : '手机端'}
+                                                        </Badge>
+                                                    </div>
+                                                    {/* 筛选设置 */}
+                                                    {(kw.sort || kw.province || kw.minPrice > 0 || kw.maxPrice > 0) && (
+                                                        <div className="mt-2 flex flex-wrap gap-2 text-xs text-[#6b7280]">
+                                                            {kw.sort && <span className="rounded bg-white px-2 py-0.5">排序: {kw.sort}</span>}
+                                                            {kw.province && <span className="rounded bg-white px-2 py-0.5">发货地: {kw.province}</span>}
+                                                            {(kw.minPrice > 0 || kw.maxPrice > 0) && (
+                                                                <span className="rounded bg-white px-2 py-0.5">
+                                                                    价格: ¥{kw.minPrice || 0} - ¥{kw.maxPrice || '不限'}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
+                                ) : (
+                                    /* 兼容旧版单关键词 */
+                                    task.keyword && entryMethod.type === '关键词' && (
+                                        <div className="text-sm text-[#6b7280]">
+                                            搜索关键词: <span className="font-medium text-primary-600">{task.keyword}</span>
+                                        </div>
+                                    )
                                 )}
                             </div>
                         </div>
