@@ -78,52 +78,49 @@ export default function AdminCommissionPage() {
     };
 
     return (
-        <div className="space-y-4">
-            <Card
-                title="佣金比例设置"
-                actions={<Button onClick={() => setEditing({})}>+ 新增比例</Button>}
-                noPadding
-                className="bg-white"
-            />
+        <>
+            <Card className="p-6">
+                <div className="mb-4 flex items-center justify-between">
+                    <span className="text-base font-medium">佣金比例设置</span>
+                    <Button onClick={() => setEditing({})}>+ 新增比例</Button>
+                </div>
 
-            <Card className="overflow-hidden bg-white p-0">
-                <div className="overflow-x-auto">
-                    <table className="min-w-[600px] w-full border-collapse">
-                        <thead>
-                            <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
-                                <th className="px-4 py-3.5 text-left text-sm font-medium">商品限额 (元)</th>
-                                <th className="px-4 py-3.5 text-left text-sm font-medium">收取商家银锭 (个)</th>
-                                <th className="px-4 py-3.5 text-left text-sm font-medium">发放买手银锭 (个)</th>
-                                <th className="px-4 py-3.5 text-center text-sm font-medium">操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {rates.map(rate => (
-                                <tr key={rate.id} className="border-b border-[#f3f4f6]">
-                                    <td className="px-4 py-3.5">{Number(rate.maxGoodsPrice).toFixed(2)}</td>
-                                    <td className="px-4 py-3.5">{Number(rate.merchantReward).toFixed(2)}</td>
-                                    <td className="px-4 py-3.5">{Number(rate.userReward).toFixed(2)}</td>
-                                    <td className="px-4 py-3.5 text-center">
-                                        <button
-                                            onClick={() => setEditing(rate)}
-                                            className="mr-2 cursor-pointer border-none bg-transparent text-primary-600 hover:text-blue-700"
-                                        >
-                                            编辑
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(rate.id)}
-                                            className="cursor-pointer border-none bg-transparent text-danger-400 hover:text-danger-500"
-                                        >
-                                            删除
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                <div className="overflow-hidden">
+                    {loading ? (
+                        <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
+                    ) : rates.length === 0 ? (
+                        <div className="py-12 text-center text-[#9ca3af]">暂无佣金比例配置</div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full border-collapse">
+                                <thead>
+                                    <tr className="bg-[#f9fafb]">
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">商品限额 (元)</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">收取商家银锭 (个)</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium">发放买手银锭 (个)</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {rates.map(rate => (
+                                        <tr key={rate.id} className="border-t border-[#f3f4f6]">
+                                            <td className="px-4 py-3.5">{Number(rate.maxGoodsPrice).toFixed(2)}</td>
+                                            <td className="px-4 py-3.5">{Number(rate.merchantReward).toFixed(2)}</td>
+                                            <td className="px-4 py-3.5">{Number(rate.userReward).toFixed(2)}</td>
+                                            <td className="px-4 py-3.5 text-center">
+                                                <div className="flex justify-center gap-2">
+                                                    <Button size="sm" variant="secondary" onClick={() => setEditing(rate)}>编辑</Button>
+                                                    <Button size="sm" variant="outline" className="text-red-500 hover:bg-red-50" onClick={() => handleDelete(rate.id)}>删除</Button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
             </Card>
-
             {/* Edit Modal */}
             <Modal
                 title={editing?.id ? '编辑佣金比例' : '新增佣金比例'}
@@ -158,6 +155,6 @@ export default function AdminCommissionPage() {
                     </div>
                 )}
             </Modal>
-        </div>
+        </>
     );
 }

@@ -133,17 +133,16 @@ export default function PlatformsPage() {
 
     return (
         <div className="space-y-6">
-            {/* Page Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-xl font-semibold">平台管理</h2>
-                    <p className="mt-1 text-sm text-[#6b7280]">管理电商平台分类，如淘宝、天猫、京东、拼多多等</p>
+            <Card className="bg-white p-6">
+                <div className="mb-4 flex items-center justify-between">
+                    <span className="text-base font-medium">平台管理</span>
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm text-[#6b7280]">共 {platforms.length} 条记录</span>
+                        <Button onClick={handleCreate}>+ 添加平台</Button>
+                    </div>
                 </div>
-                <Button onClick={handleCreate}>+ 添加平台</Button>
-            </div>
 
-            {/* Platform List */}
-            <Card className="overflow-hidden bg-white p-0">
+                <div className="overflow-hidden">
                 {loading ? (
                     <div className="py-16 text-center text-[#9ca3af]">加载中...</div>
                 ) : error ? (
@@ -152,25 +151,25 @@ export default function PlatformsPage() {
                         <Button onClick={loadPlatforms} variant="secondary">重试</Button>
                     </div>
                 ) : platforms.length === 0 ? (
-                    <div className="py-16 text-center text-[#9ca3af]">暂无平台数据</div>
+                    <div className="py-12 text-center text-[#9ca3af]">暂无平台数据</div>
                 ) : (
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto rounded-lg border border-[#f3f4f6]">
                         <table className="min-w-[900px] w-full border-collapse">
                             <thead>
-                                <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
-                                    <th className="px-4 py-4 text-left text-sm font-medium">排序</th>
-                                    <th className="px-4 py-4 text-left text-sm font-medium">图标</th>
-                                    <th className="px-4 py-4 text-left text-sm font-medium">平台代码</th>
-                                    <th className="px-4 py-4 text-left text-sm font-medium">平台名称</th>
-                                    <th className="px-4 py-4 text-left text-sm font-medium">基础费率</th>
-                                    <th className="px-4 py-4 text-left text-sm font-medium">淘口令</th>
-                                    <th className="px-4 py-4 text-left text-sm font-medium">状态</th>
-                                    <th className="px-4 py-4 text-center text-sm font-medium">操作</th>
+                                <tr className="bg-[#f9fafb]">
+                                    <th className="px-4 py-3.5 text-left text-sm font-medium">排序</th>
+                                    <th className="px-4 py-3.5 text-left text-sm font-medium">图标</th>
+                                    <th className="px-4 py-3.5 text-left text-sm font-medium">平台代码</th>
+                                    <th className="px-4 py-3.5 text-left text-sm font-medium">平台名称</th>
+                                    <th className="px-4 py-3.5 text-left text-sm font-medium">基础费率</th>
+                                    <th className="px-4 py-3.5 text-left text-sm font-medium">淘口令</th>
+                                    <th className="px-4 py-3.5 text-left text-sm font-medium">状态</th>
+                                    <th className="px-4 py-3.5 text-center text-sm font-medium">操作</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {platforms.sort((a, b) => a.sortOrder - b.sortOrder).map(platform => (
-                                    <tr key={platform.id} className={cn('border-b border-[#f3f4f6]', !platform.isActive && 'opacity-50')}>
+                                    <tr key={platform.id} className={cn('border-t border-[#f3f4f6]', !platform.isActive && 'opacity-50')}>
                                         <td className="px-4 py-4">{platform.sortOrder}</td>
                                         <td className="px-4 py-4 text-2xl">{platform.icon || '🛒'}</td>
                                         <td className="px-4 py-4 font-mono">{platform.code}</td>
@@ -209,6 +208,7 @@ export default function PlatformsPage() {
                         </table>
                     </div>
                 )}
+                </div>
             </Card>
 
             {/* Edit Modal */}

@@ -147,46 +147,45 @@ export default function VipConfigPage() {
 
     return (
         <div className="space-y-6">
-            {/* Page Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-xl font-semibold">VIP等级配置</h2>
-                    <p className="mt-1 text-sm text-[#6b7280]">配置买手和商家的VIP等级及权益</p>
+            <Card className="bg-white p-6">
+                <div className="mb-4 flex items-center justify-between">
+                    <span className="text-base font-medium">VIP等级配置</span>
+                    <div className="flex items-center gap-3">
+                        <Button onClick={handleCreate}>+ 添加VIP等级</Button>
+                    </div>
                 </div>
-                <Button onClick={handleCreate}>+ 添加VIP等级</Button>
-            </div>
 
-            {/* Tab Switch */}
-            <div className="inline-flex rounded-md bg-white p-1">
-                <button
-                    onClick={() => setActiveTab('buyer')}
-                    className={cn(
-                        'rounded-md px-8 py-2.5 text-sm transition-colors',
-                        activeTab === 'buyer'
-                            ? 'bg-primary-600 font-medium text-white'
-                            : 'text-[#6b7280] hover:text-[#374151]'
-                    )}
-                >
-                    👤 买手VIP
-                </button>
-                <button
-                    onClick={() => setActiveTab('merchant')}
-                    className={cn(
-                        'rounded-md px-8 py-2.5 text-sm transition-colors',
-                        activeTab === 'merchant'
-                            ? 'bg-primary-600 font-medium text-white'
-                            : 'text-[#6b7280] hover:text-[#374151]'
-                    )}
-                >
-                    🏪 商家VIP
-                </button>
-            </div>
+                {/* Tab Switch */}
+                <div className="mb-6 inline-flex rounded-md bg-[#f3f4f6] p-1">
+                    <button
+                        onClick={() => setActiveTab('buyer')}
+                        className={cn(
+                            'rounded-md px-6 py-2 text-sm transition-colors',
+                            activeTab === 'buyer'
+                                ? 'bg-white font-medium text-[#3b4559] shadow-sm'
+                                : 'text-[#6b7280] hover:text-[#374151]'
+                        )}
+                    >
+                        👤 买手VIP
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('merchant')}
+                        className={cn(
+                            'rounded-md px-6 py-2 text-sm transition-colors',
+                            activeTab === 'merchant'
+                                ? 'bg-white font-medium text-[#3b4559] shadow-sm'
+                                : 'text-[#6b7280] hover:text-[#374151]'
+                        )}
+                    >
+                        🏪 商家VIP
+                    </button>
+                </div>
 
-            {/* VIP Level Cards */}
-            {loading ? (
-                <div className="py-16 text-center text-[#9ca3af]">加载中...</div>
-            ) : (
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5">
+                {/* VIP Level Cards */}
+                {loading ? (
+                    <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
+                ) : (
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
                     {filteredLevels.map(vip => {
                         // Map colors to text/bg shades
                         let colorStyles = {
@@ -277,6 +276,7 @@ export default function VipConfigPage() {
                     })}
                 </div>
             )}
+            </Card>
 
             {/* Edit Modal */}
             <Modal title={editingId ? '编辑VIP等级' : '添加VIP等级'} open={showModal} onClose={() => setShowModal(false)} className="max-w-xl">

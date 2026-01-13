@@ -254,14 +254,14 @@ export default function AdminSystemParamsPage() {
 
     return (
         <div className="space-y-6">
-            <Card className="bg-white">
-                <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-                    <h2 className="text-lg font-semibold text-[#3b4559]">系统参数配置</h2>
+            <Card className="bg-white p-6">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+                    <span className="text-base font-medium">系统参数配置</span>
                     <div className="flex items-center gap-2">
-                        <Button variant="secondary" onClick={loadConfig} className="flex items-center gap-1">
+                        <Button variant="secondary" onClick={loadConfig}>
                             刷新
                         </Button>
-                        <Button onClick={handleSave} loading={saving} className="flex items-center gap-1">
+                        <Button onClick={handleSave} loading={saving}>
                             保存配置
                         </Button>
                     </div>

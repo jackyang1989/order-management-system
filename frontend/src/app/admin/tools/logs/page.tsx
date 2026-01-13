@@ -108,65 +108,47 @@ export default function LogsPage() {
     const totalPages = Math.ceil(pagination.total / pagination.limit);
 
     return (
-        <div className="space-y-5">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-xl font-semibold">操作日志</h2>
-                    <p className="mt-2 text-sm text-[#6b7280]">查看管理员操作记录</p>
+        <div className="space-y-6">
+            <Card className="bg-white p-6">
+                <div className="mb-4 flex items-center justify-between">
+                    <span className="text-base font-medium">操作日志</span>
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm text-[#6b7280]">共 {pagination.total} 条记录</span>
+                        <Button className="bg-green-500 hover:bg-success-400" onClick={handleExport}>导出当前页</Button>
+                    </div>
                 </div>
-                <div className="flex gap-3">
-                    <Button className="bg-green-500 hover:bg-success-400" onClick={handleExport}>导出当前页</Button>
-                </div>
-            </div>
 
-            {/* Filters */}
-            <Card className="flex flex-wrap items-end gap-4 bg-white p-5">
-                <div>
-                    <label className="mb-1.5 block text-xs text-[#6b7280]">模块</label>
+                {/* Filters */}
+                <div className="mb-6 flex flex-wrap items-center gap-3">
                     <Select
                         value={filters.module}
                         onChange={v => setFilters({ ...filters, module: v })}
                         options={modules}
-                        className="min-w-[140px]"
+                        className="w-32"
                     />
-                </div>
-                <div>
-                    <label className="mb-1.5 block text-xs text-[#6b7280]">操作人</label>
                     <Input
-                        placeholder="用户名"
+                        placeholder="操作人"
                         value={filters.username}
                         onChange={e => setFilters({ ...filters, username: e.target.value })}
-                        className="w-36"
+                        className="w-32"
                     />
-                </div>
-                <div>
-                    <label className="mb-1.5 block text-xs text-[#6b7280]">开始日期</label>
                     <input
                         type="date"
                         value={filters.startDate}
                         onChange={e => setFilters({ ...filters, startDate: e.target.value })}
-                        className="rounded-md border border-[#e5e7eb] px-4 py-2 text-sm"
+                        className="rounded-md border border-[#e5e7eb] px-3 py-2 text-sm"
                     />
-                </div>
-                <div>
-                    <label className="mb-1.5 block text-xs text-[#6b7280]">结束日期</label>
                     <input
                         type="date"
                         value={filters.endDate}
                         onChange={e => setFilters({ ...filters, endDate: e.target.value })}
-                        className="rounded-md border border-[#e5e7eb] px-4 py-2 text-sm"
+                        className="rounded-md border border-[#e5e7eb] px-3 py-2 text-sm"
                     />
+                    <Button variant="secondary" onClick={() => setFilters({ module: '', username: '', startDate: '', endDate: '' })}>重置</Button>
                 </div>
-                <Button variant="secondary" onClick={() => setFilters({ module: '', username: '', startDate: '', endDate: '' })}>重置</Button>
-            </Card>
 
-            {/* Logs Table */}
-            <Card className="overflow-hidden bg-white p-0">
-                <div className="flex items-center justify-between border-b border-[#f3f4f6] px-6 py-4">
-                    <span className="text-sm font-medium">日志记录</span>
-                    <span className="text-xs text-[#9ca3af]">共 {pagination.total} 条记录</span>
-                </div>
+                {/* Logs Table */}
+                <div className="overflow-hidden">
                 {loading ? (
                     <div className="py-16 text-center text-[#9ca3af]">加载中...</div>
                 ) : logs.length === 0 ? (
@@ -234,6 +216,7 @@ export default function LogsPage() {
                         )}
                     </>
                 )}
+                </div>
             </Card>
         </div>
     );
