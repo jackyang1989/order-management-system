@@ -498,7 +498,7 @@ export default function TaskDetailPage() {
                                 {/* 结算方式 */}
                                 <div className="rounded-md border border-[#e5e7eb] p-3">
                                     <div className="text-xs text-[#6b7280]">结算方式</div>
-                                    <div className="mt-1 text-sm font-medium text-[#3b4559]">{TerminalMap[task.terminal] || '未知'}</div>
+                                    <div className="mt-1 text-sm font-medium text-[#3b4559]">{TerminalLabels[task.terminal as TerminalType] || '未知'}</div>
                                 </div>
                                 {/* 包邮 */}
                                 <div className="rounded-md border border-[#e5e7eb] p-3">

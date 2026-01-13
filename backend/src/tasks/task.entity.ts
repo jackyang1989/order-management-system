@@ -310,8 +310,23 @@ export class Task {
   @Column({ default: false })
   needContactCS: boolean; // 联系客服
 
+  @Column({ type: 'text', nullable: true })
+  contactCSContent: string; // 联系客服内容
+
   @Column({ default: false })
   needAddCart: boolean; // 加入购物车
+
+  @Column({ type: 'int', default: 3 })
+  compareCount: number; // 货比数量（默认3家）
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  weight: number; // 包裹重量 (kg)
+
+  @Column({ default: false })
+  fastRefund: boolean; // 快速返款服务
+
+  @Column({ type: 'int', default: 0 })
+  orderInterval: number; // 任务接单间隔 (分钟)
 
   @Column({ type: 'int', default: 15 })
   totalBrowseMinutes: number; // 总浏览时长

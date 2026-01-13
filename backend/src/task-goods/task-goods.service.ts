@@ -34,6 +34,8 @@ export class TaskGoodsService {
       price: dto.price,
       num: dto.num || 1,
       totalPrice,
+      orderSpecs: dto.orderSpecs ? JSON.stringify(dto.orderSpecs) : null,
+      verifyCode: dto.verifyCode,
     });
     return this.taskGoodsRepository.save(taskGoods);
   }
@@ -55,6 +57,8 @@ export class TaskGoodsService {
         price: dto.price,
         num: dto.num || 1,
         totalPrice,
+        orderSpecs: dto.orderSpecs ? JSON.stringify(dto.orderSpecs) : null,
+        verifyCode: dto.verifyCode,
       });
     });
     return this.taskGoodsRepository.save(taskGoodsList);

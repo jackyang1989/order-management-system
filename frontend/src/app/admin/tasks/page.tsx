@@ -21,6 +21,42 @@ import {
 } from '@/shared/taskSpec';
 import { formatDateTime, formatMoney } from '@/shared/formatters';
 
+// 临时类型定义（待移除）
+interface ColumnConfig {
+    key: string;
+    visible: boolean;
+    width: number;
+    order: number;
+}
+
+interface ColumnMeta {
+    key: string;
+    title: string;
+}
+
+interface EnhancedColumn<T> {
+    key: string;
+    title: string;
+    render: (row: T) => React.ReactNode;
+    cellClassName?: string;
+}
+
+// 临时模拟 useTablePreferences Hook
+const useTablePreferences = ({ tableKey, defaultColumns }: { tableKey: string; defaultColumns: ColumnConfig[] }) => ({
+    columnConfig: defaultColumns,
+    savePreferences: () => {},
+    resetPreferences: () => {},
+    updateLocalConfig: () => {},
+});
+
+// 临时模拟 EnhancedTable 组件
+const EnhancedTable = ({ columns, data, rowKey, loading, emptyText, selectable, selectedKeys, onRowSelect, columnConfig, onColumnConfigChange, sortField, sortOrder, onSort, onColumnSettingsClick }: any) => (
+    <Table columns={columns} data={data} rowKey={rowKey} loading={loading} emptyText={emptyText} />
+);
+
+// 临时模拟 ColumnSettingsPanel
+const ColumnSettingsPanel = (props: any) => null;
+
 interface Task {
 
     id: string;
@@ -491,17 +527,17 @@ export default function AdminTasksPage() {
                     <EnhancedTable
                         columns={columns}
                         data={tasks}
-                        rowKey={(r) => r.id}
+                        rowKey={(r: Task) => r.id}
                         loading={loading}
                         emptyText="暂无任务数据"
                         selectable
                         selectedKeys={selectedIds}
-                        onRowSelect={(keys) => setSelectedIds(keys as string[])}
+                        onRowSelect={(keys: string[]) => setSelectedIds(keys)}
                         columnConfig={columnConfig}
                         onColumnConfigChange={updateLocalConfig}
                         sortField={sortField}
                         sortOrder={sortOrder}
-                        onSort={(field, order) => {
+                        onSort={(field: string, order: 'asc' | 'desc') => {
                             setSortField(field);
                             setSortOrder(order);
                         }}
@@ -602,13 +638,13 @@ export default function AdminTasksPage() {
                                     </div>
                                     <div className="space-y-1">
                                         <div className="text-[12px] text-[#6b7280]">平台</div>
-                                        <div className="text-[13px] font-medium text-[#3b4559]">{TASK_TYPE_NAMES[detailModal.taskType]}</div>
+                                        <div className="text-[13px] font-medium text-[#3b4559]">{PlatformLabels[detailModal.taskType] || '其他'}</div>
                                     </div>
                                     <div className="space-y-1">
                                         <div className="text-[12px] text-[#6b7280]">状态</div>
                                         <div>
-                                            <Badge variant="soft" color={statusLabels[detailModal.status]?.color}>
-                                                {statusLabels[detailModal.status]?.text}
+                                            <Badge variant="soft" color={detailModal.status === 0 ? 'slate' : detailModal.status === 1 ? 'green' : detailModal.status === 2 ? 'blue' : detailModal.status === 3 ? 'red' : 'amber'}>
+                                                {TaskStatusLabels[detailModal.status] || '未知'}
                                             </Badge>
                                         </div>
                                     </div>

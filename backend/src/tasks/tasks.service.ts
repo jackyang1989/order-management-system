@@ -421,6 +421,8 @@ export class TasksService implements OnModuleInit {
         needFollow: !!dto.needFollow,
         needAddCart: !!dto.needAddCart,
         needContactCS: !!dto.needContactCS,
+        contactCSContent: dto.contactCSContent || '',
+        compareCount: dto.compareCount || 3,
 
         // 浏览时长设置
         totalBrowseMinutes: dto.totalBrowseMinutes || 15,
@@ -436,6 +438,9 @@ export class TasksService implements OnModuleInit {
         terminal: dto.terminal || 1, // 默认本佣货返
         memo: dto.memo || '',
         unionInterval: dto.orderInterval || 0,
+        weight: dto.weight || 0,
+        fastRefund: !!dto.fastRefund,
+        orderInterval: dto.orderInterval || 0,
 
         // 口令验证
         isPasswordEnabled: !!dto.isPasswordEnabled,

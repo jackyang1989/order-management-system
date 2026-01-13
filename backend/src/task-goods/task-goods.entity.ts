@@ -56,6 +56,12 @@ export class TaskGoods {
   @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
   totalPrice: number; // 小计 = price * num
 
+  @Column({ type: 'text', nullable: true })
+  orderSpecs: string; // JSON array of { specName, specValue, quantity }
+
+  @Column({ type: 'text', nullable: true })
+  verifyCode: string; // 核对口令
+
   @CreateDateColumn()
   createdAt: Date;
 }
@@ -115,6 +121,8 @@ export class CreateTaskGoodsDto {
   specValue?: string;
   price: number;
   num?: number;
+  orderSpecs?: Array<{ specName: string; specValue: string; quantity: number }>;
+  verifyCode?: string;
 }
 
 export class CreateTaskKeywordDto {
