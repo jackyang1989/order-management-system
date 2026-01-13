@@ -120,8 +120,10 @@ interface Task {
     needContactCS: boolean;
     needAddCart: boolean;
     totalBrowseMinutes: number;
+    compareBrowseMinutes: number;
     mainBrowseMinutes: number;
     subBrowseMinutes: number;
+    hasSubProduct?: boolean;
     isPasswordEnabled?: boolean;
     checkPassword?: string;
     updatedAt: string;

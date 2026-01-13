@@ -74,6 +74,8 @@ interface TaskDetail {
     totalBrowseMinutes: number;
     mainBrowseMinutes: number;
     subBrowseMinutes: number;
+    compareBrowseMinutes?: number;
+    hasSubProduct?: boolean;
     isPasswordEnabled?: boolean;
     checkPassword?: string;
     createdAt: string;

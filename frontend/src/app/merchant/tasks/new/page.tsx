@@ -50,18 +50,64 @@ export default function NewTaskPage() {
     const handleDataChange = (updates: Partial<TaskFormData>) => { setData(prev => ({ ...prev, ...updates })); };
 
     const handleSubmit = async () => {
-        setLoading(true); const token = localStorage.getItem('merchantToken');
+        setLoading(true); 
+        const token = localStorage.getItem('merchantToken');
         try {
+            // 验证商品列表不能为空
+            if (!data.goodsList || data.goodsList.length === 0) {
+                alert('请至少添加一个商品！点击"添加商品"按钮或从商品库选择商品。');
+                setLoading(false);
+                return;
+            }
+
             // 口令验证校验：检查商品列表中是否有商品设置了verifyCode
             if (data.isPasswordEnabled) {
                 const hasVerifyCode = data.goodsList.some(g => g.verifyCode && g.verifyCode.trim().length > 0);
-                if (!hasVerifyCode) { alert('开启口令验证后，请在第一步商品设置中至少为一个商品填写核对口令'); setLoading(false); return; }
+                if (!hasVerifyCode) { 
+                    alert('开启口令验证后，请在第一步商品设置中至少为一个商品填写核对口令'); 
+                    setLoading(false); 
+                    return; 
+                }
             }
-            if (data.isPraise && data.praiseType === 'text') { const filled = data.praiseList.filter(s => s && s.trim().length > 0); if (filled.length !== data.count) { alert(`请填写所有 ${data.count} 条好评内容`); setLoading(false); return; } }
-            const payload = { ...data, goodsPrice: Number(data.goodsPrice), count: Number(data.count), addReward: Number(data.addReward), extraCommission: Number(data.addReward) };
-            const res = await fetch(`${BASE_URL}/tasks`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
-            const json = await res.json(); if (json.success) { alert('任务发布成功！'); router.push('/merchant/tasks'); } else alert('发布失败: ' + (json.message || '未知错误'));
-        } catch { alert('网络错误'); } finally { setLoading(false); }
+            
+            if (data.isPraise && data.praiseType === 'text') { 
+                const filled = data.praiseList.filter(s => s && s.trim().length > 0); 
+                if (filled.length !== data.count) { 
+                    alert(`请填写所有 ${data.count} 条好评内容`); 
+                    setLoading(false); 
+                    return; 
+                } 
+            }
+            
+            const payload = { 
+                ...data, 
+                goodsPrice: Number(data.goodsPrice), 
+                count: Number(data.count), 
+                addReward: Number(data.addReward), 
+                extraCommission: Number(data.addReward) 
+            };
+            
+            const res = await fetch(`${BASE_URL}/tasks`, { 
+                method: 'POST', 
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Authorization': `Bearer ${token}` 
+                }, 
+                body: JSON.stringify(payload) 
+            });
+            
+            const json = await res.json(); 
+            if (json.success) { 
+                alert('任务发布成功！'); 
+                router.push('/merchant/tasks'); 
+            } else {
+                alert('发布失败: ' + (json.message || '未知错误'));
+            }
+        } catch { 
+            alert('网络错误'); 
+        } finally { 
+            setLoading(false); 
+        }
     };
 
     const steps = [{ num: 1, label: '基础信息' }, { num: 2, label: '增值服务' }, { num: 3, label: '支付确认' }];
