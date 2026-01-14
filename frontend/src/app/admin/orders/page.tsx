@@ -76,6 +76,14 @@ interface Order {
         isPasswordEnabled?: boolean;
         checkPassword?: string;
         isFreeShipping?: boolean;
+        isTimingPublish?: boolean;
+        publishTime?: string;
+        isTimingPay?: boolean;
+        timingPayTime?: string;
+        isRepay?: boolean;
+        isNextDay?: boolean;
+        isCycleTime?: boolean;
+        cycleTime?: number;
         // 好评相关 (JSON strings from backend)
         isPraise?: boolean;
         praiseList?: string;
@@ -524,7 +532,7 @@ export default function AdminOrdersPage() {
                         )}
 
                         {/* Value-added Services 增值服务 */}
-                        {(task.weight || task.fastRefund || task.extraReward || task.addReward || task.isPasswordEnabled) && (
+                        {(task.weight || task.fastRefund || task.extraReward || task.addReward || task.isPasswordEnabled || task.isTimingPublish || task.isTimingPay || task.isRepay || task.isNextDay || task.isCycleTime) && (
                             <div>
                                 <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">增值服务</h3>
                                 <div className="grid grid-cols-2 gap-3">
@@ -558,6 +566,52 @@ export default function AdminOrdersPage() {
                                             {task.isFreeShipping ? '包邮' : '非包邮'}
                                         </div>
                                     </div>
+                                    {task.isTimingPublish && (
+                                        <div className="rounded-md bg-blue-50 p-4">
+                                            <div className="text-xs text-[#6b7280] mb-1">定时发布</div>
+                                            <div className="text-sm font-medium text-blue-600">
+                                                {task.publishTime ? new Date(task.publishTime).toLocaleString('zh-CN', {
+                                                    year: 'numeric',
+                                                    month: '2-digit',
+                                                    day: '2-digit',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                }) : '已启用'}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {task.isTimingPay && (
+                                        <div className="rounded-md bg-indigo-50 p-4">
+                                            <div className="text-xs text-[#6b7280] mb-1">定时付款</div>
+                                            <div className="text-sm font-medium text-indigo-600">
+                                                {task.timingPayTime ? new Date(task.timingPayTime).toLocaleString('zh-CN', {
+                                                    year: 'numeric',
+                                                    month: '2-digit',
+                                                    day: '2-digit',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                }) : '已启用'}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {task.isRepay && (
+                                        <div className="rounded-md bg-cyan-50 p-4">
+                                            <div className="text-xs text-[#6b7280] mb-1">回购任务</div>
+                                            <div className="text-sm font-medium text-cyan-600">已启用</div>
+                                        </div>
+                                    )}
+                                    {task.isNextDay && (
+                                        <div className="rounded-md bg-teal-50 p-4">
+                                            <div className="text-xs text-[#6b7280] mb-1">隔天任务</div>
+                                            <div className="text-sm font-medium text-teal-600">已启用</div>
+                                        </div>
+                                    )}
+                                    {task.isCycleTime && (
+                                        <div className="rounded-md bg-rose-50 p-4">
+                                            <div className="text-xs text-[#6b7280] mb-1">延长买号周期</div>
+                                            <div className="text-sm font-medium text-rose-600">{task.cycleTime || 30}天</div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
