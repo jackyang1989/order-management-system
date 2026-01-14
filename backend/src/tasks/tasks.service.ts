@@ -404,31 +404,38 @@ export class TasksService implements OnModuleInit {
 
       // 4. 创建任务记录
       const newTask = this.tasksRepository.create({
-        ...dto, // Auto-map matching fields
         merchantId,
         taskNumber: 'T' + Date.now() + Math.floor(Math.random() * 1000),
-        status: TaskStatus.ACTIVE, // Assuming direct active for now or PENDING_PAY if strictly separated
+        status: TaskStatus.ACTIVE,
 
-        // Detailed Fields
+        // 基础信息 - 显式映射确保字段正确
+        title: dto.title || '',
+        taskType: dto.taskType || 1,
+        url: dto.url || '',
+        mainImage: dto.mainImage || '',
+        keyword: dto.keyword || '',
+        itemToken: dto.taoWord || dto.itemToken || '',
+        qrCode: dto.qrCodeImage || '',
+        count: count,
+
+        // 费用详细信息
         goodsPrice,
-        goodsMoney, // Total Goods Money
+        goodsMoney,
         shippingFee: totalPostage,
         margin: totalMargin,
-
-        // Mapped & Calculated
         totalDeposit,
         totalCommission,
         baseServiceFee: baseFeePerOrder,
-        userDivided: userDividedTotal, // 买手分成佣金总额
+        userDivided: userDividedTotal,
+        extraReward: Number(dto.addReward || 0),  // 加赏金额
+        extraCommission: Number(dto.addReward || 0),  // 额外佣金（同加赏）
 
         // Value Added Flags - 智能检测好评内容
         ...(() => {
-          // 检测是否有实际的好评内容
           const hasPraiseText = dto.praiseList && Array.isArray(dto.praiseList) && dto.praiseList.some(t => t && t.trim().length > 0);
           const hasPraiseImg = dto.praiseImgList && Array.isArray(dto.praiseImgList) && dto.praiseImgList.some(arr => arr && arr.length > 0);
           const hasPraiseVideo = dto.praiseVideoList && Array.isArray(dto.praiseVideoList) && dto.praiseVideoList.some(v => v && v.trim().length > 0);
 
-          // 自动推断praiseType（优先级：video > image > text）
           let actualPraiseType = dto.praiseType || 'none';
           if (hasPraiseVideo) actualPraiseType = 'video';
           else if (hasPraiseImg) actualPraiseType = 'image';
@@ -447,17 +454,19 @@ export class TasksService implements OnModuleInit {
             praiseFee: dto.praiseFee || 0,
           };
         })(),
+
+        // 定时服务
         isTimingPublish: !!dto.isTimingPublish,
-        publishTime: dto.publishTime ? new Date(dto.publishTime) : null,
+        publishTime: dto.publishTime ? new Date(dto.publishTime) : undefined,
         isTimingPay: !!dto.isTimingPay,
-        timingTime: dto.timingPayTime ? new Date(dto.timingPayTime) : null,
+        timingTime: dto.timingPayTime ? new Date(dto.timingPayTime) : undefined,
         timingPayFee: dto.timingPayFee || 0,
         timingPublishFee: dto.timingPublishFee || 0,
 
-        isCycleTime: !!dto.isCycleTime,
+        // 周期设置
         cycle: dto.cycleTime || 0,
 
-        // Browse Behavior Settings
+        // 浏览行为设置
         needCompare: !!dto.needCompare,
         compareKeyword: this.getCompareKeyword(dto),
         needFavorite: !!dto.needFavorite,
@@ -472,7 +481,7 @@ export class TasksService implements OnModuleInit {
         compareBrowseMinutes: dto.compareBrowseMinutes || 3,
         mainBrowseMinutes: dto.mainBrowseMinutes || 8,
         subBrowseMinutes: dto.subBrowseMinutes || 2,
-        hasSubProduct: !!dto.hasSubProduct,  // 显式转换为boolean
+        hasSubProduct: dto.goodsList && dto.goodsList.length > 1,  // 根据商品数量自动判断
 
         // 特殊任务类型
         isRepay: !!dto.isRepay,
@@ -480,7 +489,7 @@ export class TasksService implements OnModuleInit {
         nextDayFee: dto.nextDayFee || 0,
 
         // P0 Fix: 返款方式和订单设置
-        terminal: dto.terminal || 1, // 默认本佣货返
+        terminal: dto.terminal || 1,
         memo: dto.memo || '',
         unionInterval: dto.orderInterval || 0,
         weight: dto.weight || 0,
@@ -497,6 +506,9 @@ export class TasksService implements OnModuleInit {
         // 店铺信息
         shopId: dto.shopId || null,
         shopName: dto.shopName || '',
+
+        // 包邮设置
+        isFreeShipping: dto.isFreeShipping !== 2,  // 1或undefined=包邮, 2=不包邮
 
         claimedCount: 0,
         completedCount: 0,
