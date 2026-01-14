@@ -22,6 +22,7 @@ export default function GoodsPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingGoods, setEditingGoods] = useState<Goods | null>(null);
     const [formData, setFormData] = useState({ shopId: '', title: '', mainImage: '', price: '', url: '', verifyCode: '' });
+    const [searchKeyword, setSearchKeyword] = useState('');
 
     useEffect(() => { fetchShops(); fetchGoods(); }, []);
 
@@ -91,6 +92,34 @@ export default function GoodsPage() {
     const openAdd = () => { setEditingGoods(null); setFormData({ shopId: shops.length > 0 ? shops[0].id : '', title: '', mainImage: '', price: '', url: '', verifyCode: '' }); setIsModalOpen(true); };
     const closeModal = () => { setIsModalOpen(false); setEditingGoods(null); setFormData({ shopId: '', title: '', mainImage: '', price: '', url: '', verifyCode: '' }); };
 
+    // 从商品链接中提取商品ID
+    const extractGoodsId = (link: string): string => {
+        if (!link) return '';
+        const match = link.match(/[?&]id=(\d+)/);
+        return match ? match[1] : '';
+    };
+
+    // 过滤商品列表
+    const filteredGoodsList = goodsList.filter(goods => {
+        if (!searchKeyword.trim()) return true;
+        const keyword = searchKeyword.toLowerCase().trim();
+        const goodsId = extractGoodsId(goods.link);
+
+        // 支持标题搜索
+        if (goods.name.toLowerCase().includes(keyword)) return true;
+
+        // 支持商品ID搜索
+        if (goodsId && goodsId.includes(keyword)) return true;
+
+        // 支持完整URL搜索
+        if (keyword.includes('http') || keyword.includes('item.')) {
+            const searchId = extractGoodsId(keyword);
+            if (searchId && goodsId === searchId) return true;
+        }
+
+        return false;
+    });
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -104,14 +133,36 @@ export default function GoodsPage() {
                 </Button>
             </div>
 
+            {/* Search Bar */}
+            <div className="flex items-center gap-3">
+                <Input
+                    type="text"
+                    value={searchKeyword}
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                    placeholder="搜索商品标题、商品ID或商品链接..."
+                    className="h-12 flex-1 rounded-[16px] border-none bg-white px-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-primary-500/20 outline-none shadow-[0_2px_10px_rgba(0,0,0,0.02)]"
+                />
+                {searchKeyword && (
+                    <Button
+                        onClick={() => setSearchKeyword('')}
+                        variant="secondary"
+                        className="rounded-[16px]"
+                    >
+                        清除
+                    </Button>
+                )}
+            </div>
+
             {/* Content */}
             <Card className="rounded-[24px] bg-white p-0 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                 {loading ? (
                     <div className="flex min-h-[300px] items-center justify-center font-medium text-slate-400">加载中...</div>
-                ) : goodsList.length === 0 ? (
+                ) : filteredGoodsList.length === 0 ? (
                     <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
                         <div className="mb-4 text-5xl opacity-50">🛒</div>
-                        <div className="mb-5 text-[14px] font-medium text-slate-400">暂无商品</div>
+                        <div className="mb-5 text-[14px] font-medium text-slate-400">
+                            {searchKeyword ? '未找到匹配的商品' : '暂无商品'}
+                        </div>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
@@ -127,14 +178,14 @@ export default function GoodsPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {goodsList.map((goods, index) => {
+                                {filteredGoodsList.map((goods, index) => {
                                     const shop = shops.find(s => s.id === goods.shopId);
                                     return (
                                         <tr
                                             key={goods.id}
                                             className={cn(
                                                 "group border-b border-slate-50 transition-colors hover:bg-slate-50/50",
-                                                index === goodsList.length - 1 && "border-0"
+                                                index === filteredGoodsList.length - 1 && "border-0"
                                             )}
                                         >
                                             <td className="px-6 py-5">

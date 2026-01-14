@@ -79,6 +79,7 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
     const [showGoodsLibModal, setShowGoodsLibModal] = useState(false);
     const [goodsLibList, setGoodsLibList] = useState<Goods[]>([]);
     const [loadingGoodsLib, setLoadingGoodsLib] = useState(false);
+    const [goodsLibSearchKeyword, setGoodsLibSearchKeyword] = useState('');
     // 商品筛选设置相关状态
     const [showFilterSettingsModal, setShowFilterSettingsModal] = useState(false);
     const [editingFilterGoodsId, setEditingFilterGoodsId] = useState<string>('');
@@ -607,6 +608,34 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
         onChange({ goodsList: [...data.goodsList, goodsItem] });
         setShowGoodsLibModal(false);
     };
+
+    // 从商品链接中提取商品ID
+    const extractGoodsId = (link: string): string => {
+        if (!link) return '';
+        const match = link.match(/[?&]id=(\d+)/);
+        return match ? match[1] : '';
+    };
+
+    // 过滤商品库列表
+    const filteredGoodsLibList = goodsLibList.filter(goods => {
+        if (!goodsLibSearchKeyword.trim()) return true;
+        const keyword = goodsLibSearchKeyword.toLowerCase().trim();
+        const goodsId = extractGoodsId(goods.link || '');
+
+        // 支持标题搜索
+        if (goods.name.toLowerCase().includes(keyword)) return true;
+
+        // 支持商品ID搜索
+        if (goodsId && goodsId.includes(keyword)) return true;
+
+        // 支持完整URL搜索
+        if (keyword.includes('http') || keyword.includes('item.')) {
+            const searchId = extractGoodsId(keyword);
+            if (searchId && goodsId === searchId) return true;
+        }
+
+        return false;
+    });
 
     // 根据任务入口类型确定是否需要填写额外信息
     const getEntryTypeValid = () => {
@@ -1259,17 +1288,32 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                             <button onClick={() => setShowGoodsLibModal(false)} className="text-[#9ca3af] hover:text-[#6b7280]">✕</button>
                         </div>
 
+                        {/* Search Bar */}
+                        <div className="mb-4">
+                            <Input
+                                type="text"
+                                value={goodsLibSearchKeyword}
+                                onChange={(e) => setGoodsLibSearchKeyword(e.target.value)}
+                                placeholder="搜索商品标题、商品ID或商品链接..."
+                                className="w-full rounded-lg border border-[#e5e7eb] px-4 py-2 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none"
+                            />
+                        </div>
+
                         {loadingGoodsLib ? (
                             <div className="flex items-center justify-center py-12 text-[#6b7280]">加载商品中...</div>
-                        ) : goodsLibList.length === 0 ? (
+                        ) : filteredGoodsLibList.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-12">
                                 <span className="mb-2 text-4xl">📦</span>
-                                <p className="mb-1 text-sm text-[#6b7280]">该店铺暂无商品</p>
-                                <p className="text-xs text-[#9ca3af]">请先到 <a href="/merchant/goods" className="text-primary-600">商品管理</a> 添加商品</p>
+                                <p className="mb-1 text-sm text-[#6b7280]">
+                                    {goodsLibSearchKeyword ? '未找到匹配的商品' : '该店铺暂无商品'}
+                                </p>
+                                {!goodsLibSearchKeyword && (
+                                    <p className="text-xs text-[#9ca3af]">请先到 <a href="/merchant/goods" className="text-primary-600">商品管理</a> 添加商品</p>
+                                )}
                             </div>
                         ) : (
                             <div className="max-h-[400px] space-y-3 overflow-y-auto">
-                                {goodsLibList.map(goods => {
+                                {filteredGoodsLibList.map(goods => {
                                     const isAdded = data.goodsList.some(g => g.goodsId === goods.id);
                                     return (
                                         <div key={goods.id} className={cn('flex items-center gap-4 rounded-lg border p-3', isAdded ? 'border-green-200 bg-green-50' : 'border-[#e5e7eb] bg-white hover:border-primary-200')}>
