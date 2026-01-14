@@ -152,7 +152,7 @@ export default function PlatformsPage() {
             const formData = new FormData();
             formData.append('file', file);
 
-            const response = await fetch(`${BASE_URL}/upload`, {
+            const response = await fetch(`${BASE_URL}/uploads/file`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` },
                 body: formData,
@@ -160,7 +160,16 @@ export default function PlatformsPage() {
 
             if (response.ok) {
                 const data = await response.json();
-                setEditForm({ ...editForm, icon: data.url });
+                if (data.success && data.data?.url) {
+                    // 将相对路径转换为完整URL
+                    const fullUrl = data.data.url.startsWith('http')
+                        ? data.data.url
+                        : `${BASE_URL}${data.data.url}`;
+                    setEditForm({ ...editForm, icon: fullUrl });
+                    alert('Logo上传成功');
+                } else {
+                    alert(data.message || '图片上传失败');
+                }
             } else {
                 alert('图片上传失败');
             }
@@ -214,7 +223,11 @@ export default function PlatformsPage() {
                                         <td className="px-4 py-4">{platform.sortOrder}</td>
                                         <td className="px-4 py-4">
                                             {platform.icon ? (
-                                                <img src={platform.icon} alt={platform.name} className="h-8 w-8 object-contain" />
+                                                platform.icon.startsWith('http') ? (
+                                                    <img src={platform.icon} alt={platform.name} className="h-8 w-8 object-contain" />
+                                                ) : (
+                                                    <div className="h-8 w-8 rounded bg-slate-100 flex items-center justify-center text-xl">{platform.icon}</div>
+                                                )
                                             ) : (
                                                 <div className="h-8 w-8 rounded bg-slate-100 flex items-center justify-center text-slate-400 text-xs">无</div>
                                             )}
@@ -279,7 +292,11 @@ export default function PlatformsPage() {
                             {/* Logo预览 */}
                             {editForm.icon && (
                                 <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-                                    <img src={editForm.icon} alt="Logo预览" className="h-12 w-12 object-contain rounded" />
+                                    {editForm.icon.startsWith('http') ? (
+                                        <img src={editForm.icon} alt="Logo预览" className="h-12 w-12 object-contain rounded" />
+                                    ) : (
+                                        <div className="h-12 w-12 flex items-center justify-center text-2xl">{editForm.icon}</div>
+                                    )}
                                     <div className="flex-1 text-xs text-slate-500">当前Logo</div>
                                     <button
                                         type="button"
