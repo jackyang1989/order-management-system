@@ -86,6 +86,18 @@ export interface TaskItem {
     checkPassword?: string;
     // 包裹重量
     weight?: number;
+    // 快速返款
+    fastRefund?: boolean;
+    // 接单间隔
+    unionInterval?: number;
+    // 定时发布
+    isTimingPublish?: boolean;
+    publishTime?: string;
+    // 定时付款
+    isTimingPay?: boolean;
+    timingTime?: string;
+    // 延长周期
+    cycle?: number;
     // Multi-goods and multi-keywords from refactored version
     goodsList?: TaskGoodsItem[];
     keywords?: TaskKeywordItem[];
