@@ -173,37 +173,29 @@ export class FinanceRecordsController {
   @Get('admin/all')
   @UseGuards(AdminGuard)
   @RequirePermissions('finance:list')
-  async getAllRecords(@Query() filter: FinanceRecordFilterDto) {
-    const fs = require('fs');
-    const logFile = '/tmp/finance-controller-debug.log';
-
-    fs.appendFileSync(logFile, `\n=== ${new Date().toISOString()} ===\n`);
-    fs.appendFileSync(logFile, `Received filter: ${JSON.stringify(filter)}\n`);
-    fs.appendFileSync(logFile, `filter.userType BEFORE: ${filter.userType} (type: ${typeof filter.userType})\n`);
-
-    // Manually convert string to number for type safety
-    if (filter.userType !== undefined) {
-      filter.userType = parseInt(filter.userType as any, 10);
-    }
-    if (filter.moneyType !== undefined) {
-      filter.moneyType = parseInt(filter.moneyType as any, 10);
-    }
-    if (filter.financeType !== undefined) {
-      filter.financeType = parseInt(filter.financeType as any, 10);
-    }
-    if (filter.page !== undefined) {
-      filter.page = parseInt(filter.page as any, 10);
-    }
-    if (filter.limit !== undefined) {
-      filter.limit = parseInt(filter.limit as any, 10);
-    }
-
-    fs.appendFileSync(logFile, `filter.userType AFTER: ${filter.userType} (type: ${typeof filter.userType})\n`);
+  async getAllRecords(
+    @Query('userId') userId?: string,
+    @Query('userType') userType?: string,
+    @Query('moneyType') moneyType?: string,
+    @Query('financeType') financeType?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    // Build filter object with proper type conversion
+    const filter: FinanceRecordFilterDto = {
+      userId,
+      userType: userType ? parseInt(userType, 10) : undefined,
+      moneyType: moneyType ? parseInt(moneyType, 10) : undefined,
+      financeType: financeType ? parseInt(financeType, 10) : undefined,
+      startDate,
+      endDate,
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    };
 
     const result = await this.financeRecordsService.findAll(filter);
-
-    fs.appendFileSync(logFile, `Result count: ${result.data.length}, Total: ${result.total}\n`);
-
     return { success: true, ...result };
   }
 
