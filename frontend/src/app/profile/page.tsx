@@ -140,8 +140,8 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Earnings Summary */}
-                <Card className="rounded-[24px] border-none bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-                    <div className="flex items-center divide-x divide-slate-50">
+                <Card noPadding className="rounded-[24px] border-none bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                    <div className="flex items-center justify-center divide-x divide-slate-50 py-10 px-5 min-h-[120px]">
                         <div className="flex-1 px-4 text-center">
                             <div className="text-lg font-black text-slate-900">{Number(profile?.totalEarned || profile?.stats?.totalEarnedSilver || 0).toFixed(2)}</div>
                             <div className="mt-1 text-[10px] font-bold text-slate-400 uppercase">累计赚取银锭</div>
@@ -158,8 +158,8 @@ export default function ProfilePage() {
                 </Card>
 
                 {/* Additional Stats */}
-                <Card className="rounded-[24px] border-none bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-                    <div className="flex items-center divide-x divide-slate-50">
+                <Card noPadding className="rounded-[24px] border-none bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                    <div className="flex items-center justify-center divide-x divide-slate-50 py-10 px-5 min-h-[120px]">
                         <div className="flex-1 px-3 text-center">
                             <div className="text-lg font-black text-primary-600">¥{Number(profile?.stats?.totalPaidPrincipal || 0).toFixed(0)}</div>
                             <div className="mt-1 text-[10px] font-bold text-slate-400 uppercase">累计垫付</div>

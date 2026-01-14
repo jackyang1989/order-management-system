@@ -19,7 +19,8 @@ const PRICE_OPTIONS = [
 ];
 
 interface BuynoItem { id: string; platformAccount: string; count: number; dailyTaskLimit?: string; }
-interface TaskItem { id: string; randNum: string; taskNumber: string; sellerName: string; mobile: string; totalPrice: number; userReward: number; userDivided: number; num: number; progress: string; }
+interface TaskItem { id: string; randNum: string; taskNumber: string; sellerName: string; mobile: string; totalPrice: number; userReward: number; userDivided: number; num: number; progress: string; taskType?: number; }
+interface Platform { id: string; code: string; name: string; icon: string; }
 
 export default function TasksPage() {
     const router = useRouter();
@@ -244,18 +245,11 @@ export default function TasksPage() {
                                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm">🆔</div>
                                         <span className="font-bold text-slate-900">{task.randNum}</span>
                                     </div>
-                                    <div className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-500">
-                                        商家：{task.sellerName?.substring(0, 4)}...
-                                    </div>
                                 </div>
-                                <div className="mb-5 grid grid-cols-2 gap-4 rounded-[16px] bg-slate-50 p-4">
-                                    <div>
-                                        <div className="mb-1 text-[10px] text-slate-400">垫付资金</div>
-                                        <div className="text-base font-black text-slate-900">¥{task.totalPrice}</div>
-                                    </div>
+                                <div className="mb-5 rounded-[16px] bg-slate-50 p-4">
                                     <div>
                                         <div className="mb-1 text-[10px] text-slate-400">预计佣金</div>
-                                        <div className="text-base font-black text-success-500">+{task.userReward}+{(task.userDivided / task.num).toFixed(2)}</div>
+                                        <div className="text-base font-black text-success-500">{task.userReward}+{(task.userDivided / task.num).toFixed(2)}</div>
                                     </div>
                                 </div>
                                 <button onClick={() => addTask(index)} className="w-full rounded-[16px] bg-primary-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-primary-600/20 transition-transform active:scale-95 hover:bg-primary-700">添加任务单</button>
