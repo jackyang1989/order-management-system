@@ -76,7 +76,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const [tasktype, setTasktype] = useState('');
     const [taskTimeType, setTaskTimeType] = useState('');
     const [taskYsType, setTaskYsType] = useState('');
-    const [is_video_praise, setIsVideoPraise] = useState('');
+    const [is_video_praise, setIs_video_praise] = useState('');
     const [zhongDuanmessage, setZhongDuanmessage] = useState('');
     const [taoword, setTaoword] = useState('');
     const [qrcode, setQrcode] = useState('');
@@ -263,7 +263,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 setQrcode(data.qrCode || '');
                 setChannelname('');
                 setTaoword(data.taoWord || '');
-                setIsVideoPraise(data.isVideoPraise ? '1' : '');
+                setIs_video_praise(data.isVideoPraise ? '1' : '');
 
                 if (data.terminal === 1) {
                     setZhongDuanmessage('温馨提示：此任务本佣货返，买手垫付，本金和佣金货返，任务完成后24小时内由平台返到买手账户。');

@@ -451,9 +451,9 @@ export default function AdminTasksPage() {
             title: '操作',
             render: (row) => (
                 <div className="flex items-center justify-between whitespace-nowrap">
-                    <Button size="sm" variant="secondary" onClick={() => setDetailModal(row)}>
+                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => setDetailModal(row)}>
                         详情
-                    </Button>
+                    </button>
                     <Select
                         value={String(row.status)}
                         onChange={(value) => handleUpdateStatus(row.id, Number(value))}
@@ -898,7 +898,7 @@ export default function AdminTasksPage() {
                                         <div>
                                             <div className="text-[12px] text-[#6b7280]">额外赏金</div>
                                             <div className="text-[13px] font-medium text-warning-500">
-                                                {(detailModal.extraReward || detailModal.extraCommission || 0) > 0 ? `+¥${(detailModal.extraReward || detailModal.extraCommission).toFixed(2)}/单` : '无'}
+                                                {(detailModal.extraReward || detailModal.extraCommission || 0) > 0 ? `+¥${((detailModal.extraReward || detailModal.extraCommission) || 0).toFixed(2)}/单` : '无'}
                                             </div>
                                         </div>
                                     </div>

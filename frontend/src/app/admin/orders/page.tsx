@@ -256,9 +256,9 @@ export default function AdminOrdersPage() {
             title: '操作',
             className: 'w-[100px]',
             render: (row) => (
-                <Button size="sm" variant="outline" onClick={() => setDetailModal(row)}>
+                <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => setDetailModal(row)}>
                     详情
-                </Button>
+                </button>
             ),
         },
     ];
