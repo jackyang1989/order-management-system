@@ -471,7 +471,7 @@ export default function TaskDetailPage() {
                                                             <span className="font-medium text-primary-600">{kw.keyword}</span>
                                                         </div>
                                                         <Badge variant="soft" color="slate" className="text-xs">
-                                                            {kw.terminal === 1 ? '电脑端' : '手机端'}
+                                                            搜索: {kw.terminal === 1 ? '电脑端' : '手机端'}
                                                         </Badge>
                                                     </div>
                                                     {/* 筛选设置 */}
@@ -778,6 +778,9 @@ export default function TaskDetailPage() {
                                 {Number(task.praiseFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">文字好评费</span><span>¥{formatMoney(Number(task.praiseFee) * task.count)}</span></div>}
                                 {Number(task.imgPraiseFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">图片好评费</span><span>¥{formatMoney(Number(task.imgPraiseFee) * task.count)}</span></div>}
                                 {Number(task.videoPraiseFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">视频好评费</span><span>¥{formatMoney(Number(task.videoPraiseFee) * task.count)}</span></div>}
+                                {Number((task as any).timingPublishFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">定时发布费</span><span>¥{formatMoney(Number((task as any).timingPublishFee) * task.count)}</span></div>}
+                                {Number((task as any).goodsMoreFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">多商品费用</span><span>¥{formatMoney(Number((task as any).goodsMoreFee) * task.count)}</span></div>}
+                                {Number((task as any).nextDayFee) > 0 && <div className="flex justify-between"><span className="text-[#6b7280]">隔天任务费</span><span>¥{formatMoney(Number((task as any).nextDayFee) * task.count)}</span></div>}
                                 {(task.addReward || task.extraCommission) && Number(task.addReward || task.extraCommission) > 0 && (
                                     <div className="flex justify-between"><span className="text-[#6b7280]">额外赏金</span><span>¥{formatMoney(Number(task.addReward || task.extraCommission) * task.count)}</span></div>
                                 )}

@@ -10,6 +10,7 @@ import { MerchantBlacklistModule } from '../merchant-blacklist/merchant-blacklis
 import { ReferralModule } from '../referral/referral.module';
 import { MessagesModule } from '../messages/messages.module';
 import { TaskGoodsModule } from '../task-goods/task-goods.module';
+import { UsersModule } from '../users/users.module';
 import { Order } from './order.entity';
 import { User } from '../users/user.entity';
 import { Merchant } from '../merchants/merchant.entity';
@@ -25,6 +26,7 @@ import { Merchant } from '../merchants/merchant.entity';
     ReferralModule,
     forwardRef(() => MessagesModule),
     TaskGoodsModule,
+    UsersModule,
   ],
   providers: [OrdersService],
   controllers: [OrdersController],

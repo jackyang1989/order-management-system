@@ -136,6 +136,10 @@ interface Task {
     weight?: number;
     contactCSContent?: string;
     compareCount?: number;
+    // 增值服务费用字段
+    timingPublishFee?: number;
+    goodsMoreFee?: number;
+    nextDayFee?: number;
 }
 
 // Multi-goods item from task_goods table
@@ -955,49 +959,65 @@ export default function AdminTasksPage() {
                                         </div>
                                     </div>
                                     {/* 费用明细 */}
-                                    {(detailModal.baseServiceFee || detailModal.praiseFee || detailModal.margin) && (
-                                        <div className="border-t border-slate-200 pt-4">
-                                            <div className="text-[12px] font-medium text-[#3b4559] mb-3">费用明细</div>
-                                            <div className="space-y-2 text-sm">
-                                                {detailModal.baseServiceFee && (
-                                                    <div className="flex justify-between">
-                                                        <span className="text-[#6b7280]">基础服务费</span>
-                                                        <span className="font-medium">¥{Number(detailModal.baseServiceFee).toFixed(2)}</span>
-                                                    </div>
-                                                )}
-                                                {detailModal.praiseFee && (
-                                                    <div className="flex justify-between">
-                                                        <span className="text-[#6b7280]">文字好评费</span>
-                                                        <span className="font-medium">¥{Number(detailModal.praiseFee).toFixed(2)}</span>
-                                                    </div>
-                                                )}
-                                                {detailModal.imgPraiseFee && (
-                                                    <div className="flex justify-between">
-                                                        <span className="text-[#6b7280]">图片好评费</span>
-                                                        <span className="font-medium">¥{Number(detailModal.imgPraiseFee).toFixed(2)}</span>
-                                                    </div>
-                                                )}
-                                                {detailModal.videoPraiseFee && (
-                                                    <div className="flex justify-between">
-                                                        <span className="text-[#6b7280]">视频好评费</span>
-                                                        <span className="font-medium">¥{Number(detailModal.videoPraiseFee).toFixed(2)}</span>
-                                                    </div>
-                                                )}
-                                                {detailModal.shippingFee && (
-                                                    <div className="flex justify-between">
-                                                        <span className="text-[#6b7280]">邮费</span>
-                                                        <span className="font-medium">¥{Number(detailModal.shippingFee).toFixed(2)}</span>
-                                                    </div>
-                                                )}
-                                                {detailModal.margin && (
-                                                    <div className="flex justify-between">
-                                                        <span className="text-[#6b7280]">保证金</span>
-                                                        <span className="font-medium">¥{Number(detailModal.margin).toFixed(2)}</span>
-                                                    </div>
-                                                )}
-                                            </div>
+                                    <div className="border-t border-slate-200 pt-4">
+                                        <div className="text-[12px] font-medium text-[#3b4559] mb-3">费用明细（单价/单）</div>
+                                        <div className="space-y-2 text-sm">
+                                            {Number(detailModal.baseServiceFee || 0) > 0 && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-[#6b7280]">基础服务费</span>
+                                                    <span className="font-medium">¥{Number(detailModal.baseServiceFee).toFixed(2)}</span>
+                                                </div>
+                                            )}
+                                            {Number(detailModal.praiseFee || 0) > 0 && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-[#6b7280]">文字好评费</span>
+                                                    <span className="font-medium">¥{Number(detailModal.praiseFee).toFixed(2)}</span>
+                                                </div>
+                                            )}
+                                            {Number(detailModal.imgPraiseFee || 0) > 0 && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-[#6b7280]">图片好评费</span>
+                                                    <span className="font-medium">¥{Number(detailModal.imgPraiseFee).toFixed(2)}</span>
+                                                </div>
+                                            )}
+                                            {Number(detailModal.videoPraiseFee || 0) > 0 && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-[#6b7280]">视频好评费</span>
+                                                    <span className="font-medium">¥{Number(detailModal.videoPraiseFee).toFixed(2)}</span>
+                                                </div>
+                                            )}
+                                            {Number(detailModal.timingPublishFee || 0) > 0 && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-[#6b7280]">定时发布费</span>
+                                                    <span className="font-medium">¥{Number(detailModal.timingPublishFee).toFixed(2)}</span>
+                                                </div>
+                                            )}
+                                            {Number(detailModal.goodsMoreFee || 0) > 0 && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-[#6b7280]">多商品费用</span>
+                                                    <span className="font-medium">¥{Number(detailModal.goodsMoreFee).toFixed(2)}</span>
+                                                </div>
+                                            )}
+                                            {Number(detailModal.nextDayFee || 0) > 0 && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-[#6b7280]">隔天任务费</span>
+                                                    <span className="font-medium">¥{Number(detailModal.nextDayFee).toFixed(2)}</span>
+                                                </div>
+                                            )}
+                                            {Number(detailModal.shippingFee || 0) > 0 && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-[#6b7280]">邮费</span>
+                                                    <span className="font-medium">¥{Number(detailModal.shippingFee).toFixed(2)}</span>
+                                                </div>
+                                            )}
+                                            {Number(detailModal.margin || 0) > 0 && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-[#6b7280]">保证金</span>
+                                                    <span className="font-medium">¥{Number(detailModal.margin).toFixed(2)}</span>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
                             </div>
 

@@ -245,14 +245,35 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 }
 
                 // 构建 tableData
+                // 获取进店方式名称
+                const getEntryTypeName = () => {
+                    if (data.qrCode) return '二维码扫码';
+                    if (data.taoWord || data.itemToken) return '淘口令';
+                    if (data.channelImages) return '通道进店';
+                    return '关键词搜索';
+                };
+
+                // 格式化截止时间
+                const formatEndTime = (timeStr: string) => {
+                    if (!timeStr) return '';
+                    const date = new Date(timeStr);
+                    return `${date.getMonth() + 1}月${date.getDate()}日 ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+                };
+
+                // 格式化本金显示
+                const formatPrincipal = (val: number | string) => {
+                    const num = Number(val) || 0;
+                    return num.toFixed(2);
+                };
+
                 const taskInfo: TaskInfo = {
                     maiHao: data.buynoAccount || '',
-                    taskTime: data.endingTime || '',
-                    principal: data.userPrincipal || '',
-                    yongJin: data.commission || '',
-                    userDivided: data.userDivided || '',
+                    taskTime: formatEndTime(data.endingTime),
+                    principal: formatPrincipal(data.userPrincipal),
+                    yongJin: String(Number(data.commission || 0).toFixed(2)),
+                    userDivided: String(Number(data.userDivided || 0).toFixed(2)),
                     taskNum: data.taskNumber || '',
-                    tasktype: String(data.taskType || ''),
+                    tasktype: getEntryTypeName(),
                     zhongDuan: data.terminal === 1 ? '本佣货返' : '本立佣货',
                 };
                 setTableData([taskInfo]);

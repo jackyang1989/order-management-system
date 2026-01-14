@@ -193,7 +193,7 @@ export default function GoodsPage() {
                                                     : <div className="h-[60px] w-[60px] rounded-[12px] bg-slate-100" />}
                                             </td>
                                             <td className="px-6 py-5">
-                                                <div className="mb-1 font-bold text-slate-900 line-clamp-2 max-w-[200px]">{goods.name}</div>
+                                                <div className="mb-1 font-semibold text-slate-900 line-clamp-2 max-w-[200px]">{goods.name}</div>
                                                 <a href={goods.link} target="_blank" rel="noreferrer" className="text-xs font-bold text-primary-600 hover:text-primary-700 hover:underline">商品链接</a>
                                             </td>
                                             <td className="px-6 py-5">

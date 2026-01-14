@@ -16,6 +16,7 @@ import { Roles } from '../auth/roles.decorator';
 import { TasksService } from '../tasks/tasks.service';
 import { DingdanxiaService } from '../dingdanxia/dingdanxia.service';
 import { TaskGoodsService } from '../task-goods/task-goods.service';
+import { UsersService } from '../users/users.service';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
@@ -25,6 +26,7 @@ export class OrdersController {
     private tasksService: TasksService,
     private dingdanxiaService: DingdanxiaService,
     private taskGoodsService: TaskGoodsService,
+    private usersService: UsersService,
   ) { }
 
   // ============ 管理员端订单管理 ============
@@ -479,6 +481,31 @@ export class OrdersController {
         ? this.ordersService.maskPassword(task.checkPassword)
         : '';
 
+      // 获取用户买号（用户名而不是UUID）
+      const user = await this.usersService.findOne(order.userId);
+      const buynoUsername = user?.username || order.buynoAccount || '';
+
+      // 获取货比关键词（优先从关键词列表获取，否则使用任务级别的）
+      let huobiKeyword = task.compareKeyword || '';
+      if (!huobiKeyword && taskKeywords.length > 0) {
+        // 查找第一个有 compareKeyword 的关键词
+        const kwWithCompare = taskKeywords.find(kw => kw.compareKeyword);
+        if (kwWithCompare) {
+          huobiKeyword = kwWithCompare.compareKeyword;
+        }
+      }
+
+      // 计算垫付本金（用户需要垫付的金额）
+      let userPrincipal = Number(order.userPrincipal) || 0;
+      if (userPrincipal === 0) {
+        // 如果订单没有设置，使用任务的商品价格
+        if (goodsList.length > 0) {
+          userPrincipal = goodsList.reduce((sum, g) => sum + Number(g.totalPrice || g.price * g.num || 0), 0);
+        } else {
+          userPrincipal = Number(task.goodsPrice) || 0;
+        }
+      }
+
       return {
         success: true,
         data: {
@@ -497,12 +524,14 @@ export class OrdersController {
           keyword: task.keyword || '',
           itemToken: task.itemToken || '',
           qrCode: task.qrCode || '',
+          taoWord: task.itemToken || '',
           goodsPrice: task.goodsPrice || 0,
           taskType: task.taskType,
           terminal: task.terminal,
 
           // 口令验证相关
           isPasswordEnabled: task.isPasswordEnabled,
+          checkPassword: task.checkPassword || '',
           maskedPassword,
           platformProductId: task.platformProductId,
 
@@ -515,9 +544,11 @@ export class OrdersController {
           praiseVideoList: task.praiseVideoList,
 
           // 佣金信息
-          commission: order.commission || 0,
-          userDivided: order.userDivided || 0,
-          userPrincipal: order.userPrincipal || 0,
+          commission: order.commission || task.baseServiceFee || 0,
+          userDivided: order.userDivided || task.extraCommission || task.extraReward || 0,
+          userPrincipal: userPrincipal,
+          addReward: task.extraCommission || task.extraReward || 0,
+          extraReward: task.extraCommission || task.extraReward || 0,
 
           // 浏览时长要求
           totalBrowseMinutes: task.totalBrowseMinutes || 15,
@@ -529,19 +560,25 @@ export class OrdersController {
           // 其他要求
           needCompare: task.needCompare,
           compareKeyword: task.compareKeyword || '',
+          huobiKeyword: huobiKeyword,
           backupKeyword: task.backupKeyword || '',
+          compareCount: task.compareCount || 3,
           needFavorite: task.needFavorite,
           needFollow: task.needFollow,
           needContactCS: task.needContactCS,
+          contactCSContent: task.contactCSContent || '',
           needAddCart: task.needAddCart,
+          isFreeShipping: task.isFreeShipping,
+          weight: task.weight || 0,
+          fastRefund: task.fastRefund || false,
 
           // 时间信息
           createdAt: order.createdAt,
           endingTime: order.endingTime,
           taskTimeLimit: task.taskTimeLimit || 24,
 
-          // 订单信息
-          buynoAccount: order.buynoAccount,
+          // 订单信息 - 使用用户名而不是UUID
+          buynoAccount: buynoUsername,
           stepData: order.stepData,
           address: order.address,
           addressName: order.addressName,
