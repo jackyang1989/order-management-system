@@ -174,7 +174,36 @@ export class FinanceRecordsController {
   @UseGuards(AdminGuard)
   @RequirePermissions('finance:list')
   async getAllRecords(@Query() filter: FinanceRecordFilterDto) {
+    const fs = require('fs');
+    const logFile = '/tmp/finance-controller-debug.log';
+
+    fs.appendFileSync(logFile, `\n=== ${new Date().toISOString()} ===\n`);
+    fs.appendFileSync(logFile, `Received filter: ${JSON.stringify(filter)}\n`);
+    fs.appendFileSync(logFile, `filter.userType BEFORE: ${filter.userType} (type: ${typeof filter.userType})\n`);
+
+    // Manually convert string to number for type safety
+    if (filter.userType !== undefined) {
+      filter.userType = parseInt(filter.userType as any, 10);
+    }
+    if (filter.moneyType !== undefined) {
+      filter.moneyType = parseInt(filter.moneyType as any, 10);
+    }
+    if (filter.financeType !== undefined) {
+      filter.financeType = parseInt(filter.financeType as any, 10);
+    }
+    if (filter.page !== undefined) {
+      filter.page = parseInt(filter.page as any, 10);
+    }
+    if (filter.limit !== undefined) {
+      filter.limit = parseInt(filter.limit as any, 10);
+    }
+
+    fs.appendFileSync(logFile, `filter.userType AFTER: ${filter.userType} (type: ${typeof filter.userType})\n`);
+
     const result = await this.financeRecordsService.findAll(filter);
+
+    fs.appendFileSync(logFile, `Result count: ${result.data.length}, Total: ${result.total}\n`);
+
     return { success: true, ...result };
   }
 

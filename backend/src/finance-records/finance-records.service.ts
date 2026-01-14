@@ -67,6 +67,12 @@ export class FinanceRecordsService {
     const page = filter.page || 1;
     const limit = filter.limit || 20;
 
+    // Debug logging
+    console.log('===== Finance Records Filter =====');
+    console.log('filter.userType:', filter.userType, 'type:', typeof filter.userType);
+    console.log('filter.moneyType:', filter.moneyType, 'type:', typeof filter.moneyType);
+    console.log('Full filter:', JSON.stringify(filter));
+
     const queryBuilder = this.financeRecordRepository
       .createQueryBuilder('fr')
       .leftJoin('users', 'u', '"fr"."userId"::uuid = u.id AND "fr"."userType" = 1')
@@ -77,6 +83,7 @@ export class FinanceRecordsService {
       queryBuilder.andWhere('fr.userId = :userId', { userId: filter.userId });
     }
     if (filter.userType !== undefined) {
+      console.log('Adding userType filter:', filter.userType);
       queryBuilder.andWhere('fr.userType = :userType', {
         userType: filter.userType,
       });
@@ -100,6 +107,12 @@ export class FinanceRecordsService {
 
     // Get count before pagination
     const total = await queryBuilder.getCount();
+
+    // Debug: Print the SQL query
+    const sql = queryBuilder.getQuery();
+    const params = queryBuilder.getParameters();
+    console.log('Generated SQL:', sql);
+    console.log('SQL Parameters:', params);
 
     // Get paginated raw results with username
     const rawResults = await queryBuilder
