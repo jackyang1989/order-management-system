@@ -67,7 +67,7 @@ export default function NewTaskPage() {
         try {
             // 验证商品列表不能为空
             if (!data.goodsList || data.goodsList.length === 0) {
-                showAlert('请至少添加一个商品！点击"添加商品"按钮或从商品库选择商品。', 'warning');
+                alert('请至少添加一个商品！点击"添加商品"按钮或从商品库选择商品。');
                 setLoading(false);
                 return;
             }
@@ -76,7 +76,7 @@ export default function NewTaskPage() {
             if (data.isPasswordEnabled) {
                 const hasVerifyCode = data.goodsList.some(g => g.verifyCode && g.verifyCode.trim().length > 0);
                 if (!hasVerifyCode) { 
-                    showAlert('开启口令验证后，请在第一步商品设置中至少为一个商品填写核对口令', 'warning'); 
+                    alert('开启口令验证后，请在第一步商品设置中至少为一个商品填写核对口令'); 
                     setLoading(false); 
                     return; 
                 }
@@ -85,7 +85,7 @@ export default function NewTaskPage() {
             if (data.isPraise && data.praiseType === 'text') { 
                 const filled = data.praiseList.filter(s => s && s.trim().length > 0); 
                 if (filled.length !== data.count) { 
-                    showAlert(`请填写所有 ${data.count} 条好评内容`, 'warning'); 
+                    alert(`请填写所有 ${data.count} 条好评内容`); 
                     setLoading(false); 
                     return; 
                 } 
@@ -112,15 +112,13 @@ export default function NewTaskPage() {
             
             const json = await res.json(); 
             if (json.success) { 
-                showAlert('任务发布成功！', 'success');
-                setTimeout(() => {
-                    router.push('/merchant/tasks');
-                }, 1500); 
+                alert('任务发布成功！'); 
+                router.push('/merchant/tasks'); 
             } else {
-                showAlert('发布失败: ' + (json.message || '未知错误'), 'error');
+                alert('发布失败: ' + (json.message || '未知错误'));
             }
         } catch { 
-            showAlert('网络错误', 'error'); 
+            alert('网络错误'); 
         } finally { 
             setLoading(false); 
         }
@@ -151,31 +149,6 @@ export default function NewTaskPage() {
                 {step === 2 && <Step2ValueAdded data={data} onChange={handleDataChange} onPrev={() => setStep(1)} onNext={() => setStep(3)} />}
                 {step === 3 && <Step3Payment data={data} merchant={merchant} onPrev={() => setStep(2)} onSubmit={handleSubmit} loading={loading} />}
             </div>
-
-            {/* Alert Modal */}
-            <Modal
-                open={alertModal.open}
-                onClose={closeAlert}
-                className="max-w-md"
-            >
-                <div className="text-center">
-                    <div className="mb-4">
-                        {alertModal.type === 'success' && <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100"><span className="text-2xl">✓</span></div>}
-                        {alertModal.type === 'error' && <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100"><span className="text-2xl">✕</span></div>}
-                        {alertModal.type === 'warning' && <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100"><span className="text-2xl">⚠</span></div>}
-                    </div>
-                    <h3 className="mb-2 text-lg font-semibold text-slate-900">{alertModal.title}</h3>
-                    <p className="text-sm text-slate-600 whitespace-pre-wrap">{alertModal.message}</p>
-                    <div className="mt-6">
-                        <Button
-                            onClick={closeAlert}
-                            className="w-full rounded-lg bg-primary-600 px-4 py-2 text-white hover:bg-primary-700"
-                        >
-                            确定
-                        </Button>
-                    </div>
-                </div>
-            </Modal>
         </div>
     );
 }
