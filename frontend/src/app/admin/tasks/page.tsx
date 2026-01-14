@@ -678,10 +678,10 @@ export default function AdminTasksPage() {
 
                     return (
                         <div className="max-h-[70vh] overflow-y-auto pr-2">
-                            {/* 顶部主图 */}
+                            {/* 顶部主图 - 缩小尺寸 */}
                             {detailModal.mainImage && (
-                                <div className="mb-6 flex justify-center">
-                                    <img src={detailModal.mainImage} alt="商品图" className="h-48 rounded-md object-contain" />
+                                <div className="mb-4 flex justify-center">
+                                    <img src={detailModal.mainImage} alt="商品图" className="h-20 w-20 rounded-lg border border-slate-200 object-cover shadow-sm" />
                                 </div>
                             )}
 
@@ -950,7 +950,7 @@ export default function AdminTasksPage() {
                                         <div>
                                             <div className="text-[12px] text-[#6b7280]">额外赏金</div>
                                             <div className="text-[13px] font-medium text-warning-500">
-                                                {(detailModal.extraReward || detailModal.extraCommission || 0) > 0 ? `+¥${((detailModal.extraReward || detailModal.extraCommission) || 0).toFixed(2)}/单` : '无'}
+                                                {Number(detailModal.extraReward || detailModal.extraCommission || 0) > 0 ? `+¥${Number(detailModal.extraReward || detailModal.extraCommission || 0).toFixed(2)}/单` : '无'}
                                             </div>
                                         </div>
                                     </div>

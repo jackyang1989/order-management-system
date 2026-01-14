@@ -749,37 +749,37 @@ export default function AdminOrdersPage() {
                                             {task.baseServiceFee && (
                                                 <div className="flex justify-between">
                                                     <span className="text-[#6b7280]">基础服务费</span>
-                                                    <span className="font-medium">¥{task.baseServiceFee.toFixed(2)}</span>
+                                                    <span className="font-medium">¥{Number(task.baseServiceFee).toFixed(2)}</span>
                                                 </div>
                                             )}
                                             {task.praiseFee && (
                                                 <div className="flex justify-between">
                                                     <span className="text-[#6b7280]">文字好评费</span>
-                                                    <span className="font-medium">¥{task.praiseFee.toFixed(2)}</span>
+                                                    <span className="font-medium">¥{Number(task.praiseFee).toFixed(2)}</span>
                                                 </div>
                                             )}
                                             {task.imgPraiseFee && (
                                                 <div className="flex justify-between">
                                                     <span className="text-[#6b7280]">图片好评费</span>
-                                                    <span className="font-medium">¥{task.imgPraiseFee.toFixed(2)}</span>
+                                                    <span className="font-medium">¥{Number(task.imgPraiseFee).toFixed(2)}</span>
                                                 </div>
                                             )}
                                             {task.videoPraiseFee && (
                                                 <div className="flex justify-between">
                                                     <span className="text-[#6b7280]">视频好评费</span>
-                                                    <span className="font-medium">¥{task.videoPraiseFee.toFixed(2)}</span>
+                                                    <span className="font-medium">¥{Number(task.videoPraiseFee).toFixed(2)}</span>
                                                 </div>
                                             )}
                                             {task.shippingFee && (
                                                 <div className="flex justify-between">
                                                     <span className="text-[#6b7280]">邮费</span>
-                                                    <span className="font-medium">¥{task.shippingFee.toFixed(2)}</span>
+                                                    <span className="font-medium">¥{Number(task.shippingFee).toFixed(2)}</span>
                                                 </div>
                                             )}
                                             {task.margin && (
                                                 <div className="flex justify-between">
                                                     <span className="text-[#6b7280]">保证金</span>
-                                                    <span className="font-medium">¥{task.margin.toFixed(2)}</span>
+                                                    <span className="font-medium">¥{Number(task.margin).toFixed(2)}</span>
                                                 </div>
                                             )}
                                             <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
