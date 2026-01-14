@@ -74,7 +74,7 @@ async function bootstrap() {
   // ============================================================
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
+      whitelist: false,  // P0 FIX: Disable whitelist to allow all fields through
       forbidNonWhitelisted: false,
       transform: true,
       transformOptions: {
