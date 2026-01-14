@@ -43,7 +43,7 @@ export default function AdminMerchantsPage() {
 
     // 默认列配置
     const defaultColumns: ColumnConfig[] = useMemo(() => [
-        { key: 'info', visible: true, width: 180, order: 0 },
+        { key: 'info', visible: true, width: 200, order: 0 },
         { key: 'phone', visible: true, width: 120, order: 1 },
         { key: 'wechat', visible: true, width: 100, order: 2 },
         { key: 'balance', visible: true, width: 120, order: 3 },
@@ -51,9 +51,8 @@ export default function AdminMerchantsPage() {
         { key: 'vip', visible: true, width: 90, order: 5 },
         { key: 'status', visible: true, width: 80, order: 6 },
         { key: 'referrer', visible: true, width: 120, order: 7 },
-        { key: 'note', visible: true, width: 100, order: 8 },
-        { key: 'createdAt', visible: true, width: 100, order: 9 },
-        { key: 'actions', visible: true, width: 310, order: 10 },
+        { key: 'createdAt', visible: true, width: 100, order: 8 },
+        { key: 'actions', visible: true, width: 310, order: 9 },
     ], []);
 
     // 列配置 Hook
@@ -72,7 +71,6 @@ export default function AdminMerchantsPage() {
         { key: 'vip', title: '会员' },
         { key: 'status', title: '状态' },
         { key: 'referrer', title: '推荐人' },
-        { key: 'note', title: '备注' },
         { key: 'createdAt', title: '注册时间' },
         { key: 'actions', title: '操作' },
     ], []);
@@ -404,12 +402,52 @@ export default function AdminMerchantsPage() {
         {
             key: 'info',
             title: '商家信息',
-            defaultWidth: 180,
-            minWidth: 100,
+            defaultWidth: 200,
+            minWidth: 120,
             sortable: true,
             render: (row) => (
                 <div>
-                    <div className="font-medium text-[#3b4559]">{row.username}</div>
+                    <div className="flex items-center gap-1.5">
+                        <span className="font-medium text-[#3b4559]">{row.username}</span>
+
+                        {/* 备注图标按钮 */}
+                        <div className="relative group">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    openNote(row);
+                                }}
+                                className={`flex h-5 w-5 items-center justify-center rounded-full transition-all ${
+                                    row.note
+                                        ? 'bg-amber-100 text-amber-600 hover:bg-amber-200'
+                                        : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                                }`}
+                                title={row.note ? '查看/编辑备注' : '添加备注'}
+                                type="button"
+                            >
+                                <span className="text-xs">📝</span>
+                            </button>
+
+                            {/* 悬浮提示层 - 仅在有备注时显示 */}
+                            {row.note && (
+                                <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 absolute left-0 top-full mt-2 z-50 w-72 rounded-xl bg-white p-3 shadow-xl border border-slate-200">
+                                    <div className="absolute -top-2 left-4 w-4 h-4 bg-white border-l border-t border-slate-200 rotate-45"></div>
+                                    <div className="relative">
+                                        <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-slate-100">
+                                            <span className="text-amber-600 text-xs">📝</span>
+                                            <span className="text-xs font-semibold text-slate-600">备注</span>
+                                        </div>
+                                        <div className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap max-h-40 overflow-y-auto">
+                                            {row.note}
+                                        </div>
+                                        <div className="text-[10px] text-slate-400 mt-2 text-right">
+                                            点击图标编辑
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                     {row.companyName && (
                         <div className="text-xs text-[#6b7280]">{row.companyName}</div>
                     )}
@@ -506,17 +544,6 @@ export default function AdminMerchantsPage() {
                     ) : (
                         <div className="text-[#9ca3af]">-</div>
                     )}
-                </div>
-            ),
-        },
-        {
-            key: 'note',
-            title: '备注',
-            defaultWidth: 100,
-            minWidth: 60,
-            render: (row) => (
-                <div className="max-w-[100px] truncate text-xs text-danger-400" title={row.note || ''}>
-                    {row.note || '-'}
                 </div>
             ),
         },
