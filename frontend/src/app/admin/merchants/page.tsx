@@ -423,7 +423,7 @@ export default function AdminMerchantsPage() {
                                         if (tooltip) {
                                             const rect = e.currentTarget.getBoundingClientRect();
                                             tooltip.style.left = `${rect.right + window.scrollX + 8}px`;
-                                            tooltip.style.top = `${rect.top + window.scrollY - 8}px`;
+                                            tooltip.style.top = `${rect.top + window.scrollY}px`;
                                             tooltip.classList.remove('invisible', 'opacity-0');
                                             tooltip.classList.add('visible', 'opacity-100');
                                         }

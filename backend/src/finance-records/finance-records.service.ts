@@ -69,8 +69,8 @@ export class FinanceRecordsService {
 
     const queryBuilder = this.financeRecordRepository
       .createQueryBuilder('fr')
-      .leftJoin('users', 'u', 'fr.userId = u.id AND fr.userType = 1')
-      .leftJoin('merchants', 'm', 'fr.userId = m.id AND fr.userType = 2')
+      .leftJoin('users', 'u', 'fr.userId::uuid = u.id AND fr.userType = 1')
+      .leftJoin('merchants', 'm', 'fr.userId::uuid = m.id AND fr.userType = 2')
       .addSelect('COALESCE(u.username, m.username)', 'username');
 
     if (filter.userId) {
