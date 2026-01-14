@@ -35,6 +35,7 @@ export default function TasksPage() {
     const [enabledTaskTypes, setEnabledTaskTypes] = useState<number[]>([1, 2]); // 启用的平台类型
     const [entryTypes, setEntryTypes] = useState<EntryTypeData[]>([]); // 入口类型列表
     const [loadingFilters, setLoadingFilters] = useState(true); // 筛选选项加载状态
+    const [platforms, setPlatforms] = useState<Platform[]>([]); // 平台列表
     const [op2count, setOp2count] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [total, setTotal] = useState(0);
@@ -51,7 +52,8 @@ export default function TasksPage() {
                 const platforms = await fetchEnabledPlatforms();
                 const enabled = getEnabledTaskTypesFromPlatforms(platforms);
                 setEnabledTaskTypes(enabled);
-                
+                setPlatforms(platforms);
+
                 const types = await fetchEnabledEntryTypes();
                 setEntryTypes(types);
             } catch (error) {
@@ -140,6 +142,24 @@ export default function TasksPage() {
     };
 
     const totalPages = Math.ceil(total / pageSize);
+
+    // 根据 taskType 获取平台图标
+    const getPlatformIcon = (taskType?: number): string => {
+        if (!taskType) return '🛒';
+        const platform = platforms.find(p => {
+            // 匹配平台代码（如 'taobao' 对应 taskType 1）
+            const taskTypeMap: Record<string, number> = {
+                'taobao': 1,
+                'tmall': 2,
+                'jd': 3,
+                'pdd': 4,
+                'douyin': 5,
+                'kuaishou': 6,
+            };
+            return taskTypeMap[p.code] === taskType;
+        });
+        return platform?.icon || '🛒';
+    };
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] pb-20 text-slate-900">
@@ -242,7 +262,7 @@ export default function TasksPage() {
                             <div key={task.id} className="relative overflow-hidden rounded-[24px] bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-all active:scale-[0.99]">
                                 <div className="mb-4 flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm">🆔</div>
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm">{getPlatformIcon(task.taskType)}</div>
                                         <span className="font-bold text-slate-900">{task.randNum}</span>
                                     </div>
                                 </div>

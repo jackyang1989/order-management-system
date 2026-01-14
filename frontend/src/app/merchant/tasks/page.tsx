@@ -75,6 +75,12 @@ export default function MerchantTasksPage() {
 
     const getStatusBadge = (status: number) => { const style = TaskStatusMap[status] || { text: '未知', color: 'slate' as const }; return <Badge variant="soft" color={style.color} className="rounded-full px-2.5 font-bold">{style.text}</Badge>; };
 
+    // 根据 taskType 获取平台图标
+    const getPlatformIcon = (taskType: number): string => {
+        const platform = enabledPlatforms.find(p => PLATFORM_CODE_TO_TASK_TYPE[p.code] === taskType);
+        return platform?.icon || '🛒';
+    };
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -167,7 +173,12 @@ export default function MerchantTasksPage() {
                                             <div className="font-bold text-slate-900">{task.title}</div>
                                             <div className="mt-1 text-xs font-medium text-slate-400">¥{task.goodsPrice}</div>
                                         </td>
-                                        <td className="px-6 py-5 text-[14px] font-medium text-slate-500">{TASK_TYPE_NAMES[task.taskType] || '未知'}</td>
+                                        <td className="px-6 py-5">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-lg">{getPlatformIcon(task.taskType)}</span>
+                                                <span className="text-[14px] font-medium text-slate-500">{TASK_TYPE_NAMES[task.taskType] || '未知'}</span>
+                                            </div>
+                                        </td>
                                         <td className="px-6 py-5 font-black text-danger-500">¥{task.totalCommission}</td>
                                         <td className="px-6 py-5">
                                             <div className="flex items-center gap-2">
