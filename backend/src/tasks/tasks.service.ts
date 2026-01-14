@@ -544,6 +544,8 @@ export class TasksService implements OnModuleInit {
             for (const kw of goods.keywords) {
               // 筛选设置优先从关键词级别获取，其次从商品级别获取
               const filterSettings = kw.filterSettings || goods.filterSettings || {};
+              // 获取高级设置
+              const advancedSettings = kw.advancedSettings || {};
               const taskKeyword = this.taskKeywordRepository.create({
                 taskId: task.id,
                 taskGoodsId: goods.id || undefined,
@@ -553,6 +555,9 @@ export class TasksService implements OnModuleInit {
                 province: filterSettings.province || undefined,
                 minPrice: filterSettings.minPrice || 0,
                 maxPrice: filterSettings.maxPrice || 0,
+                // P0 Fix: 保存高级设置 (货比关键词 & 备用关键词)
+                compareKeyword: advancedSettings.compareKeyword || undefined,
+                backupKeyword: advancedSettings.backupKeyword || undefined,
               });
               taskKeywordsList.push(taskKeyword);
             }

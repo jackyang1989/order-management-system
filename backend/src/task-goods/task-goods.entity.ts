@@ -107,6 +107,12 @@ export class TaskKeyword {
   @Column({ length: 50, nullable: true })
   province: string; // 发货地
 
+  @Column({ length: 100, nullable: true })
+  compareKeyword: string; // 货比关键词 (从 advancedSettings.compareKeyword)
+
+  @Column({ length: 100, nullable: true })
+  backupKeyword: string; // 备用关键词/副关键词 (从 advancedSettings.backupKeyword)
+
   @CreateDateColumn()
   createdAt: Date;
 }
@@ -135,4 +141,6 @@ export class CreateTaskKeywordDto {
   maxPrice?: number;
   minPrice?: number;
   province?: string;
+  compareKeyword?: string; // 货比关键词
+  backupKeyword?: string; // 备用关键词
 }
