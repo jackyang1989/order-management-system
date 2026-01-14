@@ -739,6 +739,15 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <span>返款方式：</span><span>{item.zhongDuan}</span>
                         </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>邮费：</span>
+                            <span style={{ 
+                                color: isFreeShipping ? '#52c41a' : '#fa8c16',
+                                fontWeight: 'bold'
+                            }}>
+                                {isFreeShipping ? '包邮' : '非包邮'}
+                            </span>
+                        </div>
                         <div style={{ marginTop: '10px' }}>
                             <button
                                 onClick={handleQuXiao}
@@ -810,12 +819,40 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         <div style={{ fontSize: '12px', color: '#f56c6c', lineHeight: '1.8' }}>
                             <p>1. 禁止使用任何返利平台，若有使用请退出返利平台并清空{platformName || '平台'}缓存后再继续任务；</p>
                             <p>2. 必须按照商家给的关键词和渠道搜索进店，不可擅自加词或更换指定进店渠道，后台可看到进店关键词和渠道；</p>
-                            {contactCSContent && <p>3. 必须联系客服并发送以下内容：<span style={{ fontWeight: 'bold', color: 'blue' }}>{contactCSContent}</span>；</p>}
-                            <p>{contactCSContent ? '4' : '3'}. 货比浏览{compareBrowseMinutes}分钟以上，主商品浏览{mainBrowseMinutes}分钟以上{hasSubProduct ? `，副商品浏览${subBrowseMinutes}分钟以上` : ''}，然后随机浏览店铺其他2个商品各2分钟，浏览时间不够和未到支付步骤不要提前将购物车的商品下单付款，后台可看到各商品停留时间，总浏览时间低于{totalBrowseMinutes}分钟无法提交订单；</p>
-                            <p>{contactCSContent ? '5' : '4'}. 禁止修改订单截图上的实付金额，所有支付优惠商家后台都可查到；</p>
-                            <p>{contactCSContent ? '6' : '5'}. 请在倒计时结束前完成任务并在平台提交，超时任务取消且系统会自动扣除1银锭；</p>
-                            <p>{contactCSContent ? '7' : '6'}. 请严格按要求认真完成任务，否则将根据处罚细则进行处罚。</p>
+                            <p>3. 货比浏览{compareBrowseMinutes}分钟以上，主商品浏览{mainBrowseMinutes}分钟以上{hasSubProduct ? `，副商品浏览${subBrowseMinutes}分钟以上` : ''}，然后随机浏览店铺其他2个商品各2分钟，浏览时间不够和未到支付步骤不要提前将购物车的商品下单付款，后台可看到各商品停留时间，总浏览时间低于{totalBrowseMinutes}分钟无法提交订单；</p>
+                            <p>4. 禁止修改订单截图上的实付金额，所有支付优惠商家后台都可查到；</p>
+                            <p>5. 请在倒计时结束前完成任务并在平台提交，超时任务取消且系统会自动扣除1银锭；</p>
+                            <p>6. 请严格按要求认真完成任务，否则将根据处罚细则进行处罚。</p>
                         </div>
+                        
+                        {/* 包裹重量和快速返款提示 */}
+                        {(weight > 0 || fastRefund) && (
+                            <div style={{ 
+                                marginTop: '12px', 
+                                padding: '10px', 
+                                background: '#f0f5ff', 
+                                borderRadius: '4px',
+                                border: '1px solid #adc6ff'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                                    <span style={{ color: '#2f54eb', marginRight: '5px' }}>📦</span>
+                                    <span style={{ fontWeight: 'bold', color: '#2f54eb', fontSize: '13px' }}>订单设置</span>
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#333', lineHeight: '1.6' }}>
+                                    {weight > 0 && (
+                                        <p style={{ marginBottom: '4px' }}>
+                                            包裹重量：<span style={{ fontWeight: 'bold', color: '#2f54eb' }}>{weight}kg</span>
+                                            {!isFreeShipping && <span style={{ color: '#fa8c16' }}> （请注意邮费）</span>}
+                                        </p>
+                                    )}
+                                    {fastRefund && (
+                                        <p style={{ marginBottom: '0', color: '#52c41a' }}>
+                                            ⚡ 快速返款服务已开通（0.6%费率）
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                         
                         {/* 好评要求提示 */}
                         {(isPraise || isImgPraise || isVideoPraise) && (
@@ -1045,6 +1082,36 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                 </div>
                             )}
                         </div>
+                        
+                        {/* 联系客服提示 */}
+                        {contactCSContent && (
+                            <div style={{ 
+                                marginBottom: '15px', 
+                                padding: '10px', 
+                                background: '#e6f7ff', 
+                                borderRadius: '4px',
+                                border: '1px solid #91d5ff'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                                    <span style={{ color: '#1890ff', marginRight: '5px' }}>💬</span>
+                                    <span style={{ fontWeight: 'bold', color: '#1890ff', fontSize: '13px' }}>必须联系客服</span>
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#333', lineHeight: '1.6' }}>
+                                    找到主商品后，请联系客服并发送以下内容：
+                                    <div style={{ 
+                                        marginTop: '6px',
+                                        padding: '8px',
+                                        background: '#fff',
+                                        borderRadius: '4px',
+                                        fontWeight: 'bold',
+                                        color: '#1890ff',
+                                        border: '1px dashed #91d5ff'
+                                    }}>
+                                        {contactCSContent}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* 任务类型指引 */}
                         {tasktype === '5' && (
@@ -1395,22 +1462,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             <p>3. 填写订单号和实际付款金额。</p>
                         </div>
 
-                        {/* 订单设置信息 */}
-                        {(weight > 0 || fastRefund) && (
-                            <div style={{ marginBottom: '15px', padding: '10px', background: '#e6f7ff', borderRadius: '4px', border: '1px solid #91d5ff' }}>
-                                <p style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', color: '#1890ff' }}>订单设置提醒：</p>
-                                {weight > 0 && (
-                                    <p style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
-                                        📦 包裹重量：<span style={{ fontWeight: 'bold' }}>{weight}kg</span>
-                                    </p>
-                                )}
-                                {fastRefund && (
-                                    <p style={{ fontSize: '12px', color: '#52c41a', marginBottom: '4px' }}>
-                                        ⚡ 快速返款服务：<span style={{ fontWeight: 'bold' }}>已开通</span>（0.6%费率）
-                                    </p>
-                                )}
-                            </div>
-                        )}
+
 
                         {/* 收货地址 */}
                         <div style={{ marginBottom: '15px', padding: '10px', background: '#f9f9f9', borderRadius: '4px' }}>
