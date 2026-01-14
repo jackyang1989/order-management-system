@@ -521,7 +521,7 @@ export default function AdminUsersPage() {
                         <span className="font-medium text-[#3b4559]">{row.username}</span>
 
                         {/* 备注图标按钮 */}
-                        <div className="relative inline-block">
+                        <div className="relative inline-flex items-center">
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -530,8 +530,11 @@ export default function AdminUsersPage() {
                                 }}
                                 onMouseEnter={(e) => {
                                     if (row.note) {
-                                        const tooltip = e.currentTarget.nextElementSibling;
+                                        const tooltip = e.currentTarget.nextElementSibling as HTMLElement;
                                         if (tooltip) {
+                                            const rect = e.currentTarget.getBoundingClientRect();
+                                            tooltip.style.left = `${rect.right + window.scrollX + 8}px`;
+                                            tooltip.style.top = `${rect.top + window.scrollY - 8}px`;
                                             tooltip.classList.remove('invisible', 'opacity-0');
                                             tooltip.classList.add('visible', 'opacity-100');
                                         }
@@ -539,7 +542,7 @@ export default function AdminUsersPage() {
                                 }}
                                 onMouseLeave={(e) => {
                                     if (row.note) {
-                                        const tooltip = e.currentTarget.nextElementSibling;
+                                        const tooltip = e.currentTarget.nextElementSibling as HTMLElement;
                                         if (tooltip) {
                                             tooltip.classList.add('invisible', 'opacity-0');
                                             tooltip.classList.remove('visible', 'opacity-100');
@@ -554,15 +557,16 @@ export default function AdminUsersPage() {
                                 title={row.note ? '查看/编辑备注' : '添加备注'}
                                 type="button"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
                                     <path fillRule="evenodd" d="M3 2.25a.75.75 0 01.75.75v.54l1.838-.46a9.75 9.75 0 016.725.738l.108.054a8.25 8.25 0 005.58.652l3.109-.732a.75.75 0 01.917.81 47.784 47.784 0 00.005 10.337.75.75 0 01-.574.812l-3.114.733a9.75 9.75 0 01-6.594-.77l-.108-.054a8.25 8.25 0 00-5.69-.625l-2.202.55V21a.75.75 0 01-1.5 0V3A.75.75 0 013 2.25z" clipRule="evenodd" />
                                 </svg>
                             </button>
 
                             {/* 悬浮提示层 - 仅在有备注时显示 */}
                             {row.note && (
-                                <div className="invisible opacity-0 transition-all duration-200 absolute left-0 top-full mt-2 z-[9999] w-72 rounded-xl bg-white p-3 shadow-2xl border border-slate-200 pointer-events-none">
-                                    <div className="absolute -top-2 left-4 w-4 h-4 bg-white border-l border-t border-slate-200 rotate-45"></div>
+                                <div className="invisible opacity-0 transition-all duration-200 fixed w-72 rounded-xl bg-white p-3 shadow-2xl border border-slate-200 z-[99999]">
+                                    <div className="absolute left-0 top-[8px] w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[8px] border-r-white" style={{ marginLeft: '-8px' }}></div>
+                                    <div className="absolute left-0 top-[8px] w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[8px] border-r-slate-200" style={{ marginLeft: '-9px' }}></div>
                                     <div className="relative">
                                         <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-slate-100">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-red-500">
@@ -709,33 +713,33 @@ export default function AdminUsersPage() {
             minWidth: 200,
             render: (row) => (
                 <div className="grid grid-cols-4 gap-1">
-                    <Button size="sm" variant="outline" className="min-w-[60px] text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
+                    <Button size="sm" variant="outline" className="text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
                         银锭
                     </Button>
-                    <Button size="sm" variant="outline" className="min-w-[60px] text-success-500" onClick={() => window.location.href = `/admin/users/${row.id}/deposit`}>
+                    <Button size="sm" variant="outline" className="text-success-500" onClick={() => window.location.href = `/admin/users/${row.id}/deposit`}>
                         押金
                     </Button>
-                    <Button size="sm" variant="outline" className="min-w-[60px]" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>
+                    <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>
                         买号
                     </Button>
-                    <Button size="sm" variant="outline" className="min-w-[60px]" onClick={() => openEditModal(row)}>
+                    <Button size="sm" variant="outline" onClick={() => openEditModal(row)}>
                         编辑
                     </Button>
-                    <Button size="sm" variant="outline" className="min-w-[60px]" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
-                        改密码
+                    <Button size="sm" variant="outline" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
+                        密码
                     </Button>
-                    <Button size="sm" variant="outline" className="min-w-[60px]" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
+                    <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
                         消息
                     </Button>
-                    <Button size="sm" variant="outline" className="min-w-[60px] text-amber-500" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.id}`}>
-                        银行卡
+                    <Button size="sm" variant="outline" className="text-amber-500" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.id}`}>
+                        银行
                     </Button>
                     {row.isBanned ? (
-                        <Button size="sm" variant="outline" className="min-w-[60px] text-green-600" onClick={() => handleUnban(row.id)}>
+                        <Button size="sm" variant="outline" className="text-green-600" onClick={() => handleUnban(row.id)}>
                             解封
                         </Button>
                     ) : (
-                        <Button size="sm" variant="outline" className="min-w-[60px] text-red-500" onClick={() => setBanModal({ userId: row.id, username: row.username })}>
+                        <Button size="sm" variant="outline" className="text-red-500" onClick={() => setBanModal({ userId: row.id, username: row.username })}>
                             封禁
                         </Button>
                     )}
