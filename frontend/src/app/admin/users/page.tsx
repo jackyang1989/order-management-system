@@ -521,27 +521,45 @@ export default function AdminUsersPage() {
                         <span className="font-medium text-[#3b4559]">{row.username}</span>
 
                         {/* 备注图标按钮 */}
-                        <div className="relative group">
+                        <div className="relative inline-block">
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     setNoteModal({ userId: row.id, username: row.username, currentNote: row.note || '' });
                                     setNoteText(row.note || '');
                                 }}
-                                className={`flex h-5 w-5 items-center justify-center rounded-full transition-all ${
+                                onMouseEnter={(e) => {
+                                    if (row.note) {
+                                        const tooltip = e.currentTarget.nextElementSibling;
+                                        if (tooltip) {
+                                            tooltip.classList.remove('invisible', 'opacity-0');
+                                            tooltip.classList.add('visible', 'opacity-100');
+                                        }
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (row.note) {
+                                        const tooltip = e.currentTarget.nextElementSibling;
+                                        if (tooltip) {
+                                            tooltip.classList.add('invisible', 'opacity-0');
+                                            tooltip.classList.remove('visible', 'opacity-100');
+                                        }
+                                    }
+                                }}
+                                className={`flex h-5 w-5 items-center justify-center rounded-full transition-all shadow-sm ${
                                     row.note
-                                        ? 'bg-amber-100 text-amber-600 hover:bg-amber-200'
-                                        : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                                        ? 'bg-gradient-to-br from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
+                                        : 'bg-slate-200 text-slate-400 hover:bg-slate-300'
                                 }`}
                                 title={row.note ? '查看/编辑备注' : '添加备注'}
                                 type="button"
                             >
-                                <span className="text-xs">📝</span>
+                                <span className={`text-xs ${row.note ? 'filter brightness-0 invert' : ''}`}>📝</span>
                             </button>
 
                             {/* 悬浮提示层 - 仅在有备注时显示 */}
                             {row.note && (
-                                <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 absolute left-0 top-full mt-2 z-50 w-72 rounded-xl bg-white p-3 shadow-xl border border-slate-200">
+                                <div className="invisible opacity-0 transition-all duration-200 absolute left-0 top-full mt-2 z-[9999] w-72 rounded-xl bg-white p-3 shadow-2xl border border-slate-200 pointer-events-none">
                                     <div className="absolute -top-2 left-4 w-4 h-4 bg-white border-l border-t border-slate-200 rotate-45"></div>
                                     <div className="relative">
                                         <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-slate-100">
@@ -699,9 +717,6 @@ export default function AdminUsersPage() {
                         </Button>
                         <Button size="sm" variant="outline" className="min-w-[60px]" onClick={() => openEditModal(row)}>
                             编辑
-                        </Button>
-                        <Button size="sm" variant="outline" className="min-w-[60px] text-danger-400" onClick={() => { setNoteModal({ userId: row.id, username: row.username, currentNote: row.note || '' }); setNoteText(row.note || ''); }}>
-                            备注
                         </Button>
                         <Button size="sm" variant="outline" className="min-w-[60px]" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
                             改密码
