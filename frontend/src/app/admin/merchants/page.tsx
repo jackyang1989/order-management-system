@@ -473,9 +473,6 @@ export default function AdminMerchantsPage() {
                             )}
                         </div>
                     </div>
-                    {row.companyName && (
-                        <div className="text-xs text-[#6b7280]">{row.companyName}</div>
-                    )}
                 </div>
             ),
         },

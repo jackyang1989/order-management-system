@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   Index,
 } from 'typeorm';
+import { Transform, Type } from 'class-transformer';
 
 // 用户类型
 export enum FinanceUserType {
@@ -120,11 +121,27 @@ export class CreateFinanceRecordDto {
 
 export class FinanceRecordFilterDto {
   userId?: string;
+
+  @Type(() => Number)
+  @Transform(({ value }) => value ? parseInt(value, 10) : undefined)
   userType?: FinanceUserType;
+
+  @Type(() => Number)
+  @Transform(({ value }) => value ? parseInt(value, 10) : undefined)
   moneyType?: FinanceMoneyType;
+
+  @Type(() => Number)
+  @Transform(({ value }) => value ? parseInt(value, 10) : undefined)
   financeType?: FinanceType;
+
   startDate?: string;
   endDate?: string;
+
+  @Type(() => Number)
+  @Transform(({ value }) => value ? parseInt(value, 10) : undefined)
   page?: number;
+
+  @Type(() => Number)
+  @Transform(({ value }) => value ? parseInt(value, 10) : undefined)
   limit?: number;
 }
