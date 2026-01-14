@@ -52,7 +52,7 @@ export default function AdminMerchantsPage() {
         { key: 'status', visible: true, width: 80, order: 6 },
         { key: 'referrer', visible: true, width: 120, order: 7 },
         { key: 'createdAt', visible: true, width: 100, order: 8 },
-        { key: 'actions', visible: true, width: 310, order: 9 },
+        { key: 'actions', visible: true, width: 270, order: 9 },
     ], []);
 
     // 列配置 Hook
@@ -587,7 +587,7 @@ export default function AdminMerchantsPage() {
         {
             key: 'actions',
             title: '操作',
-            defaultWidth: 286,
+            defaultWidth: 270,
             minWidth: 200,
             render: (row) => (
                 <div className="grid grid-cols-4 gap-1 w-fit mx-auto">

@@ -110,7 +110,7 @@ export default function AdminUsersPage() {
         { key: 'monthlyTaskCount', visible: true, width: 70, order: 8 },
         { key: 'lastLoginAt', visible: true, width: 100, order: 9 },
         { key: 'createdAt', visible: true, width: 90, order: 10 },
-        { key: 'actions', visible: true, width: 310, order: 11, fixed: 'right' },
+        { key: 'actions', visible: true, width: 270, order: 11, fixed: 'right' },
     ], []);
 
     // 列配置 Hook
@@ -708,7 +708,7 @@ export default function AdminUsersPage() {
         {
             key: 'actions',
             title: '操作',
-            defaultWidth: 286,
+            defaultWidth: 270,
             minWidth: 200,
             render: (row) => (
                 <div className="grid grid-cols-4 gap-1 w-fit mx-auto">

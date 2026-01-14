@@ -483,6 +483,9 @@ export class BuyerAccountsService {
     const where: any = {};
     if (status !== undefined) {
       where.status = status;
+    } else {
+      // 默认排除已删除的记录
+      where.status = Not(BuyerAccountStatus.DELETED);
     }
 
     const [data, total] = await this.buyerAccountsRepository.findAndCount({

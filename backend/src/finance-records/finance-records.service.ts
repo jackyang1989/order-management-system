@@ -16,7 +16,7 @@ export class FinanceRecordsService {
     @InjectRepository(FinanceRecord)
     private financeRecordRepository: Repository<FinanceRecord>,
     private dataSource: DataSource,
-  ) {}
+  ) { }
 
   /**
    * 创建财务记录
@@ -56,10 +56,10 @@ export class FinanceRecordsService {
   }
 
   /**
-   * 查询财务记录列表
+   * 查询财务记录列表（带用户名）
    */
   async findAll(filter: FinanceRecordFilterDto): Promise<{
-    data: FinanceRecord[];
+    data: Array<FinanceRecord & { username?: string; changeType?: string }>;
     total: number;
     page: number;
     totalPages: number;
@@ -67,7 +67,11 @@ export class FinanceRecordsService {
     const page = filter.page || 1;
     const limit = filter.limit || 20;
 
-    const queryBuilder = this.financeRecordRepository.createQueryBuilder('fr');
+    const queryBuilder = this.financeRecordRepository
+      .createQueryBuilder('fr')
+      .leftJoin('users', 'u', 'fr.userId = u.id AND fr.userType = 1')
+      .leftJoin('merchants', 'm', 'fr.userId = m.id AND fr.userType = 2')
+      .addSelect('COALESCE(u.username, m.username)', 'username');
 
     if (filter.userId) {
       queryBuilder.andWhere('fr.userId = :userId', { userId: filter.userId });
@@ -94,12 +98,22 @@ export class FinanceRecordsService {
       });
     }
 
+    // Get count before pagination
     const total = await queryBuilder.getCount();
-    const data = await queryBuilder
+
+    // Get paginated raw results with username
+    const rawResults = await queryBuilder
       .orderBy('fr.createdAt', 'DESC')
       .skip((page - 1) * limit)
       .take(limit)
-      .getMany();
+      .getRawAndEntities();
+
+    // Merge username into entity data
+    const data = rawResults.entities.map((entity, index) => ({
+      ...entity,
+      username: rawResults.raw[index]?.username || null,
+      changeType: this.getFinanceTypeText(entity.financeType),
+    }));
 
     return {
       data,
