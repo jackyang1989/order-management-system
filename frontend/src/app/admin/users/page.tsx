@@ -712,35 +712,35 @@ export default function AdminUsersPage() {
             minWidth: 200,
             render: (row) => (
                 <div className="grid grid-cols-4 gap-1 w-fit mx-auto">
-                    <Button size="sm" variant="outline" className="h-7 w-16 px-0" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
+                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
                         银锭
-                    </Button>
-                    <Button size="sm" variant="outline" className="h-7 w-16 px-0 text-success-500" onClick={() => window.location.href = `/admin/users/${row.id}/deposit`}>
+                    </button>
+                    <button className="rounded-full border border-success-300 bg-white px-3 py-1 text-xs text-success-600 hover:bg-success-50 transition-colors" onClick={() => window.location.href = `/admin/users/${row.id}/deposit`}>
                         押金
-                    </Button>
-                    <Button size="sm" variant="outline" className="h-7 w-16 px-0" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>
+                    </button>
+                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>
                         买号
-                    </Button>
-                    <Button size="sm" variant="outline" className="h-7 w-16 px-0" onClick={() => openEditModal(row)}>
+                    </button>
+                    <button className="rounded-full border border-primary-300 bg-white px-3 py-1 text-xs text-primary-600 hover:bg-primary-50 transition-colors" onClick={() => openEditModal(row)}>
                         编辑
-                    </Button>
-                    <Button size="sm" variant="outline" className="h-7 w-16 px-0" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
+                    </button>
+                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
                         改密码
-                    </Button>
-                    <Button size="sm" variant="outline" className="h-7 w-16 px-0" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
+                    </button>
+                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
                         消息
-                    </Button>
-                    <Button size="sm" variant="outline" className="h-7 w-16 px-0 text-amber-500" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.id}`}>
+                    </button>
+                    <button className="rounded-full border border-amber-300 bg-white px-3 py-1 text-xs text-amber-600 hover:bg-amber-50 transition-colors" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.id}`}>
                         银行卡
-                    </Button>
+                    </button>
                     {row.isBanned ? (
-                        <Button size="sm" variant="outline" className="h-7 w-16 px-0 text-green-600" onClick={() => handleUnban(row.id)}>
+                        <button className="rounded-full border border-green-300 bg-white px-3 py-1 text-xs text-green-600 hover:bg-green-50 transition-colors" onClick={() => handleUnban(row.id)}>
                             解封
-                        </Button>
+                        </button>
                     ) : (
-                        <Button size="sm" variant="outline" className="h-7 w-16 px-0 text-red-500" onClick={() => setBanModal({ userId: row.id, username: row.username })}>
+                        <button className="rounded-full border border-red-300 bg-white px-3 py-1 text-xs text-red-500 hover:bg-red-50 transition-colors" onClick={() => setBanModal({ userId: row.id, username: row.username })}>
                             封禁
-                        </Button>
+                        </button>
                     )}
                 </div>
             ),

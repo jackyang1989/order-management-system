@@ -439,7 +439,7 @@ export default function AdminMerchantsPage() {
                                     }
                                 }}
                                 className={`transition-all ${row.note
-                                    ? 'text-danger-600 hover:text-red-600'
+                                    ? 'text-red-500 hover:text-red-600'
                                     : 'text-slate-300 hover:text-slate-400'
                                     }`}
                                 title={row.note ? '查看/编辑备注' : '添加备注'}
@@ -457,7 +457,7 @@ export default function AdminMerchantsPage() {
                                     <div className="absolute left-0 top-[8px] w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[8px] border-r-slate-200" style={{ marginLeft: '-9px' }}></div>
                                     <div className="relative">
                                         <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-slate-100">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-danger-600">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-red-500">
                                                 <path fillRule="evenodd" d="M3 2.25a.75.75 0 01.75.75v.54l1.838-.46a9.75 9.75 0 016.725.738l.108.054a8.25 8.25 0 005.58.652l3.109-.732a.75.75 0 01.917.81 47.784 47.784 0 00.005 10.337.75.75 0 01-.574.812l-3.114.733a9.75 9.75 0 01-6.594-.77l-.108-.054a8.25 8.25 0 00-5.69-.625l-2.202.55V21a.75.75 0 01-1.5 0V3A.75.75 0 013 2.25z" clipRule="evenodd" />
                                             </svg>
                                             <span className="text-xs font-semibold text-slate-600">备注</span>
@@ -501,7 +501,7 @@ export default function AdminMerchantsPage() {
             minWidth: 80,
             render: (row) => (
                 <div className="text-sm">
-                    <div className="font-medium text-success-600">¥{Number(row.balance || 0).toFixed(2)}</div>
+                    <div className="font-medium text-success-500">¥{Number(row.balance || 0).toFixed(2)}</div>
                     <div className="text-primary-600">{Number(row.silver || 0).toFixed(2)} 银锭</div>
                 </div>
             ),
@@ -594,33 +594,33 @@ export default function AdminMerchantsPage() {
                     <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => router.push(`/admin/merchants/balance?merchantId=${row.id}`)}>
                         流水
                     </button>
-                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => router.push(`/admin/merchants/${row.id}/deposit`)}>
+                    <button className="rounded-full border border-success-300 bg-white px-3 py-1 text-xs text-success-600 hover:bg-success-50 transition-colors" onClick={() => router.push(`/admin/merchants/${row.id}/deposit`)}>
                         押金
                     </button>
                     <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => openAdjustBalance(row)}>
                         调余额
                     </button>
-                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => openMessage(row)}>
+                    <button className="rounded-full border border-primary-300 bg-white px-3 py-1 text-xs text-primary-600 hover:bg-primary-50 transition-colors" onClick={() => openMessage(row)}>
                         消息
                     </button>
                     {/* VIP过期或无VIP时显示设VIP按钮 */}
                     {!(row.vip && row.vipExpireAt && new Date(row.vipExpireAt) > new Date()) && (
-                        <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => openSetVip(row)}>
+                        <button className="rounded-full border border-warning-300 bg-white px-3 py-1 text-xs text-warning-600 hover:bg-warning-50 transition-colors" onClick={() => openSetVip(row)}>
                             设VIP
                         </button>
                     )}
-                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => openEdit(row)}>
+                    <button className="rounded-full border border-primary-300 bg-white px-3 py-1 text-xs text-primary-600 hover:bg-primary-50 transition-colors" onClick={() => openEdit(row)}>
                         编辑
                     </button>
                     <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => openPassword(row)}>
                         改密码
                     </button>
                     {row.status === 3 ? (
-                        <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => handleBan(row.id, row.status)}>
+                        <button className="rounded-full border border-success-300 bg-white px-3 py-1 text-xs text-success-600 hover:bg-success-50 transition-colors" onClick={() => handleBan(row.id, row.status)}>
                             启用
                         </button>
                     ) : (
-                        <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => handleBan(row.id, row.status)}>
+                        <button className="rounded-full border border-red-300 bg-white px-3 py-1 text-xs text-red-500 hover:bg-red-50 transition-colors" onClick={() => handleBan(row.id, row.status)}>
                             禁用
                         </button>
                     )}
@@ -660,13 +660,13 @@ export default function AdminMerchantsPage() {
                     />
                     <Button onClick={handleSearch}>
                         搜索
-                    </button>
+                    </Button>
                     <Button variant="secondary" onClick={loadMerchants}>
                         刷新
-                    </button>
+                    </Button>
                     <Button onClick={openAddMerchant}>
                         添加商家
-                    </button>
+                    </Button>
 
                 </div>
 
@@ -755,10 +755,10 @@ export default function AdminMerchantsPage() {
                     <div className="flex justify-end gap-3 pt-4">
                         <Button variant="secondary" onClick={() => setActiveModal(null)}>
                             取消
-                        </button>
+                        </Button>
                         <Button onClick={submitAdjustBalance}>
                             确认
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </Modal>
@@ -780,10 +780,10 @@ export default function AdminMerchantsPage() {
                     <div className="flex justify-end gap-3 pt-4">
                         <Button variant="secondary" onClick={() => setActiveModal(null)}>
                             取消
-                        </button>
+                        </Button>
                         <Button onClick={submitSetVip}>
                             确认
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </Modal>
@@ -808,10 +808,10 @@ export default function AdminMerchantsPage() {
                     <div className="flex justify-end gap-3 pt-4">
                         <Button variant="secondary" onClick={() => setActiveModal(null)}>
                             取消
-                        </button>
+                        </Button>
                         <Button variant="destructive" onClick={submitBan}>
                             确认禁用
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </Modal>
@@ -836,10 +836,10 @@ export default function AdminMerchantsPage() {
                     <div className="flex justify-end gap-3 pt-4">
                         <Button variant="secondary" onClick={() => setActiveModal(null)}>
                             取消
-                        </button>
+                        </Button>
                         <Button onClick={submitNote}>
                             保存
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </Modal>
@@ -861,10 +861,10 @@ export default function AdminMerchantsPage() {
                     <div className="flex justify-end gap-3 pt-4">
                         <Button variant="secondary" onClick={() => setActiveModal(null)}>
                             取消
-                        </button>
+                        </Button>
                         <Button onClick={() => { toastSuccess('密码修改成功'); setActiveModal(null); }}>
                             确认修改
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </Modal>
@@ -895,10 +895,10 @@ export default function AdminMerchantsPage() {
                     <div className="flex justify-end gap-3 pt-4">
                         <Button variant="secondary" onClick={() => setActiveModal(null)}>
                             取消
-                        </button>
+                        </Button>
                         <Button onClick={submitMessage}>
                             发送
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </Modal>
@@ -914,7 +914,7 @@ export default function AdminMerchantsPage() {
                     <div className="rounded-md border border-[#e5e7eb] bg-[#f9fafb] p-3">
                         <div className="grid grid-cols-2 gap-2 text-sm">
                             <div><span className="text-[#6b7280]">用户名:</span> {selectedMerchant?.username}</div>
-                            <div><span className="text-[#6b7280]">当前本金:</span> <span className="text-success-600">¥{Number(selectedMerchant?.balance || 0).toFixed(2)}</span></div>
+                            <div><span className="text-[#6b7280]">当前本金:</span> <span className="text-success-500">¥{Number(selectedMerchant?.balance || 0).toFixed(2)}</span></div>
                             <div><span className="text-[#6b7280]">当前银锭:</span> <span className="text-primary-600">{Number(selectedMerchant?.silver || 0).toFixed(2)}</span></div>
                             <div><span className="text-[#6b7280]">VIP状态:</span> {selectedMerchant?.vip ? <span className="text-warning-500">VIP</span> : '普通'}</div>
                         </div>
@@ -961,10 +961,10 @@ export default function AdminMerchantsPage() {
                     <div className="flex justify-end gap-3 pt-4">
                         <Button variant="secondary" onClick={() => setActiveModal(null)}>
                             取消
-                        </button>
+                        </Button>
                         <Button onClick={submitEdit}>
                             保存
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </Modal>
@@ -1048,10 +1048,10 @@ export default function AdminMerchantsPage() {
                     <div className="flex justify-end gap-3 pt-4">
                         <Button variant="secondary" onClick={() => setActiveModal(null)}>
                             取消
-                        </button>
+                        </Button>
                         <Button onClick={submitAddMerchant}>
                             创建商家
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </Modal>
