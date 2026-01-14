@@ -106,7 +106,7 @@ export default function ProfilePage() {
                 {/* Main Assets - Clean Flat Blocks */}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col rounded-[24px] bg-primary-600 p-5 text-white">
-                        <div className="flex-1 flex flex-col justify-center translate-y-[20px]">
+                        <div className="flex-1 flex flex-col justify-center translate-y-5">
                             <span className="text-xs font-bold opacity-80 uppercase">本金余额</span>
                             <div className="mt-2 flex items-baseline gap-1">
                                 <span className="text-sm font-bold opacity-80">¥</span>
@@ -124,7 +124,7 @@ export default function ProfilePage() {
                         </div>
                     </div>
                     <div className="flex flex-col rounded-[24px] bg-emerald-500 p-5 text-white">
-                        <div className="flex-1 flex flex-col justify-center translate-y-[20px]">
+                        <div className="flex-1 flex flex-col justify-center translate-y-5">
                             <span className="text-xs font-bold opacity-80 uppercase">银锭余额</span>
                             <div className="mt-2 flex items-baseline gap-1">
                                 <span className="text-2xl font-black tracking-tight">{Number(profile?.silver || 0).toFixed(2)}</span>
