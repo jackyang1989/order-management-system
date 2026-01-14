@@ -485,7 +485,7 @@ export default function TaskDetailPage() {
                                                                 </span>
                                                             )}
                                                             {kw.compareKeyword && <span className="rounded bg-white px-2 py-0.5">货比词: {kw.compareKeyword}</span>}
-                                                            {kw.backupKeyword && <span className="rounded bg-white px-2 py-0.5">副关键词: {kw.backupKeyword}</span>}
+                                                            {kw.backupKeyword && <span className="rounded bg-white px-2 py-0.5">备用关键词: {kw.backupKeyword}</span>}
                                                         </div>
                                                     )}
                                                 </div>

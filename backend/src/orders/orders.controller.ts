@@ -529,6 +529,7 @@ export class OrdersController {
           // 其他要求
           needCompare: task.needCompare,
           compareKeyword: task.compareKeyword || '',
+          backupKeyword: task.backupKeyword || '',
           needFavorite: task.needFavorite,
           needFollow: task.needFollow,
           needContactCS: task.needContactCS,

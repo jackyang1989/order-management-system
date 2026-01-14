@@ -55,6 +55,9 @@ interface Order {
     // Task关联数据
     task?: {
         shopName?: string;
+        terminal?: number;  // 结算方式 1=本佣货返 2=本立佣货
+        count?: number;  // 任务数量
+        keyword?: string;  // 进店关键词
         // 浏览要求
         needCompare?: boolean;
         compareCount?: number;
@@ -371,6 +374,24 @@ export default function AdminOrdersPage() {
                                         <div className="text-xs text-[#6b7280]">平台</div>
                                         <div className="text-sm font-medium">{detailModal.platform || '-'}</div>
                                     </div>
+                                    <div className="space-y-1">
+                                        <div className="text-xs text-[#6b7280]">结算方式</div>
+                                        <div className="text-sm font-medium">
+                                            <Badge variant="soft" color={task.terminal === 2 ? 'green' : 'blue'}>
+                                                {task.terminal === 2 ? '本立佣货' : '本佣货返'}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <div className="text-xs text-[#6b7280]">店铺</div>
+                                        <div className="text-sm font-medium">{task.shopName || '-'}</div>
+                                    </div>
+                                    {task.keyword && (
+                                        <div className="col-span-2 space-y-1">
+                                            <div className="text-xs text-[#6b7280]">进店关键词</div>
+                                            <div className="text-sm font-medium text-primary-600">{task.keyword}</div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -539,7 +560,7 @@ export default function AdminOrdersPage() {
                                                 )}
                                                 {task.backupKeyword && (
                                                     <div className="text-xs text-[#6b7280]">
-                                                        <span className="font-medium">副关键词/备用关键词：</span>
+                                                        <span className="font-medium">备用关键词：</span>
                                                         <span className="text-[#3b4559]">{task.backupKeyword}</span>
                                                     </div>
                                                 )}

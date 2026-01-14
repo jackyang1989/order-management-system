@@ -314,7 +314,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                                         </span>
                                     )}
                                     {kw.compareKeyword && <span className="rounded bg-amber-50 px-2 py-0.5 text-amber-600">货比: {kw.compareKeyword}</span>}
-                                    {kw.backupKeyword && <span className="rounded bg-amber-50 px-2 py-0.5 text-amber-600">副词: {kw.backupKeyword}</span>}
+                                    {kw.backupKeyword && <span className="rounded bg-amber-50 px-2 py-0.5 text-amber-600">备用关键词: {kw.backupKeyword}</span>}
                                 </div>
                             </div>
                         ))}
