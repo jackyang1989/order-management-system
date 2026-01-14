@@ -182,6 +182,7 @@ export default function AdminTasksPage() {
     const [exporting, setExporting] = useState(false);
     const [detailModal, setDetailModal] = useState<Task | null>(null);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [platforms, setPlatforms] = useState<Array<{ id: string; code: string; name: string; icon: string }>>([]);
 
     // 排序状态
     const [sortField, setSortField] = useState<string>('createdAt');
@@ -238,6 +239,42 @@ export default function AdminTasksPage() {
     );
 
     useEffect(() => { loadTasks(); }, [filter, page]);
+
+    useEffect(() => {
+        const loadPlatforms = async () => {
+            const token = localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`${BASE_URL}/admin/platforms`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+                if (json.success) {
+                    setPlatforms(json.data || []);
+                }
+            } catch (e) {
+                console.error('Failed to load platforms:', e);
+            }
+        };
+        loadPlatforms();
+    }, []);
+
+    // 根据 taskType 获取平台图标
+    const getPlatformIcon = (taskType?: number): string => {
+        if (!taskType) return '🛒';
+        const platform = platforms.find(p => {
+            // 匹配平台代码（如 'taobao' 对应 taskType 1）
+            const taskTypeMap: Record<string, number> = {
+                'taobao': 1,
+                'tmall': 2,
+                'jd': 3,
+                'pdd': 4,
+                'douyin': 5,
+                'kuaishou': 6,
+            };
+            return taskTypeMap[p.code] === taskType;
+        });
+        return platform?.icon || '🛒';
+    };
 
     const loadTasks = async () => {
         const token = localStorage.getItem('adminToken');
@@ -360,7 +397,7 @@ export default function AdminTasksPage() {
         }
     };
 
-    const columns: EnhancedColumn<Task>[] = [
+    const columns: EnhancedColumn<Task>[] = useMemo(() => [
         {
             key: 'taskNumber',
             title: '任务编号',
@@ -383,7 +420,18 @@ export default function AdminTasksPage() {
         {
             key: 'taskType',
             title: '平台',
-            render: (row) => <span className="text-[#5a6577]">{PlatformLabels[row.taskType] || '其他'}</span>,
+            render: (row) => {
+                const icon = getPlatformIcon(row.taskType);
+                return (
+                    <div className="flex items-center justify-center">
+                        {icon.startsWith('http') ? (
+                            <img src={icon} alt="Platform" className="h-6 w-6 object-contain" />
+                        ) : (
+                            <span className="text-lg">{icon}</span>
+                        )}
+                    </div>
+                );
+            },
             cellClassName: 'w-[80px]',
         },
         {
@@ -466,7 +514,7 @@ export default function AdminTasksPage() {
             ),
             cellClassName: 'w-[180px]',
         },
-    ];
+    ], [platforms]);
 
     return (
         <div className="space-y-6">

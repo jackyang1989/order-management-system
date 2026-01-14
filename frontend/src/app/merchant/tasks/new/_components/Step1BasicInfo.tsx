@@ -651,7 +651,11 @@ export default function Step1BasicInfo({ data, onChange, onNext }: StepProps) {
                         <div className="text-[#9ca3af]">加载平台中...</div>
                     ) : taskPlatforms.map(p => (
                         <div key={p.id} onClick={() => handlePlatformChange(p.id)} className={cn('flex cursor-pointer items-center gap-2 rounded-md border px-6 py-3 transition-all', data.taskType === p.id ? 'border-primary-500 bg-primary-50' : 'border-[#e5e7eb] bg-white')}>
-                            <span>{p.icon}</span>
+                            {p.icon.startsWith('http') ? (
+                                <img src={p.icon} alt={p.name} className="h-6 w-6 object-contain" />
+                            ) : (
+                                <span>{p.icon}</span>
+                            )}
                             <span className={cn(data.taskType === p.id ? 'font-semibold text-primary-600' : 'text-[#374151]')}>{p.name}</span>
                         </div>
                     ))}
