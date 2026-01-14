@@ -175,7 +175,13 @@ export default function MerchantTasksPage() {
                                         </td>
                                         <td className="px-6 py-5">
                                             <div className="flex items-center gap-2">
-                                                <span className="text-lg">{getPlatformIcon(task.taskType)}</span>
+                                                <div className="h-6 w-6 flex items-center justify-center">
+                                                    {getPlatformIcon(task.taskType).startsWith('http') ? (
+                                                        <img src={getPlatformIcon(task.taskType)} alt="Platform" className="h-full w-full object-contain" />
+                                                    ) : (
+                                                        <span className="text-lg">{getPlatformIcon(task.taskType)}</span>
+                                                    )}
+                                                </div>
                                                 <span className="text-[14px] font-medium text-slate-500">{TASK_TYPE_NAMES[task.taskType] || '未知'}</span>
                                             </div>
                                         </td>

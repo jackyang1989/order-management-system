@@ -262,11 +262,21 @@ export default function TasksPage() {
                             <div key={task.id} className="relative overflow-hidden rounded-[24px] bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-all active:scale-[0.99]">
                                 <div className="mb-4 flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm">{getPlatformIcon(task.taskType)}</div>
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 overflow-hidden">
+                                            {getPlatformIcon(task.taskType).startsWith('http') ? (
+                                                <img src={getPlatformIcon(task.taskType)} alt="Platform" className="h-full w-full object-contain" />
+                                            ) : (
+                                                <span className="text-sm">{getPlatformIcon(task.taskType)}</span>
+                                            )}
+                                        </div>
                                         <span className="font-bold text-slate-900">{task.randNum}</span>
                                     </div>
                                 </div>
-                                <div className="mb-5 rounded-[16px] bg-slate-50 p-4">
+                                <div className="mb-5 grid grid-cols-2 gap-4 rounded-[16px] bg-slate-50 p-4">
+                                    <div>
+                                        <div className="mb-1 text-[10px] text-slate-400">垫付本金</div>
+                                        <div className="text-base font-black text-slate-900">¥{task.totalPrice}</div>
+                                    </div>
                                     <div>
                                         <div className="mb-1 text-[10px] text-slate-400">预计佣金</div>
                                         <div className="text-base font-black text-success-500">{task.userReward}+{(task.userDivided / task.num).toFixed(2)}</div>

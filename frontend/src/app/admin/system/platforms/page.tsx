@@ -27,6 +27,7 @@ export default function PlatformsPage() {
     const [editForm, setEditForm] = useState<Partial<Platform>>({});
     const [showModal, setShowModal] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         loadPlatforms();
@@ -72,7 +73,7 @@ export default function PlatformsPage() {
         setEditForm({
             code: '',
             name: '',
-            icon: '🛒',
+            icon: '',
             baseFeeRate: 0,
             supportsTkl: false,
             isActive: true,
@@ -129,7 +130,47 @@ export default function PlatformsPage() {
         }
     };
 
-    const platformIcons = ['🛒', '🏪', '🛍️', '📦', '🎁', '💎', '⭐', '🔥', '🎯', '💰'];
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // 验证文件类型
+        if (!file.type.startsWith('image/')) {
+            alert('请选择图片文件');
+            return;
+        }
+
+        // 验证文件大小（限制为2MB）
+        if (file.size > 2 * 1024 * 1024) {
+            alert('图片大小不能超过2MB');
+            return;
+        }
+
+        setUploading(true);
+        try {
+            const token = localStorage.getItem('adminToken');
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch(`${BASE_URL}/upload`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setEditForm({ ...editForm, icon: data.url });
+            } else {
+                alert('图片上传失败');
+            }
+        } catch (error) {
+            console.error('上传失败:', error);
+            alert('图片上传失败');
+        } finally {
+            setUploading(false);
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -171,7 +212,13 @@ export default function PlatformsPage() {
                                 {platforms.sort((a, b) => a.sortOrder - b.sortOrder).map(platform => (
                                     <tr key={platform.id} className={cn('border-t border-[#f3f4f6]', !platform.isActive && 'opacity-50')}>
                                         <td className="px-4 py-4">{platform.sortOrder}</td>
-                                        <td className="px-4 py-4 text-2xl">{platform.icon || '🛒'}</td>
+                                        <td className="px-4 py-4">
+                                            {platform.icon ? (
+                                                <img src={platform.icon} alt={platform.name} className="h-8 w-8 object-contain" />
+                                            ) : (
+                                                <div className="h-8 w-8 rounded bg-slate-100 flex items-center justify-center text-slate-400 text-xs">无</div>
+                                            )}
+                                        </td>
                                         <td className="px-4 py-4 font-mono">{platform.code}</td>
                                         <td className="px-4 py-4 font-medium">{platform.name}</td>
                                         <td className="px-4 py-4">{platform.baseFeeRate}%</td>
@@ -227,23 +274,51 @@ export default function PlatformsPage() {
                         onChange={e => setEditForm({ ...editForm, name: e.target.value })}
                     />
                     <div>
-                        <label className="mb-2 block text-sm font-medium text-[#374151]">图标</label>
-                        <div className="flex flex-wrap gap-2">
-                            {platformIcons.map(icon => (
-                                <button
-                                    key={icon}
-                                    type="button"
-                                    onClick={() => setEditForm({ ...editForm, icon })}
+                        <label className="mb-2 block text-sm font-medium text-[#374151]">平台Logo</label>
+                        <div className="space-y-3">
+                            {/* Logo预览 */}
+                            {editForm.icon && (
+                                <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                                    <img src={editForm.icon} alt="Logo预览" className="h-12 w-12 object-contain rounded" />
+                                    <div className="flex-1 text-xs text-slate-500">当前Logo</div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditForm({ ...editForm, icon: '' })}
+                                        className="text-xs text-red-500 hover:text-red-600"
+                                    >
+                                        删除
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* 上传按钮 */}
+                            <div>
+                                <input
+                                    type="file"
+                                    id="logo-upload"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    className="hidden"
+                                />
+                                <label
+                                    htmlFor="logo-upload"
                                     className={cn(
-                                        'flex h-10 w-10 items-center justify-center rounded-md border text-xl transition-colors',
-                                        editForm.icon === icon
-                                            ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500'
-                                            : 'border-[#e5e7eb] bg-white hover:border-[#d1d5db]'
+                                        "flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed px-4 py-3 text-sm transition-colors",
+                                        uploading
+                                            ? "border-slate-200 bg-slate-50 cursor-not-allowed"
+                                            : "border-slate-300 bg-white hover:border-blue-400 hover:bg-blue-50"
                                     )}
                                 >
-                                    {icon}
-                                </button>
-                            ))}
+                                    {uploading ? (
+                                        <span className="text-slate-400">上传中...</span>
+                                    ) : (
+                                        <span className="text-slate-600">
+                                            {editForm.icon ? '重新上传Logo' : '点击上传Logo'}
+                                        </span>
+                                    )}
+                                </label>
+                                <p className="mt-1 text-xs text-slate-400">支持 PNG、JPG、SVG 格式，建议尺寸 200x200px，不超过2MB</p>
+                            </div>
                         </div>
                     </div>
                     <Input
