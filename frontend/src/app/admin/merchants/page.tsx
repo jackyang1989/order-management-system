@@ -435,15 +435,17 @@ export default function AdminMerchantsPage() {
                                         }
                                     }
                                 }}
-                                className={`flex h-5 w-5 items-center justify-center rounded-full transition-all shadow-sm ${
+                                className={`transition-all ${
                                     row.note
-                                        ? 'bg-gradient-to-br from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
-                                        : 'bg-slate-200 text-slate-400 hover:bg-slate-300'
+                                        ? 'text-red-500 hover:text-red-600'
+                                        : 'text-slate-300 hover:text-slate-400'
                                 }`}
                                 title={row.note ? '查看/编辑备注' : '添加备注'}
                                 type="button"
                             >
-                                <span className={`text-xs ${row.note ? 'filter brightness-0 invert' : ''}`}>📝</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                                    <path fillRule="evenodd" d="M3 2.25a.75.75 0 01.75.75v.54l1.838-.46a9.75 9.75 0 016.725.738l.108.054a8.25 8.25 0 005.58.652l3.109-.732a.75.75 0 01.917.81 47.784 47.784 0 00.005 10.337.75.75 0 01-.574.812l-3.114.733a9.75 9.75 0 01-6.594-.77l-.108-.054a8.25 8.25 0 00-5.69-.625l-2.202.55V21a.75.75 0 01-1.5 0V3A.75.75 0 013 2.25z" clipRule="evenodd" />
+                                </svg>
                             </button>
 
                             {/* 悬浮提示层 - 仅在有备注时显示 */}
@@ -452,7 +454,9 @@ export default function AdminMerchantsPage() {
                                     <div className="absolute -top-2 left-4 w-4 h-4 bg-white border-l border-t border-slate-200 rotate-45"></div>
                                     <div className="relative">
                                         <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-slate-100">
-                                            <span className="text-amber-600 text-xs">📝</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-red-500">
+                                                <path fillRule="evenodd" d="M3 2.25a.75.75 0 01.75.75v.54l1.838-.46a9.75 9.75 0 016.725.738l.108.054a8.25 8.25 0 005.58.652l3.109-.732a.75.75 0 01.917.81 47.784 47.784 0 00.005 10.337.75.75 0 01-.574.812l-3.114.733a9.75 9.75 0 01-6.594-.77l-.108-.054a8.25 8.25 0 00-5.69-.625l-2.202.55V21a.75.75 0 01-1.5 0V3A.75.75 0 013 2.25z" clipRule="evenodd" />
+                                            </svg>
                                             <span className="text-xs font-semibold text-slate-600">备注</span>
                                         </div>
                                         <div className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap max-h-40 overflow-y-auto">
@@ -583,7 +587,7 @@ export default function AdminMerchantsPage() {
             defaultWidth: 286,
             minWidth: 200,
             render: (row) => (
-                <div className="flex flex-wrap gap-1">
+                <div className="grid grid-cols-4 gap-1">
                     <Button size="sm" variant="outline" className="min-w-[60px]" onClick={() => router.push(`/admin/shops?merchantId=${row.id}`)}>
                         店铺
                     </Button>
