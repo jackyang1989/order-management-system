@@ -46,6 +46,11 @@ export default function AdminPage() {
         status: 1
     });
 
+    // Password Reset Modal State
+    const [resetModalOpen, setResetModalOpen] = useState(false);
+    const [resetTargetId, setResetTargetId] = useState<string | null>(null);
+    const [newResetPassword, setNewResetPassword] = useState('');
+
     useEffect(() => {
         loadAdmins();
         loadRoles();
@@ -158,20 +163,30 @@ export default function AdminPage() {
         }
     };
 
-    const handleResetPassword = async (id: string) => {
-        const newPassword = prompt('请输入新密码（至少6位）：');
-        if (!newPassword || newPassword.length < 6) {
+    const handleResetPassword = (id: string) => {
+        setResetTargetId(id);
+        setNewResetPassword('');
+        setResetModalOpen(true);
+    };
+
+    const confirmResetPassword = async () => {
+        if (!newResetPassword || newResetPassword.length < 6) {
             alert('密码不能少于6位');
             return;
         }
+        if (!resetTargetId) return;
+
         try {
             const token = localStorage.getItem('adminToken');
-            await fetch(`${BASE_URL}/admin-users/${id}/password`, {
+            await fetch(`${BASE_URL}/admin-users/${resetTargetId}/password`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ newPassword }),
+                body: JSON.stringify({ newPassword: newResetPassword }),
             });
             alert('密码重置成功');
+            setResetModalOpen(false);
+            setResetTargetId(null);
+            setNewResetPassword('');
         } catch (error) {
             console.error('重置密码失败:', error);
             alert('重置密码失败');
@@ -384,6 +399,25 @@ export default function AdminPage() {
                     <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                         <Button variant="secondary" onClick={() => setShowModal(false)}>取消</Button>
                         <Button onClick={handleSubmit}>保存</Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Reset Password Modal */}
+            <Modal title="重置密码" open={resetModalOpen} onClose={() => setResetModalOpen(false)} className="max-w-md">
+                <div className="space-y-4">
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">新密码 <span className="text-danger-400">*</span></label>
+                        <Input
+                            type="password"
+                            placeholder="请输入新密码（至少6位）"
+                            value={newResetPassword}
+                            onChange={e => setNewResetPassword(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
+                        <Button variant="secondary" onClick={() => setResetModalOpen(false)}>取消</Button>
+                        <Button onClick={confirmResetPassword}>确认重置</Button>
                     </div>
                 </div>
             </Modal>
