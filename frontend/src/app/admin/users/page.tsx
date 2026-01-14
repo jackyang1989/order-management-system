@@ -713,33 +713,33 @@ export default function AdminUsersPage() {
             minWidth: 200,
             render: (row) => (
                 <div className="grid grid-cols-4 gap-1">
-                    <Button size="sm" variant="outline" className="text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
+                    <Button size="sm" variant="outline" className="px-2 text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
                         银锭
                     </Button>
-                    <Button size="sm" variant="outline" className="text-success-500" onClick={() => window.location.href = `/admin/users/${row.id}/deposit`}>
+                    <Button size="sm" variant="outline" className="px-2 text-success-500" onClick={() => window.location.href = `/admin/users/${row.id}/deposit`}>
                         押金
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>
+                    <Button size="sm" variant="outline" className="px-2" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>
                         买号
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => openEditModal(row)}>
+                    <Button size="sm" variant="outline" className="px-2" onClick={() => openEditModal(row)}>
                         编辑
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
-                        密码
+                    <Button size="sm" variant="outline" className="px-2" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
+                        改密码
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
+                    <Button size="sm" variant="outline" className="px-2" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
                         消息
                     </Button>
-                    <Button size="sm" variant="outline" className="text-amber-500" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.id}`}>
-                        银行
+                    <Button size="sm" variant="outline" className="px-2 text-amber-500" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.id}`}>
+                        银行卡
                     </Button>
                     {row.isBanned ? (
-                        <Button size="sm" variant="outline" className="text-green-600" onClick={() => handleUnban(row.id)}>
+                        <Button size="sm" variant="outline" className="px-2 text-green-600" onClick={() => handleUnban(row.id)}>
                             解封
                         </Button>
                     ) : (
-                        <Button size="sm" variant="outline" className="text-red-500" onClick={() => setBanModal({ userId: row.id, username: row.username })}>
+                        <Button size="sm" variant="outline" className="px-2 text-red-500" onClick={() => setBanModal({ userId: row.id, username: row.username })}>
                             封禁
                         </Button>
                     )}
