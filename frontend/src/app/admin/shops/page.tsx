@@ -254,10 +254,9 @@ function ShopsContent() {
                                 ) : shops.map(shop => (
                                     <tr key={shop.id} className="border-b border-[#f3f4f6]">
                                         <td className="px-3 py-3">
-                                            <div>{shop.merchant?.companyName || shop.merchant?.username || '--'}</div>
-                                            <div className="text-xs text-[#9ca3af]">{shop.merchant?.username}</div>
+                                            <div className="text-sm font-medium text-[#374151]">{shop.merchant?.username || '--'}</div>
                                         </td>
-                                        <td className="px-3 py-3">{shop.platform}</td>
+                                        <td className="px-3 py-3 text-sm text-[#374151]">{shop.platform}</td>
                                         <td className="px-3 py-3">
                                             {shop.screenshot ? (
                                                 <a href={getFullImageUrl(shop.screenshot)} target="_blank" rel="noopener noreferrer">
@@ -273,15 +272,15 @@ function ShopsContent() {
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="px-3 py-3 font-medium">{shop.shopName || '-'}</td>
-                                        <td className="px-3 py-3 text-[#6b7280]">{shop.accountName || '-'}</td>
+                                        <td className="px-3 py-3 text-sm font-medium text-[#374151]">{shop.shopName || '-'}</td>
+                                        <td className="px-3 py-3 text-sm text-[#6b7280]">{shop.accountName || '-'}</td>
                                         <td className="px-3 py-3">
-                                            <div>{shop.contactName || '-'}</div>
+                                            <div className="text-sm text-[#374151]">{shop.contactName || '-'}</div>
                                             <div className="text-xs text-[#9ca3af]">{shop.mobile || '-'}</div>
                                         </td>
-                                        <td className="px-3 py-3 text-xs text-[#6b7280]">
+                                        <td className="px-3 py-3 text-sm text-[#6b7280]">
                                             {[shop.province, shop.city, shop.district].filter(Boolean).join(' ') || '-'}
-                                            {shop.detailAddress && <div>{shop.detailAddress}</div>}
+                                            {shop.detailAddress && <div className="text-xs text-[#9ca3af] mt-0.5">{shop.detailAddress}</div>}
                                         </td>
                                         <td className="px-3 py-3">
                                             <Badge variant="soft" color={statusConfig[shop.status]?.color || 'slate'}>
@@ -289,12 +288,12 @@ function ShopsContent() {
                                             </Badge>
                                             {shop.auditRemark && <div className="mt-1 text-xs text-danger-400">{shop.auditRemark}</div>}
                                         </td>
-                                        <td className="px-3 py-3 text-xs text-[#6b7280]">{new Date(shop.createdAt).toLocaleString()}</td>
+                                        <td className="px-3 py-3 text-sm text-[#6b7280]">{new Date(shop.createdAt).toLocaleString()}</td>
                                         <td className="px-3 py-3">
                                             <div className="flex flex-wrap gap-2">
                                                 <button
                                                     onClick={() => openEditModal(shop)}
-                                                    className="cursor-pointer border-none bg-transparent text-sm text-primary-500 hover:underline"
+                                                    className="rounded-full border border-primary-300 bg-white px-3 py-1 text-xs text-primary-600 hover:bg-primary-50 transition-colors"
                                                 >
                                                     编辑
                                                 </button>
@@ -302,13 +301,13 @@ function ShopsContent() {
                                                     <>
                                                         <button
                                                             onClick={() => openReviewModal(shop, 'approve')}
-                                                            className="cursor-pointer border-none bg-transparent text-sm text-success-400 hover:underline"
+                                                            className="rounded-full border border-success-300 bg-white px-3 py-1 text-xs text-success-600 hover:bg-success-50 transition-colors"
                                                         >
                                                             通过
                                                         </button>
                                                         <button
                                                             onClick={() => openReviewModal(shop, 'reject')}
-                                                            className="cursor-pointer border-none bg-transparent text-sm text-danger-400 hover:underline"
+                                                            className="rounded-full border border-danger-300 bg-white px-3 py-1 text-xs text-danger-600 hover:bg-danger-50 transition-colors"
                                                         >
                                                             拒绝
                                                         </button>
@@ -317,7 +316,7 @@ function ShopsContent() {
                                                 {shop.status === 1 && (
                                                     <button
                                                         onClick={() => openReviewModal(shop, 'reject')}
-                                                        className="cursor-pointer border-none bg-transparent text-sm text-warning-500 hover:underline"
+                                                        className="rounded-full border border-warning-300 bg-white px-3 py-1 text-xs text-warning-600 hover:bg-warning-50 transition-colors"
                                                     >
                                                         禁用
                                                     </button>
@@ -325,7 +324,7 @@ function ShopsContent() {
                                                 {shop.status === 2 && (
                                                     <button
                                                         onClick={() => openReviewModal(shop, 'approve')}
-                                                        className="cursor-pointer border-none bg-transparent text-sm text-success-400 hover:underline"
+                                                        className="rounded-full border border-success-300 bg-white px-3 py-1 text-xs text-success-600 hover:bg-success-50 transition-colors"
                                                     >
                                                         恢复
                                                     </button>

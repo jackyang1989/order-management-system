@@ -140,20 +140,20 @@ export default function AdminMerchantsBalancePage() {
                                     <tbody>
                                         {records.map(r => (
                                             <tr key={r.id} className="border-b border-[#f3f4f6]">
-                                                <td className="px-4 py-3.5 font-medium">{r.username || '-'}</td>
-                                                <td className="px-4 py-3.5 text-[#6b7280]">{changeTypeLabels[r.changeType] || r.changeType}</td>
+                                                <td className="px-4 py-3.5 text-sm font-medium text-[#374151]">{r.username || '-'}</td>
+                                                <td className="px-4 py-3.5 text-sm text-[#6b7280]">{changeTypeLabels[r.changeType] || r.changeType}</td>
                                                 <td className="px-4 py-3.5 text-center">
                                                     <Badge variant="soft" color={moneyTypeLabels[r.moneyType]?.color || 'slate'}>
                                                         {moneyTypeLabels[r.moneyType]?.text || '未知'}
                                                     </Badge>
                                                 </td>
-                                                <td className={cn('px-4 py-3.5 text-right font-medium', Number(r.amount) > 0 ? 'text-success-400' : 'text-danger-400')}>
+                                                <td className={cn('px-4 py-3.5 text-right text-sm font-medium', Number(r.amount) > 0 ? 'text-success-400' : 'text-danger-400')}>
                                                     {Number(r.amount) > 0 ? '+' : ''}{Number(r.amount).toFixed(2)}
                                                 </td>
-                                                <td className="px-4 py-3.5 text-right text-[#9ca3af]">{Number(r.beforeBalance || 0).toFixed(2)}</td>
-                                                <td className="px-4 py-3.5 text-right">{Number(r.afterBalance || 0).toFixed(2)}</td>
-                                                <td className="max-w-[150px] truncate px-4 py-3.5 text-[#6b7280]">{r.remark || '-'}</td>
-                                                <td className="px-4 py-3.5 text-xs text-[#9ca3af]">{r.createdAt ? new Date(r.createdAt).toLocaleString('zh-CN') : '-'}</td>
+                                                <td className="px-4 py-3.5 text-right text-sm text-[#9ca3af]">{Number(r.beforeBalance || 0).toFixed(2)}</td>
+                                                <td className="px-4 py-3.5 text-right text-sm text-[#374151]">{Number(r.afterBalance || 0).toFixed(2)}</td>
+                                                <td className="max-w-[150px] truncate px-4 py-3.5 text-sm text-[#6b7280]">{r.remark || '-'}</td>
+                                                <td className="px-4 py-3.5 text-sm text-[#9ca3af]">{r.createdAt ? new Date(r.createdAt).toLocaleString('zh-CN') : '-'}</td>
                                             </tr>
                                         ))}
                                     </tbody>

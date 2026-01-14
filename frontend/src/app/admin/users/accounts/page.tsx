@@ -206,8 +206,33 @@ function AdminBuyerAccountsPageContent() {
         }
     }, [userId]);
 
+    // 平台选项
+    const [platformOptions, setPlatformOptions] = useState<{ label: string; value: string }[]>([
+        { value: '', label: '全部平台' }
+    ]);
+
+    // 加载平台选项
+    const loadPlatformOptions = useCallback(async () => {
+        try {
+            const res = await fetch(`${BASE_URL}/admin/platforms?activeOnly=true`, {
+                headers: { 'Authorization': `Bearer ${getToken()}` }
+            });
+            const data = await res.json();
+            if (data.success && Array.isArray(data.data)) {
+                const options = data.data.map((p: any) => ({
+                    label: p.name,
+                    value: p.name // 保持使用名称筛选，与后端原有逻辑一致
+                }));
+                setPlatformOptions([{ value: '', label: '全部平台' }, ...options]);
+            }
+        } catch (error) {
+            console.error('获取平台列表失败:', error);
+        }
+    }, []);
+
     useEffect(() => { loadAccounts(); }, [loadAccounts]);
     useEffect(() => { loadUserInfo(); }, [loadUserInfo]);
+    useEffect(() => { loadPlatformOptions(); }, [loadPlatformOptions]);
 
     const handleSearch = () => {
         setPage(1);
@@ -564,15 +589,7 @@ function AdminBuyerAccountsPageContent() {
                     <Select
                         value={filterPlatform}
                         onChange={v => { setFilterPlatform(v); setPage(1); }}
-                        options={[
-                            { value: '', label: '全部平台' },
-                            { value: '淘宝', label: '淘宝' },
-                            { value: '天猫', label: '天猫' },
-                            { value: '京东', label: '京东' },
-                            { value: '拼多多', label: '拼多多' },
-                            { value: '抖音', label: '抖音' },
-                            { value: '快手', label: '快手' },
-                        ]}
+                        options={platformOptions}
                         className="w-28"
                     />
                     <Select
