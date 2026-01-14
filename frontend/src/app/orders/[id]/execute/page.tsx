@@ -250,7 +250,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                     if (data.qrCode) return '二维码扫码';
                     if (data.taoWord || data.itemToken) return '淘口令';
                     if (data.channelImages) return '通道进店';
-                    return '关键词搜索';
+                    return '关键词';
                 };
 
                 // 格式化截止时间
@@ -792,7 +792,6 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             <div style={{ background: '#fff3cd', margin: '10px', borderRadius: '8px', padding: '12px', fontSize: '13px', color: '#856404' }}>
                 <p>{zhongDuanmessage}</p>
                 <p>您当前接受任务的买号为 <span style={{ color: 'red' }}>"{userBuynoAccount}"</span> 请访问{platformName || '平台'}APP，确认登录的买号是否正确！</p>
-                {sellTaskMemo && <p>商家订单要求: <span>{sellTaskMemo}</span></p>}
                 {taskTimeType === '2' && (
                     <p style={{ color: 'red' }}>今天浏览收藏加购，提交到第三步，明天16点前付款并提交订单信息，超时订单取消。</p>
                 )}
