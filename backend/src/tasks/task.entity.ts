@@ -175,7 +175,7 @@ export class Task {
   userDivided: number; // 买手分成佣金总额（任务全部单数的总分成）
 
   // --- 任务结算类型 ---
-  @Column({ type: 'int', default: TaskTerminal.BENYONG_HUOFAN })
+  @Column({ type: 'int', default: TaskTerminal.BENLI_YONGHUO })
   terminal: number; // 结算方式 1本佣货返 2本立佣货
 
   @Column({ type: 'int', default: TaskVersion.V1 })

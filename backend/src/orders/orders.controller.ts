@@ -730,7 +730,7 @@ export class OrdersController {
         data: {
           id: order.id,
           taskNumber: task.taskNumber || order.id,
-          terminal: task.terminal === 1 ? '本佣货返' : '本立佣货',
+          terminal: task.terminal,
           createdAt: order.createdAt,
           taskType: task.taskType,
           endingTime: order.endingTime,
@@ -809,7 +809,7 @@ export class OrdersController {
           id: order.id,
           buynoAccount: order.buynoAccount || '',
           taskType: task?.taskType ? `类型${task.taskType}` : '',
-          terminal: task?.terminal || 1,
+          terminal: task?.terminal !== undefined ? task.terminal : 2,
           sellerPrincipal: order.sellerPrincipal || order.userPrincipal || 0,
           commission: order.commission || 0,
           userDivided: order.userDivided || 0,

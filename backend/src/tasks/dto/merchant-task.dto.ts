@@ -16,9 +16,10 @@ export enum TaskTerminal {
 }
 
 export class MerchantTaskDto {
-  @IsEnum(TaskTerminal)
   @IsOptional()
-  terminal?: number = TaskTerminal.BENYONG_HUOFAN;
+  @IsNumber()
+  @Type(() => Number)
+  terminal?: number;
 
   @IsNumber()
   taskType: number; // 平台类型 (1:淘宝, 2:天猫, 3:京东, etc.)

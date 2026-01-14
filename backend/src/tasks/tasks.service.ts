@@ -498,7 +498,7 @@ export class TasksService implements OnModuleInit {
         nextDayFee: nextDayFeePerOrder,  // 使用计算出的隔天任务费
 
         // P0 Fix: 返款方式和订单设置
-        terminal: dto.terminal || 1,
+        terminal: dto.terminal !== undefined ? dto.terminal : 2,  // 默认本立佣货(2)
         memo: dto.memo || '',
         unionInterval: dto.orderInterval || 0,
         weight: dto.weight || 0,
