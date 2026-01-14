@@ -550,8 +550,8 @@ export default function AdminUsersPage() {
                                     }
                                 }}
                                 className={`transition-all ${row.note
-                                        ? 'text-red-500 hover:text-red-600'
-                                        : 'text-slate-300 hover:text-slate-400'
+                                    ? 'text-red-500 hover:text-red-600'
+                                    : 'text-slate-300 hover:text-slate-400'
                                     }`}
                                 title={row.note ? '查看/编辑备注' : '添加备注'}
                                 type="button"
@@ -711,34 +711,34 @@ export default function AdminUsersPage() {
             defaultWidth: 286,
             minWidth: 200,
             render: (row) => (
-                <div className="flex flex-wrap gap-1">
-                    <Button size="sm" variant="outline" className="px-2 h-7 text-xs text-primary-500" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
+                <div className="grid grid-cols-4 gap-1 w-fit mx-auto">
+                    <Button size="sm" variant="outline" className="h-7 w-16 px-0" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
                         银锭
                     </Button>
-                    <Button size="sm" variant="outline" className="px-2 h-7 text-xs text-success-500" onClick={() => window.location.href = `/admin/users/${row.id}/deposit`}>
+                    <Button size="sm" variant="outline" className="h-7 w-16 px-0 text-success-500" onClick={() => window.location.href = `/admin/users/${row.id}/deposit`}>
                         押金
                     </Button>
-                    <Button size="sm" variant="outline" className="px-2 h-7 text-xs" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>
+                    <Button size="sm" variant="outline" className="h-7 w-16 px-0" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>
                         买号
                     </Button>
-                    <Button size="sm" variant="outline" className="px-2 h-7 text-xs" onClick={() => openEditModal(row)}>
+                    <Button size="sm" variant="outline" className="h-7 w-16 px-0" onClick={() => openEditModal(row)}>
                         编辑
                     </Button>
-                    <Button size="sm" variant="outline" className="px-2 h-7 text-xs" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
+                    <Button size="sm" variant="outline" className="h-7 w-16 px-0" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
                         改密码
                     </Button>
-                    <Button size="sm" variant="outline" className="px-2 h-7 text-xs" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
+                    <Button size="sm" variant="outline" className="h-7 w-16 px-0" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
                         消息
                     </Button>
-                    <Button size="sm" variant="outline" className="px-2 h-7 text-xs text-amber-500" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.id}`}>
+                    <Button size="sm" variant="outline" className="h-7 w-16 px-0 text-amber-500" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.id}`}>
                         银行卡
                     </Button>
                     {row.isBanned ? (
-                        <Button size="sm" variant="outline" className="px-2 h-7 text-xs text-green-600" onClick={() => handleUnban(row.id)}>
+                        <Button size="sm" variant="outline" className="h-7 w-16 px-0 text-green-600" onClick={() => handleUnban(row.id)}>
                             解封
                         </Button>
                     ) : (
-                        <Button size="sm" variant="outline" className="px-2 h-7 text-xs text-red-500" onClick={() => setBanModal({ userId: row.id, username: row.username })}>
+                        <Button size="sm" variant="outline" className="h-7 w-16 px-0 text-red-500" onClick={() => setBanModal({ userId: row.id, username: row.username })}>
                             封禁
                         </Button>
                     )}
@@ -1067,9 +1067,9 @@ export default function AdminUsersPage() {
                 )}
             </Modal>
 
-            {/* 违规备注弹窗 */}
+            {/* 备注弹窗 */}
             <Modal
-                title={`违规备注 - ${noteModal?.username}`}
+                title={`备注 - ${noteModal?.username}`}
                 open={!!noteModal}
                 onClose={() => { setNoteModal(null); setNoteText(''); }}
             >
@@ -1079,7 +1079,7 @@ export default function AdminUsersPage() {
                         <textarea
                             className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                             rows={4}
-                            placeholder="请输入违规备注内容..."
+                            placeholder="请输入备注内容..."
                             value={noteText}
                             onChange={(e) => setNoteText(e.target.value)}
                         />

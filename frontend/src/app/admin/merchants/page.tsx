@@ -439,8 +439,8 @@ export default function AdminMerchantsPage() {
                                     }
                                 }}
                                 className={`transition-all ${row.note
-                                        ? 'text-red-500 hover:text-red-600'
-                                        : 'text-slate-300 hover:text-slate-400'
+                                    ? 'text-red-500 hover:text-red-600'
+                                    : 'text-slate-300 hover:text-slate-400'
                                     }`}
                                 title={row.note ? '查看/编辑备注' : '添加备注'}
                                 type="button"
@@ -590,40 +590,40 @@ export default function AdminMerchantsPage() {
             defaultWidth: 286,
             minWidth: 200,
             render: (row) => (
-                <div className="flex flex-wrap gap-1">
-                    <Button size="sm" variant="outline" className="px-2 h-7 text-xs" onClick={() => router.push(`/admin/shops?merchantId=${row.id}`)}>
+                <div className="grid grid-cols-4 gap-1 w-fit mx-auto">
+                    <Button size="sm" variant="outline" className="h-7 w-16 px-0" onClick={() => router.push(`/admin/shops?merchantId=${row.id}`)}>
                         店铺
                     </Button>
-                    <Button size="sm" variant="outline" className="px-2 h-7 text-xs" onClick={() => router.push(`/admin/merchants/balance?merchantId=${row.id}`)}>
+                    <Button size="sm" variant="outline" className="h-7 w-16 px-0" onClick={() => router.push(`/admin/merchants/balance?merchantId=${row.id}`)}>
                         流水
                     </Button>
-                    <Button size="sm" variant="outline" className="px-2 h-7 text-xs text-success-500" onClick={() => router.push(`/admin/merchants/${row.id}/deposit`)}>
+                    <Button size="sm" variant="outline" className="h-7 w-16 px-0 text-success-500" onClick={() => router.push(`/admin/merchants/${row.id}/deposit`)}>
                         押金
                     </Button>
-                    <Button size="sm" variant="outline" className="px-2 h-7 text-xs" onClick={() => openAdjustBalance(row)}>
+                    <Button size="sm" variant="outline" className="h-7 w-16 px-0" onClick={() => openAdjustBalance(row)}>
                         调余额
                     </Button>
-                    <Button size="sm" variant="outline" className="px-2 h-7 text-xs text-primary-600" onClick={() => openMessage(row)}>
+                    <Button size="sm" variant="outline" className="h-7 w-16 px-0 text-primary-600" onClick={() => openMessage(row)}>
                         消息
                     </Button>
                     {/* VIP过期或无VIP时显示设VIP按钮 */}
                     {!(row.vip && row.vipExpireAt && new Date(row.vipExpireAt) > new Date()) && (
-                        <Button size="sm" variant="outline" className="px-2 h-7 text-xs text-warning-500" onClick={() => openSetVip(row)}>
+                        <Button size="sm" variant="outline" className="h-7 w-16 px-0 text-warning-500" onClick={() => openSetVip(row)}>
                             设VIP
                         </Button>
                     )}
-                    <Button size="sm" variant="outline" className="px-2 h-7 text-xs" onClick={() => openEdit(row)}>
+                    <Button size="sm" variant="outline" className="h-7 w-16 px-0" onClick={() => openEdit(row)}>
                         编辑
                     </Button>
-                    <Button size="sm" variant="outline" className="px-2 h-7 text-xs" onClick={() => openPassword(row)}>
+                    <Button size="sm" variant="outline" className="h-7 w-16 px-0" onClick={() => openPassword(row)}>
                         改密码
                     </Button>
                     {row.status === 3 ? (
-                        <Button size="sm" variant="outline" className="px-2 h-7 text-xs text-success-500" onClick={() => handleBan(row.id, row.status)}>
+                        <Button size="sm" variant="outline" className="h-7 w-16 px-0 text-success-500" onClick={() => handleBan(row.id, row.status)}>
                             启用
                         </Button>
                     ) : (
-                        <Button size="sm" variant="outline" className="px-2 h-7 text-xs text-danger-400" onClick={() => handleBan(row.id, row.status)}>
+                        <Button size="sm" variant="outline" className="h-7 w-16 px-0 text-danger-400" onClick={() => handleBan(row.id, row.status)}>
                             禁用
                         </Button>
                     )}
@@ -821,7 +821,7 @@ export default function AdminMerchantsPage() {
 
             {/* 备注弹窗 */}
             <Modal
-                title={`违规备注 - ${selectedMerchant?.username}`}
+                title={`备注 - ${selectedMerchant?.username}`}
                 open={activeModal === 'note'}
                 onClose={() => setActiveModal(null)}
             >
