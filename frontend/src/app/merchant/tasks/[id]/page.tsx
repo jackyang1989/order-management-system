@@ -8,11 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Modal } from '@/components/ui/modal';
-import { 
-    PlatformLabels, 
-    TerminalLabels, 
-    TaskStatusLabels, 
-    TerminalType 
+import {
+    PlatformLabels,
+    TerminalLabels,
+    TaskStatusLabels,
+    TerminalType
 } from '@/shared/taskSpec';
 import { formatDateTime, formatMoney } from '@/shared/formatters';
 
@@ -123,6 +123,8 @@ interface TaskKeywordItem {
     maxPrice: number;
     minPrice: number;
     province?: string;
+    compareKeyword?: string;
+    backupKeyword?: string;
 }
 
 interface OrderItem {
@@ -482,6 +484,8 @@ export default function TaskDetailPage() {
                                                                     价格: ¥{kw.minPrice || 0} - ¥{kw.maxPrice || '不限'}
                                                                 </span>
                                                             )}
+                                                            {kw.compareKeyword && <span className="rounded bg-white px-2 py-0.5">货比词: {kw.compareKeyword}</span>}
+                                                            {kw.backupKeyword && <span className="rounded bg-white px-2 py-0.5">副关键词: {kw.backupKeyword}</span>}
                                                         </div>
                                                     )}
                                                 </div>
@@ -594,10 +598,10 @@ export default function TaskDetailPage() {
                                     <div className="flex items-center gap-2">
                                         <span className="text-xs text-[#6b7280]">好评类型:</span>
                                         <Badge variant="soft" color="blue">
-                                            {task.praiseType === 'text' ? '文字好评' : 
-                                             task.praiseType === 'image' ? '图片好评' : 
-                                             task.praiseType === 'video' ? '视频好评' : 
-                                             task.praiseType}
+                                            {task.praiseType === 'text' ? '文字好评' :
+                                                task.praiseType === 'image' ? '图片好评' :
+                                                    task.praiseType === 'video' ? '视频好评' :
+                                                        task.praiseType}
                                         </Badge>
                                     </div>
                                 </div>
@@ -858,14 +862,14 @@ export default function TaskDetailPage() {
                         <p className="text-xs text-slate-500">已冻结的资金将返还到您的账户。</p>
                     </div>
                     <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
-                        <Button 
-                            variant="secondary" 
+                        <Button
+                            variant="secondary"
                             onClick={() => setShowCancelModal(false)}
                             disabled={cancelling}
                         >
                             取消
                         </Button>
-                        <Button 
+                        <Button
                             variant="destructive"
                             onClick={handleCancelConfirm}
                             disabled={cancelling}

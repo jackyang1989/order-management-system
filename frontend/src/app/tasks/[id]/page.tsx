@@ -9,9 +9,9 @@ import { MockBuyerAccount } from '../../../mocks/userMock';
 import { isAuthenticated } from '../../../services/authService';
 import { cn } from '../../../lib/utils';
 
-import { 
-    PlatformLabels, 
-    TerminalLabels, 
+import {
+    PlatformLabels,
+    TerminalLabels,
     TaskStatusLabels,
 } from '@/shared/taskSpec';
 import { formatDateTime, formatMoney } from '@/shared/formatters';
@@ -313,6 +313,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                                             价格: ¥{kw.minPrice || 0}-{kw.maxPrice || '不限'}
                                         </span>
                                     )}
+                                    {kw.compareKeyword && <span className="rounded bg-amber-50 px-2 py-0.5 text-amber-600">货比: {kw.compareKeyword}</span>}
+                                    {kw.backupKeyword && <span className="rounded bg-amber-50 px-2 py-0.5 text-amber-600">副词: {kw.backupKeyword}</span>}
                                 </div>
                             </div>
                         ))}
@@ -400,28 +402,28 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                         <span className="text-slate-500">结算方式</span>
                         <span className="text-slate-700">{task.terminal ? TerminalMap[task.terminal] : '-'}</span>
                     </div>
-                         <div className="flex justify-between">
-                             <span className="text-slate-500">运费</span>
-                             <span className={isFreeShipping ? 'text-green-600' : 'text-amber-600'}>{isFreeShipping ? '包邮' : '非包邮'}</span>
-                         </div>
-                         {task.isPasswordEnabled && task.checkPassword && (
-                             <div className="flex justify-between">
-                                 <span className="text-slate-500">验证口令</span>
-                                 <span className="text-danger-400 font-medium">{task.checkPassword}</span>
-                             </div>
-                         )}
-                         {(task.weight || 0) > 0 && (
-                             <div className="flex justify-between">
-                                 <span className="text-slate-500">包裹重量</span>
-                                 <span className="text-slate-700">{task.weight}kg</span>
-                             </div>
-                         )}
-                         {task.fastRefund && (
-                             <div className="flex justify-between">
-                                 <span className="text-slate-500">快速返款</span>
-                                 <span className="text-green-600">已开通</span>
-                             </div>
-                         )}
+                    <div className="flex justify-between">
+                        <span className="text-slate-500">运费</span>
+                        <span className={isFreeShipping ? 'text-green-600' : 'text-amber-600'}>{isFreeShipping ? '包邮' : '非包邮'}</span>
+                    </div>
+                    {task.isPasswordEnabled && task.checkPassword && (
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">验证口令</span>
+                            <span className="text-danger-400 font-medium">{task.checkPassword}</span>
+                        </div>
+                    )}
+                    {(task.weight || 0) > 0 && (
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">包裹重量</span>
+                            <span className="text-slate-700">{task.weight}kg</span>
+                        </div>
+                    )}
+                    {task.fastRefund && (
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">快速返款</span>
+                            <span className="text-green-600">已开通</span>
+                        </div>
+                    )}
 
                     {(task.extraReward || 0) > 0 && (
                         <div className="flex justify-between">

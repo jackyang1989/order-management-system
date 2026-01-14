@@ -13,9 +13,9 @@ import { Table, Column } from '../../../components/ui/table';
 import { Modal } from '../../../components/ui/modal';
 import { Pagination } from '../../../components/ui/pagination';
 
-import { 
-    PlatformLabels, 
-    TerminalLabels, 
+import {
+    PlatformLabels,
+    TerminalLabels,
     TaskStatusLabels,
     OrderStatusLabels
 } from '@/shared/taskSpec';
@@ -44,9 +44,9 @@ interface EnhancedColumn<T> {
 // 临时模拟 useTablePreferences Hook
 const useTablePreferences = ({ tableKey, defaultColumns }: { tableKey: string; defaultColumns: ColumnConfig[] }) => ({
     columnConfig: defaultColumns,
-    savePreferences: () => {},
-    resetPreferences: () => {},
-    updateLocalConfig: () => {},
+    savePreferences: () => { },
+    resetPreferences: () => { },
+    updateLocalConfig: () => { },
 });
 
 // 临时模拟 EnhancedTable 组件
@@ -168,6 +168,8 @@ interface TaskKeywordItem {
     maxPrice: number;
     minPrice: number;
     province?: string;
+    compareKeyword?: string;
+    backupKeyword?: string;
 }
 
 const terminalLabels: Record<number, string> = TerminalLabels;
@@ -828,6 +830,8 @@ export default function AdminTasksPage() {
                                                                 价格: ¥{kw.minPrice || 0}-{kw.maxPrice || '不限'}
                                                             </span>
                                                         )}
+                                                        {kw.compareKeyword && <span className="rounded bg-amber-50 px-2 py-0.5 text-amber-600">货比词: {kw.compareKeyword}</span>}
+                                                        {kw.backupKeyword && <span className="rounded bg-amber-50 px-2 py-0.5 text-amber-600">副关键词: {kw.backupKeyword}</span>}
                                                     </div>
                                                 </div>
                                             ))}

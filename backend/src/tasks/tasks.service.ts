@@ -87,6 +87,21 @@ export class TasksService implements OnModuleInit {
     return '';
   }
 
+  /**
+   * 获取副关键词/备用关键词
+   * 规则：
+   * 1. 从主商品的第一个关键词的高级设置中获取 backupKeyword
+   */
+  private getBackupKeyword(dto: CreateTaskDto): string {
+    if (dto.goodsList && dto.goodsList.length > 0) {
+      const mainGoods = dto.goodsList[0]; // 主商品
+      if (mainGoods.keywords && mainGoods.keywords.length > 0) {
+        return mainGoods.keywords[0].advancedSettings?.backupKeyword || '';
+      }
+    }
+    return '';
+  }
+
   private async seedTasks() {
     // Mock data adapted to new schema
     const seedTasks: Partial<Task>[] = [
@@ -478,6 +493,7 @@ export class TasksService implements OnModuleInit {
         // 浏览行为设置
         needCompare: !!dto.needCompare,
         compareKeyword: this.getCompareKeyword(dto),
+        backupKeyword: this.getBackupKeyword(dto),
         needFavorite: !!dto.needFavorite,
         needFollow: !!dto.needFollow,
         needAddCart: !!dto.needAddCart,

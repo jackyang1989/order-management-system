@@ -32,6 +32,8 @@ export interface TaskKeywordItem {
     maxPrice: number;
     minPrice: number;
     province?: string;
+    compareKeyword?: string;
+    backupKeyword?: string;
 }
 
 export interface TaskItem {

@@ -301,6 +301,9 @@ export class Task {
   @Column({ nullable: true })
   compareKeyword: string; // 货比关键词
 
+  @Column({ nullable: true })
+  backupKeyword: string; // 副关键词/备用关键词
+
   @Column({ default: false })
   needFavorite: boolean; // 收藏商品
 
@@ -382,7 +385,8 @@ export class CreateTaskDto {
       keyword: string;
       useCount?: number;
       advancedSettings?: {
-        compareKeyword: string;  // 货比关键词 (简化版，只保留这个)
+        compareKeyword: string;  // 货比关键词
+        backupKeyword?: string;  // 副关键词/备用关键词
       };
     }>;
     // 商品筛选设置 (商品级别，所有关键词共享)
