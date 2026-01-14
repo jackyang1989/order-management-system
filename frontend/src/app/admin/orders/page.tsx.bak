@@ -258,7 +258,7 @@ export default function AdminOrdersPage() {
             render: (row) => (
                 <Button size="sm" variant="outline" onClick={() => setDetailModal(row)}>
                     详情
-                </button>
+                </Button>
             ),
         },
     ];
@@ -293,17 +293,17 @@ export default function AdminOrdersPage() {
                     />
                     <Button onClick={handleSearch}>
                         搜索
-                    </button>
+                    </Button>
                     <Button variant="secondary" onClick={loadOrders}>
                         刷新
-                    </button>
+                    </Button>
                     <Button
                         onClick={handleExport}
                         loading={exporting}
                         variant="success"
                     >
                         导出
-                    </button>
+                    </Button>
                 </div>
 
 
@@ -545,7 +545,7 @@ export default function AdminOrdersPage() {
                                     {task.fastRefund && (
                                         <div className="rounded-md bg-green-50 p-4">
                                             <div className="text-xs text-[#6b7280] mb-1">快速返款</div>
-                                            <div className="text-sm font-medium text-success-600">已开通</div>
+                                            <div className="text-sm font-medium text-green-600">已开通</div>
                                         </div>
                                     )}
                                     {(task.extraReward || task.addReward) && ((task.extraReward ?? 0) > 0 || (task.addReward ?? 0) > 0) && (
@@ -562,7 +562,7 @@ export default function AdminOrdersPage() {
                                     )}
                                     <div className="rounded-md bg-[#f9fafb] p-4">
                                         <div className="text-xs text-[#6b7280] mb-1">运费</div>
-                                        <div className={`text-sm font-medium ${task.isFreeShipping ? 'text-success-600' : 'text-amber-600'}`}>
+                                        <div className={`text-sm font-medium ${task.isFreeShipping ? 'text-green-600' : 'text-amber-600'}`}>
                                             {task.isFreeShipping ? '包邮' : '非包邮'}
                                         </div>
                                     </div>
@@ -770,7 +770,7 @@ export default function AdminOrdersPage() {
                         <div className="flex justify-end pt-4">
                             <Button variant="secondary" onClick={() => setDetailModal(null)}>
                                 关闭
-                            </button>
+                            </Button>
                         </div>
                     </div>
                     );

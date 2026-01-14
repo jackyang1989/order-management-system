@@ -409,7 +409,7 @@ export default function AdminTasksPage() {
                 <div className="text-sm">
                     <span className="text-primary-600">{row.claimedCount}</span>
                     <span className="text-[#9ca3af]"> / </span>
-                    <span className="text-success-600">{row.completedCount || 0}</span>
+                    <span className="text-success-500">{row.completedCount || 0}</span>
                     <span className="text-[#9ca3af]"> / </span>
                     <span className="text-[#6b7280]">{row.count}</span>
                 </div>
@@ -453,7 +453,7 @@ export default function AdminTasksPage() {
                 <div className="flex items-center justify-between whitespace-nowrap">
                     <Button size="sm" variant="secondary" onClick={() => setDetailModal(row)}>
                         详情
-                    </button>
+                    </Button>
                     <Select
                         value={String(row.status)}
                         onChange={(value) => handleUpdateStatus(row.id, Number(value))}
@@ -479,14 +479,14 @@ export default function AdminTasksPage() {
                     <div className="flex items-center gap-2">
                         <Button variant="secondary" onClick={loadTasks}>
                             刷新
-                        </button>
+                        </Button>
                         <Button
                             onClick={handleExport}
                             loading={exporting}
                             variant="success"
                         >
                             导出Excel
-                        </button>
+                        </Button>
                     </div>
                 </div>
                 <div className="mb-6 flex flex-wrap items-center gap-3">
@@ -512,17 +512,17 @@ export default function AdminTasksPage() {
                         ]}
                         className="w-32"
                     />
-                    <Button onClick={handleSearch}>搜索</button>
+                    <Button onClick={handleSearch}>搜索</Button>
                     <div className="ml-auto flex items-center gap-2">
                         {selectedIds.length > 0 && (
                             <>
                                 <span className="text-sm text-[#6b7280]">已选 {selectedIds.length} 项</span>
                                 <Button onClick={handleBatchApprove}>
                                     批量通过
-                                </button>
+                                </Button>
                                 <Button variant="destructive" onClick={handleBatchReject}>
                                     批量拒绝
-                                </button>
+                                </Button>
                             </>
                         )}
                     </div>
@@ -861,7 +861,7 @@ export default function AdminTasksPage() {
                                     </div>
                                     <div>
                                         <div className="text-[12px] text-[#6b7280]">已完成</div>
-                                        <div className="text-lg font-bold text-success-600">{detailModal.completedCount || 0}</div>
+                                        <div className="text-lg font-bold text-success-500">{detailModal.completedCount || 0}</div>
                                     </div>
                                     <div>
                                         <div className="text-[12px] text-[#6b7280]">剩余</div>
@@ -961,7 +961,7 @@ export default function AdminTasksPage() {
                                     </div>
                                     {valueAddedServices.filter(s => s.enabled).map((service, i) => (
                                         <div key={i}>
-                                            <div className="text-[12px] text-success-600">{service.label}</div>
+                                            <div className="text-[12px] text-green-600">{service.label}</div>
                                             <div className="text-[13px] font-medium text-green-700">{service.value || '是'}</div>
                                         </div>
                                     ))}
@@ -1053,7 +1053,7 @@ export default function AdminTasksPage() {
                             <div className="mt-8 flex justify-end">
                                 <Button variant="secondary" onClick={() => setDetailModal(null)}>
                                     关闭
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     );

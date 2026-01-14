@@ -272,7 +272,7 @@ function ShopsContent() {
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="px-3 py-3 text-sm font-medium text-[#374151]">{shop.shopName || '-'}</td>
+                                        <td className="px-3 py-3 text-sm text-[#374151]">{shop.shopName || '-'}</td>
                                         <td className="px-3 py-3 text-sm text-[#6b7280]">{shop.accountName || '-'}</td>
                                         <td className="px-3 py-3">
                                             <div className="text-sm text-[#374151]">{shop.contactName || '-'}</div>
