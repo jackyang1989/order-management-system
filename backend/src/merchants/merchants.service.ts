@@ -231,52 +231,58 @@ export class MerchantsService {
   }
 
   // 银锭操作（用于佣金/服务费）
+  // P0-3: 使用事务保护，确保原子性操作
   async addSilver(id: string, amount: number, memo: string): Promise<boolean> {
-    const merchant = await this.merchantsRepository.findOne({ where: { id } });
-    if (!merchant) return false;
+    return this.dataSource.transaction(async (manager) => {
+      const merchant = await manager.findOne(Merchant, { where: { id } });
+      if (!merchant) return false;
 
-    merchant.silver = Number(merchant.silver) + amount;
-    await this.merchantsRepository.save(merchant);
+      merchant.silver = Number(merchant.silver) + amount;
+      await manager.save(merchant);
 
-    // 记录财务流水
-    await this.financeRecordsService.recordAdminOperation(
-      id,
-      FinanceUserType.MERCHANT,
-      FinanceMoneyType.SILVER,
-      amount,
-      Number(merchant.silver),
-      memo,
-      'system',
-    );
-    return true;
+      // 记录财务流水（在事务内）
+      await this.financeRecordsService.recordAdminOperation(
+        id,
+        FinanceUserType.MERCHANT,
+        FinanceMoneyType.SILVER,
+        amount,
+        Number(merchant.silver),
+        memo,
+        'system',
+      );
+      return true;
+    });
   }
 
+  // P0-3: 使用事务保护，确保原子性操作
   async deductSilver(
     id: string,
     amount: number,
     memo: string,
   ): Promise<boolean> {
-    const merchant = await this.merchantsRepository.findOne({ where: { id } });
-    if (!merchant) return false;
+    return this.dataSource.transaction(async (manager) => {
+      const merchant = await manager.findOne(Merchant, { where: { id } });
+      if (!merchant) return false;
 
-    if (Number(merchant.silver) < amount) {
-      throw new BadRequestException('银锭不足，请先充值');
-    }
+      if (Number(merchant.silver) < amount) {
+        throw new BadRequestException('银锭不足，请先充值');
+      }
 
-    merchant.silver = Number(merchant.silver) - amount;
-    await this.merchantsRepository.save(merchant);
+      merchant.silver = Number(merchant.silver) - amount;
+      await manager.save(merchant);
 
-    // 记录财务流水
-    await this.financeRecordsService.recordAdminOperation(
-      id,
-      FinanceUserType.MERCHANT,
-      FinanceMoneyType.SILVER,
-      -amount,
-      Number(merchant.silver),
-      memo,
-      'system',
-    );
-    return true;
+      // 记录财务流水（在事务内）
+      await this.financeRecordsService.recordAdminOperation(
+        id,
+        FinanceUserType.MERCHANT,
+        FinanceMoneyType.SILVER,
+        -amount,
+        Number(merchant.silver),
+        memo,
+        'system',
+      );
+      return true;
+    });
   }
 
   // 统计数据

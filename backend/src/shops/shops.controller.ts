@@ -55,8 +55,6 @@ export class ShopsController {
           uploaderType: req.user.role || 'MERCHANT',
         };
 
-        console.log('Uploading shop screenshot with dto:', uploadDto);
-
         const uploadResult = await this.uploadsService.uploadFile(
           {
             originalname: file.originalname,

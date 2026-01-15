@@ -210,27 +210,35 @@ export class WithdrawalsService {
         // WHERE id = :userId AND balance >= :amount
         let updateResult;
 
+        // P0-5: 确保 amount 是有效数字，防止 SQL 注入
+        const safeAmount = Number(createDto.amount);
+        if (isNaN(safeAmount) || safeAmount <= 0) {
+          throw new BadRequestException('无效的提现金额');
+        }
+
         if (withdrawalType === WithdrawalType.BALANCE) {
           updateResult = await transactionalEntityManager
             .createQueryBuilder()
             .update(User)
             .set({
-              balance: () => `balance - ${createDto.amount}`,
-              frozenBalance: () => `frozenBalance + ${createDto.amount}`,
+              balance: () => `balance - :amount`,
+              frozenBalance: () => `"frozenBalance" + :amount`,
             })
+            .setParameter('amount', safeAmount)
             .where('id = :userId', { userId })
-            .andWhere('balance >= :amount', { amount: createDto.amount })
+            .andWhere('balance >= :minAmount', { minAmount: safeAmount })
             .execute();
         } else {
           updateResult = await transactionalEntityManager
             .createQueryBuilder()
             .update(User)
             .set({
-              silver: () => `silver - ${createDto.amount}`,
-              frozenSilver: () => `frozenSilver + ${createDto.amount}`,
+              silver: () => `silver - :amount`,
+              frozenSilver: () => `"frozenSilver" + :amount`,
             })
+            .setParameter('amount', safeAmount)
             .where('id = :userId', { userId })
-            .andWhere('silver >= :amount', { amount: createDto.amount })
+            .andWhere('silver >= :minAmount', { minAmount: safeAmount })
             .execute();
         }
 
@@ -306,27 +314,36 @@ export class WithdrawalsService {
 
         // 原子扣减商家余额
         let updateResult;
+
+        // P0-5: 确保 amount 是有效数字，防止 SQL 注入
+        const safeAmount = Number(createDto.amount);
+        if (isNaN(safeAmount) || safeAmount <= 0) {
+          throw new BadRequestException('无效的提现金额');
+        }
+
         if (withdrawalType === WithdrawalType.BALANCE) {
           updateResult = await transactionalEntityManager
             .createQueryBuilder()
             .update(Merchant)
             .set({
-              balance: () => `balance - ${createDto.amount}`,
-              frozenBalance: () => `"frozenBalance" + ${createDto.amount}`,
+              balance: () => `balance - :amount`,
+              frozenBalance: () => `"frozenBalance" + :amount`,
             })
+            .setParameter('amount', safeAmount)
             .where('id = :merchantId', { merchantId })
-            .andWhere('balance >= :amount', { amount: createDto.amount })
+            .andWhere('balance >= :minAmount', { minAmount: safeAmount })
             .execute();
         } else {
           updateResult = await transactionalEntityManager
             .createQueryBuilder()
             .update(Merchant)
             .set({
-              silver: () => `silver - ${createDto.amount}`,
-              frozenSilver: () => `"frozenSilver" + ${createDto.amount}`,
+              silver: () => `silver - :amount`,
+              frozenSilver: () => `"frozenSilver" + :amount`,
             })
+            .setParameter('amount', safeAmount)
             .where('id = :merchantId', { merchantId })
-            .andWhere('silver >= :amount', { amount: createDto.amount })
+            .andWhere('silver >= :minAmount', { minAmount: safeAmount })
             .execute();
         }
 
@@ -412,14 +429,18 @@ export class WithdrawalsService {
           // 审核通过：从冻结余额扣除
           withdrawal.status = WithdrawalStatus.COMPLETED;
 
+          // P0-5: 确保 amount 是有效数字
+          const safeWithdrawalAmount = Number(withdrawal.amount);
+
           if (withdrawal.type === WithdrawalType.BALANCE) {
             // 扣除冻结的本金
             await transactionalEntityManager
               .createQueryBuilder()
               .update(User)
               .set({
-                frozenBalance: () => `"frozenBalance" - ${withdrawal.amount}`,
+                frozenBalance: () => `"frozenBalance" - :amount`,
               })
+              .setParameter('amount', safeWithdrawalAmount)
               .where('id = :userId', { userId: withdrawal.userId })
               .execute();
 
@@ -436,8 +457,9 @@ export class WithdrawalsService {
               .createQueryBuilder()
               .update(User)
               .set({
-                frozenSilver: () => `"frozenSilver" - ${withdrawal.amount}`,
+                frozenSilver: () => `"frozenSilver" - :amount`,
               })
+              .setParameter('amount', safeWithdrawalAmount)
               .where('id = :userId', { userId: withdrawal.userId })
               .execute();
 
@@ -453,14 +475,18 @@ export class WithdrawalsService {
           // 审核拒绝：退还冻结余额到可用余额
           withdrawal.status = WithdrawalStatus.REJECTED;
 
+          // P0-5: 确保 amount 是有效数字
+          const safeWithdrawalAmount = Number(withdrawal.amount);
+
           if (withdrawal.type === WithdrawalType.BALANCE) {
             await transactionalEntityManager
               .createQueryBuilder()
               .update(User)
               .set({
-                balance: () => `balance + ${withdrawal.amount}`,
-                frozenBalance: () => `"frozenBalance" - ${withdrawal.amount}`,
+                balance: () => `balance + :amount`,
+                frozenBalance: () => `"frozenBalance" - :amount`,
               })
+              .setParameter('amount', safeWithdrawalAmount)
               .where('id = :userId', { userId: withdrawal.userId })
               .execute();
           } else {
@@ -468,9 +494,10 @@ export class WithdrawalsService {
               .createQueryBuilder()
               .update(User)
               .set({
-                silver: () => `silver + ${withdrawal.amount}`,
-                frozenSilver: () => `"frozenSilver" - ${withdrawal.amount}`,
+                silver: () => `silver + :amount`,
+                frozenSilver: () => `"frozenSilver" - :amount`,
               })
+              .setParameter('amount', safeWithdrawalAmount)
               .where('id = :userId', { userId: withdrawal.userId })
               .execute();
           }

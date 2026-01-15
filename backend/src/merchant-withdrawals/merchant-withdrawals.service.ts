@@ -91,28 +91,38 @@ export class MerchantWithdrawalsService {
         }
 
         // 2. 原子扣减余额 + 冻结余额
+        // P0-5: 使用参数化查询防止 SQL 注入
+        const safeAmount = Number(createDto.amount);
+        if (isNaN(safeAmount) || safeAmount <= 0) {
+          throw new BadRequestException('无效的提现金额');
+        }
+
         let updateResult;
         if (withdrawalType === MerchantWithdrawalType.BALANCE) {
           updateResult = await transactionalEntityManager
             .createQueryBuilder()
             .update(Merchant)
             .set({
-              balance: () => `balance - ${createDto.amount}`,
-              frozenBalance: () => `"frozenBalance" + ${createDto.amount}`,
+              balance: () => `balance - :deductAmount`,
+              frozenBalance: () => `"frozenBalance" + :addAmount`,
             })
+            .setParameter('deductAmount', safeAmount)
+            .setParameter('addAmount', safeAmount)
             .where('id = :merchantId', { merchantId })
-            .andWhere('balance >= :amount', { amount: createDto.amount })
+            .andWhere('balance >= :amount', { amount: safeAmount })
             .execute();
         } else {
           updateResult = await transactionalEntityManager
             .createQueryBuilder()
             .update(Merchant)
             .set({
-              silver: () => `silver - ${createDto.amount}`,
-              frozenSilver: () => `"frozenSilver" + ${createDto.amount}`,
+              silver: () => `silver - :deductAmount`,
+              frozenSilver: () => `"frozenSilver" + :addAmount`,
             })
+            .setParameter('deductAmount', safeAmount)
+            .setParameter('addAmount', safeAmount)
             .where('id = :merchantId', { merchantId })
-            .andWhere('silver >= :amount', { amount: createDto.amount })
+            .andWhere('silver >= :amount', { amount: safeAmount })
             .execute();
         }
 
@@ -198,6 +208,9 @@ export class MerchantWithdrawalsService {
         withdrawal.reviewedBy = adminId;
         withdrawal.remark = reviewDto.remark;
 
+        // P0-5: 使用参数化查询防止 SQL 注入
+        const safeWithdrawalAmount = Number(withdrawal.amount);
+
         if (
           reviewDto.status === MerchantWithdrawalStatus.APPROVED_PENDING_TRANSFER ||
           reviewDto.status === MerchantWithdrawalStatus.COMPLETED
@@ -210,8 +223,9 @@ export class MerchantWithdrawalsService {
               .createQueryBuilder()
               .update(Merchant)
               .set({
-                frozenBalance: () => `"frozenBalance" - ${withdrawal.amount}`,
+                frozenBalance: () => `"frozenBalance" - :amount`,
               })
+              .setParameter('amount', safeWithdrawalAmount)
               .where('id = :merchantId', { merchantId: withdrawal.merchantId })
               .execute();
 
@@ -227,8 +241,9 @@ export class MerchantWithdrawalsService {
               .createQueryBuilder()
               .update(Merchant)
               .set({
-                frozenSilver: () => `"frozenSilver" - ${withdrawal.amount}`,
+                frozenSilver: () => `"frozenSilver" - :amount`,
               })
+              .setParameter('amount', safeWithdrawalAmount)
               .where('id = :merchantId', { merchantId: withdrawal.merchantId })
               .execute();
 
@@ -248,9 +263,11 @@ export class MerchantWithdrawalsService {
               .createQueryBuilder()
               .update(Merchant)
               .set({
-                balance: () => `balance + ${withdrawal.amount}`,
-                frozenBalance: () => `"frozenBalance" - ${withdrawal.amount}`,
+                balance: () => `balance + :addAmount`,
+                frozenBalance: () => `"frozenBalance" - :deductAmount`,
               })
+              .setParameter('addAmount', safeWithdrawalAmount)
+              .setParameter('deductAmount', safeWithdrawalAmount)
               .where('id = :merchantId', { merchantId: withdrawal.merchantId })
               .execute();
           } else {
@@ -258,9 +275,11 @@ export class MerchantWithdrawalsService {
               .createQueryBuilder()
               .update(Merchant)
               .set({
-                silver: () => `silver + ${withdrawal.amount}`,
-                frozenSilver: () => `"frozenSilver" - ${withdrawal.amount}`,
+                silver: () => `silver + :addAmount`,
+                frozenSilver: () => `"frozenSilver" - :deductAmount`,
               })
+              .setParameter('addAmount', safeWithdrawalAmount)
+              .setParameter('deductAmount', safeWithdrawalAmount)
               .where('id = :merchantId', { merchantId: withdrawal.merchantId })
               .execute();
           }

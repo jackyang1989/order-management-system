@@ -184,11 +184,6 @@ export class UsersAdminService {
     const field = dto.type === 'balance' ? 'balance' : 'silver';
     const rawValue = user[field];
 
-    // 调试日志
-    console.log('[adjustBalance] field:', field);
-    console.log('[adjustBalance] rawValue:', rawValue, 'type:', typeof rawValue);
-    console.log('[adjustBalance] dto.amount:', dto.amount, 'type:', typeof dto.amount);
-
     // 确保 amount 是数字
     const amount = typeof dto.amount === 'string' ? parseFloat(dto.amount) : dto.amount;
 

@@ -303,28 +303,6 @@ export class TasksService implements OnModuleInit {
       // 2.1 基础数值
       const count = Number(dto.count) || 1;
 
-      // P0 DEBUG: 打印完整的 dto 数据
-      console.log('======== P0 DEBUG: createAndPay dto ========');
-      console.log('dto.count:', dto.count, '→ count:', count);
-      console.log('dto.goodsPrice:', dto.goodsPrice);
-      console.log('dto.goodsList:', JSON.stringify(dto.goodsList, null, 2));
-      console.log('dto.isPraise:', dto.isPraise, 'dto.praiseType:', dto.praiseType);
-      console.log('dto.praiseList:', dto.praiseList);
-      console.log('dto.terminal:', dto.terminal);
-      console.log('dto.isTimingPublish:', dto.isTimingPublish);
-      console.log('dto.addReward:', dto.addReward);
-      console.log('dto.isNextDay:', dto.isNextDay);
-      console.log('dto.isFreeShipping:', dto.isFreeShipping);
-      console.log('dto.totalBrowseMinutes:', dto.totalBrowseMinutes);
-      console.log('dto.compareBrowseMinutes:', dto.compareBrowseMinutes);
-      console.log('dto.mainBrowseMinutes:', dto.mainBrowseMinutes);
-      console.log('dto.subBrowseMinutes:', dto.subBrowseMinutes);
-      console.log('dto.hasSubProduct:', dto.hasSubProduct);
-      console.log('dto.needCompare:', dto.needCompare, 'dto.compareCount:', dto.compareCount);
-      console.log('dto.needFavorite:', dto.needFavorite, 'dto.needFollow:', dto.needFollow);
-      console.log('dto.needAddCart:', dto.needAddCart, 'dto.needContactCS:', dto.needContactCS);
-      console.log('==============================================');
-
       // 计算商品价格：优先从 goodsList 计算，其次使用 dto.goodsPrice
       let goodsPrice = Number(dto.goodsPrice) || 0;
       if (dto.goodsList && dto.goodsList.length > 0) {
@@ -332,10 +310,8 @@ export class TasksService implements OnModuleInit {
         goodsPrice = dto.goodsList.reduce((sum: number, goods: any) => {
           const price = Number(goods.price) || 0;
           const quantity = Number(goods.quantity) || 1;
-          console.log(`P0 DEBUG: goods price=${price}, quantity=${quantity}, subtotal=${price * quantity}`);
           return sum + (price * quantity);
         }, 0);
-        console.log('P0 DEBUG: 从 goodsList 计算的 goodsPrice:', goodsPrice);
       }
 
       // 2.2 押金部分 (Principal + Postage + Margin)

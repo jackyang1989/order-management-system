@@ -1105,15 +1105,19 @@ export class BatchOperationsService {
 
               // 退还冻结余额到可用余额
               const ownerId = withdrawal.ownerId || withdrawal.userId;
+              // P0-5: 确保 amount 是有效数字
+              const safeAmount = Number(withdrawal.amount);
+
               if (withdrawal.type === WithdrawalType.BALANCE) {
                 await transactionalEntityManager
                   .createQueryBuilder()
                   .update(User)
                   .set({
-                    balance: () => `balance + ${withdrawal.amount}`,
+                    balance: () => `balance + :amount`,
                     frozenBalance: () =>
-                      `"frozenBalance" - ${withdrawal.amount}`,
+                      `"frozenBalance" - :amount`,
                   })
+                  .setParameter('amount', safeAmount)
                   .where('id = :userId', { userId: ownerId })
                   .execute();
               } else {
@@ -1121,9 +1125,10 @@ export class BatchOperationsService {
                   .createQueryBuilder()
                   .update(User)
                   .set({
-                    silver: () => `silver + ${withdrawal.amount}`,
-                    frozenSilver: () => `"frozenSilver" - ${withdrawal.amount}`,
+                    silver: () => `silver + :amount`,
+                    frozenSilver: () => `"frozenSilver" - :amount`,
                   })
+                  .setParameter('amount', safeAmount)
                   .where('id = :userId', { userId: ownerId })
                   .execute();
               }
@@ -1211,15 +1216,19 @@ export class BatchOperationsService {
                 withdrawal.remark = reason || '后台拒绝';
 
                 // 退还冻结余额到可用余额
+                // P0-5: 确保 amount 是有效数字
+                const safeAmount = Number(withdrawal.amount);
+
                 if (withdrawal.type === MerchantWithdrawalType.BALANCE) {
                   await transactionalEntityManager
                     .createQueryBuilder()
                     .update(Merchant)
                     .set({
-                      balance: () => `balance + ${withdrawal.amount}`,
+                      balance: () => `balance + :amount`,
                       frozenBalance: () =>
-                        `"frozenBalance" - ${withdrawal.amount}`,
+                        `"frozenBalance" - :amount`,
                     })
+                    .setParameter('amount', safeAmount)
                     .where('id = :merchantId', {
                       merchantId: withdrawal.merchantId,
                     })
@@ -1229,10 +1238,11 @@ export class BatchOperationsService {
                     .createQueryBuilder()
                     .update(Merchant)
                     .set({
-                      silver: () => `silver + ${withdrawal.amount}`,
+                      silver: () => `silver + :amount`,
                       frozenSilver: () =>
-                        `"frozenSilver" - ${withdrawal.amount}`,
+                        `"frozenSilver" - :amount`,
                     })
+                    .setParameter('amount', safeAmount)
                     .where('id = :merchantId', {
                       merchantId: withdrawal.merchantId,
                     })
@@ -1331,13 +1341,17 @@ export class BatchOperationsService {
 
             // 4. 扣除冻结余额
             const ownerId = withdrawal.ownerId || withdrawal.userId;
+            // P0-5: 确保 amount 是有效数字
+            const safeAmount = Number(withdrawal.amount);
+
             if (withdrawal.type === WithdrawalType.BALANCE) {
               await transactionalEntityManager
                 .createQueryBuilder()
                 .update(User)
                 .set({
-                  frozenBalance: () => `"frozenBalance" - ${withdrawal.amount}`,
+                  frozenBalance: () => `"frozenBalance" - :amount`,
                 })
+                .setParameter('amount', safeAmount)
                 .where('id = :userId', { userId: ownerId })
                 .execute();
 
@@ -1353,8 +1367,9 @@ export class BatchOperationsService {
                 .createQueryBuilder()
                 .update(User)
                 .set({
-                  frozenSilver: () => `"frozenSilver" - ${withdrawal.amount}`,
+                  frozenSilver: () => `"frozenSilver" - :amount`,
                 })
+                .setParameter('amount', safeAmount)
                 .where('id = :userId', { userId: ownerId })
                 .execute();
 
@@ -1461,14 +1476,17 @@ export class BatchOperationsService {
               }
 
               // 4. 扣除冻结余额
+              // P0-5: 使用参数化查询防止 SQL 注入
+              const safeWithdrawalAmount = Number(withdrawal.amount);
+
               if (withdrawal.type === MerchantWithdrawalType.BALANCE) {
                 await transactionalEntityManager
                   .createQueryBuilder()
                   .update(Merchant)
                   .set({
-                    frozenBalance: () =>
-                      `"frozenBalance" - ${withdrawal.amount}`,
+                    frozenBalance: () => `"frozenBalance" - :amount`,
                   })
+                  .setParameter('amount', safeWithdrawalAmount)
                   .where('id = :merchantId', {
                     merchantId: withdrawal.merchantId,
                   })
@@ -1486,8 +1504,9 @@ export class BatchOperationsService {
                   .createQueryBuilder()
                   .update(Merchant)
                   .set({
-                    frozenSilver: () => `"frozenSilver" - ${withdrawal.amount}`,
+                    frozenSilver: () => `"frozenSilver" - :amount`,
                   })
+                  .setParameter('amount', safeWithdrawalAmount)
                   .where('id = :merchantId', {
                     merchantId: withdrawal.merchantId,
                   })
