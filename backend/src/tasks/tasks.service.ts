@@ -394,7 +394,6 @@ export class TasksService implements OnModuleInit {
       // 单笔佣金 = 基础 + 好评 + 定时发布 + 定时付款 + 循环 + 悬赏 + 多商品 + 隔天 + 快返
       const commissionPerOrder =
         baseFeePerOrder +
-        praiseFeePerOrder +
         timingPublishFeePerOrder +
         timingPayFeePerOrder +
         cycleFeePerOrder +
@@ -403,8 +402,8 @@ export class TasksService implements OnModuleInit {
         nextDayFeePerOrder +
         fastRefundFeePerOrder;
 
-      // 总佣金
-      const totalCommission = commissionPerOrder * count;
+      // 总佣金 = 单笔佣金 * 单数 + 总好评费用
+      const totalCommission = (commissionPerOrder * count) + totalPraiseFee;
 
       // 买手分成佣金计算
       const dividedRate = 0.6; // 60%分成给买手
@@ -511,7 +510,9 @@ export class TasksService implements OnModuleInit {
             praiseImgList: hasPraiseImg ? JSON.stringify(dto.praiseImgList) : '[]',
             isVideoPraise: actualPraiseType === 'video' || hasPraiseVideo,
             praiseVideoList: hasPraiseVideo ? JSON.stringify(dto.praiseVideoList) : '[]',
-            praiseFee: praiseFeePerOrder,  // 使用计算出的好评费
+            praiseFee: totalPraiseFee / count,  // 平均每单的好评费用
+            // 新版：保存每单独立的好评配置
+            orderPraiseConfigs: dto.orderPraiseConfigs || null,
           };
         })(),
 
