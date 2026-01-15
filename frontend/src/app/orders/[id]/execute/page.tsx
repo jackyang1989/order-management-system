@@ -254,9 +254,9 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 setMainProductFilter1('');
                 setMainProductFilter2('');
                 setMainProductFilter3(data.huobiKeyword || '');
-                setMainProductFilter4('');
+                setMainProductFilter4(data.backupKeyword || ''); // 备用关键词
                 setAdminLimitSwitch(data.isPasswordEnabled ? 1 : 0);
-                setCheckPassword(data.checkPassword || '');
+                setCheckPassword(data.maskedPassword || ''); // 使用后端返回的已隐藏口令
                 setIsFreeShipping(data.isFreeShipping === 1 || data.isFreeShipping === true);
                 setCompareCount(data.compareCount || 3);
                 setContactCSContent(data.contactCSContent || '');
@@ -1395,8 +1395,8 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                 <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
                                     <img src={item.img} alt="商品" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontSize: '13px', color: '#333' }}>{item.productName}</div>
-                                        <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>店铺：{item.dianpuName}</div>
+                                        {/* 隐藏商品标题，只显示提示 */}
+                                        <div style={{ fontSize: '13px', color: '#999' }}>请根据关键词搜索找到此商品</div>
                                         {item.specname && item.specifications && (
                                             <div style={{ fontSize: '12px', color: '#409eff', marginTop: '5px', fontWeight: 'bold' }}>
                                                 规格：{item.specname} - {item.specifications}
@@ -1500,7 +1500,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                     {adminLimitSwitch === 1 && (
                                         <div>
                                             <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>商品口令核对：</div>
-                                            {item.goodsSpec && (
+                                            {(item.goodsSpec || checkPassword) && (
                                                 <div style={{
                                                     fontSize: '12px',
                                                     color: '#f56c6c',
@@ -1509,7 +1509,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                                     background: '#fff5f5',
                                                     borderRadius: '4px'
                                                 }}>
-                                                    口令提示：<span style={{ fontWeight: 'bold' }}>{item.goodsSpec}</span>
+                                                    口令提示：<span style={{ fontWeight: 'bold' }}>{item.goodsSpec || checkPassword}</span>
                                                 </div>
                                             )}
                                             <div style={{ display: 'flex', gap: '10px' }}>
