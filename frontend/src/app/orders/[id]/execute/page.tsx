@@ -475,10 +475,12 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
 
         if (active === 1) {
             // 验证第一步
+            console.log('第一步验证 - localFile2:', localFile2);
             if (!localFile2) {
                 alertError('货比加购截图不能为空');
                 return;
             }
+            console.log('第一步验证通过，进入第二步');
             setActive(2);
         } else if (active === 2) {
             // 验证第二步
@@ -898,7 +900,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                                 borderRadius: '10px',
                                                 fontSize: '11px'
                                             }}>
-                                                ✓ 文字好评 (已分配)
+                                                ✓ 指定文字好评 (已提供)
                                             </span>
                                         )}
                                         {isImgPraise && (
@@ -1002,6 +1004,18 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         {tasktype === '4' && (
                             <p>{platformName || '平台'}APP搜索框，手动输入搜索关键词：<span style={{ color: 'red', userSelect: 'none' }}>{keyWord}</span></p>
                         )}
+                        {/* 默认显示关键词搜索指引（当没有匹配到其他类型时） */}
+                        {tasktype !== '2' && tasktype !== '3' && tasktype !== '4' && keyWord && (
+                            <div>
+                                <p style={{ fontSize: '13px', color: '#333', marginBottom: '8px' }}>
+                                    <span style={{ fontWeight: 'bold', color: '#409eff' }}>进店方式：</span>关键词搜索
+                                </p>
+                                <p style={{ fontSize: '13px', color: '#666' }}>
+                                    打开{platformName || '平台'}APP，在搜索框输入关键词：
+                                    <span style={{ color: 'red', fontWeight: 'bold', marginLeft: '5px' }}>{keyWord}</span>
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     {/* 壹：货比加购 */}
@@ -1026,11 +1040,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         </div>
                         <div style={{ fontSize: '13px', color: '#666', lineHeight: '1.8' }}>
                             <p>1. {platformName || '平台'}APP搜索框，搜索货比关键词：
-                                {mainProductFilter3 ? (
-                                    <span style={{ color: 'red' }}>{mainProductFilter3}</span>
-                                ) : (
-                                    <span style={{ color: '#999' }}>(未设置货比关键词)</span>
-                                )}
+                                <span style={{ color: 'red' }}>{mainProductFilter3 || keyWord}</span>
                             </p>
                             <p>2. 根据搜索结果，浏览{compareCount}家同类商品，每家{compareBrowseMinutes}分钟；</p>
                             <p>3. 将其中3个商家的货比商品加入购物车并截图；</p>
@@ -1586,13 +1596,16 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             <div style={{
                 position: 'fixed',
                 bottom: 0,
-                left: 0,
-                right: 0,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '100%',
+                maxWidth: '515px',
                 background: '#fff',
                 padding: '10px 15px',
                 borderTop: '1px solid #eee',
                 display: 'flex',
                 justifyContent: 'space-between',
+                boxSizing: 'border-box',
             }}>
                 <button
                     onClick={prev}
