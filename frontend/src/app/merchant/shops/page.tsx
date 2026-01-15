@@ -76,17 +76,17 @@ export default function MerchantShopsPage() {
                                                 index === shops.length - 1 && "border-0"
                                             )}
                                         >
-                                            <td className="px-6 py-5 font-bold text-slate-900">{shop.platform}</td>
-                                            <td className="px-6 py-5 font-medium text-slate-700">{shop.shopName || '-'}</td>
-                                            <td className="px-6 py-5 text-sm text-slate-500">{shop.accountName || '-'}</td>
-                                            <td className="px-6 py-5 text-sm text-slate-500">{shop.contactName || '-'}</td>
+                                            <td className="px-6 py-5 text-[13px] font-medium text-slate-900">{shop.platform}</td>
+                                            <td className="px-6 py-5 text-[13px] font-normal text-slate-700">{shop.shopName || '-'}</td>
+                                            <td className="px-6 py-5 text-[13px] font-normal text-slate-500">{shop.accountName || '-'}</td>
+                                            <td className="px-6 py-5 text-[13px] font-normal text-slate-500">{shop.contactName || '-'}</td>
                                             <td className="px-6 py-5">
-                                                <Badge variant="soft" color={status.color} className="rounded-full px-2.5 font-bold">{status.text}</Badge>
-                                                {shop.auditRemark && <div className="mt-1.5 text-xs font-medium text-danger-400">{shop.auditRemark}</div>}
+                                                <Badge variant="soft" color={status.color} className="rounded-full px-2.5 text-xs font-medium">{status.text}</Badge>
+                                                {shop.auditRemark && <div className="mt-1.5 text-xs font-normal text-danger-400">{shop.auditRemark}</div>}
                                             </td>
                                             <td className="px-6 py-5">
-                                                <button onClick={() => router.push(`/merchant/shops/edit/${shop.id}`)} className="mr-3 text-sm font-bold text-primary-600 hover:text-primary-700 hover:underline">修改</button>
-                                                <button onClick={() => handleDelete(shop.id)} className="text-sm font-bold text-danger-400 hover:text-danger-500 hover:underline">删除</button>
+                                                <button onClick={() => router.push(`/merchant/shops/edit/${shop.id}`)} className="mr-3 text-[13px] font-medium text-primary-600 hover:text-primary-700 hover:underline">修改</button>
+                                                <button onClick={() => handleDelete(shop.id)} className="text-[13px] font-medium text-danger-400 hover:text-danger-500 hover:underline">删除</button>
                                             </td>
                                         </tr>
                                     );

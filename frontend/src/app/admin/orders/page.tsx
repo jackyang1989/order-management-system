@@ -226,9 +226,9 @@ export default function AdminOrdersPage() {
         },
         {
             key: 'commission',
-            title: '用户佣金',
+            title: '买手分成',
             className: 'w-[80px] text-right',
-            render: (row) => <span className="font-medium text-success-400">¥{Number(row.commission).toFixed(2)}</span>,
+            render: (row) => <span className="font-medium text-success-400">¥{Number(row.userDivided || row.commission || 0).toFixed(2)}</span>,
         },
         {
             key: 'depositPayment',

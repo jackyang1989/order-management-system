@@ -28,7 +28,7 @@ const REVIEW_STATUS_OPTIONS = [
     { value: '3', label: '已完成追评任务' }, { value: '4', label: '已拒接追评任务' },
 ];
 
-interface OrderItem { id: string; taskNumber: string; shopName: string; shopImg: string; type: string; taskType: string; mainProductName: string; mainProductPcImg: string; state: string; indexState: string; buynoAccount: string; commission: number; userDivided: number; userPrincipal: number; createdAt: string; progress: string; reviewTaskId?: string; checked?: boolean; }
+interface OrderItem { id: string; taskNumber: string; shopName: string; shopImg: string; type: string; taskType: string; mainProductName: string; mainProductPcImg: string; state: string; indexState: string; buynoAccount: string; commission: number; userDivided: number; userPrincipal: number; silverPrepay: number; merchantName?: string; createdAt: string; progress: string; reviewTaskId?: string; checked?: boolean; task?: { merchant?: { username: string } }; }
 interface BuynoItem { id: string; platformAccount: string; }
 
 function OrdersPageContent() {
@@ -358,12 +358,20 @@ function OrdersPageContent() {
                                     </div>
                                     <div className="grid grid-cols-2 gap-3 text-sm">
                                         <div className="rounded-xl bg-slate-50 p-3">
+                                            <div className="text-[10px] text-slate-400 mb-1">商家</div>
+                                            <div className="font-bold text-slate-700">{order.task?.merchant?.username || order.merchantName || '-'}</div>
+                                        </div>
+                                        <div className="rounded-xl bg-slate-50 p-3">
                                             <div className="text-[10px] text-slate-400 mb-1">买号</div>
                                             <div className="font-bold text-slate-700">{order.buynoAccount}</div>
                                         </div>
                                         <div className="rounded-xl bg-slate-50 p-3">
-                                            <div className="text-[10px] text-slate-400 mb-1">佣金</div>
-                                            <div className="font-bold text-success-500">+{order.commission}+{order.userDivided}银锭</div>
+                                            <div className="text-[10px] text-slate-400 mb-1">买手分成</div>
+                                            <div className="font-bold text-success-500">¥{Number(order.userDivided || 0).toFixed(2)}</div>
+                                        </div>
+                                        <div className="rounded-xl bg-slate-50 p-3">
+                                            <div className="text-[10px] text-slate-400 mb-1">银锭押金</div>
+                                            <div className="font-bold text-warning-500">{Number(order.silverPrepay || 0).toFixed(0)}银锭</div>
                                         </div>
                                         <div className="rounded-xl bg-slate-50 p-3 col-span-2 flex items-center justify-between">
                                             <div>
