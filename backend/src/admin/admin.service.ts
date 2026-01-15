@@ -254,7 +254,8 @@ export class AdminService {
     page: number;
     totalPages: number;
   }> {
-    const query = this.tasksRepository.createQueryBuilder('task');
+    const query = this.tasksRepository.createQueryBuilder('task')
+      .leftJoinAndSelect('task.merchant', 'merchant');
 
     if (status !== undefined) {
       query.where('task.status = :status', { status });

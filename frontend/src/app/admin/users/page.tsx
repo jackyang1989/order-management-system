@@ -168,7 +168,8 @@ export default function AdminUsersPage() {
         vipExpireAt: string;
         mcTaskNum: string;
         note: string;
-    }>({ username: '', phone: '', wechat: '', realName: '', balance: '0', silver: '0', vip: false, vipExpireAt: '', mcTaskNum: '0', note: '' });
+        verifyStatus: number;
+    }>({ username: '', phone: '', wechat: '', realName: '', balance: '0', silver: '0', vip: false, vipExpireAt: '', mcTaskNum: '0', note: '', verifyStatus: 0 });
 
     useEffect(() => {
         loadUsers();
@@ -216,7 +217,8 @@ export default function AdminUsersPage() {
             vip: user.vip || false,
             vipExpireAt: user.vipExpireAt ? user.vipExpireAt.split('T')[0] : '',
             mcTaskNum: String(user.mcTaskNum || 0),
-            note: user.note || ''
+            note: user.note || '',
+            verifyStatus: user.verifyStatus || 0
         });
         setDetailModal(user);
     };
@@ -241,7 +243,8 @@ export default function AdminUsersPage() {
                     vip: editForm.vip,
                     vipExpireAt: editForm.vipExpireAt || null,
                     mcTaskNum: parseInt(editForm.mcTaskNum) || 0,
-                    note: editForm.note
+                    note: editForm.note,
+                    verifyStatus: editForm.verifyStatus
                 })
             });
             const json = await res.json();
@@ -935,12 +938,6 @@ export default function AdminUsersPage() {
                         {/* 用户信息标题 */}
                         <h4 className="border-b border-[#e5e7eb] pb-2 text-sm font-medium">用户信息</h4>
 
-                        {/* 用户ID显示 */}
-                        <div className="rounded bg-[#f9fafb] p-3">
-                            <div className="text-xs text-[#6b7280]">用户ID</div>
-                            <div className="mt-1 select-all break-all font-mono text-sm text-[#374151]">{detailModal.id}</div>
-                        </div>
-
                         {/* 表格布局 */}
                         <div className="overflow-hidden rounded border border-[#e5e7eb]">
                             <table className="w-full text-sm">
@@ -1025,6 +1022,21 @@ export default function AdminUsersPage() {
                                             >
                                                 <option value="0">否</option>
                                                 <option value="1">是</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr className="border-b border-[#e5e7eb]">
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">实名认证</td>
+                                        <td colSpan={3} className="px-3 py-2">
+                                            <select
+                                                value={String(editForm.verifyStatus)}
+                                                onChange={(e) => setEditForm({ ...editForm, verifyStatus: Number(e.target.value) })}
+                                                className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
+                                            >
+                                                <option value="0">未认证</option>
+                                                <option value="1">待审核</option>
+                                                <option value="2">已认证</option>
+                                                <option value="3">已拒绝</option>
                                             </select>
                                         </td>
                                     </tr>

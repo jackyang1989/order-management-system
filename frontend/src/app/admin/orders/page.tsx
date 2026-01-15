@@ -211,9 +211,9 @@ export default function AdminOrdersPage() {
             className: 'w-[130px]',
             render: (row) => (
                 <div className="text-sm">
-                    <div className="font-medium text-[#3b4559]">{row.userName || '-'}</div>
-                    {row.buynoAccount && (
-                        <div className="text-xs text-[#9ca3af]">{row.buynoAccount}</div>
+                    <div className="font-medium text-[#3b4559]">{row.user?.username || '-'}</div>
+                    {row.buyno?.account && (
+                        <div className="text-xs text-[#9ca3af]">{row.buyno.account}</div>
                     )}
                 </div>
             ),

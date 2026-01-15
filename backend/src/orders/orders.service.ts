@@ -86,7 +86,9 @@ export class OrdersService {
     const queryBuilder = this.ordersRepository
       .createQueryBuilder('order')
       .leftJoinAndSelect('order.task', 'task') // Load task data for admin order details
-      .leftJoinAndSelect('task.merchant', 'merchant'); // Load merchant data
+      .leftJoinAndSelect('task.merchant', 'merchant') // Load merchant data
+      .leftJoinAndSelect('order.user', 'user') // Load user data
+      .leftJoinAndSelect('order.buyno', 'buyno'); // Load buyno data
 
     if (filter.status) {
       queryBuilder.andWhere('order.status = :status', { status: filter.status });

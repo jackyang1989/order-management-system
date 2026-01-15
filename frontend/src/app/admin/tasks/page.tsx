@@ -682,13 +682,6 @@ export default function AdminTasksPage() {
 
                     return (
                         <div className="max-h-[70vh] overflow-y-auto pr-2">
-                            {/* 顶部主图 - 缩小尺寸 */}
-                            {detailModal.mainImage && (
-                                <div className="mb-4 flex justify-center">
-                                    <img src={detailModal.mainImage} alt="商品图" className="h-20 w-20 rounded-lg border border-slate-200 object-cover shadow-sm" />
-                                </div>
-                            )}
-
                             {/* 基本信息 */}
                             <div className="mb-6">
                                 <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">基本信息</h3>
