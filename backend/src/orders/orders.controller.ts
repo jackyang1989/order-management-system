@@ -946,6 +946,17 @@ export class OrdersController {
 
       const task = await this.tasksService.findOne(order.taskId);
 
+      // 构建当前订单的好评数据
+      const products = [];
+      if (order.praiseContent || order.praiseImages || order.praiseVideo) {
+        products.push({
+          name: order.productName || task?.title || '',
+          textPraise: order.praiseContent || '',
+          imgPraise: order.praiseImages || [],
+          videoPraise: order.praiseVideo || '',
+        });
+      }
+
       return {
         success: true,
         data: {
@@ -969,7 +980,7 @@ export class OrdersController {
           delivery: order.delivery || '',
           deliveryNum: order.deliveryNum || '',
           deliveryTime: order.deliveryTime || '',
-          products: [],
+          products: products,
         },
       };
     } catch (error) {

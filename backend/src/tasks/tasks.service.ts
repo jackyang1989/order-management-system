@@ -791,6 +791,64 @@ export class TasksService implements OnModuleInit {
     });
   }
 
+  /**
+   * 修复任务的已领取数量 (claimedCount)
+   * 根据实际订单数量重新计算并更新
+   */
+  async fixClaimedCount(taskId: string): Promise<{ oldCount: number; newCount: number; fixed: boolean }> {
+    const task = await this.tasksRepository.findOne({ where: { id: taskId } });
+    if (!task) {
+      throw new NotFoundException('任务不存在');
+    }
+
+    // 查询该任务的实际订单数量
+    const actualCount = await this.dataSource
+      .createQueryBuilder()
+      .select('COUNT(*)', 'count')
+      .from('orders', 'order')
+      .where('order.taskId = :taskId', { taskId })
+      .getRawOne()
+      .then(result => parseInt(result.count, 10));
+
+    const oldCount = task.claimedCount;
+
+    // 更新 claimedCount
+    if (oldCount !== actualCount) {
+      await this.tasksRepository.update(taskId, { claimedCount: actualCount });
+      return { oldCount, newCount: actualCount, fixed: true };
+    }
+
+    return { oldCount, newCount: actualCount, fixed: false };
+  }
+
+  /**
+   * 批量修复所有任务的已领取数量
+   */
+  async fixAllClaimedCounts(): Promise<{ total: number; fixed: number; results: any[] }> {
+    const tasks = await this.tasksRepository.find();
+    const results = [];
+    let fixedCount = 0;
+
+    for (const task of tasks) {
+      try {
+        const result = await this.fixClaimedCount(task.id);
+        if (result.fixed) {
+          fixedCount++;
+          results.push({
+            taskId: task.id,
+            taskNumber: task.taskNumber,
+            oldCount: result.oldCount,
+            newCount: result.newCount,
+          });
+        }
+      } catch (error) {
+        console.error(`修复任务 ${task.id} 失败:`, error);
+      }
+    }
+
+    return { total: tasks.length, fixed: fixedCount, results };
+  }
+
   // ============ Excel批量导入任务 ============
 
   /**

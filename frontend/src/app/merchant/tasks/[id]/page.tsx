@@ -463,16 +463,11 @@ export default function TaskDetailPage() {
                                         <div className="space-y-2">
                                             {task.keywords.map((kw, index) => (
                                                 <div key={kw.id} className="rounded-lg border border-[#e5e7eb] bg-slate-50 p-3">
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-2">
-                                                            <Badge variant="soft" color="blue" className="text-xs">
-                                                                关键词{index + 1}
-                                                            </Badge>
-                                                            <span className="font-medium text-primary-600">{kw.keyword}</span>
-                                                        </div>
-                                                        <Badge variant="soft" color="slate" className="text-xs">
-                                                            搜索: {kw.terminal === 1 ? '电脑端' : '手机端'}
+                                                    <div className="flex items-center gap-2">
+                                                        <Badge variant="soft" color="blue" className="text-xs">
+                                                            关键词{index + 1}
                                                         </Badge>
+                                                        <span className="font-medium text-primary-600">{kw.keyword}</span>
                                                     </div>
                                                     {/* 筛选设置 */}
                                                     {(kw.sort || kw.province || kw.minPrice > 0 || kw.maxPrice > 0) && (

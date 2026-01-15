@@ -9,6 +9,7 @@ import { Order, OrderStatus } from '../orders/order.entity';
 import { Withdrawal, WithdrawalStatus } from '../withdrawals/withdrawal.entity';
 import { WithdrawalsService } from '../withdrawals/withdrawals.service';
 import { FinanceRecord, FinanceType, FinanceMoneyType } from '../finance-records/finance-record.entity';
+import { TasksService } from '../tasks/tasks.service';
 
 @Injectable()
 export class AdminService {
@@ -30,6 +31,7 @@ export class AdminService {
     @InjectRepository(FinanceRecord)
     private financeRecordRepository: Repository<FinanceRecord>,
     private withdrawalsService: WithdrawalsService,
+    private tasksService: TasksService,
   ) { }
 
   // ============ 平台统计 ============
@@ -863,6 +865,22 @@ export class AdminService {
     }
 
     return { dates, orders, completed, amount };
+  }
+
+  // ============ 数据修复工具 ============
+
+  /**
+   * 修复单个任务的已领取数量
+   */
+  async fixTaskClaimedCount(taskId: string): Promise<{ oldCount: number; newCount: number; fixed: boolean }> {
+    return await this.tasksService.fixClaimedCount(taskId);
+  }
+
+  /**
+   * 批量修复所有任务的已领取数量
+   */
+  async fixAllTaskClaimedCounts(): Promise<{ total: number; fixed: number; results: any[] }> {
+    return await this.tasksService.fixAllClaimedCounts();
   }
 }
 

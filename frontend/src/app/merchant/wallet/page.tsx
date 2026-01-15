@@ -67,9 +67,38 @@ export default function MerchantWalletPage() {
         const token = localStorage.getItem('merchantToken');
         if (!token) return;
         try {
-            const res = await fetch(`${BASE_URL}/finance-records/merchant`, { headers: { 'Authorization': `Bearer ${token}` } });
-            const json = await res.json();
-            if (json.success && json.data) setTransactions(json.data.map((r: any) => ({ id: r.id, type: r.changeType || r.memo || '财务记录', amount: r.amount, balanceType: r.moneyType === 1 ? 'balance' : 'silver', memo: r.memo || '财务记录', createdAt: r.createdAt })));
+            const [balanceRes, silverRes] = await Promise.all([
+                fetch(`${BASE_URL}/finance-records/merchant/balance`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch(`${BASE_URL}/finance-records/merchant/silver`, { headers: { 'Authorization': `Bearer ${token}` } })
+            ]);
+            const balanceJson = await balanceRes.json();
+            const silverJson = await silverRes.json();
+
+            const allRecords = [];
+            if (balanceJson.success && balanceJson.data) {
+                allRecords.push(...balanceJson.data.map((r: any) => ({
+                    id: r.id,
+                    type: r.changeType || r.memo || '财务记录',
+                    amount: r.amount,
+                    balanceType: 'balance' as const,
+                    memo: r.memo || '财务记录',
+                    createdAt: r.createdAt
+                })));
+            }
+            if (silverJson.success && silverJson.data) {
+                allRecords.push(...silverJson.data.map((r: any) => ({
+                    id: r.id,
+                    type: r.changeType || r.memo || '财务记录',
+                    amount: r.amount,
+                    balanceType: 'silver' as const,
+                    memo: r.memo || '财务记录',
+                    createdAt: r.createdAt
+                })));
+            }
+
+            // Sort by createdAt descending
+            allRecords.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            setTransactions(allRecords);
         } catch (e) { console.error('Failed to load transactions:', e); }
     };
 

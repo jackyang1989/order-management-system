@@ -579,4 +579,34 @@ export class AdminController {
     );
     return { success: true, data };
   }
+
+  // ============ 数据修复工具 ============
+
+  /**
+   * 修复单个任务的已领取数量
+   */
+  @Post('tasks/:id/fix-claimed-count')
+  @RequirePermissions('task:manage')
+  async fixTaskClaimedCount(@Param('id') id: string) {
+    const result = await this.adminService.fixTaskClaimedCount(id);
+    return {
+      success: true,
+      message: result.fixed ? '修复成功' : '无需修复',
+      data: result,
+    };
+  }
+
+  /**
+   * 批量修复所有任务的已领取数量
+   */
+  @Post('tasks/fix-all-claimed-counts')
+  @RequirePermissions('task:manage')
+  async fixAllClaimedCounts() {
+    const result = await this.adminService.fixAllTaskClaimedCounts();
+    return {
+      success: true,
+      message: `修复完成，共检查 ${result.total} 个任务，修复 ${result.fixed} 个`,
+      data: result,
+    };
+  }
 }
