@@ -1604,16 +1604,24 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         {tableData2.map((item, index) => (
                             <div key={index} style={{ marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '15px' }}>
                                 {/* 主/副商品标识 */}
-                                <div style={{
-                                    display: 'inline-block',
-                                    background: item.isMain ? '#409eff' : '#67c23a',
-                                    color: 'white',
-                                    fontSize: '11px',
-                                    padding: '2px 8px',
-                                    borderRadius: '10px',
-                                    marginBottom: '8px'
-                                }}>
-                                    {item.isMain ? '主商品' : '副商品'}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                    <div style={{
+                                        display: 'inline-block',
+                                        background: item.isMain ? '#409eff' : '#67c23a',
+                                        color: 'white',
+                                        fontSize: '11px',
+                                        padding: '2px 8px',
+                                        borderRadius: '10px',
+                                    }}>
+                                        {item.isMain ? '主商品' : '副商品'}
+                                    </div>
+                                    <div style={{
+                                        fontSize: '12px',
+                                        color: '#f56c6c',
+                                        fontWeight: 'bold',
+                                    }}>
+                                        浏览 {item.isMain ? mainBrowseMinutes : subBrowseMinutes} 分钟
+                                    </div>
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
