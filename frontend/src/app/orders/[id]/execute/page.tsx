@@ -84,6 +84,8 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
 
     // 任务类型相关
     const [tasktype, setTasktype] = useState('');
+    const [taskTypeNumber, setTaskTypeNumber] = useState(0); // 平台类型数字
+    const [taskNumber, setTaskNumber] = useState(''); // 任务订单号
     const [taskTimeType, setTaskTimeType] = useState('');
     const [taskYsType, setTaskYsType] = useState('');
     const [is_video_praise, setIs_video_praise] = useState('');
@@ -189,12 +191,16 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     // 处理文件选择
     const handleFileSelect = async (
         e: React.ChangeEvent<HTMLInputElement>,
-        setter: React.Dispatch<React.SetStateAction<{ file: File; content: string } | null>>
+        setter: React.Dispatch<React.SetStateAction<{ file: File; content: string } | null>>,
+        storageKey: string
     ) => {
         const file = e.target.files?.[0];
         if (file) {
             const content = await fileToBase64(file);
-            setter({ file, content });
+            const fileData = { file, content };
+            setter(fileData);
+            // 保存到 sessionStorage
+            sessionStorage.setItem(storageKey, JSON.stringify({ content, name: file.name, type: file.type }));
         }
     };
 
@@ -290,6 +296,8 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
 
                 // 设置任务类型相关信息
                 setTasktype(String(data.taskType || ''));
+                setTaskTypeNumber(data.taskType || 0);
+                setTaskNumber(data.taskNumber || '');
                 setPlatformName('平台');
                 setQrcode(data.qrCode || '');
                 setChannelname('');
@@ -747,7 +755,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
 
     // 当进入第一步时，启动倒计时
     useEffect(() => {
-        if (active === 1 && !step1CountdownStarted) {
+        if (active === 1 && !step1CountdownStarted && compareBrowseMinutes > 0) {
             setStep1Countdown(compareBrowseMinutes * 60); // 转换为秒
             setStep1CountdownStarted(true);
         }
@@ -780,6 +788,41 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
         }
     }, [active, step2CountdownStarted, mainBrowseMinutes, subBrowseMinutes, hasSubProduct]);
 
+    // 从 sessionStorage 恢复已上传的文件
+    useEffect(() => {
+        const restoreFile = (key: string, setter: React.Dispatch<React.SetStateAction<{ file: File; content: string } | null>>) => {
+            const stored = sessionStorage.getItem(key);
+            if (stored) {
+                try {
+                    const { content, name, type } = JSON.parse(stored);
+                    // 创建一个虚拟的 File 对象
+                    const blob = dataURLtoBlob(content);
+                    const file = new File([blob], name, { type });
+                    setter({ file, content });
+                } catch (error) {
+                    console.error(`恢复文件 ${key} 失败:`, error);
+                }
+            }
+        };
+
+        restoreFile('localFile', setLocalFile);
+        restoreFile('localFile2', setLocalFile2);
+        restoreFile('localFile3', setLocalFile3);
+    }, []);
+
+    // 将 dataURL 转换为 Blob
+    const dataURLtoBlob = (dataURL: string): Blob => {
+        const arr = dataURL.split(',');
+        const mime = arr[0].match(/:(.*?);/)?.[1] || '';
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new Blob([u8arr], { type: mime });
+    };
+
     // ===================== 渲染 =====================
     if (loading) {
         return (
@@ -804,7 +847,95 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 zIndex: 100,
             }}>
                 <div onClick={() => router.back()} style={{ fontSize: '20px', cursor: 'pointer', width: '30px' }}>‹</div>
-                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>任务执行</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {/* 平台icon */}
+                    {taskTypeNumber === 1 && (
+                        <div style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '50%',
+                            background: '#ff6600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                        }}>淘</div>
+                    )}
+                    {taskTypeNumber === 2 && (
+                        <div style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '50%',
+                            background: '#d50000',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                        }}>天</div>
+                    )}
+                    {taskTypeNumber === 3 && (
+                        <div style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '50%',
+                            background: '#e4393c',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                        }}>京</div>
+                    )}
+                    {taskTypeNumber === 4 && (
+                        <div style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '50%',
+                            background: '#e02e24',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                        }}>拼</div>
+                    )}
+                    {taskTypeNumber === 5 && (
+                        <div style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '50%',
+                            background: '#000',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                        }}>抖</div>
+                    )}
+                    {taskTypeNumber === 6 && (
+                        <div style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '50%',
+                            background: '#ff6600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                        }}>快</div>
+                    )}
+                    {/* 任务订单号 */}
+                    <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#333' }}>{taskNumber}</div>
+                </div>
                 <div style={{ width: '30px' }}></div>
             </div>
 
@@ -1102,61 +1233,6 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             </span>
                         </div>
 
-                        {/* 倒计时警告提示 */}
-                        {showCountdownWarning && step1Countdown > 0 && (
-                            <div style={{
-                                background: '#fff1f0',
-                                border: '2px solid #ff4d4f',
-                                borderRadius: '8px',
-                                padding: '15px',
-                                marginBottom: '15px',
-                                textAlign: 'center',
-                                animation: 'shake 0.5s'
-                            }}>
-                                <div style={{ fontSize: '14px', color: '#cf1322', fontWeight: 'bold' }}>
-                                    ⚠️ 请完成足够时间的货比浏览后再进入下一步
-                                </div>
-                                <div style={{ fontSize: '12px', color: '#cf1322', marginTop: '5px' }}>
-                                    还需等待 {Math.floor(step1Countdown / 60)}分{step1Countdown % 60}秒
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 货比倒计时 */}
-                        {step1Countdown > 0 && (
-                            <div style={{
-                                background: '#fff3e0',
-                                border: '2px solid #ff9800',
-                                borderRadius: '8px',
-                                padding: '15px',
-                                marginBottom: '15px',
-                                textAlign: 'center'
-                            }}>
-                                <div style={{ fontSize: '14px', color: '#e65100', marginBottom: '8px', fontWeight: 'bold' }}>
-                                    ⏱️ 货比浏览倒计时
-                                </div>
-                                <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#ff6f00', fontFamily: 'monospace' }}>
-                                    {Math.floor(step1Countdown / 60).toString().padStart(2, '0')}:{(step1Countdown % 60).toString().padStart(2, '0')}
-                                </div>
-                                <div style={{ fontSize: '12px', color: '#e65100', marginTop: '8px' }}>
-                                    请完成足够时间的货比浏览，倒计时结束后才能进入下一步
-                                </div>
-                            </div>
-                        )}
-                        {step1Countdown === 0 && step1CountdownStarted && (
-                            <div style={{
-                                background: '#e8f5e9',
-                                border: '2px solid #4caf50',
-                                borderRadius: '8px',
-                                padding: '15px',
-                                marginBottom: '15px',
-                                textAlign: 'center'
-                            }}>
-                                <div style={{ fontSize: '14px', color: '#2e7d32', fontWeight: 'bold' }}>
-                                    ✅ 货比浏览时间已达标，可以进入下一步
-                                </div>
-                            </div>
-                        )}
                         <div style={{ fontSize: '13px', color: '#666', lineHeight: '1.8' }}>
                             <p>1. {platformName || '平台'}APP搜索框，搜索货比关键词：
                                 <span style={{ color: 'red' }}>{mainProductFilter3 || keyWord}</span>
@@ -1169,7 +1245,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             <input
                                 type="file"
                                 accept="image/*"
-                                onChange={(e) => handleFileSelect(e, setLocalFile2)}
+                                onChange={(e) => handleFileSelect(e, setLocalFile2, 'localFile2')}
                                 style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
                             />
                             {localFile2 && (
@@ -1207,61 +1283,6 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             }}>贰</span>
                             <span style={{ fontWeight: 'bold' }}>进店浏览</span>
                         </div>
-
-                        {/* 倒计时警告提示 */}
-                        {showStep2CountdownWarning && step2Countdown > 0 && (
-                            <div style={{
-                                background: '#fff1f0',
-                                border: '2px solid #ff4d4f',
-                                borderRadius: '8px',
-                                padding: '15px',
-                                marginBottom: '15px',
-                                textAlign: 'center'
-                            }}>
-                                <div style={{ fontSize: '14px', color: '#cf1322', fontWeight: 'bold' }}>
-                                    ⚠️ 请完成足够时间的进店浏览后再进入下一步
-                                </div>
-                                <div style={{ fontSize: '12px', color: '#cf1322', marginTop: '5px' }}>
-                                    还需等待 {Math.floor(step2Countdown / 60)}分{step2Countdown % 60}秒
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 进店浏览倒计时 */}
-                        {step2Countdown > 0 && (
-                            <div style={{
-                                background: '#fff3e0',
-                                border: '2px solid #ff9800',
-                                borderRadius: '8px',
-                                padding: '15px',
-                                marginBottom: '15px',
-                                textAlign: 'center'
-                            }}>
-                                <div style={{ fontSize: '14px', color: '#e65100', marginBottom: '8px', fontWeight: 'bold' }}>
-                                    ⏱️ 进店浏览倒计时
-                                </div>
-                                <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#ff6f00', fontFamily: 'monospace' }}>
-                                    {Math.floor(step2Countdown / 60).toString().padStart(2, '0')}:{(step2Countdown % 60).toString().padStart(2, '0')}
-                                </div>
-                                <div style={{ fontSize: '12px', color: '#e65100', marginTop: '8px' }}>
-                                    请完成足够时间的进店浏览，倒计时结束后才能进入下一步
-                                </div>
-                            </div>
-                        )}
-                        {step2Countdown === 0 && step2CountdownStarted && (
-                            <div style={{
-                                background: '#e8f5e9',
-                                border: '2px solid #4caf50',
-                                borderRadius: '8px',
-                                padding: '15px',
-                                marginBottom: '15px',
-                                textAlign: 'center'
-                            }}>
-                                <div style={{ fontSize: '14px', color: '#2e7d32', fontWeight: 'bold' }}>
-                                    ✅ 进店浏览时间已达标，可以进入下一步
-                                </div>
-                            </div>
-                        )}
 
                         {/* 联系客服提示 */}
                         {contactCSContent && (
@@ -1513,7 +1534,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             <input
                                 type="file"
                                 accept="image/*"
-                                onChange={(e) => handleFileSelect(e, setLocalFile)}
+                                onChange={(e) => handleFileSelect(e, setLocalFile, 'localFile')}
                                 style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
                             />
                             {localFile && (
@@ -1712,7 +1733,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             <input
                                 type="file"
                                 accept="image/*"
-                                onChange={(e) => handleFileSelect(e, setLocalFile3)}
+                                onChange={(e) => handleFileSelect(e, setLocalFile3, 'localFile3')}
                                 style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
                             />
                             {localFile3 && (
@@ -1744,6 +1765,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                     borderTop: '1px solid #eee',
                     display: 'flex',
                     justifyContent: 'space-between',
+                    alignItems: 'center',
                     boxSizing: 'border-box',
                 }}>
                     <button
@@ -1760,16 +1782,51 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                     >
                         上一步
                     </button>
+
+                    {/* 第一步倒计时显示 */}
+                    {active === 1 && step1Countdown > 0 && (
+                        <div style={{
+                            flex: 1,
+                            textAlign: 'center',
+                            padding: '0 15px'
+                        }}>
+                            <div style={{ fontSize: '16px', color: '#ff6f00', fontWeight: 'bold', fontFamily: 'monospace' }}>
+                                {Math.floor(step1Countdown / 60).toString().padStart(2, '0')}:{(step1Countdown % 60).toString().padStart(2, '0')}
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#e65100', marginTop: '2px' }}>
+                                货比浏览中...
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 第二步倒计时显示 */}
+                    {active === 2 && step2Countdown > 0 && (
+                        <div style={{
+                            flex: 1,
+                            textAlign: 'center',
+                            padding: '0 15px'
+                        }}>
+                            <div style={{ fontSize: '16px', color: '#ff6f00', fontWeight: 'bold', fontFamily: 'monospace' }}>
+                                {Math.floor(step2Countdown / 60).toString().padStart(2, '0')}:{(step2Countdown % 60).toString().padStart(2, '0')}
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#e65100', marginTop: '2px' }}>
+                                进店浏览中...
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 下一步按钮 - 倒计时未完成时显示为灰色禁用状态 */}
                     <button
                         onClick={next}
-                        disabled={submitting}
+                        disabled={submitting || (active === 1 && step1Countdown > 0) || (active === 2 && step2Countdown > 0)}
                         style={{
                             padding: '10px 30px',
-                            background: submitting ? '#a0cfff' : '#409eff',
+                            background: submitting || (active === 1 && step1Countdown > 0) || (active === 2 && step2Countdown > 0) ? '#d3d3d3' : '#409eff',
                             border: 'none',
                             color: 'white',
                             borderRadius: '4px',
-                            cursor: submitting ? 'not-allowed' : 'pointer',
+                            cursor: submitting || (active === 1 && step1Countdown > 0) || (active === 2 && step2Countdown > 0) ? 'not-allowed' : 'pointer',
+                            opacity: submitting || (active === 1 && step1Countdown > 0) || (active === 2 && step2Countdown > 0) ? 0.6 : 1,
                         }}
                     >
                         {active === 3 ? (submitting ? '提交中...' : '提交任务') : '下一步'}
