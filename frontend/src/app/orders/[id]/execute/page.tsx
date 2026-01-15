@@ -47,6 +47,8 @@ interface GoodsInfo {
     key: string;
     goodsSpec: string;
     isMain?: boolean;
+    linkVerified?: boolean;  // 链接核对状态
+    passwordVerified?: boolean;  // 口令核对状态
     orderSpecs?: { specName: string; specValue: string; quantity: number }[];
     keywords?: {
         id: string;
@@ -252,6 +254,12 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
 
             if (res.success) {
                 const data = res.data;
+
+                // 使用后端返回的 currentStep 初始化步骤（优先于 sessionStorage）
+                // currentStep 从1开始，active 从0开始（0是概览页）
+                const backendStep = data.currentStep || 1;
+                setActive(backendStep); // 直接使用后端的步骤
+
                 setUserTaskId(data.orderId);
                 setUserBuynoAccount(data.buynoAccount || '');
                 setSellTaskMemo(data.memo || '');
@@ -352,7 +360,6 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 let goodsList: GoodsInfo[] = [];
 
                 // 优先使用新版多商品数据
-                console.log('后端返回的goodsList:', data.goodsList);
                 if (data.goodsList && data.goodsList.length > 0) {
                     goodsList = data.goodsList.map((goods: {
                         id: string;
@@ -452,23 +459,6 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 }
                 setTableData2(goodsList);
 
-                // 恢复保存的商品输入内容
-                const savedGoodsInputs = sessionStorage.getItem(`order_${id}_goodsInputs`);
-                if (savedGoodsInputs) {
-                    try {
-                        const inputs = JSON.parse(savedGoodsInputs);
-                        setTableData2(prev => prev.map(item => {
-                            const savedInput = inputs.find((i: { id: string; input: string; inputnum: string }) => i.id === item.id);
-                            if (savedInput) {
-                                return { ...item, input: savedInput.input || '', inputnum: savedInput.inputnum || '' };
-                            }
-                            return item;
-                        }));
-                    } catch (e) {
-                        console.error('恢复商品输入失败:', e);
-                    }
-                }
-
                 // 构建 tableData3 (订单商品表格)
                 const orderGoods: OrderGoods[] = goodsList.map(g => ({
                     id: g.id,
@@ -530,7 +520,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     };
 
     // 商品链接核对
-    const hedui = async (input: string, goodsId: string) => {
+    const hedui = async (input: string, goodsId: string, itemIndex: number) => {
         if (!input) {
             alertError('商品地址不能为空');
             return;
@@ -542,6 +532,12 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             // 本地比对ID
             if (inputId === goodsId) {
                 alertSuccess('核对成功，商品链接正确');
+                // 更新核对状态
+                setTableData2(prev => {
+                    const newData = [...prev];
+                    newData[itemIndex] = { ...newData[itemIndex], linkVerified: true };
+                    return newData;
+                });
                 return;
             }
         }
@@ -560,6 +556,12 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             const data = await response.json();
             if (data.success) {
                 alertSuccess(data.message);
+                // 更新核对状态
+                setTableData2(prev => {
+                    const newData = [...prev];
+                    newData[itemIndex] = { ...newData[itemIndex], linkVerified: true };
+                    return newData;
+                });
             } else {
                 // 如果API也失败，给出更友好的提示
                 if (inputId) {
@@ -573,6 +575,12 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             if (inputId && goodsId) {
                 if (inputId === goodsId) {
                     alertSuccess('核对成功，商品链接正确');
+                    // 更新核对状态
+                    setTableData2(prev => {
+                        const newData = [...prev];
+                        newData[itemIndex] = { ...newData[itemIndex], linkVerified: true };
+                        return newData;
+                    });
                 } else {
                     alertError(`商品ID不匹配。输入的ID: ${inputId}，期望的ID: ${goodsId}`);
                 }
@@ -583,7 +591,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     };
 
     // 商品口令核对
-    const heduinum = async (inputnum: string, goodsId: string) => {
+    const heduinum = async (inputnum: string, goodsId: string, itemIndex: number) => {
         if (!inputnum) {
             alertError('数字核对不能为空');
             return;
@@ -601,6 +609,12 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             const data = await response.json();
             if (data.success) {
                 alertSuccess(data.message);
+                // 更新核对状态
+                setTableData2(prev => {
+                    const newData = [...prev];
+                    newData[itemIndex] = { ...newData[itemIndex], passwordVerified: true };
+                    return newData;
+                });
             } else {
                 alertError(data.message);
             }
@@ -660,8 +674,37 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 alertError('货比加购截图不能为空');
                 return;
             }
-            console.log('第一步验证通过，进入第二步');
-            setActive(2);
+            console.log('第一步验证通过，提交第一步数据');
+
+            // 提交第一步数据到后端
+            setSubmitting(true);
+            try {
+                const token = getToken();
+                const response = await fetch(`${BASE_URL}/orders/${id}/submit-step`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                    },
+                    body: JSON.stringify({
+                        step: 1,
+                        screenshot: localFile2.content,
+                        inputData: {
+                            compareScreenshot: localFile2.content,
+                        },
+                    }),
+                });
+                const data = await response.json();
+                if (data.success) {
+                    setActive(2);
+                } else {
+                    alertError(data.message || '提交失败');
+                }
+            } catch (error) {
+                alertError('提交失败');
+            } finally {
+                setSubmitting(false);
+            }
         } else if (active === 2) {
             // 验证第二步
             // 检查倒计时是否完成
@@ -679,13 +722,16 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 alertError('商品收藏页面截图不能为空');
                 return;
             }
-            if (!inputValue3) {
-                alertError('商品地址不能为空');
-                return;
-            }
-            if (!inputValue4) {
-                alertError('商品地址不能为空');
-                return;
+            // 只有开启随机浏览时才检查商品链接
+            if (needRandomBrowse) {
+                if (!inputValue3) {
+                    alertError('随机浏览商品链接1不能为空');
+                    return;
+                }
+                if (!inputValue4) {
+                    alertError('随机浏览商品链接2不能为空');
+                    return;
+                }
             }
 
             setSubmitting(true);
@@ -847,11 +893,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
         // 加载平台列表
         fetchEnabledPlatforms().then(setPlatforms);
 
-        // 从 sessionStorage 恢复步骤（使用订单ID作为key）
-        const savedActive = sessionStorage.getItem(`order_${id}_active`);
-        if (savedActive) {
-            setActive(Number(savedActive));
-        }
+        // 注意：不再从 sessionStorage 恢复 active 步骤，使用后端返回的 currentStep
 
         // 恢复倒计时状态
         const savedStep1Started = sessionStorage.getItem(`order_${id}_step1CountdownStarted`);
@@ -1049,6 +1091,37 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     useEffect(() => {
         if (inputNumber) sessionStorage.setItem(`order_${id}_inputNumber`, inputNumber);
     }, [inputNumber, id]);
+
+    // 恢复保存的商品输入内容（在 tableData2 加载后执行）
+    useEffect(() => {
+        if (tableData2.length === 0) return;
+
+        const savedGoodsInputs = sessionStorage.getItem(`order_${id}_goodsInputs`);
+        if (savedGoodsInputs) {
+            try {
+                const inputs = JSON.parse(savedGoodsInputs);
+                // 检查是否有需要恢复的数据
+                const hasDataToRestore = inputs.some((i: { id: string; input: string; inputnum: string }) =>
+                    i.input || i.inputnum
+                );
+                if (hasDataToRestore) {
+                    setTableData2(prev => prev.map(item => {
+                        const savedInput = inputs.find((i: { id: string; input: string; inputnum: string }) => i.id === item.id);
+                        if (savedInput && (savedInput.input || savedInput.inputnum)) {
+                            return {
+                                ...item,
+                                input: savedInput.input || item.input || '',
+                                inputnum: savedInput.inputnum || item.inputnum || ''
+                            };
+                        }
+                        return item;
+                    }));
+                }
+            } catch (e) {
+                console.error('恢复商品输入失败:', e);
+            }
+        }
+    }, [tableData2.length, id]);
 
     // 将 dataURL 转换为 Blob
     const dataURLtoBlob = (dataURL: string): Blob => {
@@ -1608,10 +1681,19 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                                 style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
                                             />
                                             <button
-                                                onClick={() => hedui(item.input, item.goodsId)}
-                                                style={{ background: '#409eff', color: 'white', border: 'none', borderRadius: '4px', padding: '0 15px' }}
+                                                onClick={() => hedui(item.input, item.goodsId, index)}
+                                                style={{
+                                                    background: item.linkVerified ? '#67c23a' : '#409eff',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    padding: '0 15px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px'
+                                                }}
                                             >
-                                                核对
+                                                {item.linkVerified ? '✓' : '核对'}
                                             </button>
                                         </div>
                                     </div>
@@ -1640,10 +1722,19 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                                     style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
                                                 />
                                                 <button
-                                                    onClick={() => heduinum(item.inputnum, item.goodsId)}
-                                                    style={{ background: '#409eff', color: 'white', border: 'none', borderRadius: '4px', padding: '0 15px' }}
+                                                    onClick={() => heduinum(item.inputnum, item.goodsId, index)}
+                                                    style={{
+                                                        background: item.passwordVerified ? '#67c23a' : '#409eff',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        padding: '0 15px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '4px'
+                                                    }}
                                                 >
-                                                    核对
+                                                    {item.passwordVerified ? '✓' : '核对'}
                                                 </button>
                                             </div>
                                             <div style={{ fontSize: '11px', color: '#999', marginTop: '5px' }}>
