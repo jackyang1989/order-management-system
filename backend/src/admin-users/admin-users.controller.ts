@@ -9,8 +9,10 @@ import {
   Query,
   UseGuards,
   Request,
+  Response,
   Ip,
 } from '@nestjs/common';
+import { Response as ExpressResponse } from 'express';
 import { AdminUsersService } from './admin-users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import {
@@ -26,19 +28,38 @@ export class AdminUsersController {
   constructor(private adminUsersService: AdminUsersService) {}
 
   // ============ 登录（无需认证） ============
+  // P1-4: 使用 httpOnly cookie 存储 token
 
   @Post('login')
-  async login(@Body() loginDto: AdminLoginDto, @Ip() ip: string) {
+  async login(
+    @Body() loginDto: AdminLoginDto,
+    @Ip() ip: string,
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ) {
     try {
       const result = await this.adminUsersService.login(
         loginDto.username,
         loginDto.password,
         ip,
       );
+
+      // 设置 httpOnly cookie
+      if (result.token) {
+        res.cookie('accessToken', result.token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 天
+        });
+      }
+
+      // 不在响应体中返回 token
+      const { token, ...data } = result;
+
       return {
         success: true,
         message: '登录成功',
-        data: result,
+        data,
       };
     } catch (error) {
       return {

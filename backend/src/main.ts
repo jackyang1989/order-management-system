@@ -4,6 +4,7 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import helmet from 'helmet';
 import compression from 'compression';
 import * as bodyParser from 'body-parser';
+import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { DataSource } from 'typeorm';
@@ -24,6 +25,11 @@ async function bootstrap() {
   // ============================================================
   app.use(bodyParser.json({ limit: '50mb' }));
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+
+  // ============================================================
+  // 0.5. COOKIE PARSER - P1-4: Parse cookies for httpOnly token
+  // ============================================================
+  app.use(cookieParser());
 
   // ============================================================
   // 1. COMPRESSION - Gzip for reduced bandwidth

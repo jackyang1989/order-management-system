@@ -319,7 +319,7 @@ export class MerchantWithdrawalsService {
     page: number;
     limit: number;
   }> {
-    const where: any = {};
+    const where: Record<string, unknown> = {};
     if (filters?.status !== undefined) {
       where.status = filters.status;
     }

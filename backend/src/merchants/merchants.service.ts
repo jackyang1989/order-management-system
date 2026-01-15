@@ -27,7 +27,17 @@ export class MerchantsService {
     private dataSource: DataSource,
   ) { }
 
-  async findAll(query: any = {}): Promise<{ data: Merchant[]; total: number; page: number; limit: number }> {
+  async findAll(
+    query: {
+      page?: number | string;
+      limit?: number | string;
+      keyword?: string;
+      status?: number;
+      vip?: boolean;
+      startDate?: string;
+      endDate?: string;
+    } = {},
+  ): Promise<{ data: Merchant[]; total: number; page: number; limit: number }> {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 20;
 

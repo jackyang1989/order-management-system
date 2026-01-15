@@ -21,6 +21,59 @@ import { MerchantsService } from '../merchants/merchants.service';
 import { MessagesService } from '../messages/messages.service';
 import { MessageUserType, MessageType } from '../messages/message.entity';
 
+// P1-5: Type definitions for task creation
+interface TaskGoodsDto {
+  goodsId?: string;
+  name: string;
+  image?: string;
+  link?: string;
+  specName?: string;
+  specValue?: string;
+  price: number;
+  quantity: number;
+  orderSpecs?: Record<string, unknown>;
+  verifyCode?: string;
+  keywords?: TaskKeywordDto[];
+  filterSettings?: FilterSettings;
+}
+
+interface TaskKeywordDto {
+  keyword: string;
+  filterSettings?: FilterSettings;
+  advancedSettings?: AdvancedSettings;
+}
+
+interface FilterSettings {
+  sort?: string;
+  province?: string;
+  minPrice?: number;
+  maxPrice?: number;
+}
+
+interface AdvancedSettings {
+  compareKeyword?: string;
+  backupKeyword?: string;
+}
+
+interface OrderPraiseConfig {
+  type: 'none' | 'text' | 'image' | 'video';
+  text?: string;
+  images?: string[];
+  video?: string;
+}
+
+interface CreateTaskPayDto {
+  goodsPrice?: number;
+  goodsList?: TaskGoodsDto[];
+  isFreeShipping?: number;
+  isPraise?: boolean;
+  praiseType?: string;
+  orderPraiseConfigs?: OrderPraiseConfig[];
+  isTimingPublish?: boolean;
+  isTimingPay?: boolean;
+  [key: string]: unknown;
+}
+
 @Injectable()
 export class TasksService implements OnModuleInit {
   constructor(
@@ -282,8 +335,8 @@ export class TasksService implements OnModuleInit {
    * 创建任务并完成支付 (Merchant Portal Standard)
    * 严格遵循原版扣费逻辑：押金 + 佣金 + 增值费
    */
-  async createAndPay(dto: any, merchantId: string): Promise<Task> {
-    // TODO: Use proper DTO type in signature after refactor complete
+  async createAndPay(dto: CreateTaskPayDto, merchantId: string): Promise<Task> {
+    // P1-5: Now using proper typed DTO instead of any
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -307,7 +360,7 @@ export class TasksService implements OnModuleInit {
       let goodsPrice = Number(dto.goodsPrice) || 0;
       if (dto.goodsList && dto.goodsList.length > 0) {
         // 从多商品列表计算总价（每单的商品总价）
-        goodsPrice = dto.goodsList.reduce((sum: number, goods: any) => {
+        goodsPrice = dto.goodsList.reduce((sum: number, goods: TaskGoodsDto) => {
           const price = Number(goods.price) || 0;
           const quantity = Number(goods.quantity) || 1;
           return sum + (price * quantity);
@@ -330,7 +383,7 @@ export class TasksService implements OnModuleInit {
       let totalPraiseFee = 0;
       if (dto.orderPraiseConfigs && Array.isArray(dto.orderPraiseConfigs) && dto.orderPraiseConfigs.length > 0) {
         // 新版：根据每单的好评类型分别计算
-        dto.orderPraiseConfigs.forEach((config: any) => {
+        dto.orderPraiseConfigs.forEach((config: OrderPraiseConfig) => {
           if (config.type === 'text') totalPraiseFee += 2.0;
           else if (config.type === 'image') totalPraiseFee += 4.0;
           else if (config.type === 'video') totalPraiseFee += 10.0;
@@ -560,7 +613,7 @@ export class TasksService implements OnModuleInit {
 
       // 保存多商品列表 (如果有)
       if (dto.goodsList && dto.goodsList.length > 0) {
-        const taskGoodsList = dto.goodsList.map((goods: any) => {
+        const taskGoodsList = dto.goodsList.map((goods: TaskGoodsDto) => {
           return this.taskGoodsRepository.create({
             taskId: task.id,
             goodsId: goods.goodsId || undefined,
@@ -579,7 +632,7 @@ export class TasksService implements OnModuleInit {
         await queryRunner.manager.save(TaskGoods, taskGoodsList);
 
         // 保存多关键词列表 (从商品的 keywords 字段中提取)
-        const taskKeywordsList: any[] = [];
+        const taskKeywordsList: TaskKeyword[] = [];
         for (const goods of dto.goodsList) {
           if (goods.keywords && goods.keywords.length > 0) {
             for (const kw of goods.keywords) {
@@ -813,7 +866,11 @@ export class TasksService implements OnModuleInit {
   /**
    * 批量修复所有任务的已领取数量
    */
-  async fixAllClaimedCounts(): Promise<{ total: number; fixed: number; results: any[] }> {
+  async fixAllClaimedCounts(): Promise<{
+    total: number;
+    fixed: number;
+    results: Array<{ taskId: string; taskNumber: string; oldCount: number; newCount: number }>
+  }> {
     const tasks = await this.tasksRepository.find();
     const results: Array<{
       taskId: string;
@@ -862,7 +919,7 @@ export class TasksService implements OnModuleInit {
     const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const rows: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    const rows: unknown[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
     if (rows.length < 2) {
       throw new BadRequestException('Excel文件为空或缺少数据行');

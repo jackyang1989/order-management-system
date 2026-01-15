@@ -7,8 +7,10 @@ import {
   Param,
   UseGuards,
   Request,
+  Response,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Response as ExpressResponse } from 'express';
 import { MerchantsService } from './merchants.service';
 import {
   CreateMerchantDto,
@@ -27,8 +29,12 @@ export class MerchantsController {
 
   // ========== 认证相关 ==========
 
+  // P1-4: 使用 httpOnly cookie 存储 token
   @Post('register')
-  async register(@Body() dto: CreateMerchantDto) {
+  async register(
+    @Body() dto: CreateMerchantDto,
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ) {
     const merchant = await this.merchantsService.create(dto);
     const token = this.jwtService.sign({
       sub: merchant.id, // 添加 sub 字段，确保 userId 正确
@@ -37,18 +43,30 @@ export class MerchantsController {
       role: 'merchant',
     });
 
+    // 设置 httpOnly cookie
+    res.cookie('accessToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 天
+    });
+
     return {
       success: true,
       message: '注册成功',
       data: {
         merchant,
-        token,
+        // 不在响应体中返回 token
       },
     };
   }
 
+  // P1-4: 使用 httpOnly cookie 存储 token
   @Post('login')
-  async login(@Body() dto: MerchantLoginDto) {
+  async login(
+    @Body() dto: MerchantLoginDto,
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ) {
     const merchant = await this.merchantsService.findByUsername(dto.username);
     if (!merchant) {
       throw new UnauthorizedException('用户名或密码错误');
@@ -69,6 +87,14 @@ export class MerchantsController {
       role: 'merchant',
     });
 
+    // 设置 httpOnly cookie
+    res.cookie('accessToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 天
+    });
+
     // 移除敏感信息
     const { password, payPassword, ...sanitized } = merchant;
 
@@ -77,7 +103,7 @@ export class MerchantsController {
       message: '登录成功',
       data: {
         merchant: sanitized,
-        token,
+        // 不在响应体中返回 token
       },
     };
   }

@@ -28,6 +28,14 @@ import { MessageUserType } from '../messages/message.entity';
 import { User } from '../users/user.entity';
 import { Merchant } from '../merchants/merchant.entity';
 
+// P1-5: Type definition for order praise configuration
+interface OrderPraiseConfig {
+  type: 'none' | 'text' | 'image' | 'video';
+  text?: string;
+  images?: string[];
+  video?: string;
+}
+
 @Injectable()
 export class OrdersService {
   constructor(
@@ -395,7 +403,7 @@ export class OrdersService {
 
     // 新版：获取该订单对应的好评配置
     // 根据当前已领取的订单数量，从 orderPraiseConfigs 数组中获取对应索引的配置
-    let orderPraiseConfig: any = null;
+    let orderPraiseConfig: OrderPraiseConfig | null = null;
     if (task.orderPraiseConfigs && Array.isArray(task.orderPraiseConfigs)) {
       const orderIndex = task.claimedCount; // 当前订单是第几单（从0开始）
       if (orderIndex < task.orderPraiseConfigs.length) {
