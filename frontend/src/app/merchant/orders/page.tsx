@@ -34,6 +34,10 @@ interface Order {
         screenshot?: string;
         submitted: boolean;
     }[];
+    // 订单级别的好评数据（订单创建时已分配）
+    praiseContent?: string;
+    praiseImages?: string[];
+    praiseVideo?: string;
     // Task关联数据
     task?: {
         taskNumber?: string;
@@ -661,41 +665,55 @@ export default function MerchantOrdersPage() {
                             </div>
                         )}
 
-                        {/* Praise Requirements 好评要求 */}
-                        {(task.isPraise || task.isImgPraise || task.isVideoPraise) && (
+                        {/* Praise Requirements 评价要求 */}
+                        {(selectedOrder?.praiseContent || selectedOrder?.praiseImages?.length || selectedOrder?.praiseVideo) && (
                             <div>
-                                <h3 className="mb-4 text-sm font-bold text-slate-900">好评要求</h3>
+                                <h3 className="mb-4 text-sm font-bold text-slate-900">评价要求</h3>
                                 <div className="rounded-[20px] bg-slate-50 p-5">
                                     <div className="flex flex-wrap gap-2 mb-3">
-                                        {task.isPraise && (
+                                        {selectedOrder.praiseContent && (
                                             <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
-                                                文字好评 ({praiseTexts.length}条)
+                                                文字评价
                                             </span>
                                         )}
-                                        {task.isImgPraise && (
+                                        {selectedOrder.praiseImages && selectedOrder.praiseImages.length > 0 && (
                                             <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700 font-medium">
-                                                图片好评 ({praiseImages.length}张)
+                                                图文评价 ({selectedOrder.praiseImages.length}张图片)
                                             </span>
                                         )}
-                                        {task.isVideoPraise && (
-                                            <span className="rounded-full bg-purple-100 px-3 py-1 text-xs text-purple-700 font-medium">
-                                                视频好评 ({praiseVideos.length}个)
+                                        {selectedOrder.praiseVideo && (
+                                            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700 font-medium">
+                                                视频图文评价
+                                            </span>
+                                        )}
+                                        {!selectedOrder.praiseContent && !selectedOrder.praiseImages?.length && !selectedOrder.praiseVideo && (
+                                            <span className="rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-700 font-medium">
+                                                五星好评（不写评语）
                                             </span>
                                         )}
                                     </div>
-                                    {task.isPraise && praiseTexts.length > 0 && (
+                                    {selectedOrder.praiseContent && (
                                         <div className="rounded-[12px] bg-white p-3">
-                                            <div className="text-xs text-slate-400 mb-2">好评内容（随机选择一条）：</div>
-                                            <div className="space-y-2 max-h-32 overflow-y-auto">
-                                                {praiseTexts.slice(0, 3).map((txt, i) => (
-                                                    <div key={i} className="text-xs text-slate-600 border-l-2 border-primary-200 pl-2">
-                                                        {i + 1}. {txt}
-                                                    </div>
-                                                ))}
-                                                {praiseTexts.length > 3 && (
-                                                    <div className="text-xs text-slate-400">...共 {praiseTexts.length} 条</div>
-                                                )}
+                                            <div className="text-xs text-slate-400 mb-2">评价内容：</div>
+                                            <div className="text-xs text-slate-600 border-l-2 border-primary-200 pl-2">
+                                                {selectedOrder.praiseContent}
                                             </div>
+                                        </div>
+                                    )}
+                                    {selectedOrder.praiseImages && selectedOrder.praiseImages.length > 0 && (
+                                        <div className="mt-3 rounded-[12px] bg-white p-3">
+                                            <div className="text-xs text-slate-400 mb-2">评价图片：</div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {selectedOrder.praiseImages.map((img, i) => (
+                                                    <img key={i} src={img} alt="" className="h-16 w-16 rounded border object-cover" />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {selectedOrder.praiseVideo && (
+                                        <div className="mt-3 rounded-[12px] bg-white p-3">
+                                            <div className="text-xs text-slate-400 mb-2">评价视频：</div>
+                                            <video src={selectedOrder.praiseVideo} controls className="h-32 rounded border" />
                                         </div>
                                     )}
                                 </div>

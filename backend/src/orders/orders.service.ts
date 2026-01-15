@@ -395,7 +395,7 @@ export class OrdersService {
 
     // 新版：获取该订单对应的好评配置
     // 根据当前已领取的订单数量，从 orderPraiseConfigs 数组中获取对应索引的配置
-    let orderPraiseConfig = null;
+    let orderPraiseConfig: any = null;
     if (task.orderPraiseConfigs && Array.isArray(task.orderPraiseConfigs)) {
       const orderIndex = task.claimedCount; // 当前订单是第几单（从0开始）
       if (orderIndex < task.orderPraiseConfigs.length) {

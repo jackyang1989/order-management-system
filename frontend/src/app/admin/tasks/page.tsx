@@ -126,6 +126,7 @@ interface Task {
     hasSubProduct?: boolean;
     isPasswordEnabled?: boolean;
     checkPassword?: string;
+    orderPraiseConfigs?: any[]; // 每单的好评配置
     updatedAt: string;
     goodsNum?: number;
     // Multi-goods and multi-keywords from refactored version
@@ -1053,78 +1054,115 @@ export default function AdminTasksPage() {
                                 </div>
                             </div>
 
-                            {/* 好评设置 */}
-                            <div className="mb-6">
-                                <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">好评设置</h3>
-                                <div className="grid grid-cols-3 gap-4 rounded-md bg-[#f9fafb] p-4">
-                                    <div>
-                                        <div className="text-[12px] text-[#6b7280]">文字好评</div>
-                                        <Badge variant="soft" color={detailModal.isPraise ? 'green' : 'slate'} className="mt-1">
-                                            {detailModal.isPraise ? `${praiseTexts.length}条` : '未设置'}
-                                        </Badge>
-                                    </div>
-                                    <div>
-                                        <div className="text-[12px] text-[#6b7280]">图片好评</div>
-                                        <Badge variant="soft" color={detailModal.isImgPraise ? 'green' : 'slate'} className="mt-1">
-                                            {detailModal.isImgPraise ? `${praiseImgs.length}组` : '未设置'}
-                                        </Badge>
-                                    </div>
-                                    <div>
-                                        <div className="text-[12px] text-[#6b7280]">视频好评</div>
-                                        <Badge variant="soft" color={detailModal.isVideoPraise ? 'green' : 'slate'} className="mt-1">
-                                            {detailModal.isVideoPraise ? `${praiseVideos.length}个` : '未设置'}
-                                        </Badge>
+                            {/* 评价设置 */}
+                            {detailModal.orderPraiseConfigs && detailModal.orderPraiseConfigs.length > 0 ? (
+                                <div className="mb-6">
+                                    <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">评价设置</h3>
+                                    <div className="space-y-3">
+                                        {detailModal.orderPraiseConfigs.map((config: any, index: number) => (
+                                            <div key={index} className="rounded-md bg-[#f9fafb] p-4">
+                                                <div className="mb-2 flex items-center justify-between">
+                                                    <span className="text-[13px] font-medium text-[#3b4559]">第 {index + 1} 单</span>
+                                                    {config.type === 'none' && <Badge variant="soft" color="amber">五星好评（不写评语）</Badge>}
+                                                    {config.type === 'text' && <Badge variant="soft" color="green">文字评价</Badge>}
+                                                    {config.type === 'image' && <Badge variant="soft" color="blue">图文评价</Badge>}
+                                                    {config.type === 'video' && <Badge variant="soft" color="blue">视频图文评价</Badge>}
+                                                </div>
+                                                {config.type === 'text' && config.text && (
+                                                    <div className="mt-2 rounded bg-white p-3 text-[13px] text-[#6b7280]">{config.text}</div>
+                                                )}
+                                                {config.type === 'image' && config.images && config.images.length > 0 && (
+                                                    <div className="mt-2 flex flex-wrap gap-2">
+                                                        {config.images.map((img: string, imgIdx: number) => (
+                                                            <img key={imgIdx} src={img} alt="" className="h-16 w-16 rounded border object-cover" />
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                {config.type === 'video' && config.video && (
+                                                    <div className="mt-2">
+                                                        <video src={config.video} controls className="max-h-32 rounded" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* 好评内容详情 */}
-                            {detailModal.isPraise && praiseTexts.length > 0 && (
-                                <div className="mb-6">
-                                    <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">文字好评内容</h3>
-                                    <div className="rounded-md bg-[#f9fafb] p-4">
-                                        <div className="space-y-2">
-                                            {praiseTexts.map((txt: string, i: number) => (
-                                                <div key={i} className="text-[13px] text-[#3b4559] flex gap-2">
-                                                    <span className="text-[#9ca3af] font-mono shrink-0">{i + 1}.</span>
-                                                    <span>{txt}</span>
-                                                </div>
-                                            ))}
+                            ) : (
+                                /* 旧版：统一评价类型 */
+                                <>
+                                    <div className="mb-6">
+                                        <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">评价设置</h3>
+                                        <div className="grid grid-cols-3 gap-4 rounded-md bg-[#f9fafb] p-4">
+                                            <div>
+                                                <div className="text-[12px] text-[#6b7280]">文字评价</div>
+                                                <Badge variant="soft" color={detailModal.isPraise ? 'green' : 'slate'} className="mt-1">
+                                                    {detailModal.isPraise ? `${praiseTexts.length}条` : '未设置'}
+                                                </Badge>
+                                            </div>
+                                            <div>
+                                                <div className="text-[12px] text-[#6b7280]">图文评价</div>
+                                                <Badge variant="soft" color={detailModal.isImgPraise ? 'green' : 'slate'} className="mt-1">
+                                                    {detailModal.isImgPraise ? `${praiseImgs.length}组` : '未设置'}
+                                                </Badge>
+                                            </div>
+                                            <div>
+                                                <div className="text-[12px] text-[#6b7280]">视频图文评价</div>
+                                                <Badge variant="soft" color={detailModal.isVideoPraise ? 'green' : 'slate'} className="mt-1">
+                                                    {detailModal.isVideoPraise ? `${praiseVideos.length}个` : '未设置'}
+                                                </Badge>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
 
-                            {/* 图片好评预览 */}
-                            {detailModal.isImgPraise && praiseImgs.length > 0 && (
-                                <div className="mb-6">
-                                    <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">图片好评</h3>
-                                    <div className="rounded-md bg-[#f9fafb] p-4 space-y-3">
-                                        {praiseImgs.map((group: string[], i: number) => (
-                                            <div key={i} className="flex flex-wrap gap-2">
-                                                <span className="text-xs text-[#9ca3af]">第{i + 1}组:</span>
-                                                {group.map((img: string, j: number) => (
-                                                    <img key={j} src={img} alt="" className="h-16 w-16 rounded border object-cover" />
+                                    {/* 评价内容详情 */}
+                                    {detailModal.isPraise && praiseTexts.length > 0 && (
+                                        <div className="mb-6">
+                                            <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">文字评价内容</h3>
+                                            <div className="rounded-md bg-[#f9fafb] p-4">
+                                                <div className="space-y-2">
+                                                    {praiseTexts.map((txt: string, i: number) => (
+                                                        <div key={i} className="text-[13px] text-[#3b4559] flex gap-2">
+                                                            <span className="text-[#9ca3af] font-mono shrink-0">{i + 1}.</span>
+                                                            <span>{txt}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* 图文评价预览 */}
+                                    {detailModal.isImgPraise && praiseImgs.length > 0 && (
+                                        <div className="mb-6">
+                                            <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">图文评价</h3>
+                                            <div className="rounded-md bg-[#f9fafb] p-4 space-y-3">
+                                                {praiseImgs.map((group: string[], i: number) => (
+                                                    <div key={i} className="flex flex-wrap gap-2">
+                                                        <span className="text-xs text-[#9ca3af]">第{i + 1}组:</span>
+                                                        {group.map((img: string, j: number) => (
+                                                            <img key={j} src={img} alt="" className="h-16 w-16 rounded border object-cover" />
+                                                        ))}
+                                                    </div>
                                                 ))}
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                                        </div>
+                                    )}
 
-                            {/* 视频好评预览 */}
-                            {detailModal.isVideoPraise && praiseVideos.length > 0 && (
-                                <div className="mb-6">
-                                    <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">视频好评</h3>
-                                    <div className="rounded-md bg-[#f9fafb] p-4 space-y-3">
-                                        {praiseVideos.map((video: string, i: number) => (
-                                            <div key={i}>
-                                                <span className="text-xs text-[#9ca3af]">第{i + 1}个视频:</span>
-                                                <video src={video} controls className="mt-1 max-h-48 w-full rounded" />
+                                    {/* 视频图文评价预览 */}
+                                    {detailModal.isVideoPraise && praiseVideos.length > 0 && (
+                                        <div className="mb-6">
+                                            <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">视频图文评价</h3>
+                                            <div className="rounded-md bg-[#f9fafb] p-4 space-y-3">
+                                                {praiseVideos.map((video: string, i: number) => (
+                                                    <div key={i}>
+                                                        <span className="text-xs text-[#9ca3af]">第{i + 1}个视频:</span>
+                                                        <video src={video} controls className="mt-1 max-h-48 w-full rounded" />
+                                                    </div>
+                                                ))}
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
+                                        </div>
+                                    )}
+                                </>
                             )}
 
                             {/* 商家备注 */}

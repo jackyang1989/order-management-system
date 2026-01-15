@@ -655,54 +655,52 @@ export default function AdminOrdersPage() {
                                 </div>
                             )}
 
-                            {/* Praise Details 好评详情 */}
-                            {(task.isPraise || task.isImgPraise || task.isVideoPraise) && (
+                            {/* Praise Details 评价详情 */}
+                            {(detailModal.praiseContent || detailModal.praiseImages?.length || detailModal.praiseVideo) && (
                                 <div>
-                                    <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">好评详情</h3>
+                                    <h3 className="mb-3 border-l-4 border-primary pl-2 text-sm font-semibold text-[#3b4559]">评价详情</h3>
                                     <div className="rounded-md bg-[#f9fafb] p-4">
                                         <div className="flex flex-wrap gap-2 mb-3">
-                                            {task.isPraise && (
+                                            {detailModal.praiseContent && (
                                                 <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700 font-medium">
-                                                    文字好评 ({praiseTexts.length}条)
+                                                    文字评价
                                                 </span>
                                             )}
-                                            {task.isImgPraise && (
+                                            {detailModal.praiseImages && detailModal.praiseImages.length > 0 && (
                                                 <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700 font-medium">
-                                                    图片好评 ({praiseImages.length}张)
+                                                    图文评价 ({detailModal.praiseImages.length}张图片)
                                                 </span>
                                             )}
-                                            {task.isVideoPraise && (
-                                                <span className="rounded-full bg-purple-100 px-3 py-1 text-xs text-purple-700 font-medium">
-                                                    视频好评 ({praiseVideos.length}个)
+                                            {detailModal.praiseVideo && (
+                                                <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700 font-medium">
+                                                    视频图文评价
+                                                </span>
+                                            )}
+                                            {!detailModal.praiseContent && !detailModal.praiseImages?.length && !detailModal.praiseVideo && (
+                                                <span className="rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-700 font-medium">
+                                                    五星好评（不写评语）
                                                 </span>
                                             )}
                                         </div>
-                                        {/* 文字好评内容 */}
-                                        {task.isPraise && praiseTexts.length > 0 && (
+                                        {/* 文字评价内容 */}
+                                        {detailModal.praiseContent && (
                                             <div className="rounded-md bg-white p-3 mb-3">
-                                                <div className="text-xs text-[#6b7280] mb-2">好评内容：</div>
-                                                <div className="space-y-2 max-h-32 overflow-y-auto">
-                                                    {praiseTexts.slice(0, 3).map((txt: string, i: number) => (
-                                                        <div key={i} className="text-xs text-[#3b4559] border-l-2 border-primary-200 pl-2">
-                                                            {i + 1}. {txt}
-                                                        </div>
-                                                    ))}
-                                                    {praiseTexts.length > 3 && (
-                                                        <div className="text-xs text-[#6b7280]">...共 {praiseTexts.length} 条</div>
-                                                    )}
+                                                <div className="text-xs text-[#6b7280] mb-2">评价内容：</div>
+                                                <div className="text-xs text-[#3b4559] border-l-2 border-primary-200 pl-2">
+                                                    {detailModal.praiseContent}
                                                 </div>
                                             </div>
                                         )}
-                                        {/* 好评图片 */}
-                                        {task.isImgPraise && praiseImages.length > 0 && (
+                                        {/* 评价图片 */}
+                                        {detailModal.praiseImages && detailModal.praiseImages.length > 0 && (
                                             <div className="rounded-md bg-white p-3 mb-3">
-                                                <div className="text-xs text-[#6b7280] mb-2">好评图片：</div>
+                                                <div className="text-xs text-[#6b7280] mb-2">评价图片：</div>
                                                 <div className="flex flex-wrap gap-2">
-                                                    {praiseImages.map((img: string, i: number) => (
+                                                    {detailModal.praiseImages.map((img: string, i: number) => (
                                                         <img
                                                             key={i}
                                                             src={img}
-                                                            alt={`好评图${i + 1}`}
+                                                            alt={`评价图${i + 1}`}
                                                             className="h-20 w-20 rounded-md object-cover cursor-pointer hover:opacity-80"
                                                             onClick={() => window.open(img, '_blank')}
                                                         />
@@ -710,20 +708,11 @@ export default function AdminOrdersPage() {
                                                 </div>
                                             </div>
                                         )}
-                                        {/* 好评视频 */}
-                                        {task.isVideoPraise && praiseVideos.length > 0 && (
+                                        {/* 评价视频 */}
+                                        {detailModal.praiseVideo && (
                                             <div className="rounded-md bg-white p-3">
-                                                <div className="text-xs text-[#6b7280] mb-2">好评视频：</div>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {praiseVideos.map((_video: string, i: number) => (
-                                                        <div key={i} className="relative h-20 w-20 rounded-md bg-slate-100 flex items-center justify-center cursor-pointer hover:bg-slate-200">
-                                                            <span className="text-2xl">▶️</span>
-                                                            <div className="absolute bottom-1 right-1 bg-black/50 text-white text-xs px-1 rounded">
-                                                                视频{i + 1}
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
+                                                <div className="text-xs text-[#6b7280] mb-2">评价视频：</div>
+                                                <video src={detailModal.praiseVideo} controls className="max-h-48 w-full rounded" />
                                             </div>
                                         )}
                                     </div>
