@@ -1395,14 +1395,11 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                 <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
                                     <img src={item.img} alt="商品" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
                                     <div style={{ flex: 1 }}>
-                                        {/* 隐藏商品标题，只显示提示 */}
-                                        <div style={{ fontSize: '13px', color: '#999' }}>请根据关键词搜索找到此商品</div>
-                                        {item.specname && item.specifications && (
-                                            <div style={{ fontSize: '12px', color: '#409eff', marginTop: '5px', fontWeight: 'bold' }}>
-                                                规格：{item.specname} - {item.specifications}
-                                            </div>
-                                        )}
-                                        <div style={{ fontSize: '12px', color: '#f56c6c', marginTop: '5px' }}>¥{item.buyPrice} x {item.buyNum}</div>
+                                        {/* 主商品：根据关键词搜索找到；副商品：根据主图在店内找到 */}
+                                        <div style={{ fontSize: '13px', color: '#999' }}>
+                                            {item.isMain ? '请根据关键词搜索找到此商品' : '请根据左侧主图在店内找到此商品'}
+                                        </div>
+                                        {/* 第二步不显示价格、数量和规格，这些在第三步显示 */}
                                     </div>
                                 </div>
 
@@ -1537,7 +1534,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         ))}
                     </div>
 
-                    {/* 肆：收藏/加购 */}
+                    {/* 肆：随机浏览店铺其他商品 */}
                     <div style={{ background: '#fff', borderRadius: '8px', padding: '15px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
                             <span style={{
@@ -1552,10 +1549,13 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                 marginRight: '10px',
                                 fontSize: '12px',
                             }}>肆</span>
-                            <span style={{ fontWeight: 'bold' }}>收藏/加购/聊天</span>
+                            <span style={{ fontWeight: 'bold' }}>随机浏览店铺其他2个商品</span>
+                            <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#e6a23c', fontWeight: 'bold' }}>
+                                浏览时长：各2分钟
+                            </span>
                         </div>
                         <div style={{ fontSize: '13px', color: '#666', lineHeight: '1.8' }}>
-                            <p>1. 分别浏览主/副宝贝深度验证；</p>
+                            <p>1. 随机浏览店铺其他2个商品各2分钟左右；</p>
                             <p>2. 对目标商品进行收藏；</p>
                             <p>3. 上传收藏页面的截图：</p>
                         </div>
@@ -1578,20 +1578,24 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             )}
                         </div>
                         <div style={{ marginTop: '15px' }}>
-                            <p style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>商品链接(主)：</p>
+                            <p style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>随机浏览商品链接1：</p>
+                            <p style={{ fontSize: '11px', color: '#f56c6c', marginBottom: '5px' }}>* 请输入店铺内其他商品链接（不能是主/副商品）</p>
                             <input
                                 type="text"
                                 value={inputValue3}
                                 onChange={(e) => setInputValue3(e.target.value)}
+                                placeholder="请输入随机浏览的商品链接"
                                 style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
                             />
                         </div>
                         <div style={{ marginTop: '10px' }}>
-                            <p style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>商品链接(副)：</p>
+                            <p style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>随机浏览商品链接2：</p>
+                            <p style={{ fontSize: '11px', color: '#f56c6c', marginBottom: '5px' }}>* 请输入店铺内其他商品链接（不能是主/副商品）</p>
                             <input
                                 type="text"
                                 value={inputValue4}
                                 onChange={(e) => setInputValue4(e.target.value)}
+                                placeholder="请输入随机浏览的商品链接"
                                 style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
                             />
                         </div>

@@ -319,6 +319,9 @@ export class Task {
   @Column({ default: false })
   needAddCart: boolean; // 加入购物车
 
+  @Column({ default: false })
+  needRandomBrowse: boolean; // 随机浏览店铺其他商品
+
   @Column({ type: 'int', default: 3 })
   compareCount: number; // 货比数量（默认3家）
 
@@ -427,6 +430,7 @@ export class CreateTaskDto {
   needAddCart?: boolean;      // 加入购物车
   needContactCS?: boolean;    // 联系客服
   contactCSContent?: string;  // 联系客服内容
+  needRandomBrowse?: boolean; // 随机浏览店铺其他商品
 
   // 浏览时长设置
   totalBrowseMinutes?: number;
