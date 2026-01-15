@@ -69,7 +69,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     // ===================== 核心状态 =====================
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [active, setActive] = useState(1); // 当前步骤 1/2/3
+    const [active, setActive] = useState(0); // 0=任务概览页, 1=第一步, 2=第二步, 3=第三步 // 当前步骤 1/2/3
     const [userTaskId, setUserTaskId] = useState('');
 
     // 任务类型相关
@@ -473,7 +473,10 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const next = async () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        if (active === 1) {
+        if (active === 0) {
+            // 从概览页进入第一步
+            setActive(1);
+        } else if (active === 1) {
             // 验证第一步
             console.log('第一步验证 - localFile2:', localFile2);
             if (!localFile2) {
@@ -764,27 +767,45 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <span>邮费：</span>
-                            <span style={{ 
+                            <span style={{
                                 color: isFreeShipping ? '#52c41a' : '#fa8c16',
                                 fontWeight: 'bold'
                             }}>
                                 {isFreeShipping ? '包邮' : '非包邮'}
                             </span>
                         </div>
-                        <div style={{ marginTop: '10px' }}>
+                        <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
                             <button
                                 onClick={handleQuXiao}
                                 style={{
                                     background: '#f56c6c',
                                     color: 'white',
                                     border: 'none',
-                                    padding: '6px 20px',
+                                    padding: '8px 20px',
                                     borderRadius: '4px',
                                     cursor: 'pointer',
+                                    fontSize: '14px',
                                 }}
                             >
                                 取消
                             </button>
+                            {active === 0 && (
+                                <button
+                                    onClick={() => setActive(1)}
+                                    style={{
+                                        background: '#409eff',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '8px 20px',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '14px',
+                                        flex: 1,
+                                    }}
+                                >
+                                    去完成
+                                </button>
+                            )}
                         </div>
                     </div>
                 ))}
@@ -802,32 +823,34 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 )}
             </div>
 
-            {/* 步骤指示器 */}
-            <div style={{ background: '#fff', margin: '10px', borderRadius: '8px', padding: '15px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
-                    {[1, 2, 3].map((step) => (
-                        <div key={step} style={{ textAlign: 'center' }}>
-                            <div style={{
-                                width: '36px',
-                                height: '36px',
-                                borderRadius: '50%',
-                                background: step < active ? '#67c23a' : (step === active ? '#409eff' : '#ddd'),
-                                color: 'white',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                margin: '0 auto 5px',
-                                fontWeight: 'bold',
-                            }}>
-                                {step < active ? '✓' : step}
+            {/* 步骤指示器 - 只在执行步骤时显示 */}
+            {active > 0 && (
+                <div style={{ background: '#fff', margin: '10px', borderRadius: '8px', padding: '15px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+                        {[1, 2, 3].map((step) => (
+                            <div key={step} style={{ textAlign: 'center' }}>
+                                <div style={{
+                                    width: '36px',
+                                    height: '36px',
+                                    borderRadius: '50%',
+                                    background: step < active ? '#67c23a' : (step === active ? '#409eff' : '#ddd'),
+                                    color: 'white',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    margin: '0 auto 5px',
+                                    fontWeight: 'bold',
+                                }}>
+                                    {step < active ? '✓' : step}
+                                </div>
+                                <div style={{ fontSize: '12px', color: step === active ? '#409eff' : '#999' }}>
+                                    第{step === 1 ? '一' : step === 2 ? '二' : '三'}步
+                                </div>
                             </div>
-                            <div style={{ fontSize: '12px', color: step === active ? '#409eff' : '#999' }}>
-                                第{step === 1 ? '一' : step === 2 ? '二' : '三'}步
-                            </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* ===================== 第一步 ===================== */}
             {active === 1 && (
@@ -1592,50 +1615,52 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 </div>
             )}
 
-            {/* 底部操作栏 */}
-            <div style={{
-                position: 'fixed',
-                bottom: 0,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '100%',
-                maxWidth: '515px',
-                background: '#fff',
-                padding: '10px 15px',
-                borderTop: '1px solid #eee',
-                display: 'flex',
-                justifyContent: 'space-between',
-                boxSizing: 'border-box',
-            }}>
-                <button
-                    onClick={prev}
-                    disabled={active === 1}
-                    style={{
-                        padding: '10px 30px',
-                        background: active === 1 ? '#f5f5f5' : '#fff',
-                        border: '1px solid #ddd',
-                        color: active === 1 ? '#ccc' : '#666',
-                        borderRadius: '4px',
-                        cursor: active === 1 ? 'not-allowed' : 'pointer',
-                    }}
-                >
-                    上一步
-                </button>
-                <button
-                    onClick={next}
-                    disabled={submitting}
-                    style={{
-                        padding: '10px 30px',
-                        background: submitting ? '#a0cfff' : '#409eff',
-                        border: 'none',
-                        color: 'white',
-                        borderRadius: '4px',
-                        cursor: submitting ? 'not-allowed' : 'pointer',
-                    }}
-                >
-                    {active === 3 ? (submitting ? '提交中...' : '提交任务') : '下一步'}
-                </button>
-            </div>
+            {/* 底部操作栏 - 只在执行步骤时显示 */}
+            {active > 0 && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: 0,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: '100%',
+                    maxWidth: '515px',
+                    background: '#fff',
+                    padding: '10px 15px',
+                    borderTop: '1px solid #eee',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    boxSizing: 'border-box',
+                }}>
+                    <button
+                        onClick={prev}
+                        disabled={active === 1}
+                        style={{
+                            padding: '10px 30px',
+                            background: active === 1 ? '#f5f5f5' : '#fff',
+                            border: '1px solid #ddd',
+                            color: active === 1 ? '#ccc' : '#666',
+                            borderRadius: '4px',
+                            cursor: active === 1 ? 'not-allowed' : 'pointer',
+                        }}
+                    >
+                        上一步
+                    </button>
+                    <button
+                        onClick={next}
+                        disabled={submitting}
+                        style={{
+                            padding: '10px 30px',
+                            background: submitting ? '#a0cfff' : '#409eff',
+                            border: 'none',
+                            color: 'white',
+                            borderRadius: '4px',
+                            cursor: submitting ? 'not-allowed' : 'pointer',
+                        }}
+                    >
+                        {active === 3 ? (submitting ? '提交中...' : '提交任务') : '下一步'}
+                    </button>
+                </div>
+            )}
 
             {/* 图片预览 Modal */}
             {previewImage && (
