@@ -521,17 +521,10 @@ export class OrdersService {
     const currentStepDataForNextDay = order.stepData.find(
       (s) => s.step === submitStepDto.step,
     );
-    const isPaymentStep = currentStepDataForNextDay?.title === '下单截图' || submitStepDto.step === order.totalSteps;
+    const isPaymentStepForNextDay = currentStepDataForNextDay?.title === '下单截图' || submitStepDto.step === order.totalSteps;
 
-    console.log('隔天任务检查:', {
-      step: submitStepDto.step,
-      totalSteps: order.totalSteps,
-      stepTitle: currentStepDataForNextDay?.title,
-      isPaymentStep,
-      isNextDay: task?.isNextDay,
-    });
-
-    if (task?.isNextDay && isPaymentStep) {
+    // 只在付款步骤（下单截图或最后一步）才检查隔天任务限制
+    if (task?.isNextDay && isPaymentStepForNextDay) {
       const orderCreatedAt = new Date(order.createdAt);
       const nextDay = new Date(orderCreatedAt);
       nextDay.setDate(nextDay.getDate() + 1);

@@ -1861,7 +1861,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             {/* ===================== 第三步 ===================== */}
             {active === 3 && (
                 <div style={{ margin: '10px' }}>
-                    {/* 订单商品核对表格 */}
+                    {/* 订单商品核对 - 卡片式布局 */}
                     <div style={{ background: '#fff', borderRadius: '8px', padding: '15px', marginBottom: '10px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
                             <span style={{
@@ -1877,36 +1877,85 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                 fontSize: '12px',
                             }}>伍</span>
                             <span style={{ fontWeight: 'bold', color: '#f56c6c' }}>核对订单商品</span>
-                            <span style={{ fontSize: '11px', color: '#999', marginLeft: '8px' }}>(滑动查看)</span>
                         </div>
-                        <div style={{ overflowX: 'auto' }}>
-                            <table style={{ width: '100%', minWidth: '400px', borderCollapse: 'collapse', fontSize: '12px' }}>
-                                <thead>
-                                    <tr style={{ background: '#f5f5f5' }}>
-                                        <th style={{ padding: '8px', border: '1px solid #e5e5e5', textAlign: 'left' }}>#</th>
-                                        <th style={{ padding: '8px', border: '1px solid #e5e5e5', textAlign: 'left' }}>店铺名称</th>
-                                        <th style={{ padding: '8px', border: '1px solid #e5e5e5', textAlign: 'left' }}>商品标题</th>
-                                        <th style={{ padding: '8px', border: '1px solid #e5e5e5', textAlign: 'right' }}>单价</th>
-                                        <th style={{ padding: '8px', border: '1px solid #e5e5e5', textAlign: 'center' }}>数量</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {tableData3.length > 0 ? tableData3.map((item, index) => (
-                                        <tr key={item.id}>
-                                            <td style={{ padding: '8px', border: '1px solid #e5e5e5' }}>{index + 1}</td>
-                                            <td style={{ padding: '8px', border: '1px solid #e5e5e5', whiteSpace: 'nowrap' }}>{item.dianpuName}</td>
-                                            <td style={{ padding: '8px', border: '1px solid #e5e5e5', whiteSpace: 'nowrap' }}>{item.productName}</td>
-                                            <td style={{ padding: '8px', border: '1px solid #e5e5e5', textAlign: 'right', color: '#f56c6c' }}>¥{item.price}</td>
-                                            <td style={{ padding: '8px', border: '1px solid #e5e5e5', textAlign: 'center' }}>{item.count}</td>
-                                        </tr>
-                                    )) : (
-                                        <tr>
-                                            <td colSpan={5} style={{ padding: '15px', border: '1px solid #e5e5e5', textAlign: 'center', color: '#999' }}>暂无商品数据</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+
+                        {/* 商品卡片列表 */}
+                        {tableData2.map((item, index) => (
+                            <div key={item.id} style={{
+                                border: '1px solid #e5e5e5',
+                                borderRadius: '8px',
+                                padding: '12px',
+                                marginBottom: '10px',
+                                background: index === 0 ? '#fff5f5' : '#f9f9f9'
+                            }}>
+                                <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                    <img
+                                        src={item.img || '/placeholder.png'}
+                                        alt={item.productName}
+                                        style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px' }}
+                                    />
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+                                            <span style={{
+                                                background: item.isMain ? '#f56c6c' : '#e6a23c',
+                                                color: 'white',
+                                                padding: '2px 6px',
+                                                borderRadius: '4px',
+                                                fontSize: '10px',
+                                                marginRight: '5px'
+                                            }}>
+                                                {item.isMain ? '主商品' : '副商品'}
+                                            </span>
+                                        </div>
+                                        <p style={{ fontSize: '13px', fontWeight: 'bold', margin: '0 0 5px 0', lineHeight: '1.3' }}>
+                                            {item.productName}
+                                        </p>
+                                        <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>
+                                            店铺：{item.dianpuName}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* 价格和数量 */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', padding: '8px', background: '#fff', borderRadius: '4px' }}>
+                                    <span style={{ fontSize: '12px', color: '#666' }}>单价：<span style={{ color: '#f56c6c', fontWeight: 'bold' }}>¥{item.buyPrice}</span></span>
+                                    <span style={{ fontSize: '12px', color: '#666' }}>数量：<span style={{ fontWeight: 'bold' }}>{item.buyNum}</span></span>
+                                </div>
+
+                                {/* 下单规格要求 */}
+                                {item.orderSpecs && item.orderSpecs.length > 0 && (
+                                    <div style={{
+                                        background: '#fff7e6',
+                                        border: '1px solid #ffd591',
+                                        borderRadius: '4px',
+                                        padding: '10px'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                                            <span style={{ color: '#fa8c16', marginRight: '5px' }}>⚠️</span>
+                                            <span style={{ fontWeight: 'bold', color: '#fa8c16', fontSize: '12px' }}>下单规格要求</span>
+                                        </div>
+                                        <div style={{ fontSize: '12px', color: '#333' }}>
+                                            {item.orderSpecs.map((spec, specIndex) => (
+                                                <p key={specIndex} style={{ margin: '3px 0' }}>
+                                                    <span style={{ color: '#666' }}>{spec.specName}：</span>
+                                                    <span style={{ color: '#f56c6c', fontWeight: 'bold' }}>{spec.specValue}</span>
+                                                    <span style={{ color: '#666' }}> × {spec.quantity}</span>
+                                                </p>
+                                            ))}
+                                        </div>
+                                        <p style={{ fontSize: '11px', color: '#f56c6c', margin: '8px 0 0 0' }}>
+                                            请严格按照上述规格下单，规格错误可能导致审核不通过。
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+
+                        {tableData2.length === 0 && (
+                            <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+                                暂无商品数据
+                            </div>
+                        )}
                     </div>
 
                     {/* 伍：提交订单 */}
