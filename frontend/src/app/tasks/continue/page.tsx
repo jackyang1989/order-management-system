@@ -1,11 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated } from '../../../services/authService';
 import { fetchContinueTasks, ContinueTaskItem } from '../../../services/taskService';
+import { fetchEnabledPlatforms, PlatformData } from '../../../services/systemConfigService';
 import BottomNav from '../../../components/BottomNav';
 import { cn } from '../../../lib/utils';
+
+// 平台代码到任务类型ID的映射
+const PLATFORM_CODE_TO_TASK_TYPE: Record<string, number> = {
+    'taobao': 1,
+    'tmall': 2,
+    'jd': 3,
+    'pdd': 4,
+    'douyin': 5,
+    'kuaishou': 6,
+    'xhs': 7,
+    'xianyu': 8,
+    '1688': 9,
+};
 
 const stateLabel = (status?: string) => {
     if (!status) return '待处理';
@@ -21,14 +35,21 @@ export default function ContinueTasksPage() {
     const [tasks, setTasks] = useState<ContinueTaskItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [platforms, setPlatforms] = useState<PlatformData[]>([]);
 
     useEffect(() => {
         if (!isAuthenticated()) {
             router.push('/login');
             return;
         }
+        loadPlatforms();
         loadData();
     }, [router]);
+
+    const loadPlatforms = async () => {
+        const platformList = await fetchEnabledPlatforms();
+        setPlatforms(platformList);
+    };
 
     const loadData = async () => {
         setLoading(true);
@@ -41,6 +62,16 @@ export default function ContinueTasksPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    // 根据 taskType 获取平台图标
+    const getPlatformIcon = (taskType?: number): string => {
+        if (!taskType) return '🛒';
+        const platform = platforms.find(p => {
+            const taskTypeMap: Record<string, number> = PLATFORM_CODE_TO_TASK_TYPE;
+            return taskTypeMap[p.code] === taskType;
+        });
+        return platform?.icon || '🛒';
     };
 
     return (
@@ -120,53 +151,25 @@ export default function ContinueTasksPage() {
                         {tasks.map((task) => (
                             <div
                                 key={task.id}
-                                className="group relative overflow-hidden rounded-[24px] bg-white p-5 transition-all"
+                                className="group relative overflow-hidden rounded-[24px] bg-white p-5 transition-all border border-slate-100"
                             >
-                                <div className="mb-4">
-                                    <div className="flex items-center gap-3">
-                                        {/* 平台图标 - 根据taskType动态显示 */}
-                                        {task.taskType === 1 && (
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#ff6600] text-white text-sm font-bold">
-                                                淘
-                                            </div>
+                                {/* 平台logo + 任务单号 - 参考原版样式 */}
+                                <div className="mb-4 flex items-center gap-3">
+                                    {/* 平台图标 - 从后台动态获取 */}
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full overflow-hidden shrink-0 border border-orange-200 bg-white">
+                                        {getPlatformIcon(task.taskType).startsWith('http') ? (
+                                            <img 
+                                                src={getPlatformIcon(task.taskType)} 
+                                                alt="Platform" 
+                                                className="h-full w-full object-contain"
+                                            />
+                                        ) : (
+                                            <span className="text-xl">{getPlatformIcon(task.taskType)}</span>
                                         )}
-                                        {task.taskType === 2 && (
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d50000] text-white text-sm font-bold">
-                                                天
-                                            </div>
-                                        )}
-                                        {task.taskType === 3 && (
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e4393c] text-white text-sm font-bold">
-                                                京
-                                            </div>
-                                        )}
-                                        {task.taskType === 4 && (
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e02e24] text-white text-sm font-bold">
-                                                拼
-                                            </div>
-                                        )}
-                                        {task.taskType === 5 && (
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#000] text-white text-sm font-bold">
-                                                抖
-                                            </div>
-                                        )}
-                                        {task.taskType === 6 && (
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#ff6600] text-white text-sm font-bold">
-                                                快
-                                            </div>
-                                        )}
-                                        {!task.taskType && (
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-600 text-white text-sm font-bold">
-                                                {task.platform?.charAt(0) || 'T'}
-                                            </div>
-                                        )}
-                                        <div>
-                                            <h4 className="text-[15px] font-bold text-slate-800">
-                                                {task.taskNumber || `任务订单 #${task.id}`}
-                                            </h4>
-                                            <p className="text-[12px] text-slate-400 font-medium">{task.shopName}</p>
-                                        </div>
                                     </div>
+                                    <span className="text-[17px] font-bold text-slate-800">
+                                        {task.taskNumber || `T${task.taskId || task.id}`}
+                                    </span>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4 mb-5">
@@ -185,13 +188,13 @@ export default function ContinueTasksPage() {
                                         <span className="flex h-2 w-2 rounded-full bg-primary-500 animate-pulse" />
                                         <span className="text-[13px] font-bold text-slate-600">{stateLabel(task.status)}</span>
                                         <span className="text-[11px] font-medium text-slate-300">
-                                            {task.currentStep || '0'}/{task.totalSteps || '4'} 步
+                                            {task.currentStep || '0'}/{task.totalSteps || '9'} 步
                                         </span>
                                     </div>
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => router.push(`/orders/${task.id}/execute`)}
-                                            className="rounded-xl bg-primary-600 px-6 py-2.5 text-[13px] font-bold text-white active:scale-95 transition-transform"
+                                            className="rounded-xl bg-primary-600 px-6 py-2.5 text-[13px] font-bold text-white active:scale-95 transition-transform shadow-sm"
                                         >
                                             继续任务
                                         </button>
