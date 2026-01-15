@@ -393,6 +393,61 @@ export class OrdersService {
         ? Math.round((Number(task.userDivided || 0) / task.count) * 100) / 100
         : 0;
 
+    // 新版：获取该订单对应的好评配置
+    // 根据当前已领取的订单数量，从 orderPraiseConfigs 数组中获取对应索引的配置
+    let orderPraiseConfig = null;
+    if (task.orderPraiseConfigs && Array.isArray(task.orderPraiseConfigs)) {
+      const orderIndex = task.claimedCount; // 当前订单是第几单（从0开始）
+      if (orderIndex < task.orderPraiseConfigs.length) {
+        orderPraiseConfig = task.orderPraiseConfigs[orderIndex];
+      }
+    }
+
+    // 旧版兼容：如果没有新版配置，从旧版字段中提取
+    let praiseText = '';
+    let praiseImages: string[] = [];
+    let praiseVideo = '';
+
+    if (orderPraiseConfig) {
+      // 新版：使用每单独立的好评配置
+      praiseText = orderPraiseConfig.text || '';
+      praiseImages = orderPraiseConfig.images || [];
+      praiseVideo = orderPraiseConfig.video || '';
+    } else {
+      // 旧版兼容：从统一的好评配置中提取
+      const orderIndex = task.claimedCount;
+      if (task.praiseList) {
+        try {
+          const praiseListArray = JSON.parse(task.praiseList);
+          if (Array.isArray(praiseListArray) && orderIndex < praiseListArray.length) {
+            praiseText = praiseListArray[orderIndex] || '';
+          }
+        } catch (e) {
+          // 解析失败，忽略
+        }
+      }
+      if (task.praiseImgList) {
+        try {
+          const praiseImgListArray = JSON.parse(task.praiseImgList);
+          if (Array.isArray(praiseImgListArray) && orderIndex < praiseImgListArray.length) {
+            praiseImages = praiseImgListArray[orderIndex] || [];
+          }
+        } catch (e) {
+          // 解析失败，忽略
+        }
+      }
+      if (task.praiseVideoList) {
+        try {
+          const praiseVideoListArray = JSON.parse(task.praiseVideoList);
+          if (Array.isArray(praiseVideoListArray) && orderIndex < praiseVideoListArray.length) {
+            praiseVideo = praiseVideoListArray[orderIndex] || '';
+          }
+        } catch (e) {
+          // 解析失败，忽略
+        }
+      }
+    }
+
     const newOrder = this.ordersRepository.create({
       taskId: task.id,
       userId,
@@ -416,6 +471,10 @@ export class OrdersService {
       finalPayment: Number(task.finalPayment || 0),
       okYf: false,
       okWk: false,
+      // 新版：保存该订单的好评配置
+      praiseContent: praiseText,
+      praiseImages: praiseImages,
+      praiseVideo: praiseVideo,
     });
 
     const savedOrder = await this.ordersRepository.save(newOrder);
