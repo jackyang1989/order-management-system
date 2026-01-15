@@ -363,29 +363,63 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 )}
             </div>
 
-            {/* Praise Requirements 好评要求 */}
-            {(task.isPraise || task.isImgPraise || task.isVideoPraise) && (
+            {/* Praise Requirements 评价要求 */}
+            {(task.orderPraiseConfigs && task.orderPraiseConfigs.length > 0) ? (
                 <div className="mx-0 my-2.5 border-b border-slate-200 bg-white p-4">
-                    <div className="mb-3 text-sm font-bold text-slate-800">好评要求</div>
+                    <div className="mb-3 text-sm font-bold text-slate-800">评价要求</div>
+                    <div className="space-y-2">
+                        {task.orderPraiseConfigs.map((config: any, index: number) => (
+                            <div key={index} className="flex items-center gap-2 rounded border border-slate-100 bg-slate-50 px-3 py-2">
+                                <span className="text-xs text-slate-500">第 {index + 1} 单:</span>
+                                {config.type === 'none' && (
+                                    <span className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-700">
+                                        五星好评（不写评语）
+                                    </span>
+                                )}
+                                {config.type === 'text' && (
+                                    <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-700">
+                                        文字评价
+                                    </span>
+                                )}
+                                {config.type === 'image' && (
+                                    <span className="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
+                                        图文评价 {config.images && config.images.length > 0 && `(${config.images.length}张图片)`}
+                                    </span>
+                                )}
+                                {config.type === 'video' && (
+                                    <span className="rounded bg-purple-100 px-2 py-0.5 text-xs text-purple-700">
+                                        视频图文评价
+                                    </span>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-3 rounded bg-blue-50 p-3 text-xs text-blue-700">
+                        📝 商家已为每单指定评价内容，领取任务后在收货页面查看详细内容
+                    </div>
+                </div>
+            ) : (task.isPraise || task.isImgPraise || task.isVideoPraise) && (
+                <div className="mx-0 my-2.5 border-b border-slate-200 bg-white p-4">
+                    <div className="mb-3 text-sm font-bold text-slate-800">评价要求</div>
                     <div className="flex flex-wrap gap-2 mb-3">
                         {task.isPraise && (
                             <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-700">
-                                文字好评 {praiseTexts.length > 0 && `(已指定${praiseTexts.length}条)`}
+                                文字评价 {praiseTexts.length > 0 && `(已指定${praiseTexts.length}条)`}
                             </span>
                         )}
                         {task.isImgPraise && (
                             <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-700">
-                                图片好评 {task.praiseImgList && task.praiseImgList.length > 0 && `(已指定${task.praiseImgList.length}张)`}
+                                图文评价 {task.praiseImgList && task.praiseImgList.length > 0 && `(已指定${task.praiseImgList.length}张)`}
                             </span>
                         )}
                         {task.isVideoPraise && (
                             <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-700">
-                                视频好评 {task.praiseVideoList && task.praiseVideoList.length > 0 && `(已指定${task.praiseVideoList.length}个)`}
+                                视频图文评价 {task.praiseVideoList && task.praiseVideoList.length > 0 && `(已指定${task.praiseVideoList.length}个)`}
                             </span>
                         )}
                     </div>
                     <div className="rounded bg-blue-50 p-3 text-xs text-blue-700">
-                        📝 商家已指定好评内容，领取任务后在收货页面查看详细内容
+                        📝 商家已指定评价内容，领取任务后在收货页面查看详细内容
                     </div>
                 </div>
             )}

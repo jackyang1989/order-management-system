@@ -1389,53 +1389,64 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         </div>
                     )}
                     
-                    {/* 好评要求提示 */}
+                    {/* 评价要求提示 */}
                     {(isPraise || isImgPraise || isVideoPraise) && (
-                        <div style={{ 
-                            marginTop: '12px', 
-                            padding: '10px', 
-                            background: '#fff7e6', 
+                        <div style={{
+                            marginTop: '12px',
+                            padding: '10px',
+                            background: '#fff7e6',
                             borderRadius: '4px',
                             border: '1px solid #ffd591'
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
                                 <span style={{ color: '#fa8c16', marginRight: '5px' }}>⭐</span>
-                                <span style={{ fontWeight: 'bold', color: '#fa8c16', fontSize: '13px' }}>好评要求</span>
+                                <span style={{ fontWeight: 'bold', color: '#fa8c16', fontSize: '13px' }}>评价要求</span>
                             </div>
                             <div style={{ fontSize: '12px', color: '#333', lineHeight: '1.6' }}>
-                                <p>此任务需要在收货后进行好评：</p>
+                                <p>此任务需要在收货后进行评价：</p>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
-                                    {isPraise && (
-                                        <span style={{ 
-                                            background: '#52c41a', 
-                                            color: 'white', 
-                                            padding: '2px 8px', 
+                                    {isPraise && !isImgPraise && !isVideoPraise && (
+                                        <span style={{
+                                            background: '#52c41a',
+                                            color: 'white',
+                                            padding: '2px 8px',
                                             borderRadius: '10px',
                                             fontSize: '11px'
                                         }}>
-                                            ✓ 指定文字好评
+                                            ✓ 文字评价
                                         </span>
                                     )}
-                                    {isImgPraise && (
-                                        <span style={{ 
-                                            background: '#1890ff', 
-                                            color: 'white', 
-                                            padding: '2px 8px', 
+                                    {isImgPraise && !isVideoPraise && (
+                                        <span style={{
+                                            background: '#1890ff',
+                                            color: 'white',
+                                            padding: '2px 8px',
                                             borderRadius: '10px',
                                             fontSize: '11px'
                                         }}>
-                                            ✓ 指定图文晒单
+                                            ✓ 图文评价
                                         </span>
                                     )}
                                     {isVideoPraise && (
-                                        <span style={{ 
-                                            background: '#722ed1', 
-                                            color: 'white', 
-                                            padding: '2px 8px', 
+                                        <span style={{
+                                            background: '#722ed1',
+                                            color: 'white',
+                                            padding: '2px 8px',
                                             borderRadius: '10px',
                                             fontSize: '11px'
                                         }}>
-                                            ✓ 提供图文视频晒单
+                                            ✓ 视频图文评价
+                                        </span>
+                                    )}
+                                    {!isPraise && !isImgPraise && !isVideoPraise && (
+                                        <span style={{
+                                            background: '#faad14',
+                                            color: 'white',
+                                            padding: '2px 8px',
+                                            borderRadius: '10px',
+                                            fontSize: '11px'
+                                        }}>
+                                            ✓ 五星好评（不写评语）
                                         </span>
                                     )}
                                 </div>

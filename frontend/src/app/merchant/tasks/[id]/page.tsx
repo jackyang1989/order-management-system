@@ -91,6 +91,7 @@ interface TaskDetail {
     isPresale?: boolean; // 是否预售任务
     presaleDeposit?: number; // 预付款
     finalPayment?: number; // 尾款
+    orderPraiseConfigs?: any[]; // 每单的好评配置
 }
 
 // 任务商品项
@@ -583,62 +584,107 @@ export default function TaskDetailPage() {
                         </div>
                     </Card>
 
-                    {/* Praise Settings 好评设置 */}
+                    {/* Praise Settings 评价设置 */}
                     <Card className="bg-white" noPadding>
                         <div className="px-6 py-5">
-                            <h2 className="mb-5 text-base font-semibold">好评设置</h2>
-                            {/* 好评类型显示 */}
-                            {task.praiseType && (
-                                <div className="mb-4 rounded-lg border border-primary-200 bg-primary-50 p-3">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-xs text-[#6b7280]">好评类型:</span>
-                                        <Badge variant="soft" color="blue">
-                                            {task.praiseType === 'text' ? '文字好评' :
-                                                task.praiseType === 'image' ? '图片好评' :
-                                                    task.praiseType === 'video' ? '视频好评' :
-                                                        task.praiseType}
-                                        </Badge>
-                                    </div>
+                            <h2 className="mb-5 text-base font-semibold">评价设置</h2>
+
+                            {/* 新版：每单独立的评价配置 */}
+                            {task.orderPraiseConfigs && task.orderPraiseConfigs.length > 0 ? (
+                                <div className="space-y-3">
+                                    {task.orderPraiseConfigs.map((config: any, index: number) => (
+                                        <div key={index} className="rounded-lg border border-[#e5e7eb] bg-[#f9fafb] p-4">
+                                            <div className="mb-2 flex items-center justify-between">
+                                                <span className="text-sm font-medium text-[#374151]">第 {index + 1} 单</span>
+                                                {config.type === 'none' && (
+                                                    <Badge variant="soft" color="amber">五星好评（不写评语）</Badge>
+                                                )}
+                                                {config.type === 'text' && (
+                                                    <Badge variant="soft" color="green">文字评价</Badge>
+                                                )}
+                                                {config.type === 'image' && (
+                                                    <Badge variant="soft" color="blue">图文评价</Badge>
+                                                )}
+                                                {config.type === 'video' && (
+                                                    <Badge variant="soft" color="blue">视频图文评价</Badge>
+                                                )}
+                                            </div>
+                                            {config.type === 'text' && config.text && (
+                                                <div className="mt-2 rounded bg-white p-3 text-xs text-[#6b7280]">
+                                                    {config.text}
+                                                </div>
+                                            )}
+                                            {config.type === 'image' && config.images && config.images.length > 0 && (
+                                                <div className="mt-2 flex flex-wrap gap-2">
+                                                    {config.images.map((img: string, imgIdx: number) => (
+                                                        <img key={imgIdx} src={img} alt="" className="h-16 w-16 rounded border object-cover" />
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {config.type === 'video' && config.video && (
+                                                <div className="mt-2">
+                                                    <video src={config.video} controls className="h-32 rounded border" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
+                            ) : (
+                                /* 旧版：统一评价类型 */
+                                <>
+                                    {task.praiseType && (
+                                        <div className="mb-4 rounded-lg border border-primary-200 bg-primary-50 p-3">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs text-[#6b7280]">评价类型:</span>
+                                                <Badge variant="soft" color="blue">
+                                                    {task.praiseType === 'text' ? '文字评价' :
+                                                        task.praiseType === 'image' ? '图文评价' :
+                                                            task.praiseType === 'video' ? '视频图文评价' :
+                                                                task.praiseType}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="grid grid-cols-3 gap-4">
+                                        {/* 文字评价 */}
+                                        <div className="rounded-md border border-[#e5e7eb] p-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="text-xs text-[#6b7280]">文字评价</div>
+                                                {task.isPraise && praiseTexts.length > 0 && (
+                                                    <button onClick={() => setPraiseModal('text')} className="text-xs text-primary-500 hover:underline">查看</button>
+                                                )}
+                                            </div>
+                                            <Badge variant="soft" color={task.isPraise ? 'green' : 'slate'} className="mt-1">
+                                                {task.isPraise ? `${praiseTexts.length}条` : '未设置'}
+                                            </Badge>
+                                        </div>
+                                        {/* 图文评价 */}
+                                        <div className="rounded-md border border-[#e5e7eb] p-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="text-xs text-[#6b7280]">图文评价</div>
+                                                {task.isImgPraise && praiseImgs.length > 0 && (
+                                                    <button onClick={() => setPraiseModal('image')} className="text-xs text-primary-500 hover:underline">查看</button>
+                                                )}
+                                            </div>
+                                            <Badge variant="soft" color={task.isImgPraise ? 'green' : 'slate'} className="mt-1">
+                                                {task.isImgPraise ? `${praiseImgs.length}组` : '未设置'}
+                                            </Badge>
+                                        </div>
+                                        {/* 视频图文评价 */}
+                                        <div className="rounded-md border border-[#e5e7eb] p-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="text-xs text-[#6b7280]">视频图文评价</div>
+                                                {task.isVideoPraise && praiseVideos.length > 0 && (
+                                                    <button onClick={() => setPraiseModal('video')} className="text-xs text-primary-500 hover:underline">查看</button>
+                                                )}
+                                            </div>
+                                            <Badge variant="soft" color={task.isVideoPraise ? 'green' : 'slate'} className="mt-1">
+                                                {task.isVideoPraise ? `${praiseVideos.length}个` : '未设置'}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                </>
                             )}
-                            <div className="grid grid-cols-3 gap-4">
-                                {/* 文字好评 */}
-                                <div className="rounded-md border border-[#e5e7eb] p-3">
-                                    <div className="flex items-center justify-between">
-                                        <div className="text-xs text-[#6b7280]">文字好评</div>
-                                        {task.isPraise && praiseTexts.length > 0 && (
-                                            <button onClick={() => setPraiseModal('text')} className="text-xs text-primary-500 hover:underline">查看</button>
-                                        )}
-                                    </div>
-                                    <Badge variant="soft" color={task.isPraise ? 'green' : 'slate'} className="mt-1">
-                                        {task.isPraise ? `${praiseTexts.length}条` : '未设置'}
-                                    </Badge>
-                                </div>
-                                {/* 图片好评 */}
-                                <div className="rounded-md border border-[#e5e7eb] p-3">
-                                    <div className="flex items-center justify-between">
-                                        <div className="text-xs text-[#6b7280]">图片好评</div>
-                                        {task.isImgPraise && praiseImgs.length > 0 && (
-                                            <button onClick={() => setPraiseModal('image')} className="text-xs text-primary-500 hover:underline">查看</button>
-                                        )}
-                                    </div>
-                                    <Badge variant="soft" color={task.isImgPraise ? 'green' : 'slate'} className="mt-1">
-                                        {task.isImgPraise ? `${praiseImgs.length}组` : '未设置'}
-                                    </Badge>
-                                </div>
-                                {/* 视频好评 */}
-                                <div className="rounded-md border border-[#e5e7eb] p-3">
-                                    <div className="flex items-center justify-between">
-                                        <div className="text-xs text-[#6b7280]">视频好评</div>
-                                        {task.isVideoPraise && praiseVideos.length > 0 && (
-                                            <button onClick={() => setPraiseModal('video')} className="text-xs text-primary-500 hover:underline">查看</button>
-                                        )}
-                                    </div>
-                                    <Badge variant="soft" color={task.isVideoPraise ? 'green' : 'slate'} className="mt-1">
-                                        {task.isVideoPraise ? `${praiseVideos.length}个` : '未设置'}
-                                    </Badge>
-                                </div>
-                            </div>
                         </div>
                     </Card>
 

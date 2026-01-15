@@ -542,50 +542,71 @@ export class OrdersController {
         }
       }
 
-      // 为当前订单分配特定的好评内容
-      // 根据该任务的订单创建顺序来确定当前订单应该使用哪条好评
-      const taskOrders = await this.ordersService.findByTask(task.id);
-      const orderIndex = taskOrders.findIndex((o: any) => o.id === order.id);
-
-      // 解析好评列表
+      // 新版：使用订单中已保存的好评配置（在订单创建时已分配）
+      // 订单创建时已根据 orderPraiseConfigs 分配了对应的好评内容到 order.praiseContent, order.praiseImages, order.praiseVideo
       let praiseList: string[] = [];
-      let praiseImgList: string[] = [];
+      let praiseImgList: string[][] = [];
       let praiseVideoList: string[] = [];
+      let isPraise = false;
+      let isImgPraise = false;
+      let isVideoPraise = false;
 
-      if (task.praiseList) {
-        const allPraises = typeof task.praiseList === 'string'
-          ? JSON.parse(task.praiseList)
-          : task.praiseList;
-        // 如果有多条好评，根据订单序号分配一条
-        if (Array.isArray(allPraises) && allPraises.length > 0) {
-          const assignedIndex = orderIndex >= 0 && orderIndex < allPraises.length
-            ? orderIndex
-            : orderIndex % allPraises.length;
-          praiseList = [allPraises[assignedIndex]];
-        }
+      // 从订单实体中获取已分配的好评内容
+      if (order.praiseContent && order.praiseContent.trim() !== '') {
+        praiseList = [order.praiseContent];
+        isPraise = true;
+      }
+      if (order.praiseImages && Array.isArray(order.praiseImages) && order.praiseImages.length > 0) {
+        praiseImgList = [order.praiseImages];
+        isImgPraise = true;
+      }
+      if (order.praiseVideo && order.praiseVideo.trim() !== '') {
+        praiseVideoList = [order.praiseVideo];
+        isVideoPraise = true;
       }
 
-      if (task.praiseImgList) {
-        const allImages = typeof task.praiseImgList === 'string'
-          ? JSON.parse(task.praiseImgList)
-          : task.praiseImgList;
-        if (Array.isArray(allImages) && allImages.length > 0) {
-          const assignedIndex = orderIndex >= 0 && orderIndex < allImages.length
-            ? orderIndex
-            : orderIndex % allImages.length;
-          praiseImgList = [allImages[assignedIndex]];
-        }
-      }
+      // 如果订单中没有好评数据，回退到旧版逻辑（向后兼容）
+      if (!isPraise && !isImgPraise && !isVideoPraise) {
+        const taskOrders = await this.ordersService.findByTask(task.id);
+        const orderIndex = taskOrders.findIndex((o: any) => o.id === order.id);
 
-      if (task.praiseVideoList) {
-        const allVideos = typeof task.praiseVideoList === 'string'
-          ? JSON.parse(task.praiseVideoList)
-          : task.praiseVideoList;
-        if (Array.isArray(allVideos) && allVideos.length > 0) {
-          const assignedIndex = orderIndex >= 0 && orderIndex < allVideos.length
-            ? orderIndex
-            : orderIndex % allVideos.length;
-          praiseVideoList = [allVideos[assignedIndex]];
+        if (task.praiseList) {
+          const allPraises = typeof task.praiseList === 'string'
+            ? JSON.parse(task.praiseList)
+            : task.praiseList;
+          if (Array.isArray(allPraises) && allPraises.length > 0) {
+            const assignedIndex = orderIndex >= 0 && orderIndex < allPraises.length
+              ? orderIndex
+              : orderIndex % allPraises.length;
+            praiseList = [allPraises[assignedIndex]];
+            isPraise = true;
+          }
+        }
+
+        if (task.praiseImgList) {
+          const allImages = typeof task.praiseImgList === 'string'
+            ? JSON.parse(task.praiseImgList)
+            : task.praiseImgList;
+          if (Array.isArray(allImages) && allImages.length > 0) {
+            const assignedIndex = orderIndex >= 0 && orderIndex < allImages.length
+              ? orderIndex
+              : orderIndex % allImages.length;
+            praiseImgList = [allImages[assignedIndex]];
+            isImgPraise = true;
+          }
+        }
+
+        if (task.praiseVideoList) {
+          const allVideos = typeof task.praiseVideoList === 'string'
+            ? JSON.parse(task.praiseVideoList)
+            : task.praiseVideoList;
+          if (Array.isArray(allVideos) && allVideos.length > 0) {
+            const assignedIndex = orderIndex >= 0 && orderIndex < allVideos.length
+              ? orderIndex
+              : orderIndex % allVideos.length;
+            praiseVideoList = [allVideos[assignedIndex]];
+            isVideoPraise = true;
+          }
         }
       }
 
@@ -618,10 +639,10 @@ export class OrdersController {
           maskedPassword,
           platformProductId: task.platformProductId,
 
-          // 增值服务 - 使用分配的好评
-          isPraise: task.isPraise,
-          isImgPraise: task.isImgPraise,
-          isVideoPraise: task.isVideoPraise,
+          // 增值服务 - 使用订单已分配的好评
+          isPraise: isPraise,
+          isImgPraise: isImgPraise,
+          isVideoPraise: isVideoPraise,
           praiseList: praiseList,
           praiseImgList: praiseImgList,
           praiseVideoList: praiseVideoList,
