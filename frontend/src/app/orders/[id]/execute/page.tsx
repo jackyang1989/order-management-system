@@ -377,26 +377,52 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             discount: string;
                             filter: string;
                         }[];
-                    }) => ({
-                        id: goods.id,
-                        goodsId: goods.goodsId || goods.id,
-                        productName: goods.name || '',
-                        dianpuName: data.shopName || '',
-                        type: goods.isMain ? '主商品' : '副商品',
-                        specname: goods.specName || '',
-                        specifications: goods.specValue || '',
-                        buyNum: goods.num || 1,
-                        buyPrice: String(goods.price || ''),
-                        input: '',
-                        inputnum: '',
-                        img: goods.pcImg || '',
-                        imgdata: goods.pcImg ? [goods.pcImg] : [],
-                        key: goods.keywords?.[0]?.keyword || data.keyword || '',
-                        goodsSpec: goods.verifyCode || data.maskedPassword || '',
-                        isMain: goods.isMain,
-                        orderSpecs: goods.orderSpecs,
-                        keywords: goods.keywords,
-                    }));
+                    }) => {
+                        // 从商品链接中提取平台商品ID
+                        const extractIdFromLink = (link: string): string | null => {
+                            if (!link) return null;
+                            // 淘宝/天猫链接: id=xxx
+                            const taobaoMatch = link.match(/[?&]id=(\d+)/);
+                            if (taobaoMatch) return taobaoMatch[1];
+                            // 京东链接: /xxx.html
+                            const jdMatch = link.match(/\/(\d+)\.html/);
+                            if (jdMatch) return jdMatch[1];
+                            // 拼多多链接: goods_id=xxx
+                            const pddMatch = link.match(/goods_id=(\d+)/);
+                            if (pddMatch) return pddMatch[1];
+                            // 1688链接: offer/xxx.html
+                            const alibabaMatch = link.match(/offer\/(\d+)\.html/);
+                            if (alibabaMatch) return alibabaMatch[1];
+                            // 通用：提取8位以上数字
+                            const genericMatch = link.match(/(\d{8,})/);
+                            if (genericMatch) return genericMatch[1];
+                            return null;
+                        };
+
+                        // 优先使用 goodsId，其次从链接提取，最后使用内部ID
+                        const platformGoodsId = goods.goodsId || extractIdFromLink(goods.link) || goods.id;
+
+                        return {
+                            id: goods.id,
+                            goodsId: platformGoodsId,
+                            productName: goods.name || '',
+                            dianpuName: data.shopName || '',
+                            type: goods.isMain ? '主商品' : '副商品',
+                            specname: goods.specName || '',
+                            specifications: goods.specValue || '',
+                            buyNum: goods.num || 1,
+                            buyPrice: String(goods.price || ''),
+                            input: '',
+                            inputnum: '',
+                            img: goods.pcImg || '',
+                            imgdata: goods.pcImg ? [goods.pcImg] : [],
+                            key: goods.keywords?.[0]?.keyword || data.keyword || '',
+                            goodsSpec: goods.verifyCode || data.maskedPassword || '',
+                            isMain: goods.isMain,
+                            orderSpecs: goods.orderSpecs,
+                            keywords: goods.keywords,
+                        };
+                    });
 
                     // 设置第一个商品的关键词为默认关键词
                     if (goodsList.length > 0 && goodsList[0].keywords && goodsList[0].keywords.length > 0) {
