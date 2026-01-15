@@ -3,6 +3,20 @@
 import { useEffect, useState, use, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { BASE_URL } from '../../../../../apiConfig';
+import { fetchEnabledPlatforms, PlatformData } from '../../../../services/systemConfigService';
+
+// 平台代码到任务类型ID的映射
+const PLATFORM_CODE_TO_TASK_TYPE: Record<string, number> = {
+    'taobao': 1,
+    'tmall': 2,
+    'jd': 3,
+    'pdd': 4,
+    'douyin': 5,
+    'kuaishou': 6,
+    'xhs': 7,
+    'xianyu': 8,
+    '1688': 9,
+};
 
 // ===================== 类型定义 =====================
 interface TaskInfo {
@@ -164,6 +178,9 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     // 图片预览
     const [previewImage, setPreviewImage] = useState<string | null>(null);
 
+    // 平台列表（用于动态获取图标）
+    const [platforms, setPlatforms] = useState<PlatformData[]>([]);
+
     // ===================== 工具函数 =====================
     const getToken = useCallback(() => {
         if (typeof window === 'undefined') return null;
@@ -177,6 +194,15 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const alertError = useCallback((msg: string) => {
         alert(msg);
     }, []);
+
+    // 根据 taskType 获取平台图标
+    const getPlatformIcon = useCallback((taskType?: number): string => {
+        if (!taskType) return '';
+        const platform = platforms.find(p => {
+            return PLATFORM_CODE_TO_TASK_TYPE[p.code] === taskType;
+        });
+        return platform?.icon || '';
+    }, [platforms]);
 
     // 文件转Base64
     const fileToBase64 = (file: File): Promise<string> => {
@@ -693,6 +719,8 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             return;
         }
         getData();
+        // 加载平台列表
+        fetchEnabledPlatforms().then(setPlatforms);
 
         // 从 sessionStorage 恢复步骤
         const savedActive = sessionStorage.getItem('active');
@@ -848,8 +876,19 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             }}>
                 <div onClick={() => router.back()} style={{ fontSize: '20px', cursor: 'pointer', width: '30px' }}>‹</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {/* 平台icon */}
-                    {taskTypeNumber === 1 && (
+                    {/* 平台icon - 从后台动态获取 */}
+                    {getPlatformIcon(taskTypeNumber) ? (
+                        <img 
+                            src={getPlatformIcon(taskTypeNumber)} 
+                            alt="Platform" 
+                            style={{
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '50%',
+                                objectFit: 'contain'
+                            }}
+                        />
+                    ) : (
                         <div style={{
                             width: '28px',
                             height: '28px',
@@ -861,77 +900,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             color: 'white',
                             fontSize: '12px',
                             fontWeight: 'bold'
-                        }}>淘</div>
-                    )}
-                    {taskTypeNumber === 2 && (
-                        <div style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '50%',
-                            background: '#d50000',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontSize: '12px',
-                            fontWeight: 'bold'
-                        }}>天</div>
-                    )}
-                    {taskTypeNumber === 3 && (
-                        <div style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '50%',
-                            background: '#e4393c',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontSize: '12px',
-                            fontWeight: 'bold'
-                        }}>京</div>
-                    )}
-                    {taskTypeNumber === 4 && (
-                        <div style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '50%',
-                            background: '#e02e24',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontSize: '12px',
-                            fontWeight: 'bold'
-                        }}>拼</div>
-                    )}
-                    {taskTypeNumber === 5 && (
-                        <div style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '50%',
-                            background: '#000',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontSize: '12px',
-                            fontWeight: 'bold'
-                        }}>抖</div>
-                    )}
-                    {taskTypeNumber === 6 && (
-                        <div style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '50%',
-                            background: '#ff6600',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontSize: '12px',
-                            fontWeight: 'bold'
-                        }}>快</div>
+                        }}>平</div>
                     )}
                     {/* 任务订单号 */}
                     <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#333' }}>{taskNumber}</div>
@@ -1026,18 +995,6 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 ))}
             </div>
 
-            {/* 商家要求 - 在概览页和执行步骤时都显示 */}
-            <div style={{ background: '#fff3cd', margin: '10px', borderRadius: '8px', padding: '12px', fontSize: '13px', color: '#856404' }}>
-                <p>{zhongDuanmessage}</p>
-                <p>您当前接受任务的买号为 <span style={{ color: 'red' }}>"{userBuynoAccount}"</span> 请访问{platformName || '平台'}APP，确认登录的买号是否正确！</p>
-                {taskTimeType === '2' && (
-                    <p style={{ color: 'red' }}>今天浏览收藏加购，提交到第三步，明天16点前付款并提交订单信息，超时订单取消。</p>
-                )}
-                {taskYsType === '1' && (
-                    <p style={{ color: 'red', fontSize: '12px' }}>此任务是预售任务，领取任务当日只需要付预付金额</p>
-                )}
-            </div>
-
             {/* 步骤指示器 - 只在执行步骤时显示 */}
             {active > 0 && (
                 <div style={{ background: '#fff', margin: '10px', borderRadius: '8px', padding: '15px' }}>
@@ -1064,6 +1021,128 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             </div>
                         ))}
                     </div>
+                </div>
+            )}
+
+            {/* 温馨提示 - 只在执行步骤时显示 */}
+            {active > 0 && (
+                <div style={{ background: '#fff', margin: '10px', borderRadius: '8px', padding: '15px', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                        <span style={{ color: '#409eff', marginRight: '5px' }}>ℹ</span>
+                        <span style={{ fontWeight: 'bold', color: '#409eff' }}>温馨提示</span>
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#f56c6c', lineHeight: '1.8' }}>
+                        <p>1. 禁止使用任何返利平台，若有使用请退出返利平台并清空{platformName || '平台'}缓存后再继续任务；</p>
+                        <p>2. 必须按照商家给的关键词和渠道搜索进店，不可擅自加词或更换指定进店渠道，后台可看到进店关键词和渠道；</p>
+                        <p>3. 货比浏览{compareBrowseMinutes}分钟以上，主商品浏览{mainBrowseMinutes}分钟以上{hasSubProduct ? `，副商品浏览${subBrowseMinutes}分钟以上` : ''}，然后随机浏览店铺其他2个商品各2分钟，浏览时间不够和未到支付步骤不要提前将购物车的商品下单付款，后台可看到各商品停留时间，总浏览时间低于{totalBrowseMinutes}分钟无法提交订单；</p>
+                        <p>4. 禁止修改订单截图上的实付金额，所有支付优惠商家后台都可查到；</p>
+                        <p>5. 请在倒计时结束前完成任务并在平台提交，超时任务取消且系统会自动扣除1银锭；</p>
+                        <p>6. 请严格按要求认真完成任务，否则将根据处罚细则进行处罚。</p>
+                    </div>
+                    
+                    {/* 包裹重量和快速返款提示 */}
+                    {(weight > 0 || fastRefund) && (
+                        <div style={{ 
+                            marginTop: '12px', 
+                            padding: '10px', 
+                            background: '#f0f5ff', 
+                            borderRadius: '4px',
+                            border: '1px solid #adc6ff'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                                <span style={{ color: '#2f54eb', marginRight: '5px' }}>📦</span>
+                                <span style={{ fontWeight: 'bold', color: '#2f54eb', fontSize: '13px' }}>订单设置</span>
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#333', lineHeight: '1.6' }}>
+                                {weight > 0 && (
+                                    <p style={{ marginBottom: '4px' }}>
+                                        包裹重量：<span style={{ fontWeight: 'bold', color: '#2f54eb' }}>{weight}kg</span>
+                                        {!isFreeShipping && <span style={{ color: '#fa8c16' }}> （请注意邮费）</span>}
+                                    </p>
+                                )}
+                                {fastRefund && (
+                                    <p style={{ marginBottom: '0', color: '#52c41a' }}>
+                                        ⚡ 快速返款服务已开通（0.6%费率）
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* 好评要求提示 */}
+                    {(isPraise || isImgPraise || isVideoPraise) && (
+                        <div style={{ 
+                            marginTop: '12px', 
+                            padding: '10px', 
+                            background: '#fff7e6', 
+                            borderRadius: '4px',
+                            border: '1px solid #ffd591'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                                <span style={{ color: '#fa8c16', marginRight: '5px' }}>⭐</span>
+                                <span style={{ fontWeight: 'bold', color: '#fa8c16', fontSize: '13px' }}>好评要求</span>
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#333', lineHeight: '1.6' }}>
+                                <p>此任务需要在收货后进行好评：</p>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                                    {isPraise && (
+                                        <span style={{ 
+                                            background: '#52c41a', 
+                                            color: 'white', 
+                                            padding: '2px 8px', 
+                                            borderRadius: '10px',
+                                            fontSize: '11px'
+                                        }}>
+                                            ✓ 指定文字好评 (已提供)
+                                        </span>
+                                    )}
+                                    {isImgPraise && (
+                                        <span style={{ 
+                                            background: '#1890ff', 
+                                            color: 'white', 
+                                            padding: '2px 8px', 
+                                            borderRadius: '10px',
+                                            fontSize: '11px'
+                                        }}>
+                                            ✓ 指定图文晒单 (已提供)
+                                        </span>
+                                    )}
+                                    {isVideoPraise && (
+                                        <span style={{ 
+                                            background: '#722ed1', 
+                                            color: 'white', 
+                                            padding: '2px 8px', 
+                                            borderRadius: '10px',
+                                            fontSize: '11px'
+                                        }}>
+                                            ✓ 提供图文视频晒单 (已提供)
+                                        </span>
+                                    )}
+                                </div>
+                                <p style={{ marginTop: '6px', color: '#fa8c16', fontSize: '11px' }}>
+                                    * 具体好评内容将在收货后显示，请注意查看
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* 额外赏金提示 */}
+                    {extraReward > 0 && (
+                        <div style={{ 
+                            marginTop: '12px', 
+                            padding: '10px', 
+                            background: '#fff1f0', 
+                            borderRadius: '4px',
+                            border: '1px solid #ffccc7'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <span style={{ color: '#f5222d', marginRight: '5px' }}>🎁</span>
+                                <span style={{ fontWeight: 'bold', color: '#f5222d', fontSize: '13px' }}>
+                                    额外赏金：+¥{Number(extraReward).toFixed(2)}/单
+                                </span>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
