@@ -55,6 +55,7 @@ export class BatchOperationsService {
 
   /**
    * 批量发货
+   * P1-2: 优化 N+1 查询 - 使用批量查询
    */
   async batchShip(
     orderIds: string[],
@@ -66,14 +67,20 @@ export class BatchOperationsService {
     let failed = 0;
     const errors: string[] = [];
 
+    // P1-2: 批量查询所有订单，避免 N+1 问题
+    const orders = await this.orderRepository.find({
+      where: { id: In(orderIds) },
+    });
+
+    // 创建订单 ID 到订单对象的映射
+    const orderMap = new Map(orders.map(order => [order.id, order]));
+
     for (let i = 0; i < orderIds.length; i++) {
       const orderId = orderIds[i];
       const data = deliveryData[i];
 
       try {
-        const order = await this.orderRepository.findOne({
-          where: { id: orderId },
-        });
+        const order = orderMap.get(orderId);
         if (!order) {
           failed++;
           errors.push(`订单 ${orderId} 不存在`);
@@ -212,6 +219,7 @@ export class BatchOperationsService {
 
   /**
    * 批量审核任务
+   * P1-2: 优化 N+1 查询 - 使用批量查询
    */
   async batchApproveTasks(
     taskIds: string[],
@@ -220,11 +228,17 @@ export class BatchOperationsService {
     let success = 0;
     let failed = 0;
 
+    // P1-2: 批量查询所有任务，避免 N+1 问题
+    const tasks = await this.taskRepository.find({
+      where: { id: In(taskIds) },
+    });
+
+    // 创建任务 ID 到任务对象的映射
+    const taskMap = new Map(tasks.map(task => [task.id, task]));
+
     for (const taskId of taskIds) {
       try {
-        const task = await this.taskRepository.findOne({
-          where: { id: taskId },
-        });
+        const task = taskMap.get(taskId);
         if (!task || task.status !== TaskStatus.AUDIT) {
           failed++;
           continue;
@@ -372,6 +386,7 @@ export class BatchOperationsService {
 
   /**
    * 批量审核订单
+   * P1-2: 优化 N+1 查询 - 使用批量查询
    */
   async batchApproveOrders(
     orderIds: string[],
@@ -381,11 +396,17 @@ export class BatchOperationsService {
     let success = 0;
     let failed = 0;
 
+    // P1-2: 批量查询所有订单，避免 N+1 问题
+    const orders = await this.orderRepository.find({
+      where: { id: In(orderIds) },
+    });
+
+    // 创建订单 ID 到订单对象的映射
+    const orderMap = new Map(orders.map(order => [order.id, order]));
+
     for (const orderId of orderIds) {
       try {
-        const order = await this.orderRepository.findOne({
-          where: { id: orderId },
-        });
+        const order = orderMap.get(orderId);
         if (!order || order.status !== OrderStatus.SUBMITTED) {
           failed++;
           continue;
@@ -420,6 +441,7 @@ export class BatchOperationsService {
 
   /**
    * 批量返款
+   * P1-2: 优化 N+1 查询 - 使用批量查询
    */
   async batchRefund(
     orderIds: string[],
@@ -430,11 +452,17 @@ export class BatchOperationsService {
     let failed = 0;
     let totalAmount = 0;
 
+    // P1-2: 批量查询所有订单，避免 N+1 问题
+    const orders = await this.orderRepository.find({
+      where: { id: In(orderIds) },
+    });
+
+    // 创建订单 ID 到订单对象的映射
+    const orderMap = new Map(orders.map(order => [order.id, order]));
+
     for (const orderId of orderIds) {
       try {
-        const order = await this.orderRepository.findOne({
-          where: { id: orderId },
-        });
+        const order = orderMap.get(orderId);
         if (
           !order ||
           ![
@@ -472,6 +500,7 @@ export class BatchOperationsService {
 
   /**
    * 批量审核追评任务
+   * P1-2: 优化 N+1 查询 - 使用批量查询
    */
   async batchApproveReviewTasks(
     reviewTaskIds: string[],
@@ -480,11 +509,17 @@ export class BatchOperationsService {
     let success = 0;
     let failed = 0;
 
+    // P1-2: 批量查询所有追评任务，避免 N+1 问题
+    const reviewTasks = await this.reviewTaskRepository.find({
+      where: { id: In(reviewTaskIds) },
+    });
+
+    // 创建追评任务 ID 到任务对象的映射
+    const reviewTaskMap = new Map(reviewTasks.map(task => [task.id, task]));
+
     for (const id of reviewTaskIds) {
       try {
-        const reviewTask = await this.reviewTaskRepository.findOne({
-          where: { id },
-        });
+        const reviewTask = reviewTaskMap.get(id);
         if (!reviewTask || reviewTask.state !== ReviewTaskStatus.PAID) {
           failed++;
           continue;
@@ -514,6 +549,7 @@ export class BatchOperationsService {
 
   /**
    * 批量返款追评任务
+   * P1-2: 优化 N+1 查询 - 使用批量查询
    */
   async batchRefundReviewTasks(
     reviewTaskIds: string[],
@@ -523,11 +559,17 @@ export class BatchOperationsService {
     let failed = 0;
     let totalAmount = 0;
 
+    // P1-2: 批量查询所有追评任务，避免 N+1 问题
+    const reviewTasks = await this.reviewTaskRepository.find({
+      where: { id: In(reviewTaskIds) },
+    });
+
+    // 创建追评任务 ID 到任务对象的映射
+    const reviewTaskMap = new Map(reviewTasks.map(task => [task.id, task]));
+
     for (const id of reviewTaskIds) {
       try {
-        const reviewTask = await this.reviewTaskRepository.findOne({
-          where: { id },
-        });
+        const reviewTask = reviewTaskMap.get(id);
         if (!reviewTask || reviewTask.state !== ReviewTaskStatus.UPLOADED) {
           failed++;
           continue;
@@ -554,6 +596,7 @@ export class BatchOperationsService {
 
   /**
    * 批量取消订单
+   * P1-2: 优化 N+1 查询 - 使用批量查询
    */
   async batchCancelOrders(
     orderIds: string[],
@@ -564,11 +607,17 @@ export class BatchOperationsService {
     let success = 0;
     let failed = 0;
 
+    // P1-2: 批量查询所有订单，避免 N+1 问题
+    const orders = await this.orderRepository.find({
+      where: { id: In(orderIds) },
+    });
+
+    // 创建订单 ID 到订单对象的映射
+    const orderMap = new Map(orders.map(order => [order.id, order]));
+
     for (const orderId of orderIds) {
       try {
-        const order = await this.orderRepository.findOne({
-          where: { id: orderId },
-        });
+        const order = orderMap.get(orderId);
         if (
           !order ||
           order.status === OrderStatus.COMPLETED ||
