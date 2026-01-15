@@ -516,9 +516,14 @@ export class OrdersService {
       }
     }
 
-    // 3. 隔天任务校验：次日16:40后才允许提交
+    // 3. 隔天任务校验：次日16:40后才允许提交（只在付款步骤检查）
     const task = await this.tasksService.findOne(order.taskId);
-    if (task?.isNextDay) {
+    const currentStepData = order.stepData.find(
+      (s) => s.step === submitStepDto.step,
+    );
+    const isPaymentStep = currentStepData?.title === '下单截图' || submitStepDto.step === order.totalSteps;
+
+    if (task?.isNextDay && isPaymentStep) {
       const orderCreatedAt = new Date(order.createdAt);
       const nextDay = new Date(orderCreatedAt);
       nextDay.setDate(nextDay.getDate() + 1);

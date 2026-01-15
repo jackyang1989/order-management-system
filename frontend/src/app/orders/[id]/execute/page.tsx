@@ -687,7 +687,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         ...(token ? { Authorization: `Bearer ${token}` } : {}),
                     },
                     body: JSON.stringify({
-                        step: 1,
+                        step: active, // 使用当前的 active 值（与后端 currentStep 同步）
                         screenshot: localFile2.content,
                         inputData: {
                             compareScreenshot: localFile2.content,
@@ -744,7 +744,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         ...(token ? { Authorization: `Bearer ${token}` } : {}),
                     },
                     body: JSON.stringify({
-                        step: 2,
+                        step: active, // 使用当前的 active 值（与后端 currentStep 同步）
                         screenshot: localFile.content,
                         inputData: {
                             goodsLink1: inputValue3,
