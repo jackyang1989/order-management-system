@@ -358,8 +358,11 @@ export class OrdersService {
       // 定时付款任务: timingTime + 120分钟
       endingTime = new Date(task.timingTime.getTime() + 120 * 60 * 1000);
     } else if (task.isNextDay) {
-      // 隔天任务: 次日下午16:40
-      endingTime = new Date();
+      // 隔天任务: 接单当天的次日16:40
+      // 使用接单时间的日期部分（去掉时分秒），然后+1天设置为16:40
+      // 这样无论用户在当天几点接单，截止时间都是次日16:40
+      const now = new Date();
+      endingTime = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       endingTime.setDate(endingTime.getDate() + 1);
       endingTime.setHours(16, 40, 0, 0);
     } else {

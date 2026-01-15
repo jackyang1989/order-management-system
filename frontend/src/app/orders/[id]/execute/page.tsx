@@ -722,12 +722,37 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
         // 加载平台列表
         fetchEnabledPlatforms().then(setPlatforms);
 
-        // 从 sessionStorage 恢复步骤
-        const savedActive = sessionStorage.getItem('active');
+        // 从 sessionStorage 恢复步骤（使用订单ID作为key）
+        const savedActive = sessionStorage.getItem(`order_${id}_active`);
         if (savedActive) {
             setActive(Number(savedActive));
         }
-    }, [getData, getToken, router]);
+
+        // 恢复倒计时状态
+        const savedStep1Started = sessionStorage.getItem(`order_${id}_step1CountdownStarted`);
+        const savedStep1Countdown = sessionStorage.getItem(`order_${id}_step1Countdown`);
+        if (savedStep1Started === 'true' && savedStep1Countdown !== null) {
+            setStep1Countdown(Number(savedStep1Countdown));
+            setStep1CountdownStarted(true);
+        }
+
+        const savedStep2Started = sessionStorage.getItem(`order_${id}_step2CountdownStarted`);
+        const savedStep2Countdown = sessionStorage.getItem(`order_${id}_step2Countdown`);
+        if (savedStep2Started === 'true' && savedStep2Countdown !== null) {
+            setStep2Countdown(Number(savedStep2Countdown));
+            setStep2CountdownStarted(true);
+        }
+
+        // 恢复用户输入的表单数据
+        const savedInputValue3 = sessionStorage.getItem(`order_${id}_inputValue3`);
+        const savedInputValue4 = sessionStorage.getItem(`order_${id}_inputValue4`);
+        const savedInputValue7 = sessionStorage.getItem(`order_${id}_inputValue7`);
+        const savedInputNumber = sessionStorage.getItem(`order_${id}_inputNumber`);
+        if (savedInputValue3) setInputValue3(savedInputValue3);
+        if (savedInputValue4) setInputValue4(savedInputValue4);
+        if (savedInputValue7) setInputValue7(savedInputValue7);
+        if (savedInputNumber) setInputNumber(savedInputNumber);
+    }, [getData, getToken, router, id]);
 
     // 倒计时逻辑
     useEffect(() => {
@@ -770,8 +795,23 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
 
     // 保存当前步骤到 sessionStorage
     useEffect(() => {
-        sessionStorage.setItem('active', String(active));
-    }, [active]);
+        sessionStorage.setItem(`order_${id}_active`, String(active));
+    }, [active, id]);
+
+    // 保存倒计时状态到 sessionStorage
+    useEffect(() => {
+        if (step1CountdownStarted) {
+            sessionStorage.setItem(`order_${id}_step1Countdown`, String(step1Countdown));
+            sessionStorage.setItem(`order_${id}_step1CountdownStarted`, 'true');
+        }
+    }, [step1Countdown, step1CountdownStarted, id]);
+
+    useEffect(() => {
+        if (step2CountdownStarted) {
+            sessionStorage.setItem(`order_${id}_step2Countdown`, String(step2Countdown));
+            sessionStorage.setItem(`order_${id}_step2CountdownStarted`, 'true');
+        }
+    }, [step2Countdown, step2CountdownStarted, id]);
 
     // 第一步货比倒计时逻辑
     useEffect(() => {
@@ -789,13 +829,24 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
         }
     }, [active, step1CountdownStarted, step1Countdown]);
 
-    // 当进入第一步时，启动倒计时
+    // 当进入第一步时，启动倒计时（仅在未启动过时）
     useEffect(() => {
         if (active === 1 && !step1CountdownStarted && compareBrowseMinutes > 0) {
-            setStep1Countdown(compareBrowseMinutes * 60); // 转换为秒
-            setStep1CountdownStarted(true);
+            // 检查是否有保存的倒计时状态
+            const savedCountdown = sessionStorage.getItem(`order_${id}_step1Countdown`);
+            const savedStarted = sessionStorage.getItem(`order_${id}_step1CountdownStarted`);
+
+            if (savedStarted === 'true' && savedCountdown !== null) {
+                // 恢复保存的倒计时
+                setStep1Countdown(Number(savedCountdown));
+                setStep1CountdownStarted(true);
+            } else {
+                // 首次启动倒计时
+                setStep1Countdown(compareBrowseMinutes * 60);
+                setStep1CountdownStarted(true);
+            }
         }
-    }, [active, step1CountdownStarted, compareBrowseMinutes]);
+    }, [active, step1CountdownStarted, compareBrowseMinutes, id]);
 
     // 第二步进店浏览倒计时逻辑
     useEffect(() => {
@@ -813,16 +864,27 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
         }
     }, [active, step2CountdownStarted, step2Countdown]);
 
-    // 当进入第二步时，启动倒计时（主商品+副商品浏览时长）
+    // 当进入第二步时，启动倒计时（仅在未启动过时）
     useEffect(() => {
         if (active === 2 && !step2CountdownStarted) {
-            const totalSeconds = hasSubProduct
-                ? (mainBrowseMinutes + subBrowseMinutes) * 60
-                : mainBrowseMinutes * 60;
-            setStep2Countdown(totalSeconds);
-            setStep2CountdownStarted(true);
+            // 检查是否有保存的倒计时状态
+            const savedCountdown = sessionStorage.getItem(`order_${id}_step2Countdown`);
+            const savedStarted = sessionStorage.getItem(`order_${id}_step2CountdownStarted`);
+
+            if (savedStarted === 'true' && savedCountdown !== null) {
+                // 恢复保存的倒计时
+                setStep2Countdown(Number(savedCountdown));
+                setStep2CountdownStarted(true);
+            } else {
+                // 首次启动倒计时
+                const totalSeconds = hasSubProduct
+                    ? (mainBrowseMinutes + subBrowseMinutes) * 60
+                    : mainBrowseMinutes * 60;
+                setStep2Countdown(totalSeconds);
+                setStep2CountdownStarted(true);
+            }
         }
-    }, [active, step2CountdownStarted, mainBrowseMinutes, subBrowseMinutes, hasSubProduct]);
+    }, [active, step2CountdownStarted, mainBrowseMinutes, subBrowseMinutes, hasSubProduct, id]);
 
     // 从 sessionStorage 恢复已上传的文件
     useEffect(() => {
@@ -841,10 +903,27 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             }
         };
 
-        restoreFile('localFile', setLocalFile);
-        restoreFile('localFile2', setLocalFile2);
-        restoreFile('localFile3', setLocalFile3);
-    }, []);
+        restoreFile(`order_${id}_localFile`, setLocalFile);
+        restoreFile(`order_${id}_localFile2`, setLocalFile2);
+        restoreFile(`order_${id}_localFile3`, setLocalFile3);
+    }, [id]);
+
+    // 保存用户输入的表单数据到 sessionStorage
+    useEffect(() => {
+        if (inputValue3) sessionStorage.setItem(`order_${id}_inputValue3`, inputValue3);
+    }, [inputValue3, id]);
+
+    useEffect(() => {
+        if (inputValue4) sessionStorage.setItem(`order_${id}_inputValue4`, inputValue4);
+    }, [inputValue4, id]);
+
+    useEffect(() => {
+        if (inputValue7) sessionStorage.setItem(`order_${id}_inputValue7`, inputValue7);
+    }, [inputValue7, id]);
+
+    useEffect(() => {
+        if (inputNumber) sessionStorage.setItem(`order_${id}_inputNumber`, inputNumber);
+    }, [inputNumber, id]);
 
     // 将 dataURL 转换为 Blob
     const dataURLtoBlob = (dataURL: string): Blob => {
@@ -1037,8 +1116,8 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 </div>
             )}
 
-            {/* 温馨提示 - 只在执行步骤时显示 */}
-            {active > 0 && (
+            {/* 温馨提示 - 只在第一步显示 */}
+            {active === 1 && (
                 <div style={{ background: '#fff', margin: '10px', borderRadius: '8px', padding: '15px', marginBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
                         <span style={{ color: '#409eff', marginRight: '5px' }}>ℹ</span>
@@ -1195,7 +1274,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             <input
                                 type="file"
                                 accept="image/*"
-                                onChange={(e) => handleFileSelect(e, setLocalFile2, 'localFile2')}
+                                onChange={(e) => handleFileSelect(e, setLocalFile2, `order_${id}_localFile2`)}
                                 style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
                             />
                             {localFile2 && (
@@ -1484,7 +1563,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             <input
                                 type="file"
                                 accept="image/*"
-                                onChange={(e) => handleFileSelect(e, setLocalFile, 'localFile')}
+                                onChange={(e) => handleFileSelect(e, setLocalFile, `order_${id}_localFile`)}
                                 style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
                             />
                             {localFile && (
@@ -1683,7 +1762,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             <input
                                 type="file"
                                 accept="image/*"
-                                onChange={(e) => handleFileSelect(e, setLocalFile3, 'localFile3')}
+                                onChange={(e) => handleFileSelect(e, setLocalFile3, `order_${id}_localFile3`)}
                                 style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
                             />
                             {localFile3 && (
