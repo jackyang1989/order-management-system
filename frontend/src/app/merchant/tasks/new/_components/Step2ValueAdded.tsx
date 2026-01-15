@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TaskFormData } from './types';
+import { TaskFormData, OrderPraiseConfig } from './types';
 import { cn } from '../../../../../lib/utils';
 import { Button } from '../../../../../components/ui/button';
 import { fetchSystemConfig, getPraiseFees } from '../../../../../services/systemConfigService';
@@ -16,6 +16,17 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
         loadSystemConfig();
     }, []);
 
+    useEffect(() => {
+        // 当任务单数变化时，初始化或调整orderPraiseConfigs数组
+        const count = data.count || 1;
+        if (data.orderPraiseConfigs.length !== count) {
+            const newConfigs: OrderPraiseConfig[] = Array(count).fill(null).map((_, i) =>
+                data.orderPraiseConfigs[i] || { type: 'none', text: '', images: [], video: '' }
+            );
+            onChange({ orderPraiseConfigs: newConfigs });
+        }
+    }, [data.count]);
+
     const loadSystemConfig = async () => {
         const config = await fetchSystemConfig();
         setPraiseFees(getPraiseFees(config));
@@ -26,48 +37,26 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
         }
     };
 
-    const handlePraiseChange = (type: 'text' | 'image' | 'video' | 'none') => {
-        const count = data.count || 1;
-        const resetData: Partial<TaskFormData> = {
-            isPraise: type !== 'none', praiseType: type,
-            praiseList: (type === 'text' || type === 'image' || type === 'video') ? Array(count).fill('').map((_, i) => data.praiseList[i] || '') : [],
-            praiseImgList: (type === 'image' || type === 'video') ? Array(count).fill([]).map((_, i) => data.praiseImgList?.[i] || []) : [],
-            praiseVideoList: type === 'video' ? Array(count).fill('').map((_, i) => data.praiseVideoList?.[i] || '') : [],
+    // 新版：处理单个订单的好评类型变化
+    const handleOrderPraiseTypeChange = (orderIndex: number, type: 'none' | 'text' | 'image' | 'video') => {
+        const newConfigs = [...data.orderPraiseConfigs];
+        newConfigs[orderIndex] = {
+            type,
+            text: newConfigs[orderIndex]?.text || '',
+            images: newConfigs[orderIndex]?.images || [],
+            video: newConfigs[orderIndex]?.video || '',
         };
-        let fee = 0; switch (type) { case 'text': fee = praiseFees.text; break; case 'image': fee = praiseFees.image; break; case 'video': fee = praiseFees.video; break; }
-        resetData.praiseFee = fee; onChange(resetData);
+        onChange({ orderPraiseConfigs: newConfigs });
     };
 
-    const handlePraiseContentChange = (index: number, val: string) => { const newList = [...data.praiseList]; newList[index] = val; onChange({ praiseList: newList }); };
-
-    const handleImageUpload = async (index: number, files: FileList | null) => {
-        if (!files || files.length === 0) return;
-        const currentImages = data.praiseImgList?.[index] || []; if (currentImages.length >= 5) { alert('每单最多上传5张图片'); return; }
-        const token = localStorage.getItem('merchantToken'); const formData = new FormData(); formData.append('file', files[0]);
-        try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/upload`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData });
-            const json = await res.json();
-            if (json.success && json.data?.url) { const newImgList = [...(data.praiseImgList || [])]; if (!newImgList[index]) newImgList[index] = []; newImgList[index] = [...newImgList[index], json.data.url]; onChange({ praiseImgList: newImgList }); }
-            else alert('上传失败: ' + (json.message || '未知错误'));
-        } catch { alert('上传失败'); }
+    // 处理单个订单的好评文字内容变化
+    const handleOrderPraiseTextChange = (orderIndex: number, text: string) => {
+        const newConfigs = [...data.orderPraiseConfigs];
+        newConfigs[orderIndex] = { ...newConfigs[orderIndex], text };
+        onChange({ orderPraiseConfigs: newConfigs });
     };
 
-    const handleRemoveImage = (orderIndex: number, imgIndex: number) => { const newImgList = [...(data.praiseImgList || [])]; if (newImgList[orderIndex]) { newImgList[orderIndex] = newImgList[orderIndex].filter((_, i) => i !== imgIndex); onChange({ praiseImgList: newImgList }); } };
-
-    const handleVideoUpload = async (index: number, files: FileList | null) => {
-        if (!files || files.length === 0) return;
-        const token = localStorage.getItem('merchantToken'); const formData = new FormData(); formData.append('file', files[0]);
-        try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/upload`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData });
-            const json = await res.json();
-            if (json.success && json.data?.url) { const newVideoList = [...(data.praiseVideoList || [])]; newVideoList[index] = json.data.url; onChange({ praiseVideoList: newVideoList }); }
-            else alert('上传失败: ' + (json.message || '未知错误'));
-        } catch { alert('上传失败'); }
-    };
-
-    const handleRemoveVideo = (index: number) => { const newVideoList = [...(data.praiseVideoList || [])]; newVideoList[index] = ''; onChange({ praiseVideoList: newVideoList }); };
-
-    const praiseOptions = [{ type: 'none', label: '默认好评', desc: '不强制内容', fee: 0 }, { type: 'text', label: '文字好评', desc: '指定好评内容', fee: praiseFees.text }, { type: 'image', label: '图文好评', desc: '指定图片+文字', fee: praiseFees.image }, { type: 'video', label: '视频好评', desc: '指定视频+文字', fee: praiseFees.video }];
+    const praiseOptions = [{ type: 'none', label: '五星好评', desc: '不写评语', fee: 0 }, { type: 'text', label: '文字评价', desc: '指定文字评价内容', fee: praiseFees.text }, { type: 'image', label: '图文评价', desc: '指定图文评价内容', fee: praiseFees.image }, { type: 'video', label: '视频图文评价', desc: '指定视频图文评价内容', fee: praiseFees.video }];
 
     return (
         <div className="p-6">
@@ -249,105 +238,259 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                 </div>
             </div>
 
-            {/* Praise Settings */}
+            {/* Praise Settings - 新版：每单独立配置 */}
             <div className="mb-8">
                 <h3 className="mb-4 text-[15px] font-semibold text-[#374151]">好评设置</h3>
-                <div className="mb-4 grid grid-cols-4 gap-4">
-                    {praiseOptions.map(opt => (
-                        <div key={opt.type} onClick={() => handlePraiseChange(opt.type as any)} className={cn('cursor-pointer rounded-md border p-4 transition-all', data.praiseType === opt.type ? 'border-primary-500 bg-primary-50' : 'border-[#e5e7eb] bg-white')}>
-                            <div className="mb-1 flex items-center justify-between">
-                                <div className="font-medium">{opt.label}</div>
-                                {opt.fee > 0 && <span className="text-xs font-bold text-danger-500">+{opt.fee}元</span>}
-                            </div>
-                            <div className="text-xs text-[#6b7280]">{opt.desc}</div>
-                        </div>
-                    ))}
-                </div>
+                <div className="mb-3 text-[13px] text-[#6b7280]">为每单独立配置好评类型，可以混合使用不同类型的好评</div>
 
-                {/* Text Praise */}
-                {data.praiseType === 'text' && (
-                    <div className="rounded-md border border-[#e5e7eb] bg-[#f9fafb] p-4">
-                        <div className="mb-3 text-[13px] text-[#374151]">请填写 <strong>{data.count}</strong> 条文字好评内容：</div>
-                        {data.praiseList.map((txt, idx) => (
-                            <div key={idx} className="mb-3 flex gap-3">
-                                <span className="w-10 pt-2 text-right text-[13px] text-[#6b7280]">#{idx + 1}</span>
-                                <input type="text" value={txt} onChange={e => handlePraiseContentChange(idx, e.target.value)} placeholder={`第 ${idx + 1} 单的好评内容`} className="flex-1 rounded-md border border-[#d1d5db] px-2 py-2 text-[13px]" />
-                            </div>
-                        ))}
-                    </div>
-                )}
+                {/* 每单的好评配置 */}
+                <div className="space-y-4">
+                    {Array.from({ length: data.count || 1 }).map((_, orderIdx) => {
+                        const config = data.orderPraiseConfigs[orderIdx] || { type: 'none', text: '', images: [], video: '' };
+                        return (
+                            <div key={orderIdx} className="rounded-md border border-[#e5e7eb] bg-white p-4">
+                                <div className="mb-3 flex items-center justify-between">
+                                    <div className="text-[14px] font-semibold text-[#374151]">第 {orderIdx + 1} 单</div>
+                                    <div className="text-xs text-[#6b7280]">选择好评类型</div>
+                                </div>
 
-                {/* Image Praise */}
-                {data.praiseType === 'image' && (
-                    <div className="rounded-md border border-[#e5e7eb] bg-[#f9fafb] p-4">
-                        <div className="mb-3 text-[13px] text-[#374151]">请为 <strong>{data.count}</strong> 单上传图片并填写好评内容（每单最多5张图片）：</div>
-                        {Array.from({ length: data.count || 1 }).map((_, idx) => (
-                            <div key={idx} className="mb-4 rounded-md border border-[#e5e7eb] bg-white p-3">
-                                <div className="mb-2 text-[13px] font-medium text-[#374151]">第 {idx + 1} 单</div>
-                                <textarea value={data.praiseList[idx] || ''} onChange={e => handlePraiseContentChange(idx, e.target.value)} placeholder={`请输入第 ${idx + 1} 单的好评文字内容`} rows={2} className="mb-2 w-full resize-y rounded-md border border-[#d1d5db] p-2 text-[13px]" />
-                                <div className="flex flex-wrap items-center gap-2">
-                                    {(data.praiseImgList?.[idx] || []).map((imgUrl, imgIdx) => (
-                                        <div key={imgIdx} className="relative h-[60px] w-[60px]">
-                                            <img src={imgUrl} alt={`图片${imgIdx + 1}`} className="h-full w-full rounded border border-[#d1d5db] object-cover" />
-                                            <button onClick={() => handleRemoveImage(idx, imgIdx)} className="absolute -right-1.5 -top-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-danger-400 text-xs text-white">×</button>
+                                {/* 好评类型选择 */}
+                                <div className="mb-3 grid grid-cols-4 gap-2">
+                                    {praiseOptions.map(opt => (
+                                        <div
+                                            key={opt.type}
+                                            onClick={() => handleOrderPraiseTypeChange(orderIdx, opt.type as any)}
+                                            className={cn(
+                                                'cursor-pointer rounded-md border p-3 transition-all text-center',
+                                                config.type === opt.type ? 'border-primary-500 bg-primary-50' : 'border-[#e5e7eb] bg-white hover:border-primary-300'
+                                            )}
+                                        >
+                                            <div className="text-[13px] font-medium">{opt.label}</div>
+                                            {opt.fee > 0 ? (
+                                                <div className="mt-1 text-xs font-bold text-danger-500">+{opt.fee}元</div>
+                                            ) : (
+                                                <div className="mt-1 text-xs text-[#9ca3af]">{opt.desc}</div>
+                                            )}
                                         </div>
                                     ))}
-                                    {(data.praiseImgList?.[idx]?.length || 0) < 5 && (
-                                        <label className="flex h-[60px] w-[60px] cursor-pointer items-center justify-center rounded border border-dashed border-[#d1d5db] bg-[#f9fafb] text-2xl text-[#9ca3af]">+<input type="file" accept="image/*" onChange={e => handleImageUpload(idx, e.target.files)} className="hidden" /></label>
-                                    )}
-                                    <span className="text-xs text-[#9ca3af]">{(data.praiseImgList?.[idx]?.length || 0)}/5张</span>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
 
-                {/* Video Praise */}
-                {data.praiseType === 'video' && (
-                    <div className="rounded-md border border-[#e5e7eb] bg-[#f9fafb] p-4">
-                        <div className="mb-3 text-[13px] text-[#374151]">请为 <strong>{data.count}</strong> 单上传视频、图片并填写好评内容（每单1个视频 + 最多5张图片）：</div>
-                        {Array.from({ length: data.count || 1 }).map((_, idx) => (
-                            <div key={idx} className="mb-4 rounded-md border border-[#e5e7eb] bg-white p-3">
-                                <div className="mb-2 text-[13px] font-medium text-[#374151]">第 {idx + 1} 单</div>
-                                <textarea value={data.praiseList[idx] || ''} onChange={e => handlePraiseContentChange(idx, e.target.value)} placeholder={`请输入第 ${idx + 1} 单的好评文字内容`} rows={2} className="mb-3 w-full resize-y rounded-md border border-[#d1d5db] p-2 text-[13px]" />
-                                {/* Video */}
-                                <div className="mb-3">
-                                    <div className="mb-1.5 text-xs text-[#6b7280]">视频（必传）：</div>
-                                    <div className="flex items-center gap-2">
-                                        {data.praiseVideoList?.[idx] ? (
-                                            <div className="relative">
-                                                <video src={data.praiseVideoList[idx]} className="h-20 w-[120px] rounded border border-[#d1d5db] object-cover" />
-                                                <button onClick={() => handleRemoveVideo(idx)} className="absolute -right-1.5 -top-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-danger-400 text-xs text-white">×</button>
-                                            </div>
-                                        ) : (
-                                            <label className="flex h-20 w-[120px] cursor-pointer flex-col items-center justify-center gap-1 rounded border border-dashed border-[#d1d5db] bg-[#f9fafb] text-xs text-[#9ca3af]">
-                                                <span className="text-xl">🎬</span><span>上传视频</span>
-                                                <input type="file" accept="video/*" onChange={e => handleVideoUpload(idx, e.target.files)} className="hidden" />
-                                            </label>
-                                        )}
-                                        <span className="text-xs text-[#9ca3af]">支持 mp4、mov 格式</span>
+                                {/* 文字好评内容 */}
+                                {config.type === 'text' && (
+                                    <div className="mt-3">
+                                        <label className="mb-1.5 block text-[13px] text-[#374151]">好评文字内容：</label>
+                                        <input
+                                            type="text"
+                                            value={config.text || ''}
+                                            onChange={e => handleOrderPraiseTextChange(orderIdx, e.target.value)}
+                                            placeholder="请输入好评文字内容"
+                                            className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-[13px]"
+                                        />
                                     </div>
-                                </div>
-                                {/* Images */}
-                                <div>
-                                    <div className="mb-1.5 text-xs text-[#6b7280]">图片（选填，最多5张）：</div>
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        {(data.praiseImgList?.[idx] || []).map((imgUrl, imgIdx) => (
-                                            <div key={imgIdx} className="relative h-[60px] w-[60px]">
-                                                <img src={imgUrl} alt={`图片${imgIdx + 1}`} className="h-full w-full rounded border border-[#d1d5db] object-cover" />
-                                                <button onClick={() => handleRemoveImage(idx, imgIdx)} className="absolute -right-1.5 -top-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-danger-400 text-xs text-white">×</button>
+                                )}
+
+                                {/* 图文好评内容 */}
+                                {config.type === 'image' && (
+                                    <div className="mt-3 space-y-3">
+                                        <div>
+                                            <label className="mb-1.5 block text-[13px] text-[#374151]">好评文字内容：</label>
+                                            <textarea
+                                                value={config.text || ''}
+                                                onChange={e => handleOrderPraiseTextChange(orderIdx, e.target.value)}
+                                                placeholder="请输入好评文字内容"
+                                                rows={2}
+                                                className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-[13px]"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="mb-1.5 block text-[13px] text-[#374151]">好评图片（最多5张）：</label>
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                {(config.images || []).map((imgUrl, imgIdx) => (
+                                                    <div key={imgIdx} className="relative h-[60px] w-[60px]">
+                                                        <img src={imgUrl} alt={`图片${imgIdx + 1}`} className="h-full w-full rounded border border-[#d1d5db] object-cover" />
+                                                        <button
+                                                            onClick={() => {
+                                                                const newConfigs = [...data.orderPraiseConfigs];
+                                                                newConfigs[orderIdx] = {
+                                                                    ...newConfigs[orderIdx],
+                                                                    images: (newConfigs[orderIdx].images || []).filter((_, i) => i !== imgIdx)
+                                                                };
+                                                                onChange({ orderPraiseConfigs: newConfigs });
+                                                            }}
+                                                            className="absolute -right-1.5 -top-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-danger-400 text-xs text-white"
+                                                        >×</button>
+                                                    </div>
+                                                ))}
+                                                {(config.images?.length || 0) < 5 && (
+                                                    <label className="flex h-[60px] w-[60px] cursor-pointer items-center justify-center rounded border border-dashed border-[#d1d5db] bg-[#f9fafb] text-2xl text-[#9ca3af]">
+                                                        +
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            onChange={async (e) => {
+                                                                if (!e.target.files || e.target.files.length === 0) return;
+                                                                const token = localStorage.getItem('merchantToken');
+                                                                const formData = new FormData();
+                                                                formData.append('file', e.target.files[0]);
+                                                                try {
+                                                                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/upload`, {
+                                                                        method: 'POST',
+                                                                        headers: { 'Authorization': `Bearer ${token}` },
+                                                                        body: formData
+                                                                    });
+                                                                    const json = await res.json();
+                                                                    if (json.success && json.data?.url) {
+                                                                        const newConfigs = [...data.orderPraiseConfigs];
+                                                                        newConfigs[orderIdx] = {
+                                                                            ...newConfigs[orderIdx],
+                                                                            images: [...(newConfigs[orderIdx].images || []), json.data.url]
+                                                                        };
+                                                                        onChange({ orderPraiseConfigs: newConfigs });
+                                                                    } else {
+                                                                        alert('上传失败: ' + (json.message || '未知错误'));
+                                                                    }
+                                                                } catch {
+                                                                    alert('上传失败');
+                                                                }
+                                                            }}
+                                                            className="hidden"
+                                                        />
+                                                    </label>
+                                                )}
+                                                <span className="text-xs text-[#9ca3af]">{(config.images?.length || 0)}/5张</span>
                                             </div>
-                                        ))}
-                                        {(data.praiseImgList?.[idx]?.length || 0) < 5 && (
-                                            <label className="flex h-[60px] w-[60px] cursor-pointer items-center justify-center rounded border border-dashed border-[#d1d5db] bg-[#f9fafb] text-2xl text-[#9ca3af]">+<input type="file" accept="image/*" onChange={e => handleImageUpload(idx, e.target.files)} className="hidden" /></label>
-                                        )}
-                                        <span className="text-xs text-[#9ca3af]">{(data.praiseImgList?.[idx]?.length || 0)}/5张</span>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
+
+                                {/* 视频好评内容 */}
+                                {config.type === 'video' && (
+                                    <div className="mt-3 space-y-3">
+                                        <div>
+                                            <label className="mb-1.5 block text-[13px] text-[#374151]">好评文字内容：</label>
+                                            <textarea
+                                                value={config.text || ''}
+                                                onChange={e => handleOrderPraiseTextChange(orderIdx, e.target.value)}
+                                                placeholder="请输入好评文字内容"
+                                                rows={2}
+                                                className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-[13px]"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="mb-1.5 block text-[13px] text-[#374151]">好评视频（必传）：</label>
+                                            <div className="flex items-center gap-2">
+                                                {config.video ? (
+                                                    <div className="relative">
+                                                        <video src={config.video} className="h-20 w-[120px] rounded border border-[#d1d5db] object-cover" />
+                                                        <button
+                                                            onClick={() => {
+                                                                const newConfigs = [...data.orderPraiseConfigs];
+                                                                newConfigs[orderIdx] = { ...newConfigs[orderIdx], video: '' };
+                                                                onChange({ orderPraiseConfigs: newConfigs });
+                                                            }}
+                                                            className="absolute -right-1.5 -top-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-danger-400 text-xs text-white"
+                                                        >×</button>
+                                                    </div>
+                                                ) : (
+                                                    <label className="flex h-20 w-[120px] cursor-pointer flex-col items-center justify-center gap-1 rounded border border-dashed border-[#d1d5db] bg-[#f9fafb] text-xs text-[#9ca3af]">
+                                                        <span className="text-xl">🎬</span><span>上传视频</span>
+                                                        <input
+                                                            type="file"
+                                                            accept="video/*"
+                                                            onChange={async (e) => {
+                                                                if (!e.target.files || e.target.files.length === 0) return;
+                                                                const token = localStorage.getItem('merchantToken');
+                                                                const formData = new FormData();
+                                                                formData.append('file', e.target.files[0]);
+                                                                try {
+                                                                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/upload`, {
+                                                                        method: 'POST',
+                                                                        headers: { 'Authorization': `Bearer ${token}` },
+                                                                        body: formData
+                                                                    });
+                                                                    const json = await res.json();
+                                                                    if (json.success && json.data?.url) {
+                                                                        const newConfigs = [...data.orderPraiseConfigs];
+                                                                        newConfigs[orderIdx] = { ...newConfigs[orderIdx], video: json.data.url };
+                                                                        onChange({ orderPraiseConfigs: newConfigs });
+                                                                    } else {
+                                                                        alert('上传失败: ' + (json.message || '未知错误'));
+                                                                    }
+                                                                } catch {
+                                                                    alert('上传失败');
+                                                                }
+                                                            }}
+                                                            className="hidden"
+                                                        />
+                                                    </label>
+                                                )}
+                                                <span className="text-xs text-[#9ca3af]">支持 mp4、mov 格式</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="mb-1.5 block text-[13px] text-[#374151]">好评图片（选填，最多5张）：</label>
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                {(config.images || []).map((imgUrl, imgIdx) => (
+                                                    <div key={imgIdx} className="relative h-[60px] w-[60px]">
+                                                        <img src={imgUrl} alt={`图片${imgIdx + 1}`} className="h-full w-full rounded border border-[#d1d5db] object-cover" />
+                                                        <button
+                                                            onClick={() => {
+                                                                const newConfigs = [...data.orderPraiseConfigs];
+                                                                newConfigs[orderIdx] = {
+                                                                    ...newConfigs[orderIdx],
+                                                                    images: (newConfigs[orderIdx].images || []).filter((_, i) => i !== imgIdx)
+                                                                };
+                                                                onChange({ orderPraiseConfigs: newConfigs });
+                                                            }}
+                                                            className="absolute -right-1.5 -top-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-danger-400 text-xs text-white"
+                                                        >×</button>
+                                                    </div>
+                                                ))}
+                                                {(config.images?.length || 0) < 5 && (
+                                                    <label className="flex h-[60px] w-[60px] cursor-pointer items-center justify-center rounded border border-dashed border-[#d1d5db] bg-[#f9fafb] text-2xl text-[#9ca3af]">
+                                                        +
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            onChange={async (e) => {
+                                                                if (!e.target.files || e.target.files.length === 0) return;
+                                                                const token = localStorage.getItem('merchantToken');
+                                                                const formData = new FormData();
+                                                                formData.append('file', e.target.files[0]);
+                                                                try {
+                                                                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/upload`, {
+                                                                        method: 'POST',
+                                                                        headers: { 'Authorization': `Bearer ${token}` },
+                                                                        body: formData
+                                                                    });
+                                                                    const json = await res.json();
+                                                                    if (json.success && json.data?.url) {
+                                                                        const newConfigs = [...data.orderPraiseConfigs];
+                                                                        newConfigs[orderIdx] = {
+                                                                            ...newConfigs[orderIdx],
+                                                                            images: [...(newConfigs[orderIdx].images || []), json.data.url]
+                                                                        };
+                                                                        onChange({ orderPraiseConfigs: newConfigs });
+                                                                    } else {
+                                                                        alert('上传失败: ' + (json.message || '未知错误'));
+                                                                    }
+                                                                } catch {
+                                                                    alert('上传失败');
+                                                                }
+                                                            }}
+                                                            className="hidden"
+                                                        />
+                                                    </label>
+                                                )}
+                                                <span className="text-xs text-[#9ca3af]">{(config.images?.length || 0)}/5张</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        ))}
-                    </div>
-                )}
+                        );
+                    })}
+                </div>
             </div>
 
             {/* Extra Services */}

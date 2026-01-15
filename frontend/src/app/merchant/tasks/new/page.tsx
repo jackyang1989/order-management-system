@@ -22,7 +22,7 @@ export default function NewTaskPage() {
     const [alertModal, setAlertModal] = useState<{ open: boolean; title: string; message: string; type: 'success' | 'error' | 'warning' }>({ open: false, title: '', message: '', type: 'success' });
 
     useEffect(() => { loadMerchantProfile(); }, []);
-    useEffect(() => { calculateFees(); }, [data.goodsPrice, data.goodsList, data.count, data.isPraise, data.praiseType, data.isTimingPublish, data.isTimingPay, data.isCycleTime, data.addReward, data.isFreeShipping, data.isNextDay, data.fastRefund, data.needRandomBrowse]);
+    useEffect(() => { calculateFees(); }, [data.goodsPrice, data.goodsList, data.count, data.orderPraiseConfigs, data.isTimingPublish, data.isTimingPay, data.isCycleTime, data.addReward, data.isFreeShipping, data.isNextDay, data.fastRefund, data.needRandomBrowse]);
 
     const showAlert = (message: string, type: 'success' | 'error' | 'warning' = 'warning') => {
         const titles = { success: '成功', error: '错误', warning: '提示' };
@@ -39,25 +39,70 @@ export default function NewTaskPage() {
     };
 
     const calculateFees = () => {
-        const count = data.count || 1; const baseFeePerOrder = 5.0;
-        let praiseFeeUnit = 0; if (data.isPraise) { if (data.praiseType === 'text') praiseFeeUnit = 2.0; if (data.praiseType === 'image') praiseFeeUnit = 4.0; if (data.praiseType === 'video') praiseFeeUnit = 10.0; }
-        const timingPublishFeeUnit = data.isTimingPublish ? 1.0 : 0; const timingPayFeeUnit = data.isTimingPay ? 1.0 : 0;
+        const count = data.count || 1;
+        const baseFeePerOrder = 5.0;
+
+        // 新版：根据每单的好评类型分别计算好评费用
+        let totalPraise = 0;
+        if (data.orderPraiseConfigs && data.orderPraiseConfigs.length > 0) {
+            data.orderPraiseConfigs.forEach(config => {
+                if (config.type === 'text') totalPraise += 2.0;
+                else if (config.type === 'image') totalPraise += 4.0;
+                else if (config.type === 'video') totalPraise += 10.0;
+            });
+        }
+
+        const timingPublishFeeUnit = data.isTimingPublish ? 1.0 : 0;
+        const timingPayFeeUnit = data.isTimingPay ? 1.0 : 0;
         const cycleTimeUnit = (data.isCycleTime && data.cycleTime && data.cycleTime > 0) ? (data.cycleTime * 1) : 0;
         const addRewardUnit = Number(data.addReward || 0);
         const nextDayFeeUnit = data.isNextDay ? 0.5 : 0;
         const randomBrowseFeeUnit = data.needRandomBrowse ? 0.5 : 0;
+
         // 多商品模式：计算goodsList总价；兼容单商品模式
         const goodsListTotal = data.goodsList.reduce((sum, g) => sum + (g.price * g.quantity), 0);
         const singleGoodsTotal = (data.goodsPrice || 0);
         const perOrderGoodsPrice = goodsListTotal > 0 ? goodsListTotal : singleGoodsTotal;
         const totalGoodsMoney = perOrderGoodsPrice * count;
+
         // 多商品额外费用：每多一个商品加1元（原版为2银锭）
         const goodsMoreFeeUnit = data.goodsList.length > 1 ? (data.goodsList.length - 1) * 1 : 0;
-        const isFreeShipping = data.isFreeShipping === 1; const postagePerOrder = isFreeShipping ? 0 : 10; const marginPerOrder = isFreeShipping ? 0 : 10;
-        const totalPostage = postagePerOrder * count; const totalMargin = marginPerOrder * count; const totalDeposit = totalGoodsMoney + totalPostage + totalMargin;
-        const totalBaseService = baseFeePerOrder * count; const totalPraise = praiseFeeUnit * count; const totalTimingPublish = timingPublishFeeUnit * count; const totalTimingPay = timingPayFeeUnit * count; const totalCycle = cycleTimeUnit * count; const totalAddReward = addRewardUnit * count; const totalGoodsMoreFee = goodsMoreFeeUnit * count; const totalNextDayFee = nextDayFeeUnit * count; const totalRandomBrowseFee = randomBrowseFeeUnit * count;
+        const isFreeShipping = data.isFreeShipping === 1;
+        const postagePerOrder = isFreeShipping ? 0 : 10;
+        const marginPerOrder = isFreeShipping ? 0 : 10;
+        const totalPostage = postagePerOrder * count;
+        const totalMargin = marginPerOrder * count;
+        const totalDeposit = totalGoodsMoney + totalPostage + totalMargin;
+
+        const totalBaseService = baseFeePerOrder * count;
+        const totalTimingPublish = timingPublishFeeUnit * count;
+        const totalTimingPay = timingPayFeeUnit * count;
+        const totalCycle = cycleTimeUnit * count;
+        const totalAddReward = addRewardUnit * count;
+        const totalGoodsMoreFee = goodsMoreFeeUnit * count;
+        const totalNextDayFee = nextDayFeeUnit * count;
+        const totalRandomBrowseFee = randomBrowseFeeUnit * count;
+
         const totalCommission = totalBaseService + totalPraise + totalTimingPublish + totalTimingPay + totalCycle + totalAddReward + totalGoodsMoreFee + totalNextDayFee + totalRandomBrowseFee;
-        if (totalDeposit !== data.totalDeposit || totalCommission !== data.totalCommission || goodsMoreFeeUnit !== data.goodsMoreFee || nextDayFeeUnit !== data.nextDayFee || randomBrowseFeeUnit !== data.randomBrowseFee) { setData(prev => ({ ...prev, totalDeposit, totalCommission, baseServiceFee: baseFeePerOrder, praiseFee: praiseFeeUnit, timingPublishFee: timingPublishFeeUnit, timingPayFee: timingPayFeeUnit, cycleTimeFee: cycleTimeUnit, addRewardFee: addRewardUnit, goodsMoreFee: goodsMoreFeeUnit, nextDayFee: nextDayFeeUnit, randomBrowseFee: randomBrowseFeeUnit, postageMoney: totalPostage, marginMoney: totalMargin })); }
+
+        if (totalDeposit !== data.totalDeposit || totalCommission !== data.totalCommission || goodsMoreFeeUnit !== data.goodsMoreFee || nextDayFeeUnit !== data.nextDayFee || randomBrowseFeeUnit !== data.randomBrowseFee) {
+            setData(prev => ({
+                ...prev,
+                totalDeposit,
+                totalCommission,
+                baseServiceFee: baseFeePerOrder,
+                praiseFee: totalPraise / count, // 平均每单的好评费用
+                timingPublishFee: timingPublishFeeUnit,
+                timingPayFee: timingPayFeeUnit,
+                cycleTimeFee: cycleTimeUnit,
+                addRewardFee: addRewardUnit,
+                goodsMoreFee: goodsMoreFeeUnit,
+                nextDayFee: nextDayFeeUnit,
+                randomBrowseFee: randomBrowseFeeUnit,
+                postageMoney: totalPostage,
+                marginMoney: totalMargin
+            }));
+        }
     };
 
     const handleDataChange = (updates: Partial<TaskFormData>) => { setData(prev => ({ ...prev, ...updates })); };
@@ -76,20 +121,33 @@ export default function NewTaskPage() {
             // 口令验证校验：检查商品列表中是否有商品设置了verifyCode
             if (data.isPasswordEnabled) {
                 const hasVerifyCode = data.goodsList.some(g => g.verifyCode && g.verifyCode.trim().length > 0);
-                if (!hasVerifyCode) { 
-                    showAlert('开启口令验证后，请在第一步商品设置中至少为一个商品填写核对口令', 'warning'); 
-                    setLoading(false); 
-                    return; 
+                if (!hasVerifyCode) {
+                    showAlert('开启口令验证后，请在第一步商品设置中至少为一个商品填写核对口令', 'warning');
+                    setLoading(false);
+                    return;
                 }
             }
-            
-            if (data.isPraise && data.praiseType === 'text') { 
-                const filled = data.praiseList.filter(s => s && s.trim().length > 0); 
-                if (filled.length !== data.count) { 
-                    showAlert(`请填写所有 ${data.count} 条好评内容`, 'warning'); 
-                    setLoading(false); 
-                    return; 
-                } 
+
+            // 新版：验证每单的好评配置
+            if (data.orderPraiseConfigs && data.orderPraiseConfigs.length > 0) {
+                for (let i = 0; i < data.orderPraiseConfigs.length; i++) {
+                    const config = data.orderPraiseConfigs[i];
+                    if (config.type === 'text' && (!config.text || config.text.trim() === '')) {
+                        showAlert(`第 ${i + 1} 单选择了文字评价，请填写评价内容`, 'warning');
+                        setLoading(false);
+                        return;
+                    }
+                    if (config.type === 'image' && (!config.images || config.images.length === 0)) {
+                        showAlert(`第 ${i + 1} 单选择了图文评价，请至少上传1张图片`, 'warning');
+                        setLoading(false);
+                        return;
+                    }
+                    if (config.type === 'video' && (!config.video || config.video.trim() === '')) {
+                        showAlert(`第 ${i + 1} 单选择了视频图文评价，请上传视频`, 'warning');
+                        setLoading(false);
+                        return;
+                    }
+                }
             }
             
             const payload = { 

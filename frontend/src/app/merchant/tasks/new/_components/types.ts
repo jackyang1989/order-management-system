@@ -29,6 +29,14 @@ export interface PraiseContent {
     video?: string; // Video URL
 }
 
+// 每单的好评配置
+export interface OrderPraiseConfig {
+    type: 'none' | 'text' | 'image' | 'video'; // 好评类型
+    text?: string; // 文字内容
+    images?: string[]; // 图片列表（最多5张）
+    video?: string; // 视频URL
+}
+
 // 关键词高级设置
 export interface KeywordAdvancedSettings {
     compareKeyword?: string;  // 货比关键词 (可选，不填则用搜索关键词)
@@ -107,10 +115,13 @@ export interface TaskFormData {
 
     // Praise
     isPraise: boolean;
-    praiseType: 'text' | 'image' | 'video' | 'none';
-    praiseList: string[]; // Text content per order
-    praiseImgList: string[][]; // Images per order (max 5 per order)
-    praiseVideoList: string[]; // Video URL per order (for video praise type)
+    praiseType: 'text' | 'image' | 'video' | 'none'; // 保留用于向后兼容
+    praiseList: string[]; // Text content per order (旧版，保留兼容)
+    praiseImgList: string[][]; // Images per order (旧版，保留兼容)
+    praiseVideoList: string[]; // Video URL per order (旧版，保留兼容)
+
+    // 新版：每单独立的好评配置
+    orderPraiseConfigs: OrderPraiseConfig[]; // 每单的好评配置数组
 
     // Browse Behavior Settings
     needCompare: boolean;       // 货比 (compare with other products)
@@ -205,6 +216,7 @@ export const InitialTaskData: TaskFormData = {
     praiseList: [],
     praiseImgList: [],
     praiseVideoList: [],
+    orderPraiseConfigs: [], // 新版：每单独立的好评配置
 
     // Browse Behavior Settings
     needCompare: false,

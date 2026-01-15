@@ -350,12 +350,24 @@ export class TasksService implements OnModuleInit {
       // 2.3 佣金计算 - 完整版本（包含所有增值服务费用）
       const baseFeePerOrder = 5.0; // 基础服务费固定5元/单
 
-      // 好评费用
-      let praiseFeePerOrder = 0;
-      if (dto.isPraise) {
-        if (dto.praiseType === 'text') praiseFeePerOrder = 2.0;
-        else if (dto.praiseType === 'image') praiseFeePerOrder = 4.0;
-        else if (dto.praiseType === 'video') praiseFeePerOrder = 10.0;
+      // 好评费用 - 新版：支持每单独立配置
+      let totalPraiseFee = 0;
+      if (dto.orderPraiseConfigs && Array.isArray(dto.orderPraiseConfigs) && dto.orderPraiseConfigs.length > 0) {
+        // 新版：根据每单的好评类型分别计算
+        dto.orderPraiseConfigs.forEach((config: any) => {
+          if (config.type === 'text') totalPraiseFee += 2.0;
+          else if (config.type === 'image') totalPraiseFee += 4.0;
+          else if (config.type === 'video') totalPraiseFee += 10.0;
+        });
+      } else {
+        // 旧版兼容：统一好评类型
+        let praiseFeePerOrder = 0;
+        if (dto.isPraise) {
+          if (dto.praiseType === 'text') praiseFeePerOrder = 2.0;
+          else if (dto.praiseType === 'image') praiseFeePerOrder = 4.0;
+          else if (dto.praiseType === 'video') praiseFeePerOrder = 10.0;
+        }
+        totalPraiseFee = praiseFeePerOrder * count;
       }
 
       // 定时发布费

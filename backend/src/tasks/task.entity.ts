@@ -135,34 +135,39 @@ export class Task {
 
   // --- 增值服务 ---
   @Column({ default: false })
-  isPraise: boolean; // 文字好评
+  isPraise: boolean; // 文字好评（旧版兼容）
 
   @Column({ nullable: true })
-  praiseType: string;
+  praiseType: string; // 旧版兼容
 
   @Column({ type: 'text', nullable: true })
-  praiseList: string; // JSON string of string[]
+  praiseList: string; // JSON string of string[]（旧版兼容）
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   praiseFee: number;
 
   @Column({ default: false })
-  isImgPraise: boolean; // 图片好评
+  isImgPraise: boolean; // 图片好评（旧版兼容）
 
   @Column({ type: 'text', nullable: true })
-  praiseImgList: string; // JSON string of string[][]
+  praiseImgList: string; // JSON string of string[][]（旧版兼容）
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   imgPraiseFee: number;
 
   @Column({ default: false })
-  isVideoPraise: boolean; // 视频好评
+  isVideoPraise: boolean; // 视频好评（旧版兼容）
 
   @Column({ type: 'text', nullable: true })
-  praiseVideoList: string; // JSON string of string[]
+  praiseVideoList: string; // JSON string of string[]（旧版兼容）
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   videoPraiseFee: number;
+
+  // 新版：每单独立的好评配置
+  // 格式: [{ type: 'none'|'text'|'image'|'video', text?: string, images?: string[], video?: string }]
+  @Column({ type: 'jsonb', nullable: true })
+  orderPraiseConfigs: any; // JSON array of OrderPraiseConfig
 
   // --- 汇总 ---
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
