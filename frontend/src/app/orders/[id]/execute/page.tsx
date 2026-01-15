@@ -352,6 +352,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 let goodsList: GoodsInfo[] = [];
 
                 // 优先使用新版多商品数据
+                console.log('后端返回的goodsList:', data.goodsList);
                 if (data.goodsList && data.goodsList.length > 0) {
                     goodsList = data.goodsList.map((goods: {
                         id: string;
@@ -450,6 +451,23 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                     }];
                 }
                 setTableData2(goodsList);
+
+                // 恢复保存的商品输入内容
+                const savedGoodsInputs = sessionStorage.getItem(`order_${id}_goodsInputs`);
+                if (savedGoodsInputs) {
+                    try {
+                        const inputs = JSON.parse(savedGoodsInputs);
+                        setTableData2(prev => prev.map(item => {
+                            const savedInput = inputs.find((i: { id: string; input: string; inputnum: string }) => i.id === item.id);
+                            if (savedInput) {
+                                return { ...item, input: savedInput.input || '', inputnum: savedInput.inputnum || '' };
+                            }
+                            return item;
+                        }));
+                    } catch (e) {
+                        console.error('恢复商品输入失败:', e);
+                    }
+                }
 
                 // 构建 tableData3 (订单商品表格)
                 const orderGoods: OrderGoods[] = goodsList.map(g => ({
@@ -811,6 +829,9 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
         setTableData2(prev => {
             const newData = [...prev];
             newData[index] = { ...newData[index], [field]: value };
+            // 保存到 sessionStorage
+            const inputsToSave = newData.map(item => ({ id: item.id, input: item.input, inputnum: item.inputnum }));
+            sessionStorage.setItem(`order_${id}_goodsInputs`, JSON.stringify(inputsToSave));
             return newData;
         });
     };
@@ -1635,7 +1656,47 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         ))}
                     </div>
 
-                    {/* 肆：随机浏览店铺其他商品 - 只有商家开启时才显示 */}
+                    {/* 肆：上传收藏截图 */}
+                    <div style={{ background: '#fff', borderRadius: '8px', padding: '15px', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
+                            <span style={{
+                                background: '#409eff',
+                                color: 'white',
+                                width: '24px',
+                                height: '24px',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginRight: '10px',
+                                fontSize: '12px',
+                            }}>肆</span>
+                            <span style={{ fontWeight: 'bold' }}>上传商品收藏页面截图</span>
+                        </div>
+                        <div style={{ fontSize: '13px', color: '#666', lineHeight: '1.8', marginBottom: '10px' }}>
+                            <p>请截图您的收藏页面，确保能看到已收藏的目标商品。</p>
+                        </div>
+                        <div>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleFileSelect(e, setLocalFile, `order_${id}_localFile`)}
+                                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                            {localFile && (
+                                <div style={{ marginTop: '10px' }}>
+                                    <img
+                                        src={localFile.content}
+                                        alt="预览"
+                                        style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px', cursor: 'pointer' }}
+                                        onClick={() => setPreviewImage(localFile.content)}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* 伍：随机浏览店铺其他商品 - 只有商家开启时才显示 */}
                     {needRandomBrowse && (
                         <div style={{ background: '#fff', borderRadius: '8px', padding: '15px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>

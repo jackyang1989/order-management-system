@@ -444,6 +444,27 @@ export class OrdersController {
       const taskGoodsList = await this.taskGoodsService.findByTaskId(task.id);
       const taskKeywords = await this.taskGoodsService.findKeywordsByTaskId(task.id);
 
+      // 从链接中提取平台商品ID
+      const extractPlatformIdFromLink = (link: string): string | null => {
+        if (!link) return null;
+        // 淘宝/天猫链接: id=xxx
+        const taobaoMatch = link.match(/[?&]id=(\d+)/);
+        if (taobaoMatch) return taobaoMatch[1];
+        // 京东链接: /xxx.html
+        const jdMatch = link.match(/\/(\d+)\.html/);
+        if (jdMatch) return jdMatch[1];
+        // 拼多多链接: goods_id=xxx
+        const pddMatch = link.match(/goods_id=(\d+)/);
+        if (pddMatch) return pddMatch[1];
+        // 1688链接: offer/xxx.html
+        const alibabaMatch = link.match(/offer\/(\d+)\.html/);
+        if (alibabaMatch) return alibabaMatch[1];
+        // 通用：提取8位以上数字
+        const genericMatch = link.match(/(\d{8,})/);
+        if (genericMatch) return genericMatch[1];
+        return null;
+      };
+
       // 构建 goodsList 数据
       const goodsList = taskGoodsList.map((goods, index) => {
         // 找到属于这个商品的关键词（通过 taskGoodsId 匹配）
@@ -454,9 +475,12 @@ export class OrdersController {
           ? this.ordersService.maskPassword(goods.verifyCode)
           : '';
 
+        // 优先从链接提取平台商品ID（因为goodsId可能是内部关联ID）
+        const platformGoodsId = extractPlatformIdFromLink(goods.link) || goods.id;
+
         return {
           id: goods.id,
-          goodsId: goods.goodsId,
+          goodsId: platformGoodsId,
           name: goods.name,
           pcImg: goods.pcImg,
           link: goods.link,
@@ -702,7 +726,7 @@ export class OrdersController {
   async verifyPassword(
     @Param('id') id: string,
     @Request() req,
-    @Body() body: { password: string },
+    @Body() body: { password: string; goodsId?: string },
   ) {
     try {
       const order = await this.ordersService.findOne(id);
@@ -715,11 +739,30 @@ export class OrdersController {
         return { success: false, message: '任务不存在' };
       }
 
+      // 获取任务商品列表，检查每个商品的verifyCode
+      const taskGoodsList = await this.taskGoodsService.findByTaskId(task.id);
+
+      // 如果指定了goodsId，只检查该商品的口令
+      if (body.goodsId) {
+        const targetGoods = taskGoodsList.find(g => g.id === body.goodsId);
+        if (targetGoods && targetGoods.verifyCode && body.password.includes(targetGoods.verifyCode)) {
+          return { success: true, message: '核对成功，口令正确' };
+        }
+      } else {
+        // 检查所有商品的口令
+        for (const goods of taskGoodsList) {
+          if (goods.verifyCode && body.password.includes(goods.verifyCode)) {
+            return { success: true, message: '核对成功，口令正确' };
+          }
+        }
+      }
+
+      // 兼容旧版：检查task.checkPassword
       if (task.checkPassword && body.password.includes(task.checkPassword)) {
         return { success: true, message: '核对成功，口令正确' };
-      } else {
-        return { success: false, message: '口令核对失败，请检查输入是否正确' };
       }
+
+      return { success: false, message: '口令核对失败，请检查输入是否正确' };
     } catch (error) {
       return { success: false, message: error.message };
     }
