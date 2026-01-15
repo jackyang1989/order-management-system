@@ -139,6 +139,11 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const [subBrowseMinutes, setSubBrowseMinutes] = useState(2);
     const [hasSubProduct, setHasSubProduct] = useState(true);
     const [needRandomBrowse, setNeedRandomBrowse] = useState(false); // 随机浏览店铺其他商品
+    const [needFavorite, setNeedFavorite] = useState(false); // 收藏商品
+    const [needFollow, setNeedFollow] = useState(false); // 关注店铺
+    const [needAddCart, setNeedAddCart] = useState(false); // 加入购物车
+    const [needContactCS, setNeedContactCS] = useState(false); // 联系客服
+    const [needCompare, setNeedCompare] = useState(false); // 货比
 
     // 好评相关
     const [isPraise, setIsPraise] = useState(false);
@@ -280,6 +285,11 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 setSubBrowseMinutes(data.subBrowseMinutes || 2);
                 setHasSubProduct(data.hasSubProduct !== false);
                 setNeedRandomBrowse(data.needRandomBrowse || false);
+                setNeedFavorite(data.needFavorite || false);
+                setNeedFollow(data.needFollow || false);
+                setNeedAddCart(data.needAddCart || false);
+                setNeedContactCS(data.needContactCS || false);
+                setNeedCompare(data.needCompare || false);
                 setTaskTimeType('');
                 setTaskYsType('');
 
@@ -435,12 +445,64 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
         }
     }, [id, getToken, alertError]);
 
+    // 从链接中提取商品ID
+    const extractGoodsIdFromLink = (link: string): string | null => {
+        if (!link) return null;
+
+        // 直接输入ID的情况（纯数字）
+        if (/^\d+$/.test(link.trim())) {
+            return link.trim();
+        }
+
+        // 淘宝/天猫链接: id=xxx
+        const taobaoMatch = link.match(/[?&]id=(\d+)/);
+        if (taobaoMatch) return taobaoMatch[1];
+
+        // 京东链接: /xxx.html 或 /product/xxx
+        const jdMatch = link.match(/\/(\d+)\.html/) || link.match(/\/product\/(\d+)/);
+        if (jdMatch) return jdMatch[1];
+
+        // 拼多多链接: goods_id=xxx
+        const pddMatch = link.match(/goods_id=(\d+)/);
+        if (pddMatch) return pddMatch[1];
+
+        // 抖音链接: id=xxx
+        const douyinMatch = link.match(/[?&]id=(\d+)/);
+        if (douyinMatch) return douyinMatch[1];
+
+        // 1688链接: offer/xxx.html
+        const alibabaMatch = link.match(/offer\/(\d+)\.html/);
+        if (alibabaMatch) return alibabaMatch[1];
+
+        // 小红书链接: /item/xxx 或 goods_id=xxx
+        const xhsMatch = link.match(/\/item\/([a-zA-Z0-9]+)/) || link.match(/goods_id=([a-zA-Z0-9]+)/);
+        if (xhsMatch) return xhsMatch[1];
+
+        // 通用：尝试提取链接中的数字ID
+        const genericMatch = link.match(/(\d{8,})/);
+        if (genericMatch) return genericMatch[1];
+
+        return null;
+    };
+
     // 商品链接核对
     const hedui = async (input: string, goodsId: string) => {
         if (!input) {
             alertError('商品地址不能为空');
             return;
         }
+
+        // 先尝试本地验证
+        const inputId = extractGoodsIdFromLink(input);
+        if (inputId && goodsId) {
+            // 本地比对ID
+            if (inputId === goodsId) {
+                alertSuccess('核对成功，商品链接正确');
+                return;
+            }
+        }
+
+        // 如果本地验证失败或无法提取ID，尝试调用API验证
         try {
             const token = getToken();
             const response = await fetch(`${BASE_URL}/orders/${id}/verify-link`, {
@@ -455,10 +517,24 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             if (data.success) {
                 alertSuccess(data.message);
             } else {
-                alertError(data.message);
+                // 如果API也失败，给出更友好的提示
+                if (inputId) {
+                    alertError(`商品ID不匹配。输入的ID: ${inputId}，期望的ID: ${goodsId}`);
+                } else {
+                    alertError(data.message || '商品链接核对失败');
+                }
             }
         } catch (error) {
-            alertError('核对失败');
+            // API调用失败时，如果能提取到ID就进行本地比对
+            if (inputId && goodsId) {
+                if (inputId === goodsId) {
+                    alertSuccess('核对成功，商品链接正确');
+                } else {
+                    alertError(`商品ID不匹配。输入的ID: ${inputId}，期望的ID: ${goodsId}`);
+                }
+            } else {
+                alertError('核对失败，请检查链接格式');
+            }
         }
     };
 
@@ -1395,15 +1471,45 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                                    <img src={item.img} alt="商品" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
+                                    <img src={item.img} alt="商品" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0 }} />
                                     <div style={{ flex: 1 }}>
                                         {/* 主商品：根据关键词搜索找到；副商品：根据主图在店内找到 */}
-                                        <div style={{ fontSize: '13px', color: '#999' }}>
+                                        <div style={{ fontSize: '13px', color: '#666' }}>
                                             {item.isMain ? '请根据关键词搜索找到此商品' : '请根据左侧主图在店内找到此商品'}
                                         </div>
-                                        {/* 第二步不显示价格、数量和规格，这些在第三步显示 */}
                                     </div>
                                 </div>
+
+                                {/* 商家任务要求：收藏/加购/关注/聊天 - 只在主商品显示，放在图片下方 */}
+                                {item.isMain && (needFavorite || needFollow || needAddCart || needContactCS) && (
+                                    <div style={{
+                                        background: '#f0f9eb',
+                                        padding: '10px',
+                                        borderRadius: '4px',
+                                        marginBottom: '10px',
+                                        border: '1px solid #c2e7b0',
+                                        fontSize: '12px'
+                                    }}>
+                                        <div style={{ fontWeight: 'bold', color: '#67c23a', marginBottom: '6px' }}>📋 商家任务要求：</div>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', color: '#333' }}>
+                                            {needFavorite && <span>✅ 收藏商品</span>}
+                                            {needFollow && <span>✅ 关注店铺</span>}
+                                            {needAddCart && <span>✅ 加入购物车</span>}
+                                            {needContactCS && <span>✅ 联系客服</span>}
+                                        </div>
+                                        {needContactCS && contactCSContent && (
+                                            <div style={{
+                                                marginTop: '8px',
+                                                padding: '8px',
+                                                background: '#fff',
+                                                borderRadius: '4px',
+                                                color: '#666'
+                                            }}>
+                                                💬 聊天内容：<span style={{ color: '#f56c6c', fontWeight: 'bold' }}>{contactCSContent}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 {/* 关键词及筛选设置显示 */}
                                 {item.keywords && item.keywords.length > 0 && (
@@ -1438,39 +1544,6 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                                 </div>
                                             </div>
                                         ))}
-                                    </div>
-                                )}
-
-                                {/* 下单规格要求显示 */}
-                                {item.orderSpecs && item.orderSpecs.length > 0 && (
-                                    <div style={{
-                                        background: '#fff7e6',
-                                        padding: '10px',
-                                        borderRadius: '4px',
-                                        marginBottom: '10px',
-                                        fontSize: '12px',
-                                        border: '1px solid #ffd591'
-                                    }}>
-                                        <div style={{ fontWeight: 'bold', color: '#fa8c16', marginBottom: '8px' }}>⚠️ 下单规格要求：</div>
-                                        {item.orderSpecs.map((spec, specIndex) => (
-                                            <div key={specIndex} style={{
-                                                background: '#fff',
-                                                padding: '6px 10px',
-                                                borderRadius: '4px',
-                                                marginBottom: specIndex < item.orderSpecs!.length - 1 ? '6px' : 0,
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center'
-                                            }}>
-                                                <span style={{ color: '#333' }}>
-                                                    {spec.specName}：<span style={{ fontWeight: 'bold', color: '#fa8c16' }}>{spec.specValue}</span>
-                                                </span>
-                                                <span style={{ color: '#f56c6c', fontWeight: 'bold' }}>× {spec.quantity}</span>
-                                            </div>
-                                        ))}
-                                        <div style={{ marginTop: '8px', fontSize: '11px', color: '#f56c6c' }}>
-                                            请严格按照上述规格下单，规格错误可能导致审核不通过
-                                        </div>
                                     </div>
                                 )}
 

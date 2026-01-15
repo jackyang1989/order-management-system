@@ -51,16 +51,26 @@ export class OrdersService {
 
   /**
    * 智能遮罩口令
-   * 6-10字: 保留前2后2 "布朗博士防胀气奶瓶" → "布朗博****奶瓶"
-   * 4-5字: 保留首尾各1 "防胀气奶瓶" → "防***瓶"
+   * 隐藏几个字就显示几个星号，保持口令长度一致
+   * 8字以上: 保留前3后3 "必喜适用布朗博士奶瓶"(10字) → "必喜适****士奶瓶"
+   * 6-7字: 保留前2后2 "布朗博士奶瓶"(6字) → "布朗**奶瓶"
+   * 4-5字: 保留首尾各1 "防胀气奶瓶"(5字) → "防***瓶"
    */
   maskPassword(password: string): string {
     if (!password) return '';
     const len = password.length;
-    if (len >= 6) {
-      return password.slice(0, 2) + '*'.repeat(len - 4) + password.slice(-2);
+    if (len >= 8) {
+      // 8字以上：保留前3后3，中间用*替代
+      const hiddenCount = len - 6;
+      return password.slice(0, 3) + '*'.repeat(hiddenCount) + password.slice(-3);
+    } else if (len >= 6) {
+      // 6-7字：保留前2后2，中间用*替代
+      const hiddenCount = len - 4;
+      return password.slice(0, 2) + '*'.repeat(hiddenCount) + password.slice(-2);
     } else if (len >= 4) {
-      return password.slice(0, 1) + '*'.repeat(len - 2) + password.slice(-1);
+      // 4-5字：保留首尾各1，中间用*替代
+      const hiddenCount = len - 2;
+      return password.slice(0, 1) + '*'.repeat(hiddenCount) + password.slice(-1);
     }
     return '*'.repeat(len);
   }

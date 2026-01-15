@@ -449,6 +449,11 @@ export class OrdersController {
         // 找到属于这个商品的关键词（通过 taskGoodsId 匹配）
         const goodsKeywords = taskKeywords.filter(kw => kw.taskGoodsId === goods.id);
 
+        // 为每个商品生成脱敏口令
+        const goodsMaskedPassword = goods.verifyCode
+          ? this.ordersService.maskPassword(goods.verifyCode)
+          : '';
+
         return {
           id: goods.id,
           goodsId: goods.goodsId,
@@ -461,6 +466,8 @@ export class OrdersController {
           num: goods.num,
           totalPrice: goods.totalPrice,
           isMain: index === 0, // 第一个为主商品
+          verifyCode: goodsMaskedPassword, // 脱敏后的口令提示
+          orderSpecs: goods.orderSpecs ? (typeof goods.orderSpecs === 'string' ? JSON.parse(goods.orderSpecs) : goods.orderSpecs) : [],
           // 关键词列表
           keywords: goodsKeywords.map(kw => ({
             id: kw.id,
