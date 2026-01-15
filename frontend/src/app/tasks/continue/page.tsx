@@ -122,18 +122,51 @@ export default function ContinueTasksPage() {
                                 key={task.id}
                                 className="group relative overflow-hidden rounded-[24px] bg-white p-5 transition-all"
                             >
-                                {/* Platform Badge */}
-                                <div className="absolute top-0 right-0 overflow-hidden rounded-bl-2xl">
-                                    <div className="bg-primary-600 px-4 py-1.5 text-[11px] font-bold text-white">
-                                        {task.platform}
-                                    </div>
-                                </div>
-
                                 <div className="mb-4">
-                                    <h4 className="mr-16 line-clamp-1 text-[15px] font-bold text-slate-800">
-                                        {task.title}
-                                    </h4>
-                                    <p className="mt-1 text-[12px] text-slate-400 font-medium">{task.shopName}</p>
+                                    <div className="flex items-center gap-3">
+                                        {/* 平台图标 - 根据taskType动态显示 */}
+                                        {task.taskType === 1 && (
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#ff6600] text-white text-sm font-bold">
+                                                淘
+                                            </div>
+                                        )}
+                                        {task.taskType === 2 && (
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d50000] text-white text-sm font-bold">
+                                                天
+                                            </div>
+                                        )}
+                                        {task.taskType === 3 && (
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e4393c] text-white text-sm font-bold">
+                                                京
+                                            </div>
+                                        )}
+                                        {task.taskType === 4 && (
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e02e24] text-white text-sm font-bold">
+                                                拼
+                                            </div>
+                                        )}
+                                        {task.taskType === 5 && (
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#000] text-white text-sm font-bold">
+                                                抖
+                                            </div>
+                                        )}
+                                        {task.taskType === 6 && (
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#ff6600] text-white text-sm font-bold">
+                                                快
+                                            </div>
+                                        )}
+                                        {!task.taskType && (
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-600 text-white text-sm font-bold">
+                                                {task.platform?.charAt(0) || 'T'}
+                                            </div>
+                                        )}
+                                        <div>
+                                            <h4 className="text-[15px] font-bold text-slate-800">
+                                                {task.taskNumber || `任务订单 #${task.id}`}
+                                            </h4>
+                                            <p className="text-[12px] text-slate-400 font-medium">{task.shopName}</p>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4 mb-5">

@@ -108,6 +108,8 @@ export interface TaskItem {
 export interface ContinueTaskItem {
     id: string;
     taskId: string;
+    taskNumber?: string;
+    taskType?: number;
     title: string;
     shopName: string;
     platform: string;
@@ -178,6 +180,8 @@ const normalizeTask = (raw: any): TaskItem => ({
 const normalizeContinue = (raw: any): ContinueTaskItem => ({
     id: raw?.id || raw?.orderId || raw?.taskId,
     taskId: raw?.taskId || raw?.seller_task_id || raw?.id,
+    taskNumber: raw?.taskNumber || raw?.task_number,
+    taskType: raw?.taskType || raw?.task_type,
     title: raw?.taskTitle || raw?.title || '任务',
     shopName: raw?.shopName || raw?.seller || '-',
     platform: raw?.platform || raw?.task_type || '-',
