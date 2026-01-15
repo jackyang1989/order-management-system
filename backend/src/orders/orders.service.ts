@@ -168,6 +168,13 @@ export class OrdersService {
     return this.ordersRepository.findOne({ where: { userId, taskId } });
   }
 
+  async findByTask(taskId: string): Promise<Order[]> {
+    return this.ordersRepository.find({
+      where: { taskId },
+      order: { createdAt: 'ASC' } // 按创建时间升序排列，确保订单序号一致
+    });
+  }
+
   async create(userId: string, createOrderDto: CreateOrderDto): Promise<Order> {
     const task = await this.tasksService.findOne(createOrderDto.taskId);
     if (!task) {

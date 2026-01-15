@@ -891,14 +891,14 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                     <p>此任务需要在收货后进行好评：</p>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
                                         {isPraise && (
-                                            <span style={{ 
-                                                background: '#52c41a', 
-                                                color: 'white', 
-                                                padding: '2px 8px', 
+                                            <span style={{
+                                                background: '#52c41a',
+                                                color: 'white',
+                                                padding: '2px 8px',
                                                 borderRadius: '10px',
                                                 fontSize: '11px'
                                             }}>
-                                                ✓ 文字好评 ({praiseList.length}条可选)
+                                                ✓ 文字好评 (已分配)
                                             </span>
                                         )}
                                         {isImgPraise && (
@@ -1025,7 +1025,13 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             </span>
                         </div>
                         <div style={{ fontSize: '13px', color: '#666', lineHeight: '1.8' }}>
-                            <p>1. {platformName || '平台'}APP搜索框，搜索货比关键词：<span style={{ color: 'red' }}>{mainProductFilter3}</span></p>
+                            <p>1. {platformName || '平台'}APP搜索框，搜索货比关键词：
+                                {mainProductFilter3 ? (
+                                    <span style={{ color: 'red' }}>{mainProductFilter3}</span>
+                                ) : (
+                                    <span style={{ color: '#999' }}>(未设置货比关键词)</span>
+                                )}
+                            </p>
                             <p>2. 根据搜索结果，浏览{compareCount}家同类商品，每家{compareBrowseMinutes}分钟；</p>
                             <p>3. 将其中3个商家的货比商品加入购物车并截图；</p>
                             <p>4. 上传货比加购截图:</p>

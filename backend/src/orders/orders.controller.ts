@@ -16,7 +16,7 @@ import { Roles } from '../auth/roles.decorator';
 import { TasksService } from '../tasks/tasks.service';
 import { DingdanxiaService } from '../dingdanxia/dingdanxia.service';
 import { TaskGoodsService } from '../task-goods/task-goods.service';
-import { UsersService } from '../users/users.service';
+import { BuyerAccountsService } from '../buyer-accounts/buyer-accounts.service';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
@@ -26,7 +26,7 @@ export class OrdersController {
     private tasksService: TasksService,
     private dingdanxiaService: DingdanxiaService,
     private taskGoodsService: TaskGoodsService,
-    private usersService: UsersService,
+    private buyerAccountsService: BuyerAccountsService,
   ) { }
 
   // ============ 管理员端订单管理 ============
@@ -481,9 +481,14 @@ export class OrdersController {
         ? this.ordersService.maskPassword(task.checkPassword)
         : '';
 
-      // 获取用户买号（用户名而不是UUID）
-      const user = await this.usersService.findOne(order.userId);
-      const buynoUsername = user?.username || order.buynoAccount || '';
+      // 获取用户买号的实际平台账号名称
+      let buynoUsername = '';
+      if (order.buynoId) {
+        const buyerAccount = await this.buyerAccountsService.findOne(order.buynoId, order.userId);
+        buynoUsername = buyerAccount?.platformAccount || order.buynoAccount || '';
+      } else {
+        buynoUsername = order.buynoAccount || '';
+      }
 
       // 获取货比关键词（优先从关键词列表获取，否则使用任务级别的）
       let huobiKeyword = task.compareKeyword || '';
@@ -503,6 +508,53 @@ export class OrdersController {
           userPrincipal = goodsList.reduce((sum, g) => sum + Number(g.totalPrice || g.price * g.num || 0), 0);
         } else {
           userPrincipal = Number(task.goodsPrice) || 0;
+        }
+      }
+
+      // 为当前订单分配特定的好评内容
+      // 根据该任务的订单创建顺序来确定当前订单应该使用哪条好评
+      const taskOrders = await this.ordersService.findByTask(task.id);
+      const orderIndex = taskOrders.findIndex((o: any) => o.id === order.id);
+
+      // 解析好评列表
+      let praiseList: string[] = [];
+      let praiseImgList: string[] = [];
+      let praiseVideoList: string[] = [];
+
+      if (task.praiseList) {
+        const allPraises = typeof task.praiseList === 'string'
+          ? JSON.parse(task.praiseList)
+          : task.praiseList;
+        // 如果有多条好评，根据订单序号分配一条
+        if (Array.isArray(allPraises) && allPraises.length > 0) {
+          const assignedIndex = orderIndex >= 0 && orderIndex < allPraises.length
+            ? orderIndex
+            : orderIndex % allPraises.length;
+          praiseList = [allPraises[assignedIndex]];
+        }
+      }
+
+      if (task.praiseImgList) {
+        const allImages = typeof task.praiseImgList === 'string'
+          ? JSON.parse(task.praiseImgList)
+          : task.praiseImgList;
+        if (Array.isArray(allImages) && allImages.length > 0) {
+          const assignedIndex = orderIndex >= 0 && orderIndex < allImages.length
+            ? orderIndex
+            : orderIndex % allImages.length;
+          praiseImgList = [allImages[assignedIndex]];
+        }
+      }
+
+      if (task.praiseVideoList) {
+        const allVideos = typeof task.praiseVideoList === 'string'
+          ? JSON.parse(task.praiseVideoList)
+          : task.praiseVideoList;
+        if (Array.isArray(allVideos) && allVideos.length > 0) {
+          const assignedIndex = orderIndex >= 0 && orderIndex < allVideos.length
+            ? orderIndex
+            : orderIndex % allVideos.length;
+          praiseVideoList = [allVideos[assignedIndex]];
         }
       }
 
@@ -535,13 +587,13 @@ export class OrdersController {
           maskedPassword,
           platformProductId: task.platformProductId,
 
-          // 增值服务
+          // 增值服务 - 使用分配的好评
           isPraise: task.isPraise,
           isImgPraise: task.isImgPraise,
           isVideoPraise: task.isVideoPraise,
-          praiseList: task.praiseList,
-          praiseImgList: task.praiseImgList,
-          praiseVideoList: task.praiseVideoList,
+          praiseList: praiseList,
+          praiseImgList: praiseImgList,
+          praiseVideoList: praiseVideoList,
 
           // 佣金信息
           commission: order.commission || task.baseServiceFee || 0,
