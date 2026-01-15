@@ -85,7 +85,8 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     // ===================== 核心状态 =====================
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [active, setActive] = useState(0); // 0=任务概览页, 1=第一步, 2=第二步, 3=第三步
+    const [active, setActive] = useState(0); // 0=任务概览页, 1=第一步, 2=第二步, 3=第三步 (用于UI显示)
+    const [backendCurrentStep, setBackendCurrentStep] = useState(1); // 后端的当前步骤（用于提交）
     const [userTaskId, setUserTaskId] = useState('');
 
     // 第一步货比倒计时
@@ -255,10 +256,10 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             if (res.success) {
                 const data = res.data;
 
-                // 使用后端返回的 currentStep 初始化步骤（优先于 sessionStorage）
-                // currentStep 从1开始，active 从0开始（0是概览页）
+                // 使用后端返回的 currentStep 初始化步骤
                 const backendStep = data.currentStep || 1;
-                setActive(backendStep); // 直接使用后端的步骤
+                setActive(backendStep); // 用于UI显示
+                setBackendCurrentStep(backendStep); // 记录后端的当前步骤
 
                 setUserTaskId(data.orderId);
                 setUserBuynoAccount(data.buynoAccount || '');
@@ -676,6 +677,13 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             }
             console.log('第一步验证通过，提交第一步数据');
 
+            // 如果当前显示的步骤不是后端的当前步骤，说明用户在查看已完成的步骤
+            if (active !== backendCurrentStep) {
+                // 直接跳到后端的当前步骤
+                setActive(backendCurrentStep);
+                return;
+            }
+
             // 提交第一步数据到后端
             setSubmitting(true);
             try {
@@ -687,7 +695,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         ...(token ? { Authorization: `Bearer ${token}` } : {}),
                     },
                     body: JSON.stringify({
-                        step: active, // 使用当前的 active 值（与后端 currentStep 同步）
+                        step: backendCurrentStep, // 使用后端的当前步骤
                         screenshot: localFile2.content,
                         inputData: {
                             compareScreenshot: localFile2.content,
@@ -696,7 +704,9 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 });
                 const data = await response.json();
                 if (data.success) {
-                    setActive(2);
+                    const nextStep = backendCurrentStep + 1;
+                    setBackendCurrentStep(nextStep);
+                    setActive(nextStep);
                 } else {
                     alertError(data.message || '提交失败');
                 }
@@ -734,6 +744,13 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 }
             }
 
+            // 如果当前显示的步骤不是后端的当前步骤，说明用户在查看已完成的步骤
+            if (active !== backendCurrentStep) {
+                // 直接跳到后端的当前步骤
+                setActive(backendCurrentStep);
+                return;
+            }
+
             setSubmitting(true);
             try {
                 const token = getToken();
@@ -744,7 +761,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         ...(token ? { Authorization: `Bearer ${token}` } : {}),
                     },
                     body: JSON.stringify({
-                        step: active, // 使用当前的 active 值（与后端 currentStep 同步）
+                        step: backendCurrentStep, // 使用后端的当前步骤
                         screenshot: localFile.content,
                         inputData: {
                             goodsLink1: inputValue3,
@@ -756,7 +773,9 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 const data = await response.json();
                 if (data.success) {
                     alertSuccess(data.message);
-                    setActive(3);
+                    const nextStep = backendCurrentStep + 1;
+                    setBackendCurrentStep(nextStep);
+                    setActive(nextStep);
                 } else {
                     alertError(data.message);
                 }
@@ -788,6 +807,13 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             }
             if (inputMobile && !phoneReg.test(inputMobile)) {
                 alertError('手机号码格式不规范,请检查后重新输入');
+                return;
+            }
+
+            // 如果当前显示的步骤不是后端的当前步骤，说明用户在查看已完成的步骤
+            if (active !== backendCurrentStep) {
+                // 直接跳到后端的当前步骤
+                setActive(backendCurrentStep);
                 return;
             }
 
@@ -831,7 +857,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         ...(token ? { Authorization: `Bearer ${token}` } : {}),
                     },
                     body: JSON.stringify({
-                        step: 3,
+                        step: backendCurrentStep, // 使用后端的当前步骤
                         screenshot: localFile3.content,
                         inputData: {
                             platformOrderNumber: inputValue7,
@@ -1984,7 +2010,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             </div>
                             <div style={{ fontSize: '12px', color: '#333', lineHeight: '1.8' }}>
                                 <p>1. 请使用 <span style={{ color: '#f56c6c', fontWeight: 'bold' }}>{userBuynoAccount}</span> 下单和付款，付款完毕后请填写您的实付金额和订单号。</p>
-                                <p>2. 只能使用银行借记卡或支付宝付款，<span style={{ color: '#f56c6c' }}>不可使用信用卡、花呗付款，也不可使用村淘(农村淘宝)、淘宝客和返利平台下单</span>，提交后会进行审核一旦发现订单退款和买号降权处理。</p>
+                                <p>2. <span style={{ color: '#f56c6c' }}>不可使用红包，淘金币以及任何返利平台下单</span>，一旦发现将扣除相应金额，后期不再派单。</p>
                             </div>
                         </div>
 
