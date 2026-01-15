@@ -518,10 +518,18 @@ export class OrdersService {
 
     // 3. 隔天任务校验：次日16:40后才允许提交（只在付款步骤检查）
     const task = await this.tasksService.findOne(order.taskId);
-    const currentStepData = order.stepData.find(
+    const currentStepDataForNextDay = order.stepData.find(
       (s) => s.step === submitStepDto.step,
     );
-    const isPaymentStep = currentStepData?.title === '下单截图' || submitStepDto.step === order.totalSteps;
+    const isPaymentStep = currentStepDataForNextDay?.title === '下单截图' || submitStepDto.step === order.totalSteps;
+
+    console.log('隔天任务检查:', {
+      step: submitStepDto.step,
+      totalSteps: order.totalSteps,
+      stepTitle: currentStepDataForNextDay?.title,
+      isPaymentStep,
+      isNextDay: task?.isNextDay,
+    });
 
     if (task?.isNextDay && isPaymentStep) {
       const orderCreatedAt = new Date(order.createdAt);
