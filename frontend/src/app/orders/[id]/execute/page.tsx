@@ -147,6 +147,8 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const [needAddCart, setNeedAddCart] = useState(false); // 加入购物车
     const [needContactCS, setNeedContactCS] = useState(false); // 联系客服
     const [needCompare, setNeedCompare] = useState(false); // 货比
+    const [needBrowseReviews, setNeedBrowseReviews] = useState(false); // 浏览评价
+    const [needBrowseQA, setNeedBrowseQA] = useState(false); // 浏览问大家
 
     // 好评相关
     const [isPraise, setIsPraise] = useState(false);
@@ -299,6 +301,8 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 setNeedAddCart(data.needAddCart || false);
                 setNeedContactCS(data.needContactCS || false);
                 setNeedCompare(data.needCompare || false);
+                setNeedBrowseReviews(data.needBrowseReviews || false);
+                setNeedBrowseQA(data.needBrowseQA || false);
                 setTaskTimeType('');
                 setTaskYsType('');
 
@@ -1634,8 +1638,8 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                     </div>
                                 </div>
 
-                                {/* 商家任务要求：收藏/加购/关注/聊天 - 只在主商品显示，放在图片下方 */}
-                                {item.isMain && (needFavorite || needFollow || needAddCart || needContactCS) && (
+                                {/* 商家任务要求：收藏/加购/关注/聊天/浏览评价/浏览问大家 - 只在主商品显示，放在图片下方 */}
+                                {item.isMain && (needFavorite || needFollow || needAddCart || needContactCS || needBrowseReviews || needBrowseQA) && (
                                     <div style={{
                                         background: '#f0f9eb',
                                         padding: '10px',
@@ -1650,6 +1654,8 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                             {needFollow && <span>✅ 关注店铺</span>}
                                             {needAddCart && <span>✅ 加入购物车</span>}
                                             {needContactCS && <span>✅ 联系客服</span>}
+                                            {needBrowseReviews && <span>✅ 浏览评价</span>}
+                                            {needBrowseQA && <span>✅ 浏览问大家</span>}
                                         </div>
                                         {needContactCS && contactCSContent && (
                                             <div style={{

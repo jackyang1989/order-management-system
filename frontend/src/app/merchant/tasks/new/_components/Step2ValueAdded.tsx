@@ -162,7 +162,7 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                         <div><span className="text-sm">加入购物车</span><span className="ml-2 text-xs text-[#9ca3af]">买手需先加入购物车再下单</span></div>
                     </div>
                     {/* Contact Customer Service */}
-                    <div className="flex items-start gap-3 px-4 py-3">
+                    <div className="flex items-start gap-3 border-b border-[#f3f4f6] px-4 py-3">
                         <input type="checkbox" checked={data.needContactCS} onChange={e => onChange({ needContactCS: e.target.checked })} className="mt-1" />
                         <div className="flex-1">
                             <div><span className="text-sm">联系客服</span><span className="ml-2 text-xs text-[#9ca3af]">买手需与客服沟通</span></div>
@@ -179,6 +179,18 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                             )}
                         </div>
                     </div>
+                    {/* Browse Reviews */}
+                    <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-4 py-3">
+                        <input type="checkbox" checked={data.needBrowseReviews} onChange={e => onChange({ needBrowseReviews: e.target.checked })} />
+                        <div><span className="text-sm">浏览评价</span><span className="ml-2 text-xs text-[#9ca3af]">买手需浏览商品评价</span></div>
+                    </div>
+                    {/* Browse Q&A - Only for Taobao, Tmall, JD */}
+                    {(data.taskType === 1 || data.taskType === 2 || data.taskType === 3) && (
+                        <div className="flex items-center gap-3 px-4 py-3">
+                            <input type="checkbox" checked={data.needBrowseQA} onChange={e => onChange({ needBrowseQA: e.target.checked })} />
+                            <div><span className="text-sm">浏览问大家</span><span className="ml-2 text-xs text-[#9ca3af]">买手需浏览"问大家"板块</span></div>
+                        </div>
+                    )}
                 </div>
             </div>
 

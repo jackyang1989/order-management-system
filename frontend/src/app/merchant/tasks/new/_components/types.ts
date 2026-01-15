@@ -120,6 +120,8 @@ export interface TaskFormData {
     needAddCart: boolean;       // 加入购物车
     needContactCS: boolean;     // 联系客服
     contactCSContent: string;   // 联系客服内容
+    needBrowseReviews: boolean; // 浏览评价
+    needBrowseQA: boolean;      // 浏览问大家 (仅淘宝、天猫、京东)
 
     // 浏览时长设置
     totalBrowseMinutes: number;  // 总浏览时长(分钟)
@@ -212,6 +214,8 @@ export const InitialTaskData: TaskFormData = {
     needAddCart: false,
     needContactCS: false,
     contactCSContent: '',
+    needBrowseReviews: false,
+    needBrowseQA: false,
 
     // 浏览时长设置
     totalBrowseMinutes: 15,

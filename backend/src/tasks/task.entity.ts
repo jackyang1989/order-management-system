@@ -322,6 +322,12 @@ export class Task {
   @Column({ default: false })
   needRandomBrowse: boolean; // 随机浏览店铺其他商品
 
+  @Column({ default: false })
+  needBrowseReviews: boolean; // 浏览评价
+
+  @Column({ default: false })
+  needBrowseQA: boolean; // 浏览问大家 (仅淘宝、天猫、京东)
+
   @Column({ type: 'int', default: 3 })
   compareCount: number; // 货比数量（默认3家）
 

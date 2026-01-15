@@ -524,6 +524,9 @@ export class TasksService implements OnModuleInit {
         needContactCS: !!dto.needContactCS,
         contactCSContent: dto.contactCSContent || '',
         compareCount: dto.compareCount || 3,
+        needRandomBrowse: !!dto.needRandomBrowse,
+        needBrowseReviews: !!dto.needBrowseReviews,
+        needBrowseQA: !!dto.needBrowseQA,
 
         // 浏览时长设置
         totalBrowseMinutes: dto.totalBrowseMinutes || 15,
