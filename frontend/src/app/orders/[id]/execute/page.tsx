@@ -69,8 +69,13 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     // ===================== 核心状态 =====================
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [active, setActive] = useState(0); // 0=任务概览页, 1=第一步, 2=第二步, 3=第三步 // 当前步骤 1/2/3
+    const [active, setActive] = useState(0); // 0=任务概览页, 1=第一步, 2=第二步, 3=第三步
     const [userTaskId, setUserTaskId] = useState('');
+
+    // 第一步货比倒计时
+    const [step1Countdown, setStep1Countdown] = useState(0); // 剩余秒数
+    const [step1CountdownStarted, setStep1CountdownStarted] = useState(false);
+    const [showCountdownWarning, setShowCountdownWarning] = useState(false); // 显示倒计时警告
 
     // 任务类型相关
     const [tasktype, setTasktype] = useState('');
@@ -478,6 +483,15 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             setActive(1);
         } else if (active === 1) {
             // 验证第一步
+            // 检查倒计时是否完成
+            if (step1Countdown > 0) {
+                // 不使用alert，而是滚动到倒计时位置并高亮提示
+                const minutes = Math.floor(step1Countdown / 60);
+                const seconds = step1Countdown % 60;
+                // 可以在这里添加一个临时的提示状态，或者直接滚动到倒计时区域
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
             console.log('第一步验证 - localFile2:', localFile2);
             if (!localFile2) {
                 alertError('货比加购截图不能为空');
@@ -626,7 +640,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     // 上一步
     const prev = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        if (active > 1) {
+        if (active > 0) {
             setActive(active - 1);
         }
     };
@@ -697,6 +711,30 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
         sessionStorage.setItem('active', String(active));
     }, [active]);
 
+    // 第一步货比倒计时逻辑
+    useEffect(() => {
+        if (active === 1 && step1CountdownStarted && step1Countdown > 0) {
+            const timer = setInterval(() => {
+                setStep1Countdown(prev => {
+                    if (prev <= 1) {
+                        clearInterval(timer);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+            return () => clearInterval(timer);
+        }
+    }, [active, step1CountdownStarted, step1Countdown]);
+
+    // 当进入第一步时，启动倒计时
+    useEffect(() => {
+        if (active === 1 && !step1CountdownStarted) {
+            setStep1Countdown(compareBrowseMinutes * 60); // 转换为秒
+            setStep1CountdownStarted(true);
+        }
+    }, [active, step1CountdownStarted, compareBrowseMinutes]);
+
     // ===================== 渲染 =====================
     if (loading) {
         return (
@@ -739,7 +777,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 </div>
             )}
 
-            {/* 任务信息卡片 */}
+            {/* 任务信息卡片 - 在概览页和执行步骤时都显示 */}
             <div style={{ background: '#fff', margin: '10px', borderRadius: '8px', padding: '15px' }}>
                 <div style={{ fontSize: '15px', fontWeight: 'bold', marginBottom: '12px', color: '#333' }}>任务步骤</div>
                 {tableData.map((item, index) => (
@@ -774,22 +812,23 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                 {isFreeShipping ? '包邮' : '非包邮'}
                             </span>
                         </div>
-                        <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
-                            <button
-                                onClick={handleQuXiao}
-                                style={{
-                                    background: '#f56c6c',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '8px 20px',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '14px',
-                                }}
-                            >
-                                取消
-                            </button>
-                            {active === 0 && (
+                        {/* 只在概览页显示操作按钮 */}
+                        {active === 0 && (
+                            <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
+                                <button
+                                    onClick={handleQuXiao}
+                                    style={{
+                                        background: '#f56c6c',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '8px 20px',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '14px',
+                                    }}
+                                >
+                                    取消
+                                </button>
                                 <button
                                     onClick={() => setActive(1)}
                                     style={{
@@ -805,16 +844,19 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                 >
                                     去完成
                                 </button>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 ))}
             </div>
 
-            {/* 商家要求 */}
+            {/* 商家要求 - 在概览页和执行步骤时都显示 */}
             <div style={{ background: '#fff3cd', margin: '10px', borderRadius: '8px', padding: '12px', fontSize: '13px', color: '#856404' }}>
                 <p>{zhongDuanmessage}</p>
                 <p>您当前接受任务的买号为 <span style={{ color: 'red' }}>"{userBuynoAccount}"</span> 请访问{platformName || '平台'}APP，确认登录的买号是否正确！</p>
+                {sellTaskMemo && (
+                    <p>商家订单要求: {sellTaskMemo}</p>
+                )}
                 {taskTimeType === '2' && (
                     <p style={{ color: 'red' }}>今天浏览收藏加购，提交到第三步，明天16点前付款并提交订单信息，超时订单取消。</p>
                 )}
@@ -1013,34 +1055,6 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         )}
                     </div>
 
-                    {/* 任务类型指引 */}
-                    <div style={{ background: '#fff', borderRadius: '8px', padding: '15px', marginBottom: '10px' }}>
-                        {tasktype === '3' && qrcode && (
-                            <div>
-                                <p>打开{platformName || '平台'}APP，扫描二维码：</p>
-                                <img src={qrcode} alt="二维码" style={{ width: '100px', height: '100px', border: '1px solid #ddd' }} />
-                            </div>
-                        )}
-                        {tasktype === '2' && taoword && (
-                            <p>复制淘口令，打开{platformName || '平台'}APP：<span style={{ color: 'red' }}>{taoword}</span></p>
-                        )}
-                        {tasktype === '4' && (
-                            <p>{platformName || '平台'}APP搜索框，手动输入搜索关键词：<span style={{ color: 'red', userSelect: 'none' }}>{keyWord}</span></p>
-                        )}
-                        {/* 默认显示关键词搜索指引（当没有匹配到其他类型时） */}
-                        {tasktype !== '2' && tasktype !== '3' && tasktype !== '4' && keyWord && (
-                            <div>
-                                <p style={{ fontSize: '13px', color: '#333', marginBottom: '8px' }}>
-                                    <span style={{ fontWeight: 'bold', color: '#409eff' }}>进店方式：</span>关键词搜索
-                                </p>
-                                <p style={{ fontSize: '13px', color: '#666' }}>
-                                    打开{platformName || '平台'}APP，在搜索框输入关键词：
-                                    <span style={{ color: 'red', fontWeight: 'bold', marginLeft: '5px' }}>{keyWord}</span>
-                                </p>
-                            </div>
-                        )}
-                    </div>
-
                     {/* 壹：货比加购 */}
                     <div style={{ background: '#fff', borderRadius: '8px', padding: '15px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
@@ -1058,9 +1072,45 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             }}>壹</span>
                             <span style={{ fontWeight: 'bold' }}>货比加购</span>
                             <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#e6a23c', fontWeight: 'bold' }}>
-                                浏览时长：{compareBrowseMinutes}分钟/家
+                                浏览时长：{compareBrowseMinutes}分钟
                             </span>
                         </div>
+
+                        {/* 货比倒计时 */}
+                        {step1Countdown > 0 && (
+                            <div style={{
+                                background: '#fff3e0',
+                                border: '2px solid #ff9800',
+                                borderRadius: '8px',
+                                padding: '15px',
+                                marginBottom: '15px',
+                                textAlign: 'center'
+                            }}>
+                                <div style={{ fontSize: '14px', color: '#e65100', marginBottom: '8px', fontWeight: 'bold' }}>
+                                    ⏱️ 货比浏览倒计时
+                                </div>
+                                <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#ff6f00', fontFamily: 'monospace' }}>
+                                    {Math.floor(step1Countdown / 60).toString().padStart(2, '0')}:{(step1Countdown % 60).toString().padStart(2, '0')}
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#e65100', marginTop: '8px' }}>
+                                    请完成足够时间的货比浏览，倒计时结束后才能进入下一步
+                                </div>
+                            </div>
+                        )}
+                        {step1Countdown === 0 && step1CountdownStarted && (
+                            <div style={{
+                                background: '#e8f5e9',
+                                border: '2px solid #4caf50',
+                                borderRadius: '8px',
+                                padding: '15px',
+                                marginBottom: '15px',
+                                textAlign: 'center'
+                            }}>
+                                <div style={{ fontSize: '14px', color: '#2e7d32', fontWeight: 'bold' }}>
+                                    ✅ 货比浏览时间已达标，可以进入下一步
+                                </div>
+                            </div>
+                        )}
                         <div style={{ fontSize: '13px', color: '#666', lineHeight: '1.8' }}>
                             <p>1. {platformName || '平台'}APP搜索框，搜索货比关键词：
                                 <span style={{ color: 'red' }}>{mainProductFilter3 || keyWord}</span>
@@ -1094,6 +1144,33 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             {/* ===================== 第二步 ===================== */}
             {active === 2 && (
                 <div style={{ margin: '10px' }}>
+                    {/* 进店方式指引 */}
+                    <div style={{ background: '#fff', borderRadius: '8px', padding: '15px', marginBottom: '10px' }}>
+                        <div style={{ marginBottom: '15px' }}>
+                            <span style={{ fontWeight: 'bold', color: '#409eff', fontSize: '14px' }}>进店方式：</span>
+                            <span style={{ fontSize: '14px', color: '#333' }}>关键词搜索</span>
+                        </div>
+                        {tasktype === '3' && qrcode && (
+                            <div>
+                                <p>打开{platformName || '平台'}APP，扫描二维码：</p>
+                                <img src={qrcode} alt="二维码" style={{ width: '100px', height: '100px', border: '1px solid #ddd' }} />
+                            </div>
+                        )}
+                        {tasktype === '2' && taoword && (
+                            <p>复制淘口令，打开{platformName || '平台'}APP：<span style={{ color: 'red' }}>{taoword}</span></p>
+                        )}
+                        {tasktype === '4' && (
+                            <p>{platformName || '平台'}APP搜索框，手动输入搜索关键词：<span style={{ color: 'red', userSelect: 'none' }}>{keyWord}</span></p>
+                        )}
+                        {/* 默认显示关键词搜索指引 */}
+                        {tasktype !== '2' && tasktype !== '3' && tasktype !== '4' && keyWord && (
+                            <p style={{ fontSize: '13px', color: '#666' }}>
+                                打开{platformName || '平台'}APP，在搜索框输入关键词：
+                                <span style={{ color: 'red', fontWeight: 'bold', marginLeft: '5px' }}>{keyWord}</span>
+                            </p>
+                        )}
+                    </div>
+
                     {/* 贰：进店浏览 */}
                     <div style={{ background: '#fff', borderRadius: '8px', padding: '15px', marginBottom: '10px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
@@ -1633,14 +1710,14 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 }}>
                     <button
                         onClick={prev}
-                        disabled={active === 1}
+                        disabled={active === 0}
                         style={{
                             padding: '10px 30px',
-                            background: active === 1 ? '#f5f5f5' : '#fff',
+                            background: active === 0 ? '#f5f5f5' : '#fff',
                             border: '1px solid #ddd',
-                            color: active === 1 ? '#ccc' : '#666',
+                            color: active === 0 ? '#ccc' : '#666',
                             borderRadius: '4px',
-                            cursor: active === 1 ? 'not-allowed' : 'pointer',
+                            cursor: active === 0 ? 'not-allowed' : 'pointer',
                         }}
                     >
                         上一步
