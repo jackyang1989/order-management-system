@@ -336,7 +336,7 @@ export default function KeywordsPage() {
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <span className="font-mono text-sm font-bold text-slate-700">
+                                                        <span className="font-mono text-sm font-normal text-slate-700">
                                                             {formatPriceRange(kw.minPrice, kw.maxPrice)}
                                                         </span>
                                                     </td>

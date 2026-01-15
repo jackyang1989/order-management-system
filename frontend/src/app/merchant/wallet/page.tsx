@@ -347,7 +347,7 @@ export default function MerchantWalletPage() {
                                             </div>
                                         </div>
                                         <div className={cn('text-lg font-black font-mono', tx.amount > 0 ? 'text-emerald-500' : 'text-slate-900')}>
-                                            {tx.amount > 0 ? '+' : ''}{tx.balanceType === 'balance' ? '¥' : ''}{tx.amount.toFixed(2)}
+                                            {tx.amount > 0 ? '+' : ''}{tx.balanceType === 'balance' ? '¥' : ''}{Number(tx.amount).toFixed(2)}
                                         </div>
                                     </div>
                                 ))}

@@ -358,6 +358,9 @@ export class FinanceRecordsService {
   ): Promise<FinanceRecord[]> {
     const records: FinanceRecord[] = [];
 
+    // 验证memo参数，提供默认值
+    const validMemo = memo && memo !== 'undefined' && memo.trim() !== '' ? memo : '发布任务';
+
     // 押金冻结
     records.push(
       await this.create({
@@ -367,7 +370,7 @@ export class FinanceRecordsService {
         financeType: FinanceType.MERCHANT_TASK_FREEZE,
         amount: -Math.abs(depositAmount),
         balanceAfter,
-        memo: `${memo} - 押金冻结`,
+        memo: `${validMemo} - 押金冻结`,
         relatedId: taskId,
         relatedType: 'task',
       }),
@@ -382,7 +385,7 @@ export class FinanceRecordsService {
         financeType: FinanceType.MERCHANT_TASK_FEE,
         amount: -Math.abs(commissionAmount),
         balanceAfter: silverAfter,
-        memo: `${memo} - 服务费扣除`,
+        memo: `${validMemo} - 服务费扣除`,
         relatedId: taskId,
         relatedType: 'task',
       }),

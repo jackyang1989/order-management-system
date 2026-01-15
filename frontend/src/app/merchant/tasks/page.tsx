@@ -196,7 +196,7 @@ export default function MerchantTasksPage() {
                                         </td>
                                         <td className="px-6 py-5">{getStatusBadge(task.status)}</td>
                                         <td className="px-6 py-5 text-[13px] font-medium text-slate-400">{new Date(task.createdAt).toLocaleDateString()}</td>
-                                        <td className="px-6 py-5">
+                                        <td className="px-6 py-5 align-middle">
                                             <button
                                                 onClick={() => router.push(`/merchant/tasks/${task.id}`)}
                                                 className="h-8 rounded-[12px] bg-slate-50 px-4 text-[12px] font-bold text-slate-600 transition-colors hover:bg-slate-100"
