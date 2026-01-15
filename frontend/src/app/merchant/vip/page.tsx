@@ -42,7 +42,7 @@ export default function MerchantVipPage() {
 
             if (vipJson.success) setVipInfo(vipJson.data);
             if (pkgsJson.success) setPackages(pkgsJson.data);
-            if (profileJson.success) setBalance(profileJson.data.balance || 0);
+            if (profileJson.success) setBalance(Number(profileJson.data.balance) || 0);
 
         } catch (e) { console.error(e); }
         finally { setLoading(false); }

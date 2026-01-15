@@ -953,48 +953,68 @@ export default function AdminTasksPage() {
                                     </div>
                                     {/* 费用明细 */}
                                     <div className="border-t border-slate-200 pt-4">
-                                        <div className="text-[12px] font-medium text-[#3b4559] mb-3">费用明细（单价/单）</div>
+                                        <div className="text-[12px] font-medium text-[#3b4559] mb-3">费用明细</div>
                                         <div className="space-y-2 text-sm">
+                                            {(() => {
+                                                let totalGoodsPrice = 0;
+                                                if (detailModal.goodsList && detailModal.goodsList.length > 0) {
+                                                    totalGoodsPrice = detailModal.goodsList.reduce((sum: number, goods: any) => sum + Number(goods.totalPrice || 0), 0);
+                                                } else {
+                                                    totalGoodsPrice = Number(detailModal.goodsPrice) || 0;
+                                                }
+                                                return (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-[#6b7280]">商品本金 ¥{totalGoodsPrice.toFixed(2)} × {detailModal.count}单</span>
+                                                        <span className="font-medium">¥{(totalGoodsPrice * detailModal.count).toFixed(2)}</span>
+                                                    </div>
+                                                );
+                                            })()}
                                             {Number(detailModal.baseServiceFee || 0) > 0 && (
                                                 <div className="flex justify-between">
-                                                    <span className="text-[#6b7280]">基础服务费</span>
-                                                    <span className="font-medium">¥{Number(detailModal.baseServiceFee).toFixed(2)}</span>
+                                                    <span className="text-[#6b7280]">基础服务费 ¥{Number(detailModal.baseServiceFee).toFixed(2)} × {detailModal.count}单</span>
+                                                    <span className="font-medium">¥{(Number(detailModal.baseServiceFee) * detailModal.count).toFixed(2)}</span>
                                                 </div>
                                             )}
                                             {Number(detailModal.praiseFee || 0) > 0 && (
                                                 <div className="flex justify-between">
-                                                    <span className="text-[#6b7280]">文字好评费</span>
-                                                    <span className="font-medium">¥{Number(detailModal.praiseFee).toFixed(2)}</span>
+                                                    <span className="text-[#6b7280]">文字好评费 ¥{Number(detailModal.praiseFee).toFixed(2)} × {detailModal.count}单</span>
+                                                    <span className="font-medium">¥{(Number(detailModal.praiseFee) * detailModal.count).toFixed(2)}</span>
                                                 </div>
                                             )}
                                             {Number(detailModal.imgPraiseFee || 0) > 0 && (
                                                 <div className="flex justify-between">
-                                                    <span className="text-[#6b7280]">图片好评费</span>
-                                                    <span className="font-medium">¥{Number(detailModal.imgPraiseFee).toFixed(2)}</span>
+                                                    <span className="text-[#6b7280]">图片好评费 ¥{Number(detailModal.imgPraiseFee).toFixed(2)} × {detailModal.count}单</span>
+                                                    <span className="font-medium">¥{(Number(detailModal.imgPraiseFee) * detailModal.count).toFixed(2)}</span>
                                                 </div>
                                             )}
                                             {Number(detailModal.videoPraiseFee || 0) > 0 && (
                                                 <div className="flex justify-between">
-                                                    <span className="text-[#6b7280]">视频好评费</span>
-                                                    <span className="font-medium">¥{Number(detailModal.videoPraiseFee).toFixed(2)}</span>
+                                                    <span className="text-[#6b7280]">视频好评费 ¥{Number(detailModal.videoPraiseFee).toFixed(2)} × {detailModal.count}单</span>
+                                                    <span className="font-medium">¥{(Number(detailModal.videoPraiseFee) * detailModal.count).toFixed(2)}</span>
                                                 </div>
                                             )}
                                             {Number(detailModal.timingPublishFee || 0) > 0 && (
                                                 <div className="flex justify-between">
-                                                    <span className="text-[#6b7280]">定时发布费</span>
-                                                    <span className="font-medium">¥{Number(detailModal.timingPublishFee).toFixed(2)}</span>
+                                                    <span className="text-[#6b7280]">定时发布费 ¥{Number(detailModal.timingPublishFee).toFixed(2)} × {detailModal.count}单</span>
+                                                    <span className="font-medium">¥{(Number(detailModal.timingPublishFee) * detailModal.count).toFixed(2)}</span>
                                                 </div>
                                             )}
                                             {Number(detailModal.goodsMoreFee || 0) > 0 && (
                                                 <div className="flex justify-between">
-                                                    <span className="text-[#6b7280]">多商品费用</span>
-                                                    <span className="font-medium">¥{Number(detailModal.goodsMoreFee).toFixed(2)}</span>
+                                                    <span className="text-[#6b7280]">多商品费用 ¥{Number(detailModal.goodsMoreFee).toFixed(2)} × {detailModal.count}单</span>
+                                                    <span className="font-medium">¥{(Number(detailModal.goodsMoreFee) * detailModal.count).toFixed(2)}</span>
                                                 </div>
                                             )}
                                             {Number(detailModal.nextDayFee || 0) > 0 && (
                                                 <div className="flex justify-between">
-                                                    <span className="text-[#6b7280]">隔天任务费</span>
-                                                    <span className="font-medium">¥{Number(detailModal.nextDayFee).toFixed(2)}</span>
+                                                    <span className="text-[#6b7280]">隔天任务费 ¥{Number(detailModal.nextDayFee).toFixed(2)} × {detailModal.count}单</span>
+                                                    <span className="font-medium">¥{(Number(detailModal.nextDayFee) * detailModal.count).toFixed(2)}</span>
+                                                </div>
+                                            )}
+                                            {Number(detailModal.extraReward || detailModal.extraCommission || 0) > 0 && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-[#6b7280]">额外赏金 ¥{Number(detailModal.extraReward || detailModal.extraCommission).toFixed(2)} × {detailModal.count}单</span>
+                                                    <span className="font-medium">¥{(Number(detailModal.extraReward || detailModal.extraCommission) * detailModal.count).toFixed(2)}</span>
                                                 </div>
                                             )}
                                             {Number(detailModal.shippingFee || 0) > 0 && (
