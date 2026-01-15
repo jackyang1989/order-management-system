@@ -286,6 +286,7 @@ export class MerchantsService {
   }
 
   // 统计数据
+  // P1-3: 优化查询 - 使用 Promise.all 并行执行所有查询
   async getStats(id: string): Promise<{
     balance: number;
     frozenBalance: number;
@@ -294,7 +295,36 @@ export class MerchantsService {
     activeTasks: number;
     completedOrders: number;
   }> {
-    const merchant = await this.merchantsRepository.findOne({ where: { id } });
+    // P1-3: 使用 Promise.all 并行执行所有查询，避免串行等待
+    const [merchant, totalTasks, activeTasks, completedOrders] = await Promise.all([
+      // 查询商家基本信息
+      this.merchantsRepository.findOne({ where: { id } }),
+
+      // 查询该商家的总任务数
+      this.merchantsRepository.manager
+        .createQueryBuilder()
+        .from('tasks', 'task')
+        .where('task.merchantId = :merchantId', { merchantId: id })
+        .getCount(),
+
+      // 查询该商家的进行中任务数（状态为 ACTIVE）
+      this.merchantsRepository.manager
+        .createQueryBuilder()
+        .from('tasks', 'task')
+        .where('task.merchantId = :merchantId', { merchantId: id })
+        .andWhere('task.status = :status', { status: 1 }) // TaskStatus.ACTIVE = 1
+        .getCount(),
+
+      // 查询该商家任务的已完成订单数
+      this.merchantsRepository.manager
+        .createQueryBuilder()
+        .from('orders', 'order')
+        .innerJoin('tasks', 'task', 'order.taskId = task.id')
+        .where('task.merchantId = :merchantId', { merchantId: id })
+        .andWhere('order.status = :status', { status: 'COMPLETED' })
+        .getCount(),
+    ]);
+
     if (!merchant) {
       return {
         balance: 0,
@@ -310,9 +340,9 @@ export class MerchantsService {
       balance: Number(merchant.balance),
       frozenBalance: Number(merchant.frozenBalance),
       silver: Number(merchant.silver),
-      totalTasks: 0,
-      activeTasks: 0,
-      completedOrders: 0,
+      totalTasks,
+      activeTasks,
+      completedOrders,
     };
   }
 

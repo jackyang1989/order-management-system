@@ -35,6 +35,7 @@ export class AdminService {
   ) { }
 
   // ============ 平台统计 ============
+  // P1-3: 优化查询 - 使用 Promise.all 并行执行所有查询
   async getStats(): Promise<{
     totalUsers: number;
     totalMerchants: number;
@@ -53,49 +54,76 @@ export class AdminService {
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
-    const totalUsers = await this.usersRepository.count();
-    const totalMerchants = await this.merchantsRepository.count();
-    const totalTasks = await this.tasksRepository.count();
-    const totalOrders = await this.ordersRepository.count();
+    // P1-3: 使用 Promise.all 并行执行所有查询，从 11 次串行查询优化为 1 次并行查询
+    const [
+      totalUsers,
+      totalMerchants,
+      totalTasks,
+      totalOrders,
+      pendingMerchants,
+      pendingWithdrawals,
+      todayUsers,
+      todayOrders,
+      todayTasks,
+      withdrawResult,
+      rechargeResult,
+    ] = await Promise.all([
+      // 总用户数
+      this.usersRepository.count(),
 
-    const pendingMerchants = await this.merchantsRepository.count({
-      where: { status: MerchantStatus.PENDING },
-    });
-    const pendingWithdrawals = await this.withdrawalsRepository.count({
-      where: { status: WithdrawalStatus.PENDING },
-    });
+      // 总商家数
+      this.merchantsRepository.count(),
 
-    const todayUsers = await this.usersRepository
-      .createQueryBuilder('user')
-      .where('user.createdAt >= :today', { today })
-      .getCount();
+      // 总任务数
+      this.tasksRepository.count(),
 
-    const todayOrders = await this.ordersRepository
-      .createQueryBuilder('order')
-      .where('order.createdAt >= :today', { today })
-      .getCount();
+      // 总订单数
+      this.ordersRepository.count(),
 
-    // 今日任务数
-    const todayTasks = await this.tasksRepository
-      .createQueryBuilder('task')
-      .where('task.createdAt >= :today', { today })
-      .getCount();
+      // 待审核商家数
+      this.merchantsRepository.count({
+        where: { status: MerchantStatus.PENDING },
+      }),
 
-    // 今日提现金额（已审核通过或已完成的）
-    const withdrawResult = await this.withdrawalsRepository
-      .createQueryBuilder('w')
-      .select('SUM(w.amount)', 'total')
-      .where('w.createdAt BETWEEN :start AND :end', { start: today, end: todayEnd })
-      .andWhere('w.status IN (:...statuses)', { statuses: [WithdrawalStatus.APPROVED_PENDING_TRANSFER, WithdrawalStatus.COMPLETED] })
-      .getRawOne();
+      // 待审核提现数
+      this.withdrawalsRepository.count({
+        where: { status: WithdrawalStatus.PENDING },
+      }),
 
-    // 今日充值金额
-    const rechargeResult = await this.financeRecordRepository
-      .createQueryBuilder('f')
-      .select('SUM(f.amount)', 'total')
-      .where('f.createdAt BETWEEN :start AND :end', { start: today, end: todayEnd })
-      .andWhere('f.financeType IN (:...types)', { types: [FinanceType.BUYER_RECHARGE, FinanceType.BUYER_RECHARGE_SILVER, FinanceType.MERCHANT_RECHARGE] })
-      .getRawOne();
+      // 今日新增用户数
+      this.usersRepository
+        .createQueryBuilder('user')
+        .where('user.createdAt >= :today', { today })
+        .getCount(),
+
+      // 今日新增订单数
+      this.ordersRepository
+        .createQueryBuilder('order')
+        .where('order.createdAt >= :today', { today })
+        .getCount(),
+
+      // 今日新增任务数
+      this.tasksRepository
+        .createQueryBuilder('task')
+        .where('task.createdAt >= :today', { today })
+        .getCount(),
+
+      // 今日提现金额（已审核通过或已完成的）
+      this.withdrawalsRepository
+        .createQueryBuilder('w')
+        .select('SUM(w.amount)', 'total')
+        .where('w.createdAt BETWEEN :start AND :end', { start: today, end: todayEnd })
+        .andWhere('w.status IN (:...statuses)', { statuses: [WithdrawalStatus.APPROVED_PENDING_TRANSFER, WithdrawalStatus.COMPLETED] })
+        .getRawOne(),
+
+      // 今日充值金额
+      this.financeRecordRepository
+        .createQueryBuilder('f')
+        .select('SUM(f.amount)', 'total')
+        .where('f.createdAt BETWEEN :start AND :end', { start: today, end: todayEnd })
+        .andWhere('f.financeType IN (:...types)', { types: [FinanceType.BUYER_RECHARGE, FinanceType.BUYER_RECHARGE_SILVER, FinanceType.MERCHANT_RECHARGE] })
+        .getRawOne(),
+    ]);
 
     return {
       totalUsers,
