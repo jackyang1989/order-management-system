@@ -305,8 +305,8 @@ export default function MerchantWalletPage() {
                                 {filteredTransactions.map((tx) => (
                                     <div key={tx.id} className="group flex items-center justify-between rounded-[20px] p-4 transition-colors hover:bg-slate-50">
                                         <div className="flex items-center gap-5">
-                                            <div className={cn('flex h-12 w-12 items-center justify-center rounded-[18px] text-xl', typeColorMap[tx.type])}>
-                                                {typeIconMap[tx.type]}
+                                            <div className={cn('flex h-12 w-12 items-center justify-center rounded-[18px] text-xl', getTypeColor(tx.amount, tx.type))}>
+                                                {getTypeIcon(tx.amount, tx.type)}
                                             </div>
                                             <div>
                                                 <div className="mb-1 font-bold text-slate-900">{tx.memo}</div>

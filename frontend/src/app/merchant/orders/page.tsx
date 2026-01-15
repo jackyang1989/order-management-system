@@ -15,6 +15,8 @@ interface Order {
     productName: string;
     productPrice: number;
     commission: number;
+    userDivided: number;
+    silverPrepay: number;
     buynoAccount: string;
     status: string;
     createdAt: string;
@@ -34,6 +36,7 @@ interface Order {
     }[];
     // Task关联数据
     task?: {
+        taskNumber?: string;
         shopName?: string;
         // 浏览要求
         needCompare?: boolean;
@@ -78,6 +81,10 @@ interface Order {
         praiseFee?: number;
         imgPraiseFee?: number;
         videoPraiseFee?: number;
+        timingPublishFee?: number;
+        timingPayFee?: number;
+        nextDayFee?: number;
+        goodsMoreFee?: number;
         shippingFee?: number;
         margin?: number;
         goodsPrice?: number;
@@ -90,6 +97,7 @@ interface Stats {
     pendingReview: number;
     approved: number;
     rejected: number;
+    completed: number;
     pendingShip: number;     // 待发货
     pendingReceive: number;  // 待收货
     pendingReturn: number;   // 待返款
@@ -109,7 +117,7 @@ const statusConfig: Record<string, { text: string; className: string }> = {
 
 export default function MerchantOrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
-    const [stats, setStats] = useState<Stats>({ pendingReview: 0, approved: 0, rejected: 0, pendingShip: 0, pendingReceive: 0, pendingReturn: 0, total: 0 });
+    const [stats, setStats] = useState<Stats>({ pendingReview: 0, approved: 0, rejected: 0, completed: 0, pendingShip: 0, pendingReceive: 0, pendingReturn: 0, total: 0 });
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<string>('SUBMITTED');
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -296,7 +304,7 @@ export default function MerchantOrdersPage() {
         { label: '待发货', value: stats.pendingShip, colorClass: 'text-orange-500', filterKey: 'PENDING_SHIP' },
         { label: '待收货', value: stats.pendingReceive, colorClass: 'text-blue-500', filterKey: 'SHIPPED' },
         { label: '待返款', value: stats.pendingReturn, colorClass: 'text-purple-500', filterKey: 'RECEIVED' },
-        { label: '已完成', value: stats.approved, colorClass: 'text-success-600', filterKey: 'COMPLETED' },
+        { label: '已完成', value: stats.completed, colorClass: 'text-success-600', filterKey: 'COMPLETED' },
         { label: '总订单', value: stats.total, colorClass: 'text-[#6b7280]', filterKey: '' },
     ];
 
@@ -377,12 +385,28 @@ export default function MerchantOrdersPage() {
                                     >
                                         <td className="px-6 py-5">
                                             <div className="font-bold text-slate-900">{order.taskTitle}</div>
-                                            <div className="mt-1 text-xs font-medium text-slate-400">{order.platform}</div>
+                                            <div className="mt-1 flex items-center gap-2 text-xs font-medium text-slate-400">
+                                                <span>{order.platform}</span>
+                                                {order.task?.taskNumber && (
+                                                    <>
+                                                        <span className="h-1 w-1 rounded-full bg-slate-300"></span>
+                                                        <span>#{order.task.taskNumber}</span>
+                                                    </>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-5 text-sm font-medium text-slate-500">{order.buynoAccount}</td>
                                         <td className="px-6 py-5">
                                             <div className="font-bold text-slate-900">¥{Number(order.productPrice).toFixed(2)}</div>
-                                            <div className="mt-1 text-xs font-bold text-emerald-500">佣金 ¥{Number(order.commission).toFixed(2)}</div>
+                                            <div className="mt-1 text-xs font-bold text-emerald-500">
+                                                佣金 ¥{Number(order.commission).toFixed(2)}
+                                                {order.userDivided > 0 && ` (分成 ¥${Number(order.userDivided).toFixed(2)})`}
+                                            </div>
+                                            {order.silverPrepay > 0 && (
+                                                <div className="mt-1 text-xs font-medium text-amber-500">
+                                                    押金 {order.silverPrepay} 银锭
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="px-6 py-5">
                                             <span className={cn('inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold', statusConfig[order.status]?.className)}>
@@ -718,6 +742,36 @@ export default function MerchantOrdersPage() {
                                                 <span className="font-medium">¥{task.videoPraiseFee.toFixed(2)}</span>
                                             </div>
                                         )}
+                                        {task.timingPublishFee && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-500">定时发布费</span>
+                                                <span className="font-medium">¥{task.timingPublishFee.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        {task.timingPayFee && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-500">定时付款费</span>
+                                                <span className="font-medium">¥{task.timingPayFee.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        {task.nextDayFee && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-500">隔天任务费</span>
+                                                <span className="font-medium">¥{task.nextDayFee.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        {task.goodsMoreFee && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-500">多商品费用</span>
+                                                <span className="font-medium">¥{task.goodsMoreFee.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        {task.goodsPrice && task.goodsPrice > 0 && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-500">快速返款费 (0.6%)</span>
+                                                <span className="font-medium">¥{(task.goodsPrice * 0.006).toFixed(2)}</span>
+                                            </div>
+                                        )}
                                         {task.shippingFee && (
                                             <div className="flex justify-between">
                                                 <span className="text-slate-500">邮费</span>
@@ -728,6 +782,12 @@ export default function MerchantOrdersPage() {
                                             <div className="flex justify-between">
                                                 <span className="text-slate-500">保证金</span>
                                                 <span className="font-medium">¥{task.margin.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        {selectedOrder?.userDivided && selectedOrder.userDivided > 0 && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-500">买手分成</span>
+                                                <span className="font-medium text-emerald-600">¥{Number(selectedOrder.userDivided).toFixed(2)}</span>
                                             </div>
                                         )}
                                         <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">

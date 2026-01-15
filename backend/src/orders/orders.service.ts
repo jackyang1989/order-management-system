@@ -954,13 +954,14 @@ export class OrdersService {
     pendingReview: number;
     approved: number;
     rejected: number;
+    completed: number;
     total: number;
   }> {
     const merchantTasks = await this.tasksService.findByMerchant(merchantId);
     const taskIds = merchantTasks.map((t) => t.id);
 
     if (taskIds.length === 0) {
-      return { pendingReview: 0, approved: 0, rejected: 0, total: 0 };
+      return { pendingReview: 0, approved: 0, rejected: 0, completed: 0, total: 0 };
     }
 
     const pendingReview = await this.ordersRepository
@@ -981,12 +982,18 @@ export class OrdersService {
       .andWhere('order.status = :status', { status: OrderStatus.REJECTED })
       .getCount();
 
+    const completed = await this.ordersRepository
+      .createQueryBuilder('order')
+      .where('order.taskId IN (:...taskIds)', { taskIds })
+      .andWhere('order.status = :status', { status: OrderStatus.COMPLETED })
+      .getCount();
+
     const total = await this.ordersRepository
       .createQueryBuilder('order')
       .where('order.taskId IN (:...taskIds)', { taskIds })
       .getCount();
 
-    return { pendingReview, approved, rejected, total };
+    return { pendingReview, approved, rejected, completed, total };
   }
 
   // ============ 发货管理 ============
