@@ -77,6 +77,11 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const [step1CountdownStarted, setStep1CountdownStarted] = useState(false);
     const [showCountdownWarning, setShowCountdownWarning] = useState(false); // 显示倒计时警告
 
+    // 第二步进店浏览倒计时
+    const [step2Countdown, setStep2Countdown] = useState(0); // 剩余秒数
+    const [step2CountdownStarted, setStep2CountdownStarted] = useState(false);
+    const [showStep2CountdownWarning, setShowStep2CountdownWarning] = useState(false);
+
     // 任务类型相关
     const [tasktype, setTasktype] = useState('');
     const [taskTimeType, setTaskTimeType] = useState('');
@@ -485,11 +490,13 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             // 验证第一步
             // 检查倒计时是否完成
             if (step1Countdown > 0) {
-                // 不使用alert，而是滚动到倒计时位置并高亮提示
-                const minutes = Math.floor(step1Countdown / 60);
-                const seconds = step1Countdown % 60;
-                // 可以在这里添加一个临时的提示状态，或者直接滚动到倒计时区域
+                // 显示警告提示
+                setShowCountdownWarning(true);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+                // 3秒后自动隐藏警告
+                setTimeout(() => {
+                    setShowCountdownWarning(false);
+                }, 3000);
                 return;
             }
             console.log('第一步验证 - localFile2:', localFile2);
@@ -501,6 +508,17 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             setActive(2);
         } else if (active === 2) {
             // 验证第二步
+            // 检查倒计时是否完成
+            if (step2Countdown > 0) {
+                // 显示警告提示
+                setShowStep2CountdownWarning(true);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                // 3秒后自动隐藏警告
+                setTimeout(() => {
+                    setShowStep2CountdownWarning(false);
+                }, 3000);
+                return;
+            }
             if (!localFile) {
                 alertError('商品收藏页面截图不能为空');
                 return;
@@ -734,6 +752,33 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             setStep1CountdownStarted(true);
         }
     }, [active, step1CountdownStarted, compareBrowseMinutes]);
+
+    // 第二步进店浏览倒计时逻辑
+    useEffect(() => {
+        if (active === 2 && step2CountdownStarted && step2Countdown > 0) {
+            const timer = setInterval(() => {
+                setStep2Countdown(prev => {
+                    if (prev <= 1) {
+                        clearInterval(timer);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+            return () => clearInterval(timer);
+        }
+    }, [active, step2CountdownStarted, step2Countdown]);
+
+    // 当进入第二步时，启动倒计时（主商品+副商品浏览时长）
+    useEffect(() => {
+        if (active === 2 && !step2CountdownStarted) {
+            const totalSeconds = hasSubProduct
+                ? (mainBrowseMinutes + subBrowseMinutes) * 60
+                : mainBrowseMinutes * 60;
+            setStep2Countdown(totalSeconds);
+            setStep2CountdownStarted(true);
+        }
+    }, [active, step2CountdownStarted, mainBrowseMinutes, subBrowseMinutes, hasSubProduct]);
 
     // ===================== 渲染 =====================
     if (loading) {
@@ -1015,26 +1060,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                 </div>
                             </div>
                         )}
-                        
-                        {/* 下单提示 */}
-                        {memo && (
-                            <div style={{ 
-                                marginTop: '12px', 
-                                padding: '10px', 
-                                background: '#e6f7ff', 
-                                borderRadius: '4px',
-                                border: '1px solid #91d5ff'
-                            }}>
-                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
-                                    <span style={{ color: '#1890ff', marginRight: '5px' }}>📝</span>
-                                    <span style={{ fontWeight: 'bold', color: '#1890ff', fontSize: '13px' }}>商家特别提示</span>
-                                </div>
-                                <div style={{ fontSize: '12px', color: '#333', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
-                                    {memo}
-                                </div>
-                            </div>
-                        )}
-                        
+
                         {/* 验证口令提示 */}
                         {checkPassword && (
                             <div style={{ 
@@ -1075,6 +1101,26 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                 浏览时长：{compareBrowseMinutes}分钟
                             </span>
                         </div>
+
+                        {/* 倒计时警告提示 */}
+                        {showCountdownWarning && step1Countdown > 0 && (
+                            <div style={{
+                                background: '#fff1f0',
+                                border: '2px solid #ff4d4f',
+                                borderRadius: '8px',
+                                padding: '15px',
+                                marginBottom: '15px',
+                                textAlign: 'center',
+                                animation: 'shake 0.5s'
+                            }}>
+                                <div style={{ fontSize: '14px', color: '#cf1322', fontWeight: 'bold' }}>
+                                    ⚠️ 请完成足够时间的货比浏览后再进入下一步
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#cf1322', marginTop: '5px' }}>
+                                    还需等待 {Math.floor(step1Countdown / 60)}分{step1Countdown % 60}秒
+                                </div>
+                            </div>
+                        )}
 
                         {/* 货比倒计时 */}
                         {step1Countdown > 0 && (
@@ -1144,33 +1190,6 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
             {/* ===================== 第二步 ===================== */}
             {active === 2 && (
                 <div style={{ margin: '10px' }}>
-                    {/* 进店方式指引 */}
-                    <div style={{ background: '#fff', borderRadius: '8px', padding: '15px', marginBottom: '10px' }}>
-                        <div style={{ marginBottom: '15px' }}>
-                            <span style={{ fontWeight: 'bold', color: '#409eff', fontSize: '14px' }}>进店方式：</span>
-                            <span style={{ fontSize: '14px', color: '#333' }}>关键词搜索</span>
-                        </div>
-                        {tasktype === '3' && qrcode && (
-                            <div>
-                                <p>打开{platformName || '平台'}APP，扫描二维码：</p>
-                                <img src={qrcode} alt="二维码" style={{ width: '100px', height: '100px', border: '1px solid #ddd' }} />
-                            </div>
-                        )}
-                        {tasktype === '2' && taoword && (
-                            <p>复制淘口令，打开{platformName || '平台'}APP：<span style={{ color: 'red' }}>{taoword}</span></p>
-                        )}
-                        {tasktype === '4' && (
-                            <p>{platformName || '平台'}APP搜索框，手动输入搜索关键词：<span style={{ color: 'red', userSelect: 'none' }}>{keyWord}</span></p>
-                        )}
-                        {/* 默认显示关键词搜索指引 */}
-                        {tasktype !== '2' && tasktype !== '3' && tasktype !== '4' && keyWord && (
-                            <p style={{ fontSize: '13px', color: '#666' }}>
-                                打开{platformName || '平台'}APP，在搜索框输入关键词：
-                                <span style={{ color: 'red', fontWeight: 'bold', marginLeft: '5px' }}>{keyWord}</span>
-                            </p>
-                        )}
-                    </div>
-
                     {/* 贰：进店浏览 */}
                     <div style={{ background: '#fff', borderRadius: '8px', padding: '15px', marginBottom: '10px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
@@ -1189,36 +1208,61 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                             <span style={{ fontWeight: 'bold' }}>进店浏览</span>
                         </div>
 
-                        {/* 浏览时长要求 */}
-                        <div style={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-around', 
-                            background: '#f0f9eb', 
-                            borderRadius: '4px', 
-                            padding: '12px', 
-                            marginBottom: '15px',
-                            border: '1px solid #c2e7b0'
-                        }}>
-                            <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#409eff' }}>{totalBrowseMinutes}</div>
-                                <div style={{ fontSize: '11px', color: '#666' }}>总计/分钟</div>
-                            </div>
-                            <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#e6a23c' }}>{compareBrowseMinutes}</div>
-                                <div style={{ fontSize: '11px', color: '#666' }}>货比/分钟</div>
-                            </div>
-                            <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#67c23a' }}>{mainBrowseMinutes}</div>
-                                <div style={{ fontSize: '11px', color: '#666' }}>主品/分钟</div>
-                            </div>
-                            {hasSubProduct && (
-                                <div style={{ textAlign: 'center' }}>
-                                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#909399' }}>{subBrowseMinutes}</div>
-                                    <div style={{ fontSize: '11px', color: '#666' }}>副品/分钟</div>
+                        {/* 倒计时警告提示 */}
+                        {showStep2CountdownWarning && step2Countdown > 0 && (
+                            <div style={{
+                                background: '#fff1f0',
+                                border: '2px solid #ff4d4f',
+                                borderRadius: '8px',
+                                padding: '15px',
+                                marginBottom: '15px',
+                                textAlign: 'center'
+                            }}>
+                                <div style={{ fontSize: '14px', color: '#cf1322', fontWeight: 'bold' }}>
+                                    ⚠️ 请完成足够时间的进店浏览后再进入下一步
                                 </div>
-                            )}
-                        </div>
-                        
+                                <div style={{ fontSize: '12px', color: '#cf1322', marginTop: '5px' }}>
+                                    还需等待 {Math.floor(step2Countdown / 60)}分{step2Countdown % 60}秒
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 进店浏览倒计时 */}
+                        {step2Countdown > 0 && (
+                            <div style={{
+                                background: '#fff3e0',
+                                border: '2px solid #ff9800',
+                                borderRadius: '8px',
+                                padding: '15px',
+                                marginBottom: '15px',
+                                textAlign: 'center'
+                            }}>
+                                <div style={{ fontSize: '14px', color: '#e65100', marginBottom: '8px', fontWeight: 'bold' }}>
+                                    ⏱️ 进店浏览倒计时
+                                </div>
+                                <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#ff6f00', fontFamily: 'monospace' }}>
+                                    {Math.floor(step2Countdown / 60).toString().padStart(2, '0')}:{(step2Countdown % 60).toString().padStart(2, '0')}
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#e65100', marginTop: '8px' }}>
+                                    请完成足够时间的进店浏览，倒计时结束后才能进入下一步
+                                </div>
+                            </div>
+                        )}
+                        {step2Countdown === 0 && step2CountdownStarted && (
+                            <div style={{
+                                background: '#e8f5e9',
+                                border: '2px solid #4caf50',
+                                borderRadius: '8px',
+                                padding: '15px',
+                                marginBottom: '15px',
+                                textAlign: 'center'
+                            }}>
+                                <div style={{ fontSize: '14px', color: '#2e7d32', fontWeight: 'bold' }}>
+                                    ✅ 进店浏览时间已达标，可以进入下一步
+                                </div>
+                            </div>
+                        )}
+
                         {/* 联系客服提示 */}
                         {contactCSContent && (
                             <div style={{ 
@@ -1250,25 +1294,19 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         )}
 
                         {/* 任务类型指引 */}
-                        {tasktype === '5' && (
-                            <div style={{ fontSize: '13px', color: '#666', marginBottom: '15px' }}>
-                                <p>1.长按二维码将二维码保存到相册；</p>
-                                <p>2.{platformName || '平台'}APP扫描二维码访问主商品；</p>
-                                <p>3.副商品直接根据主图在店内查找。</p>
-                                {is_video_praise === '1' && (
-                                    <p style={{ color: 'red' }}>提示：此任务是视频好评任务，收货时需要下载视频上传评价哦。</p>
+                        <div style={{ fontSize: '13px', color: '#666', marginBottom: '15px', lineHeight: '1.8' }}>
+                            <p>
+                                <span style={{ fontWeight: 'bold', color: '#333' }}>搜索目标商品关键词：</span>
+                                <span style={{ color: 'red', fontWeight: 'bold' }}>{keyWord}</span>
+                                {mainProductFilter4 && (
+                                    <span> 备选词：<span style={{ color: 'red', fontWeight: 'bold' }}>{mainProductFilter4}</span></span>
                                 )}
-                            </div>
-                        )}
-                        {tasktype === '1' && (
-                            <div style={{ fontSize: '13px', color: '#666', marginBottom: '15px' }}>
-                                <p><span style={{ color: 'red' }}>进店{keyWord} 备选词：{mainProductFilter4}</span></p>
-                                <p>{platformName || '平台'}APP搜索进店关键词找到主商品进行信息核对(若找不到可换备选词)，若有副商品直接在店铺内根据副商品图片查找并进行信息核对。</p>
-                                {is_video_praise === '1' && (
-                                    <p style={{ color: 'red' }}>提示：此任务是视频好评任务，收货时需要下载视频上传评价哦。</p>
-                                )}
-                            </div>
-                        )}
+                            </p>
+                            <p>{platformName || '平台'}APP搜索进店关键词找到主商品进行信息核对(若找不到可换备选词)，若有副商品直接在店铺内根据副商品图片查找并进行信息核对。</p>
+                            {is_video_praise === '1' && (
+                                <p style={{ color: 'red' }}>提示：此任务是视频好评任务，收货时需要下载视频上传评价哦。</p>
+                            )}
+                        </div>
                     </div>
 
                     {/* 叁：商品信息核对 */}
