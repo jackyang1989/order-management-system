@@ -10,18 +10,25 @@ import { Select } from '../../../components/ui/select';
 import { Modal } from '../../../components/ui/modal';
 import { fetchSystemConfig, getMerchantMinWithdraw } from '../../../services/systemConfigService';
 
-interface TransactionRecord { id: string; type: 'deposit' | 'withdraw' | 'freeze' | 'unfreeze' | 'deduct'; amount: number; balanceType: 'balance' | 'silver'; memo: string; createdAt: string; }
+interface TransactionRecord { id: string; type: string; amount: number; balanceType: 'balance' | 'silver'; memo: string; createdAt: string; }
 interface WalletStats { balance: number; frozenBalance: number; silver: number; }
 interface BankCard { id: string; bankName: string; cardNumber: string; accountName: string; isDefault: boolean; status: number; }
 
-const typeColorMap: Record<string, string> = {
-    deposit: 'bg-emerald-50 text-emerald-600',
-    withdraw: 'bg-orange-50 text-orange-600',
-    freeze: 'bg-blue-50 text-blue-600',
-    unfreeze: 'bg-indigo-50 text-indigo-600',
-    deduct: 'bg-red-50 text-red-600'
+// 根据金额和类型文本动态判断颜色和图标
+const getTypeColor = (amount: number, type: string): string => {
+    if (amount > 0) return 'bg-emerald-50 text-emerald-600'; // 收入
+    if (type.includes('提现') || type.includes('withdraw')) return 'bg-orange-50 text-orange-600';
+    if (type.includes('冻结') || type.includes('freeze')) return 'bg-blue-50 text-blue-600';
+    if (type.includes('解冻') || type.includes('unfreeze')) return 'bg-indigo-50 text-indigo-600';
+    return 'bg-slate-50 text-slate-600'; // 默认
 };
-const typeIconMap: Record<string, string> = { deposit: '💰', withdraw: '💸', freeze: '🔒', unfreeze: '🔓', deduct: '📤' };
+const getTypeIcon = (amount: number, type: string): string => {
+    if (amount > 0) return '💰'; // 收入
+    if (type.includes('提现') || type.includes('withdraw')) return '💸';
+    if (type.includes('冻结') || type.includes('freeze')) return '🔒';
+    if (type.includes('解冻') || type.includes('unfreeze')) return '🔓';
+    return '📋'; // 默认
+};
 
 export default function MerchantWalletPage() {
     const [stats, setStats] = useState<WalletStats>({ balance: 0, frozenBalance: 0, silver: 0 });
@@ -62,7 +69,7 @@ export default function MerchantWalletPage() {
         try {
             const res = await fetch(`${BASE_URL}/finance-records/merchant`, { headers: { 'Authorization': `Bearer ${token}` } });
             const json = await res.json();
-            if (json.success && json.data) setTransactions(json.data.map((r: any) => ({ id: r.id, type: r.amount > 0 ? 'deposit' : (r.type === 3 ? 'withdraw' : 'deduct'), amount: r.amount, balanceType: r.moneyType === 1 ? 'balance' : 'silver', memo: r.memo || '财务记录', createdAt: r.createdAt })));
+            if (json.success && json.data) setTransactions(json.data.map((r: any) => ({ id: r.id, type: r.changeType || r.memo || '财务记录', amount: r.amount, balanceType: r.moneyType === 1 ? 'balance' : 'silver', memo: r.memo || '财务记录', createdAt: r.createdAt })));
         } catch (e) { console.error('Failed to load transactions:', e); }
     };
 
