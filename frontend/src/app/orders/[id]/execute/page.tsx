@@ -747,7 +747,15 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
 
             const minutes = Math.floor(restTime / 60000);
             const seconds = Math.floor((restTime % 60000) / 1000);
-            setCountdown(`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
+            
+            // 如果超过60分钟，显示小时:分钟:秒格式
+            if (minutes >= 60) {
+                const hours = Math.floor(minutes / 60);
+                const mins = minutes % 60;
+                setCountdown(`${hours}小时${String(mins).padStart(2, '0')}分${String(seconds).padStart(2, '0')}秒`);
+            } else {
+                setCountdown(`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
+            }
         };
 
         updateCountdown();
@@ -914,11 +922,16 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                     background: countdown === '00:00' ? '#f56c6c' : '#409eff',
                     color: 'white',
                     padding: '8px 15px',
-                    fontSize: '18px',
+                    fontSize: '16px',
                     fontWeight: 'bold',
                     textAlign: 'center',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
                 }}>
-                    {countdown}
+                    <span>⏰ 任务截止倒计时：</span>
+                    <span>{countdown}</span>
                 </div>
             )}
 
@@ -1093,7 +1106,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                             borderRadius: '10px',
                                             fontSize: '11px'
                                         }}>
-                                            ✓ 指定文字好评 (已提供)
+                                            ✓ 指定文字好评
                                         </span>
                                     )}
                                     {isImgPraise && (
@@ -1104,7 +1117,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                             borderRadius: '10px',
                                             fontSize: '11px'
                                         }}>
-                                            ✓ 指定图文晒单 (已提供)
+                                            ✓ 指定图文晒单
                                         </span>
                                     )}
                                     {isVideoPraise && (
@@ -1115,12 +1128,12 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                             borderRadius: '10px',
                                             fontSize: '11px'
                                         }}>
-                                            ✓ 提供图文视频晒单 (已提供)
+                                            ✓ 提供图文视频晒单
                                         </span>
                                     )}
                                 </div>
                                 <p style={{ marginTop: '6px', color: '#fa8c16', fontSize: '11px' }}>
-                                    * 具体好评内容将在收货后显示，请注意查看
+                                    * 具体评价晒单内容将在收货后显示，请注意查看
                                 </p>
                             </div>
                         </div>
@@ -1723,32 +1736,38 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                     {/* 第一步倒计时显示 */}
                     {active === 1 && step1Countdown > 0 && (
                         <div style={{
-                            flex: 1,
-                            textAlign: 'center',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
                             padding: '0 15px'
                         }}>
-                            <div style={{ fontSize: '16px', color: '#ff6f00', fontWeight: 'bold', fontFamily: 'monospace' }}>
+                            <span style={{ fontSize: '11px', color: '#e65100' }}>⏱</span>
+                            <span style={{ fontSize: '16px', color: '#ff6f00', fontWeight: 'bold', fontFamily: 'monospace' }}>
                                 {Math.floor(step1Countdown / 60).toString().padStart(2, '0')}:{(step1Countdown % 60).toString().padStart(2, '0')}
-                            </div>
-                            <div style={{ fontSize: '11px', color: '#e65100', marginTop: '2px' }}>
+                            </span>
+                            <span style={{ fontSize: '11px', color: '#e65100' }}>
                                 货比浏览中...
-                            </div>
+                            </span>
                         </div>
                     )}
 
                     {/* 第二步倒计时显示 */}
                     {active === 2 && step2Countdown > 0 && (
                         <div style={{
-                            flex: 1,
-                            textAlign: 'center',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
                             padding: '0 15px'
                         }}>
-                            <div style={{ fontSize: '16px', color: '#ff6f00', fontWeight: 'bold', fontFamily: 'monospace' }}>
+                            <span style={{ fontSize: '11px', color: '#e65100' }}>⏱</span>
+                            <span style={{ fontSize: '16px', color: '#ff6f00', fontWeight: 'bold', fontFamily: 'monospace' }}>
                                 {Math.floor(step2Countdown / 60).toString().padStart(2, '0')}:{(step2Countdown % 60).toString().padStart(2, '0')}
-                            </div>
-                            <div style={{ fontSize: '11px', color: '#e65100', marginTop: '2px' }}>
+                            </span>
+                            <span style={{ fontSize: '11px', color: '#e65100' }}>
                                 进店浏览中...
-                            </div>
+                            </span>
                         </div>
                     )}
 
