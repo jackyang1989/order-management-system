@@ -1,0 +1,131 @@
+{
+  "metadata": {
+    "audit_date": "2026-01-15",
+    "database": "order_management",
+    "purpose": "生产级全栈数据一致性审计 - 黄金样本"
+  },
+  "task_sample": {
+    "id": "61150ffc-48a5-4617-b6e0-a3995221796f",
+    "taskNumber": "T176839050003038",
+    "status": 1,
+    "claimedCount": 0,
+    "count": 1,
+    "completedCount": 0,
+    "totalCommission": 5.50,
+    "userDivided": 3.30,
+    "baseServiceFee": 5.50,
+    "goodsPrice": 0.00,
+    "totalDeposit": 0.00,
+    "merchantId": "3eb1057e-72d2-4ac6-a192-ca32c1728357",
+    "title": "",
+    "taskType": 1,
+    "notes": {
+      "status_meaning": "1 = ACTIVE (进行中/已发布)",
+      "claimedCount_vs_count": "已领取0单 / 总共1单",
+      "userDivided_meaning": "买手分成佣金总额 3.30元",
+      "issue_found": "goodsPrice=0.00 和 totalDeposit=0.00 异常，可能是测试数据"
+    }
+  },
+  "order_sample": {
+    "id": "83dd6230-ffbe-41eb-adef-8f396aba6772",
+    "taskId": null,
+    "userId": "d0964f8f-94ff-426a-8b04-201e5c0ae5cf",
+    "buynoId": "48babc5f-70a2-42c7-8128-b6ef83830060",
+    "buynoAccount": "美力觉醒",
+    "taskTitle": "RELAXED瑜伽直营店",
+    "status": "COMPLETED",
+    "productPrice": 228.00,
+    "commission": 5.00,
+    "userDivided": 0.00,
+    "silverPrepay": 0.00,
+    "createdAt": "2022-01-24 04:33:23",
+    "completedAt": "2022-01-24 14:26:06",
+    "notes": {
+      "status_meaning": "COMPLETED = 已完成",
+      "taskId_null": "taskId为空，可能是旧数据或数据迁移问题",
+      "userDivided_zero": "买手分成为0，可能是旧版本订单",
+      "silverPrepay_zero": "银锭押金为0，可能是旧版本订单"
+    }
+  },
+  "finance_record_sample": {
+    "id": "c79d8d11-215c-42fd-ad35-40fb22de8e05",
+    "userId": "3eb1057e-72d2-4ac6-a192-ca32c1728357",
+    "userType": 2,
+    "moneyType": 2,
+    "financeType": 24,
+    "amount": -5.50,
+    "balanceAfter": 1819.50,
+    "memo": "发布任务: undefined",
+    "relatedId": null,
+    "createdAt": "2026-01-12 20:00:40.6088",
+    "notes": {
+      "userType_meaning": "2 = MERCHANT (商家)",
+      "moneyType_meaning": "2 = SILVER (银锭)",
+      "financeType_meaning": "24 = MERCHANT_TASK_FREEZE (发布任务冻结)",
+      "amount_negative": "负数表示扣除",
+      "memo_issue": "memo显示'undefined'，说明任务标题未正确传递",
+      "relatedId_null": "relatedId为空，应该关联taskId"
+    }
+  },
+  "data_quality_issues": [
+    {
+      "issue": "财务流水memo显示'undefined'",
+      "severity": "P0",
+      "impact": "用户无法识别是哪个任务的流水",
+      "root_cause": "发布任务时未正确传递任务标题到财务记录"
+    },
+    {
+      "issue": "订单taskId为null",
+      "severity": "P1",
+      "impact": "无法关联订单和任务，影响订单详情显示",
+      "root_cause": "可能是旧数据或数据迁移问题"
+    },
+    {
+      "issue": "任务goodsPrice和totalDeposit为0",
+      "severity": "P2",
+      "impact": "任务费用显示异常",
+      "root_cause": "可能是测试数据或创建任务时未正确计算"
+    },
+    {
+      "issue": "订单userDivided和silverPrepay为0",
+      "severity": "P2",
+      "impact": "买手分成和押金显示为0",
+      "root_cause": "可能是旧版本订单，新版本才有这些字段"
+    }
+  ],
+  "enum_mappings": {
+    "TaskStatus": {
+      "0": "PENDING_PAY (待支付)",
+      "1": "ACTIVE (进行中/已发布)",
+      "2": "COMPLETED (已完成)",
+      "3": "CANCELLED (已取消)",
+      "4": "AUDIT (待审核)",
+      "5": "PAUSED (已暂停)",
+      "6": "REJECTED (已拒绝)"
+    },
+    "OrderStatus": {
+      "PENDING": "进行中",
+      "SUBMITTED": "待审核",
+      "APPROVED": "审核通过",
+      "REJECTED": "审核拒绝",
+      "COMPLETED": "已完成",
+      "CANCELLED": "已取消"
+    },
+    "FinanceUserType": {
+      "1": "BUYER (买手)",
+      "2": "MERCHANT (商家)"
+    },
+    "FinanceMoneyType": {
+      "1": "BALANCE (余额/押金)",
+      "2": "SILVER (银锭/礼金)"
+    },
+    "FinanceType": {
+      "24": "MERCHANT_TASK_FREEZE (发布任务冻结)",
+      "25": "MERCHANT_TASK_UNFREEZE (任务取消解冻)",
+      "26": "MERCHANT_TASK_SETTLE (任务结算)",
+      "27": "MERCHANT_TASK_FEE (任务服务费)",
+      "10": "BUYER_ADMIN_DEDUCT (管理员扣除)",
+      "29": "MERCHANT_ADMIN_DEDUCT (管理员扣除)"
+    }
+  }
+}

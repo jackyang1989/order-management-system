@@ -826,7 +826,12 @@ export class TasksService implements OnModuleInit {
    */
   async fixAllClaimedCounts(): Promise<{ total: number; fixed: number; results: any[] }> {
     const tasks = await this.tasksRepository.find();
-    const results = [];
+    const results: Array<{
+      taskId: string;
+      taskNumber: string;
+      oldCount: number;
+      newCount: number;
+    }> = [];
     let fixedCount = 0;
 
     for (const task of tasks) {

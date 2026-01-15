@@ -170,7 +170,7 @@ export default function MerchantTasksPage() {
                                     >
                                         <td className="px-6 py-5 font-mono text-[13px] font-bold text-slate-900">{task.taskNumber}</td>
                                         <td className="px-6 py-5">
-                                            <div className="font-semibold text-slate-900">{task.title}</div>
+                                            <div className="text-sm font-normal text-slate-900">{task.title}</div>
                                             <div className="mt-1 text-xs font-medium text-slate-400">¥{task.goodsPrice}</div>
                                         </td>
                                         <td className="px-6 py-5">

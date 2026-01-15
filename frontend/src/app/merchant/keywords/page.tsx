@@ -328,7 +328,7 @@ export default function KeywordsPage() {
                                             {keywords.map(kw => (
                                                 <tr key={kw.id} className="group transition-colors hover:bg-slate-50/50">
                                                     <td className="px-6 py-4">
-                                                        <span className="font-bold text-slate-700">{kw.keyword}</span>
+                                                        <span className="text-sm font-normal text-slate-700">{kw.keyword}</span>
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <span className="text-sm font-medium text-slate-500">

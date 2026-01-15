@@ -947,7 +947,12 @@ export class OrdersController {
       const task = await this.tasksService.findOne(order.taskId);
 
       // 构建当前订单的好评数据
-      const products = [];
+      const products: Array<{
+        name: string;
+        textPraise: string;
+        imgPraise: string[];
+        videoPraise: string;
+      }> = [];
       if (order.praiseContent || order.praiseImages || order.praiseVideo) {
         products.push({
           name: order.productName || task?.title || '',

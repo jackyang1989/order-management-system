@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
@@ -16,6 +16,7 @@ import { BuyerAccountsModule } from '../buyer-accounts/buyer-accounts.module';
 import { WithdrawalsModule } from '../withdrawals/withdrawals.module';
 import { MerchantsModule } from '../merchants/merchants.module';
 import { UsersModule } from '../users/users.module';
+import { TasksModule } from '../tasks/tasks.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { UsersModule } from '../users/users.module';
     WithdrawalsModule,
     MerchantsModule,
     UsersModule,
+    forwardRef(() => TasksModule),
   ],
   providers: [AdminService],
   controllers: [AdminController],
