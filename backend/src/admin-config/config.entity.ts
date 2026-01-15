@@ -269,6 +269,14 @@ export const DEFAULT_CONFIGS = [
     valueType: 'number',
   },
   {
+    key: 'random_browse_fee',
+    value: '0.5',
+    group: 'task_fee',
+    label: '随机浏览服务费',
+    valueType: 'number',
+    description: '开启随机浏览店铺其他商品的服务费',
+  },
+  {
     key: 'refund_service_rate',
     value: '0.01',
     group: 'task_fee',

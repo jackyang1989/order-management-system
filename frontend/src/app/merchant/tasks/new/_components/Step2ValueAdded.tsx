@@ -10,6 +10,7 @@ interface StepProps { data: TaskFormData; onChange: (data: Partial<TaskFormData>
 
 export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: StepProps) {
     const [praiseFees, setPraiseFees] = useState({ text: 2, image: 4, video: 10 });
+    const [randomBrowseFee, setRandomBrowseFee] = useState(0.5);
 
     useEffect(() => {
         loadSystemConfig();
@@ -18,6 +19,11 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
     const loadSystemConfig = async () => {
         const config = await fetchSystemConfig();
         setPraiseFees(getPraiseFees(config));
+        // 获取随机浏览服务费
+        if (config) {
+            const fee = (config as any).random_browse_fee ?? (config as any).randomBrowseFee ?? 0.5;
+            setRandomBrowseFee(Number(fee) || 0.5);
+        }
     };
 
     const handlePraiseChange = (type: 'text' | 'image' | 'video' | 'none') => {
@@ -386,6 +392,13 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                     <input type="checkbox" checked={data.isNextDay} onChange={e => onChange({ isNextDay: e.target.checked })} />
                     <div className="flex flex-1 items-center justify-between">
                         <div><span className="text-sm">隔天任务</span><span className="ml-2 text-xs text-[#9ca3af]">+0.5元/单，买手需隔天完成付款</span></div>
+                    </div>
+                </div>
+                {/* 随机浏览店铺其他商品 */}
+                <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-3 py-3">
+                    <input type="checkbox" checked={data.needRandomBrowse} onChange={e => onChange({ needRandomBrowse: e.target.checked })} />
+                    <div className="flex flex-1 items-center justify-between">
+                        <div><span className="text-sm">随机浏览店铺其他商品</span><span className="ml-2 text-xs text-[#9ca3af]">+{randomBrowseFee}元/单，买手需随机浏览店铺其他2个商品各2分钟</span></div>
                     </div>
                 </div>
                 {/* Fast Refund Service */}

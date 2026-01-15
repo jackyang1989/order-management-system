@@ -138,6 +138,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const [mainBrowseMinutes, setMainBrowseMinutes] = useState(8);
     const [subBrowseMinutes, setSubBrowseMinutes] = useState(2);
     const [hasSubProduct, setHasSubProduct] = useState(true);
+    const [needRandomBrowse, setNeedRandomBrowse] = useState(false); // 随机浏览店铺其他商品
 
     // 好评相关
     const [isPraise, setIsPraise] = useState(false);
@@ -278,6 +279,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 setMainBrowseMinutes(data.mainBrowseMinutes || 8);
                 setSubBrowseMinutes(data.subBrowseMinutes || 2);
                 setHasSubProduct(data.hasSubProduct !== false);
+                setNeedRandomBrowse(data.needRandomBrowse || false);
                 setTaskTimeType('');
                 setTaskYsType('');
 
@@ -1534,72 +1536,74 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         ))}
                     </div>
 
-                    {/* 肆：随机浏览店铺其他商品 */}
-                    <div style={{ background: '#fff', borderRadius: '8px', padding: '15px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
-                            <span style={{
-                                background: '#409eff',
-                                color: 'white',
-                                width: '24px',
-                                height: '24px',
-                                borderRadius: '50%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                marginRight: '10px',
-                                fontSize: '12px',
-                            }}>肆</span>
-                            <span style={{ fontWeight: 'bold' }}>随机浏览店铺其他2个商品</span>
-                            <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#e6a23c', fontWeight: 'bold' }}>
-                                浏览时长：各2分钟
-                            </span>
+                    {/* 肆：随机浏览店铺其他商品 - 只有商家开启时才显示 */}
+                    {needRandomBrowse && (
+                        <div style={{ background: '#fff', borderRadius: '8px', padding: '15px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
+                                <span style={{
+                                    background: '#409eff',
+                                    color: 'white',
+                                    width: '24px',
+                                    height: '24px',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    marginRight: '10px',
+                                    fontSize: '12px',
+                                }}>肆</span>
+                                <span style={{ fontWeight: 'bold' }}>随机浏览店铺其他2个商品</span>
+                                <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#e6a23c', fontWeight: 'bold' }}>
+                                    浏览时长：各2分钟
+                                </span>
+                            </div>
+                            <div style={{ fontSize: '13px', color: '#666', lineHeight: '1.8' }}>
+                                <p>1. 随机浏览店铺其他2个商品各2分钟左右；</p>
+                                <p>2. 对目标商品进行收藏；</p>
+                                <p>3. 上传收藏页面的截图：</p>
+                            </div>
+                            <div style={{ marginTop: '10px' }}>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => handleFileSelect(e, setLocalFile, `order_${id}_localFile`)}
+                                    style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                                />
+                                {localFile && (
+                                    <div style={{ marginTop: '10px' }}>
+                                        <img
+                                            src={localFile.content}
+                                            alt="预览"
+                                            style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px', cursor: 'pointer' }}
+                                            onClick={() => setPreviewImage(localFile.content)}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                            <div style={{ marginTop: '15px' }}>
+                                <p style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>随机浏览商品链接1：</p>
+                                <p style={{ fontSize: '11px', color: '#f56c6c', marginBottom: '5px' }}>* 请输入店铺内其他商品链接（不能是主/副商品）</p>
+                                <input
+                                    type="text"
+                                    value={inputValue3}
+                                    onChange={(e) => setInputValue3(e.target.value)}
+                                    placeholder="请输入随机浏览的商品链接"
+                                    style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                                />
+                            </div>
+                            <div style={{ marginTop: '10px' }}>
+                                <p style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>随机浏览商品链接2：</p>
+                                <p style={{ fontSize: '11px', color: '#f56c6c', marginBottom: '5px' }}>* 请输入店铺内其他商品链接（不能是主/副商品）</p>
+                                <input
+                                    type="text"
+                                    value={inputValue4}
+                                    onChange={(e) => setInputValue4(e.target.value)}
+                                    placeholder="请输入随机浏览的商品链接"
+                                    style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                                />
+                            </div>
                         </div>
-                        <div style={{ fontSize: '13px', color: '#666', lineHeight: '1.8' }}>
-                            <p>1. 随机浏览店铺其他2个商品各2分钟左右；</p>
-                            <p>2. 对目标商品进行收藏；</p>
-                            <p>3. 上传收藏页面的截图：</p>
-                        </div>
-                        <div style={{ marginTop: '10px' }}>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => handleFileSelect(e, setLocalFile, `order_${id}_localFile`)}
-                                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
-                            />
-                            {localFile && (
-                                <div style={{ marginTop: '10px' }}>
-                                    <img
-                                        src={localFile.content}
-                                        alt="预览"
-                                        style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px', cursor: 'pointer' }}
-                                        onClick={() => setPreviewImage(localFile.content)}
-                                    />
-                                </div>
-                            )}
-                        </div>
-                        <div style={{ marginTop: '15px' }}>
-                            <p style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>随机浏览商品链接1：</p>
-                            <p style={{ fontSize: '11px', color: '#f56c6c', marginBottom: '5px' }}>* 请输入店铺内其他商品链接（不能是主/副商品）</p>
-                            <input
-                                type="text"
-                                value={inputValue3}
-                                onChange={(e) => setInputValue3(e.target.value)}
-                                placeholder="请输入随机浏览的商品链接"
-                                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
-                            />
-                        </div>
-                        <div style={{ marginTop: '10px' }}>
-                            <p style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>随机浏览商品链接2：</p>
-                            <p style={{ fontSize: '11px', color: '#f56c6c', marginBottom: '5px' }}>* 请输入店铺内其他商品链接（不能是主/副商品）</p>
-                            <input
-                                type="text"
-                                value={inputValue4}
-                                onChange={(e) => setInputValue4(e.target.value)}
-                                placeholder="请输入随机浏览的商品链接"
-                                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
-                            />
-                        </div>
-                    </div>
+                    )}
                 </div>
             )}
 

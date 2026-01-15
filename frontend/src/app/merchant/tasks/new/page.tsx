@@ -22,7 +22,7 @@ export default function NewTaskPage() {
     const [alertModal, setAlertModal] = useState<{ open: boolean; title: string; message: string; type: 'success' | 'error' | 'warning' }>({ open: false, title: '', message: '', type: 'success' });
 
     useEffect(() => { loadMerchantProfile(); }, []);
-    useEffect(() => { calculateFees(); }, [data.goodsPrice, data.goodsList, data.count, data.isPraise, data.praiseType, data.isTimingPublish, data.isTimingPay, data.isCycleTime, data.addReward, data.isFreeShipping, data.isNextDay, data.fastRefund]);
+    useEffect(() => { calculateFees(); }, [data.goodsPrice, data.goodsList, data.count, data.isPraise, data.praiseType, data.isTimingPublish, data.isTimingPay, data.isCycleTime, data.addReward, data.isFreeShipping, data.isNextDay, data.fastRefund, data.needRandomBrowse]);
 
     const showAlert = (message: string, type: 'success' | 'error' | 'warning' = 'warning') => {
         const titles = { success: '成功', error: '错误', warning: '提示' };
@@ -45,6 +45,7 @@ export default function NewTaskPage() {
         const cycleTimeUnit = (data.isCycleTime && data.cycleTime && data.cycleTime > 0) ? (data.cycleTime * 1) : 0;
         const addRewardUnit = Number(data.addReward || 0);
         const nextDayFeeUnit = data.isNextDay ? 0.5 : 0;
+        const randomBrowseFeeUnit = data.needRandomBrowse ? 0.5 : 0;
         // 多商品模式：计算goodsList总价；兼容单商品模式
         const goodsListTotal = data.goodsList.reduce((sum, g) => sum + (g.price * g.quantity), 0);
         const singleGoodsTotal = (data.goodsPrice || 0);
@@ -54,9 +55,9 @@ export default function NewTaskPage() {
         const goodsMoreFeeUnit = data.goodsList.length > 1 ? (data.goodsList.length - 1) * 1 : 0;
         const isFreeShipping = data.isFreeShipping === 1; const postagePerOrder = isFreeShipping ? 0 : 10; const marginPerOrder = isFreeShipping ? 0 : 10;
         const totalPostage = postagePerOrder * count; const totalMargin = marginPerOrder * count; const totalDeposit = totalGoodsMoney + totalPostage + totalMargin;
-        const totalBaseService = baseFeePerOrder * count; const totalPraise = praiseFeeUnit * count; const totalTimingPublish = timingPublishFeeUnit * count; const totalTimingPay = timingPayFeeUnit * count; const totalCycle = cycleTimeUnit * count; const totalAddReward = addRewardUnit * count; const totalGoodsMoreFee = goodsMoreFeeUnit * count; const totalNextDayFee = nextDayFeeUnit * count;
-        const totalCommission = totalBaseService + totalPraise + totalTimingPublish + totalTimingPay + totalCycle + totalAddReward + totalGoodsMoreFee + totalNextDayFee;
-        if (totalDeposit !== data.totalDeposit || totalCommission !== data.totalCommission || goodsMoreFeeUnit !== data.goodsMoreFee || nextDayFeeUnit !== data.nextDayFee) { setData(prev => ({ ...prev, totalDeposit, totalCommission, baseServiceFee: baseFeePerOrder, praiseFee: praiseFeeUnit, timingPublishFee: timingPublishFeeUnit, timingPayFee: timingPayFeeUnit, cycleTimeFee: cycleTimeUnit, addRewardFee: addRewardUnit, goodsMoreFee: goodsMoreFeeUnit, nextDayFee: nextDayFeeUnit, postageMoney: totalPostage, marginMoney: totalMargin })); }
+        const totalBaseService = baseFeePerOrder * count; const totalPraise = praiseFeeUnit * count; const totalTimingPublish = timingPublishFeeUnit * count; const totalTimingPay = timingPayFeeUnit * count; const totalCycle = cycleTimeUnit * count; const totalAddReward = addRewardUnit * count; const totalGoodsMoreFee = goodsMoreFeeUnit * count; const totalNextDayFee = nextDayFeeUnit * count; const totalRandomBrowseFee = randomBrowseFeeUnit * count;
+        const totalCommission = totalBaseService + totalPraise + totalTimingPublish + totalTimingPay + totalCycle + totalAddReward + totalGoodsMoreFee + totalNextDayFee + totalRandomBrowseFee;
+        if (totalDeposit !== data.totalDeposit || totalCommission !== data.totalCommission || goodsMoreFeeUnit !== data.goodsMoreFee || nextDayFeeUnit !== data.nextDayFee || randomBrowseFeeUnit !== data.randomBrowseFee) { setData(prev => ({ ...prev, totalDeposit, totalCommission, baseServiceFee: baseFeePerOrder, praiseFee: praiseFeeUnit, timingPublishFee: timingPublishFeeUnit, timingPayFee: timingPayFeeUnit, cycleTimeFee: cycleTimeUnit, addRewardFee: addRewardUnit, goodsMoreFee: goodsMoreFeeUnit, nextDayFee: nextDayFeeUnit, randomBrowseFee: randomBrowseFeeUnit, postageMoney: totalPostage, marginMoney: totalMargin })); }
     };
 
     const handleDataChange = (updates: Partial<TaskFormData>) => { setData(prev => ({ ...prev, ...updates })); };

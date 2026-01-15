@@ -620,6 +620,7 @@ export class OrdersController {
           needContactCS: task.needContactCS,
           contactCSContent: task.contactCSContent || '',
           needAddCart: task.needAddCart,
+          needRandomBrowse: task.needRandomBrowse || false,
           isFreeShipping: task.isFreeShipping,
           weight: task.weight || 0,
           fastRefund: task.fastRefund || false,

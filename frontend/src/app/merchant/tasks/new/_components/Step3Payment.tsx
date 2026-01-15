@@ -66,6 +66,7 @@ export default function Step3Payment({ data, merchant, onPrev, onSubmit, loading
                         {data.cycleTimeFee > 0 && <div className="mb-2 flex justify-between text-sm text-[#6b7280]"><span>周期延长费 ({f(data.cycleTimeFee)} × {data.count})</span><span>¥{f(Number(data.cycleTimeFee) * Number(data.count))}</span></div>}
                         {data.goodsMoreFee > 0 && <div className="mb-2 flex justify-between text-sm text-[#6b7280]"><span>多商品费用 ({f(data.goodsMoreFee)} × {data.count})</span><span>¥{f(data.goodsMoreFee * data.count)}</span></div>}
                         {data.nextDayFee > 0 && <div className="mb-2 flex justify-between text-sm text-[#6b7280]"><span>隔天任务费 (0.50 × {data.count})</span><span>¥{f(data.nextDayFee * data.count)}</span></div>}
+                        {data.randomBrowseFee > 0 && <div className="mb-2 flex justify-between text-sm text-[#6b7280]"><span>随机浏览费 ({f(data.randomBrowseFee)} × {data.count})</span><span>¥{f(data.randomBrowseFee * data.count)}</span></div>}
                         <div className="mt-3 flex justify-between border-t border-dashed border-[#e5e7eb] pt-3 font-semibold text-[#3b4559]"><span>银锭/佣金总计</span><span className="text-lg text-warning-500">¥{f(data.totalCommission)}</span></div>
                     </div>
                 </div>

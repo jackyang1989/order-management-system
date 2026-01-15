@@ -143,6 +143,7 @@ export interface TaskFormData {
     // 特殊任务类型
     isRepay: boolean;        // 回购任务
     isNextDay: boolean;      // 隔天任务
+    needRandomBrowse: boolean; // 随机浏览店铺其他商品
 
     // Step 2: Order Settings
     memo: string;            // 下单提示/备注 (最多100字)
@@ -163,6 +164,7 @@ export interface TaskFormData {
     addRewardFee: number;
     goodsMoreFee: number;   // 多商品费用
     nextDayFee: number;     // 隔天任务费用
+    randomBrowseFee: number; // 随机浏览费用
 
     // New Fee Components (Only core)
     postageMoney: number;
@@ -226,6 +228,7 @@ export const InitialTaskData: TaskFormData = {
     // 特殊任务类型
     isRepay: false,
     isNextDay: false,
+    needRandomBrowse: false,
 
     // Order Settings
     memo: '',
@@ -246,6 +249,7 @@ export const InitialTaskData: TaskFormData = {
     addRewardFee: 0,
     goodsMoreFee: 0,
     nextDayFee: 0,
+    randomBrowseFee: 0,
 
     postageMoney: 0,
     marginMoney: 0,
