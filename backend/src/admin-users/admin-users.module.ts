@@ -10,6 +10,15 @@ import {
 import { AdminUsersService } from './admin-users.service';
 import { AdminUsersController } from './admin-users.controller';
 
+// P0-1: 安全获取 JWT 密钥
+const getJwtSecret = (): string => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret && process.env.NODE_ENV === 'production') {
+    throw new Error('[SECURITY] JWT_SECRET 环境变量未配置！');
+  }
+  return secret || 'dev-only-jwt-secret-do-not-use-in-production';
+};
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -19,7 +28,7 @@ import { AdminUsersController } from './admin-users.controller';
       AdminOperationLog,
     ]),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'order-mgmt-jwt-secret-2026',
+      secret: getJwtSecret(),
       signOptions: { expiresIn: '24h' },
     }),
   ],

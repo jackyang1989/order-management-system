@@ -271,7 +271,8 @@ const ENTITIES = [
       database: process.env.DB_DATABASE || 'order_management',
       // 【重要】显式实体列表 - 禁止使用通配符以防止重复实体加载导致的列膨胀
       entities: ENTITIES,
-      synchronize: true,
+      // P0-2: 生产环境禁用 synchronize，防止数据丢失
+      synchronize: process.env.NODE_ENV !== 'production',
       logging: process.env.NODE_ENV !== 'production',
       // 生产级连接池配置
       extra: {

@@ -10,6 +10,15 @@ import { UsersModule } from '../users/users.module';
 import { User } from '../users/user.entity';
 import { SmsModule } from '../sms/sms.module';
 
+// P0-1: 安全获取 JWT 密钥
+const getJwtSecret = (): string => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret && process.env.NODE_ENV === 'production') {
+    throw new Error('[SECURITY] JWT_SECRET 环境变量未配置！');
+  }
+  return secret || 'dev-only-jwt-secret-do-not-use-in-production';
+};
+
 @Module({
   imports: [
     UsersModule,
@@ -17,7 +26,7 @@ import { SmsModule } from '../sms/sms.module';
     SmsModule,
     TypeOrmModule.forFeature([User]), // P1-1: 用于JwtStrategy中的VIP过期检查
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'order-mgmt-jwt-secret-2026',
+      secret: getJwtSecret(),
       signOptions: { expiresIn: '7d' },
     }),
   ],

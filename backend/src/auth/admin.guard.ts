@@ -49,8 +49,14 @@ export class AdminGuard implements CanActivate {
     const token = authHeader.substring(7);
 
     try {
+      // P0-1: 安全获取 JWT 密钥
+      const jwtSecret = process.env.JWT_SECRET ||
+        (process.env.NODE_ENV === 'production'
+          ? (() => { throw new Error('[SECURITY] JWT_SECRET 未配置'); })()
+          : 'dev-only-jwt-secret-do-not-use-in-production');
+
       const payload = this.jwtService.verify(token, {
-        secret: process.env.JWT_SECRET || 'order-mgmt-jwt-secret-2026',
+        secret: jwtSecret,
       });
 
       // 检查是否是管理员用户
