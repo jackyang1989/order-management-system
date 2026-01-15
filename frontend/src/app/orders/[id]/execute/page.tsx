@@ -744,10 +744,10 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 }
             }
 
-            // 如果当前显示的步骤不是后端的当前步骤，说明用户在查看已完成的步骤
-            if (active !== backendCurrentStep) {
-                // 直接跳到后端的当前步骤
-                setActive(backendCurrentStep);
+            // 如果当前显示的步骤小于后端的当前步骤，说明用户在查看已完成的步骤
+            if (active < backendCurrentStep) {
+                // 按顺序进入下一步（浏览模式）
+                setActive(active + 1);
                 return;
             }
 
@@ -810,10 +810,10 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 return;
             }
 
-            // 如果当前显示的步骤不是后端的当前步骤，说明用户在查看已完成的步骤
-            if (active !== backendCurrentStep) {
-                // 直接跳到后端的当前步骤
-                setActive(backendCurrentStep);
+            // 如果当前显示的步骤小于后端的当前步骤，说明用户在查看已完成的步骤
+            if (active < backendCurrentStep) {
+                // 按顺序进入下一步（浏览模式）
+                setActive(active + 1);
                 return;
             }
 

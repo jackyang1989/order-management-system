@@ -189,8 +189,8 @@ const normalizeContinue = (raw: any): ContinueTaskItem => ({
     commission: Number(raw?.task?.totalCommission || raw?.commission) || Number(raw?.user_reward) || 0,
     userDivided: Number(raw?.task?.userDivided || raw?.userDivided || raw?.user_divided) || 0,
     status: raw?.status || raw?.task_step || 'PENDING',
-    currentStep: raw?.task_step || raw?.currentStep,
-    totalSteps: raw?.totalSteps,
+    currentStep: raw?.currentStep || raw?.task_step || 1,
+    totalSteps: raw?.totalSteps || 3,
 });
 
 export async function fetchTaskList(filter?: Record<string, any>): Promise<{ list: TaskItem[]; total: number }> {

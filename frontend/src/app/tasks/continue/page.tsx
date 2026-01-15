@@ -188,7 +188,7 @@ export default function ContinueTasksPage() {
                                         <span className="flex h-2 w-2 rounded-full bg-primary-500 animate-pulse" />
                                         <span className="text-[13px] font-bold text-slate-600">{stateLabel(task.status)}</span>
                                         <span className="text-[11px] font-medium text-slate-300">
-                                            {task.currentStep || '0'}/{task.totalSteps || '9'} 步
+                                            {task.currentStep || 1}/{task.totalSteps || 3} 步
                                         </span>
                                     </div>
                                     <div className="flex gap-2">

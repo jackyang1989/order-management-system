@@ -360,6 +360,10 @@ export class OrdersService {
     // 构建步骤数据 (根据任务配置动态生成，
     const steps: OrderStepData[] = this.generateTaskSteps(task);
 
+    // 前端UI固定为3步：1.货比加购 2.进店浏览 3.下单截图
+    // 所以 totalSteps 固定为3，不管后端生成了多少步骤
+    const FIXED_TOTAL_STEPS = 3;
+
     // ========== P0 Fix: 动态超时时间计算 (Dynamic Timeout Calculation) ==========
     // 旧版逻辑: Task.php Line 292-307
     let endingTime = new Date();
@@ -399,7 +403,7 @@ export class OrdersService {
       commission: Number(task.baseServiceFee),
       userDivided: userDividedPerOrder, // 买手分成佣金（每单）
       currentStep: 1,
-      totalSteps: steps.length,
+      totalSteps: FIXED_TOTAL_STEPS, // 前端UI固定为3步
       stepData: steps,
       status: OrderStatus.PENDING,
       endingTime,
