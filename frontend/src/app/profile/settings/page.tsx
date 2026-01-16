@@ -266,7 +266,7 @@ export default function ProfileSettingsPage() {
 
     const InfoRow = ({ label, value, action, onClick, showArrow }: { label: string; value: string; action?: () => void; onClick?: () => void; showArrow?: boolean }) => (
         <div
-            className={`flex items-center justify-center px-4 py-3 ${onClick ? 'cursor-pointer active:bg-slate-50' : ''}`}
+            className={`flex items-center px-4 py-4 ${onClick ? 'cursor-pointer active:bg-slate-50' : ''}`}
             onClick={onClick}
         >
             <span className="flex-1 text-sm font-semibold text-slate-500">{label}</span>
@@ -279,7 +279,7 @@ export default function ProfileSettingsPage() {
             {action && (
                 <button
                     onClick={(e) => { e.stopPropagation(); action(); }}
-                    className="ml-3 rounded-xl bg-blue-50 px-3 py-1 text-xs font-bold text-primary-600 transition-colors hover:bg-blue-100"
+                    className="ml-3 rounded-xl bg-blue-50 px-3 py-1.5 text-xs font-bold text-primary-600 transition-colors hover:bg-blue-100"
                 >
                     修改
                 </button>
@@ -313,11 +313,11 @@ export default function ProfileSettingsPage() {
                     <div className="relative mx-auto mb-3 h-20 w-20">
                         <div className="h-full w-full overflow-hidden rounded-full bg-slate-100 shadow-lg shadow-indigo-500/20">
                             {userInfo.avatar ? (
-                                <Image 
-                                    src={userInfo.avatar} 
-                                    alt="头像" 
-                                    width={80} 
-                                    height={80} 
+                                <Image
+                                    src={userInfo.avatar}
+                                    alt="头像"
+                                    width={80}
+                                    height={80}
                                     className="h-full w-full object-cover"
                                     unoptimized
                                 />
@@ -338,12 +338,12 @@ export default function ProfileSettingsPage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
                             )}
-                            <input 
-                                type="file" 
-                                className="hidden" 
-                                accept="image/*" 
+                            <input
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
                                 disabled={uploadingAvatar}
-                                onChange={e => e.target.files?.[0] && handleAvatarUpload(e.target.files[0])} 
+                                onChange={e => e.target.files?.[0] && handleAvatarUpload(e.target.files[0])}
                             />
                         </label>
                     </div>
@@ -353,16 +353,16 @@ export default function ProfileSettingsPage() {
                 {/* Personal Section */}
                 <div>
                     <SectionHeader title="个人信息" />
-                    <Card className="divide-y divide-slate-50 overflow-hidden rounded-[20px] border-none px-2">
+                    <Card noPadding className="divide-y divide-slate-50 overflow-hidden rounded-[20px] border-none px-0">
                         <InfoRow label="用户名" value={userInfo.username} />
                         <InfoRow label="手机号" value={maskedPhone} action={() => setShowPhoneModal(true)} />
-                        <InfoRow 
-                            label="微信号" 
-                            value={userInfo.wechat || '未绑定'} 
+                        <InfoRow
+                            label="微信号"
+                            value={userInfo.wechat || '未绑定'}
                             action={() => {
                                 setWechatForm(userInfo.wechat || '');
                                 setShowWechatModal(true);
-                            }} 
+                            }}
                         />
                     </Card>
                 </div>
@@ -370,7 +370,7 @@ export default function ProfileSettingsPage() {
                 {/* Membership Section */}
                 <div>
                     <SectionHeader title="会员信息" />
-                    <Card className="divide-y divide-slate-50 overflow-hidden rounded-[20px] border-none px-2">
+                    <Card noPadding className="divide-y divide-slate-50 overflow-hidden rounded-[20px] border-none px-0">
                         <InfoRow label="会员状态" value={userInfo.vip ? 'VIP会员' : '普通会员'} />
                         <InfoRow
                             label="开通/续费"
@@ -385,7 +385,7 @@ export default function ProfileSettingsPage() {
                 {/* Security Section */}
                 <div>
                     <SectionHeader title="安全设置" />
-                    <Card className="divide-y divide-slate-50 overflow-hidden rounded-[20px] border-none px-2">
+                    <Card noPadding className="divide-y divide-slate-50 overflow-hidden rounded-[20px] border-none px-0">
                         <InfoRow label="登陆密码" value="********" action={() => setShowPasswordModal(true)} />
                         <InfoRow label="支付密码" value="********" action={() => setShowPayPwdModal(true)} />
                     </Card>
@@ -482,12 +482,12 @@ export default function ProfileSettingsPage() {
                 <div className="space-y-5 px-1 py-1">
                     <div className="space-y-1.5">
                         <label className="ml-1 text-[11px] font-bold uppercase tracking-tight text-slate-400">微信号</label>
-                        <input 
-                            type="text" 
-                            placeholder="请输入微信号" 
-                            className="w-full rounded-2xl border-2 border-slate-50 bg-white px-4 py-3 text-sm font-bold text-slate-900 focus:border-blue-600 focus:outline-none" 
-                            value={wechatForm} 
-                            onChange={e => setWechatForm(e.target.value)} 
+                        <input
+                            type="text"
+                            placeholder="请输入微信号"
+                            className="w-full rounded-2xl border-2 border-slate-50 bg-white px-4 py-3 text-sm font-bold text-slate-900 focus:border-blue-600 focus:outline-none"
+                            value={wechatForm}
+                            onChange={e => setWechatForm(e.target.value)}
                         />
                     </div>
                     <div className="text-center">
