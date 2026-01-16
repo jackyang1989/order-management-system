@@ -13,7 +13,6 @@ interface Merchant {
     id: string;
     username: string;
     phone: string;
-    companyName: string;
     balance: number;
     frozenBalance: number;
 }

@@ -33,7 +33,6 @@ export interface AdminMerchant {
     username: string;
     phone: string;
     wechat?: string;
-    companyName?: string;
     contactName?: string;
     businessLicense?: string;
     balance: number;

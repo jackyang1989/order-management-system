@@ -14,7 +14,7 @@ export default function MerchantLoginPage() {
     const [error, setError] = useState('');
 
     const [loginForm, setLoginForm] = useState({ username: '', password: '' });
-    const [registerForm, setRegisterForm] = useState({ username: '', password: '', confirmPassword: '', phone: '', companyName: '' });
+    const [registerForm, setRegisterForm] = useState({ username: '', password: '', confirmPassword: '', phone: '' });
 
     const handleLogin = async () => {
         if (!loginForm.username || !loginForm.password) { setError('请输入用户名和密码'); return; }
@@ -46,8 +46,7 @@ export default function MerchantLoginPage() {
                 body: JSON.stringify({
                     username: registerForm.username,
                     password: registerForm.password,
-                    phone: registerForm.phone,
-                    companyName: registerForm.companyName
+                    phone: registerForm.phone
                 })
             });
             const data = await response.json();
@@ -149,13 +148,6 @@ export default function MerchantLoginPage() {
                                 placeholder="手机号"
                                 value={registerForm.phone}
                                 onChange={e => setRegisterForm({ ...registerForm, phone: e.target.value })}
-                                className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-5 font-bold text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20"
-                            />
-                            <Input
-                                type="text"
-                                placeholder="公司/店铺名称（选填）"
-                                value={registerForm.companyName}
-                                onChange={e => setRegisterForm({ ...registerForm, companyName: e.target.value })}
                                 className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-5 font-bold text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20"
                             />
                             <div className="grid grid-cols-2 gap-4">

@@ -43,10 +43,10 @@ export class MerchantsService {
 
     const qb = this.merchantsRepository.createQueryBuilder('m');
 
-    // Keyword search (username, phone, companyName)
+    // Keyword search (username, phone, merchantNo)
     if (query.keyword) {
       qb.andWhere(
-        '(m.username LIKE :keyword OR m.phone LIKE :keyword OR m.companyName LIKE :keyword)',
+        '(m.username LIKE :keyword OR m.phone LIKE :keyword OR m.merchantNo LIKE :keyword)',
         { keyword: `%${query.keyword}%` },
       );
     }
@@ -135,7 +135,6 @@ export class MerchantsService {
       password: hashedPassword,
       phone: dto.phone,
       wechat: dto.wechat || '',
-      companyName: dto.companyName || '',
       balance: dto.balance || 0,
       frozenBalance: 0,
       silver: dto.silver || 0,

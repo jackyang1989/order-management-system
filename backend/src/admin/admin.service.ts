@@ -154,7 +154,7 @@ export class AdminService {
     const query = this.usersRepository.createQueryBuilder('user');
 
     if (search) {
-      query.where('user.username ILIKE :search OR user.phone ILIKE :search', {
+      query.where('user.username ILIKE :search OR user.phone ILIKE :search OR user.userNo ILIKE :search', {
         search: `%${search}%`,
       });
     }
@@ -210,7 +210,7 @@ export class AdminService {
     if (keyword) {
       const condition = status !== undefined ? 'andWhere' : 'where';
       query[condition](
-        '(merchant.username ILIKE :keyword OR merchant.phone ILIKE :keyword OR merchant.wechat ILIKE :keyword)',
+        '(merchant.username ILIKE :keyword OR merchant.phone ILIKE :keyword OR merchant.wechat ILIKE :keyword OR merchant.merchantNo ILIKE :keyword)',
         { keyword: `%${keyword}%` },
       );
     }
@@ -222,7 +222,6 @@ export class AdminService {
         'merchant.username',
         'merchant.phone',
         'merchant.wechat',
-        'merchant.companyName',
         'merchant.balance',
         'merchant.frozenBalance',
         'merchant.silver',

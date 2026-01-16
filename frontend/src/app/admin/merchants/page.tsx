@@ -106,7 +106,6 @@ export default function AdminMerchantsPage() {
     const [newMerchantPassword, setNewMerchantPassword] = useState('');
     const [newConfirmPassword, setNewConfirmPassword] = useState('');
     const [newWechat, setNewWechat] = useState('');
-    const [newCompanyName, setNewCompanyName] = useState('');
     const [newVipExpireAt, setNewVipExpireAt] = useState('');
     const [newBalance, setNewBalance] = useState('');
     const [newSilver, setNewSilver] = useState('');
@@ -266,7 +265,6 @@ export default function AdminMerchantsPage() {
         setNewMerchantPassword('');
         setNewConfirmPassword('');
         setNewWechat('');
-        setNewCompanyName('');
         setNewVipExpireAt('');
         setNewBalance('');
         setNewSilver('');
@@ -372,7 +370,6 @@ export default function AdminMerchantsPage() {
                 phone: newPhone,
                 password: newMerchantPassword,
                 wechat: newWechat || undefined,
-                companyName: newCompanyName || undefined,
                 vipExpireAt: newVipExpireAt || undefined,
                 balance: newBalance ? Number(newBalance) : undefined,
                 silver: newSilver ? Number(newSilver) : undefined,
@@ -1007,12 +1004,6 @@ export default function AdminMerchantsPage() {
                         placeholder="请输入微信号"
                         value={newWechat}
                         onChange={(e) => setNewWechat(e.target.value)}
-                    />
-                    <Input
-                        label="公司名称（可选）"
-                        placeholder="请输入公司名称"
-                        value={newCompanyName}
-                        onChange={(e) => setNewCompanyName(e.target.value)}
                     />
                     <DateInput
                         label="VIP到期时间（可选）"

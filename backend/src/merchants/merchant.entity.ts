@@ -39,9 +39,6 @@ export class Merchant {
   avatar: string;
 
   // 企业信息
-  @Column({ name: 'company_name', nullable: true })
-  companyName: string;
-
   @Column({ name: 'business_license', nullable: true })
   businessLicense: string;
 
@@ -117,10 +114,6 @@ export class CreateMerchantDto {
   @IsOptional()
   wechat?: string;
 
-  @IsString()
-  @IsOptional()
-  companyName?: string;
-
   @IsOptional()
   vipExpireAt?: string; // VIP到期时间
 
@@ -153,10 +146,6 @@ export class UpdateMerchantDto {
   @IsString()
   @IsOptional()
   wechat?: string;
-
-  @IsString()
-  @IsOptional()
-  companyName?: string;
 
   @IsString()
   @IsOptional()

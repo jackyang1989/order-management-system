@@ -519,7 +519,7 @@ function AdminBuyerAccountsPageContent() {
                         {userId && (
                             <span className="text-sm text-[#6b7280]">
                                 {userInfo ? (
-                                    <>用户: {userInfo.userNo || userInfo.username} ({userInfo.phone})</>
+                                    <>用户ID: {userInfo.userNo || userInfo.username}</>
                                 ) : (
                                     <>用户ID: {userId}</>
                                 )}
