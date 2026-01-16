@@ -53,6 +53,7 @@ import { ReviewsModule } from './reviews/reviews.module';
 import { InviteModule } from './invite/invite.module';
 import { HelpCenterModule } from './help-center/help-center.module';
 import { BannersModule } from './banners/banners.module';
+import { SystemConfigModule } from './system-config/system-config.module';
 
 // ============ 显式实体引入（禁止使用通配符加载）============
 // admin-config
@@ -63,6 +64,8 @@ import { Platform } from './admin-config/platform.entity';
 import { VipLevel } from './admin-config/vip-level.entity';
 import { TablePreference } from './admin-config/table-preferences.entity';
 import { EntryType } from './admin-config/entry-type.entity';
+// system-config
+import { SystemConfig as SystemConfigEntity } from './system-config/system-config.entity';
 // admin-menus
 import { AdminMenu } from './admin-menus/admin-menu.entity';
 // admin-users
@@ -161,6 +164,8 @@ const ENTITIES = [
   VipLevel,
   TablePreference,
   EntryType,
+  // system-config
+  SystemConfigEntity,
   // admin-menus
   AdminMenu,
   // admin-users
@@ -333,6 +338,7 @@ const ENTITIES = [
     InviteModule,
     HelpCenterModule,
     BannersModule,
+    SystemConfigModule,
   ],
   controllers: [AppController],
   providers: [

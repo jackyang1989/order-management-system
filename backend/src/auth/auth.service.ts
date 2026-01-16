@@ -4,12 +4,14 @@ import {
   NotFoundException,
   ConflictException,
   UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto, LoginDto } from '../users/user.entity';
 import { SmsService } from '../sms/sms.service';
 import { SmsCodeType } from '../sms/sms.entity';
+import { SystemConfigService } from '../system-config/system-config.service';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +19,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private smsService: SmsService,
+    private systemConfigService: SystemConfigService,
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
@@ -77,6 +80,12 @@ export class AuthService {
   }
 
   async register(createUserDto: CreateUserDto) {
+    // 检查用户注册开关
+    const isEnabled = await this.systemConfigService.isUserRegistrationEnabled();
+    if (!isEnabled) {
+      throw new ForbiddenException('用户注册功能已关闭');
+    }
+
     // 检查用户名是否已存在
     const existingUser = await this.usersService.findByUsername(
       createUserDto.username,

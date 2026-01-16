@@ -9,6 +9,7 @@ import { AdminGuard } from './admin.guard';
 import { UsersModule } from '../users/users.module';
 import { User } from '../users/user.entity';
 import { SmsModule } from '../sms/sms.module';
+import { SystemConfigModule } from '../system-config/system-config.module';
 
 // P0-1: 安全获取 JWT 密钥
 const getJwtSecret = (): string => {
@@ -24,6 +25,7 @@ const getJwtSecret = (): string => {
     UsersModule,
     PassportModule,
     SmsModule,
+    SystemConfigModule,
     TypeOrmModule.forFeature([User]), // P1-1: 用于JwtStrategy中的VIP过期检查
     JwtModule.register({
       secret: getJwtSecret(),

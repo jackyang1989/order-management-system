@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -17,6 +18,7 @@ import {
   FinanceMoneyType,
 } from '../finance-records/finance-record.entity';
 import * as bcrypt from 'bcrypt';
+import { SystemConfigService } from '../system-config/system-config.service';
 
 @Injectable()
 export class MerchantsService {
@@ -25,6 +27,7 @@ export class MerchantsService {
     private merchantsRepository: Repository<Merchant>,
     private financeRecordsService: FinanceRecordsService,
     private dataSource: DataSource,
+    private systemConfigService: SystemConfigService,
   ) { }
 
   async findAll(
@@ -109,6 +112,12 @@ export class MerchantsService {
   }
 
   async create(dto: CreateMerchantDto): Promise<Merchant> {
+    // 检查商家注册开关
+    const isEnabled = await this.systemConfigService.isMerchantRegistrationEnabled();
+    if (!isEnabled) {
+      throw new ForbiddenException('商家注册功能已关闭');
+    }
+
     // 检查用户名是否已存在
     const existingUsername = await this.findByUsername(dto.username);
     if (existingUsername) {
