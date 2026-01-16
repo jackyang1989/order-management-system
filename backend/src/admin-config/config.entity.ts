@@ -814,4 +814,13 @@ export const DEFAULT_CONFIGS = [
     description: '控制商家端注册功能是否开启',
     sortOrder: 1,
   },
+  {
+    key: 'merchant_referral_enabled',
+    value: 'true',
+    group: 'register',
+    label: '商家邀请推荐功能开关',
+    valueType: 'boolean',
+    description: '控制商家邀请推荐功能是否开启',
+    sortOrder: 2,
+  },
 ];
