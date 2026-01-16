@@ -279,6 +279,13 @@ export class AdminController {
   // ============ 店铺管理 ============
   @Get('shops')
   async getShops(@Query() query: any) {
+    // 如果提供了merchantId参数且是merchantNo格式，需要先转换为UUID
+    if (query.merchantId && query.merchantId.startsWith('M')) {
+      const merchant = await this.merchantsService.findByMerchantNo(query.merchantId);
+      if (merchant) {
+        query.merchantId = merchant.id;
+      }
+    }
     return this.shopsService.findAll(query);
   }
 
@@ -323,15 +330,27 @@ export class AdminController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('status') status?: string,
+    @Query('userId') userId?: string,
   ) {
     const statusEnum =
       status !== undefined
         ? (parseInt(status) as BuyerAccountStatus)
         : undefined;
+
+    // 如果提供了userId参数，需要先将userNo转换为UUID
+    let actualUserId = userId;
+    if (userId && userId.startsWith('U')) {
+      const user = await this.usersService.findByUserNo(userId);
+      if (user) {
+        actualUserId = user.id;
+      }
+    }
+
     const result = await this.buyerAccountsService.getAllAccounts(
       parseInt(page || '1'),
       parseInt(limit || '20'),
       statusEnum,
+      actualUserId,
     );
     return { success: true, ...result };
   }

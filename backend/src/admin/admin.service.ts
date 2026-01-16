@@ -561,16 +561,30 @@ export class AdminService {
 
   /**
    * 获取用户详细信息（包含余额）
+   * 支持通过UUID或userNo查询
    */
-  async getUserDetail(userId: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { id: userId } });
+  async getUserDetail(idOrUserNo: string): Promise<User | null> {
+    // 先尝试通过userNo查询
+    if (idOrUserNo.startsWith('U')) {
+      const user = await this.usersRepository.findOne({ where: { userNo: idOrUserNo } });
+      if (user) return user;
+    }
+    // 如果不是userNo或未找到，则通过UUID查询
+    return this.usersRepository.findOne({ where: { id: idOrUserNo } });
   }
 
   /**
    * 获取商家详细信息（包含余额）
+   * 支持通过UUID或merchantNo查询
    */
-  async getMerchantDetail(merchantId: string): Promise<Merchant | null> {
-    return this.merchantsRepository.findOne({ where: { id: merchantId } });
+  async getMerchantDetail(idOrMerchantNo: string): Promise<Merchant | null> {
+    // 先尝试通过merchantNo查询
+    if (idOrMerchantNo.startsWith('M')) {
+      const merchant = await this.merchantsRepository.findOne({ where: { merchantNo: idOrMerchantNo } });
+      if (merchant) return merchant;
+    }
+    // 如果不是merchantNo或未找到，则通过UUID查询
+    return this.merchantsRepository.findOne({ where: { id: idOrMerchantNo } });
   }
 
   /**

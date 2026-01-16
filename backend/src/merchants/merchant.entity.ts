@@ -162,4 +162,8 @@ export class UpdateMerchantDto {
   @IsString()
   @IsOptional()
   contactName?: string;
+
+  @IsString()
+  @IsOptional()
+  avatar?: string;
 }

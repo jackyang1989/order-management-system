@@ -82,7 +82,7 @@ function AdminBuyerAccountsPageContent() {
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
-    const [userInfo, setUserInfo] = useState<{ username: string; phone: string } | null>(null);
+    const [userInfo, setUserInfo] = useState<{ username: string; phone: string; userNo?: string } | null>(null);
 
     // 筛选条件
     const [filterUsername, setFilterUsername] = useState<string>('');
@@ -519,9 +519,9 @@ function AdminBuyerAccountsPageContent() {
                         {userId && (
                             <span className="text-sm text-[#6b7280]">
                                 {userInfo ? (
-                                    <>用户: {userInfo.username} ({userInfo.phone})</>
+                                    <>用户: {userInfo.userNo || userInfo.username} ({userInfo.phone})</>
                                 ) : (
-                                    <>用户ID: {userId.slice(0, 8)}...</>
+                                    <>用户ID: {userId}</>
                                 )}
                             </span>
                         )}

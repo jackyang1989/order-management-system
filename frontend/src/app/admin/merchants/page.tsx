@@ -588,10 +588,10 @@ export default function AdminMerchantsPage() {
             minWidth: 200,
             render: (row) => (
                 <div className="grid grid-cols-4 gap-1 w-fit mx-auto">
-                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => router.push(`/admin/shops?merchantId=${row.id}`)}>
+                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => router.push(`/admin/shops?merchantId=${row.merchantNo || row.id}`)}>
                         店铺
                     </button>
-                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => router.push(`/admin/merchants/balance?merchantId=${row.id}`)}>
+                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => router.push(`/admin/merchants/balance?merchantId=${row.merchantNo || row.id}`)}>
                         流水
                     </button>
                     <button className="rounded-full border border-success-300 bg-white px-3 py-1 text-xs text-success-600 hover:bg-success-50 transition-colors" onClick={() => router.push(`/admin/merchants/${row.id}/deposit`)}>

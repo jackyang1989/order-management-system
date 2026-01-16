@@ -722,7 +722,7 @@ export default function AdminUsersPage() {
                     <button className="rounded-full border border-success-300 bg-white px-3 py-1 text-xs text-success-600 hover:bg-success-50 transition-colors" onClick={() => window.location.href = `/admin/users/${row.id}/deposit`}>
                         押金
                     </button>
-                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.id}`}>
+                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => window.location.href = `/admin/users/accounts?userId=${row.userNo || row.id}`}>
                         买号
                     </button>
                     <button className="rounded-full border border-primary-300 bg-white px-3 py-1 text-xs text-primary-600 hover:bg-primary-50 transition-colors" onClick={() => openEditModal(row)}>
@@ -734,7 +734,7 @@ export default function AdminUsersPage() {
                     <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
                         消息
                     </button>
-                    <button className="rounded-full border border-amber-300 bg-white px-3 py-1 text-xs text-amber-600 hover:bg-amber-50 transition-colors" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.id}`}>
+                    <button className="rounded-full border border-amber-300 bg-white px-3 py-1 text-xs text-amber-600 hover:bg-amber-50 transition-colors" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.userNo || row.id}`}>
                         银行卡
                     </button>
                     {row.isBanned ? (

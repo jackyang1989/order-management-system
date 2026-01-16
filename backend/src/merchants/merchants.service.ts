@@ -100,6 +100,10 @@ export class MerchantsService {
     return this.merchantsRepository.findOne({ where: { phone } });
   }
 
+  async findByMerchantNo(merchantNo: string): Promise<Merchant | null> {
+    return this.merchantsRepository.findOne({ where: { merchantNo } });
+  }
+
   async create(dto: CreateMerchantDto): Promise<Merchant> {
     // 检查用户名是否已存在
     const existingUsername = await this.findByUsername(dto.username);

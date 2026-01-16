@@ -474,6 +474,7 @@ export class BuyerAccountsService {
     page: number = 1,
     limit: number = 20,
     status?: BuyerAccountStatus,
+    userId?: string,
   ): Promise<{
     data: BuyerAccount[];
     total: number;
@@ -486,6 +487,11 @@ export class BuyerAccountsService {
     } else {
       // 默认排除已删除的记录
       where.status = Not(BuyerAccountStatus.DELETED);
+    }
+
+    // 如果提供了userId参数，添加到查询条件
+    if (userId) {
+      where.userId = userId;
     }
 
     const [data, total] = await this.buyerAccountsRepository.findAndCount({
