@@ -30,6 +30,11 @@ export class AuthController {
     @Body() loginDto: LoginDto,
     @Response({ passthrough: true }) res: ExpressResponse,
   ) {
+    // 先清除可能存在的旧 cookie
+    res.clearCookie('accessToken', {
+      httpOnly: true,
+    });
+    
     const result = await this.authService.login(loginDto);
 
     return result;

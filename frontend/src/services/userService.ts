@@ -539,14 +539,26 @@ export interface UserProfile {
 export const fetchUserProfile = async (): Promise<UserProfile | null> => {
     try {
         const token = localStorage.getItem('token');
+        console.log('[UserService] fetchUserProfile - token exists:', !!token);
+        console.log('[UserService] fetchUserProfile - token value:', token ? token.substring(0, 50) + '...' : 'null');
+        
+        const headers: Record<string, string> = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        console.log('[UserService] Request headers:', headers);
+        
         const response = await fetch(`${BASE_URL}/user/profile`, {
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+            headers,
             cache: 'no-store'
         });
+
+        console.log('[UserService] Response status:', response.status);
 
         if (!response.ok) {
             if (response.status === 401) {
                 console.warn('[UserService] Unauthorized - clearing token');
+                console.warn('[UserService] Token was:', token ? 'present' : 'missing');
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
                 return null; // Return null instead of throwing
