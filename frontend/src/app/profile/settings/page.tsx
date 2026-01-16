@@ -266,7 +266,7 @@ export default function ProfileSettingsPage() {
 
     const InfoRow = ({ label, value, action, onClick, showArrow }: { label: string; value: string; action?: () => void; onClick?: () => void; showArrow?: boolean }) => (
         <div
-            className={`flex items-center px-4 py-4 ${onClick ? 'cursor-pointer active:bg-slate-50' : ''}`}
+            className={`flex items-center px-4 py-5 ${onClick ? 'cursor-pointer active:bg-slate-50' : ''}`}
             onClick={onClick}
         >
             <span className="flex-1 text-sm font-semibold text-slate-500">{label}</span>
@@ -348,7 +348,6 @@ export default function ProfileSettingsPage() {
                         </label>
                     </div>
                     <h2 className="text-2xl font-black text-slate-900">{userInfo.username}</h2>
-                    <p className="mt-1 text-xs font-medium text-slate-400">点击头像可更换</p>
                 </div>
 
                 {/* Personal Section */}
