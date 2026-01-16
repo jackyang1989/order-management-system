@@ -18,7 +18,7 @@ import {
   FinanceMoneyType,
 } from '../finance-records/finance-record.entity';
 import * as bcrypt from 'bcrypt';
-import { SystemConfigService } from '../system-config/system-config.service';
+import { AdminConfigService } from '../admin-config/admin-config.service';
 
 @Injectable()
 export class MerchantsService {
@@ -27,7 +27,7 @@ export class MerchantsService {
     private merchantsRepository: Repository<Merchant>,
     private financeRecordsService: FinanceRecordsService,
     private dataSource: DataSource,
-    private systemConfigService: SystemConfigService,
+    private adminConfigService: AdminConfigService,
   ) { }
 
   async findAll(
@@ -113,7 +113,7 @@ export class MerchantsService {
 
   async create(dto: CreateMerchantDto): Promise<Merchant> {
     // 检查商家注册开关
-    const isEnabled = await this.systemConfigService.isMerchantRegistrationEnabled();
+    const isEnabled = this.adminConfigService.getBooleanValue('merchant_registration_enabled', true);
     if (!isEnabled) {
       throw new ForbiddenException('商家注册功能已关闭');
     }
