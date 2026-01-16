@@ -53,6 +53,22 @@ export class UploadsController {
   }
 
   /**
+   * 单文件上传 - 兼容旧路径 /upload
+   * TODO: 前端迁移到 /uploads/file 后可以移除此路由
+   */
+  @Post()
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFileCompat(
+    @NestUploadedFile() file: Express.Multer.File,
+    @Body() dto: UploadFileDto,
+    @Request() req,
+  ) {
+    // 复用 uploadFile 的逻辑
+    return this.uploadFile(file, dto, req);
+  }
+
+  /**
    * 多文件上传
    */
   @Post('files')

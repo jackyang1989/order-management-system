@@ -5,6 +5,7 @@ import { memoryStorage } from 'multer';
 import { UploadedFile, FileGroup } from './upload.entity';
 import { UploadsService } from './uploads.service';
 import { UploadsController } from './uploads.controller';
+import { UploadCompatController } from './upload-compat.controller';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { UploadsController } from './uploads.controller';
       },
     }),
   ],
-  controllers: [UploadsController],
+  controllers: [UploadsController, UploadCompatController],
   providers: [UploadsService],
   exports: [UploadsService],
 })
