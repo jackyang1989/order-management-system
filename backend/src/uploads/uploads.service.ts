@@ -168,8 +168,9 @@ export class UploadsService {
     // 保存文件
     fs.writeFileSync(fullPath, file.buffer);
 
-    // 生成访问URL
-    const url = `/${this.uploadDir}/${filePath}`;
+    // 生成访问URL - 使用完整的后端 URL
+    const baseUrl = process.env.API_URL || 'http://localhost:6006';
+    const url = `${baseUrl}/${this.uploadDir}/${filePath}`;
 
     // 创建记录
     const uploadedFile = this.fileRepository.create({
