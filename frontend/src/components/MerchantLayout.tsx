@@ -13,6 +13,7 @@ interface Merchant {
     id: string;
     username: string;
     phone: string;
+    avatar?: string;
     balance: number;
     frozenBalance: number;
 }
@@ -188,8 +189,14 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
                             className="flex items-center gap-3 rounded-[16px] px-3 py-2 transition-colors hover:bg-white/50"
                         >
                             <span className="text-[14px] font-bold text-slate-700">{merchant?.username || '商家'}</span>
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-[13px] font-bold text-primary-600">
-                                {merchant?.username?.charAt(0).toUpperCase() || 'M'}
+                            <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-blue-50">
+                                {merchant?.avatar ? (
+                                    <img src={merchant.avatar} alt="Avatar" className="h-full w-full object-cover" />
+                                ) : (
+                                    <span className="text-[13px] font-bold text-primary-600">
+                                        {merchant?.username?.charAt(0).toUpperCase() || 'M'}
+                                    </span>
+                                )}
                             </div>
                         </button>
 

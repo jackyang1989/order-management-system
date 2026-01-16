@@ -548,7 +548,6 @@ export class MerchantsService {
     // 更新基本信息
     if (data.phone !== undefined) merchant.phone = data.phone;
     if (data.wechat !== undefined) merchant.wechat = data.wechat;
-    if (data.companyName !== undefined) merchant.companyName = data.companyName;
     if (data.note !== undefined) merchant.note = data.note;
     if (data.referrerId !== undefined) merchant.referrerId = data.referrerId;
 
