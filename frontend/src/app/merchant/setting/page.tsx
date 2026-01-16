@@ -16,7 +16,6 @@ interface MerchantProfile {
     phone: string;
     email: string;
     avatar?: string;
-    qq?: string;
     wechat?: string;
 }
 
@@ -31,6 +30,13 @@ export default function MerchantSettingPage() {
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [passwordForm, setPasswordForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
     const [changingPassword, setChangingPassword] = useState(false);
+
+    // Phone Modal
+    const [showPhoneModal, setShowPhoneModal] = useState(false);
+    const [phoneForm, setPhoneForm] = useState({ newPhone: '', verifyCode: '' });
+    const [changingPhone, setChangingPhone] = useState(false);
+    const [sendingCode, setSendingCode] = useState(false);
+    const [countdown, setCountdown] = useState(0);
 
     // Avatar Upload
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -152,6 +158,74 @@ export default function MerchantSettingPage() {
         finally { setChangingPassword(false); }
     };
 
+    const handleSendCode = async () => {
+        if (!phoneForm.newPhone) {
+            alert('请输入新手机号');
+            return;
+        }
+        if (!/^1[3-9]\d{9}$/.test(phoneForm.newPhone)) {
+            alert('请输入正确的手机号');
+            return;
+        }
+
+        setSendingCode(true);
+        const token = localStorage.getItem('merchantToken');
+        try {
+            const res = await fetch(`${BASE_URL}/sms/send`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ phone: phoneForm.newPhone })
+            });
+            const json = await res.json();
+            if (json.success) {
+                alert('验证码已发送');
+                setCountdown(60);
+                const timer = setInterval(() => {
+                    setCountdown(prev => {
+                        if (prev <= 1) {
+                            clearInterval(timer);
+                            return 0;
+                        }
+                        return prev - 1;
+                    });
+                }, 1000);
+            } else {
+                alert(json.message || '发送失败');
+            }
+        } catch { alert('网络错误'); }
+        finally { setSendingCode(false); }
+    };
+
+    const handleChangePhone = async () => {
+        if (!phoneForm.newPhone || !phoneForm.verifyCode) {
+            alert('请填写完整');
+            return;
+        }
+
+        setChangingPhone(true);
+        const token = localStorage.getItem('merchantToken');
+        try {
+            const res = await fetch(`${BASE_URL}/merchant/change-phone`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({
+                    newPhone: phoneForm.newPhone,
+                    verifyCode: phoneForm.verifyCode
+                })
+            });
+            const json = await res.json();
+            if (json.success) {
+                alert('手机号修改成功');
+                setShowPhoneModal(false);
+                setPhoneForm({ newPhone: '', verifyCode: '' });
+                loadProfile();
+            } else {
+                alert(json.message || '修改失败');
+            }
+        } catch { alert('网络错误'); }
+        finally { setChangingPhone(false); }
+    };
+
     if (loading) return <div className="flex h-screen items-center justify-center font-bold text-slate-400">加载中...</div>;
 
     return (
@@ -226,19 +300,6 @@ export default function MerchantSettingPage() {
                                 <Input disabled value={formData.phone} className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 font-bold text-slate-500" />
                             </div>
                             <div>
-                                <label className="mb-2 block text-xs font-bold uppercase text-slate-400">QQ</label>
-                                <Input
-                                    disabled={!editing}
-                                    value={formData.qq || ''}
-                                    onChange={e => setFormData({ ...formData, qq: e.target.value })}
-                                    placeholder={editing ? '请输入QQ号' : '未设置'}
-                                    className={cn(
-                                        "h-12 w-full rounded-[16px] border-none px-4 font-bold text-slate-900 transition-all",
-                                        editing ? "bg-slate-50 focus:ring-2 focus:ring-indigo-500/20" : "bg-transparent pl-0"
-                                    )}
-                                />
-                            </div>
-                            <div>
                                 <label className="mb-2 block text-xs font-bold uppercase text-slate-400">微信</label>
                                 <Input
                                     disabled={!editing}
@@ -286,7 +347,13 @@ export default function MerchantSettingPage() {
                                         <div className="text-xs font-medium text-slate-400">已绑定: {profile.phone?.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')}</div>
                                     </div>
                                 </div>
-                                <div className="text-xs font-bold text-emerald-500">已保护</div>
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => setShowPhoneModal(true)}
+                                    className="h-8 rounded-[10px] bg-white px-3 text-xs font-bold text-slate-600 hover:bg-slate-100"
+                                >
+                                    已保护
+                                </Button>
                             </div>
                         </div>
                     </Card>
@@ -352,6 +419,64 @@ export default function MerchantSettingPage() {
                             )}
                         >
                             {changingPassword ? '修改中...' : '确认修改'}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Phone Modal */}
+            <Modal title="修改手机号" open={showPhoneModal} onClose={() => setShowPhoneModal(false)} className="rounded-[32px]">
+                <div className="space-y-6">
+                    <div>
+                        <label className="mb-2 block text-xs font-bold uppercase text-slate-400">新手机号</label>
+                        <Input
+                            type="tel"
+                            value={phoneForm.newPhone}
+                            onChange={e => setPhoneForm({ ...phoneForm, newPhone: e.target.value })}
+                            placeholder="请输入新手机号"
+                            className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 font-bold text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                        />
+                    </div>
+                    <div>
+                        <label className="mb-2 block text-xs font-bold uppercase text-slate-400">验证码</label>
+                        <div className="flex gap-2">
+                            <Input
+                                type="text"
+                                value={phoneForm.verifyCode}
+                                onChange={e => setPhoneForm({ ...phoneForm, verifyCode: e.target.value })}
+                                placeholder="请输入验证码"
+                                className="h-12 flex-1 rounded-[16px] border-none bg-slate-50 px-4 font-bold text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                            />
+                            <Button
+                                onClick={handleSendCode}
+                                disabled={sendingCode || countdown > 0}
+                                className={cn(
+                                    "h-12 rounded-[16px] bg-indigo-600 px-6 font-bold text-white shadow-none hover:bg-indigo-700 whitespace-nowrap",
+                                    (sendingCode || countdown > 0) && "cursor-not-allowed opacity-70"
+                                )}
+                            >
+                                {countdown > 0 ? `${countdown}秒` : sendingCode ? '发送中...' : '获取验证码'}
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4 border-t border-slate-50">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setShowPhoneModal(false)}
+                            className="h-11 rounded-[16px] border-none bg-slate-100 px-6 font-bold text-slate-600 shadow-none hover:bg-slate-200"
+                        >
+                            取消
+                        </Button>
+                        <Button
+                            onClick={handleChangePhone}
+                            disabled={changingPhone}
+                            className={cn(
+                                "h-11 rounded-[16px] bg-indigo-600 px-6 font-bold text-white shadow-none hover:bg-indigo-700",
+                                changingPhone && "cursor-not-allowed opacity-70"
+                            )}
+                        >
+                            {changingPhone ? '修改中...' : '确认修改'}
                         </Button>
                     </div>
                 </div>
