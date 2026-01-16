@@ -20,9 +20,17 @@ export default function MerchantLoginPage() {
         if (!loginForm.username || !loginForm.password) { setError('请输入用户名和密码'); return; }
         setLoading(true); setError('');
         try {
-            const response = await fetch(`${BASE_URL}/merchant/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(loginForm) });
+            const response = await fetch(`${BASE_URL}/merchant/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // 重要：允许发送和接收cookie
+                body: JSON.stringify(loginForm)
+            });
             const data = await response.json();
-            if (data.success) { localStorage.setItem('merchantToken', data.data.token); localStorage.setItem('merchant', JSON.stringify(data.data.merchant)); router.push('/merchant/dashboard'); }
+            if (data.success) {
+                // 登录成功，cookie已自动设置，直接跳转
+                router.push('/merchant/dashboard');
+            }
             else setError(data.message || '登录失败');
         } catch { setError('网络错误，请重试'); }
         finally { setLoading(false); }
@@ -33,9 +41,22 @@ export default function MerchantLoginPage() {
         if (registerForm.password !== registerForm.confirmPassword) { setError('两次密码不一致'); return; }
         setLoading(true); setError('');
         try {
-            const response = await fetch(`${BASE_URL}/merchant/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: registerForm.username, password: registerForm.password, phone: registerForm.phone, companyName: registerForm.companyName }) });
+            const response = await fetch(`${BASE_URL}/merchant/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // 重要：允许发送和接收cookie
+                body: JSON.stringify({
+                    username: registerForm.username,
+                    password: registerForm.password,
+                    phone: registerForm.phone,
+                    companyName: registerForm.companyName
+                })
+            });
             const data = await response.json();
-            if (data.success) { localStorage.setItem('merchantToken', data.data.token); localStorage.setItem('merchant', JSON.stringify(data.data.merchant)); router.push('/merchant/dashboard'); }
+            if (data.success) {
+                // 注册成功，cookie已自动设置，直接跳转
+                router.push('/merchant/dashboard');
+            }
             else setError(data.message || '注册失败');
         } catch { setError('网络错误，请重试'); }
         finally { setLoading(false); }

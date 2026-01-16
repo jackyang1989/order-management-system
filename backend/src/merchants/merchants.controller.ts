@@ -47,7 +47,7 @@ export class MerchantsController {
     res.cookie('accessToken', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 天
     });
 
@@ -56,7 +56,6 @@ export class MerchantsController {
       message: '注册成功',
       data: {
         merchant,
-        // 不在响应体中返回 token
       },
     };
   }
@@ -91,7 +90,7 @@ export class MerchantsController {
     res.cookie('accessToken', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 天
     });
 
@@ -103,7 +102,6 @@ export class MerchantsController {
       message: '登录成功',
       data: {
         merchant: sanitized,
-        token: token, // TODO: P1-4 阶段3移除 - 临时兼容前端 localStorage 方式
       },
     };
   }

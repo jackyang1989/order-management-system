@@ -14,10 +14,14 @@ import type { Response as ExpressResponse } from 'express';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginDto } from '../users/user.entity';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { JwtService } from '@nestjs/jwt';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private jwtService: JwtService,
+  ) {}
 
   // P1-4: 使用 httpOnly cookie 存储 token，提升安全性
   @Post('login')
@@ -32,7 +36,7 @@ export class AuthController {
     res.cookie('accessToken', result.data.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // 生产环境使用 HTTPS
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 天
     });
 
@@ -109,6 +113,70 @@ export class AuthController {
   }
 
   /**
+   * 刷新token接口
+   * 使用现有的accessToken刷新，生成新的token
+   */
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async refresh(
+    @Request() req,
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ) {
+    const user = req.user;
+
+    // 根据用户类型生成新的token
+    let payload: any = {
+      sub: user.userId,
+      username: user.username,
+    };
+
+    // 管理员
+    if (user.adminId || user.isAdmin) {
+      payload = {
+        ...payload,
+        adminId: user.adminId || user.userId,
+        isAdmin: user.isAdmin,
+        isSuperAdmin: user.isSuperAdmin,
+        roleId: user.roleId,
+        roleName: user.roleName,
+        permissions: user.permissions,
+      };
+    }
+    // 商家
+    else if (user.merchantId || user.role === 'merchant') {
+      payload = {
+        ...payload,
+        merchantId: user.merchantId || user.userId,
+        role: 'merchant',
+      };
+    }
+    // 普通用户
+    else {
+      payload = {
+        ...payload,
+        phone: user.phone,
+      };
+    }
+
+    // 生成新token
+    const token = this.jwtService.sign(payload);
+
+    // 设置新的cookie
+    res.cookie('accessToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 天
+    });
+
+    return {
+      success: true,
+      message: 'Token刷新成功',
+    };
+  }
+
+  /**
    * 登出接口
    * P1-4: 清除 httpOnly cookie
    */
@@ -119,7 +187,7 @@ export class AuthController {
     res.clearCookie('accessToken', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
     });
 
     return {
@@ -137,7 +205,49 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async getMe(@Request() req) {
-    return this.authService.getProfile(req.user.userId);
+    // 统一的 /auth/me 接口，支持所有三种角色
+    const user = req.user;
+
+    // 管理员
+    if (user.adminId || user.isAdmin) {
+      return {
+        success: true,
+        data: {
+          type: 'admin',
+          userId: user.adminId || user.userId,
+          username: user.username,
+          isAdmin: user.isAdmin,
+          isSuperAdmin: user.isSuperAdmin,
+          roleId: user.roleId,
+          roleName: user.roleName,
+          permissions: user.permissions,
+        },
+      };
+    }
+
+    // 商家
+    if (user.merchantId || user.role === 'merchant') {
+      return {
+        success: true,
+        data: {
+          type: 'merchant',
+          userId: user.merchantId || user.userId,
+          username: user.username,
+          role: user.role,
+        },
+      };
+    }
+
+    // 普通用户
+    return {
+      success: true,
+      data: {
+        type: 'user',
+        userId: user.userId,
+        username: user.username,
+        phone: user.phone,
+      },
+    };
   }
 
   /**

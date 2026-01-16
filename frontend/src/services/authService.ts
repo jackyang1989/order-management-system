@@ -45,6 +45,7 @@ export const login = async (usernameOrPhone: string, password: string): Promise<
         const response = await fetch(`${BASE_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', // 重要：允许发送和接收cookie
             body: JSON.stringify({ username: usernameOrPhone, phone: usernameOrPhone, password })
         });
         const data = await response.json();
@@ -123,6 +124,7 @@ export const smsLogin = async (phone: string, code: string): Promise<LoginResult
         const response = await fetch(`${BASE_URL}/auth/sms-login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', // 重要：允许发送和接收cookie
             body: JSON.stringify({ phone, code })
         });
         const data = await response.json();
@@ -147,6 +149,7 @@ export const register = async (data: {
         const response = await fetch(`${BASE_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', // 重要：允许发送和接收cookie
             body: JSON.stringify(data)
         });
         return response.json();

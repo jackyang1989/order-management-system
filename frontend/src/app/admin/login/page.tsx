@@ -26,14 +26,14 @@ export default function AdminLoginPage() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include', // 重要：允许发送和接收cookie
                 body: JSON.stringify({ username, password }),
             });
 
             const result = await response.json();
 
-            if (result.success && result.data?.token) {
-                localStorage.setItem('adminToken', result.data.token);
-                localStorage.setItem('adminUser', JSON.stringify(result.data.admin));
+            if (result.success) {
+                // 登录成功，cookie已自动设置，直接跳转
                 router.push('/admin/dashboard');
             } else {
                 setError(result.message || '登录失败');
