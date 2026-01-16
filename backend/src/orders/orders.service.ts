@@ -456,6 +456,35 @@ export class OrdersService {
       }
     }
 
+    // 新版：获取该订单对应的联系客服配置
+    // 根据 contactCSConfig 配置，随机分配联系客服问题
+    let orderNeedContactCS = false;
+    let orderContactCSQuestions: string[] = [];
+
+    if (task.contactCSConfig && task.contactCSConfig.enabled) {
+      // 新版：使用每单独立的联系客服配置
+      const config = task.contactCSConfig;
+      const orderIndex = task.claimedCount; // 当前订单是第几单（从0开始）
+
+      // 判断该订单是否需要联系客服（前 count 单需要）
+      if (orderIndex < config.count && config.questions && Array.isArray(config.questions)) {
+        orderNeedContactCS = true;
+        // 从配置的问题列表中获取对应索引的问题
+        if (orderIndex < config.questions.length) {
+          const questionConfig = config.questions[orderIndex];
+          if (questionConfig && questionConfig.questions && Array.isArray(questionConfig.questions)) {
+            orderContactCSQuestions = questionConfig.questions;
+          }
+        }
+      }
+    } else if (task.needContactCS) {
+      // 旧版兼容：所有订单都使用相同的联系客服内容
+      orderNeedContactCS = true;
+      if (task.contactCSContent) {
+        orderContactCSQuestions = [task.contactCSContent];
+      }
+    }
+
     // 生成订单编号 (O + 时间戳)
     const orderNo = await this.generateOrderNo();
 
@@ -487,6 +516,9 @@ export class OrdersService {
       praiseContent: praiseText,
       praiseImages: praiseImages,
       praiseVideo: praiseVideo,
+      // 新版：保存该订单的联系客服配置
+      needContactCS: orderNeedContactCS,
+      contactCSQuestions: orderContactCSQuestions,
     });
 
     const savedOrder = await this.ordersRepository.save(newOrder);

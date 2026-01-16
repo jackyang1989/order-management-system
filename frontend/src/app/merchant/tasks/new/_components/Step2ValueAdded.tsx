@@ -25,6 +25,25 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
             );
             onChange({ orderPraiseConfigs: newConfigs });
         }
+
+        // 当任务单数变化时，初始化或调整contactCSConfig
+        if (data.contactCSConfig && data.contactCSConfig.enabled) {
+            const currentCount = data.contactCSConfig.count;
+            const currentQuestions = data.contactCSConfig.questions || [];
+
+            // 如果配置的数量与当前questions数组长度不匹配，需要调整
+            if (currentQuestions.length !== currentCount) {
+                const newQuestions = Array(currentCount).fill(null).map((_, i) =>
+                    currentQuestions[i] || { id: `cs-${Date.now()}-${i}`, questions: [''] }
+                );
+                onChange({
+                    contactCSConfig: {
+                        ...data.contactCSConfig,
+                        questions: newQuestions
+                    }
+                });
+            }
+        }
     }, [data.count]);
 
     const loadSystemConfig = async () => {
@@ -54,6 +73,112 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
         const newConfigs = [...data.orderPraiseConfigs];
         newConfigs[orderIndex] = { ...newConfigs[orderIndex], text };
         onChange({ orderPraiseConfigs: newConfigs });
+    };
+
+    // 联系客服配置相关处理函数
+    const handleContactCSEnabledChange = (enabled: boolean) => {
+        if (enabled) {
+            // 启用时，初始化配置，默认数量等于任务总数
+            const count = data.count || 1;
+            const questions = Array(count).fill(null).map((_, i) => ({
+                id: `cs-${Date.now()}-${i}`,
+                questions: [''] // 每单默认一个空问题
+            }));
+            onChange({
+                contactCSConfig: {
+                    enabled: true,
+                    count: count,
+                    questions: questions
+                }
+            });
+        } else {
+            // 禁用时，清空配置
+            onChange({ contactCSConfig: undefined });
+        }
+    };
+
+    const handleContactCSCountChange = (count: number) => {
+        if (!data.contactCSConfig) return;
+
+        const newCount = Math.max(1, Math.min(count, data.count || 1));
+        const currentQuestions = data.contactCSConfig.questions || [];
+
+        // 调整questions数组长度
+        const newQuestions = Array(newCount).fill(null).map((_, i) =>
+            currentQuestions[i] || { id: `cs-${Date.now()}-${i}`, questions: [''] }
+        );
+
+        onChange({
+            contactCSConfig: {
+                ...data.contactCSConfig,
+                count: newCount,
+                questions: newQuestions
+            }
+        });
+    };
+
+    const handleContactCSQuestionChange = (orderIndex: number, questionIndex: number, value: string) => {
+        if (!data.contactCSConfig) return;
+
+        const newQuestions = [...data.contactCSConfig.questions];
+        const orderQuestions = [...(newQuestions[orderIndex]?.questions || [''])];
+        orderQuestions[questionIndex] = value;
+
+        newQuestions[orderIndex] = {
+            ...newQuestions[orderIndex],
+            questions: orderQuestions
+        };
+
+        onChange({
+            contactCSConfig: {
+                ...data.contactCSConfig,
+                questions: newQuestions
+            }
+        });
+    };
+
+    const handleAddContactCSQuestion = (orderIndex: number) => {
+        if (!data.contactCSConfig) return;
+
+        const newQuestions = [...data.contactCSConfig.questions];
+        const orderQuestions = [...(newQuestions[orderIndex]?.questions || [''])];
+        orderQuestions.push(''); // 添加新的空问题
+
+        newQuestions[orderIndex] = {
+            ...newQuestions[orderIndex],
+            questions: orderQuestions
+        };
+
+        onChange({
+            contactCSConfig: {
+                ...data.contactCSConfig,
+                questions: newQuestions
+            }
+        });
+    };
+
+    const handleRemoveContactCSQuestion = (orderIndex: number, questionIndex: number) => {
+        if (!data.contactCSConfig) return;
+
+        const newQuestions = [...data.contactCSConfig.questions];
+        const orderQuestions = [...(newQuestions[orderIndex]?.questions || [''])];
+
+        // 至少保留一个问题输入框
+        if (orderQuestions.length > 1) {
+            orderQuestions.splice(questionIndex, 1);
+
+            newQuestions[orderIndex] = {
+                ...newQuestions[orderIndex],
+                questions: orderQuestions
+            };
+
+            onChange({
+                contactCSConfig: {
+                    ...data.contactCSConfig,
+                    questions: newQuestions
+                }
+            });
+        }
     };
 
     const praiseOptions = [{ type: 'none', label: '五星好评', desc: '不写评语', fee: 0 }, { type: 'text', label: '文字评价', desc: '指定文字评价内容', fee: praiseFees.text }, { type: 'image', label: '图文评价', desc: '指定图文评价内容', fee: praiseFees.image }, { type: 'video', label: '视频图文评价', desc: '指定视频图文评价内容', fee: praiseFees.video }];
@@ -149,24 +274,6 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                     <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-4 py-3">
                         <input type="checkbox" checked={data.needAddCart} onChange={e => onChange({ needAddCart: e.target.checked })} />
                         <div><span className="text-sm">加入购物车</span><span className="ml-2 text-xs text-[#9ca3af]">买手需先加入购物车再下单</span></div>
-                    </div>
-                    {/* Contact Customer Service */}
-                    <div className="flex items-start gap-3 border-b border-[#f3f4f6] px-4 py-3">
-                        <input type="checkbox" checked={data.needContactCS} onChange={e => onChange({ needContactCS: e.target.checked })} className="mt-1" />
-                        <div className="flex-1">
-                            <div><span className="text-sm">联系客服</span><span className="ml-2 text-xs text-[#9ca3af]">买手需与客服沟通</span></div>
-                            {data.needContactCS && (
-                                <div className="mt-2">
-                                    <textarea
-                                        value={data.contactCSContent || ''}
-                                        onChange={e => onChange({ contactCSContent: e.target.value })}
-                                        placeholder="请输入沟通内容，买手将按此内容与客服沟通"
-                                        rows={2}
-                                        className="w-full rounded-md border border-[#d1d5db] p-2 text-sm"
-                                    />
-                                </div>
-                            )}
-                        </div>
                     </div>
                     {/* Browse Reviews */}
                     <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-4 py-3">
@@ -491,6 +598,101 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                         );
                     })}
                 </div>
+            </div>
+
+            {/* Contact Customer Service Settings */}
+            <div className="mb-8">
+                <h3 className="mb-4 text-[15px] font-semibold text-[#374151]">联系客服设置</h3>
+                <div className="mb-3 text-[13px] text-[#6b7280]">设置买手需要联系客服的订单及每单需要咨询的问题</div>
+
+                {/* 启用开关 */}
+                <div className="mb-4 rounded-md border border-[#e5e7eb] bg-white p-4">
+                    <label className="flex cursor-pointer items-center gap-3">
+                        <input
+                            type="checkbox"
+                            checked={data.contactCSConfig?.enabled || false}
+                            onChange={e => handleContactCSEnabledChange(e.target.checked)}
+                            className="h-4 w-4"
+                        />
+                        <div>
+                            <span className="text-sm font-medium">启用联系客服</span>
+                            <span className="ml-2 text-xs text-[#9ca3af]">买手需要联系客服咨询问题</span>
+                        </div>
+                    </label>
+                </div>
+
+                {/* 联系客服配置详情 */}
+                {data.contactCSConfig?.enabled && (
+                    <div className="space-y-4">
+                        {/* 数量设置 */}
+                        <div className="rounded-md border border-[#e5e7eb] bg-white p-4">
+                            <div className="flex items-center gap-3">
+                                <span className="text-sm text-[#374151]">需要联系客服的订单数量:</span>
+                                <input
+                                    type="number"
+                                    value={data.contactCSConfig.count}
+                                    onChange={e => handleContactCSCountChange(parseInt(e.target.value) || 1)}
+                                    className="w-24 rounded border border-[#e5e7eb] px-3 py-1.5 text-sm"
+                                    min="1"
+                                    max={data.count || 1}
+                                />
+                                <span className="text-sm text-[#6b7280]">单 (最多 {data.count || 1} 单)</span>
+                            </div>
+                        </div>
+
+                        {/* 每单的问题配置 */}
+                        <div className="space-y-4">
+                            {data.contactCSConfig.questions.map((orderConfig, orderIdx) => (
+                                <div key={orderConfig.id} className="rounded-md border border-[#e5e7eb] bg-white p-4">
+                                    <div className="mb-3 flex items-center justify-between">
+                                        <div className="text-[14px] font-semibold text-[#374151]">第 {orderIdx + 1} 单</div>
+                                        <div className="text-xs text-[#6b7280]">设置需要咨询的问题</div>
+                                    </div>
+
+                                    {/* 问题列表 */}
+                                    <div className="space-y-2">
+                                        {orderConfig.questions.map((question, qIdx) => (
+                                            <div key={qIdx} className="flex items-center gap-2">
+                                                <span className="text-xs text-[#6b7280] w-16">问题 {qIdx + 1}:</span>
+                                                <input
+                                                    type="text"
+                                                    value={question}
+                                                    onChange={e => handleContactCSQuestionChange(orderIdx, qIdx, e.target.value)}
+                                                    placeholder="请输入需要咨询客服的问题"
+                                                    className="flex-1 rounded-md border border-[#d1d5db] px-3 py-2 text-[13px]"
+                                                />
+                                                {/* 删除按钮 - 只有多个问题时才显示 */}
+                                                {orderConfig.questions.length > 1 && (
+                                                    <button
+                                                        onClick={() => handleRemoveContactCSQuestion(orderIdx, qIdx)}
+                                                        className="flex h-8 w-8 items-center justify-center rounded border border-[#e5e7eb] text-danger-500 hover:bg-danger-50"
+                                                        title="删除问题"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                )}
+                                                {/* 添加按钮 - 只在最后一个问题显示 */}
+                                                {qIdx === orderConfig.questions.length - 1 && (
+                                                    <button
+                                                        onClick={() => handleAddContactCSQuestion(orderIdx)}
+                                                        className="flex h-8 w-8 items-center justify-center rounded border border-[#e5e7eb] bg-primary-50 text-primary-600 hover:bg-primary-100"
+                                                        title="添加问题"
+                                                    >
+                                                        +
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="mt-2 text-xs text-[#9ca3af]">
+                                        买手将按顺序向客服提问这些问题
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Extra Services */}

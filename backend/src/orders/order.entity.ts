@@ -162,6 +162,14 @@ export class Order {
   @Column({ type: 'text', nullable: true })
   chatImg: string; // 聊天截图（联系客服）
 
+  // 新版：该订单是否需要联系客服
+  @Column({ default: false })
+  needContactCS: boolean; // 该订单是否需要联系客服
+
+  // 新版：分配给该订单的联系客服问题列表
+  @Column({ type: 'jsonb', nullable: true })
+  contactCSQuestions: string[]; // 分配给该订单的问题列表
+
   @Column({ type: 'text', nullable: true })
   orderDetailImg: string; // 订单详情截图
 

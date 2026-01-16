@@ -126,6 +126,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const [checkPassword, setCheckPassword] = useState('');
     const [compareCount, setCompareCount] = useState(3);
     const [contactCSContent, setContactCSContent] = useState('');
+    const [contactCSQuestions, setContactCSQuestions] = useState<string[]>([]); // 多个联系客服问题
     const [mainProductFilter3, setMainProductFilter3] = useState(''); // 货比关键词
     const [mainProductFilter1, setMainProductFilter1] = useState(''); // 颜色
     const [mainProductFilter2, setMainProductFilter2] = useState(''); // 尺码

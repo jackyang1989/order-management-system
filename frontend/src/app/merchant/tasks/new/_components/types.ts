@@ -37,6 +37,16 @@ export interface OrderPraiseConfig {
     video?: string; // 视频URL
 }
 
+// 联系客服配置
+export interface ContactCSConfig {
+    enabled: boolean; // 是否启用联系客服
+    count: number; // 需要联系客服的订单数量
+    questions: Array<{
+        id: string; // 唯一标识
+        questions: string[]; // 支持多个连续提问
+    }>;
+}
+
 // 关键词高级设置
 export interface KeywordAdvancedSettings {
     compareKeyword?: string;  // 货比关键词 (可选，不填则用搜索关键词)
@@ -129,8 +139,9 @@ export interface TaskFormData {
     needFavorite: boolean;      // 收藏商品
     needFollow: boolean;        // 关注店铺
     needAddCart: boolean;       // 加入购物车
-    needContactCS: boolean;     // 联系客服
-    contactCSContent: string;   // 联系客服内容
+    needContactCS: boolean;     // 联系客服（旧版兼容）
+    contactCSContent: string;   // 联系客服内容（旧版兼容）
+    contactCSConfig?: ContactCSConfig; // 新版：联系客服配置
     needBrowseReviews: boolean; // 浏览评价
     needBrowseQA: boolean;      // 浏览问大家 (仅淘宝、天猫、京东)
 
@@ -226,6 +237,7 @@ export const InitialTaskData: TaskFormData = {
     needAddCart: false,
     needContactCS: false,
     contactCSContent: '',
+    contactCSConfig: undefined, // 新版：联系客服配置
     needBrowseReviews: false,
     needBrowseQA: false,
 

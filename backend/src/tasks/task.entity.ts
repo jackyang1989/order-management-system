@@ -316,10 +316,15 @@ export class Task {
   needFollow: boolean; // 关注店铺
 
   @Column({ default: false })
-  needContactCS: boolean; // 联系客服
+  needContactCS: boolean; // 联系客服（旧版兼容）
 
   @Column({ type: 'text', nullable: true })
-  contactCSContent: string; // 联系客服内容
+  contactCSContent: string; // 联系客服内容（旧版兼容）
+
+  // 新版：每单独立的联系客服配置
+  // 格式: { enabled: boolean, count: number, questions: [{ id: string, questions: string[] }] }
+  @Column({ type: 'jsonb', nullable: true })
+  contactCSConfig: any; // JSON object of ContactCSConfig
 
   @Column({ default: false })
   needAddCart: boolean; // 加入购物车
