@@ -55,20 +55,20 @@ async function clearData() {
 
     // 6. 清空用户相关数据（保留特定用户）
     console.log('6. 清空用户数据（保留 ouyang）...');
-    await queryRunner.query("DELETE FROM user_addresses WHERE \"userId\" NOT IN (SELECT id FROM users WHERE username = 'ouyang')");
-    await queryRunner.query("DELETE FROM user_credits WHERE \"userId\" NOT IN (SELECT id FROM users WHERE username = 'ouyang')");
-    await queryRunner.query("DELETE FROM user_day_counts WHERE \"userId\" NOT IN (SELECT id FROM users WHERE username = 'ouyang')");
-    await queryRunner.query("DELETE FROM user_invites WHERE \"inviterId\" NOT IN (SELECT id FROM users WHERE username = 'ouyang') AND \"inviteeId\" NOT IN (SELECT id FROM users WHERE username = 'ouyang')");
-    await queryRunner.query("DELETE FROM bank_cards WHERE \"userId\" NOT IN (SELECT id FROM users WHERE username = 'ouyang')");
-    await queryRunner.query("DELETE FROM withdrawals WHERE \"userId\" NOT IN (SELECT id FROM users WHERE username = 'ouyang')");
+    await queryRunner.query("DELETE FROM user_addresses WHERE \"userId\"::text NOT IN (SELECT id::text FROM users WHERE username = 'ouyang')");
+    await queryRunner.query("DELETE FROM user_credits WHERE \"userId\"::text NOT IN (SELECT id::text FROM users WHERE username = 'ouyang')");
+    await queryRunner.query("DELETE FROM user_day_counts WHERE \"userId\"::text NOT IN (SELECT id::text FROM users WHERE username = 'ouyang')");
+    await queryRunner.query("DELETE FROM user_invites WHERE \"inviterId\"::text NOT IN (SELECT id::text FROM users WHERE username = 'ouyang') AND \"inviteeId\"::text NOT IN (SELECT id::text FROM users WHERE username = 'ouyang')");
+    await queryRunner.query("DELETE FROM bank_cards WHERE \"userId\"::text NOT IN (SELECT id::text FROM users WHERE username = 'ouyang')");
+    await queryRunner.query("DELETE FROM withdrawals WHERE \"userId\"::text NOT IN (SELECT id::text FROM users WHERE username = 'ouyang')");
     await queryRunner.query("DELETE FROM users WHERE username != 'ouyang'");
     console.log('   ✓ 用户数据已清空（保留 ouyang）');
 
     // 7. 清空商家相关数据（保留特定商家）
     console.log('7. 清空商家数据（保留 infu）...');
-    await queryRunner.query("DELETE FROM merchant_bank_cards WHERE \"merchantId\" NOT IN (SELECT id FROM merchants WHERE username = 'infu')");
-    await queryRunner.query("DELETE FROM merchant_withdrawals WHERE \"merchantId\" NOT IN (SELECT id FROM merchants WHERE username = 'infu')");
-    await queryRunner.query("DELETE FROM merchant_blacklist WHERE \"merchantId\" NOT IN (SELECT id FROM merchants WHERE username = 'infu')");
+    await queryRunner.query("DELETE FROM merchant_bank_cards WHERE \"merchantId\"::text NOT IN (SELECT id::text FROM merchants WHERE username = 'infu')");
+    await queryRunner.query("DELETE FROM merchant_withdrawals WHERE \"merchantId\"::text NOT IN (SELECT id::text FROM merchants WHERE username = 'infu')");
+    await queryRunner.query("DELETE FROM merchant_blacklist WHERE \"merchantId\"::text NOT IN (SELECT id::text FROM merchants WHERE username = 'infu')");
     await queryRunner.query("DELETE FROM merchants WHERE username != 'infu'");
     console.log('   ✓ 商家数据已清空（保留 infu）');
 
