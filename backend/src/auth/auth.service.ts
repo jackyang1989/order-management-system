@@ -11,7 +11,7 @@ import { UsersService } from '../users/users.service';
 import { CreateUserDto, LoginDto } from '../users/user.entity';
 import { SmsService } from '../sms/sms.service';
 import { SmsCodeType } from '../sms/sms.entity';
-import { SystemConfigService } from '../system-config/system-config.service';
+import { AdminConfigService } from '../admin-config/admin-config.service';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +19,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private smsService: SmsService,
-    private systemConfigService: SystemConfigService,
+    private adminConfigService: AdminConfigService,
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
@@ -81,7 +81,7 @@ export class AuthService {
 
   async register(createUserDto: CreateUserDto) {
     // 检查用户注册开关
-    const isEnabled = await this.systemConfigService.isUserRegistrationEnabled();
+    const isEnabled = this.adminConfigService.getBooleanValue('user_registration_enabled', true);
     if (!isEnabled) {
       throw new ForbiddenException('用户注册功能已关闭');
     }

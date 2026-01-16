@@ -7,7 +7,7 @@ import { MerchantsController } from './merchants.controller';
 import { MerchantsAdminController } from './merchants-admin.controller';
 import { AuthModule } from '../auth/auth.module';
 import { FinanceRecordsModule } from '../finance-records/finance-records.module';
-import { SystemConfigModule } from '../system-config/system-config.module';
+import { AdminConfigModule } from '../admin-config/admin-config.module';
 
 // P0-1: 安全获取 JWT 密钥
 const getJwtSecret = (): string => {
@@ -26,7 +26,7 @@ const getJwtSecret = (): string => {
       signOptions: { expiresIn: '7d' },
     }),
     FinanceRecordsModule,
-    SystemConfigModule,
+    AdminConfigModule,
   ],
   providers: [MerchantsService],
   controllers: [MerchantsController, MerchantsAdminController],

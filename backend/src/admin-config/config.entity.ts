@@ -795,4 +795,23 @@ export const DEFAULT_CONFIGS = [
     valueType: 'number',
     description: '提现金额超过此值免手续费',
   },
+  // 注册开关
+  {
+    key: 'user_registration_enabled',
+    value: 'true',
+    group: 'register',
+    label: '用户注册开关',
+    valueType: 'boolean',
+    description: '控制用户端注册功能是否开启',
+    sortOrder: 0,
+  },
+  {
+    key: 'merchant_registration_enabled',
+    value: 'true',
+    group: 'register',
+    label: '商家注册开关',
+    valueType: 'boolean',
+    description: '控制商家端注册功能是否开启',
+    sortOrder: 1,
+  },
 ];
