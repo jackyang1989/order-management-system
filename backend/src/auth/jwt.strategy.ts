@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { Request } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users/user.entity';
@@ -31,20 +30,6 @@ const getJwtSecret = (): string => {
   return secret;
 };
 
-// P1-4: 从 cookie 或 Authorization header 中提取 JWT token
-const extractJwtFromRequest = (req: Request): string | null => {
-  // 优先从 cookie 中读取（httpOnly cookie）
-  if (req.cookies && req.cookies.accessToken) {
-    return req.cookies.accessToken;
-  }
-  // 兼容旧版：从 Authorization header 中读取
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    return authHeader.substring(7);
-  }
-  return null;
-};
-
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
@@ -52,7 +37,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private usersRepository: Repository<User>,
   ) {
     super({
-      jwtFromRequest: extractJwtFromRequest,
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: getJwtSecret(),
     });
