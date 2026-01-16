@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from 'react';
 
 
-const BASE_URL = '/api';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
 
 interface UseSmsCodeOptions {
     /** 倒计时秒数，默认60秒 */
