@@ -85,7 +85,7 @@ export default function PendingOrdersPage() {
                                 {/* Task Header */}
                                 <div className="mb-4 flex items-center justify-between">
                                     <span className="text-xs text-slate-400">
-                                        #{order.id?.slice(-6)}
+                                        #{order.orderNo || '暂无编号'}
                                     </span>
                                     <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-primary-500">
                                         进行中

@@ -13,7 +13,7 @@ interface MerchantProfile {
     id: string;
     merchantNo?: string;
     username: string;
-    mobile: string;
+    phone: string;
     email: string;
     avatar?: string;
     qq?: string;
@@ -21,11 +21,11 @@ interface MerchantProfile {
 }
 
 export default function MerchantSettingPage() {
-    const [profile, setProfile] = useState<MerchantProfile>({ id: '', username: '', mobile: '', email: '' });
+    const [profile, setProfile] = useState<MerchantProfile>({ id: '', username: '', phone: '', email: '' });
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [formData, setFormData] = useState<MerchantProfile>({ id: '', username: '', mobile: '', email: '' });
+    const [formData, setFormData] = useState<MerchantProfile>({ id: '', username: '', phone: '', email: '' });
 
     // Password Modal
     const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -223,7 +223,7 @@ export default function MerchantSettingPage() {
                             </div>
                             <div>
                                 <label className="mb-2 block text-xs font-bold uppercase text-slate-400">手机号</label>
-                                <Input disabled value={formData.mobile} className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 font-bold text-slate-500" />
+                                <Input disabled value={formData.phone} className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 font-bold text-slate-500" />
                             </div>
                             <div>
                                 <label className="mb-2 block text-xs font-bold uppercase text-slate-400">QQ</label>
@@ -283,7 +283,7 @@ export default function MerchantSettingPage() {
                                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600">📱</div>
                                     <div>
                                         <div className="text-sm font-bold text-slate-900">手机绑定</div>
-                                        <div className="text-xs font-medium text-slate-400">已绑定: {profile.mobile?.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')}</div>
+                                        <div className="text-xs font-medium text-slate-400">已绑定: {profile.phone?.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')}</div>
                                     </div>
                                 </div>
                                 <div className="text-xs font-bold text-emerald-500">已保护</div>

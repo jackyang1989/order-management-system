@@ -18,6 +18,7 @@ import { useTablePreferences } from '../../../hooks/useTablePreferences';
 
 interface User {
     id: string;
+    userNo?: string;
     username: string;
     phone: string;
     wechat?: string;

@@ -4,6 +4,7 @@ export type OrderStatus = 'PENDING' | 'SUBMITTED' | 'COMPLETED' | 'CANCELLED' | 
 
 export interface OrderSummary {
     id: string;
+    orderNo?: string;
     taskId: string;
     taskTitle: string;
     shopName: string;
@@ -25,6 +26,7 @@ const authHeader = (): Record<string, string> => {
 
 const normalize = (raw: any): OrderSummary => ({
     id: raw?.id,
+    orderNo: raw?.orderNo,
     taskId: raw?.taskId,
     taskTitle: raw?.taskTitle || raw?.productName || '任务',
     shopName: raw?.shopName || raw?.merchantName || '-',
