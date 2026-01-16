@@ -103,7 +103,7 @@ export class MerchantsController {
       message: '登录成功',
       data: {
         merchant: sanitized,
-        // 不在响应体中返回 token
+        token: token, // TODO: P1-4 阶段3移除 - 临时兼容前端 localStorage 方式
       },
     };
   }
