@@ -33,12 +33,19 @@ export class AuthController {
     const result = await this.authService.login(loginDto);
 
     // 设置 httpOnly cookie
-    res.cookie('accessToken', result.data.accessToken, {
+    const cookieOptions: any = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // 生产环境使用 HTTPS
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 天
-    });
+    };
+
+    // 生产环境使用严格的安全设置
+    if (process.env.NODE_ENV === 'production') {
+      cookieOptions.secure = true;
+      cookieOptions.sameSite = 'strict';
+    }
+    // 开发环境：不设置sameSite，允许跨域cookie
+
+    res.cookie('accessToken', result.data.accessToken, cookieOptions);
 
     // 不在响应体中返回 token
     const { accessToken, ...data } = result.data;
@@ -163,12 +170,19 @@ export class AuthController {
     const token = this.jwtService.sign(payload);
 
     // 设置新的cookie
-    res.cookie('accessToken', token, {
+    const cookieOptions: any = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 天
-    });
+    };
+
+    // 生产环境使用严格的安全设置
+    if (process.env.NODE_ENV === 'production') {
+      cookieOptions.secure = true;
+      cookieOptions.sameSite = 'strict';
+    }
+    // 开发环境：不设置sameSite，允许跨域cookie
+
+    res.cookie('accessToken', token, cookieOptions);
 
     return {
       success: true,
@@ -184,11 +198,18 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async logout(@Response({ passthrough: true }) res: ExpressResponse) {
     // 清除 cookie
-    res.clearCookie('accessToken', {
+    const cookieOptions: any = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-    });
+    };
+
+    // 生产环境使用严格的安全设置
+    if (process.env.NODE_ENV === 'production') {
+      cookieOptions.secure = true;
+      cookieOptions.sameSite = 'strict';
+    }
+    // 开发环境：不设置sameSite，允许跨域cookie
+
+    res.clearCookie('accessToken', cookieOptions);
 
     return {
       success: true,

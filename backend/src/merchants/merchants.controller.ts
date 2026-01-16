@@ -44,12 +44,19 @@ export class MerchantsController {
     });
 
     // 设置 httpOnly cookie
-    res.cookie('accessToken', token, {
+    const cookieOptions: any = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 天
-    });
+    };
+
+    // 生产环境使用严格的安全设置
+    if (process.env.NODE_ENV === 'production') {
+      cookieOptions.secure = true;
+      cookieOptions.sameSite = 'strict';
+    }
+    // 开发环境：不设置sameSite，允许跨域cookie
+
+    res.cookie('accessToken', token, cookieOptions);
 
     return {
       success: true,
@@ -87,12 +94,19 @@ export class MerchantsController {
     });
 
     // 设置 httpOnly cookie
-    res.cookie('accessToken', token, {
+    const cookieOptions: any = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 天
-    });
+    };
+
+    // 生产环境使用严格的安全设置
+    if (process.env.NODE_ENV === 'production') {
+      cookieOptions.secure = true;
+      cookieOptions.sameSite = 'strict';
+    }
+    // 开发环境：不设置sameSite，允许跨域cookie
+
+    res.cookie('accessToken', token, cookieOptions);
 
     // 移除敏感信息
     const { password, payPassword, ...sanitized } = merchant;

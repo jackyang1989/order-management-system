@@ -45,12 +45,19 @@ export class AdminUsersController {
 
       // 设置 httpOnly cookie
       if (result.token) {
-        res.cookie('accessToken', result.token, {
+        const cookieOptions: any = {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
           maxAge: 7 * 24 * 60 * 60 * 1000, // 7 天
-        });
+        };
+
+        // 生产环境使用严格的安全设置
+        if (process.env.NODE_ENV === 'production') {
+          cookieOptions.secure = true;
+          cookieOptions.sameSite = 'strict';
+        }
+        // 开发环境：不设置sameSite，允许跨域cookie
+
+        res.cookie('accessToken', result.token, cookieOptions);
       }
 
       // 不在响应体中返回 token

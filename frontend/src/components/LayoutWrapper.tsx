@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
+import '../lib/fetchInterceptor'; // 导入全局fetch拦截器
 
 export default function LayoutWrapper({ children }: { children: ReactNode }) {
     const pathname = usePathname();
