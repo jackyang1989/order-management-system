@@ -1625,7 +1625,7 @@ export class OrdersService {
     }
 
     // 联系客服步骤
-    if (task.needContactCS) {
+    if (task.contactCSConfig && task.contactCSConfig.enabled) {
       steps.push({
         step: stepNumber++,
         title: '联系客服截图',

@@ -5,12 +5,19 @@ import { TaskFormData, OrderPraiseConfig } from './types';
 import { cn } from '../../../../../lib/utils';
 import { Button } from '../../../../../components/ui/button';
 import { fetchSystemConfig, getPraiseFees } from '../../../../../services/systemConfigService';
+import { fetchQuestionSchemes, QuestionDetail } from '../../../../../services/questionService';
 
 interface StepProps { data: TaskFormData; onChange: (data: Partial<TaskFormData>) => void; onPrev: () => void; onNext: () => void; }
 
 export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: StepProps) {
     const [praiseFees, setPraiseFees] = useState({ text: 2, image: 4, video: 10 });
     const [randomBrowseFee, setRandomBrowseFee] = useState(0.5);
+
+    // 问题模板选择相关状态
+    const [showQuestionTemplateModal, setShowQuestionTemplateModal] = useState(false);
+    const [allQuestionTemplates, setAllQuestionTemplates] = useState<QuestionDetail[]>([]);
+    const [loadingTemplates, setLoadingTemplates] = useState(false);
+    const [selectedTemplateForOrder, setSelectedTemplateForOrder] = useState<number | null>(null);
 
     useEffect(() => {
         loadSystemConfig();
@@ -179,6 +186,53 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                 }
             });
         }
+    };
+
+    // 加载问题模板
+    const loadQuestionTemplates = async () => {
+        setLoadingTemplates(true);
+        try {
+            const schemes = await fetchQuestionSchemes(data.shopId);
+            const templates: QuestionDetail[] = [];
+            schemes.forEach(scheme => {
+                if (scheme.details && Array.isArray(scheme.details)) {
+                    templates.push(...scheme.details);
+                }
+            });
+            setAllQuestionTemplates(templates);
+        } catch (error) {
+            console.error('Failed to load question templates:', error);
+        } finally {
+            setLoadingTemplates(false);
+        }
+    };
+
+    // 打开问题模板选择弹窗
+    const handleOpenTemplateModal = (orderIndex: number) => {
+        setSelectedTemplateForOrder(orderIndex);
+        loadQuestionTemplates();
+        setShowQuestionTemplateModal(true);
+    };
+
+    // 应用选中的问题模板
+    const handleApplyTemplate = (template: QuestionDetail) => {
+        if (!data.contactCSConfig || selectedTemplateForOrder === null) return;
+
+        const newQuestions = [...data.contactCSConfig.questions];
+        newQuestions[selectedTemplateForOrder] = {
+            ...newQuestions[selectedTemplateForOrder],
+            questions: [...template.questions]
+        };
+
+        onChange({
+            contactCSConfig: {
+                ...data.contactCSConfig,
+                questions: newQuestions
+            }
+        });
+
+        setShowQuestionTemplateModal(false);
+        setSelectedTemplateForOrder(null);
     };
 
     const praiseOptions = [{ type: 'none', label: '五星好评', desc: '不写评语', fee: 0 }, { type: 'text', label: '文字评价', desc: '指定文字评价内容', fee: praiseFees.text }, { type: 'image', label: '图文评价', desc: '指定图文评价内容', fee: praiseFees.image }, { type: 'video', label: '视频图文评价', desc: '指定视频图文评价内容', fee: praiseFees.video }];
@@ -646,7 +700,12 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                                 <div key={orderConfig.id} className="rounded-md border border-[#e5e7eb] bg-white p-4">
                                     <div className="mb-3 flex items-center justify-between">
                                         <div className="text-[14px] font-semibold text-[#374151]">第 {orderIdx + 1} 单</div>
-                                        <div className="text-xs text-[#6b7280]">设置需要咨询的问题</div>
+                                        <button
+                                            onClick={() => handleOpenTemplateModal(orderIdx)}
+                                            className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                                        >
+                                            📋 从问题模板选择
+                                        </button>
                                     </div>
 
                                     {/* 问题列表 */}
@@ -796,6 +855,61 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                 <Button variant="secondary" onClick={onPrev}>上一步</Button>
                 <Button onClick={onNext}>下一步</Button>
             </div>
+
+            {/* Question Template Selection Modal */}
+            {showQuestionTemplateModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl max-h-[80vh] overflow-y-auto">
+                        <div className="mb-4 flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-[#374151]">从问题模板选择</h3>
+                            <button onClick={() => setShowQuestionTemplateModal(false)} className="text-[#9ca3af] hover:text-[#6b7280]">✕</button>
+                        </div>
+
+                        <p className="mb-4 text-sm text-[#6b7280]">
+                            选择一个问题模板应用到第 {selectedTemplateForOrder !== null ? selectedTemplateForOrder + 1 : ''} 单
+                        </p>
+
+                        {loadingTemplates ? (
+                            <div className="flex items-center justify-center py-12 text-[#6b7280]">加载中...</div>
+                        ) : allQuestionTemplates.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-12">
+                                <span className="mb-2 text-4xl">💬</span>
+                                <p className="mb-1 text-sm text-[#6b7280]">暂无问题模板</p>
+                                <p className="text-xs text-[#9ca3af]">请先到 <a href="/merchant/questions" className="text-primary-600">问题模板库</a> 添加模板</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {allQuestionTemplates.map(template => (
+                                    <div
+                                        key={template.id}
+                                        onClick={() => handleApplyTemplate(template)}
+                                        className="cursor-pointer rounded-lg border border-[#e5e7eb] bg-white p-4 transition-all hover:border-primary-400 hover:bg-primary-50"
+                                    >
+                                        <div className="mb-2 flex items-center justify-between">
+                                            <h4 className="font-medium text-[#374151]">{template.name}</h4>
+                                            <span className="text-xs text-[#6b7280]">{template.questions.length} 个问题</span>
+                                        </div>
+                                        <div className="space-y-1">
+                                            {template.questions.map((question, idx) => (
+                                                <div key={idx} className="flex items-start gap-2 text-sm text-[#6b7280]">
+                                                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#f3f4f6] text-xs">
+                                                        {idx + 1}
+                                                    </span>
+                                                    <span className="flex-1">{question}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        <div className="mt-4 flex justify-end border-t border-[#e5e7eb] pt-4">
+                            <Button variant="secondary" onClick={() => setShowQuestionTemplateModal(false)}>取消</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
