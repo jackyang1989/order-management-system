@@ -22,7 +22,11 @@
     "migration:run": "npm run typeorm migration:run -- -d src/data-source.ts",
     "migration:revert": "npm run typeorm migration:revert -- -d src/data-source.ts",
     "migration:generate": "npm run typeorm migration:generate -- -d src/data-source.ts",
-    "migration:create": "npm run typeorm migration:create"
+    "migration:create": "npm run typeorm migration:create",
+    "backup": "bash scripts/backup-database.sh",
+    "backup:test": "bash scripts/test-backup.sh",
+    "backup:restore": "bash scripts/restore-database.sh",
+    "backup:setup": "bash scripts/setup-cron.sh"
   },
   "dependencies": {
     "@nestjs/bullmq": "^11.0.4",
