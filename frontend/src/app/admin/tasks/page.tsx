@@ -136,6 +136,7 @@ interface Task {
     fastRefund?: boolean;
     weight?: number;
     contactCSContent?: string;
+    contactCSConfig?: any[]; // 新版联系客服配置（每单的问题列表）
     compareCount?: number;
     // 增值服务费用字段
     timingPublishFee?: number;
@@ -659,13 +660,30 @@ export default function AdminTasksPage() {
                     };
                     const entryMethod = getEntryMethod();
 
+                    // 计算联系客服显示文本
+                    const getContactCSDisplay = () => {
+                        if (!detailModal.needContactCS) return undefined;
+
+                        // 新版配置：显示订单数量
+                        if (detailModal.contactCSConfig && detailModal.contactCSConfig.length > 0) {
+                            return `${detailModal.contactCSConfig.length}单需要`;
+                        }
+
+                        // 旧版配置：显示内容
+                        if (detailModal.contactCSContent) {
+                            return detailModal.contactCSContent;
+                        }
+
+                        return undefined;
+                    };
+
                     // 浏览行为配置
                     const browseActions = [
                         { label: '货比', enabled: detailModal.needCompare, extra: detailModal.needCompare ? `${detailModal.compareCount || 3}家商品` : undefined },
                         { label: '收藏商品', enabled: detailModal.needFavorite },
                         { label: '关注店铺', enabled: detailModal.needFollow },
                         { label: '加入购物车', enabled: detailModal.needAddCart },
-                        { label: '联系客服', enabled: detailModal.needContactCS, extra: detailModal.contactCSContent }
+                        { label: '联系客服', enabled: detailModal.needContactCS, extra: getContactCSDisplay() }
                     ];
 
                     // 增值服务配置
@@ -864,12 +882,6 @@ export default function AdminTasksPage() {
                                                 </Badge>
                                             ))}
                                         </div>
-                                        {/* 联系客服内容 */}
-                                        {detailModal.needContactCS && detailModal.contactCSContent && (
-                                            <div className="mt-3 rounded bg-blue-50 p-3 text-xs text-blue-700">
-                                                <span className="font-bold">客服内容：</span>{detailModal.contactCSContent}
-                                            </div>
-                                        )}
                                     </div>
                                     <div className="space-y-2">
                                         <div className="text-[12px] font-medium text-[#3b4559]">浏览时长</div>
@@ -896,6 +908,45 @@ export default function AdminTasksPage() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* 联系客服配置 - 新版 */}
+                            {detailModal.needContactCS && detailModal.contactCSConfig && detailModal.contactCSConfig.length > 0 && (
+                                <div className="mb-6">
+                                    <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">联系客服配置</h3>
+                                    <div className="space-y-3">
+                                        {detailModal.contactCSConfig.map((config: any, index: number) => (
+                                            <div key={index} className="rounded-lg border border-[#e5e7eb] bg-[#f9fafb] p-4">
+                                                <div className="mb-3 flex items-center justify-between">
+                                                    <span className="text-sm font-medium text-[#374151]">第 {index + 1} 单</span>
+                                                    <Badge variant="soft" color="blue">
+                                                        {config.questions?.length || 0} 个问题
+                                                    </Badge>
+                                                </div>
+                                                {config.questions && config.questions.length > 0 && (
+                                                    <div className="space-y-2">
+                                                        {config.questions.map((question: string, qIndex: number) => (
+                                                            <div key={qIndex} className="flex gap-2 rounded bg-white p-3 text-sm">
+                                                                <span className="font-medium text-[#6b7280]">问题{qIndex + 1}:</span>
+                                                                <span className="flex-1 text-[#374151]">{question}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 联系客服内容 - 旧版兼容 */}
+                            {detailModal.needContactCS && !detailModal.contactCSConfig && detailModal.contactCSContent && (
+                                <div className="mb-6">
+                                    <h3 className="mb-3 text-[13px] font-semibold text-[#3b4559] border-l-4 border-primary-500 pl-2">联系客服内容</h3>
+                                    <div className="rounded bg-blue-50 p-4 text-sm text-blue-800 whitespace-pre-wrap">
+                                        {detailModal.contactCSContent}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* 任务进度 */}
                             <div className="mb-6">

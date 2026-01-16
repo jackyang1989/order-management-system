@@ -278,6 +278,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 setIsFreeShipping(data.isFreeShipping === 1 || data.isFreeShipping === true);
                 setCompareCount(data.compareCount || 3);
                 setContactCSContent(data.contactCSContent || '');
+                setContactCSQuestions(data.contactCSQuestions || []);
                 setWeight(data.weight || 0);
                 setFastRefund(data.fastRefund || false);
                 setExtraReward(data.extraReward || data.addReward || 0);
@@ -1554,11 +1555,11 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                         </div>
 
                         {/* 联系客服提示 */}
-                        {contactCSContent && (
-                            <div style={{ 
-                                marginBottom: '15px', 
-                                padding: '10px', 
-                                background: '#e6f7ff', 
+                        {(needContactCS && contactCSQuestions.length > 0) ? (
+                            <div style={{
+                                marginBottom: '15px',
+                                padding: '10px',
+                                background: '#e6f7ff',
                                 borderRadius: '4px',
                                 border: '1px solid #91d5ff'
                             }}>
@@ -1568,7 +1569,36 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                 </div>
                                 <div style={{ fontSize: '12px', color: '#333', lineHeight: '1.6' }}>
                                     找到主商品后，请联系客服并发送以下内容：
-                                    <div style={{ 
+                                    {contactCSQuestions.map((question, index) => (
+                                        <div key={index} style={{
+                                            marginTop: '6px',
+                                            padding: '8px',
+                                            background: '#fff',
+                                            borderRadius: '4px',
+                                            fontWeight: 'bold',
+                                            color: '#1890ff',
+                                            border: '1px dashed #91d5ff'
+                                        }}>
+                                            问题{index + 1}：{question}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : contactCSContent && (
+                            <div style={{
+                                marginBottom: '15px',
+                                padding: '10px',
+                                background: '#e6f7ff',
+                                borderRadius: '4px',
+                                border: '1px solid #91d5ff'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                                    <span style={{ color: '#1890ff', marginRight: '5px' }}>💬</span>
+                                    <span style={{ fontWeight: 'bold', color: '#1890ff', fontSize: '13px' }}>必须联系客服</span>
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#333', lineHeight: '1.6' }}>
+                                    找到主商品后，请联系客服并发送以下内容：
+                                    <div style={{
                                         marginTop: '6px',
                                         padding: '8px',
                                         background: '#fff',
@@ -1669,7 +1699,22 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                             {needBrowseReviews && <span>✅ 浏览评价</span>}
                                             {needBrowseQA && <span>✅ 浏览问大家</span>}
                                         </div>
-                                        {needContactCS && contactCSContent && (
+                                        {needContactCS && contactCSQuestions.length > 0 ? (
+                                            <div style={{
+                                                marginTop: '8px',
+                                                padding: '8px',
+                                                background: '#fff',
+                                                borderRadius: '4px',
+                                                color: '#666'
+                                            }}>
+                                                <div style={{ marginBottom: '4px' }}>💬 聊天内容：</div>
+                                                {contactCSQuestions.map((question, index) => (
+                                                    <div key={index} style={{ color: '#f56c6c', fontWeight: 'bold', marginTop: '4px' }}>
+                                                        问题{index + 1}：{question}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : needContactCS && contactCSContent && (
                                             <div style={{
                                                 marginTop: '8px',
                                                 padding: '8px',

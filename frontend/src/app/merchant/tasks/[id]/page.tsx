@@ -88,6 +88,7 @@ interface TaskDetail {
     fastRefund?: boolean;
     weight?: number;
     contactCSContent?: string;
+    contactCSConfig?: any[]; // 新版联系客服配置（每单的问题列表）
     isPresale?: boolean; // 是否预售任务
     presaleDeposit?: number; // 预付款
     finalPayment?: number; // 尾款
@@ -313,13 +314,30 @@ export default function TaskDetailPage() {
     const praiseImgs = parsePraiseImgList(task.praiseImgList);
     const praiseVideos = parsePraiseList(task.praiseVideoList);
 
+    // 计算联系客服显示文本
+    const getContactCSDisplay = () => {
+        if (!task.needContactCS) return undefined;
+
+        // 新版配置：显示订单数量
+        if (task.contactCSConfig && task.contactCSConfig.length > 0) {
+            return `${task.contactCSConfig.length}单需要`;
+        }
+
+        // 旧版配置：显示内容
+        if (task.contactCSContent) {
+            return task.contactCSContent;
+        }
+
+        return undefined;
+    };
+
     // 浏览行为配置
     const browseActions = [
         { key: 'needCompare', label: '货比', enabled: task.needCompare, extra: task.needCompare ? `${task.compareCount || 3}家商品` : undefined },
         { key: 'needFavorite', label: '收藏商品', enabled: task.needFavorite },
         { key: 'needFollow', label: '关注店铺', enabled: task.needFollow },
         { key: 'needAddCart', label: '加入购物车', enabled: task.needAddCart },
-        { key: 'needContactCS', label: '联系客服', enabled: task.needContactCS, extra: task.contactCSContent }
+        { key: 'needContactCS', label: '联系客服', enabled: task.needContactCS, extra: getContactCSDisplay() }
     ];
 
     // 增值服务配置
@@ -548,6 +566,49 @@ export default function TaskDetailPage() {
                             </div>
                         </div>
                     </Card>
+
+                    {/* Contact CS Configuration 联系客服配置 */}
+                    {task.needContactCS && task.contactCSConfig && task.contactCSConfig.length > 0 && (
+                        <Card className="bg-white" noPadding>
+                            <div className="px-6 py-5">
+                                <h2 className="mb-5 text-base font-semibold">联系客服配置</h2>
+                                <div className="space-y-3">
+                                    {task.contactCSConfig.map((config: any, index: number) => (
+                                        <div key={index} className="rounded-lg border border-[#e5e7eb] bg-[#f9fafb] p-4">
+                                            <div className="mb-3 flex items-center justify-between">
+                                                <span className="text-sm font-medium text-[#374151]">第 {index + 1} 单</span>
+                                                <Badge variant="soft" color="blue">
+                                                    {config.questions?.length || 0} 个问题
+                                                </Badge>
+                                            </div>
+                                            {config.questions && config.questions.length > 0 && (
+                                                <div className="space-y-2">
+                                                    {config.questions.map((question: string, qIndex: number) => (
+                                                        <div key={qIndex} className="flex gap-2 rounded bg-white p-3 text-sm">
+                                                            <span className="font-medium text-[#6b7280]">问题{qIndex + 1}:</span>
+                                                            <span className="flex-1 text-[#374151]">{question}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </Card>
+                    )}
+
+                    {/* 旧版联系客服内容显示（兼容） */}
+                    {task.needContactCS && !task.contactCSConfig && task.contactCSContent && (
+                        <Card className="bg-white" noPadding>
+                            <div className="px-6 py-5">
+                                <h2 className="mb-3 text-base font-semibold">联系客服内容</h2>
+                                <div className="rounded bg-blue-50 p-4 text-sm text-blue-800 whitespace-pre-wrap">
+                                    {task.contactCSContent}
+                                </div>
+                            </div>
+                        </Card>
+                    )}
 
                     {/* Value Added Services 增值服务 */}
                     <Card className="bg-white" noPadding>

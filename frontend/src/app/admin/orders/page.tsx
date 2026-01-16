@@ -68,6 +68,7 @@ interface Order {
         needAddCart?: boolean;
         needContactCS?: boolean;
         contactCSContent?: string;
+        contactCSConfig?: string;
         totalBrowseMinutes?: number;
         compareBrowseMinutes?: number;
         mainBrowseMinutes?: number;
@@ -545,11 +546,47 @@ export default function AdminOrdersPage() {
                                                 </span>
                                             )}
                                         </div>
-                                        {task.contactCSContent && (
-                                            <div className="mt-3 rounded-md bg-blue-50 p-3 text-xs text-blue-700">
-                                                <span className="font-bold">客服内容：</span>{task.contactCSContent}
-                                            </div>
-                                        )}
+                                        {/* 联系客服配置显示 - 支持新旧格式 */}
+                                        {task.needContactCS && (() => {
+                                            // 尝试解析新格式的 contactCSConfig
+                                            let contactCSQuestions: string[] = [];
+                                            if (task.contactCSConfig) {
+                                                try {
+                                                    const config = JSON.parse(task.contactCSConfig);
+                                                    contactCSQuestions = config.questions || [];
+                                                } catch (e) {
+                                                    console.error('Failed to parse contactCSConfig:', e);
+                                                }
+                                            }
+
+                                            // 如果有新格式的问题列表，显示问题列表
+                                            if (contactCSQuestions.length > 0) {
+                                                return (
+                                                    <div className="mt-3 rounded-md bg-blue-50 p-3 text-xs text-blue-700">
+                                                        <div className="font-bold mb-2">联系客服要求：</div>
+                                                        <div className="space-y-1 pl-2">
+                                                            {contactCSQuestions.map((question, index) => (
+                                                                <div key={index} className="flex gap-2">
+                                                                    <span className="font-medium">问题{index + 1}：</span>
+                                                                    <span>{question}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+
+                                            // 否则显示旧格式的 contactCSContent（兼容旧数据）
+                                            if (task.contactCSContent) {
+                                                return (
+                                                    <div className="mt-3 rounded-md bg-blue-50 p-3 text-xs text-blue-700">
+                                                        <span className="font-bold">客服内容：</span>{task.contactCSContent}
+                                                    </div>
+                                                );
+                                            }
+
+                                            return null;
+                                        })()}
                                         {(task.compareKeyword || task.backupKeyword) && (
                                             <div className="mt-3 border-t border-dashed border-slate-200 pt-3">
                                                 {task.compareKeyword && (
