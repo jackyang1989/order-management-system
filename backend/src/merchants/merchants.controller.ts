@@ -62,6 +62,7 @@ export class MerchantsController {
       success: true,
       message: '注册成功',
       data: {
+        token,  // 返回 token 到响应体
         merchant,
       },
     };

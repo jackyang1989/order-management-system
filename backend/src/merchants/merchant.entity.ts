@@ -77,9 +77,16 @@ export class Merchant {
   @Column({ name: 'pay_password', nullable: true })
   payPassword: string;
 
-  // 邀请码
+  // 邀请码（自己的唯一邀请码）
   @Column({ name: 'invite_code', nullable: true, unique: true })
   inviteCode: string;
+
+  // 注册时使用的邀请码（被谁邀请）
+  @Column({ name: 'invited_by', nullable: true })
+  invitedBy: string; // 邀请人的ID
+
+  @Column({ name: 'invite_state', type: 'int', default: 0 })
+  inviteState: number; // 邀请状态 0=未验证 1=已验证
 
   // 推荐人ID
   @Column({ name: 'referrer_id', nullable: true })
@@ -109,6 +116,10 @@ export class CreateMerchantDto {
   @IsString()
   @IsNotEmpty()
   phone: string;
+
+  @IsString()
+  @IsNotEmpty()
+  invitationCode: string; // 注册时填写的邀请码（必填）
 
   @IsString()
   @IsOptional()

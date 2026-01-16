@@ -104,6 +104,10 @@ export class MerchantsService {
     return this.merchantsRepository.findOne({ where: { merchantNo } });
   }
 
+  async findByInvitationCode(inviteCode: string): Promise<Merchant | null> {
+    return this.merchantsRepository.findOne({ where: { inviteCode } });
+  }
+
   async create(dto: CreateMerchantDto): Promise<Merchant> {
     // 检查用户名是否已存在
     const existingUsername = await this.findByUsername(dto.username);
@@ -115,6 +119,15 @@ export class MerchantsService {
     const existingPhone = await this.findByPhone(dto.phone);
     if (existingPhone) {
       throw new ConflictException('手机号已被注册');
+    }
+
+    // 验证邀请码
+    const inviter = await this.findByInvitationCode(dto.invitationCode);
+    if (!inviter) {
+      // 允许 'ADMIN' 作为初始邀请码用于测试
+      if (dto.invitationCode !== 'ADMIN') {
+        throw new BadRequestException('无效的邀请码');
+      }
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
@@ -130,6 +143,9 @@ export class MerchantsService {
     // 生成商家编号 merchantNo (M + 5位数字)
     const merchantNo = await this.generateMerchantNo();
 
+    // 生成商家自己的邀请码
+    const inviteCode = this.generateInviteCode();
+
     const merchant = this.merchantsRepository.create({
       username: dto.username,
       password: hashedPassword,
@@ -143,6 +159,9 @@ export class MerchantsService {
       note: dto.note || '',
       status: MerchantStatus.APPROVED, // 默认直接通过，实际可设为 PENDING
       merchantNo,
+      inviteCode, // 生成自己的邀请码
+      invitedBy: inviter?.id, // 记录邀请人ID
+      inviteState: inviter ? 1 : 0, // 如果有邀请人则设为已验证
     });
 
     const saved = await this.merchantsRepository.save(merchant);
@@ -178,7 +197,10 @@ export class MerchantsService {
     const merchant = await this.merchantsRepository.findOne({ where: { id } });
     if (!merchant) return null;
 
-    Object.assign(merchant, dto);
+    // 防止密码被意外覆盖 - 过滤掉 password 和 payPassword 字段
+    const { password, payPassword, ...safeDto } = dto as any;
+
+    Object.assign(merchant, safeDto);
     const updated = await this.merchantsRepository.save(merchant);
     return this.sanitize(updated);
   }

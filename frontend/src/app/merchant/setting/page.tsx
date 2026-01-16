@@ -76,10 +76,12 @@ export default function MerchantSettingPage() {
                 setFormData(prev => ({ ...prev, avatar: newAvatar }));
                 // Auto save the avatar update immediately
                 const token = localStorage.getItem('merchantToken');
+                // 只发送需要更新的字段，避免发送password等敏感字段
+                const { id, username, phone, email, wechat, merchantNo } = profile;
                 const updateRes = await fetch(`${BASE_URL}/merchant/profile`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ ...profile, avatar: newAvatar })
+                    body: JSON.stringify({ id, username, phone, email, wechat, merchantNo, avatar: newAvatar })
                 });
                 const updateJson = await updateRes.json();
                 if (updateJson.success) {
@@ -117,10 +119,12 @@ export default function MerchantSettingPage() {
         setSaving(true);
         const token = localStorage.getItem('merchantToken');
         try {
+            // 只发送允许更新的字段，确保不发送password
+            const { id, username, phone, email, avatar, wechat, merchantNo } = formData;
             const res = await fetch(`${BASE_URL}/merchant/profile`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(formData)
+                body: JSON.stringify({ id, username, phone, email, avatar, wechat, merchantNo })
             });
             const json = await res.json();
             if (json.success) {

@@ -14,7 +14,7 @@ export default function MerchantLoginPage() {
     const [error, setError] = useState('');
 
     const [loginForm, setLoginForm] = useState({ username: '', password: '' });
-    const [registerForm, setRegisterForm] = useState({ username: '', password: '', confirmPassword: '', phone: '' });
+    const [registerForm, setRegisterForm] = useState({ username: '', password: '', confirmPassword: '', phone: '', invitationCode: '' });
 
     const handleLogin = async () => {
         if (!loginForm.username || !loginForm.password) { setError('请输入用户名和密码'); return; }
@@ -36,7 +36,7 @@ export default function MerchantLoginPage() {
     };
 
     const handleRegister = async () => {
-        if (!registerForm.username || !registerForm.password || !registerForm.phone) { setError('请填写完整信息'); return; }
+        if (!registerForm.username || !registerForm.password || !registerForm.phone || !registerForm.invitationCode) { setError('请填写完整信息'); return; }
         if (registerForm.password !== registerForm.confirmPassword) { setError('两次密码不一致'); return; }
         setLoading(true); setError('');
         try {
@@ -46,7 +46,8 @@ export default function MerchantLoginPage() {
                 body: JSON.stringify({
                     username: registerForm.username,
                     password: registerForm.password,
-                    phone: registerForm.phone
+                    phone: registerForm.phone,
+                    invitationCode: registerForm.invitationCode
                 })
             });
             const data = await response.json();
@@ -148,6 +149,13 @@ export default function MerchantLoginPage() {
                                 placeholder="手机号"
                                 value={registerForm.phone}
                                 onChange={e => setRegisterForm({ ...registerForm, phone: e.target.value })}
+                                className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-5 font-bold text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20"
+                            />
+                            <Input
+                                type="text"
+                                placeholder="邀请码（必填）"
+                                value={registerForm.invitationCode}
+                                onChange={e => setRegisterForm({ ...registerForm, invitationCode: e.target.value })}
                                 className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-5 font-bold text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20"
                             />
                             <div className="grid grid-cols-2 gap-4">
