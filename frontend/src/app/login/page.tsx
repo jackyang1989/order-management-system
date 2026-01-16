@@ -66,16 +66,9 @@ export default function LoginPage() {
             setLoading(false);
 
             if (result.success) {
-                if (result.data && result.data.accessToken) {
-                    localStorage.setItem('token', result.data.accessToken);
-                    if (result.data.user) {
-                        localStorage.setItem('user', JSON.stringify(result.data.user));
-                    }
-                    toastSuccess('登录成功');
-                    setTimeout(() => router.push('/profile'), 1000);
-                } else {
-                    toastError('登录失败: Token缺失');
-                }
+                // 登录成功，cookie已自动设置，直接跳转
+                toastSuccess('登录成功');
+                setTimeout(() => router.push('/profile'), 1000);
             } else {
                 toastError(result.message || '登录失败');
             }
@@ -88,11 +81,8 @@ export default function LoginPage() {
             setLoading(true);
             try {
                 const result = await smsLogin(phone, smsCode);
-                if (result.success && result.data?.accessToken) {
-                    localStorage.setItem('token', result.data.accessToken);
-                    if (result.data.user) {
-                        localStorage.setItem('user', JSON.stringify(result.data.user));
-                    }
+                if (result.success) {
+                    // 登录成功，cookie已自动设置，直接跳转
                     toastSuccess('登录成功');
                     setTimeout(() => router.push('/profile'), 1000);
                 } else {
