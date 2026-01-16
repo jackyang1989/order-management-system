@@ -72,10 +72,21 @@ export default function MerchantSettingPage() {
             });
             const json = await res.json();
             if (json.success && json.url) {
-                setFormData(prev => ({ ...prev, avatar: json.url }));
-                // If not in editing mode, auto save the avatar update
-                if (!editing) {
-                    await updateProfile({ ...profile, avatar: json.url });
+                const newAvatar = json.url;
+                setFormData(prev => ({ ...prev, avatar: newAvatar }));
+                // Auto save the avatar update immediately
+                const token = localStorage.getItem('merchantToken');
+                const updateRes = await fetch(`${BASE_URL}/merchant/profile`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ ...profile, avatar: newAvatar })
+                });
+                const updateJson = await updateRes.json();
+                if (updateJson.success) {
+                    setProfile(prev => ({ ...prev, avatar: newAvatar }));
+                    alert('头像更新成功');
+                } else {
+                    alert(updateJson.message || '保存失败');
                 }
             } else {
                 alert(json.message || '上传失败');
@@ -307,8 +318,8 @@ export default function MerchantSettingPage() {
                                     onChange={e => setFormData({ ...formData, wechat: e.target.value })}
                                     placeholder={editing ? '请输入微信号' : '未设置'}
                                     className={cn(
-                                        "h-12 w-full rounded-[16px] border-none px-4 font-bold text-slate-900 transition-all",
-                                        editing ? "bg-slate-50 focus:ring-2 focus:ring-indigo-500/20" : "bg-transparent pl-0"
+                                        "h-12 w-full rounded-[16px] border-none font-bold text-slate-900 transition-all",
+                                        editing ? "bg-slate-50 px-4 focus:ring-2 focus:ring-indigo-500/20" : "bg-slate-50 px-4 text-slate-500"
                                     )}
                                 />
                             </div>
@@ -352,7 +363,7 @@ export default function MerchantSettingPage() {
                                     onClick={() => setShowPhoneModal(true)}
                                     className="h-8 rounded-[10px] bg-white px-3 text-xs font-bold text-slate-600 hover:bg-slate-100"
                                 >
-                                    已保护
+                                    修改
                                 </Button>
                             </div>
                         </div>

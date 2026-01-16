@@ -193,7 +193,7 @@ export default function ContinueTasksPage() {
                                     </div>
                                     <div className="flex gap-2">
                                         <button
-                                            onClick={() => router.push(`/orders/${task.id}/execute`)}
+                                            onClick={() => router.push(`/orders/${task.orderNo || task.id}/execute`)}
                                             className="rounded-xl bg-primary-600 px-6 py-2.5 text-[13px] font-bold text-white active:scale-95 transition-transform shadow-sm"
                                         >
                                             继续任务

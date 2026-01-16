@@ -107,6 +107,7 @@ export interface TaskItem {
 
 export interface ContinueTaskItem {
     id: string;
+    orderNo?: string;
     taskId: string;
     taskNumber?: string;
     taskType?: number;

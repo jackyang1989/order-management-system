@@ -191,7 +191,7 @@ function ShopsContent() {
                 <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-xl font-medium">
                         店铺管理
-                        {merchantId && <span className="ml-2 text-base text-[#6b7280]">(筛选商家ID: {merchantId})</span>}
+                        {merchantId && <span className="ml-2 text-base text-[#6b7280]">(筛选商家编号: {merchantId})</span>}
                     </h1>
                     {merchantId && (
                         <Button variant="outline" onClick={() => window.location.href = '/admin/shops'}>

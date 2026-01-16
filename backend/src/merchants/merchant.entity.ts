@@ -35,6 +35,9 @@ export class Merchant {
   @Column({ nullable: true })
   wechat: string;
 
+  @Column({ nullable: true })
+  avatar: string;
+
   // 企业信息
   @Column({ name: 'company_name', nullable: true })
   companyName: string;
