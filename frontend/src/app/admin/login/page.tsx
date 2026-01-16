@@ -21,7 +21,7 @@ export default function AdminLoginPage() {
         setError('');
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/admin-users/login`, {
+            const response = await fetch('/api/admin-users/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
