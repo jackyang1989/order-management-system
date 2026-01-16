@@ -210,7 +210,7 @@ export default function MerchantSettingPage() {
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900">{profile.username}</h3>
-                                <p className="text-sm font-medium text-slate-400">ID: {profile.id}</p>
+                                <p className="text-sm font-medium text-slate-400">商家账户</p>
                             </div>
                         </div>
 
