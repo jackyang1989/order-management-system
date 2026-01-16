@@ -32,7 +32,7 @@ export class UploadCompatController {
       return { success: false, message: '请选择文件' };
     }
 
-    dto.uploaderId = req.user.userId;
+    dto.uploaderId = req.user.userId || req.user.merchantId;
     dto.uploaderType = req.user.role;
 
     const result = await this.uploadsService.uploadFile(
@@ -45,6 +45,29 @@ export class UploadCompatController {
       dto,
     );
 
+    // 返回兼容格式，url 在顶层
+    if (result.success && result.data) {
+      return {
+        success: true,
+        message: result.message,
+        url: result.data.url,
+        data: result.data,
+      };
+    }
     return result;
+  }
+
+  /**
+   * 兼容 /upload/image 路径
+   */
+  @Post('image')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadImage(
+    @NestUploadedFile() file: Express.Multer.File,
+    @Body() dto: UploadFileDto,
+    @Request() req,
+  ) {
+    return this.upload(file, dto, req);
   }
 }

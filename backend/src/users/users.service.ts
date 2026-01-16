@@ -122,6 +122,9 @@ export class UsersService {
     const initialBalance = createUserDto.balance ?? 0;
     const initialSilver = createUserDto.silver ?? registerSilver;
 
+    // 生成用户编号 userNo (U + 5位数字)
+    const userNo = await this.generateUserNo();
+
     const newUser = this.usersRepository.create({
       username: createUserDto.username,
       password: hashedPassword,
@@ -136,6 +139,7 @@ export class UsersService {
       invitationCode: newInvitationCode,
       invitedBy: invitedBy,
       note: createUserDto.note || '',
+      userNo,
     });
 
     const savedUser = await this.usersRepository.save(newUser);
@@ -249,6 +253,31 @@ export class UsersService {
   private sanitizeUser(user: User): User {
     const { password, payPassword, ...sanitized } = user;
     return { ...sanitized, password: '', payPassword: '' } as User;
+  }
+
+  /**
+   * 生成用户编号 (U + 5位数字)
+   * 格式: U10001, U10002, ...
+   */
+  private async generateUserNo(): Promise<string> {
+    // 查询最大的用户编号
+    const lastUser = await this.usersRepository
+      .createQueryBuilder('u')
+      .where('u.userNo IS NOT NULL')
+      .orderBy('u.userNo', 'DESC')
+      .getOne();
+
+    let nextNumber = 10001; // 起始编号
+
+    if (lastUser && lastUser.userNo) {
+      // 提取数字部分并加1
+      const lastNumber = parseInt(lastUser.userNo.substring(1));
+      if (!isNaN(lastNumber)) {
+        nextNumber = lastNumber + 1;
+      }
+    }
+
+    return `U${nextNumber}`;
   }
 
   // 获取资金记录

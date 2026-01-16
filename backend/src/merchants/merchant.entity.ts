@@ -20,6 +20,9 @@ export class Merchant {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ unique: true, nullable: true })
+  merchantNo: string; // 商家编号 M10001
+
   @Column({ unique: true })
   username: string;
 

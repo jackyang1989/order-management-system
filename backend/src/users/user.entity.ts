@@ -20,6 +20,9 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ unique: true, nullable: true })
+  userNo: string; // 用户编号 U10001
+
   @Column({ unique: true })
   username: string;
 

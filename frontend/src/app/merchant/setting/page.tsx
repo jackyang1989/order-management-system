@@ -11,6 +11,7 @@ import Image from 'next/image';
 
 interface MerchantProfile {
     id: string;
+    merchantNo?: string;
     username: string;
     mobile: string;
     email: string;
@@ -210,7 +211,7 @@ export default function MerchantSettingPage() {
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900">{profile.username}</h3>
-                                <p className="text-sm font-medium text-slate-400">商家账户</p>
+                                <p className="text-sm font-medium text-slate-400">编号: {profile.merchantNo || '暂无编号'}</p>
                             </div>
                         </div>
 

@@ -71,6 +71,9 @@ export class Order {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ unique: true, nullable: true })
+  orderNo: string; // 订单编号 O202412301234
+
   @Column({ nullable: true })
   @Index()
   taskId: string;

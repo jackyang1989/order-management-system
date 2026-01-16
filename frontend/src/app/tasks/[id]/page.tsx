@@ -430,7 +430,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 <div className="space-y-2 text-xs">
                     <div className="flex justify-between">
                         <span className="text-slate-500">任务编号</span>
-                        <span className="text-slate-700 font-mono">{task.taskNumber || task.id}</span>
+                        <span className="text-slate-700 font-mono">{task.taskNumber || '暂无编号'}</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-slate-500">结算方式</span>

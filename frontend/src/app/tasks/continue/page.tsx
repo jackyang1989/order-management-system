@@ -168,7 +168,7 @@ export default function ContinueTasksPage() {
                                         )}
                                     </div>
                                     <span className="text-[17px] font-bold text-slate-800">
-                                        {task.taskNumber || `T${task.taskId || task.id}`}
+                                        {task.taskNumber || '暂无编号'}
                                     </span>
                                 </div>
 

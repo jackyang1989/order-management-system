@@ -123,6 +123,9 @@ export class MerchantsService {
       vip = vipExpireAt > new Date();
     }
 
+    // 生成商家编号 merchantNo (M + 5位数字)
+    const merchantNo = await this.generateMerchantNo();
+
     const merchant = this.merchantsRepository.create({
       username: dto.username,
       password: hashedPassword,
@@ -136,10 +139,36 @@ export class MerchantsService {
       vipExpireAt,
       note: dto.note || '',
       status: MerchantStatus.APPROVED, // 默认直接通过，实际可设为 PENDING
+      merchantNo,
     });
 
     const saved = await this.merchantsRepository.save(merchant);
     return this.sanitize(saved);
+  }
+
+  /**
+   * 生成商家编号 (M + 5位数字)
+   * 格式: M10001, M10002, ...
+   */
+  private async generateMerchantNo(): Promise<string> {
+    // 查询最大的商家编号
+    const lastMerchant = await this.merchantsRepository
+      .createQueryBuilder('m')
+      .where('m.merchantNo IS NOT NULL')
+      .orderBy('m.merchantNo', 'DESC')
+      .getOne();
+
+    let nextNumber = 10001; // 起始编号
+
+    if (lastMerchant && lastMerchant.merchantNo) {
+      // 提取数字部分并加1
+      const lastNumber = parseInt(lastMerchant.merchantNo.substring(1));
+      if (!isNaN(lastNumber)) {
+        nextNumber = lastNumber + 1;
+      }
+    }
+
+    return `M${nextNumber}`;
   }
 
   async update(id: string, dto: UpdateMerchantDto): Promise<Merchant | null> {

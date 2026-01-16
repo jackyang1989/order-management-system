@@ -456,9 +456,13 @@ export class OrdersService {
       }
     }
 
+    // 生成订单编号 (O + 时间戳)
+    const orderNo = await this.generateOrderNo();
+
     const newOrder = this.ordersRepository.create({
       taskId: task.id,
       userId,
+      orderNo,
       buynoId: createOrderDto.buynoId,
       buynoAccount: createOrderDto.buynoAccount,
       taskTitle: task.title,
@@ -1917,5 +1921,15 @@ export class OrdersService {
       okWk: order.okWk,
       stage,
     };
+  }
+
+  /**
+   * 生成订单编号 (O + 时间戳)
+   * 格式: O202412301234567890
+   */
+  private async generateOrderNo(): Promise<string> {
+    // 使用当前时间戳生成订单编号
+    const timestamp = Date.now();
+    return `O${timestamp}`;
   }
 }

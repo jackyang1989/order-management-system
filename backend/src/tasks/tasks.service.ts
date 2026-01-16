@@ -508,9 +508,12 @@ export class TasksService implements OnModuleInit {
       const mainGoods = dto.goodsList && dto.goodsList.length > 0 ? dto.goodsList[0] : null;
       const mainKeyword = mainGoods?.keywords && mainGoods.keywords.length > 0 ? mainGoods.keywords[0].keyword : '';
 
+      // 生成任务编号 (T + 日期YYYYMMDD + 序号)
+      const taskNumber = await this.generateTaskNumber();
+
       const newTask = this.tasksRepository.create({
         merchantId,
-        taskNumber: 'T' + Date.now() + Math.floor(Math.random() * 1000),
+        taskNumber,
         status: TaskStatus.ACTIVE,
 
         // 基础信息 - P0 FIX: 优先从 goodsList 提取，其次使用 dto 字段
@@ -1059,5 +1062,40 @@ export class TasksService implements OnModuleInit {
     XLSX.utils.book_append_sheet(workbook, worksheet, '任务导入模板');
 
     return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  }
+
+  /**
+   * 生成任务编号 (T + 日期YYYYMMDD + 序号)
+   * 格式: T20241230001, T20241230002, ...
+   */
+  private async generateTaskNumber(): Promise<string> {
+    // 获取今天的日期 YYYYMMDD 格式
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const dateStr = `${year}${month}${day}`;
+
+    // 查询今天最大的序号
+    const prefix = `T${dateStr}`;
+    const lastTask = await this.tasksRepository
+      .createQueryBuilder('t')
+      .where('t.taskNumber LIKE :prefix', { prefix: `${prefix}%` })
+      .orderBy('t.taskNumber', 'DESC')
+      .getOne();
+
+    let nextSequence = 1; // 从 001 开始
+
+    if (lastTask && lastTask.taskNumber) {
+      // 提取序号部分（最后3位数字）
+      const lastSequence = parseInt(lastTask.taskNumber.substring(prefix.length));
+      if (!isNaN(lastSequence)) {
+        nextSequence = lastSequence + 1;
+      }
+    }
+
+    // 格式化为3位数字（001, 002, 等）
+    const sequenceStr = nextSequence.toString().padStart(3, '0');
+    return `${prefix}${sequenceStr}`;
   }
 }
