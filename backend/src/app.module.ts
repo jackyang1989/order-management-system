@@ -18,6 +18,7 @@ import { AdminConfigModule } from './admin-config/admin-config.module';
 import { ShopsModule } from './shops/shops.module';
 import { GoodsModule } from './goods/goods.module';
 import { KeywordsModule } from './keywords/keywords.module';
+import { QuestionsModule } from './questions/questions.module';
 import { TaskGoodsModule } from './task-goods/task-goods.module';
 import { FinanceRecordsModule } from './finance-records/finance-records.module';
 import { RechargeModule } from './recharge/recharge.module';
@@ -90,6 +91,8 @@ import { FinanceRecord } from './finance-records/finance-record.entity';
 import { Goods } from './goods/goods.entity';
 // keywords
 import { GoodsKey, KeywordDetail } from './keywords/keyword.entity';
+// questions
+import { QuestionScheme, QuestionDetail } from './questions/question.entity';
 // merchant-bank-cards
 import { MerchantBankCard } from './merchant-bank-cards/merchant-bank-card.entity';
 // merchant-blacklist
@@ -188,6 +191,9 @@ const ENTITIES = [
   // keywords
   GoodsKey,
   KeywordDetail,
+  // questions
+  QuestionScheme,
+  QuestionDetail,
   // merchant-bank-cards
   MerchantBankCard,
   // merchant-blacklist
@@ -299,6 +305,7 @@ const ENTITIES = [
     ShopsModule,
     GoodsModule,
     KeywordsModule,
+    QuestionsModule,
     TaskGoodsModule,
     FinanceRecordsModule,
     RechargeModule,
