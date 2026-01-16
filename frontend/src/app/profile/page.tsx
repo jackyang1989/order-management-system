@@ -77,8 +77,26 @@ export default function ProfilePage() {
                 {/* Profile Section */}
                 <div className="relative overflow-hidden rounded-[24px] bg-white p-6">
                     <div className="flex items-center gap-5">
-                        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-blue-50 text-4xl">
-                            👤
+                        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-blue-100">
+                            {profile?.avatar ? (
+                                <img
+                                    src={profile.avatar}
+                                    alt={profile.username || '用户头像'}
+                                    className="h-full w-full object-cover"
+                                    onError={(e) => {
+                                        // 如果图片加载失败，显示默认头像
+                                        e.currentTarget.style.display = 'none';
+                                        const fallback = e.currentTarget.nextElementSibling;
+                                        if (fallback) (fallback as HTMLElement).style.display = 'flex';
+                                    }}
+                                />
+                            ) : null}
+                            <div
+                                className="flex h-full w-full items-center justify-center bg-blue-50 text-4xl"
+                                style={{ display: profile?.avatar ? 'none' : 'flex' }}
+                            >
+                                👤
+                            </div>
                         </div>
                         <div className="flex-1">
                             <h2 className="text-2xl font-black text-slate-900">{profile?.username || '用户'}</h2>
