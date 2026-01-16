@@ -23,6 +23,7 @@ import { MessageUserType, MessageType } from '../messages/message.entity';
 
 // P1-5: Type definitions for task creation
 interface TaskGoodsDto {
+  id?: string;
   goodsId?: string;
   name: string;
   image?: string;
@@ -31,7 +32,8 @@ interface TaskGoodsDto {
   specValue?: string;
   price: number;
   quantity: number;
-  orderSpecs?: Record<string, unknown>;
+  keyword?: string;
+  orderSpecs?: Record<string, unknown> | Array<{ specName: string; specValue: string; quantity: number }>;
   verifyCode?: string;
   keywords?: TaskKeywordDto[];
   filterSettings?: FilterSettings;
@@ -63,7 +65,10 @@ interface OrderPraiseConfig {
 }
 
 interface CreateTaskPayDto {
-  goodsPrice?: number;
+  taskType: number;
+  title: string;
+  count: number;
+  goodsPrice: number;
   goodsList?: TaskGoodsDto[];
   isFreeShipping?: number;
   isPraise?: boolean;
@@ -71,6 +76,16 @@ interface CreateTaskPayDto {
   orderPraiseConfigs?: OrderPraiseConfig[];
   isTimingPublish?: boolean;
   isTimingPay?: boolean;
+  isCycleTime?: boolean;
+  cycleTime?: number;
+  publishTime?: string | Date;
+  timingPayTime?: string | Date;
+  needCompare?: boolean;
+  keyword?: string;
+  needBrowseReviews?: boolean;
+  needBrowseQA?: boolean;
+  praiseImgList?: string[][];
+  praiseVideoList?: string[];
   [key: string]: unknown;
 }
 
@@ -105,7 +120,7 @@ export class TasksService implements OnModuleInit {
    * 2. 否则，使用主商品的第一个搜索关键词
    * 3. 多商品时，只显示主商品(第一个商品)的货比关键词
    */
-  private getCompareKeyword(dto: CreateTaskDto): string {
+  private getCompareKeyword(dto: CreateTaskDto | CreateTaskPayDto): string {
     if (!dto.needCompare) {
       return '';
     }
@@ -145,7 +160,7 @@ export class TasksService implements OnModuleInit {
    * 规则：
    * 1. 从主商品的第一个关键词的高级设置中获取 backupKeyword
    */
-  private getBackupKeyword(dto: CreateTaskDto): string {
+  private getBackupKeyword(dto: CreateTaskDto | CreateTaskPayDto): string {
     if (dto.goodsList && dto.goodsList.length > 0) {
       const mainGoods = dto.goodsList[0]; // 主商品
       if (mainGoods.keywords && mainGoods.keywords.length > 0) {
@@ -335,8 +350,10 @@ export class TasksService implements OnModuleInit {
    * 创建任务并完成支付 (Merchant Portal Standard)
    * 严格遵循原版扣费逻辑：押金 + 佣金 + 增值费
    */
-  async createAndPay(dto: CreateTaskPayDto, merchantId: string): Promise<Task> {
-    // P1-5: Now using proper typed DTO instead of any
+  async createAndPay(dto: any, merchantId: string): Promise<Task> {
+    // TODO: P1-5 类型优化 - 需要重新设计 CreateTaskPayDto 类型
+    // 当前 CreateTaskDto 和 CreateTaskPayDto 类型不兼容，暂时使用 any
+    // 后续需要：1) 统一两个 DTO 的字段定义 2) 或使用 Partial<CreateTaskDto> + 额外字段
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -546,7 +563,6 @@ export class TasksService implements OnModuleInit {
         })(),
 
         // 定时服务
-        isTimingPublish: !!dto.isTimingPublish,
         publishTime: dto.publishTime ? new Date(dto.publishTime) : undefined,
         isTimingPay: !!dto.isTimingPay,
         timingTime: dto.timingPayTime ? new Date(dto.timingPayTime) : undefined,
@@ -977,10 +993,10 @@ export class TasksService implements OnModuleInit {
       try {
         const title = String(row[columnMap['标题']] || '').trim();
         const keyword = columnMap['关键词'] !== undefined ? String(row[columnMap['关键词']] || '').trim() : '';
-        const goodsPrice = parseFloat(row[columnMap['商品价格']]) || 0;
-        const count = parseInt(row[columnMap['数量']]) || 1;
+        const goodsPrice = parseFloat(String(row[columnMap['商品价格']] || '0')) || 0;
+        const count = parseInt(String(row[columnMap['数量']] || '1')) || 1;
         const platformStr = columnMap['平台'] !== undefined ? String(row[columnMap['平台']] || '').trim() : '';
-        const extraCommission = columnMap['额外佣金'] !== undefined ? parseFloat(row[columnMap['额外佣金']]) || 0 : 0;
+        const extraCommission = columnMap['额外佣金'] !== undefined ? parseFloat(String(row[columnMap['额外佣金']] || '0')) || 0 : 0;
         const shopName = columnMap['店铺名'] !== undefined ? String(row[columnMap['店铺名']] || '').trim() : '';
         const remark = columnMap['备注'] !== undefined ? String(row[columnMap['备注']] || '').trim() : '';
 

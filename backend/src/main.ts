@@ -4,7 +4,7 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import helmet from 'helmet';
 import compression from 'compression';
 import * as bodyParser from 'body-parser';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { DataSource } from 'typeorm';

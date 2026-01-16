@@ -12,7 +12,7 @@ import {
   Response,
   Ip,
 } from '@nestjs/common';
-import { Response as ExpressResponse } from 'express';
+import type { Response as ExpressResponse } from 'express';
 import { AdminUsersService } from './admin-users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import {

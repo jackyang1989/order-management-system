@@ -10,7 +10,7 @@ import {
   HttpStatus,
   Ip,
 } from '@nestjs/common';
-import { Response as ExpressResponse } from 'express';
+import type { Response as ExpressResponse } from 'express';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginDto } from '../users/user.entity';
 import { JwtAuthGuard } from './jwt-auth.guard';

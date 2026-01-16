@@ -10,7 +10,7 @@ import {
   Response,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Response as ExpressResponse } from 'express';
+import type { Response as ExpressResponse } from 'express';
 import { MerchantsService } from './merchants.service';
 import {
   CreateMerchantDto,
