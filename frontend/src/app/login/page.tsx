@@ -66,9 +66,14 @@ export default function LoginPage() {
             setLoading(false);
 
             if (result.success) {
-                // 登录成功，cookie已自动设置，直接跳转
+                // 登录成功，确保token已保存后再跳转
                 toastSuccess('登录成功');
-                setTimeout(() => router.push('/profile'), 1000);
+                // 验证token已保存
+                const savedToken = localStorage.getItem('token');
+                console.log('[Login] Token saved:', !!savedToken);
+                setTimeout(() => {
+                    window.location.href = '/profile'; // 使用完整页面刷新确保token生效
+                }, 1000);
             } else {
                 toastError(result.message || '登录失败');
             }
