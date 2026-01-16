@@ -45,12 +45,15 @@ export const login = async (usernameOrPhone: string, password: string): Promise<
         const response = await fetch(`${BASE_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            credentials: 'include', // 重要：允许发送和接收cookie
             body: JSON.stringify({ username: usernameOrPhone, phone: usernameOrPhone, password })
         });
         const data = await response.json();
         if (!response.ok) {
             return { success: false, message: data.message || '登录失败' };
+        }
+        // 存储 token
+        if (data.success && data.data?.accessToken) {
+            localStorage.setItem('token', data.data.accessToken);
         }
         return data;
     } catch (error) {
@@ -124,12 +127,15 @@ export const smsLogin = async (phone: string, code: string): Promise<LoginResult
         const response = await fetch(`${BASE_URL}/auth/sms-login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            credentials: 'include', // 重要：允许发送和接收cookie
             body: JSON.stringify({ phone, code })
         });
         const data = await response.json();
         if (!response.ok) {
             return { success: false, message: data.message || '登录失败' };
+        }
+        // 存储 token
+        if (data.success && data.data?.accessToken) {
+            localStorage.setItem('token', data.data.accessToken);
         }
         return data;
     } catch (error) {
@@ -149,10 +155,14 @@ export const register = async (data: {
         const response = await fetch(`${BASE_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            credentials: 'include', // 重要：允许发送和接收cookie
             body: JSON.stringify(data)
         });
-        return response.json();
+        const result = await response.json();
+        // 存储 token
+        if (result.success && result.data?.accessToken) {
+            localStorage.setItem('token', result.data.accessToken);
+        }
+        return result;
     } catch (error) {
         return { success: false, message: '注册失败' };
     }

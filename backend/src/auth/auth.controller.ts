@@ -32,28 +32,7 @@ export class AuthController {
   ) {
     const result = await this.authService.login(loginDto);
 
-    // 设置 httpOnly cookie
-    const cookieOptions: any = {
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 天
-    };
-
-    // 生产环境使用严格的安全设置
-    if (process.env.NODE_ENV === 'production') {
-      cookieOptions.secure = true;
-      cookieOptions.sameSite = 'strict';
-    }
-    // 开发环境：不设置sameSite，允许跨域cookie
-
-    res.cookie('accessToken', result.data.accessToken, cookieOptions);
-
-    // 不在响应体中返回 token
-    const { accessToken, ...data } = result.data;
-    return {
-      success: result.success,
-      message: result.message,
-      data,
-    };
+    return result;
   }
 
   // P1-4: 使用 httpOnly cookie 存储 token

@@ -100,44 +100,60 @@ const safeFetch = async <T = any>(
 
 const api = {
     async get<T = any>(url: string): Promise<ApiResponse<T>> {
+        const token = getToken();
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
         return safeFetch<T>(`${BASE_URL}${url}`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include', // 重要：允许发送和接收cookie
+            headers,
         });
     },
 
     async post<T = any>(url: string, body?: any): Promise<ApiResponse<T>> {
+        const token = getToken();
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
         return safeFetch<T>(`${BASE_URL}${url}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include', // 重要：允许发送和接收cookie
+            headers,
             body: body ? JSON.stringify(body) : undefined,
         });
     },
 
     async put<T = any>(url: string, body?: any): Promise<ApiResponse<T>> {
+        const token = getToken();
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
         return safeFetch<T>(`${BASE_URL}${url}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include', // 重要：允许发送和接收cookie
+            headers,
             body: body ? JSON.stringify(body) : undefined,
         });
     },
 
     async delete<T = any>(url: string): Promise<ApiResponse<T>> {
+        const token = getToken();
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
         return safeFetch<T>(`${BASE_URL}${url}`, {
             method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include', // 重要：允许发送和接收cookie
+            headers,
         });
     },
 };

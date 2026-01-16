@@ -21,19 +21,19 @@ export default function AdminLoginPage() {
         setError('');
 
         try {
-            const response = await fetch('/api/admin-users/login', {
+            const response = await fetch('http://localhost:6006/admin-users/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                credentials: 'include', // 重要：允许发送和接收cookie
                 body: JSON.stringify({ username, password }),
             });
 
             const result = await response.json();
 
-            if (result.success) {
-                // 登录成功，cookie已自动设置，直接跳转
+            if (result.success && result.data?.token) {
+                // 存储 token 到 localStorage
+                localStorage.setItem('adminToken', result.data.token);
                 router.push('/admin/dashboard');
             } else {
                 setError(result.message || '登录失败');

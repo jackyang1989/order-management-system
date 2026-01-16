@@ -23,12 +23,11 @@ export default function MerchantLoginPage() {
             const response = await fetch(`${BASE_URL}/merchant/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include', // 重要：允许发送和接收cookie
                 body: JSON.stringify(loginForm)
             });
             const data = await response.json();
-            if (data.success) {
-                // 登录成功，cookie已自动设置，直接跳转
+            if (data.success && data.data?.token) {
+                localStorage.setItem('merchantToken', data.data.token);
                 router.push('/merchant/dashboard');
             }
             else setError(data.message || '登录失败');
@@ -44,7 +43,6 @@ export default function MerchantLoginPage() {
             const response = await fetch(`${BASE_URL}/merchant/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include', // 重要：允许发送和接收cookie
                 body: JSON.stringify({
                     username: registerForm.username,
                     password: registerForm.password,
@@ -53,8 +51,8 @@ export default function MerchantLoginPage() {
                 })
             });
             const data = await response.json();
-            if (data.success) {
-                // 注册成功，cookie已自动设置，直接跳转
+            if (data.success && data.data?.token) {
+                localStorage.setItem('merchantToken', data.data.token);
                 router.push('/merchant/dashboard');
             }
             else setError(data.message || '注册失败');
