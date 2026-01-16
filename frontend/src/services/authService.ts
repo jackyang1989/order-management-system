@@ -194,3 +194,35 @@ export const getToken = (): string | null => {
     if (typeof window === 'undefined') return null;
     return localStorage.getItem('token');
 };
+
+// 注册配置接口
+export interface RegistrationConfig {
+    userRegistrationEnabled: boolean;
+    merchantRegistrationEnabled: boolean;
+}
+
+// 获取注册配置（公开接口，无需登录）
+export const getRegistrationConfig = async (): Promise<RegistrationConfig> => {
+    try {
+        const response = await fetch(`${BASE_URL}/admin-config/public/register-status`);
+        const data = await response.json();
+        if (data.success && data.data) {
+            return {
+                userRegistrationEnabled: data.data.userRegistrationEnabled ?? true,
+                merchantRegistrationEnabled: data.data.merchantRegistrationEnabled ?? true,
+            };
+        }
+        // 默认返回都启用
+        return {
+            userRegistrationEnabled: true,
+            merchantRegistrationEnabled: true,
+        };
+    } catch (error) {
+        console.error('获取注册配置失败:', error);
+        // 出错时默认返回都启用,避免影响用户体验
+        return {
+            userRegistrationEnabled: true,
+            merchantRegistrationEnabled: true,
+        };
+    }
+};

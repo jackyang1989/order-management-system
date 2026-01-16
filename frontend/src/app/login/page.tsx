@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { login, sendLoginCode, smsLogin } from '../../services/authService';
+import { login, sendLoginCode, smsLogin, getRegistrationConfig } from '../../services/authService';
 import { toastError, toastSuccess } from '../../lib/toast';
 import { cn } from '../../lib/utils';
 import { Button } from '../../components/ui/button';
@@ -18,6 +18,21 @@ export default function LoginPage() {
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [countdown, setCountdown] = useState(0);
     const [sendingCode, setSendingCode] = useState(false);
+    const [registrationEnabled, setRegistrationEnabled] = useState(true);
+
+    useEffect(() => {
+        // 检查注册配置
+        const checkConfig = async () => {
+            try {
+                const config = await getRegistrationConfig();
+                setRegistrationEnabled(config.userRegistrationEnabled);
+            } catch (error) {
+                console.error('检查注册配置失败:', error);
+                setRegistrationEnabled(true);
+            }
+        };
+        checkConfig();
+    }, []);
 
     useEffect(() => {
         if (countdown > 0) {
@@ -230,16 +245,18 @@ export default function LoginPage() {
                     </Button>
                 </form>
 
-                <div className="mt-6 text-center text-sm text-slate-600">
-                    还没有账号？
-                    <button
-                        type="button"
-                        className="ml-1 text-primary-600"
-                        onClick={() => router.push('/register')}
-                    >
-                        立即注册
-                    </button>
-                </div>
+                {registrationEnabled && (
+                    <div className="mt-6 text-center text-sm text-slate-600">
+                        还没有账号？
+                        <button
+                            type="button"
+                            className="ml-1 text-primary-600"
+                            onClick={() => router.push('/register')}
+                        >
+                            立即注册
+                        </button>
+                    </div>
+                )}
 
                 <div className="mt-3 text-center text-sm">
                     <button

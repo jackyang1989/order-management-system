@@ -124,3 +124,28 @@ export class AdminConfigController {
         };
     }
 }
+
+/**
+ * 公开配置接口（无需登录）
+ */
+@Controller('admin-config/public')
+export class AdminConfigPublicController {
+    constructor(private readonly configService: AdminConfigService) { }
+
+    /**
+     * 获取注册开关状态（公开接口）
+     */
+    @Get('register-status')
+    async getRegisterStatus() {
+        const userEnabled = this.configService.getBooleanValue('user_registration_enabled', true);
+        const merchantEnabled = this.configService.getBooleanValue('merchant_registration_enabled', true);
+
+        return {
+            success: true,
+            data: {
+                userRegistrationEnabled: userEnabled,
+                merchantRegistrationEnabled: merchantEnabled,
+            },
+        };
+    }
+}

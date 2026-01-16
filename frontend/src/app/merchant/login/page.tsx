@@ -1,20 +1,40 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { BASE_URL } from '../../../../apiConfig';
 import { cn } from '../../../lib/utils';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
+import { getRegistrationConfig } from '../../../services/authService';
 
 export default function MerchantLoginPage() {
     const router = useRouter();
     const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [registrationEnabled, setRegistrationEnabled] = useState(true);
 
     const [loginForm, setLoginForm] = useState({ username: '', password: '' });
     const [registerForm, setRegisterForm] = useState({ username: '', password: '', confirmPassword: '', phone: '', invitationCode: '' });
+
+    useEffect(() => {
+        // 检查注册配置
+        const checkConfig = async () => {
+            try {
+                const config = await getRegistrationConfig();
+                setRegistrationEnabled(config.merchantRegistrationEnabled);
+                // 如果注册被禁用且当前在注册标签,切换到登录标签
+                if (!config.merchantRegistrationEnabled && !isLogin) {
+                    setIsLogin(true);
+                }
+            } catch (error) {
+                console.error('检查注册配置失败:', error);
+                setRegistrationEnabled(true);
+            }
+        };
+        checkConfig();
+    }, [isLogin]);
 
     const handleLogin = async () => {
         if (!loginForm.username || !loginForm.password) { setError('请输入用户名和密码'); return; }
@@ -97,11 +117,17 @@ export default function MerchantLoginPage() {
                         <p className="font-bold text-slate-400">{isLogin ? '登录您的商家账号' : '创建新的商家账号'}</p>
                     </div>
 
-                    {/* Toggle Tabs */}
-                    <div className="mb-8 flex rounded-[16px] bg-slate-100 p-1.5">
-                        <button onClick={() => { setIsLogin(true); setError(''); }} className={cn('flex-1 rounded-[12px] py-3 text-sm font-bold transition-all', isLogin ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700')}>登录</button>
-                        <button onClick={() => { setIsLogin(false); setError(''); }} className={cn('flex-1 rounded-[12px] py-3 text-sm font-bold transition-all', !isLogin ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700')}>注册</button>
-                    </div>
+                    {/* Toggle Tabs - 只在注册启用时显示两个标签 */}
+                    {registrationEnabled ? (
+                        <div className="mb-8 flex rounded-[16px] bg-slate-100 p-1.5">
+                            <button onClick={() => { setIsLogin(true); setError(''); }} className={cn('flex-1 rounded-[12px] py-3 text-sm font-bold transition-all', isLogin ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700')}>登录</button>
+                            <button onClick={() => { setIsLogin(false); setError(''); }} className={cn('flex-1 rounded-[12px] py-3 text-sm font-bold transition-all', !isLogin ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700')}>注册</button>
+                        </div>
+                    ) : (
+                        <div className="mb-8 flex rounded-[16px] bg-slate-100 p-1.5">
+                            <button className="flex-1 rounded-[12px] bg-white py-3 text-sm font-bold text-indigo-600 shadow-sm">登录</button>
+                        </div>
+                    )}
 
                     {/* Error Message */}
                     {error && <div className="mb-6 rounded-[16px] border border-red-100 bg-red-50 px-4 py-3 text-sm font-bold text-red-500 animate-in slide-in-from-top-2">{error}</div>}

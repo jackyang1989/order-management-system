@@ -5,11 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '../../lib/utils';
 import { toastSuccess, toastError } from '../../lib/toast';
 import { BASE_URL } from '../../../apiConfig';
+import { getRegistrationConfig } from '../../services/authService';
 
 function RegisterForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
+    const [checkingConfig, setCheckingConfig] = useState(true);
+    const [registrationEnabled, setRegistrationEnabled] = useState(true);
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
     const [yzmDisabled, setYzmDisabled] = useState(false);
@@ -31,6 +34,21 @@ function RegisterForm() {
     const passWordReg = /^[a-zA-Z0-9_-]{6,16}$/;
 
     useEffect(() => {
+        // 检查注册配置
+        const checkConfig = async () => {
+            try {
+                const config = await getRegistrationConfig();
+                setRegistrationEnabled(config.userRegistrationEnabled);
+            } catch (error) {
+                console.error('检查注册配置失败:', error);
+                // 默认允许注册
+                setRegistrationEnabled(true);
+            } finally {
+                setCheckingConfig(false);
+            }
+        };
+        checkConfig();
+
         const invite = searchParams.get('invite');
         if (invite) {
             setForm(f => ({ ...f, invitationCode: invite }));
@@ -127,6 +145,45 @@ function RegisterForm() {
             setLoading(false);
         }
     };
+
+    // 如果正在检查配置,显示加载状态
+    if (checkingConfig) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-white">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+            </div>
+        );
+    }
+
+    // 如果注册功能关闭,显示提示信息
+    if (!registrationEnabled) {
+        return (
+            <div className="min-h-screen bg-white">
+                {/* Header */}
+                <div className="sticky top-0 z-10 flex items-center border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-sm">
+                    <button onClick={() => router.push('/login')} className="mr-4 text-slate-600">
+                        ← 返回
+                    </button>
+                    <h1 className="text-base font-medium text-slate-800">注册账号</h1>
+                </div>
+
+                <div className="flex flex-col items-center justify-center px-6 py-20">
+                    <div className="mb-6 text-6xl">🚫</div>
+                    <h2 className="mb-3 text-2xl font-bold text-slate-800">注册功能暂时关闭</h2>
+                    <p className="mb-8 text-center text-slate-500">
+                        抱歉,用户注册功能暂时关闭。<br />
+                        如需帮助,请联系管理员。
+                    </p>
+                    <button
+                        onClick={() => router.push('/login')}
+                        className="rounded-full bg-primary px-8 py-3 text-base font-medium text-white transition hover:bg-primary/90"
+                    >
+                        返回登录
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-white">
