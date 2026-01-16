@@ -266,10 +266,10 @@ export default function ProfileSettingsPage() {
 
     const InfoRow = ({ label, value, action, onClick, showArrow }: { label: string; value: string; action?: () => void; onClick?: () => void; showArrow?: boolean }) => (
         <div
-            className={`flex items-center px-4 py-1.5 ${onClick ? 'cursor-pointer active:bg-slate-50' : ''}`}
+            className={`flex items-center px-4 py-3 ${onClick ? 'cursor-pointer active:bg-slate-50' : ''}`}
             onClick={onClick}
         >
-            <span className="flex-1 text-sm font-semibold text-slate-500">{label}</span>
+            <span className="flex-1 text-sm font-bold text-slate-500">{label}</span>
             <span className={cn(
                 "text-sm font-bold",
                 onClick ? 'text-primary-600' : 'text-slate-900'
@@ -279,7 +279,7 @@ export default function ProfileSettingsPage() {
             {action && (
                 <button
                     onClick={(e) => { e.stopPropagation(); action(); }}
-                    className="ml-3 rounded-xl bg-blue-50 px-3 py-1 text-xs font-bold text-primary-600 transition-colors hover:bg-blue-100"
+                    className="ml-3 rounded-xl bg-slate-50 px-3 py-1.5 text-xs font-bold text-primary-600 transition-colors hover:bg-blue-50"
                 >
                     修改
                 </button>
@@ -308,10 +308,10 @@ export default function ProfileSettingsPage() {
 
             <div className="mx-auto max-w-[515px] space-y-5 px-4 py-6">
                 {/* User Info Card */}
-                <div className="rounded-[24px] bg-white py-5 text-center">
+                <div className="rounded-[24px] bg-white py-6 text-center shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                     {/* 头像区域 - 可点击上传 */}
                     <div className="relative mx-auto mb-3 h-20 w-20">
-                        <div className="h-full w-full overflow-hidden rounded-full bg-slate-100 shadow-lg shadow-indigo-500/20">
+                        <div className="h-full w-full overflow-hidden rounded-full bg-slate-100 border-4 border-slate-50 shadow-sm">
                             {userInfo.avatar ? (
                                 <Image
                                     src={userInfo.avatar}
@@ -353,7 +353,7 @@ export default function ProfileSettingsPage() {
                 {/* Personal Section */}
                 <div>
                     <SectionHeader title="个人信息" />
-                    <Card noPadding className="divide-y divide-slate-50 overflow-hidden rounded-[20px] border-none px-0 py-4">
+                    <Card noPadding className="divide-y divide-slate-50 overflow-hidden rounded-[24px] border-none bg-white px-0 py-2 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                         <InfoRow label="用户名" value={userInfo.username} />
                         <InfoRow label="手机号" value={maskedPhone} action={() => setShowPhoneModal(true)} />
                         <InfoRow
@@ -370,7 +370,7 @@ export default function ProfileSettingsPage() {
                 {/* Membership Section */}
                 <div>
                     <SectionHeader title="会员信息" />
-                    <Card noPadding className="divide-y divide-slate-50 overflow-hidden rounded-[20px] border-none px-0 py-4">
+                    <Card noPadding className="divide-y divide-slate-50 overflow-hidden rounded-[24px] border-none bg-white px-0 py-2 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                         <InfoRow label="会员状态" value={userInfo.vip ? 'VIP会员' : '普通会员'} />
                         <InfoRow
                             label="开通/续费"
@@ -385,7 +385,7 @@ export default function ProfileSettingsPage() {
                 {/* Security Section */}
                 <div>
                     <SectionHeader title="安全设置" />
-                    <Card noPadding className="divide-y divide-slate-50 overflow-hidden rounded-[20px] border-none px-0 py-4">
+                    <Card noPadding className="divide-y divide-slate-50 overflow-hidden rounded-[24px] border-none bg-white px-0 py-2 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                         <InfoRow label="登陆密码" value="********" action={() => setShowPasswordModal(true)} />
                         <InfoRow label="支付密码" value="********" action={() => setShowPayPwdModal(true)} />
                     </Card>

@@ -108,9 +108,9 @@ export class TasksService implements OnModuleInit {
   // 初始化时插入种子数据
   async onModuleInit() {
     const count = await this.tasksRepository.count();
-    if (count === 0) {
-      await this.seedTasks();
-    }
+    // if (count === 0) {
+    //   await this.seedTasks();
+    // }
   }
 
   /**
