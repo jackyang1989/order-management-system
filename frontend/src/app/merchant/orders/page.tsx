@@ -49,7 +49,6 @@ interface Order {
         needFollow?: boolean;
         needAddCart?: boolean;
         needContactCS?: boolean;
-        contactCSContent?: string;
         contactCSConfig?: string;
         totalBrowseMinutes?: number;
         compareBrowseMinutes?: number;

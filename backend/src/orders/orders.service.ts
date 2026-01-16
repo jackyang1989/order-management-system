@@ -457,7 +457,7 @@ export class OrdersService {
     }
 
     // 新版：获取该订单对应的联系客服配置
-    // 根据 contactCSConfig 配置，随机分配联系客服问题
+    // 根据 contactCSConfig 配置，分配联系客服问题
     let orderNeedContactCS = false;
     let orderContactCSQuestions: string[] = [];
 
@@ -476,12 +476,6 @@ export class OrdersService {
             orderContactCSQuestions = questionConfig.questions;
           }
         }
-      }
-    } else if (task.needContactCS) {
-      // 旧版兼容：所有订单都使用相同的联系客服内容
-      orderNeedContactCS = true;
-      if (task.contactCSContent) {
-        orderContactCSQuestions = [task.contactCSContent];
       }
     }
 

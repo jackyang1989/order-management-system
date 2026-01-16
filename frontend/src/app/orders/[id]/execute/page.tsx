@@ -125,7 +125,6 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const [isFreeShipping, setIsFreeShipping] = useState(true);
     const [checkPassword, setCheckPassword] = useState('');
     const [compareCount, setCompareCount] = useState(3);
-    const [contactCSContent, setContactCSContent] = useState('');
     const [contactCSQuestions, setContactCSQuestions] = useState<string[]>([]); // 多个联系客服问题
     const [mainProductFilter3, setMainProductFilter3] = useState(''); // 货比关键词
     const [mainProductFilter1, setMainProductFilter1] = useState(''); // 颜色
@@ -193,6 +192,9 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     // 平台列表（用于动态获取图标）
     const [platforms, setPlatforms] = useState<PlatformData[]>([]);
 
+    // 复制按钮状态管理
+    const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
     // ===================== 工具函数 =====================
     const getToken = useCallback(() => {
         if (typeof window === 'undefined') return null;
@@ -206,6 +208,21 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
     const alertError = useCallback((msg: string) => {
         alert(msg);
     }, []);
+
+    // 复制问题到剪贴板
+    const handleCopyQuestion = useCallback(async (question: string, index: number) => {
+        try {
+            await navigator.clipboard.writeText(question);
+            setCopiedIndex(index);
+            // 2秒后恢复按钮状态
+            setTimeout(() => {
+                setCopiedIndex(null);
+            }, 2000);
+        } catch (err) {
+            console.error('复制失败:', err);
+            alertError('复制失败，请手动复制');
+        }
+    }, [alertError]);
 
     // 根据 taskType 获取平台图标
     const getPlatformIcon = useCallback((taskType?: number): string => {
@@ -277,7 +294,6 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                 setCheckPassword(data.maskedPassword || ''); // 使用后端返回的已隐藏口令
                 setIsFreeShipping(data.isFreeShipping === 1 || data.isFreeShipping === true);
                 setCompareCount(data.compareCount || 3);
-                setContactCSContent(data.contactCSContent || '');
                 setContactCSQuestions(data.contactCSQuestions || []);
                 setWeight(data.weight || 0);
                 setFastRefund(data.fastRefund || false);
@@ -1577,38 +1593,42 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                             borderRadius: '4px',
                                             fontWeight: 'bold',
                                             color: '#1890ff',
-                                            border: '1px dashed #91d5ff'
+                                            border: '1px dashed #91d5ff',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            gap: '8px'
                                         }}>
-                                            问题{index + 1}：{question}
+                                            <span style={{ flex: 1 }}>问题{index + 1}：{question}</span>
+                                            <button
+                                                onClick={() => handleCopyQuestion(question, index)}
+                                                style={{
+                                                    padding: '4px 8px',
+                                                    fontSize: '11px',
+                                                    background: copiedIndex === index ? '#52c41a' : '#1890ff',
+                                                    color: '#fff',
+                                                    border: 'none',
+                                                    borderRadius: '3px',
+                                                    cursor: 'pointer',
+                                                    whiteSpace: 'nowrap',
+                                                    transition: 'all 0.3s',
+                                                    flexShrink: 0
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    if (copiedIndex !== index) {
+                                                        e.currentTarget.style.background = '#40a9ff';
+                                                    }
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    if (copiedIndex !== index) {
+                                                        e.currentTarget.style.background = '#1890ff';
+                                                    }
+                                                }}
+                                            >
+                                                {copiedIndex === index ? '已复制' : '复制'}
+                                            </button>
                                         </div>
                                     ))}
-                                </div>
-                            </div>
-                        ) : contactCSContent && (
-                            <div style={{
-                                marginBottom: '15px',
-                                padding: '10px',
-                                background: '#e6f7ff',
-                                borderRadius: '4px',
-                                border: '1px solid #91d5ff'
-                            }}>
-                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
-                                    <span style={{ color: '#1890ff', marginRight: '5px' }}>💬</span>
-                                    <span style={{ fontWeight: 'bold', color: '#1890ff', fontSize: '13px' }}>必须联系客服</span>
-                                </div>
-                                <div style={{ fontSize: '12px', color: '#333', lineHeight: '1.6' }}>
-                                    找到主商品后，请联系客服并发送以下内容：
-                                    <div style={{
-                                        marginTop: '6px',
-                                        padding: '8px',
-                                        background: '#fff',
-                                        borderRadius: '4px',
-                                        fontWeight: 'bold',
-                                        color: '#1890ff',
-                                        border: '1px dashed #91d5ff'
-                                    }}>
-                                        {contactCSContent}
-                                    </div>
                                 </div>
                             </div>
                         )}
@@ -1699,7 +1719,7 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                             {needBrowseReviews && <span>✅ 浏览评价</span>}
                                             {needBrowseQA && <span>✅ 浏览问大家</span>}
                                         </div>
-                                        {needContactCS && contactCSQuestions.length > 0 ? (
+                                        {needContactCS && contactCSQuestions.length > 0 && (
                                             <div style={{
                                                 marginTop: '8px',
                                                 padding: '8px',
@@ -1709,20 +1729,45 @@ export default function OrderExecutePage({ params }: { params: Promise<{ id: str
                                             }}>
                                                 <div style={{ marginBottom: '4px' }}>💬 聊天内容：</div>
                                                 {contactCSQuestions.map((question, index) => (
-                                                    <div key={index} style={{ color: '#f56c6c', fontWeight: 'bold', marginTop: '4px' }}>
-                                                        问题{index + 1}：{question}
+                                                    <div key={index} style={{
+                                                        color: '#f56c6c',
+                                                        fontWeight: 'bold',
+                                                        marginTop: '4px',
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        gap: '8px'
+                                                    }}>
+                                                        <span style={{ flex: 1 }}>问题{index + 1}：{question}</span>
+                                                        <button
+                                                            onClick={() => handleCopyQuestion(question, index)}
+                                                            style={{
+                                                                padding: '4px 8px',
+                                                                fontSize: '11px',
+                                                                background: copiedIndex === index ? '#52c41a' : '#1890ff',
+                                                                color: '#fff',
+                                                                border: 'none',
+                                                                borderRadius: '3px',
+                                                                cursor: 'pointer',
+                                                                whiteSpace: 'nowrap',
+                                                                transition: 'all 0.3s',
+                                                                flexShrink: 0
+                                                            }}
+                                                            onMouseEnter={(e) => {
+                                                                if (copiedIndex !== index) {
+                                                                    e.currentTarget.style.background = '#40a9ff';
+                                                                }
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                if (copiedIndex !== index) {
+                                                                    e.currentTarget.style.background = '#1890ff';
+                                                                }
+                                                            }}
+                                                        >
+                                                            {copiedIndex === index ? '已复制' : '复制'}
+                                                        </button>
                                                     </div>
                                                 ))}
-                                            </div>
-                                        ) : needContactCS && contactCSContent && (
-                                            <div style={{
-                                                marginTop: '8px',
-                                                padding: '8px',
-                                                background: '#fff',
-                                                borderRadius: '4px',
-                                                color: '#666'
-                                            }}>
-                                                💬 聊天内容：<span style={{ color: '#f56c6c', fontWeight: 'bold' }}>{contactCSContent}</span>
                                             </div>
                                         )}
                                     </div>

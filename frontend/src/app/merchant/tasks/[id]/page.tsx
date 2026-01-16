@@ -87,7 +87,6 @@ interface TaskDetail {
     // 新增字段
     fastRefund?: boolean;
     weight?: number;
-    contactCSContent?: string;
     contactCSConfig?: any[]; // 新版联系客服配置（每单的问题列表）
     isPresale?: boolean; // 是否预售任务
     presaleDeposit?: number; // 预付款
@@ -321,11 +320,6 @@ export default function TaskDetailPage() {
         // 新版配置：显示订单数量
         if (task.contactCSConfig && task.contactCSConfig.length > 0) {
             return `${task.contactCSConfig.length}单需要`;
-        }
-
-        // 旧版配置：显示内容
-        if (task.contactCSContent) {
-            return task.contactCSContent;
         }
 
         return undefined;
@@ -598,17 +592,6 @@ export default function TaskDetailPage() {
                         </Card>
                     )}
 
-                    {/* 旧版联系客服内容显示（兼容） */}
-                    {task.needContactCS && !task.contactCSConfig && task.contactCSContent && (
-                        <Card className="bg-white" noPadding>
-                            <div className="px-6 py-5">
-                                <h2 className="mb-3 text-base font-semibold">联系客服内容</h2>
-                                <div className="rounded bg-blue-50 p-4 text-sm text-blue-800 whitespace-pre-wrap">
-                                    {task.contactCSContent}
-                                </div>
-                            </div>
-                        </Card>
-                    )}
 
                     {/* Value Added Services 增值服务 */}
                     <Card className="bg-white" noPadding>

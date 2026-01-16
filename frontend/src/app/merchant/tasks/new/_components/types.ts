@@ -139,9 +139,7 @@ export interface TaskFormData {
     needFavorite: boolean;      // 收藏商品
     needFollow: boolean;        // 关注店铺
     needAddCart: boolean;       // 加入购物车
-    needContactCS: boolean;     // 联系客服（旧版兼容）
-    contactCSContent: string;   // 联系客服内容（旧版兼容）
-    contactCSConfig?: ContactCSConfig; // 新版：联系客服配置
+    contactCSConfig?: ContactCSConfig; // 联系客服配置
     needBrowseReviews: boolean; // 浏览评价
     needBrowseQA: boolean;      // 浏览问大家 (仅淘宝、天猫、京东)
 
@@ -235,9 +233,7 @@ export const InitialTaskData: TaskFormData = {
     needFavorite: false,
     needFollow: false,
     needAddCart: false,
-    needContactCS: false,
-    contactCSContent: '',
-    contactCSConfig: undefined, // 新版：联系客服配置
+    contactCSConfig: undefined, // 联系客服配置
     needBrowseReviews: false,
     needBrowseQA: false,
 
