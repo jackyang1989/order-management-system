@@ -421,6 +421,7 @@ export class MerchantsService {
 
   // 获取推荐信息
   async getReferralInfo(id: string): Promise<{
+    enabled?: boolean;
     referralCode: string;
     referralLink: string;
     stats: {
@@ -438,9 +439,22 @@ export class MerchantsService {
       commission: number;
     }>;
   }> {
+    // 检查商家推荐功能开关
+    const isEnabled = this.adminConfigService.getBooleanValue('merchant_referral_enabled', true);
+    if (!isEnabled) {
+      return {
+        enabled: false,
+        referralCode: '',
+        referralLink: '',
+        stats: { totalReferrals: 0, activeReferrals: 0, totalEarnings: 0, pendingEarnings: 0 },
+        records: [],
+      };
+    }
+
     const merchant = await this.merchantsRepository.findOne({ where: { id } });
     if (!merchant) {
       return {
+        enabled: true,
         referralCode: '',
         referralLink: '',
         stats: { totalReferrals: 0, activeReferrals: 0, totalEarnings: 0, pendingEarnings: 0 },
@@ -471,6 +485,7 @@ export class MerchantsService {
     }));
 
     return {
+      enabled: true,
       referralCode: inviteCode,
       referralLink: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/merchant/register?ref=${inviteCode}`,
       stats: {

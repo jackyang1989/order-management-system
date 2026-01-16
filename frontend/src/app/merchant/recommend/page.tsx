@@ -32,6 +32,7 @@ export default function MerchantRecommendPage() {
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [featureEnabled, setFeatureEnabled] = useState(true);
 
     useEffect(() => { loadData(); }, []);
 
@@ -48,6 +49,13 @@ export default function MerchantRecommendPage() {
             });
             const json = await res.json();
             if (json.success && json.data) {
+                // 检查功能是否启用
+                if (json.data.enabled === false) {
+                    setFeatureEnabled(false);
+                    setLoading(false);
+                    return;
+                }
+                setFeatureEnabled(true);
                 setStats(json.data.stats || { totalReferrals: 0, activeReferrals: 0, totalEarnings: 0, pendingEarnings: 0 });
                 setRecords(json.data.records || []);
                 setReferralCode(json.data.referralCode || '');
@@ -75,6 +83,19 @@ export default function MerchantRecommendPage() {
             <div className="flex h-[400px] items-center justify-center font-bold text-slate-400">
                 <Spinner size="lg" />
                 <span className="ml-2">加载中...</span>
+            </div>
+        );
+    }
+
+    if (!featureEnabled) {
+        return (
+            <div className="flex h-[400px] flex-col items-center justify-center">
+                <div className="mb-6 text-8xl">🚫</div>
+                <h2 className="mb-3 text-2xl font-bold text-slate-800">推荐功能暂时关闭</h2>
+                <p className="mb-8 text-center text-slate-500">
+                    抱歉，商家邀请推荐功能暂时关闭。<br />
+                    如需帮助，请联系管理员。
+                </p>
             </div>
         );
     }
