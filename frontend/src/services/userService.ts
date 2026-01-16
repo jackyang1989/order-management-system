@@ -521,6 +521,7 @@ export interface UserProfile {
     username: string;
     phone: string;
     wechat?: string;            // 微信号
+    avatar?: string;            // 头像
     realName?: string;      // 实名
     balance: number;        // 本金余额
     frozenBalance: number;  // 冻结本金

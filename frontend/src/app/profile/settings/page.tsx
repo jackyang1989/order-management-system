@@ -261,12 +261,12 @@ export default function ProfileSettingsPage() {
     const maskedPhone = userInfo.mobile ? userInfo.mobile.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '未绑定';
 
     const SectionHeader = ({ title }: { title: string }) => (
-        <div className="mb-3 px-2 text-xs font-bold uppercase tracking-wider text-slate-400">{title}</div>
+        <div className="mb-2 px-2 text-xs font-bold uppercase tracking-wider text-slate-400">{title}</div>
     );
 
     const InfoRow = ({ label, value, action, onClick, showArrow }: { label: string; value: string; action?: () => void; onClick?: () => void; showArrow?: boolean }) => (
         <div
-            className={`flex items-center px-4 py-5 ${onClick ? 'cursor-pointer active:bg-slate-50' : ''}`}
+            className={`flex items-center justify-center px-4 py-3 ${onClick ? 'cursor-pointer active:bg-slate-50' : ''}`}
             onClick={onClick}
         >
             <span className="flex-1 text-sm font-semibold text-slate-500">{label}</span>
@@ -279,7 +279,7 @@ export default function ProfileSettingsPage() {
             {action && (
                 <button
                     onClick={(e) => { e.stopPropagation(); action(); }}
-                    className="ml-4 rounded-xl bg-blue-50 px-3 py-1.5 text-xs font-bold text-primary-600 transition-colors hover:bg-blue-100"
+                    className="ml-3 rounded-xl bg-blue-50 px-3 py-1 text-xs font-bold text-primary-600 transition-colors hover:bg-blue-100"
                 >
                     修改
                 </button>
@@ -306,18 +306,18 @@ export default function ProfileSettingsPage() {
                 </div>
             </header>
 
-            <div className="mx-auto max-w-[515px] space-y-8 px-4 py-6">
+            <div className="mx-auto max-w-[515px] space-y-5 px-4 py-6">
                 {/* User Info Card */}
-                <div className="rounded-[32px] bg-white p-8 text-center">
+                <div className="rounded-[24px] bg-white py-5 text-center">
                     {/* 头像区域 - 可点击上传 */}
-                    <div className="relative mx-auto mb-4 h-24 w-24">
+                    <div className="relative mx-auto mb-3 h-20 w-20">
                         <div className="h-full w-full overflow-hidden rounded-full bg-slate-100 shadow-lg shadow-indigo-500/20">
                             {userInfo.avatar ? (
                                 <Image 
                                     src={userInfo.avatar} 
                                     alt="头像" 
-                                    width={96} 
-                                    height={96} 
+                                    width={80} 
+                                    height={80} 
                                     className="h-full w-full object-cover"
                                     unoptimized
                                 />
@@ -327,7 +327,7 @@ export default function ProfileSettingsPage() {
                         </div>
                         {/* 上传按钮 */}
                         <label className={cn(
-                            "absolute bottom-0 right-0 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-primary-600 text-white shadow-lg transition-all hover:scale-110 active:scale-95",
+                            "absolute bottom-0 right-0 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-primary-600 text-white shadow-lg transition-all hover:scale-110 active:scale-95",
                             uploadingAvatar && "opacity-50 cursor-not-allowed"
                         )}>
                             {uploadingAvatar ? (
@@ -353,7 +353,7 @@ export default function ProfileSettingsPage() {
                 {/* Personal Section */}
                 <div>
                     <SectionHeader title="个人信息" />
-                    <Card className="divide-y divide-slate-50 overflow-hidden rounded-[24px] border-none">
+                    <Card className="divide-y divide-slate-50 overflow-hidden rounded-[20px] border-none px-2">
                         <InfoRow label="用户名" value={userInfo.username} />
                         <InfoRow label="手机号" value={maskedPhone} action={() => setShowPhoneModal(true)} />
                         <InfoRow 
@@ -370,7 +370,7 @@ export default function ProfileSettingsPage() {
                 {/* Membership Section */}
                 <div>
                     <SectionHeader title="会员信息" />
-                    <Card className="divide-y divide-slate-50 overflow-hidden rounded-[24px] border-none">
+                    <Card className="divide-y divide-slate-50 overflow-hidden rounded-[20px] border-none px-2">
                         <InfoRow label="会员状态" value={userInfo.vip ? 'VIP会员' : '普通会员'} />
                         <InfoRow
                             label="开通/续费"
@@ -385,7 +385,7 @@ export default function ProfileSettingsPage() {
                 {/* Security Section */}
                 <div>
                     <SectionHeader title="安全设置" />
-                    <Card className="divide-y divide-slate-50 overflow-hidden rounded-[24px] border-none">
+                    <Card className="divide-y divide-slate-50 overflow-hidden rounded-[20px] border-none px-2">
                         <InfoRow label="登陆密码" value="********" action={() => setShowPasswordModal(true)} />
                         <InfoRow label="支付密码" value="********" action={() => setShowPayPwdModal(true)} />
                     </Card>
