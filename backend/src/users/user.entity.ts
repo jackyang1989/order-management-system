@@ -105,6 +105,9 @@ export class User {
   @Column({ nullable: true })
   idCardBack: string; // 身份证背面
 
+  @Column({ nullable: true })
+  avatar: string; // 用户头像
+
   @Column({ type: 'int', default: 0 })
   verifyStatus: number; // 实名状态 0未认证 1待审核 2已认证 3已拒绝
 

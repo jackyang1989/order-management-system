@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   UseGuards,
   Request,
   Query,
@@ -45,6 +46,16 @@ export class UsersController {
         balanceOverview,
       },
     };
+  }
+
+  // 更新用户资料（头像、微信号等）
+  @Put('profile')
+  async updateProfile(
+    @Request() req,
+    @Body() body: { avatar?: string; wechat?: string },
+  ) {
+    const result = await this.usersService.updateProfile(req.user.userId, body);
+    return result;
   }
 
   // 单独的统计数据端点（用于首页展示）

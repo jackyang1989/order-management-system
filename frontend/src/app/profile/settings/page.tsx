@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { cn } from '../../../lib/utils';
 import { toastSuccess, toastError } from '../../../lib/toast';
 import ProfileContainer from '../../../components/ProfileContainer';
@@ -14,18 +15,38 @@ import {
     sendProfileSmsCode,
     changePassword,
     changePayPassword,
-    changePhone
+    changePhone,
+    updateUserProfile
 } from '../../../services/userService';
+import { BASE_URL } from '../../../../apiConfig';
+
+// 默认卡通头像 SVG
+const DefaultAvatar = () => (
+    <svg viewBox="0 0 120 120" className="h-full w-full">
+        <defs>
+            <linearGradient id="avatarBg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#6366f1" />
+                <stop offset="100%" stopColor="#8b5cf6" />
+            </linearGradient>
+        </defs>
+        <circle cx="60" cy="60" r="60" fill="url(#avatarBg)" />
+        <circle cx="60" cy="45" r="20" fill="#fff" opacity="0.9" />
+        <ellipse cx="60" cy="95" rx="35" ry="25" fill="#fff" opacity="0.9" />
+    </svg>
+);
 
 export default function ProfileSettingsPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [userInfo, setUserInfo] = useState({ username: '用户', mobile: '', wechat: '', vip: false, vipExpireAt: '' });
+    const [userInfo, setUserInfo] = useState({ username: '用户', mobile: '', wechat: '', vip: false, vipExpireAt: '', avatar: '' });
 
     const [showPhoneModal, setShowPhoneModal] = useState(false);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [showPayPwdModal, setShowPayPwdModal] = useState(false);
+    const [showWechatModal, setShowWechatModal] = useState(false);
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
+    const [wechatForm, setWechatForm] = useState('');
 
     const [phoneForm, setPhoneForm] = useState({ oldPhoneNum: '', zhifuPassWord: '', newPhoneNum: '', newYzmNum: '' });
     const [passwordForm, setPasswordForm] = useState({ oldPassWord: '', newPassWord: '', queRenPassWord: '', phoneNum: '', newYzmNum: '' });
@@ -52,16 +73,73 @@ export default function ProfileSettingsPage() {
                     mobile: data.phone,
                     wechat: data.wechat || '',
                     vip: data.vip,
-                    vipExpireAt: data.vipExpireAt || ''
+                    vipExpireAt: data.vipExpireAt || '',
+                    avatar: data.avatar || ''
                 });
                 setPhoneForm(p => ({ ...p, oldPhoneNum: data.phone }));
                 setPasswordForm(p => ({ ...p, phoneNum: data.phone }));
                 setPayPwdForm(p => ({ ...p, phoneNum: data.phone }));
+                setWechatForm(data.wechat || '');
             }
         } catch (e) {
             console.error('Load user info error:', e);
         } finally {
             setLoading(false);
+        }
+    };
+
+    // 上传头像
+    const handleAvatarUpload = async (file: File) => {
+        setUploadingAvatar(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const token = getToken();
+            const res = await fetch(`${BASE_URL}/upload/image`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            const json = await res.json();
+            if (json.success && json.url) {
+                // 更新用户头像
+                const updateResult = await updateUserProfile({ avatar: json.url });
+                if (updateResult.success) {
+                    setUserInfo(prev => ({ ...prev, avatar: json.url }));
+                    toastSuccess('头像更新成功');
+                } else {
+                    toastError(updateResult.message || '更新失败');
+                }
+            } else {
+                toastError(json.message || '上传失败');
+            }
+        } catch (e) {
+            toastError('网络错误');
+        } finally {
+            setUploadingAvatar(false);
+        }
+    };
+
+    // 修改微信号
+    const handleWechatSave = async () => {
+        if (!wechatForm.trim()) {
+            toastError('请输入微信号');
+            return;
+        }
+        setSubmitting(true);
+        try {
+            const result = await updateUserProfile({ wechat: wechatForm.trim() });
+            if (result.success) {
+                setUserInfo(prev => ({ ...prev, wechat: wechatForm.trim() }));
+                toastSuccess('微信号更新成功');
+                setShowWechatModal(false);
+            } else {
+                toastError(result.message || '更新失败');
+            }
+        } catch (e) {
+            toastError('网络错误');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -231,10 +309,46 @@ export default function ProfileSettingsPage() {
             <div className="mx-auto max-w-[515px] space-y-8 px-4 py-6">
                 {/* User Info Card */}
                 <div className="rounded-[32px] bg-white p-8 text-center">
-                    <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-slate-50 text-4xl">
-                        👤
+                    {/* 头像区域 - 可点击上传 */}
+                    <div className="relative mx-auto mb-4 h-24 w-24">
+                        <div className="h-full w-full overflow-hidden rounded-full bg-slate-100 shadow-lg shadow-indigo-500/20">
+                            {userInfo.avatar ? (
+                                <Image 
+                                    src={userInfo.avatar} 
+                                    alt="头像" 
+                                    width={96} 
+                                    height={96} 
+                                    className="h-full w-full object-cover"
+                                    unoptimized
+                                />
+                            ) : (
+                                <DefaultAvatar />
+                            )}
+                        </div>
+                        {/* 上传按钮 */}
+                        <label className={cn(
+                            "absolute bottom-0 right-0 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-primary-600 text-white shadow-lg transition-all hover:scale-110 active:scale-95",
+                            uploadingAvatar && "opacity-50 cursor-not-allowed"
+                        )}>
+                            {uploadingAvatar ? (
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            ) : (
+                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            )}
+                            <input 
+                                type="file" 
+                                className="hidden" 
+                                accept="image/*" 
+                                disabled={uploadingAvatar}
+                                onChange={e => e.target.files?.[0] && handleAvatarUpload(e.target.files[0])} 
+                            />
+                        </label>
                     </div>
                     <h2 className="text-2xl font-black text-slate-900">{userInfo.username}</h2>
+                    <p className="mt-1 text-xs font-medium text-slate-400">点击头像可更换</p>
                 </div>
 
                 {/* Personal Section */}
@@ -243,7 +357,14 @@ export default function ProfileSettingsPage() {
                     <Card className="divide-y divide-slate-50 overflow-hidden rounded-[24px] border-none">
                         <InfoRow label="用户名" value={userInfo.username} />
                         <InfoRow label="手机号" value={maskedPhone} action={() => setShowPhoneModal(true)} />
-                        <InfoRow label="微信号" value={userInfo.wechat || '未绑定'} />
+                        <InfoRow 
+                            label="微信号" 
+                            value={userInfo.wechat || '未绑定'} 
+                            action={() => {
+                                setWechatForm(userInfo.wechat || '');
+                                setShowWechatModal(true);
+                            }} 
+                        />
                     </Card>
                 </div>
 
@@ -353,6 +474,29 @@ export default function ProfileSettingsPage() {
                     <div className="flex gap-3 pt-4">
                         <button onClick={() => setShowPayPwdModal(false)} className="flex-1 rounded-[20px] bg-slate-50 py-4 text-sm font-bold text-slate-500">取消</button>
                         <button disabled={submitting} onClick={zhiFuBtnActive} className="flex-1 rounded-[20px] bg-primary-600 py-4 text-sm font-bold text-white disabled:opacity-50">确定</button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* 修改微信号 Modal */}
+            <Modal title="修改微信号" open={showWechatModal} onClose={() => setShowWechatModal(false)}>
+                <div className="space-y-5 px-1 py-1">
+                    <div className="space-y-1.5">
+                        <label className="ml-1 text-[11px] font-bold uppercase tracking-tight text-slate-400">微信号</label>
+                        <input 
+                            type="text" 
+                            placeholder="请输入微信号" 
+                            className="w-full rounded-2xl border-2 border-slate-50 bg-white px-4 py-3 text-sm font-bold text-slate-900 focus:border-blue-600 focus:outline-none" 
+                            value={wechatForm} 
+                            onChange={e => setWechatForm(e.target.value)} 
+                        />
+                    </div>
+                    <div className="text-center">
+                        <p className="text-[10px] font-medium text-slate-400">绑定微信号后，商家可通过微信联系您</p>
+                    </div>
+                    <div className="flex gap-3 pt-4">
+                        <button onClick={() => setShowWechatModal(false)} className="flex-1 rounded-[20px] bg-slate-50 py-4 text-sm font-bold text-slate-500">取消</button>
+                        <button disabled={submitting} onClick={handleWechatSave} className="flex-1 rounded-[20px] bg-primary-600 py-4 text-sm font-bold text-white disabled:opacity-50">确定</button>
                     </div>
                 </div>
             </Modal>

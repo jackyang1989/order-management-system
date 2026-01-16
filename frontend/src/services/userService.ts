@@ -649,3 +649,22 @@ export const changePhone = async (data: { oldPhone: string; payPassword: string;
         return { success: false, message: '网络错误' };
     }
 };
+
+// 更新用户资料（头像、微信号等）
+export const updateUserProfile = async (data: { avatar?: string; wechat?: string }): Promise<{ success: boolean; message: string }> => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${BASE_URL}/user/profile`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        return { success: response.ok && result.success, message: result.message || (response.ok ? '更新成功' : '更新失败') };
+    } catch (error) {
+        return { success: false, message: '网络错误' };
+    }
+};

@@ -54,6 +54,33 @@ export class UsersService {
     return user ? this.sanitizeUser(user) : null;
   }
 
+  // 更新用户资料（头像、微信号等）
+  async updateProfile(
+    userId: string,
+    data: { avatar?: string; wechat?: string },
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const user = await this.usersRepository.findOne({ where: { id: userId } });
+      if (!user) {
+        return { success: false, message: '用户不存在' };
+      }
+
+      // 更新字段
+      if (data.avatar !== undefined) {
+        user.avatar = data.avatar;
+      }
+      if (data.wechat !== undefined) {
+        user.wechat = data.wechat;
+      }
+
+      await this.usersRepository.save(user);
+      return { success: true, message: '更新成功' };
+    } catch (error) {
+      console.error('Update profile error:', error);
+      return { success: false, message: '更新失败' };
+    }
+  }
+
   async findByUsername(username: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { username } });
   }
