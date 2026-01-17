@@ -152,6 +152,7 @@ export default function AdminUsersPage() {
 
     // 编辑资料表单状态
     const [editForm, setEditForm] = useState<{
+        userNo: string;
         phone: string;
         wechat: string;
         realName: string;
@@ -161,7 +162,7 @@ export default function AdminUsersPage() {
         note: string;
         verifyStatus: number;
         canReferFriends: boolean;
-    }>({ phone: '', wechat: '', realName: '', balance: '0', silver: '0', mcTaskNum: '0', note: '', verifyStatus: 0, canReferFriends: true });
+    }>({ userNo: '', phone: '', wechat: '', realName: '', balance: '0', silver: '0', mcTaskNum: '0', note: '', verifyStatus: 0, canReferFriends: true });
 
     useEffect(() => {
         loadUsers();
@@ -199,6 +200,7 @@ export default function AdminUsersPage() {
 
     const openEditModal = (user: User) => {
         setEditForm({
+            userNo: user.userNo || '',
             phone: user.phone,
             wechat: user.wechat || '',
             realName: user.realName || '',
@@ -903,7 +905,16 @@ export default function AdminUsersPage() {
                             <table className="w-full text-sm">
                                 <tbody>
                                     <tr className="border-b border-[#e5e7eb]">
-                                        <td className="w-[100px] bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">手机号</td>
+                                        <td className="w-[100px] bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">用户ID</td>
+                                        <td className="px-3 py-2">
+                                            <input
+                                                type="text"
+                                                value={editForm.userNo || ''}
+                                                disabled
+                                                className="w-full rounded border border-[#d1d5db] bg-gray-50 px-2 py-1.5 text-sm text-gray-500"
+                                            />
+                                        </td>
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">手机号</td>
                                         <td className="px-3 py-2">
                                             <input
                                                 type="text"

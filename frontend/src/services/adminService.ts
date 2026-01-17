@@ -30,7 +30,7 @@ export interface SystemConfigDto {
 // Merchant Interface for Admin
 export interface AdminMerchant {
     id: string;
-    username: string;
+    merchantNo: string;
     phone: string;
     wechat?: string;
     contactName?: string;
@@ -81,7 +81,6 @@ export const adminService = {
     },
 
     createMerchant: (data: {
-        username: string;
         password: string;
         phone: string;
         wechat?: string;

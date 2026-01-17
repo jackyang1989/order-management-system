@@ -299,7 +299,6 @@ export default function MerchantSettingPage() {
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900">{profile.merchantNo || '商家'}</h3>
-                                <p className="text-sm font-medium text-slate-400">商户ID: {profile.merchantNo || '暂无编号'}</p>
                             </div>
                         </div>
 

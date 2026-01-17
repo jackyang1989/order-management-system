@@ -62,7 +62,7 @@ export default function AdminMerchantsPage() {
 
     // 列元信息
     const columnMeta: ColumnMeta[] = useMemo(() => [
-        { key: 'info', title: '商家信息' },
+        { key: 'info', title: '商户ID' },
         { key: 'phone', title: '手机号' },
         { key: 'wechat', title: '微信' },
         { key: 'balance', title: '本金/银锭' },
@@ -879,12 +879,6 @@ export default function AdminMerchantsPage() {
                 onClose={() => setActiveModal(null)}
             >
                 <div className="space-y-4">
-                    <Input
-                        label="用户名"
-                        placeholder="请输入用户名"
-                        value={newUsername}
-                        onChange={(e) => setNewUsername(e.target.value)}
-                    />
                     <Input
                         label="手机号"
                         placeholder="请输入手机号"
