@@ -3,6 +3,7 @@ import { BASE_URL } from '../../apiConfig';
 export interface QuestionDetail {
     id: string;
     question: string;
+    sortOrder: number;
     createdAt: string;
     updatedAt: string;
 }
@@ -180,6 +181,31 @@ export const deleteQuestionDetail = async (detailId: string): Promise<boolean> =
         return json.success;
     } catch (error) {
         console.error('Failed to delete question detail:', error);
+        return false;
+    }
+};
+
+/**
+ * 批量更新问题排序
+ */
+export const updateQuestionsOrder = async (
+    schemeId: string,
+    orders: { id: string; sortOrder: number }[]
+): Promise<boolean> => {
+    try {
+        const token = localStorage.getItem('merchantToken');
+        const res = await fetch(`${BASE_URL}/questions/schemes/${schemeId}/reorder`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ orders })
+        });
+        const json = await res.json();
+        return json.success;
+    } catch (error) {
+        console.error('Failed to update questions order:', error);
         return false;
     }
 };

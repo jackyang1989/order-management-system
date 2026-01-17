@@ -390,9 +390,9 @@ export default function MerchantWalletPage() {
 
                         {withdrawModal && (
                             <div>
-                                <label className="mb-2 block text-xs font-bold uppercase text-slate-400">提现到银行卡</label>
+                                <label className="mb-2 block text-xs font-bold uppercase text-slate-400">选择收款方式</label>
                                 {bankCards.filter(c => c.status === 1).length === 0 ? (
-                                    <div className="rounded-[16px] bg-slate-50 p-4 text-center text-sm font-bold text-slate-400">暂无可用银行卡，请先添加银行卡</div>
+                                    <div className="rounded-[16px] bg-slate-50 p-4 text-center text-sm font-bold text-slate-400">暂无可用收款账户，请先添加收款账户</div>
                                 ) : (
                                     <div className="relative">
                                         <Select

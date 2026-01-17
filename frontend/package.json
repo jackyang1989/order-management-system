@@ -13,6 +13,9 @@
     "r4": "npm run r4:buyer && npm run r4:admin && npm run r4:layout"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "next": "16.1.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",

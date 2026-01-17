@@ -101,7 +101,7 @@ export class QuestionsService {
   async findDetailsByScheme(schemeId: string): Promise<QuestionDetail[]> {
     return this.questionDetailRepository.find({
       where: { questionSchemeId: schemeId },
-      order: { createdAt: 'ASC' },
+      order: { sortOrder: 'ASC', createdAt: 'ASC' },
     });
   }
 
@@ -119,9 +119,17 @@ export class QuestionsService {
       throw new NotFoundException('问题模板方案不存在');
     }
 
+    // 获取当前最大的 sortOrder
+    const maxSortOrder = await this.questionDetailRepository
+      .createQueryBuilder('detail')
+      .where('detail.questionSchemeId = :schemeId', { schemeId })
+      .select('MAX(detail.sortOrder)', 'max')
+      .getRawOne();
+
     const detail = this.questionDetailRepository.create({
       questionSchemeId: schemeId,
       question: dto.question,
+      sortOrder: (maxSortOrder?.max ?? -1) + 1,
     });
 
     return this.questionDetailRepository.save(detail);
@@ -156,6 +164,31 @@ export class QuestionsService {
     }
 
     await this.questionDetailRepository.remove(detail);
+    return true;
+  }
+
+  // 批量更新排序
+  async updateQuestionsOrder(
+    schemeId: string,
+    sellerId: string,
+    orders: { id: string; sortOrder: number }[],
+  ): Promise<boolean> {
+    // 验证方案是否存在且属于该商家
+    const scheme = await this.questionSchemeRepository.findOne({
+      where: { id: schemeId, sellerId },
+    });
+
+    if (!scheme) {
+      throw new NotFoundException('问题模板方案不存在');
+    }
+
+    // 批量更新排序
+    await Promise.all(
+      orders.map(({ id, sortOrder }) =>
+        this.questionDetailRepository.update(id, { sortOrder }),
+      ),
+    );
+
     return true;
   }
 }

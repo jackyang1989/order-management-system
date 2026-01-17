@@ -113,4 +113,20 @@ export class QuestionsController {
     await this.questionsService.deleteQuestionDetail(detailId, sellerId);
     return { success: true, message: '问题模板删除成功' };
   }
+
+  // 批量更新排序
+  @Put('schemes/:schemeId/reorder')
+  async updateQuestionsOrder(
+    @Request() req,
+    @Param('schemeId') schemeId: string,
+    @Body() body: { orders: { id: string; sortOrder: number }[] },
+  ) {
+    const sellerId = req.user.merchantId;
+    await this.questionsService.updateQuestionsOrder(
+      schemeId,
+      sellerId,
+      body.orders,
+    );
+    return { success: true, message: '排序更新成功' };
+  }
 }

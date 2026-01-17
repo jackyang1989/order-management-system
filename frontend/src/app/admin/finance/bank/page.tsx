@@ -167,7 +167,7 @@ export default function AdminFinanceBankPage() {
         <>
         <Card className="bg-white p-6">
             <div className="mb-4 flex items-center justify-between">
-                <span className="text-base font-medium">银行卡审核</span>
+                <span className="text-base font-medium">收款账户审核</span>
                 <span className="text-[#6b7280]">共 {total} 条记录</span>
             </div>
             <div className="mb-6 flex flex-wrap items-center gap-3">
@@ -196,7 +196,7 @@ export default function AdminFinanceBankPage() {
                 {loading ? (
                     <div className="py-12 text-center text-[#9ca3af]">加载中...</div>
                 ) : cards.length === 0 ? (
-                    <div className="py-12 text-center text-[#9ca3af]">暂无银行卡记录</div>
+                    <div className="py-12 text-center text-[#9ca3af]">暂无收款账户记录</div>
                 ) : (
                     <>
                         <div className="overflow-x-auto">
