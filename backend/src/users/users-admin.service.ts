@@ -61,7 +61,9 @@ export class UsersAdminService {
     const page = query.page || 1;
     const limit = query.limit || 20;
 
-    const qb = this.userRepo.createQueryBuilder('u');
+    const qb = this.userRepo.createQueryBuilder('u')
+      .leftJoin('users', 'referrer', 'referrer.id::text = u.invitedBy')
+      .addSelect('referrer.username', 'referrerUsername');
 
     // 关键词搜索
     if (query.keyword) {
@@ -101,13 +103,21 @@ export class UsersAdminService {
     qb.orderBy(`u.${sortBy}`, sortOrder);
 
     const total = await qb.getCount();
-    const data = await qb
+    const rawData = await qb
       .skip((page - 1) * limit)
       .take(limit)
-      .getMany();
+      .getRawAndEntities();
 
-    // 移除敏感信息
-    const sanitizedData = data.map((u) => this.sanitizeUser(u));
+    // 移除敏感信息并添加推荐人用户名
+    const sanitizedData = rawData.entities.map((u, index) => {
+      const sanitized = this.sanitizeUser(u);
+      // 添加推荐人用户名
+      const referrerUsername = rawData.raw[index]?.referrerUsername;
+      if (referrerUsername) {
+        (sanitized as any).invitedByName = referrerUsername;
+      }
+      return sanitized;
+    });
 
     return { data: sanitizedData, total, page, limit };
   }

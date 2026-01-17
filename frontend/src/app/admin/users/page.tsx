@@ -964,7 +964,7 @@ export default function AdminUsersPage() {
                                         <td className="px-3 py-2">
                                             <input
                                                 type="text"
-                                                value={detailModal.invitedBy || '-'}
+                                                value={(detailModal as any).invitedByName || '-'}
                                                 readOnly
                                                 className="w-full rounded border border-[#e5e7eb] bg-[#f9fafb] px-2 py-1.5 text-sm"
                                             />
