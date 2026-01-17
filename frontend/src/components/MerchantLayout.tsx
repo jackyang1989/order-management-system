@@ -35,7 +35,6 @@ const menuItems: MenuItem[] = [
     { key: '/merchant/reviews', label: '追评管理', icon: '⭐' },
     { key: '/merchant/wallet', label: '财务中心', icon: '💰' },
     { key: '/merchant/bank', label: '收款账户', icon: '💳' },
-    { key: '/merchant/vip', label: 'VIP会员', icon: '👑' },
     { key: '/merchant/blacklist', label: '黑名单库', icon: '🚫' },
     { key: '/merchant/recommend', label: '推荐奖励', icon: '🎁' },
     { key: '/merchant/setting', label: '账户设置', icon: '⚙️' },

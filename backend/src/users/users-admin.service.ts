@@ -78,12 +78,7 @@ export class UsersAdminService {
       qb.andWhere('u.isBanned = true');
     }
 
-    // VIP筛选
-    if (query.vip === 'vip') {
-      qb.andWhere('u.vip = true');
-    } else if (query.vip === 'normal') {
-      qb.andWhere('u.vip = false');
-    }
+    // VIP筛选 - VIP功能已移除，忽略此筛选条件
 
     // 实名状态
     if (query.verifyStatus !== undefined) {
@@ -263,42 +258,6 @@ export class UsersAdminService {
     return this.sanitizeUser(user);
   }
 
-  /**
-   * 设置VIP
-   */
-  async setVip(id: string, days: number, level?: number): Promise<User> {
-    const user = await this.userRepo.findOne({ where: { id } });
-    if (!user) {
-      throw new NotFoundException(`用户 ${id} 不存在`);
-    }
-
-    user.vip = true;
-    const now = new Date();
-    const expireAt =
-      user.vipExpireAt && user.vipExpireAt > now
-        ? new Date(user.vipExpireAt)
-        : now;
-    expireAt.setDate(expireAt.getDate() + days);
-    user.vipExpireAt = expireAt;
-
-    await this.userRepo.save(user);
-    return this.sanitizeUser(user);
-  }
-
-  /**
-   * 取消VIP
-   */
-  async removeVip(id: string): Promise<User> {
-    const user = await this.userRepo.findOne({ where: { id } });
-    if (!user) {
-      throw new NotFoundException(`用户 ${id} 不存在`);
-    }
-
-    user.vip = false;
-    user.vipExpireAt = undefined;
-    await this.userRepo.save(user);
-    return this.sanitizeUser(user);
-  }
 
   /**
    * 重置密码
@@ -404,12 +363,6 @@ export class UsersAdminService {
           case 'deactivate':
             await this.updateUser(userId, { isActive: false });
             break;
-          case 'setVip':
-            await this.setVip(userId, dto.vipDays || 30);
-            break;
-          case 'removeVip':
-            await this.removeVip(userId);
-            break;
         }
         success++;
       } catch {
@@ -433,7 +386,6 @@ export class UsersAdminService {
       用户名: u.username,
       手机号: u.phone,
       微信号: u.wechat,
-      VIP: u.vip ? '是' : '否',
       本金余额: u.balance,
       银锭余额: u.silver,
       实名状态:
@@ -461,11 +413,10 @@ export class UsersAdminService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const [totalUsers, todayNewUsers, vipUsers, bannedUsers, verifiedUsers] =
+    const [totalUsers, todayNewUsers, bannedUsers, verifiedUsers] =
       await Promise.all([
         this.userRepo.count(),
         this.userRepo.count({ where: { createdAt: MoreThanOrEqual(today) } }),
-        this.userRepo.count({ where: { vip: true } }),
         this.userRepo.count({ where: { isBanned: true } }),
         this.userRepo.count({ where: { verifyStatus: 2 } }),
       ]);
@@ -473,7 +424,7 @@ export class UsersAdminService {
     return {
       totalUsers,
       todayNewUsers,
-      vipUsers,
+      vipUsers: 0,
       bannedUsers,
       verifiedUsers,
     };

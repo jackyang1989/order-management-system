@@ -132,22 +132,6 @@ export class UsersService {
       }
     }
 
-    // ============ P0-1 Fix: 注册赠送VIP + 银锭 ============
-    // 计算VIP到期时间（管理员可以指定，否则使用默认值）
-    let vipExpireDate: Date;
-    let isVip: boolean;
-    if (createUserDto.vipExpireAt) {
-      vipExpireDate = new Date(createUserDto.vipExpireAt);
-      isVip = vipExpireDate > new Date();
-    } else {
-      const registerVipDays = this.configService.getNumberValue('user_vip_time', 7);
-      vipExpireDate = new Date();
-      vipExpireDate.setDate(
-        vipExpireDate.getDate() + registerVipDays,
-      );
-      isVip = true;
-    }
-
     // 管理员可以指定初始余额
     const registerSilver = this.configService.getNumberValue('user_register_reward', 0);
     const initialBalance = createUserDto.balance ?? 0;
@@ -161,12 +145,10 @@ export class UsersService {
       password: hashedPassword,
       phone: createUserDto.phone,
       wechat: createUserDto.wechat || '',
-      vip: isVip, // P0-1: 注册即赠送VIP
-      vipExpireAt: vipExpireDate, // P0-1: VIP到期时间
       balance: initialBalance,
-      silver: initialSilver, // P0-1: 注册赠送银锭
+      silver: initialSilver,
       frozenSilver: 0,
-      reward: initialSilver, // P0-1: 累计赚取银锭
+      reward: initialSilver,
       invitationCode: newInvitationCode,
       invitedBy: invitedBy,
       note: createUserDto.note || '',
@@ -717,32 +699,6 @@ export class UsersService {
     return user.monthlyTaskCount || 0;
   }
 
-  /**
-   * 赠送VIP (叠加时长)
-   */
-  async grantVip(userId: string, days: number): Promise<void> {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    const now = new Date();
-    let newExpire: Date;
-
-    if (user.vip && user.vipExpireAt && new Date(user.vipExpireAt) > now) {
-      // 如果已是VIP且未过期，在原到期时间上叠加
-      newExpire = new Date(user.vipExpireAt);
-      newExpire.setDate(newExpire.getDate() + days);
-    } else {
-      // 否则从当前时间开始计算
-      newExpire = new Date();
-      newExpire.setDate(newExpire.getDate() + days);
-    }
-
-    user.vip = true;
-    user.vipExpireAt = newExpire;
-    await this.usersRepository.save(user);
-  }
 
   /**
    * 本金转银锭 (1:1 兑换)

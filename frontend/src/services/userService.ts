@@ -527,8 +527,6 @@ export interface UserProfile {
     frozenBalance: number;  // 冻结本金
     silver: number;         // 银锭
     frozenSilver: number;   // 冻结银锭
-    vip: boolean;
-    vipExpireAt?: string;
     totalEarned: number;    // 累计赚取
     pendingReward: number;  // 待发放
     experience: number;     // 经验值

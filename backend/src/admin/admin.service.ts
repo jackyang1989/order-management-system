@@ -217,10 +217,6 @@ export class AdminService {
     if (data.realName !== undefined) user.realName = data.realName;
     if (data.balance !== undefined) user.balance = data.balance;
     if (data.silver !== undefined) user.silver = data.silver;
-    if (data.vip !== undefined) user.vip = data.vip;
-    if (data.vipExpireAt !== undefined) {
-      user.vipExpireAt = data.vipExpireAt ? new Date(data.vipExpireAt) : undefined;
-    }
     if (data.mcTaskNum !== undefined) {
       (user as any).mcTaskNum = data.mcTaskNum;
     }
@@ -267,8 +263,6 @@ export class AdminService {
         'merchant.balance',
         'merchant.frozenBalance',
         'merchant.silver',
-        'merchant.vip',
-        'merchant.vipExpireAt',
         'merchant.status',
         'merchant.referrerId',
         'merchant.note',

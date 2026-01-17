@@ -22,7 +22,6 @@ const navItems: NavItem[] = [
             { label: '基本信息', href: '/profile/settings' },
             { label: '收款账户', href: '/profile/payment' },
             { label: '买号管理', href: '/profile/bind' },
-            { label: '会员VIP', href: '/profile/vip' },
         ],
     },
     {

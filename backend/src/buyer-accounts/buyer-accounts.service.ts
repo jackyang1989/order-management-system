@@ -417,23 +417,6 @@ export class BuyerAccountsService {
     }
 
     if (approved) {
-      // P0-2: 新人VIP奖励
-      // 如果是用户首个通过审核的买号，自动赠送VIP (P1: 天数从配置读取)
-      // 检查该用户是否已有APPROVED的买号
-      const approvedCount = await this.buyerAccountsRepository.count({
-        where: {
-          userId: account.userId,
-          status: BuyerAccountStatus.APPROVED,
-        },
-      });
-
-      // 如果之前没有APPROVED的买号，说明是首个
-      if (approvedCount === 0) {
-        // P1: 从动态配置读取VIP天数
-        const vipDays = this.configService.getNumberValue('first_account_vip_days', 7);
-        await this.usersService.grantVip(account.userId, vipDays);
-      }
-
       account.status = BuyerAccountStatus.APPROVED;
       account.rejectReason = undefined;
     } else {

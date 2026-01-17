@@ -39,8 +39,6 @@ export interface AdminMerchant {
     frozenBalance: number;
     silver: number;
     status: number; // 0=PENDING, 1=APPROVED, 2=REJECTED, 3=DISABLED
-    vip: boolean;
-    vipExpireAt?: string;
     inviteCode?: string;
     referrerId?: string;
     referrerName?: string; // 推荐人名称
@@ -88,7 +86,6 @@ export const adminService = {
         phone: string;
         wechat?: string;
         companyName?: string;
-        vipExpireAt?: string;
         balance?: number;
         silver?: number;
         note?: string;
@@ -104,9 +101,6 @@ export const adminService = {
             amount: data.amount,
             reason: data.reason
         }),
-
-    setMerchantVip: (id: string, days: number) => api.post(`/admin/merchants/${id}/vip`, { days }),
-    removeMerchantVip: (id: string) => api.post(`/admin/merchants/${id}/remove-vip`),
 
     // ============ Finance / Withdrawals ============
     getWithdrawals: (params?: { page?: number; limit?: number; status?: string }) => {

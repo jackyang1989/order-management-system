@@ -48,7 +48,6 @@ interface GroupMeta {
 
 const GROUP_ICONS: Record<string, string> = {
     register: '👤',
-    vip: '👑',
     withdrawal: '💰',
     task_fee: '🧮',
     praise_fee: '⭐',
@@ -158,19 +157,32 @@ export default function AdminSystemParamsPage() {
             if (response.ok) {
                 const result = await response.json();
                 if (result.success && result.data) {
-                    setConfigs(result.data.configs || {});
-                    setGroups(result.data.groups || []);
+                    // 过滤掉 VIP 相关的配置组
+                    const filteredConfigs: Record<string, SystemConfig[]> = {};
+                    Object.entries(result.data.configs || {}).forEach(([group, configs]) => {
+                        if (group !== 'vip') {
+                            // 过滤掉该组内 group 为 'vip' 的配置项
+                            filteredConfigs[group] = (configs as SystemConfig[]).filter(cfg => cfg.group !== 'vip');
+                        }
+                    });
+
+                    // 过滤掉 VIP 分组
+                    const filteredGroups = (result.data.groups || []).filter((g: GroupMeta) => g.key !== 'vip');
+
+                    setConfigs(filteredConfigs);
+                    setGroups(filteredGroups);
+
                     // 初始化 editedValues
                     const initialValues: Record<string, string> = {};
-                    Object.values(result.data.configs || {}).forEach(groupConfigs => {
+                    Object.values(filteredConfigs).forEach(groupConfigs => {
                         groupConfigs.forEach((cfg: SystemConfig) => {
                             initialValues[cfg.key] = cfg.value || '';
                         });
                     });
                     setEditedValues(initialValues);
                     // 设置默认tab
-                    if (result.data.groups?.length > 0 && !activeTab) {
-                        setActiveTab(result.data.groups[0].key);
+                    if (filteredGroups.length > 0 && !activeTab) {
+                        setActiveTab(filteredGroups[0].key);
                     }
                 }
             } else if (response.status === 401) {
@@ -296,75 +308,6 @@ export default function AdminSystemParamsPage() {
     const visibleConfigs = currentConfigs.filter(shouldShowConfig);
 
     const renderConfigInput = (config: SystemConfig, value: string) => {
-        // VIP价格特殊处理 - 可视化编辑器
-        if (config.key === 'user_vip_prices' || config.key === 'seller_vip_prices') {
-            try {
-                const prices = JSON.parse(value) as Array<{ days: number; price: number }>;
-                return (
-                    <div className="space-y-3">
-                        {prices.map((item, index) => (
-                            <div key={index} className="flex items-end gap-2">
-                                <div className="flex-1">
-                                    <label className="mb-1 block text-xs font-medium text-slate-500">天数</label>
-                                    <input
-                                        type="number"
-                                        value={item.days}
-                                        onChange={(e) => {
-                                            const newPrices = [...prices];
-                                            newPrices[index].days = Number(e.target.value);
-                                            updateField(config.key, JSON.stringify(newPrices));
-                                        }}
-                                        className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm"
-                                        disabled={!config.isEditable}
-                                    />
-                                </div>
-                                <div className="flex-1">
-                                    <label className="mb-1 block text-xs font-medium text-slate-500">价格(元)</label>
-                                    <input
-                                        type="number"
-                                        value={item.price}
-                                        onChange={(e) => {
-                                            const newPrices = [...prices];
-                                            newPrices[index].price = Number(e.target.value);
-                                            updateField(config.key, JSON.stringify(newPrices));
-                                        }}
-                                        className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm"
-                                        disabled={!config.isEditable}
-                                    />
-                                </div>
-                                {config.isEditable && prices.length > 1 && (
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const newPrices = prices.filter((_, i) => i !== index);
-                                            updateField(config.key, JSON.stringify(newPrices));
-                                        }}
-                                        className="flex h-[38px] w-8 flex-shrink-0 items-center justify-center text-red-500 hover:text-red-700"
-                                    >
-                                        ✕
-                                    </button>
-                                )}
-                            </div>
-                        ))}
-                        {config.isEditable && (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const newPrices = [...prices, { days: 30, price: 0 }];
-                                    updateField(config.key, JSON.stringify(newPrices));
-                                }}
-                                className="mt-1 text-sm font-medium text-primary-600 hover:text-primary-700"
-                            >
-                                + 添加价格档位
-                            </button>
-                        )}
-                    </div>
-                );
-            } catch {
-                // JSON解析失败，显示原始文本框
-            }
-        }
-
         // 买号升星阶梯 - 可视化编辑器
         if (config.key === 'star_thresholds') {
             try {

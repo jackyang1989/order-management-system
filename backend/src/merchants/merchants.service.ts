@@ -141,14 +141,6 @@ export class MerchantsService {
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    // 处理VIP到期时间
-    let vipExpireAt: Date | undefined;
-    let vip = false;
-    if (dto.vipExpireAt) {
-      vipExpireAt = new Date(dto.vipExpireAt);
-      vip = vipExpireAt > new Date();
-    }
-
     // 生成商家编号 merchantNo (M + 5位数字)
     const merchantNo = await this.generateMerchantNo();
 
@@ -163,8 +155,6 @@ export class MerchantsService {
       balance: dto.balance || 0,
       frozenBalance: 0,
       silver: dto.silver || 0,
-      vip,
-      vipExpireAt,
       note: dto.note || '',
       status: MerchantStatus.APPROVED, // 默认直接通过，实际可设为 PENDING
       merchantNo,
@@ -528,31 +518,6 @@ export class MerchantsService {
     return this.sanitize(await this.merchantsRepository.save(merchant));
   }
 
-  async setVip(id: string, days: number): Promise<Merchant> {
-    const merchant = await this.merchantsRepository.findOne({ where: { id } });
-    if (!merchant) {
-      throw new BadRequestException('商家不存在');
-    }
-    merchant.vip = true;
-    const now = new Date();
-    const expireAt = merchant.vipExpireAt && merchant.vipExpireAt > now
-      ? new Date(merchant.vipExpireAt)
-      : now;
-    expireAt.setDate(expireAt.getDate() + days);
-    merchant.vipExpireAt = expireAt;
-
-    return this.sanitize(await this.merchantsRepository.save(merchant));
-  }
-
-  async removeVip(id: string): Promise<Merchant> {
-    const merchant = await this.merchantsRepository.findOne({ where: { id } });
-    if (!merchant) {
-      throw new BadRequestException('商家不存在');
-    }
-    merchant.vip = false;
-    merchant.vipExpireAt = null as any;
-    return this.sanitize(await this.merchantsRepository.save(merchant));
-  }
 
   async adjustMerchantBalance(id: string, type: 'balance' | 'silver', action: 'add' | 'deduct', amount: number, memo: string): Promise<Merchant> {
     if (type === 'balance') {
@@ -600,18 +565,6 @@ export class MerchantsService {
     // 更新余额
     if (data.balance !== undefined) merchant.balance = data.balance;
     if (data.silver !== undefined) merchant.silver = data.silver;
-
-    // 更新VIP到期时间
-    if (data.vipExpireAt !== undefined) {
-      if (data.vipExpireAt) {
-        const expireDate = new Date(data.vipExpireAt);
-        merchant.vipExpireAt = expireDate;
-        merchant.vip = expireDate > new Date();
-      } else {
-        merchant.vipExpireAt = null as any;
-        merchant.vip = false;
-      }
-    }
 
     const updated = await this.merchantsRepository.save(merchant);
     return { success: true, merchant: this.sanitize(updated) };

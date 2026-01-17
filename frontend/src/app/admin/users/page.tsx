@@ -971,18 +971,6 @@ export default function AdminUsersPage() {
                                         </td>
                                     </tr>
                                     <tr className="border-b border-[#e5e7eb]">
-                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">本金</td>
-                                        <td className="px-3 py-2">
-                                            <input
-                                                type="number"
-                                                value={editForm.balance}
-                                                onChange={(e) => setEditForm({ ...editForm, balance: e.target.value })}
-                                                className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-center text-sm focus:border-primary focus:outline-none"
-                                                min="0"
-                                            />
-                                        </td>
-                                    </tr>
-                                    <tr className="border-b border-[#e5e7eb]">
                                         <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">实名认证</td>
                                         <td colSpan={3} className="px-3 py-2">
                                             <select

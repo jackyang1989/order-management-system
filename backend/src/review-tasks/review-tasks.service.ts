@@ -167,16 +167,10 @@ export class ReviewTasksService {
     merchantId: string,
     dto: CreateReviewTaskDto,
   ): Promise<ReviewTask> {
-    // 验证商家VIP
+    // 验证商家存在
     const merchant = await this.merchantsService.findOne(merchantId);
     if (!merchant) {
       throw new NotFoundException('商家不存在');
-    }
-    if (
-      !merchant.vip ||
-      (merchant.vipExpireAt && new Date(merchant.vipExpireAt) < new Date())
-    ) {
-      throw new BadRequestException('非VIP会员不能发布追评任务');
     }
 
     // 验证订单可追评

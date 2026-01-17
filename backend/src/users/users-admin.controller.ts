@@ -239,27 +239,6 @@ export class UsersAdminController {
   }
 
   /**
-   * 设置用户VIP
-   */
-  @Post(':id/vip')
-  async setVip(
-    @Param('id') id: string,
-    @Body() body: { days: number; level?: number },
-  ) {
-    const user = await this.usersAdminService.setVip(id, body.days, body.level);
-    return { success: true, data: user, message: 'VIP已设置' };
-  }
-
-  /**
-   * 取消用户VIP
-   */
-  @Post(':id/remove-vip')
-  async removeVip(@Param('id') id: string) {
-    const user = await this.usersAdminService.removeVip(id);
-    return { success: true, data: user, message: 'VIP已取消' };
-  }
-
-  /**
    * 重置用户密码
    */
   @Post(':id/reset-password')

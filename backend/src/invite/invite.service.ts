@@ -76,7 +76,7 @@ export class InviteService {
       invites.map(async (invite) => {
         const invitee = await this.userRepository.findOne({
           where: { id: invite.inviteeId },
-          select: ['id', 'username', 'phone', 'vip', 'vipExpireAt', 'createdAt'],
+          select: ['id', 'username', 'phone', 'createdAt'],
         });
 
         // 获取被邀请用户完成的订单数
@@ -94,7 +94,6 @@ export class InviteService {
           inviteePhone: invitee?.phone
             ? invitee.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
             : '',
-          inviteeVip: invitee?.vip || false,
           completedOrders,
           rewardAmount: invite.rewardAmount || 0,
           rewardStatus: invite.status, // 使用 status 字段代替 rewardStatus

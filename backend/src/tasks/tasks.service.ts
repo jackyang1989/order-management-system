@@ -363,12 +363,6 @@ export class TasksService implements OnModuleInit {
       const merchant = await this.merchantsService.findOne(merchantId);
       if (!merchant) throw new BadRequestException('商户不存在');
 
-      // 1.1 VIP Check
-      if (!merchant.vip) throw new BadRequestException('非VIP无法发布任务');
-      if (merchant.vipExpireAt && new Date(merchant.vipExpireAt) < new Date()) {
-        throw new BadRequestException('VIP已过期');
-      }
-
       // ========== P0 FIX: 完整的费用计算逻辑 ==========
       // 2.1 基础数值
       const count = Number(dto.count) || 1;

@@ -110,16 +110,4 @@ export class MerchantsAdminController {
         await this.merchantsService.unbanMerchant(id);
         return { success: true, message: '商家已启用' };
     }
-
-    @Post(':id/vip')
-    async setVip(@Param('id') id: string, @Body() body: { days: number }) {
-        await this.merchantsService.setVip(id, body.days);
-        return { success: true, message: 'VIP已设置' };
-    }
-
-    @Post(':id/remove-vip')
-    async removeVip(@Param('id') id: string) {
-        await this.merchantsService.removeVip(id);
-        return { success: true, message: 'VIP已取消' };
-    }
 }
