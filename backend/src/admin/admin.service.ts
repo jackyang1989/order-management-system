@@ -189,6 +189,43 @@ export class AdminService {
     return this.usersRepository.save(user);
   }
 
+  async updateUserProfile(
+    id: string,
+    data: {
+      username?: string;
+      phone?: string;
+      wechat?: string;
+      realName?: string;
+      balance?: number;
+      silver?: number;
+      vip?: boolean;
+      vipExpireAt?: string;
+      mcTaskNum?: number;
+      note?: string;
+      verifyStatus?: number;
+      canReferFriends?: boolean;
+    },
+  ): Promise<User | null> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) return null;
+
+    // Update user fields
+    if (data.username !== undefined) user.username = data.username;
+    if (data.phone !== undefined) user.phone = data.phone;
+    if (data.wechat !== undefined) user.wechat = data.wechat;
+    if (data.realName !== undefined) user.realName = data.realName;
+    if (data.balance !== undefined) user.balance = data.balance;
+    if (data.silver !== undefined) user.silver = data.silver;
+    if (data.vip !== undefined) user.vip = data.vip;
+    if (data.vipExpireAt !== undefined) user.vipExpireAt = data.vipExpireAt ? new Date(data.vipExpireAt) : null;
+    if (data.mcTaskNum !== undefined) user.mcTaskNum = data.mcTaskNum;
+    if (data.note !== undefined) user.note = data.note;
+    if (data.verifyStatus !== undefined) user.verifyStatus = data.verifyStatus;
+    if (data.canReferFriends !== undefined) user.canReferFriends = data.canReferFriends;
+
+    return this.usersRepository.save(user);
+  }
+
   // ============ 商家管理 ============
   async getMerchants(
     page = 1,

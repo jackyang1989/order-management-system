@@ -171,7 +171,8 @@ export default function AdminUsersPage() {
         mcTaskNum: string;
         note: string;
         verifyStatus: number;
-    }>({ username: '', phone: '', wechat: '', realName: '', balance: '0', silver: '0', vip: false, vipExpireAt: '', mcTaskNum: '0', note: '', verifyStatus: 0 });
+        canReferFriends: boolean;
+    }>({ username: '', phone: '', wechat: '', realName: '', balance: '0', silver: '0', vip: false, vipExpireAt: '', mcTaskNum: '0', note: '', verifyStatus: 0, canReferFriends: true });
 
     useEffect(() => {
         loadUsers();
@@ -220,7 +221,8 @@ export default function AdminUsersPage() {
             vipExpireAt: user.vipExpireAt ? user.vipExpireAt.split('T')[0] : '',
             mcTaskNum: String(user.mcTaskNum || 0),
             note: user.note || '',
-            verifyStatus: user.verifyStatus || 0
+            verifyStatus: user.verifyStatus || 0,
+            canReferFriends: user.canReferFriends !== false
         });
         setDetailModal(user);
     };
@@ -246,7 +248,8 @@ export default function AdminUsersPage() {
                     vipExpireAt: editForm.vipExpireAt || null,
                     mcTaskNum: parseInt(editForm.mcTaskNum) || 0,
                     note: editForm.note,
-                    verifyStatus: editForm.verifyStatus
+                    verifyStatus: editForm.verifyStatus,
+                    canReferFriends: editForm.canReferFriends
                 })
             });
             const json = await res.json();
@@ -763,18 +766,6 @@ export default function AdminUsersPage() {
                     <button className="rounded-full border border-amber-300 bg-white px-3 py-1 text-xs text-amber-600 hover:bg-amber-50 transition-colors" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.userNo || row.id}`}>
                         银行卡
                     </button>
-                    <button
-                        className={cn(
-                            "rounded-full border px-3 py-1 text-xs transition-colors",
-                            row.canReferFriends
-                                ? "border-green-300 bg-white text-green-600 hover:bg-green-50"
-                                : "border-gray-300 bg-white text-gray-500 hover:bg-gray-50"
-                        )}
-                        onClick={() => handleToggleReferPermission(row.id, row.canReferFriends || false)}
-                        title={row.canReferFriends ? "点击关闭推荐权限" : "点击开启推荐权限"}
-                    >
-                        {row.canReferFriends ? '✓推荐' : '✗推荐'}
-                    </button>
                     {row.isBanned ? (
                         <button className="rounded-full border border-green-300 bg-white px-3 py-1 text-xs text-green-600 hover:bg-green-50 transition-colors" onClick={() => handleUnban(row.id)}>
                             解封
@@ -1089,6 +1080,19 @@ export default function AdminUsersPage() {
                                                 className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
                                                 min="0"
                                             />
+                                        </td>
+                                    </tr>
+                                    <tr className="border-b border-[#e5e7eb]">
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">推荐好友权限</td>
+                                        <td colSpan={3} className="px-3 py-2">
+                                            <select
+                                                value={editForm.canReferFriends ? '1' : '0'}
+                                                onChange={(e) => setEditForm({ ...editForm, canReferFriends: e.target.value === '1' })}
+                                                className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
+                                            >
+                                                <option value="1">开启</option>
+                                                <option value="0">关闭</option>
+                                            </select>
                                         </td>
                                     </tr>
                                     <tr>

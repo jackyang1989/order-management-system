@@ -220,6 +220,7 @@ export class SystemConfigPublicController {
             postage: parseFloat(configs['default_postage'] || '0'),
             rePay: parseFloat(configs['cycle_fee'] || '0.2'),
             randomBrowseFee: parseFloat(configs['random_browse_fee'] || '0.5'),
+            addRewardFee: parseFloat(configs['add_reward_fee'] || '0'),
             // 好评费用配置
             praise: parseFloat(configs['text_praise_fee'] || '1'),
             imgPraise: parseFloat(configs['image_praise_fee'] || '2'),

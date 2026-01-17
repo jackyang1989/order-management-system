@@ -28,6 +28,7 @@ export interface SystemGlobalConfig {
     postage: number;
     rePay: number;
     randomBrowseFee: number;
+    addRewardFee: number;
     // 好评费用配置
     praise: number;
     imgPraise: number;
@@ -238,6 +239,7 @@ export function getServiceFees(config: SystemGlobalConfig | null): ServiceFees {
             fastRefundRate: 0.01,
             cycleTime: 0.2,
             orderInterval: 0.5,
+            addReward: 0,
         };
     }
     return {
@@ -248,5 +250,6 @@ export function getServiceFees(config: SystemGlobalConfig | null): ServiceFees {
         fastRefundRate: Number(config.refundServicePrice) || 0.01,
         cycleTime: Number(config.rePay) || 0.2,
         orderInterval: Number(config.unionInterval) || 0.5,
+        addReward: Number(config.addRewardFee) || 0,
     };
 }

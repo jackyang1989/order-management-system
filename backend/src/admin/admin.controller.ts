@@ -83,6 +83,35 @@ export class AdminController {
     };
   }
 
+  @Put('users/:id/profile')
+  async updateUserProfile(
+    @Param('id') id: string,
+    @Body() body: {
+      username?: string;
+      phone?: string;
+      wechat?: string;
+      realName?: string;
+      balance?: number;
+      silver?: number;
+      vip?: boolean;
+      vipExpireAt?: string;
+      mcTaskNum?: number;
+      note?: string;
+      verifyStatus?: number;
+      canReferFriends?: boolean;
+    },
+  ) {
+    const user = await this.adminService.updateUserProfile(id, body);
+    if (!user) {
+      return { success: false, message: '用户不存在' };
+    }
+    return {
+      success: true,
+      message: '资料已更新',
+      data: user,
+    };
+  }
+
   @Post('users')
   async createUser(@Body() body: {
     username: string;
