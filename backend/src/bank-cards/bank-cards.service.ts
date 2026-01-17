@@ -170,7 +170,7 @@ export class BankCardsService {
 
     const [cards, total] = await query.getManyAndCount();
 
-    // Enrich with username from User or Merchant based on ownerType
+    // Enrich with userNo/merchantNo from User or Merchant based on ownerType
     const data = await Promise.all(
       cards.map(async (card) => {
         let username = '';
@@ -178,16 +178,16 @@ export class BankCardsService {
         if (card.ownerType === BankCardOwnerType.MERCHANT) {
           const merchant = await this.merchantRepository.findOne({
             where: { id: card.ownerId || card.userId },
-            select: ['username'],
+            select: ['merchantNo'],
           });
-          username = merchant?.username || '';
+          username = merchant?.merchantNo || '';
           userType = 2;
         } else {
           const user = await this.userRepository.findOne({
             where: { id: card.ownerId || card.userId },
-            select: ['username'],
+            select: ['userNo'],
           });
-          username = user?.username || '';
+          username = user?.userNo || '';
           userType = 1;
         }
         return {

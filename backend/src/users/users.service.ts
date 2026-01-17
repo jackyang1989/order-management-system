@@ -250,7 +250,7 @@ export class UsersService {
 
     return invitees.map((u) => ({
       id: u.id,
-      username: u.username,
+      username: u.userNo,
       registerTime: u.createdAt?.toISOString() || '',
       completedTasks: 0, // TODO: 从订单表查询完成的任务数
       reward: 1, // 简化奖励计算

@@ -114,7 +114,6 @@ export class AdminController {
 
   @Post('users')
   async createUser(@Body() body: {
-    username: string;
     password: string;
     phone: string;
     wechat?: string;
@@ -126,7 +125,6 @@ export class AdminController {
     try {
       // 生成一个随机的邀请码作为注册用
       const user = await this.usersService.create({
-        username: body.username,
         password: body.password,
         phone: body.phone,
         wechat: body.wechat,

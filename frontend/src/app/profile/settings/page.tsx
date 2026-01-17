@@ -39,7 +39,7 @@ export default function ProfileSettingsPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [userInfo, setUserInfo] = useState({ username: '用户', mobile: '', wechat: '', vip: false, vipExpireAt: '', avatar: '' });
+    const [userInfo, setUserInfo] = useState({ userNo: '用户', mobile: '', wechat: '', avatar: '' });
 
     const [showPhoneModal, setShowPhoneModal] = useState(false);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -69,11 +69,9 @@ export default function ProfileSettingsPage() {
             const data = await fetchUserProfile();
             if (data) {
                 setUserInfo({
-                    username: data.username,
+                    userNo: data.userNo,
                     mobile: data.phone,
                     wechat: data.wechat || '',
-                    vip: data.vip,
-                    vipExpireAt: data.vipExpireAt || '',
                     avatar: data.avatar || ''
                 });
                 setPhoneForm(p => ({ ...p, oldPhoneNum: data.phone }));
@@ -287,13 +285,6 @@ export default function ProfileSettingsPage() {
         </div>
     );
 
-    const formatVipExpiry = () => {
-        if (!userInfo.vip) return '未开通';
-        if (!userInfo.vipExpireAt) return '永久有效';
-        const date = new Date(userInfo.vipExpireAt);
-        return date.toISOString().split('T')[0];
-    };
-
     return (
         <div className="min-h-screen bg-[#F8FAFC] pb-10">
             {/* Header */}
@@ -347,14 +338,14 @@ export default function ProfileSettingsPage() {
                             />
                         </label>
                     </div>
-                    <h2 className="text-2xl font-black text-slate-900">{userInfo.username}</h2>
+                    <h2 className="text-2xl font-black text-slate-900">{userInfo.userNo}</h2>
                 </div>
 
                 {/* Personal Section */}
                 <div>
                     <SectionHeader title="个人信息" />
                     <Card noPadding className="divide-y divide-slate-50 overflow-hidden rounded-[24px] border-none bg-white px-0 py-2 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-                        <InfoRow label="用户名" value={userInfo.username} />
+                        <InfoRow label="用户ID" value={userInfo.userNo} />
                         <InfoRow label="手机号" value={maskedPhone} action={() => setShowPhoneModal(true)} />
                         <InfoRow
                             label="微信号"
@@ -364,21 +355,6 @@ export default function ProfileSettingsPage() {
                                 setShowWechatModal(true);
                             }}
                         />
-                    </Card>
-                </div>
-
-                {/* Membership Section */}
-                <div>
-                    <SectionHeader title="会员信息" />
-                    <Card noPadding className="divide-y divide-slate-50 overflow-hidden rounded-[24px] border-none bg-white px-0 py-2 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-                        <InfoRow label="会员状态" value={userInfo.vip ? 'VIP会员' : '普通会员'} />
-                        <InfoRow
-                            label="开通/续费"
-                            value={userInfo.vip ? '续费' : '立即开通'}
-                            onClick={() => router.push('/profile/vip')}
-                            showArrow={true}
-                        />
-                        <InfoRow label="到期时间" value={formatVipExpiry()} />
                     </Card>
                 </div>
 

@@ -211,7 +211,6 @@ export class AdminService {
     if (!user) return null;
 
     // Update user fields
-    if (data.username !== undefined) user.username = data.username;
     if (data.phone !== undefined) user.phone = data.phone;
     if (data.wechat !== undefined) user.wechat = data.wechat;
     if (data.realName !== undefined) user.realName = data.realName;
@@ -280,9 +279,9 @@ export class AdminService {
         if (m.referrerId) {
           const referrer = await this.merchantsRepository.findOne({
             where: { id: m.referrerId },
-            select: ['username'],
+            select: ['merchantNo'],
           });
-          referrerName = referrer?.username || '';
+          referrerName = referrer?.merchantNo || '';
         }
         return { ...m, referrerName };
       }),
@@ -410,7 +409,7 @@ export class AdminService {
       .take(limit)
       .getMany();
 
-    // Enrich with username from User or Merchant based on ownerType
+    // Enrich with userNo/merchantNo from User or Merchant based on ownerType
     const data = await Promise.all(
       withdrawals.map(async (w) => {
         let username = '';
@@ -418,16 +417,16 @@ export class AdminService {
         if (w.ownerType === 'merchant') {
           const merchant = await this.merchantsRepository.findOne({
             where: { id: w.ownerId },
-            select: ['username'],
+            select: ['merchantNo'],
           });
-          username = merchant?.username || '';
+          username = merchant?.merchantNo || '';
           userType = 2;
         } else {
           const user = await this.usersRepository.findOne({
             where: { id: w.ownerId || w.userId },
-            select: ['username'],
+            select: ['userNo'],
           });
-          username = user?.username || '';
+          username = user?.userNo || '';
           userType = 1;
         }
         return {

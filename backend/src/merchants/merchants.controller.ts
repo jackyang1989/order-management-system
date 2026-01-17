@@ -13,6 +13,7 @@ import {
 import type { Response as ExpressResponse } from 'express';
 import { MerchantsService } from './merchants.service';
 import {
+  Merchant,
   CreateMerchantDto,
   MerchantLoginDto,
   UpdateMerchantDto,
@@ -75,7 +76,7 @@ export class MerchantsController {
     @Response({ passthrough: true }) res: ExpressResponse,
   ) {
     // 支持手机号或 merchantNo 登录
-    let merchant = null;
+    let merchant: Merchant | null = null;
     if (dto.phone) {
       merchant = await this.merchantsService.findByPhone(dto.phone);
     }

@@ -273,7 +273,7 @@ function UserDepositPageContent() {
 
             {/* 充值/扣款弹窗 */}
             <Modal
-                title={`${adjustModal?.action === 'add' ? '充值' : '扣除'}${adjustModal?.type === 'balance' ? '本金' : '银锭'} - ${user?.username}`}
+                title={`${adjustModal?.action === 'add' ? '充值' : '扣除'}${adjustModal?.type === 'balance' ? '本金' : '银锭'} - ${user?.userNo}`}
                 open={!!adjustModal}
                 onClose={() => { setAdjustModal(null); setAdjustAmount(''); setAdjustReason(''); }}
             >

@@ -76,7 +76,7 @@ export class InviteService {
       invites.map(async (invite) => {
         const invitee = await this.userRepository.findOne({
           where: { id: invite.inviteeId },
-          select: ['id', 'username', 'phone', 'createdAt'],
+          select: ['id', 'userNo', 'phone', 'createdAt'],
         });
 
         // 获取被邀请用户完成的订单数
@@ -90,7 +90,7 @@ export class InviteService {
         return {
           id: invite.id,
           inviteeId: invite.inviteeId,
-          inviteeName: invitee?.username || '未知用户',
+          inviteeName: invitee?.userNo || '未知用户',
           inviteePhone: invitee?.phone
             ? invitee.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
             : '',
@@ -154,7 +154,7 @@ export class InviteService {
     const userIds = [...new Set(orders.map((o) => o.userId))];
     const users = await this.userRepository.find({
       where: { id: In(userIds) },
-      select: ['id', 'username'],
+      select: ['id', 'userNo'],
     });
     const userMap = new Map(users.map((u) => [u.id, u]));
 
@@ -162,7 +162,7 @@ export class InviteService {
       id: order.id,
       orderId: order.id,
       taskTitle: order.taskTitle || '未知任务',
-      username: userMap.get(order.userId)?.username || '未知用户',
+      username: userMap.get(order.userId)?.userNo || '未知用户',
       completedAt: order.updatedAt,
       commissionAmount: Number(order.commission) || 0,
       month: order.updatedAt

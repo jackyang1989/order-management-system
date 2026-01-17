@@ -497,7 +497,7 @@ export class BuyerAccountsService {
       const user = userMap.get(account.userId);
       return {
         ...account,
-        user: user ? { username: user.username, phone: user.phone } : undefined,
+        user: user ? { userNo: user.userNo, phone: user.phone } : undefined,
       } as any;
     });
   }

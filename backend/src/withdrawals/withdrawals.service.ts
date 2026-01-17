@@ -363,7 +363,7 @@ export class WithdrawalsService {
           status: WithdrawalStatus.PENDING,
           bankCardId: createDto.bankCardId,
           bankName: '待获取',
-          accountName: merchant.username,
+          accountName: merchant.merchantNo,
           cardNumber: '待获取',
         });
 

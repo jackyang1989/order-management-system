@@ -322,7 +322,7 @@ export class RechargeService {
       .take(limit)
       .getMany();
 
-    // Enrich with username and phone from User or Merchant
+    // Enrich with userNo/merchantNo and phone from User or Merchant
     const data = await Promise.all(
       records.map(async (r) => {
         let username = '';
@@ -330,16 +330,16 @@ export class RechargeService {
         if (r.userType === RechargeUserType.MERCHANT) {
           const merchant = await this.merchantRepository.findOne({
             where: { id: r.userId },
-            select: ['username', 'phone'],
+            select: ['merchantNo', 'phone'],
           });
-          username = merchant?.username || '';
+          username = merchant?.merchantNo || '';
           phone = merchant?.phone || '';
         } else {
           const user = await this.userRepository.findOne({
             where: { id: r.userId },
-            select: ['username', 'phone'],
+            select: ['userNo', 'phone'],
           });
-          username = user?.username || '';
+          username = user?.userNo || '';
           phone = user?.phone || '';
         }
         return {

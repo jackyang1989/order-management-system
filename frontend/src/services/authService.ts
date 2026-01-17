@@ -45,7 +45,7 @@ export const login = async (usernameOrPhone: string, password: string): Promise<
         const response = await fetch(`${BASE_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: usernameOrPhone, phone: usernameOrPhone, password })
+            body: JSON.stringify({ userNo: usernameOrPhone, phone: usernameOrPhone, password })
         });
         const data = await response.json();
         if (!response.ok) {
