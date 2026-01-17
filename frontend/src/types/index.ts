@@ -2,7 +2,7 @@
  * 前端类型定义统一导出
  *
  * 使用方式:
- * import { BankCard, Withdrawal, VipPackage } from '@/types';
+ * import { BankCard, Withdrawal } from '@/types';
  * 或
  * import { BankCard } from '@/types/bank-card';
  */
@@ -12,9 +12,6 @@ export * from './bank-card';
 
 // 提现相关
 export * from './withdrawal';
-
-// VIP相关
-export * from './vip';
 
 // 评价任务相关
 export * from './review-task';
@@ -75,8 +72,6 @@ export interface Merchant {
     balance: number;
     frozenBalance: number;
     silver: number;
-    vip: boolean;
-    vipExpireAt?: string;
     status: number;
     createdAt: string;
 }
@@ -91,8 +86,6 @@ export interface User {
     balance: number;
     frozenBalance: number;
     silver: number;
-    vip: boolean;
-    vipExpireAt?: string;
     isActive: boolean;
     createdAt: string;
 }

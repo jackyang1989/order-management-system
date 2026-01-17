@@ -62,13 +62,6 @@ export class Merchant {
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   silver: number;
 
-  // VIP
-  @Column({ default: false })
-  vip: boolean;
-
-  @Column({ name: 'vip_expire_at', nullable: true })
-  vipExpireAt: Date;
-
   // 状态
   @Column({ default: MerchantStatus.PENDING })
   status: MerchantStatus;

@@ -628,57 +628,6 @@ export class AdminService {
     return this.merchantsRepository.findOne({ where: { id: idOrMerchantNo } });
   }
 
-  /**
-   * 设置用户VIP状态
- *
-   */
-  async setUserVip(
-    userId: string,
-    vip: boolean,
-    expireAt?: Date,
-  ): Promise<{ success: boolean; error?: string }> {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      return { success: false, error: '用户不存在' };
-    }
-
-    user.vip = vip;
-    if (vip && expireAt) {
-      user.vipExpireAt = expireAt;
-    } else if (!vip) {
-      user.vipExpireAt = undefined;
-    }
-
-    await this.usersRepository.save(user);
-    return { success: true };
-  }
-
-  /**
-   * 设置商家VIP状态
-   */
-  async setMerchantVip(
-    merchantId: string,
-    vip: boolean,
-    expireAt?: Date,
-  ): Promise<{ success: boolean; error?: string }> {
-    const merchant = await this.merchantsRepository.findOne({
-      where: { id: merchantId },
-    });
-    if (!merchant) {
-      return { success: false, error: '商家不存在' };
-    }
-
-    merchant.vip = vip;
-    if (vip && expireAt) {
-      merchant.vipExpireAt = expireAt;
-    } else if (!vip) {
-      merchant.vipExpireAt = undefined as any;
-    }
-
-    await this.merchantsRepository.save(merchant);
-    return { success: true };
-  }
-
   // ============ 经营概况统计 ============
 
   /**

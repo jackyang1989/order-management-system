@@ -47,7 +47,6 @@ import { DingdanxiaModule } from './dingdanxia/dingdanxia.module';
 import { CacheModule } from './cache/cache.module';
 import { OperationLogsModule } from './operation-logs/operation-logs.module';
 import { AdminMenusModule } from './admin-menus/admin-menus.module';
-import { VipModule } from './vip/vip.module';
 import { MerchantBlacklistModule } from './merchant-blacklist/merchant-blacklist.module';
 import { CaptchaModule } from './captcha/captcha.module';
 import { ReviewsModule } from './reviews/reviews.module';
@@ -61,7 +60,6 @@ import { CommissionRate } from './admin-config/commission-rate.entity';
 import { SystemConfig } from './admin-config/config.entity';
 import { DeliveryWarehouse } from './admin-config/delivery-warehouse.entity';
 import { Platform } from './admin-config/platform.entity';
-import { VipLevel } from './admin-config/vip-level.entity';
 import { TablePreference } from './admin-config/table-preferences.entity';
 import { EntryType } from './admin-config/entry-type.entity';
 // admin-menus
@@ -145,8 +143,6 @@ import { FundRecord } from './users/fund-record.entity';
 //   VipLevelConfig,
 //   UserVipStatus,
 // } from './vip-records/vip-record.entity';
-// vip
-import { VipPackage, VipPurchase, RechargeOrder } from './vip/vip.entity';
 // withdrawals
 import { Withdrawal } from './withdrawals/withdrawal.entity';
 // help-center
@@ -162,7 +158,6 @@ const ENTITIES = [
   SystemConfig,
   DeliveryWarehouse,
   Platform,
-  VipLevel,
   TablePreference,
   EntryType,
   // admin-menus
@@ -248,10 +243,6 @@ const ENTITIES = [
   // VipRecord,
   // VipLevelConfig,
   // UserVipStatus,
-  // vip
-  VipPackage,
-  VipPurchase,
-  RechargeOrder,
   // withdrawals
   Withdrawal,
   // help-center
@@ -334,7 +325,6 @@ const ENTITIES = [
     CacheModule,
     OperationLogsModule,
     AdminMenusModule,
-    VipModule,
     MerchantBlacklistModule,
     CaptchaModule,
     ReviewsModule,

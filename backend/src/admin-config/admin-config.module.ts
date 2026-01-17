@@ -17,9 +17,6 @@ import { EntryTypePublicController } from './entry-type-public.controller';
 import { DeliveryWarehouse } from './delivery-warehouse.entity';
 import { DeliveryWarehouseService } from './delivery-warehouse.service';
 import { DeliveryWarehouseController } from './delivery-warehouse.controller';
-import { VipLevel } from './vip-level.entity';
-import { VipLevelService } from './vip-level.service';
-import { VipLevelController } from './vip-level.controller';
 import { TablePreference } from './table-preferences.entity';
 import { TablePreferencesService } from './table-preferences.service';
 import { TablePreferencesController } from './table-preferences.controller';
@@ -34,7 +31,6 @@ import { TablePreferencesController } from './table-preferences.controller';
             Platform,
             EntryType,
             DeliveryWarehouse,
-            VipLevel,
             TablePreference,
         ]),
     ],
@@ -48,9 +44,7 @@ import { TablePreferencesController } from './table-preferences.controller';
         EntryTypeController,
         EntryTypePublicController,
         DeliveryWarehouseController,
-        VipLevelController,
         TablePreferencesController,
-        // VipPublicController 已合并到 VipController (vip模块)
     ],
     providers: [
         AdminConfigService,
@@ -58,7 +52,6 @@ import { TablePreferencesController } from './table-preferences.controller';
         PlatformService,
         EntryTypeService,
         DeliveryWarehouseService,
-        VipLevelService,
         TablePreferencesService,
     ],
     exports: [
@@ -67,7 +60,6 @@ import { TablePreferencesController } from './table-preferences.controller';
         PlatformService,
         EntryTypeService,
         DeliveryWarehouseService,
-        VipLevelService,
         TablePreferencesService,
     ],
 })

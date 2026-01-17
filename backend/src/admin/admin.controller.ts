@@ -566,42 +566,6 @@ export class AdminController {
     };
   }
 
-  @Post('users/:id/set-vip')
-  async setUserVip(
-    @Param('id') id: string,
-    @Body() body: { vip: boolean; expireAt?: string },
-  ) {
-    const expireAt = body.expireAt ? new Date(body.expireAt) : undefined;
-    const result = await this.adminService.setUserVip(id, body.vip, expireAt);
-    if (!result.success) {
-      return { success: false, message: result.error };
-    }
-    return {
-      success: true,
-      message: body.vip ? 'VIP已开通' : 'VIP已关闭',
-    };
-  }
-
-  @Post('merchants/:id/set-vip')
-  async setMerchantVip(
-    @Param('id') id: string,
-    @Body() body: { vip: boolean; expireAt?: string },
-  ) {
-    const expireAt = body.expireAt ? new Date(body.expireAt) : undefined;
-    const result = await this.adminService.setMerchantVip(
-      id,
-      body.vip,
-      expireAt,
-    );
-    if (!result.success) {
-      return { success: false, message: result.error };
-    }
-    return {
-      success: true,
-      message: body.vip ? 'VIP已开通' : 'VIP已关闭',
-    };
-  }
-
   // ============ 统计报表 ============
 
   /**
