@@ -374,6 +374,7 @@ export class AdminController {
     @Query('limit') limit?: string,
     @Query('status') status?: string,
     @Query('userId') userId?: string,
+    @Query('keyword') keyword?: string,
   ) {
     const statusEnum =
       status !== undefined
@@ -394,6 +395,7 @@ export class AdminController {
       parseInt(limit || '20'),
       statusEnum,
       actualUserId,
+      keyword,
     );
     return { success: true, ...result };
   }

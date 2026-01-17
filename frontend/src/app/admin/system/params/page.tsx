@@ -469,9 +469,16 @@ export default function AdminSystemParamsPage() {
                         onChange={(e) => updateField(config.key, e.target.value)}
                         disabled={!config.isEditable}
                     >
-                        {options.map((opt: string) => (
-                            <option key={opt} value={opt}>{opt}</option>
-                        ))}
+                        {options.map((opt: any, idx: number) => {
+                            // 处理对象格式 {value, label} 或简单字符串
+                            const optValue = typeof opt === 'object' ? opt.value : opt;
+                            const optLabel = typeof opt === 'object' ? opt.label : opt;
+                            return (
+                                <option key={`${optValue}-${idx}`} value={optValue}>
+                                    {optLabel}
+                                </option>
+                            );
+                        })}
                     </select>
                 );
             } catch { }

@@ -44,9 +44,7 @@ export class MerchantsService {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 20;
 
-    const qb = this.merchantsRepository.createQueryBuilder('m')
-      .leftJoin('merchants', 'referrer', 'referrer.id::text = m.referrer_id')
-      .addSelect('referrer.merchantNo', 'referrerMerchantNo');
+    const qb = this.merchantsRepository.createQueryBuilder('m');
 
     // Keyword search (phone, merchantNo)
     if (query.keyword) {
@@ -79,23 +77,20 @@ export class MerchantsService {
     qb.orderBy('m.createdAt', 'DESC');
 
     const total = await qb.getCount();
-    const rawData = await qb
+    const data = await qb
       .skip((page - 1) * limit)
       .take(limit)
-      .getRawAndEntities();
+      .getMany();
 
-    // Map data with referrer merchantNo
-    const data = rawData.entities.map((m, index) => {
-      const sanitized = this.sanitize(m);
-      const referrerMerchantNo = rawData.raw[index]?.referrerMerchantNo;
-      if (referrerMerchantNo) {
-        (sanitized as any).referrerName = referrerMerchantNo;
-      }
-      return sanitized;
-    });
-
+    // Map data with referrerId as referrerName
     return {
-      data,
+      data: data.map(m => {
+        const sanitized = this.sanitize(m);
+        if (m.referrerId) {
+          (sanitized as any).referrerName = m.referrerId;
+        }
+        return sanitized;
+      }),
       total,
       page,
       limit

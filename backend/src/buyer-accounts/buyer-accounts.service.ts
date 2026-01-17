@@ -458,31 +458,43 @@ export class BuyerAccountsService {
     limit: number = 20,
     status?: BuyerAccountStatus,
     userId?: string,
+    keyword?: string,
   ): Promise<{
     data: BuyerAccount[];
     total: number;
     page: number;
     limit: number;
   }> {
-    const where: any = {};
+    const qb = this.buyerAccountsRepository.createQueryBuilder('ba');
+
+    // 状态过滤
     if (status !== undefined) {
-      where.status = status;
+      qb.andWhere('ba.status = :status', { status });
     } else {
       // 默认排除已删除的记录
-      where.status = Not(BuyerAccountStatus.DELETED);
+      qb.andWhere('ba.status != :deletedStatus', { deletedStatus: BuyerAccountStatus.DELETED });
     }
 
-    // 如果提供了userId参数，添加到查询条件
+    // 用户ID过滤
     if (userId) {
-      where.userId = userId;
+      qb.andWhere('ba.userId = :userId', { userId });
     }
 
-    const [data, total] = await this.buyerAccountsRepository.findAndCount({
-      where,
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+    // 关键词搜索 - 搜索多个字段
+    if (keyword) {
+      qb.leftJoin('ba.user', 'user')
+        .andWhere(
+          '(user.userNo LIKE :keyword OR ba.platformAccount LIKE :keyword OR ba.buyerPhone LIKE :keyword OR ba.fullAddress LIKE :keyword OR ba.realName LIKE :keyword)',
+          { keyword: `%${keyword}%` }
+        );
+    }
+
+    const total = await qb.getCount();
+    const data = await qb
+      .orderBy('ba.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
 
     return { data: await this.attachUsers(data), total, page, limit };
   }

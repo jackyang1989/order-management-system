@@ -84,12 +84,8 @@ function AdminBuyerAccountsPageContent() {
     const [totalPages, setTotalPages] = useState(1);
     const [userInfo, setUserInfo] = useState<{ userNo: string; phone: string } | null>(null);
 
-    // 筛选条件
-    const [filterUsername, setFilterUsername] = useState<string>('');
-    const [filterPlatformAccount, setFilterPlatformAccount] = useState<string>('');
-    const [filterPhone, setFilterPhone] = useState<string>('');
-    const [filterAddress, setFilterAddress] = useState<string>('');
-    const [filterRealName, setFilterRealName] = useState<string>('');
+    // 筛选条件 - 合并为统一搜索
+    const [searchKeyword, setSearchKeyword] = useState<string>('');
     const [filterStatus, setFilterStatus] = useState<string>('');
     const [filterPlatform, setFilterPlatform] = useState<string>('');
 
@@ -168,11 +164,7 @@ function AdminBuyerAccountsPageContent() {
             params.append('limit', '20');
             if (filterStatus) params.append('status', filterStatus);
             if (userId) params.append('userId', userId);
-            if (filterUsername) params.append('username', filterUsername);
-            if (filterPhone) params.append('phone', filterPhone);
-            if (filterPlatformAccount) params.append('platformAccount', filterPlatformAccount);
-            if (filterAddress) params.append('address', filterAddress);
-            if (filterRealName) params.append('realName', filterRealName);
+            if (searchKeyword) params.append('keyword', searchKeyword);
             if (filterPlatform) params.append('platform', filterPlatform);
 
             const res = await fetch(`${BASE_URL}/admin/buyer-accounts?${params.toString()}`, {
@@ -188,7 +180,7 @@ function AdminBuyerAccountsPageContent() {
             console.error('获取买号列表失败:', error);
         }
         setLoading(false);
-    }, [page, filterStatus, filterPlatform, userId, filterUsername, filterPhone, filterPlatformAccount, filterAddress, filterRealName]);
+    }, [page, filterStatus, filterPlatform, userId, searchKeyword]);
 
     // 加载用户信息（当有userId参数时）
     const loadUserInfo = useCallback(async () => {
@@ -552,39 +544,11 @@ function AdminBuyerAccountsPageContent() {
                 {/* 筛选栏 */}
                 <div className="mb-6 flex flex-wrap items-center gap-3">
                     <Input
-                        placeholder="用户ID"
-                        value={filterUsername}
-                        onChange={e => setFilterUsername(e.target.value)}
+                        placeholder="搜索用户ID/平台账号/收货人/手机/地址/姓名..."
+                        value={searchKeyword}
+                        onChange={e => setSearchKeyword(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                        className="w-28"
-                    />
-                    <Input
-                        placeholder="平台账号"
-                        value={filterPlatformAccount}
-                        onChange={e => setFilterPlatformAccount(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                        className="w-32"
-                    />
-                    <Input
-                        placeholder="收货人手机"
-                        value={filterPhone}
-                        onChange={e => setFilterPhone(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                        className="w-32"
-                    />
-                    <Input
-                        placeholder="收货地址"
-                        value={filterAddress}
-                        onChange={e => setFilterAddress(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                        className="w-36"
-                    />
-                    <Input
-                        placeholder="实名姓名"
-                        value={filterRealName}
-                        onChange={e => setFilterRealName(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                        className="w-28"
+                        className="w-96"
                     />
                     <Select
                         value={filterPlatform}
