@@ -217,3 +217,37 @@ export function getEnabledTaskTypesFromPlatforms(platforms: PlatformData[]): num
         .map(platform => PLATFORM_CODE_TO_TASK_TYPE[platform.code])
         .filter((t): t is number => t !== undefined);
 }
+
+// 获取所有增值服务费用
+export interface ServiceFees {
+    timingPublish: number;      // 定时发布
+    timingPay: number;          // 定时付款
+    nextDay: number;            // 隔天任务
+    randomBrowse: number;       // 随机浏览店铺其他商品
+    fastRefundRate: number;     // 快速返款服务费率
+    phoneFee: number;           // 手机端加成
+    refundService: number;      // 降天任务服务费
+}
+
+export function getServiceFees(config: SystemGlobalConfig | null): ServiceFees {
+    if (!config) {
+        return {
+            timingPublish: 1,
+            timingPay: 1,
+            nextDay: 0.5,
+            randomBrowse: 0.5,
+            fastRefundRate: 0.006,
+            phoneFee: 0.3,
+            refundService: 0.5,
+        };
+    }
+    return {
+        timingPublish: Number(config.timingPublish) || 1,
+        timingPay: Number(config.timingPay) || 1,
+        nextDay: Number(config.nextDay) || 0.5,
+        randomBrowse: Number(config.goodsMoreFee) || 0.5,
+        fastRefundRate: Number(config.refundServicePrice) || 0.006,
+        phoneFee: Number(config.phoneFee) || 0.3,
+        refundService: Number(config.ysFee) || 0.5,
+    };
+}

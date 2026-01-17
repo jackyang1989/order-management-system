@@ -158,11 +158,11 @@ export default function AdminSystemParamsPage() {
             try {
                 const prices = JSON.parse(value) as Array<{ days: number; price: number }>;
                 return (
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                         {prices.map((item, index) => (
-                            <div key={index} className="flex items-center gap-3">
+                            <div key={index} className="flex items-end gap-2">
                                 <div className="flex-1">
-                                    <label className="text-xs text-slate-500 mb-1 block">天数</label>
+                                    <label className="mb-1 block text-xs font-medium text-slate-500">天数</label>
                                     <input
                                         type="number"
                                         value={item.days}
@@ -176,7 +176,7 @@ export default function AdminSystemParamsPage() {
                                     />
                                 </div>
                                 <div className="flex-1">
-                                    <label className="text-xs text-slate-500 mb-1 block">价格(元)</label>
+                                    <label className="mb-1 block text-xs font-medium text-slate-500">价格(元)</label>
                                     <input
                                         type="number"
                                         value={item.price}
@@ -196,7 +196,7 @@ export default function AdminSystemParamsPage() {
                                             const newPrices = prices.filter((_, i) => i !== index);
                                             updateField(config.key, JSON.stringify(newPrices));
                                         }}
-                                        className="mt-5 text-red-500 hover:text-red-700"
+                                        className="flex h-[38px] w-8 flex-shrink-0 items-center justify-center text-red-500 hover:text-red-700"
                                     >
                                         ✕
                                     </button>
@@ -210,9 +210,159 @@ export default function AdminSystemParamsPage() {
                                     const newPrices = [...prices, { days: 30, price: 0 }];
                                     updateField(config.key, JSON.stringify(newPrices));
                                 }}
-                                className="mt-2 text-sm text-primary-600 hover:text-primary-700"
+                                className="mt-1 text-sm font-medium text-primary-600 hover:text-primary-700"
                             >
                                 + 添加价格档位
+                            </button>
+                        )}
+                    </div>
+                );
+            } catch {
+                // JSON解析失败，显示原始文本框
+            }
+        }
+
+        // 买号升星阶梯 - 可视化编辑器
+        if (config.key === 'star_thresholds') {
+            try {
+                const thresholds = JSON.parse(value) as Record<string, number>;
+                const entries = Object.entries(thresholds).sort((a, b) => Number(a[0]) - Number(b[0]));
+                return (
+                    <div className="space-y-3">
+                        {entries.map(([star, orders], index) => (
+                            <div key={index} className="flex items-end gap-2">
+                                <div className="flex-1">
+                                    <label className="mb-1 block text-xs font-medium text-slate-500">星级</label>
+                                    <input
+                                        type="number"
+                                        value={star}
+                                        onChange={(e) => {
+                                            const newEntries = [...entries];
+                                            newEntries[index] = [e.target.value, orders];
+                                            const newThresholds = Object.fromEntries(newEntries);
+                                            updateField(config.key, JSON.stringify(newThresholds));
+                                        }}
+                                        className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm"
+                                        disabled={!config.isEditable}
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="mb-1 block text-xs font-medium text-slate-500">所需订单数</label>
+                                    <input
+                                        type="number"
+                                        value={orders}
+                                        onChange={(e) => {
+                                            const newEntries = [...entries];
+                                            newEntries[index] = [star, Number(e.target.value)];
+                                            const newThresholds = Object.fromEntries(newEntries);
+                                            updateField(config.key, JSON.stringify(newThresholds));
+                                        }}
+                                        className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm"
+                                        disabled={!config.isEditable}
+                                    />
+                                </div>
+                                {config.isEditable && entries.length > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const newEntries = entries.filter((_, i) => i !== index);
+                                            const newThresholds = Object.fromEntries(newEntries);
+                                            updateField(config.key, JSON.stringify(newThresholds));
+                                        }}
+                                        className="flex h-[38px] w-8 flex-shrink-0 items-center justify-center text-red-500 hover:text-red-700"
+                                    >
+                                        ✕
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                        {config.isEditable && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const maxStar = Math.max(...entries.map(([s]) => Number(s)), 0);
+                                    const newEntries = [...entries, [String(maxStar + 1), 0]];
+                                    const newThresholds = Object.fromEntries(newEntries);
+                                    updateField(config.key, JSON.stringify(newThresholds));
+                                }}
+                                className="mt-1 text-sm font-medium text-primary-600 hover:text-primary-700"
+                            >
+                                + 添加星级
+                            </button>
+                        )}
+                    </div>
+                );
+            } catch {
+                // JSON解析失败，显示原始文本框
+            }
+        }
+
+        // 星级限价 - 可视化编辑器
+        if (config.key === 'star_price_limits') {
+            try {
+                const limits = JSON.parse(value) as Record<string, number>;
+                const entries = Object.entries(limits).sort((a, b) => Number(a[0]) - Number(b[0]));
+                return (
+                    <div className="space-y-3">
+                        {entries.map(([star, price], index) => (
+                            <div key={index} className="flex items-end gap-2">
+                                <div className="flex-1">
+                                    <label className="mb-1 block text-xs font-medium text-slate-500">星级</label>
+                                    <input
+                                        type="number"
+                                        value={star}
+                                        onChange={(e) => {
+                                            const newEntries = [...entries];
+                                            newEntries[index] = [e.target.value, price];
+                                            const newLimits = Object.fromEntries(newEntries);
+                                            updateField(config.key, JSON.stringify(newLimits));
+                                        }}
+                                        className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm"
+                                        disabled={!config.isEditable}
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="mb-1 block text-xs font-medium text-slate-500">最高限价(元)</label>
+                                    <input
+                                        type="number"
+                                        value={price}
+                                        onChange={(e) => {
+                                            const newEntries = [...entries];
+                                            newEntries[index] = [star, Number(e.target.value)];
+                                            const newLimits = Object.fromEntries(newEntries);
+                                            updateField(config.key, JSON.stringify(newLimits));
+                                        }}
+                                        className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm"
+                                        disabled={!config.isEditable}
+                                    />
+                                </div>
+                                {config.isEditable && entries.length > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const newEntries = entries.filter((_, i) => i !== index);
+                                            const newLimits = Object.fromEntries(newEntries);
+                                            updateField(config.key, JSON.stringify(newLimits));
+                                        }}
+                                        className="flex h-[38px] w-8 flex-shrink-0 items-center justify-center text-red-500 hover:text-red-700"
+                                    >
+                                        ✕
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                        {config.isEditable && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const maxStar = Math.max(...entries.map(([s]) => Number(s)), 0);
+                                    const newEntries = [...entries, [String(maxStar + 1), 0]];
+                                    const newLimits = Object.fromEntries(newEntries);
+                                    updateField(config.key, JSON.stringify(newLimits));
+                                }}
+                                className="mt-1 text-sm font-medium text-primary-600 hover:text-primary-700"
+                            >
+                                + 添加星级
                             </button>
                         )}
                     </div>

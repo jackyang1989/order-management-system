@@ -4,14 +4,22 @@ import { useState, useEffect } from 'react';
 import { TaskFormData, OrderPraiseConfig } from './types';
 import { cn } from '../../../../../lib/utils';
 import { Button } from '../../../../../components/ui/button';
-import { fetchSystemConfig, getPraiseFees } from '../../../../../services/systemConfigService';
+import { fetchSystemConfig, getPraiseFees, getServiceFees, ServiceFees } from '../../../../../services/systemConfigService';
 import { fetchQuestionSchemes, QuestionDetail } from '../../../../../services/questionService';
 
 interface StepProps { data: TaskFormData; onChange: (data: Partial<TaskFormData>) => void; onPrev: () => void; onNext: () => void; }
 
 export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: StepProps) {
     const [praiseFees, setPraiseFees] = useState({ text: 2, image: 4, video: 10 });
-    const [randomBrowseFee, setRandomBrowseFee] = useState(0.5);
+    const [serviceFees, setServiceFees] = useState<ServiceFees>({
+        timingPublish: 1,
+        timingPay: 1,
+        nextDay: 0.5,
+        randomBrowse: 0.5,
+        fastRefundRate: 0.006,
+        phoneFee: 0.3,
+        refundService: 0.5,
+    });
 
     // 问题模板选择相关状态
     const [showQuestionTemplateModal, setShowQuestionTemplateModal] = useState(false);
@@ -57,11 +65,7 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
     const loadSystemConfig = async () => {
         const config = await fetchSystemConfig();
         setPraiseFees(getPraiseFees(config));
-        // 获取随机浏览服务费
-        if (config) {
-            const fee = (config as any).random_browse_fee ?? (config as any).randomBrowseFee ?? 0.5;
-            setRandomBrowseFee(Number(fee) || 0.5);
-        }
+        setServiceFees(getServiceFees(config));
     };
 
     // 新版：处理单个订单的好评类型变化
@@ -517,31 +521,47 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                                                         <input
                                                             type="file"
                                                             accept="image/*"
+                                                            multiple
                                                             onChange={async (e) => {
                                                                 if (!e.target.files || e.target.files.length === 0) return;
+
                                                                 const token = localStorage.getItem('merchantToken');
-                                                                const formData = new FormData();
-                                                                formData.append('file', e.target.files[0]);
-                                                                try {
-                                                                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/upload`, {
-                                                                        method: 'POST',
-                                                                        headers: { 'Authorization': `Bearer ${token}` },
-                                                                        body: formData
-                                                                    });
-                                                                    const json = await res.json();
-                                                                    if (json.success && json.data?.url) {
-                                                                        const newConfigs = [...data.orderPraiseConfigs];
-                                                                        newConfigs[orderIdx] = {
-                                                                            ...newConfigs[orderIdx],
-                                                                            images: [...(newConfigs[orderIdx].images || []), json.data.url]
-                                                                        };
-                                                                        onChange({ orderPraiseConfigs: newConfigs });
-                                                                    } else {
-                                                                        alert('上传失败: ' + (json.message || '未知错误'));
-                                                                    }
-                                                                } catch {
-                                                                    alert('上传失败');
+                                                                const currentImages = data.orderPraiseConfigs[orderIdx].images || [];
+                                                                const remainingSlots = 5 - currentImages.length;
+                                                                const filesToUpload = Array.from(e.target.files).slice(0, remainingSlots);
+
+                                                                if (filesToUpload.length < e.target.files.length) {
+                                                                    alert(`最多只能上传${remainingSlots}张图片`);
                                                                 }
+
+                                                                try {
+                                                                    const uploadPromises = filesToUpload.map(async (file) => {
+                                                                        const formData = new FormData();
+                                                                        formData.append('file', file);
+                                                                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/upload`, {
+                                                                            method: 'POST',
+                                                                            headers: { 'Authorization': `Bearer ${token}` },
+                                                                            body: formData
+                                                                        });
+                                                                        const json = await res.json();
+                                                                        if (json.success && json.data?.url) {
+                                                                            return json.data.url;
+                                                                        }
+                                                                        throw new Error(json.message || '上传失败');
+                                                                    });
+
+                                                                    const uploadedUrls = await Promise.all(uploadPromises);
+                                                                    const newConfigs = [...data.orderPraiseConfigs];
+                                                                    newConfigs[orderIdx] = {
+                                                                        ...newConfigs[orderIdx],
+                                                                        images: [...currentImages, ...uploadedUrls]
+                                                                    };
+                                                                    onChange({ orderPraiseConfigs: newConfigs });
+                                                                } catch (error) {
+                                                                    alert('上传失败: ' + (error instanceof Error ? error.message : '未知错误'));
+                                                                }
+
+                                                                e.target.value = '';
                                                             }}
                                                             className="hidden"
                                                         />
@@ -797,7 +817,7 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                 <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-3 py-3">
                     <input type="checkbox" checked={data.isTimingPublish} onChange={e => onChange({ isTimingPublish: e.target.checked })} />
                     <div className="flex flex-1 items-center justify-between">
-                        <div><span className="text-sm">定时发布</span><span className="ml-2 text-xs text-[#9ca3af]">+1.0元/单</span></div>
+                        <div><span className="text-sm">定时发布</span><span className="ml-2 text-xs text-[#9ca3af]">+{serviceFees.timingPublish}元/单</span></div>
                         {data.isTimingPublish && <input type="datetime-local" value={data.publishTime || ''} onChange={e => onChange({ publishTime: e.target.value })} className="rounded border border-[#e5e7eb] px-1 py-1" />}
                     </div>
                 </div>
@@ -805,7 +825,7 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                 <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-3 py-3">
                     <input type="checkbox" checked={data.addReward > 0} onChange={e => onChange({ addReward: e.target.checked ? 1 : 0 })} />
                     <div className="flex flex-1 items-center justify-between">
-                        <div><span className="text-sm">额外悬赏</span><span className="ml-2 text-xs text-[#9ca3af]">增加接单速度</span></div>
+                        <div><span className="text-sm">额外悬赏</span><span className="ml-2 text-xs text-[#9ca3af]">增加接单速度，商家自定义金额</span></div>
                         {data.addReward > 0 && <div className="flex items-center gap-1"><input type="number" value={data.addReward} onChange={e => onChange({ addReward: parseFloat(e.target.value) || 0 })} className="w-[60px] rounded border border-[#e5e7eb] px-1 py-1" /><span className="text-xs">元/单</span></div>}
                     </div>
                 </div>
@@ -813,7 +833,7 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                 <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-3 py-3">
                     <input type="checkbox" checked={data.isTimingPay} onChange={e => onChange({ isTimingPay: e.target.checked })} />
                     <div className="flex flex-1 items-center justify-between">
-                        <div><span className="text-sm">定时付款</span><span className="ml-2 text-xs text-[#9ca3af]">+1.0元/单</span></div>
+                        <div><span className="text-sm">定时付款</span><span className="ml-2 text-xs text-[#9ca3af]">+{serviceFees.timingPay}元/单</span></div>
                         {data.isTimingPay && <input type="datetime-local" value={data.timingPayTime || ''} onChange={e => onChange({ timingPayTime: e.target.value })} className="rounded border border-[#e5e7eb] px-1 py-1" />}
                     </div>
                 </div>
@@ -821,7 +841,7 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                 <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-3 py-3">
                     <input type="checkbox" checked={data.isCycleTime} onChange={e => onChange({ isCycleTime: e.target.checked })} />
                     <div className="flex flex-1 items-center justify-between">
-                        <div><span className="text-sm">延长买号周期</span><span className="ml-2 text-xs text-[#9ca3af]">+1.0元/月</span></div>
+                        <div><span className="text-sm">延长买号周期</span><span className="ml-2 text-xs text-[#9ca3af]">+{serviceFees.phoneFee}元/月</span></div>
                         {data.isCycleTime && <select value={data.cycleTime} onChange={e => onChange({ cycleTime: parseInt(e.target.value) })} className="rounded border border-[#e5e7eb]"><option value={30}>30天</option><option value={60}>60天</option><option value={90}>90天</option></select>}
                     </div>
                 </div>
@@ -836,14 +856,14 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                 <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-3 py-3">
                     <input type="checkbox" checked={data.isNextDay} onChange={e => onChange({ isNextDay: e.target.checked })} />
                     <div className="flex flex-1 items-center justify-between">
-                        <div><span className="text-sm">隔天任务</span><span className="ml-2 text-xs text-[#9ca3af]">+0.5元/单，买手需隔天完成付款</span></div>
+                        <div><span className="text-sm">隔天任务</span><span className="ml-2 text-xs text-[#9ca3af]">+{serviceFees.nextDay}元/单，买手需隔天完成付款</span></div>
                     </div>
                 </div>
                 {/* 随机浏览店铺其他商品 */}
                 <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-3 py-3">
                     <input type="checkbox" checked={data.needRandomBrowse} onChange={e => onChange({ needRandomBrowse: e.target.checked })} />
                     <div className="flex flex-1 items-center justify-between">
-                        <div><span className="text-sm">随机浏览店铺其他商品</span><span className="ml-2 text-xs text-[#9ca3af]">+{randomBrowseFee}元/单，买手需随机浏览店铺其他2个商品各2分钟</span></div>
+                        <div><span className="text-sm">随机浏览店铺其他商品</span><span className="ml-2 text-xs text-[#9ca3af]">+{serviceFees.randomBrowse}元/单，买手需随机浏览店铺其他2个商品各2分钟</span></div>
                     </div>
                 </div>
                 {/* Fast Refund Service */}
@@ -852,7 +872,7 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                     <div className="flex flex-1 items-center justify-between">
                         <div>
                             <span className="text-sm">快速返款服务</span>
-                            <span className="ml-2 text-xs text-[#9ca3af]">服务费0.6%</span>
+                            <span className="ml-2 text-xs text-[#9ca3af]">服务费{(serviceFees.fastRefundRate * 100).toFixed(1)}%</span>
                             <span className="ml-2 cursor-help text-xs text-primary-500" title="开启后，买手确认收货后系统自动快速返款，无需等待平台结算周期">?</span>
                         </div>
                     </div>

@@ -229,13 +229,6 @@ export const DEFAULT_CONFIGS = [
     valueType: 'number',
   },
   {
-    key: 'pc_fee',
-    value: '0.2',
-    group: 'task_fee',
-    label: 'PC端加成服务费',
-    valueType: 'number',
-  },
-  {
     key: 'timing_publish_fee',
     value: '0.5',
     group: 'task_fee',
@@ -758,6 +751,13 @@ export const DEFAULT_CONFIGS = [
     valueType: 'boolean',
   },
   {
+    key: 'first_account_vip_days',
+    value: '7',
+    group: 'system',
+    label: '首个买号审核通过赠送VIP天数',
+    valueType: 'number',
+  },
+  {
     key: 'star_thresholds',
     value: '{"2":30,"3":60,"4":90,"5":120}',
     group: 'system',
@@ -772,13 +772,6 @@ export const DEFAULT_CONFIGS = [
     label: '星级限价',
     valueType: 'json',
     description: 'JSON格式: {"1":100,...} 表示N星最高可接X元任务',
-  },
-  {
-    key: 'first_account_vip_days',
-    value: '7',
-    group: 'system',
-    label: '首个买号审核通过赠送VIP天数',
-    valueType: 'number',
   },
   // 提现相关补充
   {
