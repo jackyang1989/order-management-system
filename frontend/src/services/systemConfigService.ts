@@ -30,6 +30,7 @@ export interface SystemGlobalConfig {
     postage: number;
     rePay: number;
     ysFee: number;
+    randomBrowseFee: number;
     // 好评费用配置
     praise: number;
     imgPraise: number;
@@ -232,22 +233,22 @@ export interface ServiceFees {
 export function getServiceFees(config: SystemGlobalConfig | null): ServiceFees {
     if (!config) {
         return {
-            timingPublish: 1,
-            timingPay: 1,
+            timingPublish: 0.5,
+            timingPay: 0.3,
             nextDay: 0.5,
             randomBrowse: 0.5,
-            fastRefundRate: 0.006,
+            fastRefundRate: 0.01,
             phoneFee: 0.3,
-            refundService: 0.5,
+            refundService: 1,
         };
     }
     return {
-        timingPublish: Number(config.timingPublish) || 1,
-        timingPay: Number(config.timingPay) || 1,
+        timingPublish: Number(config.timingPublish) || 0.5,
+        timingPay: Number(config.timingPay) || 0.3,
         nextDay: Number(config.nextDay) || 0.5,
-        randomBrowse: Number(config.goodsMoreFee) || 0.5,
-        fastRefundRate: Number(config.refundServicePrice) || 0.006,
+        randomBrowse: Number(config.randomBrowseFee) || 0.5,
+        fastRefundRate: Number(config.refundServicePrice) || 0.01,
         phoneFee: Number(config.phoneFee) || 0.3,
-        refundService: Number(config.ysFee) || 0.5,
+        refundService: Number(config.ysFee) || 1,
     };
 }

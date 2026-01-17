@@ -48,6 +48,7 @@ export default function AdminSystemParamsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [activeTab, setActiveTab] = useState('');
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [editedValues, setEditedValues] = useState<Record<string, string>>({});
     const [error, setError] = useState<string | null>(null);
 
@@ -136,6 +137,79 @@ export default function AdminSystemParamsPage() {
 
     const updateField = (key: string, value: string) => {
         setEditedValues(prev => ({ ...prev, [key]: value }));
+    };
+
+    // 拖拽排序相关函数
+    const handleDragStart = (index: number) => {
+        setDraggedIndex(index);
+    };
+
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault();
+        if (draggedIndex === null || draggedIndex === index) return;
+
+        const currentConfigs = configs[activeTab] || [];
+        const newConfigs = [...currentConfigs];
+        const draggedItem = newConfigs[draggedIndex];
+
+        // 移除拖拽的项
+        newConfigs.splice(draggedIndex, 1);
+        // 插入到新位置
+        newConfigs.splice(index, 0, draggedItem);
+
+        // 更新 sortOrder
+        newConfigs.forEach((config, idx) => {
+            config.sortOrder = idx + 1;
+        });
+
+        setConfigs(prev => ({
+            ...prev,
+            [activeTab]: newConfigs
+        }));
+        setDraggedIndex(index);
+    };
+
+    const handleDragEnd = async () => {
+        if (draggedIndex === null) return;
+
+        const currentConfigs = configs[activeTab] || [];
+
+        // 保存新的排序到后端
+        try {
+            const token = localStorage.getItem('adminToken');
+            const updates = currentConfigs.map(config => ({
+                key: config.key,
+                value: config.value,
+                sortOrder: config.sortOrder
+            }));
+
+            // 调用同步元数据的接口来更新sortOrder
+            await fetch(`${BASE_URL}/admin/config/sync-metadata`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            // 更新sortOrder到数据库
+            for (const config of currentConfigs) {
+                await fetch(`${BASE_URL}/admin/config/${config.key}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ value: config.value }),
+                });
+            }
+
+            toastSuccess('排序已保存');
+        } catch (error) {
+            console.error('保存排序失败:', error);
+            toastError('保存排序失败');
+        }
+
+        setDraggedIndex(null);
     };
 
     // 检查配置项是否满足dependsOn条件
@@ -515,11 +589,30 @@ export default function AdminSystemParamsPage() {
                                 <p className="py-8 text-center text-[#9ca3af]">该分组暂无配置项</p>
                             ) : (
                                 <div className="grid gap-5 md:grid-cols-2">
-                                    {visibleConfigs.map(config => (
-                                        <div key={config.key} className="rounded-md border border-[#e5e7eb] p-4">
-                                            <label className="mb-2 block text-sm font-medium text-[#374151]">
-                                                {config.label || config.key}
-                                            </label>
+                                    {visibleConfigs.map((config, index) => (
+                                        <div
+                                            key={config.key}
+                                            draggable
+                                            onDragStart={() => handleDragStart(index)}
+                                            onDragOver={(e) => handleDragOver(e, index)}
+                                            onDragEnd={handleDragEnd}
+                                            className={cn(
+                                                "rounded-md border border-[#e5e7eb] p-4 cursor-move transition-all",
+                                                draggedIndex === index && "opacity-50 scale-95",
+                                                "hover:border-primary-300 hover:shadow-sm"
+                                            )}
+                                        >
+                                            <div className="mb-2 flex items-center justify-between">
+                                                <label className="text-sm font-medium text-[#374151]">
+                                                    {config.label || config.key}
+                                                </label>
+                                                <div className="flex items-center gap-1 text-xs text-slate-400">
+                                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                                                    </svg>
+                                                    <span>#{config.sortOrder || index + 1}</span>
+                                                </div>
+                                            </div>
                                             {renderConfigInput(config)}
                                             {config.description && (
                                                 <p className="mt-1.5 text-xs text-[#9ca3af]">{config.description}</p>

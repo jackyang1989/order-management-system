@@ -24,7 +24,7 @@ export class AdminConfigService implements OnModuleInit {
     /**
      * 确保默认配置项存在，并同步元数据（label, description, dependsOn等）
      */
-    private async ensureDefaultConfigs() {
+    async ensureDefaultConfigs() {
         for (const config of DEFAULT_CONFIGS) {
             const existing = await this.configRepo.findOne({ where: { key: config.key } });
             if (!existing) {
@@ -54,6 +54,10 @@ export class AdminConfigService implements OnModuleInit {
                 }
                 if (config.valueType && existing.valueType !== config.valueType) {
                     updates.valueType = config.valueType;
+                    needsUpdate = true;
+                }
+                if (config.sortOrder !== undefined && existing.sortOrder !== config.sortOrder) {
+                    updates.sortOrder = config.sortOrder;
                     needsUpdate = true;
                 }
 
@@ -96,6 +100,18 @@ export class AdminConfigService implements OnModuleInit {
         }
 
         return grouped;
+    }
+
+    /**
+     * 获取所有配置（扁平化为 key-value 对象）
+     */
+    async getAllConfigsFlat(): Promise<Record<string, string>> {
+        const configs = await this.configRepo.find();
+        const flat: Record<string, string> = {};
+        for (const config of configs) {
+            flat[config.key] = config.value || '';
+        }
+        return flat;
     }
 
     /**
@@ -198,6 +214,16 @@ export class AdminConfigService implements OnModuleInit {
     async deleteConfig(key: string): Promise<void> {
         await this.configRepo.delete({ key });
         this.configCache.delete(key);
+    }
+
+    /**
+     * 批量更新配置排序
+     */
+    async updateSortOrders(orders: { key: string; sortOrder: number }[]): Promise<void> {
+        for (const { key, sortOrder } of orders) {
+            await this.configRepo.update({ key }, { sortOrder });
+        }
+        await this.refreshCache();
     }
 
     /**

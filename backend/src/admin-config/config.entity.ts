@@ -693,6 +693,7 @@ export const DEFAULT_CONFIGS = [
     group: 'system',
     label: '网站名称',
     valueType: 'string',
+    sortOrder: 1,
   },
   {
     key: 'site_logo',
@@ -700,6 +701,7 @@ export const DEFAULT_CONFIGS = [
     group: 'system',
     label: '网站Logo',
     valueType: 'string',
+    sortOrder: 2,
   },
   {
     key: 'maintenance_mode',
@@ -707,6 +709,7 @@ export const DEFAULT_CONFIGS = [
     group: 'system',
     label: '维护模式',
     valueType: 'boolean',
+    sortOrder: 3,
   },
   {
     key: 'maintenance_message',
@@ -714,6 +717,7 @@ export const DEFAULT_CONFIGS = [
     group: 'system',
     label: '维护提示信息',
     valueType: 'string',
+    sortOrder: 4,
   },
   {
     key: 'order_timeout_hours',
@@ -721,6 +725,7 @@ export const DEFAULT_CONFIGS = [
     group: 'system',
     label: '订单超时时间(小时)',
     valueType: 'number',
+    sortOrder: 5,
   },
   {
     key: 'task_claim_interval_hours',
@@ -728,6 +733,7 @@ export const DEFAULT_CONFIGS = [
     group: 'system',
     label: '同用户接单间隔(小时)',
     valueType: 'number',
+    sortOrder: 6,
   },
   {
     key: 'auto_confirm_days',
@@ -735,6 +741,7 @@ export const DEFAULT_CONFIGS = [
     group: 'system',
     label: '自动确认收货天数',
     valueType: 'number',
+    sortOrder: 7,
   },
   {
     key: 'verify_switch',
@@ -742,6 +749,7 @@ export const DEFAULT_CONFIGS = [
     group: 'system',
     label: '商品核对码验证开关',
     valueType: 'boolean',
+    sortOrder: 8,
   },
   {
     key: 'password_check_enabled',
@@ -749,6 +757,7 @@ export const DEFAULT_CONFIGS = [
     group: 'system',
     label: '商品口令核对开关',
     valueType: 'boolean',
+    sortOrder: 9,
   },
   {
     key: 'first_account_vip_days',
@@ -756,6 +765,7 @@ export const DEFAULT_CONFIGS = [
     group: 'system',
     label: '首个买号审核通过赠送VIP天数',
     valueType: 'number',
+    sortOrder: 10,
   },
   {
     key: 'star_thresholds',
@@ -764,6 +774,7 @@ export const DEFAULT_CONFIGS = [
     label: '买号升星阶梯',
     valueType: 'json',
     description: 'JSON格式: {"2":30,"3":60} 表示30单升2星',
+    sortOrder: 998,
   },
   {
     key: 'star_price_limits',
@@ -772,6 +783,7 @@ export const DEFAULT_CONFIGS = [
     label: '星级限价',
     valueType: 'json',
     description: 'JSON格式: {"1":100,...} 表示N星最高可接X元任务',
+    sortOrder: 999,
   },
   // 提现相关补充
   {

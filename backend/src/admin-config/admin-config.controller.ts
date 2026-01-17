@@ -123,6 +123,33 @@ export class AdminConfigController {
             message: '配置缓存已刷新',
         };
     }
+
+    /**
+     * 同步默认配置元数据（包括sortOrder）
+     */
+    @Post('sync-metadata')
+    async syncMetadata() {
+        await this.configService.ensureDefaultConfigs();
+        await this.configService.refreshCache();
+        return {
+            success: true,
+            message: '配置元数据已同步',
+        };
+    }
+
+    /**
+     * 批量更新配置排序
+     */
+    @Post('update-sort-order')
+    async updateSortOrder(
+        @Body('orders') orders: { key: string; sortOrder: number }[],
+    ) {
+        await this.configService.updateSortOrders(orders);
+        return {
+            success: true,
+            message: '排序已更新',
+        };
+    }
 }
 
 /**
@@ -146,6 +173,79 @@ export class AdminConfigPublicController {
                 userRegistrationEnabled: userEnabled,
                 merchantRegistrationEnabled: merchantEnabled,
             },
+        };
+    }
+}
+
+/**
+ * 系统配置公开接口（无需登录）- 用于前端获取配置
+ */
+@Controller('system-config/public')
+export class SystemConfigPublicController {
+    constructor(private readonly configService: AdminConfigService) { }
+
+    /**
+     * 获取系统配置（公开接口）
+     */
+    @Get()
+    async getSystemConfig() {
+        // 获取所有配置
+        const configs = await this.configService.getAllConfigsFlat();
+
+        // 转换为前端期望的格式
+        const data = {
+            // 注册赠送配置
+            userNum: parseFloat(configs['user_register_reward'] || '0'),
+            sellerNum: parseFloat(configs['seller_register_reward'] || '0'),
+            userVipTime: parseFloat(configs['user_register_vip_days'] || '0'),
+            sellerVipTime: parseFloat(configs['seller_register_vip_days'] || '0'),
+            // VIP价格配置
+            userVip: configs['user_vip_prices'] || '[]',
+            sellerVip: configs['seller_vip_prices'] || '[]',
+            // 提现相关配置
+            userMinMoney: parseFloat(configs['user_min_withdraw'] || '100'),
+            sellerMinMoney: parseFloat(configs['seller_min_withdraw'] || '100'),
+            userMinReward: parseFloat(configs['user_min_silver_withdraw'] || '100'),
+            rewardPrice: parseFloat(configs['silver_to_rmb_rate'] || '1'),
+            sellerCashFee: parseFloat(configs['seller_withdraw_fee_rate'] || '0'),
+            userCashFree: configs['user_withdraw_fee_rate'] || '0',
+            userFeeMaxPrice: configs['user_max_withdraw'] || '50000',
+            // 服务费用配置
+            unionInterval: parseFloat(configs['union_interval_fee'] || '0.5'),
+            goodsMoreFee: parseFloat(configs['goods_more_fee'] || '1'),
+            refundServicePrice: parseFloat(configs['refund_service_rate'] || '0.01'),
+            phoneFee: parseFloat(configs['phone_fee'] || '0.3'),
+            pcFee: parseFloat(configs['pc_fee'] || '0.2'),
+            timingPay: parseFloat(configs['timing_pay_fee'] || '0.3'),
+            timingPublish: parseFloat(configs['timing_publish_fee'] || '0.5'),
+            nextDay: parseFloat(configs['next_day_fee'] || '0.5'),
+            postage: parseFloat(configs['default_postage'] || '0'),
+            rePay: parseFloat(configs['cycle_fee'] || '0.2'),
+            ysFee: parseFloat(configs['presale_fee'] || '1'),
+            randomBrowseFee: parseFloat(configs['random_browse_fee'] || '0.5'),
+            // 好评费用配置
+            praise: parseFloat(configs['text_praise_fee'] || '1'),
+            imgPraise: parseFloat(configs['image_praise_fee'] || '2'),
+            videoPraise: parseFloat(configs['video_praise_fee'] || '5'),
+            // 佣金分成配置
+            divided: parseFloat(configs['buyer_commission_rate'] || '1'),
+            // 其他配置
+            verifySwitch: configs['verify_switch'] === 'true' ? 1 : 0,
+            invitationNum: parseFloat(configs['invite_unlock_threshold'] || '10'),
+            // 动态业务配置
+            starThresholds: configs['star_thresholds'] || '{}',
+            starPriceLimits: configs['star_price_limits'] || '{}',
+            firstAccountVipDays: parseFloat(configs['first_account_vip_days'] || '7'),
+            passwordCheckEnabled: configs['password_check_enabled'] === 'true',
+            // 邀请奖励配置
+            inviteRewardAmount: parseFloat(configs['referral_reward_per_order'] || '1'),
+            inviteMaxOrders: parseFloat(configs['referral_max_count'] || '5'),
+            inviteExpiryDays: parseFloat(configs['referral_active_days'] || '30'),
+        };
+
+        return {
+            success: true,
+            data,
         };
     }
 }

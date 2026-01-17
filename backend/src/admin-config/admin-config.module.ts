@@ -1,7 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AdminConfigService } from './admin-config.service';
-import { AdminConfigController, AdminConfigPublicController } from './admin-config.controller';
+import { AdminConfigController, AdminConfigPublicController, SystemConfigPublicController } from './admin-config.controller';
 import { SystemConfig } from './config.entity';
 import { CommissionRate } from './commission-rate.entity';
 import { CommissionRateService } from './commission-rate.service';
@@ -41,6 +41,7 @@ import { TablePreferencesController } from './table-preferences.controller';
     controllers: [
         AdminConfigController,
         AdminConfigPublicController,
+        SystemConfigPublicController,
         CommissionRateController,
         PlatformController,
         PlatformPublicController,
