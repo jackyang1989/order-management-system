@@ -162,8 +162,8 @@ export default function LoginPage() {
 
                 <form onSubmit={handleLogin} className="space-y-6">
                     <Input
-                        label="手机号"
-                        placeholder="请输入手机号"
+                        label="手机号/用户ID"
+                        placeholder="请输入手机号或用户ID（如U10001）"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                     />

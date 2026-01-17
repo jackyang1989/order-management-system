@@ -19,7 +19,6 @@ import { useTablePreferences } from '../../../hooks/useTablePreferences';
 interface User {
     id: string;
     userNo?: string;
-    username: string;
     phone: string;
     wechat?: string;
     balance: number;
@@ -50,13 +49,12 @@ interface User {
 
 interface BalanceModalData {
     userId: string;
-    username: string;
+    userNo: string;
     type: 'balance' | 'silver';
     action: 'add' | 'deduct';
 }
 
 interface AddUserModalData {
-    username: string;
     password: string;
     confirmPassword: string;
     phone: string;
@@ -97,7 +95,7 @@ export default function AdminUsersPage() {
 
     // 默认列配置
     const defaultColumns: ColumnConfig[] = useMemo(() => [
-        { key: 'username', visible: true, width: 120, order: 0 },
+        { key: 'userNo', visible: true, width: 120, order: 0 },
         { key: 'phone', visible: true, width: 120, order: 1 },
         { key: 'wechat', visible: true, width: 100, order: 2 },
         { key: 'verifyStatus', visible: true, width: 80, order: 3 },
@@ -118,7 +116,7 @@ export default function AdminUsersPage() {
 
     // 列元信息 (用于列设置面板)
     const columnMeta: ColumnMeta[] = useMemo(() => [
-        { key: 'username', title: '用户名' },
+        { key: 'userNo', title: '用户ID' },
         { key: 'phone', title: '手机号' },
         { key: 'wechat', title: '微信号' },
         { key: 'verifyStatus', title: '实名状态' },
@@ -133,12 +131,12 @@ export default function AdminUsersPage() {
 
     const [balanceModal, setBalanceModal] = useState<BalanceModalData | null>(null);
     const [detailModal, setDetailModal] = useState<User | null>(null);
-    const [banModal, setBanModal] = useState<{ userId: string; username: string } | null>(null);
-    const [noteModal, setNoteModal] = useState<{ userId: string; username: string; currentNote: string } | null>(null);
-    const [passwordModal, setPasswordModal] = useState<{ userId: string; username: string } | null>(null);
+    const [banModal, setBanModal] = useState<{ userId: string; userNo: string } | null>(null);
+    const [noteModal, setNoteModal] = useState<{ userId: string; userNo: string; currentNote: string } | null>(null);
+    const [passwordModal, setPasswordModal] = useState<{ userId: string; userNo: string } | null>(null);
     const [addUserModal, setAddUserModal] = useState(false);
     const [addUserForm, setAddUserForm] = useState<AddUserModalData>({
-        username: '', password: '', confirmPassword: '', phone: '', wechat: '',
+        password: '', confirmPassword: '', phone: '', wechat: '',
         balance: '', silver: '', note: ''
     });
     const [addUserLoading, setAddUserLoading] = useState(false);
@@ -154,7 +152,6 @@ export default function AdminUsersPage() {
 
     // 编辑资料表单状态
     const [editForm, setEditForm] = useState<{
-        username: string;
         phone: string;
         wechat: string;
         realName: string;
@@ -164,7 +161,7 @@ export default function AdminUsersPage() {
         note: string;
         verifyStatus: number;
         canReferFriends: boolean;
-    }>({ username: '', phone: '', wechat: '', realName: '', balance: '0', silver: '0', mcTaskNum: '0', note: '', verifyStatus: 0, canReferFriends: true });
+    }>({ phone: '', wechat: '', realName: '', balance: '0', silver: '0', mcTaskNum: '0', note: '', verifyStatus: 0, canReferFriends: true });
 
     useEffect(() => {
         loadUsers();
@@ -202,7 +199,6 @@ export default function AdminUsersPage() {
 
     const openEditModal = (user: User) => {
         setEditForm({
-            username: user.username,
             phone: user.phone,
             wechat: user.wechat || '',
             realName: user.realName || '',
@@ -227,7 +223,6 @@ export default function AdminUsersPage() {
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    username: editForm.username,
                     phone: editForm.phone,
                     wechat: editForm.wechat,
                     realName: editForm.realName,
@@ -412,8 +407,8 @@ export default function AdminUsersPage() {
     };
 
     const handleAddUser = async () => {
-        if (!addUserForm.username || !addUserForm.password || !addUserForm.phone) {
-            toastError('请填写用户名、密码和手机号');
+        if (!addUserForm.password || !addUserForm.phone) {
+            toastError('请填写密码和手机号');
             return;
         }
         if (addUserForm.password.length < 6) {
@@ -428,7 +423,6 @@ export default function AdminUsersPage() {
         setAddUserLoading(true);
         try {
             const payload: any = {
-                username: addUserForm.username,
                 password: addUserForm.password,
                 phone: addUserForm.phone,
                 wechat: addUserForm.wechat || undefined,
@@ -449,7 +443,7 @@ export default function AdminUsersPage() {
                 toastSuccess('买手创建成功');
                 setAddUserModal(false);
                 setAddUserForm({
-                    username: '', password: '', confirmPassword: '', phone: '', wechat: '',
+                    password: '', confirmPassword: '', phone: '', wechat: '',
                     balance: '', silver: '', note: ''
                 });
                 loadUsers();
@@ -478,10 +472,10 @@ export default function AdminUsersPage() {
             const json = await res.json();
             if (json.success && json.data) {
                 const exportData = json.data.data || json.data;
-                const headers = ['ID', '用户名', '手机号', '微信号', '本金余额', '银锭余额', '实名状态', '状态', '注册时间'];
+                const headers = ['ID', '用户ID', '手机号', '微信号', '本金余额', '银锭余额', '实名状态', '状态', '注册时间'];
                 const rows = exportData.map((item: any) => [
                     item['ID'] || item.id || '',
-                    item['用户名'] || item.username || '',
+                    item['用户编号'] || item.userNo || '',
                     item['手机号'] || item.phone || '',
                     item['微信号'] || item.wechat || '',
                     item['本金余额'] || item.balance || 0,
@@ -509,22 +503,22 @@ export default function AdminUsersPage() {
 
     const columns: EnhancedColumn<User>[] = [
         {
-            key: 'username',
-            title: '用户名',
+            key: 'userNo',
+            title: '用户ID',
             defaultWidth: 120,
             minWidth: 80,
             sortable: true,
             render: (row) => (
                 <div>
                     <div className="flex items-center gap-1.5">
-                        <span className="text-sm font-medium text-[#374151]">{row.username}</span>
+                        <span className="text-sm font-medium text-[#374151]">{row.userNo}</span>
 
                         {/* 备注图标按钮 */}
                         <div className="relative inline-flex items-center">
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    setNoteModal({ userId: row.id, username: row.username, currentNote: row.note || '' });
+                                    setNoteModal({ userId: row.id, userNo: row.userNo || '', currentNote: row.note || '' });
                                     setNoteText(row.note || '');
                                 }}
                                 onMouseEnter={(e) => {
@@ -691,7 +685,7 @@ export default function AdminUsersPage() {
             minWidth: 200,
             render: (row) => (
                 <div className="grid grid-cols-4 gap-1 w-fit mx-auto">
-                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => setBalanceModal({ userId: row.id, username: row.username, type: 'silver', action: 'add' })}>
+                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => setBalanceModal({ userId: row.id, userNo: row.userNo || '', type: 'silver', action: 'add' })}>
                         银锭
                     </button>
                     <button className="rounded-full border border-success-300 bg-white px-3 py-1 text-xs text-success-600 hover:bg-success-50 transition-colors" onClick={() => window.location.href = `/admin/users/${row.id}/deposit`}>
@@ -703,7 +697,7 @@ export default function AdminUsersPage() {
                     <button className="rounded-full border border-primary-300 bg-white px-3 py-1 text-xs text-primary-600 hover:bg-primary-50 transition-colors" onClick={() => openEditModal(row)}>
                         编辑
                     </button>
-                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => setPasswordModal({ userId: row.id, username: row.username })}>
+                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => setPasswordModal({ userId: row.id, userNo: row.userNo || '' })}>
                         改密码
                     </button>
                     <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => window.location.href = `/admin/users/${row.id}/messages`}>
@@ -717,7 +711,7 @@ export default function AdminUsersPage() {
                             解封
                         </button>
                     ) : (
-                        <button className="rounded-full border border-red-300 bg-white px-3 py-1 text-xs text-red-500 hover:bg-red-50 transition-colors" onClick={() => setBanModal({ userId: row.id, username: row.username })}>
+                        <button className="rounded-full border border-red-300 bg-white px-3 py-1 text-xs text-red-500 hover:bg-red-50 transition-colors" onClick={() => setBanModal({ userId: row.id, userNo: row.userNo || '' })}>
                             封禁
                         </button>
                     )}
@@ -821,7 +815,7 @@ export default function AdminUsersPage() {
 
             {/* 充值/扣款弹窗 */}
             <Modal
-                title={`${balanceModal?.action === 'add' ? '💰 充值' : '💸 扣款'} - ${balanceModal?.username}`}
+                title={`${balanceModal?.action === 'add' ? '💰 充值' : '💸 扣款'} - ${balanceModal?.userNo}`}
                 open={!!balanceModal}
                 onClose={() => { setBalanceModal(null); setBalanceAmount(''); setBalanceReason(''); }}
             >
@@ -866,7 +860,7 @@ export default function AdminUsersPage() {
 
             {/* 封禁弹窗 */}
             <Modal
-                title={`🚫 封禁用户 - ${banModal?.username}`}
+                title={`🚫 封禁用户 - ${banModal?.userNo}`}
                 open={!!banModal}
                 onClose={() => { setBanModal(null); setBanReasonText(''); }}
             >
@@ -909,15 +903,6 @@ export default function AdminUsersPage() {
                             <table className="w-full text-sm">
                                 <tbody>
                                     <tr className="border-b border-[#e5e7eb]">
-                                        <td className="w-[100px] bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">用户名</td>
-                                        <td className="px-3 py-2">
-                                            <input
-                                                type="text"
-                                                value={editForm.username}
-                                                readOnly
-                                                className="w-full rounded border border-[#e5e7eb] bg-[#f9fafb] px-2 py-1.5 text-sm"
-                                            />
-                                        </td>
                                         <td className="w-[100px] bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">手机号</td>
                                         <td className="px-3 py-2">
                                             <input
@@ -1039,7 +1024,7 @@ export default function AdminUsersPage() {
 
             {/* 备注弹窗 */}
             <Modal
-                title={`备注 - ${noteModal?.username}`}
+                title={`备注 - ${noteModal?.userNo}`}
                 open={!!noteModal}
                 onClose={() => { setNoteModal(null); setNoteText(''); }}
             >
@@ -1067,7 +1052,7 @@ export default function AdminUsersPage() {
 
             {/* 修改密码弹窗 */}
             <Modal
-                title={`修改密码 - ${passwordModal?.username}`}
+                title={`修改密码 - ${passwordModal?.userNo}`}
                 open={!!passwordModal}
                 onClose={() => { setPasswordModal(null); setNewPassword(''); setConfirmPassword(''); }}
             >
@@ -1101,15 +1086,9 @@ export default function AdminUsersPage() {
             <Modal
                 title="添加买手"
                 open={addUserModal}
-                onClose={() => { setAddUserModal(false); setAddUserForm({ username: '', password: '', confirmPassword: '', phone: '', wechat: '', balance: '', silver: '', note: '' }); }}
+                onClose={() => { setAddUserModal(false); setAddUserForm({ password: '', confirmPassword: '', phone: '', wechat: '', balance: '', silver: '', note: '' }); }}
             >
                 <div className="space-y-4">
-                    <Input
-                        label="用户名 *"
-                        placeholder="请输入用户名"
-                        value={addUserForm.username}
-                        onChange={(e) => setAddUserForm({ ...addUserForm, username: e.target.value })}
-                    />
                     <Input
                         label="密码 *"
                         type="password"
@@ -1163,7 +1142,7 @@ export default function AdminUsersPage() {
                         />
                     </div>
                     <div className="flex justify-end gap-3 pt-4">
-                        <Button variant="secondary" onClick={() => { setAddUserModal(false); setAddUserForm({ username: '', password: '', confirmPassword: '', phone: '', wechat: '', balance: '', silver: '', note: '' }); }}>
+                        <Button variant="secondary" onClick={() => { setAddUserModal(false); setAddUserForm({ password: '', confirmPassword: '', phone: '', wechat: '', balance: '', silver: '', note: '' }); }}>
                             取消
                         </Button>
                         <Button loading={addUserLoading} onClick={handleAddUser}>

@@ -46,10 +46,10 @@ export class MerchantsService {
 
     const qb = this.merchantsRepository.createQueryBuilder('m');
 
-    // Keyword search (username, phone, merchantNo)
+    // Keyword search (phone, merchantNo)
     if (query.keyword) {
       qb.andWhere(
-        '(m.username LIKE :keyword OR m.phone LIKE :keyword OR m.merchantNo LIKE :keyword)',
+        '(m.phone LIKE :keyword OR m.merchantNo LIKE :keyword)',
         { keyword: `%${query.keyword}%` },
       );
     }
@@ -95,10 +95,6 @@ export class MerchantsService {
     return merchant ? this.sanitize(merchant) : null;
   }
 
-  async findByUsername(username: string): Promise<Merchant | null> {
-    return this.merchantsRepository.findOne({ where: { username } });
-  }
-
   async findByPhone(phone: string): Promise<Merchant | null> {
     return this.merchantsRepository.findOne({ where: { phone } });
   }
@@ -116,12 +112,6 @@ export class MerchantsService {
     const isEnabled = this.adminConfigService.getBooleanValue('merchant_registration_enabled', true);
     if (!isEnabled) {
       throw new ForbiddenException('商家注册功能已关闭');
-    }
-
-    // 检查用户名是否已存在
-    const existingUsername = await this.findByUsername(dto.username);
-    if (existingUsername) {
-      throw new ConflictException('用户名已存在');
     }
 
     // 检查手机号是否已存在
@@ -148,7 +138,6 @@ export class MerchantsService {
     const inviteCode = this.generateInviteCode();
 
     const merchant = this.merchantsRepository.create({
-      username: dto.username,
       password: hashedPassword,
       phone: dto.phone,
       wechat: dto.wechat || '',
@@ -422,7 +411,7 @@ export class MerchantsService {
     };
     records: Array<{
       id: string;
-      username: string;
+      merchantNo: string;
       registerTime: string;
       status: 'active' | 'inactive';
       totalOrders: number;
@@ -467,7 +456,7 @@ export class MerchantsService {
 
     const records = referredMerchants.map(m => ({
       id: m.id,
-      username: m.username,
+      merchantNo: m.merchantNo,
       registerTime: m.createdAt.toISOString().split('T')[0],
       status: (m.status === MerchantStatus.APPROVED ? 'active' : 'inactive') as 'active' | 'inactive',
       totalOrders: 0,

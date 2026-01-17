@@ -81,7 +81,7 @@ export default function ProfilePage() {
                             {profile?.avatar ? (
                                 <img
                                     src={profile.avatar}
-                                    alt={profile.username || '用户头像'}
+                                    alt={profile.userNo || '用户头像'}
                                     className="h-full w-full object-cover"
                                     onError={(e) => {
                                         // 如果图片加载失败，显示默认头像
@@ -99,7 +99,7 @@ export default function ProfilePage() {
                             </div>
                         </div>
                         <div className="flex-1">
-                            <h2 className="text-2xl font-black text-slate-900">{profile?.username || '用户'}</h2>
+                            <h2 className="text-2xl font-black text-slate-900">{profile?.userNo || '用户'}</h2>
                             <p className="mt-0.5 text-sm font-medium text-slate-400">{profile?.phone}</p>
                             <div className="mt-3 flex flex-wrap gap-2">
                                 <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-[10px] font-bold text-primary-600">

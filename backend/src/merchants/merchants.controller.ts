@@ -39,7 +39,7 @@ export class MerchantsController {
     const token = this.jwtService.sign({
       sub: merchant.id, // 添加 sub 字段，确保 userId 正确
       merchantId: merchant.id,
-      username: merchant.username,
+      merchantNo: merchant.merchantNo,
       role: 'merchant',
     });
 
@@ -74,9 +74,17 @@ export class MerchantsController {
     @Body() dto: MerchantLoginDto,
     @Response({ passthrough: true }) res: ExpressResponse,
   ) {
-    const merchant = await this.merchantsService.findByUsername(dto.username);
+    // 支持手机号或 merchantNo 登录
+    let merchant = null;
+    if (dto.phone) {
+      merchant = await this.merchantsService.findByPhone(dto.phone);
+    }
+    if (!merchant && dto.merchantNo) {
+      merchant = await this.merchantsService.findByMerchantNo(dto.merchantNo);
+    }
+
     if (!merchant) {
-      throw new UnauthorizedException('用户名或密码错误');
+      throw new UnauthorizedException('手机号/商户ID或密码错误');
     }
 
     const isValid = await this.merchantsService.validatePassword(
@@ -84,13 +92,13 @@ export class MerchantsController {
       dto.password,
     );
     if (!isValid) {
-      throw new UnauthorizedException('用户名或密码错误');
+      throw new UnauthorizedException('手机号/商户ID或密码错误');
     }
 
     const token = this.jwtService.sign({
       sub: merchant.id, // 添加 sub 字段，确保 userId 正确
       merchantId: merchant.id,
-      username: merchant.username,
+      merchantNo: merchant.merchantNo,
       role: 'merchant',
     });
 

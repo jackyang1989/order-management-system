@@ -23,9 +23,6 @@ export class Merchant {
   @Column({ unique: true, nullable: true })
   merchantNo: string; // 商家编号 M10001
 
-  @Column({ unique: true })
-  username: string;
-
   @Column()
   password: string;
 
@@ -100,10 +97,6 @@ export class Merchant {
 export class CreateMerchantDto {
   @IsString()
   @IsNotEmpty()
-  username: string;
-
-  @IsString()
-  @IsNotEmpty()
   password: string;
 
   @IsString()
@@ -134,8 +127,12 @@ export class CreateMerchantDto {
 
 export class MerchantLoginDto {
   @IsString()
-  @IsNotEmpty()
-  username: string;
+  @IsOptional()
+  merchantNo?: string;
+
+  @IsString()
+  @IsOptional()
+  phone?: string;
 
   @IsString()
   @IsNotEmpty()
