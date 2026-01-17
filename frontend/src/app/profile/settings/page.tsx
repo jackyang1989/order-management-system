@@ -67,8 +67,15 @@ export default function ProfileSettingsPage() {
     const loadUserInfo = async () => {
         try {
             const data = await fetchUserProfile();
+            console.log('[Settings] Loaded user data:', data);
             if (data) {
                 setUserInfo({
+                    userNo: data.userNo,
+                    mobile: data.phone,
+                    wechat: data.wechat || '',
+                    avatar: data.avatar || ''
+                });
+                console.log('[Settings] Set userInfo:', {
                     userNo: data.userNo,
                     mobile: data.phone,
                     wechat: data.wechat || '',

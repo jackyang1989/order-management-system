@@ -518,7 +518,7 @@ export interface UserProfileStats {
 
 export interface UserProfile {
     id: string;
-    username: string;
+    userNo: string;
     phone: string;
     wechat?: string;            // 微信号
     avatar?: string;            // 头像

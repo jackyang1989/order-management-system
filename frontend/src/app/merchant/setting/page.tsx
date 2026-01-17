@@ -299,14 +299,14 @@ export default function MerchantSettingPage() {
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900">{profile.merchantNo || '商家'}</h3>
-                                <p className="text-sm font-medium text-slate-400">商家ID: {profile.merchantNo || '暂无编号'}</p>
+                                <p className="text-sm font-medium text-slate-400">商户ID: {profile.merchantNo || '暂无编号'}</p>
                             </div>
                         </div>
 
                         {/* Form Fields */}
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div>
-                                <label className="mb-2 block text-xs font-bold uppercase text-slate-400">商家ID</label>
+                                <label className="mb-2 block text-xs font-bold uppercase text-slate-400">商户ID</label>
                                 <Input disabled value={formData.merchantNo || '暂无编号'} className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 font-bold text-slate-500" />
                             </div>
                             <div>
