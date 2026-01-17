@@ -4,7 +4,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSocket, ChatMessage, Visitor } from '@/hooks/useSocket';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -108,10 +107,10 @@ export default function AgentChatPage() {
     return (
         <div className="flex h-[calc(100vh-140px)] gap-6">
             {/* Left: Visitor List */}
-            <Card className="w-80 flex-shrink-0 overflow-hidden border-none shadow-sm">
-                <CardHeader className="bg-white px-4 py-3 border-b">
-                    <CardTitle className="text-base">在线访客 ({onlineVisitors.length})</CardTitle>
-                </CardHeader>
+            <div className="w-80 flex-shrink-0 overflow-hidden border-none shadow-sm rounded-[24px] bg-white">
+                <div className="bg-white px-4 py-3 border-b">
+                    <div className="text-base font-bold">在线访客 ({onlineVisitors.length})</div>
+                </div>
                 <div className="h-full overflow-y-auto bg-white">
                     {onlineVisitors.map((visitor) => (
                         <div
@@ -149,23 +148,23 @@ export default function AgentChatPage() {
                         </div>
                     )}
                 </div>
-            </Card>
+            </div>
 
             {/* Right: Chat Area */}
-            <Card className="flex flex-1 flex-col overflow-hidden border-none shadow-sm">
+            <div className="flex flex-1 flex-col overflow-hidden border-none shadow-sm rounded-[24px] bg-white">
                 {selectedVisitorId ? (
                     <>
-                        <CardHeader className="bg-white px-6 py-4 border-b flex flex-row justify-between items-center">
+                        <div className="bg-white px-6 py-4 border-b flex flex-row justify-between items-center">
                             <div>
-                                <CardTitle className="text-base flex items-center gap-2">
+                                <div className="text-base font-bold flex items-center gap-2">
                                     正在与 {onlineVisitors.find(v => v.visitorId === selectedVisitorId)?.name || 'Guest'} 对话
                                     <span className="inline-block h-2 w-2 rounded-full bg-green-500"></span>
-                                </CardTitle>
+                                </div>
                                 <p className="text-xs text-slate-400 mt-1">
                                     ID: {selectedVisitorId}
                                 </p>
                             </div>
-                        </CardHeader>
+                        </div>
                         <div className="flex-1 overflow-y-auto bg-slate-50 p-6 custom-scrollbar">
                             {/* Messages */}
                             {visitorMessages[selectedVisitorId]?.map((msg, idx) => (
@@ -208,7 +207,7 @@ export default function AgentChatPage() {
                         <p>请从左侧列表选择一位访客开始对话</p>
                     </div>
                 )}
-            </Card>
+            </div>
         </div>
     );
 }
