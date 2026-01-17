@@ -135,6 +135,10 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   lastTaskAt: Date; // 最后完成任务时间（用于30天活跃熔断判定）
 
+  // 推荐好友权限
+  @Column({ type: 'boolean', default: true })
+  canReferFriends: boolean; // 是否允许推荐好友
+
   // ============ P1-1: VIP过期检查相关 ============
   @Column({ type: 'varchar', length: 10, nullable: true })
   lastVipCheckAt: string; // 最后VIP检查日期 (YYYY-MM-DD)，用于避免每天重复降级

@@ -47,6 +47,7 @@ interface User {
     accountCount?: number;
     referralCount?: number;
     experience?: number;
+    canReferFriends?: boolean; // 推荐好友权限
 }
 
 interface BalanceModalData {
@@ -370,6 +371,31 @@ export default function AdminUsersPage() {
                 toastSuccess('备注已更新');
                 setNoteModal(null);
                 setNoteText('');
+                loadUsers();
+            } else {
+                toastError(json.message || '操作失败');
+            }
+        } catch (e) {
+            toastError('操作失败');
+        }
+    };
+
+    const handleToggleReferPermission = async (userId: string, currentPermission: boolean) => {
+        const action = currentPermission ? '关闭' : '开启';
+        if (!confirm(`确定要${action}该买手的推荐好友权限吗？`)) return;
+        const token = localStorage.getItem('adminToken');
+        try {
+            const res = await fetch(`${BASE_URL}/admin/users/${userId}/refer-permission`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ canReferFriends: !currentPermission })
+            });
+            const json = await res.json();
+            if (json.success) {
+                toastSuccess(json.message || '权限已更新');
                 loadUsers();
             } else {
                 toastError(json.message || '操作失败');
@@ -736,6 +762,18 @@ export default function AdminUsersPage() {
                     </button>
                     <button className="rounded-full border border-amber-300 bg-white px-3 py-1 text-xs text-amber-600 hover:bg-amber-50 transition-colors" onClick={() => window.location.href = `/admin/finance/bank?userId=${row.userNo || row.id}`}>
                         银行卡
+                    </button>
+                    <button
+                        className={cn(
+                            "rounded-full border px-3 py-1 text-xs transition-colors",
+                            row.canReferFriends
+                                ? "border-green-300 bg-white text-green-600 hover:bg-green-50"
+                                : "border-gray-300 bg-white text-gray-500 hover:bg-gray-50"
+                        )}
+                        onClick={() => handleToggleReferPermission(row.id, row.canReferFriends || false)}
+                        title={row.canReferFriends ? "点击关闭推荐权限" : "点击开启推荐权限"}
+                    >
+                        {row.canReferFriends ? '✓推荐' : '✗推荐'}
                     </button>
                     {row.isBanned ? (
                         <button className="rounded-full border border-green-300 bg-white px-3 py-1 text-xs text-green-600 hover:bg-green-50 transition-colors" onClick={() => handleUnban(row.id)}>

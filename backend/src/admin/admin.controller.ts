@@ -67,6 +67,22 @@ export class AdminController {
     return { success: true, message: '状态更新成功', data: user };
   }
 
+  @Put('users/:id/refer-permission')
+  async updateUserReferPermission(
+    @Param('id') id: string,
+    @Body('canReferFriends') canReferFriends: boolean,
+  ) {
+    const user = await this.usersService.updateReferPermission(id, canReferFriends);
+    if (!user) {
+      return { success: false, message: '用户不存在' };
+    }
+    return {
+      success: true,
+      message: `已${canReferFriends ? '开启' : '关闭'}推荐权限`,
+      data: user,
+    };
+  }
+
   @Post('users')
   async createUser(@Body() body: {
     username: string;

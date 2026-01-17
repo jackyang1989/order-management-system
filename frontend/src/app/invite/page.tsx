@@ -40,6 +40,7 @@ export default function InvitePage() {
     const [config, setConfig] = useState<InviteConfig | null>(null);
     const [merchantEligibility, setMerchantEligibility] = useState<MerchantInviteEligibility | null>(null);
     const [inviteEligibility, setInviteEligibility] = useState<InviteEligibility | null>(null);
+    const [canRefer, setCanRefer] = useState<boolean>(true); // 推荐权限
 
     // 日期筛选
     const [startDate, setStartDate] = useState('');
@@ -56,6 +57,23 @@ export default function InvitePage() {
             const user = getCurrentUser();
             if (user?.invitationCode) setInviteCode(user.invitationCode);
 
+            // 检查推荐权限
+            const token = localStorage.getItem('token');
+            const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
+            try {
+                const referPermissionRes = await fetch(`${BASE_URL}/buyer-accounts/refer-permission/check`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (referPermissionRes.ok) {
+                    const referPermissionData = await referPermissionRes.json();
+                    if (referPermissionData.success) {
+                        setCanRefer(referPermissionData.data.canRefer);
+                    }
+                }
+            } catch (e) {
+                console.error('Check refer permission error:', e);
+            }
+
             const [statsData, recordsData, configData, eligibilityData, inviteEligibilityData] = await Promise.all([
                 fetchInviteStats(),
                 fetchInviteRecords(),
@@ -71,8 +89,6 @@ export default function InvitePage() {
 
             // Load recommended tasks
             try {
-                const token = localStorage.getItem('token');
-                const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
                 const response = await fetch(`${BASE_URL}/invite/tasks`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (response.ok) {
                     const result = await response.json();
@@ -192,6 +208,24 @@ export default function InvitePage() {
                 <div className="rounded-[24px] bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                     {activeTab === 'invite' && (
                         <div className="space-y-6">
+                            {/* 权限关闭提示 */}
+                            {!canRefer && (
+                                <div className="rounded-[20px] bg-red-50 border border-red-200 p-6 text-center">
+                                    <div className="text-5xl mb-4">🚫</div>
+                                    <div className="text-lg font-bold text-red-700 mb-2">
+                                        抱歉，邀请功能暂时关闭
+                                    </div>
+                                    <div className="text-sm text-red-600 mb-4">
+                                        您的买号推荐权限已被管理员关闭
+                                    </div>
+                                    <div className="text-xs text-red-500">
+                                        如需帮助，请联系管理员
+                                    </div>
+                                </div>
+                            )}
+
+                            {canRefer && (
+                                <>
                             <div className="text-sm font-medium text-slate-600 leading-relaxed">
                                 复制您的 <span className="font-black text-primary-600">专属邀请链接</span>，邀请好友成功注册后，好友完成任务您即可获得邀请奖励！
                             </div>
@@ -285,6 +319,8 @@ export default function InvitePage() {
                                 </div>
                                 <div className="mt-2 text-xs font-medium text-slate-400">注：奖励由平台承担，不会扣除好友的任务佣金</div>
                             </div>
+                            </>
+                            )}
                         </div>
                     )}
 

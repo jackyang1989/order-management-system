@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '../lib/utils';
@@ -61,6 +61,33 @@ const navItems: NavItem[] = [
 export default function BottomNav() {
     const pathname = usePathname();
     const [activeNav, setActiveNav] = useState<string | null>(null);
+    const [canRefer, setCanRefer] = useState<boolean>(true);
+
+    useEffect(() => {
+        // 检查推荐权限
+        const checkReferPermission = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+
+                const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
+                const response = await fetch(`${BASE_URL}/buyer-accounts/refer-permission/check`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        setCanRefer(data.data.canRefer);
+                    }
+                }
+            } catch (error) {
+                console.error('Check refer permission error:', error);
+            }
+        };
+
+        checkReferPermission();
+    }, []);
 
     const toggleNav = (key: string) => {
         setActiveNav(activeNav === key ? null : key);
@@ -71,9 +98,17 @@ export default function BottomNav() {
         return item.subItems.some(sub => pathname.startsWith(sub.href.split('?')[0]));
     };
 
+    // 根据权限过滤导航项
+    const filteredNavItems = navItems.filter(item => {
+        if (item.key === 'invite' && !canRefer) {
+            return false;
+        }
+        return true;
+    });
+
     return (
         <div className="fixed inset-x-0 bottom-0 z-50 mx-auto flex h-16 w-full max-w-[515px] border-x border-t border-[#e5e7eb] bg-white">
-            {navItems.map((item) => (
+            {filteredNavItems.map((item) => (
                 <div key={item.key} className="relative flex-1">
                     {/* Popup Menu */}
                     {activeNav === item.key && item.subItems && (

@@ -642,23 +642,4 @@ export class BuyerAccountsService {
     const filtered = data.filter((a) => a.pendingAddressChange);
     return { data: filtered, total: filtered.length };
   }
-
-  /**
-   * 管理员更新买号的推荐好友权限
-   */
-  async updateReferPermission(
-    buyerAccountId: string,
-    canReferFriends: boolean,
-  ): Promise<BuyerAccount | null> {
-    const account = await this.buyerAccountsRepository.findOne({
-      where: { id: buyerAccountId },
-    });
-
-    if (!account) {
-      return null;
-    }
-
-    account.canReferFriends = canReferFriends;
-    return this.buyerAccountsRepository.save(account);
-  }
 }
