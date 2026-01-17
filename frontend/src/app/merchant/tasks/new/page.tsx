@@ -11,7 +11,7 @@ import { cn } from '../../../../lib/utils';
 import { Modal } from '../../../../components/ui/modal';
 import { Button } from '../../../../components/ui/button';
 
-interface MerchantProfile { balance: number; silver: number; username: string; }
+interface MerchantProfile { balance: number; silver: number; merchantNo: string; }
 
 export default function NewTaskPage() {
     const router = useRouter();

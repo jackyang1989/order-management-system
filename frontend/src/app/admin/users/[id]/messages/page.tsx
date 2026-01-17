@@ -17,7 +17,7 @@ interface Message {
 
 interface UserInfo {
     id: string;
-    username: string;
+    userNo: string;
     phone: string;
 }
 
@@ -104,7 +104,7 @@ export default function UserMessagesPage() {
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-lg font-semibold">
-                            用户消息 - {user?.username || '加载中...'}
+                            用户消息 - {user?.userNo || '加载中...'}
                         </h2>
                         <p className="text-sm text-[#6b7280]">
                             用户ID: {userId} | 手机: {user?.phone || '-'}

@@ -17,7 +17,7 @@ interface ReferralStats {
 
 interface ReferralRecord {
     id: string;
-    username: string;
+    merchantNo: string;
     registerTime: string;
     status: 'active' | 'inactive';
     totalOrders: number;

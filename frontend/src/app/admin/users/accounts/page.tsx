@@ -20,7 +20,7 @@ import Image from 'next/image';
 interface BuyerAccount {
     id: string;
     userId: string;
-    user?: { username: string; phone: string };
+    user?: { userNo: string; phone: string };
     platform: string;
     platformAccount: string;
     province?: string;
@@ -82,7 +82,7 @@ function AdminBuyerAccountsPageContent() {
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
-    const [userInfo, setUserInfo] = useState<{ username: string; phone: string; userNo?: string } | null>(null);
+    const [userInfo, setUserInfo] = useState<{ userNo: string; phone: string } | null>(null);
 
     // 筛选条件
     const [filterUsername, setFilterUsername] = useState<string>('');
@@ -107,7 +107,7 @@ function AdminBuyerAccountsPageContent() {
         { key: 'index', visible: true, width: 50, order: 0 },
         { key: 'platform', visible: true, width: 70, order: 1 },
         { key: 'platformAccount', visible: true, width: 120, order: 2 },
-        { key: 'username', visible: true, width: 80, order: 3 },
+        { key: 'userNo', visible: true, width: 80, order: 3 },
         { key: 'realName', visible: true, width: 80, order: 4 },
         { key: 'receiver', visible: true, width: 100, order: 5 },
         { key: 'address', visible: true, width: 150, order: 6 },
@@ -128,7 +128,7 @@ function AdminBuyerAccountsPageContent() {
         { key: 'index', title: '序号' },
         { key: 'platform', title: '平台' },
         { key: 'platformAccount', title: '平台账号' },
-        { key: 'username', title: '用户名' },
+        { key: 'userNo', title: '用户ID' },
         { key: 'realName', title: '实名姓名' },
         { key: 'receiver', title: '收货人' },
         { key: 'address', title: '收货地址' },
@@ -199,7 +199,7 @@ function AdminBuyerAccountsPageContent() {
             });
             const data = await res.json();
             if (data.success && data.data) {
-                setUserInfo({ username: data.data.username, phone: data.data.phone });
+                setUserInfo({ userNo: data.data.userNo, phone: data.data.phone });
             }
         } catch (error) {
             console.error('获取用户信息失败:', error);
@@ -397,10 +397,10 @@ function AdminBuyerAccountsPageContent() {
             render: (row) => <span className="font-medium text-primary-600">{row.platformAccount}</span>
         },
         {
-            key: 'username',
-            title: '用户名',
+            key: 'userNo',
+            title: '用户ID',
             defaultWidth: 80,
-            render: (row) => <span>{row.user?.username || '-'}</span>
+            render: (row) => <span>{row.user?.userNo || '-'}</span>
         },
         {
             key: 'realName',
@@ -519,7 +519,7 @@ function AdminBuyerAccountsPageContent() {
                         {userId && (
                             <span className="text-sm text-[#6b7280]">
                                 {userInfo ? (
-                                    <>用户ID: {userInfo.userNo || userInfo.username}</>
+                                    <>用户ID: {userInfo.userNo}</>
                                 ) : (
                                     <>用户ID: {userId}</>
                                 )}
@@ -663,7 +663,7 @@ function AdminBuyerAccountsPageContent() {
                         <div className="rounded bg-[#f9fafb] p-3">
                             <div className="grid grid-cols-2 gap-3 text-sm">
                                 <div><span className="text-[#9ca3af]">平台：</span><span className="font-medium">{editModal.platform}</span></div>
-                                <div><span className="text-[#9ca3af]">用户：</span>{editModal.user?.username || '-'}</div>
+                                <div><span className="text-[#9ca3af]">用户：</span>{editModal.user?.userNo || '-'}</div>
                             </div>
                         </div>
 

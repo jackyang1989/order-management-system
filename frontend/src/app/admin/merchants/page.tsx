@@ -97,7 +97,6 @@ export default function AdminMerchantsPage() {
     const [editReferrerId, setEditReferrerId] = useState('');
 
     // Add merchant form states
-    const [newUsername, setNewUsername] = useState('');
     const [newPhone, setNewPhone] = useState('');
     const [newMerchantPassword, setNewMerchantPassword] = useState('');
     const [newConfirmPassword, setNewConfirmPassword] = useState('');
@@ -234,7 +233,6 @@ export default function AdminMerchantsPage() {
     };
 
     const openAddMerchant = () => {
-        setNewUsername('');
         setNewPhone('');
         setNewMerchantPassword('');
         setNewConfirmPassword('');
@@ -327,8 +325,8 @@ export default function AdminMerchantsPage() {
     };
 
     const submitAddMerchant = async () => {
-        if (!newUsername.trim() || !newPhone.trim() || !newMerchantPassword.trim()) {
-            toastError('请填写用户名、手机号和密码');
+        if (!newPhone.trim() || !newMerchantPassword.trim()) {
+            toastError('请填写手机号和密码');
             return;
         }
         if (newMerchantPassword !== newConfirmPassword) {
@@ -337,7 +335,6 @@ export default function AdminMerchantsPage() {
         }
         try {
             const res = await adminService.createMerchant({
-                username: newUsername,
                 phone: newPhone,
                 password: newMerchantPassword,
                 wechat: newWechat || undefined,
@@ -375,7 +372,7 @@ export default function AdminMerchantsPage() {
             render: (row) => (
                 <div>
                     <div className="flex items-center gap-1.5">
-                        <span className="font-medium text-[#3b4559]">{row.username}</span>
+                        <span className="font-medium text-[#3b4559]">{row.merchantNo}</span>
 
                         {/* 备注图标按钮 */}
                         <div className="relative inline-flex items-center">
@@ -649,7 +646,7 @@ export default function AdminMerchantsPage() {
 
             {/* 调整余额弹窗 */}
             <Modal
-                title={`调整余额 - ${selectedMerchant?.username}`}
+                title={`调整余额 - ${selectedMerchant?.merchantNo}`}
                 open={activeModal === 'balance'}
                 onClose={() => setActiveModal(null)}
             >
@@ -702,7 +699,7 @@ export default function AdminMerchantsPage() {
 
             {/* 禁用弹窗 */}
             <Modal
-                title={`禁用商家 - ${selectedMerchant?.username}`}
+                title={`禁用商家 - ${selectedMerchant?.merchantNo}`}
                 open={activeModal === 'ban'}
                 onClose={() => setActiveModal(null)}
             >
@@ -730,7 +727,7 @@ export default function AdminMerchantsPage() {
 
             {/* 备注弹窗 */}
             <Modal
-                title={`备注 - ${selectedMerchant?.username}`}
+                title={`备注 - ${selectedMerchant?.merchantNo}`}
                 open={activeModal === 'note'}
                 onClose={() => setActiveModal(null)}
             >
@@ -758,7 +755,7 @@ export default function AdminMerchantsPage() {
 
             {/* 改密码弹窗 */}
             <Modal
-                title={`修改密码 - ${selectedMerchant?.username}`}
+                title={`修改密码 - ${selectedMerchant?.merchantNo}`}
                 open={activeModal === 'password'}
                 onClose={() => setActiveModal(null)}
             >
@@ -783,7 +780,7 @@ export default function AdminMerchantsPage() {
 
             {/* 发送消息弹窗 */}
             <Modal
-                title={`发送消息 - ${selectedMerchant?.username}`}
+                title={`发送消息 - ${selectedMerchant?.merchantNo}`}
                 open={activeModal === 'message'}
                 onClose={() => setActiveModal(null)}
             >
@@ -817,7 +814,7 @@ export default function AdminMerchantsPage() {
 
             {/* 编辑商家弹窗 */}
             <Modal
-                title={`编辑商家 - ${selectedMerchant?.username}`}
+                title={`编辑商家 - ${selectedMerchant?.merchantNo}`}
                 open={activeModal === 'edit'}
                 onClose={() => setActiveModal(null)}
                 className="max-w-lg"
@@ -825,7 +822,7 @@ export default function AdminMerchantsPage() {
                 <div className="space-y-4">
                     <div className="rounded-md border border-[#e5e7eb] bg-[#f9fafb] p-3">
                         <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div><span className="text-[#6b7280]">用户名:</span> {selectedMerchant?.username}</div>
+                            <div><span className="text-[#6b7280]">商家ID:</span> {selectedMerchant?.merchantNo}</div>
                             <div><span className="text-[#6b7280]">当前本金:</span> <span className="text-success-500">¥{Number(selectedMerchant?.balance || 0).toFixed(2)}</span></div>
                             <div><span className="text-[#6b7280]">当前银锭:</span> <span className="text-primary-600">{Number(selectedMerchant?.silver || 0).toFixed(2)}</span></div>
                         </div>

@@ -12,7 +12,7 @@ import { Select } from '../../../../components/ui/select';
 interface BalanceRecord {
     id: string;
     userId: string;
-    username: string;
+    merchantNo: string;
     userType: number;
     moneyType: number;
     changeType: string;
@@ -140,7 +140,7 @@ export default function AdminMerchantsBalancePage() {
                                     <tbody>
                                         {records.map(r => (
                                             <tr key={r.id} className="border-b border-[#f3f4f6]">
-                                                <td className="px-4 py-3.5 text-sm font-medium text-[#374151]">{r.username || '-'}</td>
+                                                <td className="px-4 py-3.5 text-sm font-medium text-[#374151]">{r.merchantNo || '-'}</td>
                                                 <td className="px-4 py-3.5 text-sm text-[#6b7280]">{changeTypeLabels[r.changeType] || r.changeType}</td>
                                                 <td className="px-4 py-3.5 text-center">
                                                     <Badge variant="soft" color={moneyTypeLabels[r.moneyType]?.color || 'slate'}>

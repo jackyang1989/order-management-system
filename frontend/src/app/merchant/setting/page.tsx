@@ -12,7 +12,6 @@ import Image from 'next/image';
 interface MerchantProfile {
     id: string;
     merchantNo?: string;
-    username: string;
     phone: string;
     email: string;
     avatar?: string;
@@ -20,11 +19,11 @@ interface MerchantProfile {
 }
 
 export default function MerchantSettingPage() {
-    const [profile, setProfile] = useState<MerchantProfile>({ id: '', username: '', phone: '', email: '' });
+    const [profile, setProfile] = useState<MerchantProfile>({ id: '', phone: '', email: '' });
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [formData, setFormData] = useState<MerchantProfile>({ id: '', username: '', phone: '', email: '' });
+    const [formData, setFormData] = useState<MerchantProfile>({ id: '', phone: '', email: '' });
 
     // Password Modal
     const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -77,11 +76,11 @@ export default function MerchantSettingPage() {
                 // Auto save the avatar update immediately
                 const token = localStorage.getItem('merchantToken');
                 // 只发送需要更新的字段，避免发送password等敏感字段
-                const { id, username, phone, email, wechat, merchantNo } = profile;
+                const { id, phone, email, wechat, merchantNo } = profile;
                 const updateRes = await fetch(`${BASE_URL}/merchant/profile`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ id, username, phone, email, wechat, merchantNo, avatar: newAvatar })
+                    body: JSON.stringify({ id, phone, email, wechat, merchantNo, avatar: newAvatar })
                 });
                 const updateJson = await updateRes.json();
                 if (updateJson.success) {
@@ -120,11 +119,11 @@ export default function MerchantSettingPage() {
         const token = localStorage.getItem('merchantToken');
         try {
             // 只发送允许更新的字段，确保不发送password
-            const { id, username, phone, email, avatar, wechat, merchantNo } = formData;
+            const { id, phone, email, avatar, wechat, merchantNo } = formData;
             const res = await fetch(`${BASE_URL}/merchant/profile`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id, username, phone, email, avatar, wechat, merchantNo })
+                body: JSON.stringify({ id, phone, email, avatar, wechat, merchantNo })
             });
             const json = await res.json();
             if (json.success) {
@@ -299,7 +298,7 @@ export default function MerchantSettingPage() {
                                 </label>
                             </div>
                             <div>
-                                <h3 className="text-lg font-bold text-slate-900">{profile.username}</h3>
+                                <h3 className="text-lg font-bold text-slate-900">{profile.merchantNo || '商家'}</h3>
                                 <p className="text-sm font-medium text-slate-400">商家ID: {profile.merchantNo || '暂无编号'}</p>
                             </div>
                         </div>
@@ -307,8 +306,8 @@ export default function MerchantSettingPage() {
                         {/* Form Fields */}
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div>
-                                <label className="mb-2 block text-xs font-bold uppercase text-slate-400">用户名</label>
-                                <Input disabled value={formData.username} className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 font-bold text-slate-500" />
+                                <label className="mb-2 block text-xs font-bold uppercase text-slate-400">商家ID</label>
+                                <Input disabled value={formData.merchantNo || '暂无编号'} className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-4 font-bold text-slate-500" />
                             </div>
                             <div>
                                 <label className="mb-2 block text-xs font-bold uppercase text-slate-400">手机号</label>

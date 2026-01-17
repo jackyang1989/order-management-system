@@ -26,7 +26,7 @@ interface BalanceRecord {
 
 interface MerchantInfo {
     id: string;
-    username: string;
+    merchantNo: string;
     phone: string;
     balance: number;
     silver: number;
@@ -144,7 +144,7 @@ function MerchantDepositPageContent() {
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-lg font-semibold">
-                            押金 - {merchant?.username || '加载中...'}
+                            押金 - {merchant?.merchantNo || '加载中...'}
                         </h2>
                         <p className="text-sm text-[#6b7280]">
                             手机: {merchant?.phone || '-'} | 本金余额: ¥{Number(merchant?.balance || 0).toFixed(2)} | 冻结: ¥{Number(merchant?.frozenBalance || 0).toFixed(2)} | 银锭: {Number(merchant?.silver || 0).toFixed(2)}
@@ -223,7 +223,7 @@ function MerchantDepositPageContent() {
                                     {records.map((r, index) => (
                                         <tr key={r.id} className="border-b border-[#f3f4f6]">
                                             <td className="px-4 py-3 text-center">{(page - 1) * 10 + index + 1}</td>
-                                            <td className="px-4 py-3 text-center">{merchant?.username || '-'}</td>
+                                            <td className="px-4 py-3 text-center">{merchant?.merchantNo || '-'}</td>
                                             <td className="px-4 py-3 text-center">{merchant?.phone || '-'}</td>
                                             <td className={cn(
                                                 'px-4 py-3 text-center font-medium',
@@ -273,7 +273,7 @@ function MerchantDepositPageContent() {
 
             {/* 充值/扣款弹窗 */}
             <Modal
-                title={`${adjustModal?.action === 'add' ? '充值' : '扣除'}${adjustModal?.type === 'balance' ? '本金' : '银锭'} - ${merchant?.username}`}
+                title={`${adjustModal?.action === 'add' ? '充值' : '扣除'}${adjustModal?.type === 'balance' ? '本金' : '银锭'} - ${merchant?.merchantNo}`}
                 open={!!adjustModal}
                 onClose={() => { setAdjustModal(null); setAdjustAmount(''); setAdjustReason(''); }}
             >

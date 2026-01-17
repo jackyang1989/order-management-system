@@ -27,7 +27,7 @@ interface BalanceRecord {
 
 interface UserInfo {
     id: string;
-    username: string;
+    userNo: string;
     phone: string;
     balance: number;
     silver: number;
@@ -144,7 +144,7 @@ function UserDepositPageContent() {
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-lg font-semibold">
-                            押金 - {user?.username || '加载中...'}
+                            押金 - {user?.userNo || '加载中...'}
                         </h2>
                         <p className="text-sm text-[#6b7280]">
                             手机: {user?.phone || '-'} | 本金余额: ¥{(user?.balance || 0).toFixed(2)} | 银锭: {(user?.silver || 0).toFixed(2)}
@@ -223,7 +223,7 @@ function UserDepositPageContent() {
                                     {records.map((r, index) => (
                                         <tr key={r.id} className="border-b border-[#f3f4f6]">
                                             <td className="px-4 py-3 text-center">{(page - 1) * 10 + index + 1}</td>
-                                            <td className="px-4 py-3 text-center">{user?.username || '-'}</td>
+                                            <td className="px-4 py-3 text-center">{user?.userNo || '-'}</td>
                                             <td className="px-4 py-3 text-center">{user?.phone || '-'}</td>
                                             <td className={cn(
                                                 'px-4 py-3 text-center font-medium',

@@ -7,7 +7,7 @@ import { formatDate } from '../../../lib/utils';
 import { Button } from '../../../components/ui/button';
 
 interface MerchantStats { balance: number; frozenBalance: number; totalTasks: number; activeTasks: number; completedOrders: number; }
-interface Merchant { id: string; username: string; phone: string; balance: number; frozenBalance: number; }
+interface Merchant { id: string; merchantNo: string; phone: string; balance: number; frozenBalance: number; }
 
 const colorMap: Record<string, { bg: string; text: string }> = {
     green: { bg: 'bg-emerald-50', text: 'text-emerald-600' },
@@ -75,7 +75,7 @@ export default function MerchantDashboard() {
             {/* Welcome Banner */}
             <div className="flex items-center justify-between overflow-hidden rounded-[24px] bg-white px-8 py-8 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                 <div>
-                    <h2 className="mb-1 text-2xl font-black text-slate-900">欢迎回来，{merchant?.username || '商家'}</h2>
+                    <h2 className="mb-1 text-2xl font-black text-slate-900">欢迎回来，{merchant?.merchantNo || '商家'}</h2>
                     <p className="text-[14px] font-medium text-slate-400">今天是 {formatDate(new Date())}，准备好处理新订单了吗？</p>
                 </div>
                 <Button

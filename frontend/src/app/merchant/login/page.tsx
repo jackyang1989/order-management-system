@@ -15,8 +15,8 @@ export default function MerchantLoginPage() {
     const [error, setError] = useState('');
     const [registrationEnabled, setRegistrationEnabled] = useState(true);
 
-    const [loginForm, setLoginForm] = useState({ username: '', password: '' });
-    const [registerForm, setRegisterForm] = useState({ username: '', password: '', confirmPassword: '', phone: '', invitationCode: '' });
+    const [loginForm, setLoginForm] = useState({ merchantNo: '', password: '' });
+    const [registerForm, setRegisterForm] = useState({ password: '', confirmPassword: '', phone: '', invitationCode: '' });
 
     useEffect(() => {
         // 检查注册配置
@@ -37,7 +37,7 @@ export default function MerchantLoginPage() {
     }, [isLogin]);
 
     const handleLogin = async () => {
-        if (!loginForm.username || !loginForm.password) { setError('请输入用户名和密码'); return; }
+        if (!loginForm.merchantNo || !loginForm.password) { setError('请输入手机号/商家ID和密码'); return; }
         setLoading(true); setError('');
         try {
             const response = await fetch(`${BASE_URL}/merchant/login`, {
@@ -56,7 +56,7 @@ export default function MerchantLoginPage() {
     };
 
     const handleRegister = async () => {
-        if (!registerForm.username || !registerForm.password || !registerForm.phone || !registerForm.invitationCode) { setError('请填写完整信息'); return; }
+        if (!registerForm.password || !registerForm.phone || !registerForm.invitationCode) { setError('请填写完整信息'); return; }
         if (registerForm.password !== registerForm.confirmPassword) { setError('两次密码不一致'); return; }
         setLoading(true); setError('');
         try {
@@ -64,7 +64,6 @@ export default function MerchantLoginPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    username: registerForm.username,
                     password: registerForm.password,
                     phone: registerForm.phone,
                     invitationCode: registerForm.invitationCode
@@ -137,9 +136,9 @@ export default function MerchantLoginPage() {
                         <div className="space-y-5">
                             <Input
                                 type="text"
-                                placeholder="用户名"
-                                value={loginForm.username}
-                                onChange={e => setLoginForm({ ...loginForm, username: e.target.value })}
+                                placeholder="手机号/商家ID（如M10001）"
+                                value={loginForm.merchantNo}
+                                onChange={e => setLoginForm({ ...loginForm, merchantNo: e.target.value })}
                                 className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-5 font-bold text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20"
                             />
                             <Input
@@ -163,13 +162,6 @@ export default function MerchantLoginPage() {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            <Input
-                                type="text"
-                                placeholder="用户名"
-                                value={registerForm.username}
-                                onChange={e => setRegisterForm({ ...registerForm, username: e.target.value })}
-                                className="h-12 w-full rounded-[16px] border-none bg-slate-50 px-5 font-bold text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20"
-                            />
                             <Input
                                 type="text"
                                 placeholder="手机号"

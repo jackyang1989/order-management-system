@@ -5,7 +5,7 @@ import { TaskFormData } from './types';
 import { cn } from '../../../../../lib/utils';
 import { Button } from '../../../../../components/ui/button';
 
-interface StepProps { data: TaskFormData; merchant: { balance: number; silver: number; username: string } | null; onPrev: () => void; onSubmit: () => void; loading: boolean; }
+interface StepProps { data: TaskFormData; merchant: { balance: number; silver: number; merchantNo: string } | null; onPrev: () => void; onSubmit: () => void; loading: boolean; }
 
 export default function Step3Payment({ data, merchant, onPrev, onSubmit, loading }: StepProps) {
     const f = (n: number | string | undefined | null): string => { const num = Number(n); return isNaN(num) ? '0.00' : num.toFixed(2); };
