@@ -739,7 +739,7 @@ export default function AdminUsersPage() {
                 </div>
                 <div className="flex flex-wrap items-center gap-3 pb-4">
                     <Input
-                        placeholder="用户名/手机号/微信号"
+                        placeholder="用户ID/手机号/微信号"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}

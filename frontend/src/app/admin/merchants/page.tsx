@@ -500,9 +500,6 @@ export default function AdminMerchantsPage() {
                 <div className="text-xs">
                     {row.referrerName ? (
                         <div className="text-[#374151]">{row.referrerName}</div>
-                    ) : null}
-                    {row.referrerId ? (
-                        <div className="text-[#9ca3af]">ID: {row.referrerId.slice(0, 8)}...</div>
                     ) : (
                         <div className="text-[#9ca3af]">-</div>
                     )}
@@ -574,7 +571,7 @@ export default function AdminMerchantsPage() {
                 </div>
                 <div className="mb-6 flex flex-wrap items-center gap-3">
                     <Input
-                        placeholder="搜索商家名称/手机号..."
+                        placeholder="搜索商户ID/手机号..."
                         value={keyword}
                         onChange={(e) => setKeyword(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}

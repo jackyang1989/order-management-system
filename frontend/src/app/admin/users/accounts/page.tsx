@@ -552,7 +552,7 @@ function AdminBuyerAccountsPageContent() {
                 {/* 筛选栏 */}
                 <div className="mb-6 flex flex-wrap items-center gap-3">
                     <Input
-                        placeholder="用户名"
+                        placeholder="用户ID"
                         value={filterUsername}
                         onChange={e => setFilterUsername(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && handleSearch()}

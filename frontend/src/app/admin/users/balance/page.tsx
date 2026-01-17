@@ -95,7 +95,7 @@ export default function AdminUsersBalancePage() {
                 </div>
                 <div className="mb-6 flex flex-wrap items-center gap-3">
                     <Input
-                        placeholder="搜索用户名..."
+                        placeholder="搜索用户ID..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && handleSearch()}
@@ -125,7 +125,7 @@ export default function AdminUsersBalancePage() {
                                 <table className="min-w-[1000px] w-full border-collapse">
                                     <thead>
                                         <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
-                                            <th className="px-4 py-3.5 text-left text-sm font-medium">用户名</th>
+                                            <th className="px-4 py-3.5 text-left text-sm font-medium">用户ID</th>
                                             <th className="px-4 py-3.5 text-left text-sm font-medium">类型</th>
                                             <th className="px-4 py-3.5 text-center text-sm font-medium">账户</th>
                                             <th className="px-4 py-3.5 text-right text-sm font-medium">变动金额</th>

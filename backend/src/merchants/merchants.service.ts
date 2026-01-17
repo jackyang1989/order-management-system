@@ -44,7 +44,9 @@ export class MerchantsService {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 20;
 
-    const qb = this.merchantsRepository.createQueryBuilder('m');
+    const qb = this.merchantsRepository.createQueryBuilder('m')
+      .leftJoin('merchants', 'referrer', 'referrer.id::text = m.referrer_id')
+      .addSelect('referrer.merchantNo', 'referrerMerchantNo');
 
     // Keyword search (phone, merchantNo)
     if (query.keyword) {
@@ -60,7 +62,7 @@ export class MerchantsService {
     }
 
     // VIP filter (assuming vip field exists, checking entity... entity not fully visible but likely has vip logic similar to user)
-    // Legacy Seller.php has VIP filtering. 
+    // Legacy Seller.php has VIP filtering.
     // Checking entity content in thought... I didn't verify Merchant entity. Assuming basic fields first.
     // If VIP field is missing in entity, I should add it.
     // But for now let's stick to existing fields or what I saw in creation (silver, balance).
@@ -77,13 +79,23 @@ export class MerchantsService {
     qb.orderBy('m.createdAt', 'DESC');
 
     const total = await qb.getCount();
-    const data = await qb
+    const rawData = await qb
       .skip((page - 1) * limit)
       .take(limit)
-      .getMany();
+      .getRawAndEntities();
+
+    // Map data with referrer merchantNo
+    const data = rawData.entities.map((m, index) => {
+      const sanitized = this.sanitize(m);
+      const referrerMerchantNo = rawData.raw[index]?.referrerMerchantNo;
+      if (referrerMerchantNo) {
+        (sanitized as any).referrerName = referrerMerchantNo;
+      }
+      return sanitized;
+    });
 
     return {
-      data: data.map(m => this.sanitize(m)),
+      data,
       total,
       page,
       limit

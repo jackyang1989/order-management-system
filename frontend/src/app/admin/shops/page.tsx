@@ -204,7 +204,7 @@ function ShopsContent() {
                 <div className="mb-6 flex flex-wrap items-center gap-3">
                     <Input
                         type="text"
-                        placeholder="搜索店铺名称/账号"
+                        placeholder="搜索店铺名称/商户ID"
                         value={searchText}
                         onChange={e => setSearchText(e.target.value)}
                         className="w-48"
@@ -234,7 +234,7 @@ function ShopsContent() {
                         <table className="min-w-[1200px] w-full border-collapse">
                             <thead>
                                 <tr className="border-b border-[#f3f4f6] bg-[#f9fafb]">
-                                    <th className="px-3 py-3 text-left text-sm font-medium">所属商家</th>
+                                    <th className="px-3 py-3 text-left text-sm font-medium">商家ID</th>
                                     <th className="px-3 py-3 text-left text-sm font-medium">平台</th>
                                     <th className="px-3 py-3 text-left text-sm font-medium">后台截图</th>
                                     <th className="px-3 py-3 text-left text-sm font-medium">店铺名称</th>
@@ -254,7 +254,7 @@ function ShopsContent() {
                                 ) : shops.map(shop => (
                                     <tr key={shop.id} className="border-b border-[#f3f4f6]">
                                         <td className="px-3 py-3">
-                                            <div className="text-sm font-medium text-[#374151]">{shop.merchant?.username || '--'}</div>
+                                            <div className="text-sm font-medium text-[#374151]">{shop.merchant?.merchantNo || '--'}</div>
                                         </td>
                                         <td className="px-3 py-3 text-sm text-[#374151]">{shop.platform}</td>
                                         <td className="px-3 py-3">
