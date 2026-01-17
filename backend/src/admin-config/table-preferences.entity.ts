@@ -5,6 +5,7 @@ export interface ColumnConfig {
     visible: boolean;
     width: number;
     order: number;
+    fixed?: 'left' | 'right';
 }
 
 @Entity('table_preferences')

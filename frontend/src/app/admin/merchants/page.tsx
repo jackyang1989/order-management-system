@@ -527,34 +527,34 @@ export default function AdminMerchantsPage() {
             defaultWidth: 270,
             minWidth: 200,
             render: (row) => (
-                <div className="grid grid-cols-4 gap-1 w-fit mx-auto">
-                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => router.push(`/admin/shops?merchantId=${row.merchantNo || row.id}`)}>
+                <div className="grid grid-cols-4 gap-1 w-fit mx-auto items-center">
+                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap" onClick={() => router.push(`/admin/shops?merchantId=${row.merchantNo || row.id}`)}>
                         店铺
                     </button>
-                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => router.push(`/admin/merchants/balance?merchantId=${row.merchantNo || row.id}`)}>
+                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap" onClick={() => router.push(`/admin/merchants/balance?merchantId=${row.merchantNo || row.id}`)}>
                         流水
                     </button>
-                    <button className="rounded-full border border-success-300 bg-white px-3 py-1 text-xs text-success-600 hover:bg-success-50 transition-colors" onClick={() => router.push(`/admin/merchants/${row.id}/deposit`)}>
+                    <button className="rounded-full border border-success-300 bg-white px-3 py-1 text-xs text-success-600 hover:bg-success-50 transition-colors whitespace-nowrap" onClick={() => router.push(`/admin/merchants/${row.id}/deposit`)}>
                         押金
                     </button>
-                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => openAdjustBalance(row)}>
+                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap" onClick={() => openAdjustBalance(row)}>
                         调余额
                     </button>
-                    <button className="rounded-full border border-primary-300 bg-white px-3 py-1 text-xs text-primary-600 hover:bg-primary-50 transition-colors" onClick={() => openMessage(row)}>
+                    <button className="rounded-full border border-primary-300 bg-white px-3 py-1 text-xs text-primary-600 hover:bg-primary-50 transition-colors whitespace-nowrap" onClick={() => openMessage(row)}>
                         消息
                     </button>
-                    <button className="rounded-full border border-primary-300 bg-white px-3 py-1 text-xs text-primary-600 hover:bg-primary-50 transition-colors" onClick={() => openEdit(row)}>
+                    <button className="rounded-full border border-primary-300 bg-white px-3 py-1 text-xs text-primary-600 hover:bg-primary-50 transition-colors whitespace-nowrap" onClick={() => openEdit(row)}>
                         编辑
                     </button>
-                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => openPassword(row)}>
+                    <button className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap" onClick={() => openPassword(row)}>
                         改密码
                     </button>
                     {row.status === 3 ? (
-                        <button className="rounded-full border border-success-300 bg-white px-3 py-1 text-xs text-success-600 hover:bg-success-50 transition-colors" onClick={() => handleBan(row.id, row.status)}>
+                        <button className="rounded-full border border-success-300 bg-white px-3 py-1 text-xs text-success-600 hover:bg-success-50 transition-colors whitespace-nowrap" onClick={() => handleBan(row.id, row.status)}>
                             启用
                         </button>
                     ) : (
-                        <button className="rounded-full border border-red-300 bg-white px-3 py-1 text-xs text-red-500 hover:bg-red-50 transition-colors" onClick={() => handleBan(row.id, row.status)}>
+                        <button className="rounded-full border border-red-300 bg-white px-3 py-1 text-xs text-red-500 hover:bg-red-50 transition-colors whitespace-nowrap" onClick={() => handleBan(row.id, row.status)}>
                             禁用
                         </button>
                     )}

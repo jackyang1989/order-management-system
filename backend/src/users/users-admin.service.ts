@@ -108,13 +108,13 @@ export class UsersAdminService {
       .take(limit)
       .getRawAndEntities();
 
-    // 移除敏感信息并添加推荐人用户名
+    // 移除敏感信息并添加推荐人userNo
     const sanitizedData = rawData.entities.map((u, index) => {
       const sanitized = this.sanitizeUser(u);
-      // 添加推荐人用户名
-      const referrerUsername = rawData.raw[index]?.referrerUsername;
-      if (referrerUsername) {
-        (sanitized as any).invitedByName = referrerUsername;
+      // 添加推荐人userNo
+      const referrerUserNo = rawData.raw[index]?.referrerUserNo;
+      if (referrerUserNo) {
+        (sanitized as any).invitedByName = referrerUserNo;
       }
       return sanitized;
     });
