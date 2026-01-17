@@ -2,7 +2,6 @@
 
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
-import ChatWidget from './chat/ChatWidget';
 
 export default function LayoutWrapper({ children }: { children: ReactNode }) {
     const pathname = usePathname();
@@ -20,8 +19,6 @@ export default function LayoutWrapper({ children }: { children: ReactNode }) {
             <div className="min-h-screen w-full bg-[#f9fafb]">
                 {children}
             </div>
-            {/* Inject Chat Widget for Mobile/Visitor Users */}
-            <ChatWidget />
         </div>
     );
 }

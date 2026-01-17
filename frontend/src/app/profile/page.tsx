@@ -160,7 +160,7 @@ export default function ProfilePage() {
                 {/* Earnings Summary */}
                 <Card noPadding className="rounded-[24px] border-none bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                     <div className="flex items-center justify-center divide-x divide-slate-50 py-10 px-5 min-h-[120px]">
-                        <div className="flex-1 px-2 text-center">
+                        <div className="flex-1 px-4 text-center">
                             <div className="text-lg font-black text-slate-900">{Number(profile?.totalEarned || profile?.stats?.totalEarnedSilver || 0).toFixed(2)}</div>
                             <div className="mt-1 text-[10px] font-bold text-slate-400 uppercase">累计赚取银锭</div>
                         </div>
@@ -168,7 +168,7 @@ export default function ProfilePage() {
                             <div className="text-lg font-black text-warning-400">{Number(profile?.pendingReward || profile?.stats?.pendingMerchantSilver || 0).toFixed(2)}</div>
                             <div className="mt-1 text-[10px] font-bold text-slate-400 uppercase">待商家发放</div>
                         </div>
-                        <div className="flex-1 px-2 text-center">
+                        <div className="flex-1 px-4 text-center">
                             <div className="text-lg font-black text-indigo-500">{Number(profile?.frozenSilver || 0).toFixed(2)}</div>
                             <div className="mt-1 text-[10px] font-bold text-slate-400 uppercase">冻结银锭</div>
                         </div>
@@ -178,19 +178,19 @@ export default function ProfilePage() {
                 {/* Additional Stats */}
                 <Card noPadding className="rounded-[24px] border-none bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                     <div className="flex items-center justify-center divide-x divide-slate-50 py-10 px-5 min-h-[120px]">
-                        <div className="flex-1 px-2 text-center">
+                        <div className="flex-1 px-3 text-center">
                             <div className="text-lg font-black text-primary-600">¥{Number(profile?.stats?.totalPaidPrincipal || 0).toFixed(0)}</div>
                             <div className="mt-1 text-[10px] font-bold text-slate-400 uppercase">累计垫付</div>
                         </div>
-                        <div className="flex-1 px-4 text-center">
+                        <div className="flex-1 px-3 text-center">
                             <div className="text-lg font-black text-emerald-500">{profile?.stats?.totalInvited || 0}</div>
                             <div className="mt-1 text-[10px] font-bold text-slate-400 uppercase">总邀请</div>
                         </div>
-                        <div className="flex-1 px-4 text-center">
+                        <div className="flex-1 px-3 text-center">
                             <div className="text-lg font-black text-orange-500">{profile?.stats?.todayInvited || 0}</div>
                             <div className="mt-1 text-[10px] font-bold text-slate-400 uppercase">今日邀请</div>
                         </div>
-                        <div className="flex-1 px-2 text-center">
+                        <div className="flex-1 px-3 text-center">
                             <div className="text-lg font-black text-purple-500">{profile?.stats?.monthlyRemainingTasks || 220}</div>
                             <div className="mt-1 text-[10px] font-bold text-slate-400 uppercase">本月剩余</div>
                         </div>
