@@ -259,6 +259,14 @@ export const DEFAULT_CONFIGS = [
     description: '开启随机浏览店铺其他商品的服务费',
   },
   {
+    key: 'add_reward_fee',
+    value: '0',
+    group: 'task_fee',
+    label: '额外悬赏服务费',
+    valueType: 'number',
+    description: '额外悬赏功能的平台服务费（每单）',
+  },
+  {
     key: 'refund_service_rate',
     value: '0.01',
     group: 'task_fee',

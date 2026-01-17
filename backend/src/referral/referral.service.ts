@@ -98,12 +98,9 @@ export class ReferralService {
       }
 
       // 1.5 检查买手的推荐权限
-      const buyerAccount = await queryRunner.manager.findOne(BuyerAccount, {
-        where: { userId: buyerId, status: 1 }, // status: 1 表示审核通过
-      });
-      if (!buyerAccount || !buyerAccount.canReferFriends) {
+      if (!buyer.canReferFriends) {
         this.logger.log(
-          `买号未开启推荐权限，不发放奖励: ${buyerId}`,
+          `买手未开启推荐权限，不发放奖励: ${buyerId}`,
         );
         await queryRunner.rollbackTransaction();
         return false;

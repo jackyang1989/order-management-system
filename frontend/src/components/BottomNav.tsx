@@ -71,7 +71,7 @@ export default function BottomNav() {
                 if (!token) return;
 
                 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
-                const response = await fetch(`${BASE_URL}/buyer-accounts/refer-permission/check`, {
+                const response = await fetch(`${BASE_URL}/user/refer-permission/check`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 

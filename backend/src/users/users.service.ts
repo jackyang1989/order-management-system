@@ -856,4 +856,33 @@ export class UsersService {
         : '',
     };
   }
+
+  /**
+   * 更新用户的推荐好友权限
+   */
+  async updateReferPermission(
+    userId: string,
+    canReferFriends: boolean,
+  ): Promise<User | null> {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    user.canReferFriends = canReferFriends;
+    return this.usersRepository.save(user);
+  }
+
+  /**
+   * 检查用户是否有推荐权限
+   */
+  async checkUserReferPermission(userId: string): Promise<boolean> {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+    });
+    return user?.canReferFriends ?? true;
+  }
 }

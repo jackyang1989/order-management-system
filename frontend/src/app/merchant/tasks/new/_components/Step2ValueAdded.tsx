@@ -825,7 +825,11 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                 <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-3 py-3">
                     <input type="checkbox" checked={data.addReward > 0} onChange={e => onChange({ addReward: e.target.checked ? 1 : 0 })} />
                     <div className="flex flex-1 items-center justify-between">
-                        <div><span className="text-sm">额外悬赏</span><span className="ml-2 text-xs text-[#9ca3af]">增加接单速度，商家自定义金额</span></div>
+                        <div>
+                            <span className="text-sm">额外悬赏</span>
+                            <span className="ml-2 text-xs text-[#9ca3af]">增加接单速度，商家自定义金额</span>
+                            <span className="ml-2 cursor-help text-xs text-primary-500" title="额外悬赏金额将直接支付给买手作为额外奖励，不收取平台服务费。此费用可提高任务吸引力，加快接单速度。">?</span>
+                        </div>
                         {data.addReward > 0 && <div className="flex items-center gap-1"><input type="number" value={data.addReward} onChange={e => onChange({ addReward: parseFloat(e.target.value) || 0 })} className="w-[60px] rounded border border-[#e5e7eb] px-1 py-1" /><span className="text-xs">元/单</span></div>}
                     </div>
                 </div>

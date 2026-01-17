@@ -225,6 +225,7 @@ export interface ServiceFees {
     fastRefundRate: number;     // 快速返款服务费率
     cycleTime: number;          // 延长买号周期（循环时间费）
     orderInterval: number;      // 任务接单间隔
+    addReward: number;          // 额外悬赏服务费
 }
 
 export function getServiceFees(config: SystemGlobalConfig | null): ServiceFees {

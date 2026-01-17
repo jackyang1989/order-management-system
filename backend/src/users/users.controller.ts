@@ -205,4 +205,16 @@ export class UsersController {
       data: result,
     };
   }
+
+  // 检查用户推荐权限
+  @Get('refer-permission/check')
+  async checkReferPermission(@Request() req) {
+    const canRefer = await this.usersService.checkUserReferPermission(
+      req.user.userId,
+    );
+    return {
+      success: true,
+      data: { canRefer },
+    };
+  }
 }

@@ -61,7 +61,7 @@ export default function InvitePage() {
             const token = localStorage.getItem('token');
             const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006';
             try {
-                const referPermissionRes = await fetch(`${BASE_URL}/buyer-accounts/refer-permission/check`, {
+                const referPermissionRes = await fetch(`${BASE_URL}/user/refer-permission/check`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (referPermissionRes.ok) {
