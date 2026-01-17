@@ -133,6 +133,10 @@ export class BuyerAccount {
   @Column({ type: 'text', nullable: true })
   pendingAddressChange?: string; // 待审核的地址修改 (JSON)
 
+  // 推荐好友权限
+  @Column({ type: 'boolean', default: true })
+  canReferFriends: boolean; // 是否允许推荐好友
+
   @CreateDateColumn()
   createdAt: Date;
 

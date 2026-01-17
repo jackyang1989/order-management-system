@@ -19,6 +19,7 @@ import {
   UserInvite,
   ReferralBondStatus,
 } from '../user-invites/user-invite.entity';
+import { BuyerAccount } from '../buyer-accounts/buyer-account.entity';
 
 /**
  * 推荐奖励与活跃熔断服务
@@ -92,6 +93,18 @@ export class ReferralService {
         where: { id: buyerId },
       });
       if (!buyer || !buyer.referrerId) {
+        await queryRunner.rollbackTransaction();
+        return false;
+      }
+
+      // 1.5 检查买手的推荐权限
+      const buyerAccount = await queryRunner.manager.findOne(BuyerAccount, {
+        where: { userId: buyerId, status: 1 }, // status: 1 表示审核通过
+      });
+      if (!buyerAccount || !buyerAccount.canReferFriends) {
+        this.logger.log(
+          `买号未开启推荐权限，不发放奖励: ${buyerId}`,
+        );
         await queryRunner.rollbackTransaction();
         return false;
       }

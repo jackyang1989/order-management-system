@@ -419,6 +419,22 @@ export class AdminController {
     };
   }
 
+  @Put('buyer-accounts/:id/refer-permission')
+  async updateReferPermission(
+    @Param('id') id: string,
+    @Body('canReferFriends') canReferFriends: boolean,
+  ) {
+    const account = await this.buyerAccountsService.updateReferPermission(id, canReferFriends);
+    if (!account) {
+      return { success: false, message: '买号不存在' };
+    }
+    return {
+      success: true,
+      message: `已${canReferFriends ? '开启' : '关闭'}推荐好友权限`,
+      data: account,
+    };
+  }
+
   // ============ 批量审核 ============
   @Post('withdrawals/batch-approve')
   async batchApproveWithdrawals(

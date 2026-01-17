@@ -43,6 +43,7 @@ interface BuyerAccount {
     rejectReason?: string;
     createdAt: string;
     freezeUntil?: string;
+    canReferFriends: boolean; // 是否允许推荐好友
 }
 
 // 根据平台获取截图配置
@@ -280,6 +281,21 @@ function AdminBuyerAccountsPageContent() {
         } catch { alert('操作失败'); }
     }, [loadAccounts]);
 
+    const handleToggleReferPermission = useCallback(async (id: string, currentPermission: boolean) => {
+        const action = currentPermission ? '关闭' : '开启';
+        if (!confirm(`确定要${action}该买号的推荐好友权限吗？`)) return;
+        try {
+            const res = await fetch(`${BASE_URL}/admin/buyer-accounts/${id}/refer-permission`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+                body: JSON.stringify({ canReferFriends: !currentPermission })
+            });
+            const data = await res.json();
+            if (data.success) { alert(data.message); loadAccounts(); }
+            else alert(data.message);
+        } catch { alert('操作失败'); }
+    }, [loadAccounts]);
+
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
             const pendingIds = accounts.filter(a => a.status === 0).map(a => a.id);
@@ -496,18 +512,27 @@ function AdminBuyerAccountsPageContent() {
         {
             key: 'actions',
             title: '操作',
-            defaultWidth: 200,
+            defaultWidth: 280,
             headerClassName: 'text-center',
             cellClassName: 'text-center',
             render: (row) => (
                 <div className="flex flex-nowrap gap-1">
                     <Button size="sm" variant="outline" className="whitespace-nowrap" onClick={() => openEditModal(row)}>审核</Button>
                     <Button size="sm" variant="outline" className="whitespace-nowrap" onClick={() => openEditModal(row)}>编辑</Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        className={cn("whitespace-nowrap", row.canReferFriends ? "text-green-600" : "text-gray-500")}
+                        onClick={() => handleToggleReferPermission(row.id, row.canReferFriends)}
+                        title={row.canReferFriends ? "点击关闭推荐权限" : "点击开启推荐权限"}
+                    >
+                        {row.canReferFriends ? '✓推荐' : '✗推荐'}
+                    </Button>
                     <Button size="sm" variant="outline" className="whitespace-nowrap text-red-500" onClick={() => handleDelete(row.id)}>删除</Button>
                 </div>
             )
         },
-    ], [page, getDisplayImages, handleSetStar, openEditModal, handleDelete, setImageModal]);
+    ], [page, getDisplayImages, handleSetStar, handleToggleReferPermission, openEditModal, handleDelete, setImageModal]);
 
     return (
         <div className="space-y-4">
