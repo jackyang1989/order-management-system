@@ -36,12 +36,6 @@ export class User {
   @Column({ nullable: true })
   wechat?: string;
 
-  @Column({ default: false })
-  vip: boolean;
-
-  @Column({ type: 'timestamp', nullable: true })
-  vipExpireAt?: Date;
-
   @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
   balance: number; // 本金余额
 

@@ -207,19 +207,10 @@ export class OrdersService {
       throw new NotFoundException('用户不存在');
     }
 
-    // VIP验证)
-    if (!user.vip) {
-      throw new BadRequestException('您还不是VIP，请先充值');
-    }
-    if (user.vipExpireAt && new Date(user.vipExpireAt) < new Date()) {
-      throw new BadRequestException('VIP已过期，请先续费');
-    }
+    // VIP验证已取消
 
-    // 银锭验证 - 接单需要冻结1银锭
-    const SILVER_PREPAY = 1; // 接单押金1银锭
-    if (Number(user.silver) < SILVER_PREPAY) {
-      throw new BadRequestException('银锭不足，接单需要1银锭作为押金');
-    }
+    // 银锭押金已取消，不再扣除
+    const SILVER_PREPAY = 0; // 不再需要押金
 
     // 检查是否已领取过
     const existing = await this.findByUserAndTask(
@@ -358,14 +349,7 @@ export class OrdersService {
       createOrderDto.buynoId,
     );
 
-    // 4. 扣除银锭押金
-    user.silver = Number(user.silver) - SILVER_PREPAY;
-    await this.usersRepository.save(user);
-
-    // INVARIANT: 银锭余额不可为负（防止未来回退）
-    if (user.silver < 0) {
-      throw new Error('[INVARIANT] silver < 0 after takeTask');
-    }
+    // 4. 银锭押金已取消，不再扣除
 
     // 构建步骤数据 (根据任务配置动态生成，
     const steps: OrderStepData[] = this.generateTaskSteps(task);
@@ -520,14 +504,7 @@ export class OrdersService {
     // 更新任务的最后接单时间 (用于接单间隔校验)
     await this.tasksService.updateReceiptTime(task.id);
 
-    // 记录银锭押金扣除流水
-    await this.financeRecordsService.recordBuyerTaskSilverPrepay(
-      userId,
-      SILVER_PREPAY,
-      Number(user.silver),
-      savedOrder.id,
-      '接单银锭押金',
-    );
+    // 银锭押金已取消，不再记录押金流水
 
     // 发送消息通知商家：有新订单
     try {
@@ -904,11 +881,7 @@ export class OrdersService {
         // 3. 买手获得佣金+分成（到银锭）
         user.silver = Number(user.silver) + totalCommissionAmount;
 
-        // 4. 返还银锭押金
-        const silverPrepayAmount = Number(order.silverPrepay) || 0;
-        if (silverPrepayAmount > 0) {
-          user.silver = Number(user.silver) + silverPrepayAmount;
-        }
+        // 4. 银锭押金已取消，不再返还
         await queryRunner.manager.save(user);
 
         // 记录买手收到佣金（包含分成）
@@ -921,17 +894,6 @@ export class OrdersService {
             ? `任务佣金${commissionAmount}+分成${userDividedAmount}银锭`
             : '任务佣金',
         );
-
-        // 记录银锭押金返还
-        if (silverPrepayAmount > 0) {
-          await this.financeRecordsService.recordBuyerTaskSilverRefund(
-            order.userId,
-            silverPrepayAmount,
-            Number(user.silver),
-            order.id,
-            '任务完成返还银锭押金',
-          );
-        }
 
         // 更新订单返款金额（本金 + 总佣金）
         order.refundAmount = principalAmount + totalCommissionAmount;
@@ -993,20 +955,7 @@ export class OrdersService {
           '订单驳回退款',
         );
 
-        // 驳回时也返还买手银锭押金
-        const silverPrepayAmount = Number(order.silverPrepay) || 0;
-        if (silverPrepayAmount > 0) {
-          user.silver = Number(user.silver) + silverPrepayAmount;
-          await queryRunner.manager.save(user);
-
-          await this.financeRecordsService.recordBuyerTaskSilverRefund(
-            order.userId,
-            silverPrepayAmount,
-            Number(user.silver),
-            order.id,
-            '订单驳回返还银锭押金',
-          );
-        }
+        // 银锭押金已取消，不再返还
       }
 
       order.completedAt = new Date();
@@ -1030,7 +979,7 @@ export class OrdersService {
             MessageUserType.BUYER,
             order.id,
             '订单审核未通过',
-            `您的订单「${order.taskTitle}」审核未通过，原因：${rejectReason || '未说明'}。银锭押金已返还。`,
+            `您的订单「${order.taskTitle}」审核未通过，原因：${rejectReason || '未说明'}。`,
           );
         }
       } catch (e) {
@@ -1338,36 +1287,7 @@ export class OrdersService {
       // 检查是否符合免罚条件
       const shouldPunish = await this.shouldPunishForCancel(userId, order.id);
 
-      // 用户取消订单，根据规则决定是否扣除银锭押金
-      const silverPrepayAmount = Number(order.silverPrepay) || 0;
-      if (silverPrepayAmount > 0) {
-        const user = await queryRunner.manager.findOne(User, {
-          where: { id: userId },
-        });
-        if (user) {
-          if (shouldPunish) {
-            // 银锭已经在接单时扣除，取消时不返还（作为惩罚）
-            await this.financeRecordsService.recordBuyerTaskCancelSilver(
-              userId,
-              silverPrepayAmount,
-              Number(user.silver),
-              order.id,
-              '用户取消订单扣除银锭押金',
-            );
-          } else {
-            // 免罚：返还银锭押金
-            user.silver = Number(user.silver) + silverPrepayAmount;
-            await queryRunner.manager.save(user);
-            await this.financeRecordsService.recordBuyerTaskSilverRefund(
-              userId,
-              silverPrepayAmount,
-              Number(user.silver),
-              order.id,
-              '取消订单免罚返还银锭押金',
-            );
-          }
-        }
-      }
+      // 银锭押金已取消，不再处理押金返还/扣除
 
       order.status = OrderStatus.CANCELLED;
       order.completedAt = new Date();
