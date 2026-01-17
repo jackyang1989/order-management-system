@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { BASE_URL } from '../../../../apiConfig';
 import { cn } from '../../../lib/utils';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
@@ -36,8 +35,7 @@ export default function QuestionsPage() {
     const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
     const [questionForm, setQuestionForm] = useState({
         id: '',
-        name: '',
-        questions: [''] // 至少一个问题
+        question: ''
     });
 
     // 加载店铺列表
@@ -130,9 +128,8 @@ export default function QuestionsPage() {
 
     const handleQuestionSubmit = async () => {
         if (!selectedShop) return alert('请先选择店铺');
-        if (!questionForm.name) return alert('请输入问题模板名称');
-        if (questionForm.questions.length === 0 || !questionForm.questions[0]) {
-            return alert('请至少输入一个问题');
+        if (!questionForm.question.trim()) {
+            return alert('请输入问题内容');
         }
 
         try {
@@ -143,66 +140,34 @@ export default function QuestionsPage() {
                 return;
             }
 
-            // 过滤掉空问题
-            const validQuestions = questionForm.questions.filter(q => q.trim());
-
             if (questionForm.id) {
                 // 更新
                 await updateQuestionDetail(questionForm.id, {
-                    name: questionForm.name,
-                    questions: validQuestions
+                    question: questionForm.question
                 });
             } else {
                 // 新增
                 await addQuestionDetail(schemeId, {
-                    name: questionForm.name,
-                    questions: validQuestions
+                    question: questionForm.question
                 });
             }
 
             loadQuestions(schemeId);
             setIsQuestionModalOpen(false);
-            setQuestionForm({ id: '', name: '', questions: [''] });
+            setQuestionForm({ id: '', question: '' });
         } catch (error) {
             console.error('Question Op Failed:', error);
         }
     };
 
     const deleteQuestion = async (id: string) => {
-        if (!confirm('确定删除该问题模板吗？')) return;
+        if (!confirm('确定删除该问题吗？')) return;
         try {
             await deleteQuestionDetail(id);
             if (currentScheme) loadQuestions(currentScheme.id);
         } catch (error) {
             console.error('Delete Question Failed:', error);
         }
-    };
-
-    // 添加问题输入框
-    const addQuestionInput = () => {
-        setQuestionForm({
-            ...questionForm,
-            questions: [...questionForm.questions, '']
-        });
-    };
-
-    // 删除问题输入框
-    const removeQuestionInput = (index: number) => {
-        const newQuestions = questionForm.questions.filter((_, i) => i !== index);
-        setQuestionForm({
-            ...questionForm,
-            questions: newQuestions.length > 0 ? newQuestions : ['']
-        });
-    };
-
-    // 更新问题内容
-    const updateQuestionInput = (index: number, value: string) => {
-        const newQuestions = [...questionForm.questions];
-        newQuestions[index] = value;
-        setQuestionForm({
-            ...questionForm,
-            questions: newQuestions
-        });
     };
 
     return (
@@ -268,14 +233,14 @@ export default function QuestionsPage() {
                             <div>
                                 <h2 className="text-2xl font-black text-slate-900">{selectedShop.shopName}</h2>
                                 <p className="mt-1 text-sm font-medium text-slate-400">
-                                    管理该店铺的问题模板配置 · {questions.length} 个模板
+                                    管理该店铺的问题模板 · {questions.length} 个问题
                                 </p>
                             </div>
                             <Button
-                                onClick={() => { setQuestionForm({ id: '', name: '', questions: [''] }); setIsQuestionModalOpen(true); }}
+                                onClick={() => { setQuestionForm({ id: '', question: '' }); setIsQuestionModalOpen(true); }}
                                 className="h-10 rounded-[14px] bg-primary-600 px-5 font-bold text-white shadow-lg shadow-primary-500/20 hover:bg-primary-700 hover:shadow-primary-500/30"
                             >
-                                + 添加问题模板
+                                + 添加问题
                             </Button>
                         </div>
 
@@ -289,33 +254,27 @@ export default function QuestionsPage() {
                             ) : questions.length === 0 ? (
                                 <div className="flex h-64 flex-col items-center justify-center rounded-[24px] border border-dashed border-slate-200 bg-slate-50/50">
                                     <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-3xl shadow-sm">💬</div>
-                                    <p className="mt-4 text-sm font-bold text-slate-400">暂无问题模板配置</p>
+                                    <p className="mt-4 text-sm font-bold text-slate-400">暂无问题模板</p>
                                     <Button
                                         variant="ghost"
-                                        onClick={() => { setQuestionForm({ id: '', name: '', questions: [''] }); setIsQuestionModalOpen(true); }}
+                                        onClick={() => { setQuestionForm({ id: '', question: '' }); setIsQuestionModalOpen(true); }}
                                         className="mt-2 font-bold text-primary-600 hover:text-primary-700"
                                     >
                                         立即添加
                                     </Button>
                                 </div>
                             ) : (
-                                <div className="space-y-4">
+                                <div className="space-y-3">
                                     {questions.map(q => (
-                                        <div key={q.id} className="rounded-[20px] border border-slate-100 bg-white p-5 transition-shadow hover:shadow-md">
-                                            <div className="mb-3 flex items-start justify-between">
-                                                <div className="flex-1">
-                                                    <h3 className="text-base font-bold text-slate-900">{q.name}</h3>
-                                                    <p className="mt-1 text-xs text-slate-400">
-                                                        {q.questions.length} 个连续问题
-                                                    </p>
-                                                </div>
+                                        <div key={q.id} className="rounded-[16px] border border-slate-100 bg-white p-4 transition-shadow hover:shadow-md">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <p className="flex-1 text-sm text-slate-700">{q.question}</p>
                                                 <div className="flex gap-2">
                                                     <button
                                                         onClick={() => {
                                                             setQuestionForm({
                                                                 id: q.id,
-                                                                name: q.name,
-                                                                questions: q.questions
+                                                                question: q.question
                                                             });
                                                             setIsQuestionModalOpen(true);
                                                         }}
@@ -330,16 +289,6 @@ export default function QuestionsPage() {
                                                         删除
                                                     </button>
                                                 </div>
-                                            </div>
-                                            <div className="space-y-2">
-                                                {q.questions.map((question, idx) => (
-                                                    <div key={idx} className="flex items-start gap-2 rounded-lg bg-slate-50 p-3">
-                                                        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-600">
-                                                            {idx + 1}
-                                                        </span>
-                                                        <p className="flex-1 text-sm text-slate-700">{question}</p>
-                                                    </div>
-                                                ))}
                                             </div>
                                         </div>
                                     ))}
@@ -357,7 +306,7 @@ export default function QuestionsPage() {
             </Card>
 
             {/* Question Modal */}
-            <Modal title={questionForm.id ? '编辑问题模板' : '添加问题模板'} open={isQuestionModalOpen} onClose={() => setIsQuestionModalOpen(false)} className="w-[600px] rounded-[32px]">
+            <Modal title={questionForm.id ? '编辑问题' : '添加问题'} open={isQuestionModalOpen} onClose={() => setIsQuestionModalOpen(false)} className="w-[500px] rounded-[32px]">
                 <div className="space-y-6">
                     {selectedShop && (
                         <div className="rounded-[16px] bg-primary-50 p-3">
@@ -366,50 +315,14 @@ export default function QuestionsPage() {
                             </p>
                         </div>
                     )}
-                    <div className="space-y-4">
-                        <div>
-                            <label className="mb-2 block text-xs font-bold uppercase text-slate-400">模板名称</label>
-                            <Input
-                                value={questionForm.name}
-                                onChange={e => setQuestionForm({ ...questionForm, name: e.target.value })}
-                                placeholder="例如：询问发货时间、询问优惠活动"
-                                className="h-12 rounded-[16px] border-none bg-slate-50 px-4 font-bold text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary-500/20"
-                            />
-                        </div>
-                        <div>
-                            <label className="mb-2 block text-xs font-bold uppercase text-slate-400">连续问题</label>
-                            <div className="space-y-3">
-                                {questionForm.questions.map((question, index) => (
-                                    <div key={index} className="flex gap-2">
-                                        <div className="flex h-12 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary-100 text-sm font-bold text-primary-600">
-                                            {index + 1}
-                                        </div>
-                                        <Input
-                                            value={question}
-                                            onChange={e => updateQuestionInput(index, e.target.value)}
-                                            placeholder={`第 ${index + 1} 个问题`}
-                                            className="h-12 flex-1 rounded-[16px] border-none bg-slate-50 px-4 font-normal text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary-500/20"
-                                        />
-                                        {questionForm.questions.length > 1 && (
-                                            <button
-                                                onClick={() => removeQuestionInput(index)}
-                                                className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100"
-                                            >
-                                                ×
-                                            </button>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                            <Button
-                                variant="ghost"
-                                onClick={addQuestionInput}
-                                className="mt-3 w-full rounded-[14px] border-2 border-dashed border-slate-200 font-bold text-slate-400 hover:border-primary-200 hover:bg-primary-50 hover:text-primary-600"
-                            >
-                                + 添加下一个问题
-                            </Button>
-                            <p className="mt-2 text-xs text-slate-400">买手将按顺序依次向客服提问</p>
-                        </div>
+                    <div>
+                        <label className="mb-2 block text-xs font-bold uppercase text-slate-400">问题内容</label>
+                        <Input
+                            value={questionForm.question}
+                            onChange={e => setQuestionForm({ ...questionForm, question: e.target.value })}
+                            placeholder="例如：请问发货时间、询问优惠活动"
+                            className="h-12 rounded-[16px] border-none bg-slate-50 px-4 font-normal text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary-500/20"
+                        />
                     </div>
                     <div className="flex justify-end gap-3 pt-4 border-t border-slate-50">
                         <Button

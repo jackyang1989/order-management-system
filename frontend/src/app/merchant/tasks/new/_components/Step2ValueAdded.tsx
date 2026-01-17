@@ -18,6 +18,7 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
     const [allQuestionTemplates, setAllQuestionTemplates] = useState<QuestionDetail[]>([]);
     const [loadingTemplates, setLoadingTemplates] = useState(false);
     const [selectedTemplateForOrder, setSelectedTemplateForOrder] = useState<number | null>(null);
+    const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         loadSystemConfig();
@@ -210,18 +211,40 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
     // 打开问题模板选择弹窗
     const handleOpenTemplateModal = (orderIndex: number) => {
         setSelectedTemplateForOrder(orderIndex);
+        setSelectedQuestionIds(new Set());
         loadQuestionTemplates();
         setShowQuestionTemplateModal(true);
     };
 
+    // 切换问题选择状态
+    const toggleQuestionSelection = (questionId: string) => {
+        const newSelected = new Set(selectedQuestionIds);
+        if (newSelected.has(questionId)) {
+            newSelected.delete(questionId);
+        } else {
+            newSelected.add(questionId);
+        }
+        setSelectedQuestionIds(newSelected);
+    };
+
     // 应用选中的问题模板
-    const handleApplyTemplate = (template: QuestionDetail) => {
+    const handleApplySelectedQuestions = () => {
         if (!data.contactCSConfig || selectedTemplateForOrder === null) return;
+        if (selectedQuestionIds.size === 0) {
+            alert('请至少选择一个问题');
+            return;
+        }
 
         const newQuestions = [...data.contactCSConfig.questions];
+
+        // 获取选中的问题内容
+        const selectedQuestions = allQuestionTemplates
+            .filter(t => selectedQuestionIds.has(t.id))
+            .map(t => t.question);
+
         newQuestions[selectedTemplateForOrder] = {
             ...newQuestions[selectedTemplateForOrder],
-            questions: [...template.questions]
+            questions: selectedQuestions
         };
 
         onChange({
@@ -233,6 +256,7 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
 
         setShowQuestionTemplateModal(false);
         setSelectedTemplateForOrder(null);
+        setSelectedQuestionIds(new Set());
     };
 
     const praiseOptions = [{ type: 'none', label: '五星好评', desc: '不写评语', fee: 0 }, { type: 'text', label: '文字评价', desc: '指定文字评价内容', fee: praiseFees.text }, { type: 'image', label: '图文评价', desc: '指定图文评价内容', fee: praiseFees.image }, { type: 'video', label: '视频图文评价', desc: '指定视频图文评价内容', fee: praiseFees.video }];
@@ -866,7 +890,8 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                         </div>
 
                         <p className="mb-4 text-sm text-[#6b7280]">
-                            选择一个问题模板应用到第 {selectedTemplateForOrder !== null ? selectedTemplateForOrder + 1 : ''} 单
+                            勾选需要添加的问题，可多选
+                            {selectedQuestionIds.size > 0 && <span className="ml-2 text-primary-600">已选择 {selectedQuestionIds.size} 个</span>}
                         </p>
 
                         {loadingTemplates ? (
@@ -875,37 +900,42 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                             <div className="flex flex-col items-center justify-center py-12">
                                 <span className="mb-2 text-4xl">💬</span>
                                 <p className="mb-1 text-sm text-[#6b7280]">暂无问题模板</p>
-                                <p className="text-xs text-[#9ca3af]">请先到 <a href="/merchant/questions" className="text-primary-600">问题模板库</a> 添加模板</p>
+                                <p className="text-xs text-[#9ca3af]">请先到 <a href="/merchant/questions" className="text-primary-600">问题模板库</a> 添加问题</p>
                             </div>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="max-h-[400px] space-y-2 overflow-y-auto">
                                 {allQuestionTemplates.map(template => (
-                                    <div
+                                    <label
                                         key={template.id}
-                                        onClick={() => handleApplyTemplate(template)}
-                                        className="cursor-pointer rounded-lg border border-[#e5e7eb] bg-white p-4 transition-all hover:border-primary-400 hover:bg-primary-50"
+                                        className={cn(
+                                            'flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-all',
+                                            selectedQuestionIds.has(template.id)
+                                                ? 'border-primary-400 bg-primary-50'
+                                                : 'border-[#e5e7eb] bg-white hover:border-primary-200 hover:bg-primary-50/30'
+                                        )}
                                     >
-                                        <div className="mb-2 flex items-center justify-between">
-                                            <h4 className="font-medium text-[#374151]">{template.name}</h4>
-                                            <span className="text-xs text-[#6b7280]">{template.questions.length} 个问题</span>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedQuestionIds.has(template.id)}
+                                            onChange={() => toggleQuestionSelection(template.id)}
+                                            className="h-4 w-4 rounded border-[#d1d5db] text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <div className="flex-1">
+                                            <span className="text-sm text-[#374151]">{template.question}</span>
                                         </div>
-                                        <div className="space-y-1">
-                                            {template.questions.map((question, idx) => (
-                                                <div key={idx} className="flex items-start gap-2 text-sm text-[#6b7280]">
-                                                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#f3f4f6] text-xs">
-                                                        {idx + 1}
-                                                    </span>
-                                                    <span className="flex-1">{question}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
+                                    </label>
                                 ))}
                             </div>
                         )}
 
-                        <div className="mt-4 flex justify-end border-t border-[#e5e7eb] pt-4">
+                        <div className="mt-4 flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
                             <Button variant="secondary" onClick={() => setShowQuestionTemplateModal(false)}>取消</Button>
+                            <Button
+                                onClick={handleApplySelectedQuestions}
+                                disabled={selectedQuestionIds.size === 0}
+                            >
+                                确认选择 {selectedQuestionIds.size > 0 && `(${selectedQuestionIds.size})`}
+                            </Button>
                         </div>
                     </div>
                 </div>

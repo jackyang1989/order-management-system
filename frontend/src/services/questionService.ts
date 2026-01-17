@@ -2,8 +2,7 @@ import { BASE_URL } from '../../apiConfig';
 
 export interface QuestionDetail {
     id: string;
-    name: string;
-    questions: string[];
+    question: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -116,7 +115,7 @@ export const fetchQuestionDetails = async (schemeId: string): Promise<QuestionDe
  */
 export const addQuestionDetail = async (
     schemeId: string,
-    data: { name: string; questions: string[] }
+    data: { question: string }
 ): Promise<QuestionDetail | null> => {
     try {
         const token = localStorage.getItem('merchantToken');
@@ -144,7 +143,7 @@ export const addQuestionDetail = async (
  */
 export const updateQuestionDetail = async (
     detailId: string,
-    data: { name?: string; questions?: string[] }
+    data: { question?: string }
 ): Promise<QuestionDetail | null> => {
     try {
         const token = localStorage.getItem('merchantToken');

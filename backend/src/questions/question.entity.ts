@@ -67,11 +67,8 @@ export class QuestionDetail {
   @JoinColumn({ name: 'questionSchemeId' })
   questionScheme: QuestionScheme;
 
-  @Column({ length: 100 })
-  name: string; // 问题模板名称（如：询问发货时间、询问优惠活动）
-
-  @Column({ type: 'jsonb' })
-  questions: string[]; // 多个连续问题，存储为JSON数组
+  @Column({ type: 'text' })
+  question: string; // 单个问题内容
 
   @CreateDateColumn()
   createdAt: Date;
@@ -84,12 +81,7 @@ export class QuestionDetail {
 export class CreateQuestionDetailDto {
   @IsString()
   @IsNotEmpty()
-  name: string;
-
-  @IsArray()
-  @IsString({ each: true })
-  @IsNotEmpty()
-  questions: string[];
+  question: string;
 }
 
 export class CreateQuestionSchemeDto {
@@ -123,10 +115,5 @@ export class UpdateQuestionSchemeDto {
 export class UpdateQuestionDetailDto {
   @IsOptional()
   @IsString()
-  name?: string;
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  questions?: string[];
+  question?: string;
 }
