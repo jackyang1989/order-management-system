@@ -7,6 +7,23 @@ import { Button } from '../../../../components/ui/button';
 import { Card } from '../../../../components/ui/card';
 import { Tabs } from '../../../../components/ui/tabs';
 import { BASE_URL } from '../../../../../apiConfig';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    useSortable,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface SystemConfig {
     id: string;
@@ -17,7 +34,7 @@ interface SystemConfig {
     description: string;
     valueType: string;
     options: string | null;
-    dependsOn: string | null; // 格式: "key:value"，当指定key的值等于value时显示
+    dependsOn: string | null;
     sortOrder: number;
     isEditable: boolean;
     isVisible: boolean;
@@ -42,41 +59,113 @@ const GROUP_ICONS: Record<string, string> = {
     system: '⚙️',
 };
 
+// 可排序的配置项组件
+function SortableConfigItem({
+    config,
+    editedValue,
+    onUpdateField,
+    renderInput,
+}: {
+    config: SystemConfig;
+    editedValue: string;
+    onUpdateField: (key: string, value: string) => void;
+    renderInput: (config: SystemConfig, value: string) => React.ReactNode;
+}) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: config.key });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            className={cn(
+                "rounded-md border border-[#e5e7eb] p-4 transition-all",
+                isDragging && "opacity-50 shadow-lg z-50"
+            )}
+        >
+            <div className="mb-2 flex items-center justify-between">
+                <label className="flex items-center gap-2 text-sm font-medium text-[#374151]">
+                    <button
+                        {...attributes}
+                        {...listeners}
+                        className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 transition-colors"
+                        aria-label="拖动排序"
+                    >
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="6" cy="4" r="1" fill="currentColor" />
+                            <circle cx="10" cy="4" r="1" fill="currentColor" />
+                            <circle cx="6" cy="8" r="1" fill="currentColor" />
+                            <circle cx="10" cy="8" r="1" fill="currentColor" />
+                            <circle cx="6" cy="12" r="1" fill="currentColor" />
+                            <circle cx="10" cy="12" r="1" fill="currentColor" />
+                        </svg>
+                    </button>
+                    {config.label || config.key}
+                </label>
+                <span className="text-xs text-slate-400">#{config.sortOrder || 0}</span>
+            </div>
+            {renderInput(config, editedValue)}
+            {config.description && (
+                <p className="mt-1.5 text-xs text-[#9ca3af]">{config.description}</p>
+            )}
+        </div>
+    );
+}
+
 export default function AdminSystemParamsPage() {
     const [configs, setConfigs] = useState<Record<string, SystemConfig[]>>({});
     const [groups, setGroups] = useState<GroupMeta[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [activeTab, setActiveTab] = useState('');
-    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [editedValues, setEditedValues] = useState<Record<string, string>>({});
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => { loadConfig(); }, []);
+    // 拖拽传感器配置
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    useEffect(() => {
+        loadConfig();
+    }, []);
 
     const loadConfig = async () => {
         setLoading(true);
         setError(null);
         try {
             const token = localStorage.getItem('adminToken');
-            if (!token) {
-                setError('未登录，请先登录管理后台');
-                setLoading(false);
-                return;
-            }
             const response = await fetch(`${BASE_URL}/admin/config`, {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
             });
+
             if (response.ok) {
                 const result = await response.json();
                 if (result.success && result.data) {
                     setConfigs(result.data.configs || {});
                     setGroups(result.data.groups || []);
-                    // 初始化编辑值
+                    // 初始化 editedValues
                     const initialValues: Record<string, string> = {};
-                    Object.values(result.data.configs || {}).flat().forEach((config: unknown) => {
-                        const c = config as SystemConfig;
-                        initialValues[c.key] = c.value || '';
+                    Object.values(result.data.configs || {}).forEach(groupConfigs => {
+                        groupConfigs.forEach((cfg: SystemConfig) => {
+                            initialValues[cfg.key] = cfg.value || '';
+                        });
                     });
                     setEditedValues(initialValues);
                     // 设置默认tab
@@ -101,7 +190,6 @@ export default function AdminSystemParamsPage() {
         setSaving(true);
         try {
             const token = localStorage.getItem('adminToken');
-            // 找出当前分组中修改过的配置
             const currentConfigs = configs[activeTab] || [];
             const updates = currentConfigs
                 .filter(config => editedValues[config.key] !== config.value)
@@ -124,11 +212,12 @@ export default function AdminSystemParamsPage() {
 
             if (response.ok) {
                 toastSuccess('配置保存成功');
-                await loadConfig(); // 重新加载配置
+                await loadConfig();
             } else {
                 toastError('保存失败');
             }
-        } catch (e) {
+        } catch (err) {
+            console.error(err);
             toastError('保存失败');
         } finally {
             setSaving(false);
@@ -139,23 +228,22 @@ export default function AdminSystemParamsPage() {
         setEditedValues(prev => ({ ...prev, [key]: value }));
     };
 
-    // 拖拽排序相关函数
-    const handleDragStart = (index: number) => {
-        setDraggedIndex(index);
-    };
+    // 处理拖拽结束
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
 
-    const handleDragOver = (e: React.DragEvent, index: number) => {
-        e.preventDefault();
-        if (draggedIndex === null || draggedIndex === index) return;
+        if (!over || active.id === over.id) {
+            return;
+        }
 
         const currentConfigs = configs[activeTab] || [];
-        const newConfigs = [...currentConfigs];
-        const draggedItem = newConfigs[draggedIndex];
+        const oldIndex = currentConfigs.findIndex((c) => c.key === active.id);
+        const newIndex = currentConfigs.findIndex((c) => c.key === over.id);
 
-        // 移除拖拽的项
-        newConfigs.splice(draggedIndex, 1);
-        // 插入到新位置
-        newConfigs.splice(index, 0, draggedItem);
+        if (oldIndex === -1 || newIndex === -1) return;
+
+        // 更新本地状态
+        const newConfigs = arrayMove(currentConfigs, oldIndex, newIndex);
 
         // 更新 sortOrder
         newConfigs.forEach((config, idx) => {
@@ -166,53 +254,37 @@ export default function AdminSystemParamsPage() {
             ...prev,
             [activeTab]: newConfigs
         }));
-        setDraggedIndex(index);
-    };
-
-    const handleDragEnd = async () => {
-        if (draggedIndex === null) return;
-
-        const currentConfigs = configs[activeTab] || [];
 
         // 保存新的排序到后端
         try {
             const token = localStorage.getItem('adminToken');
-            const updates = currentConfigs.map(config => ({
+            const orders = newConfigs.map((config, index) => ({
                 key: config.key,
-                value: config.value,
-                sortOrder: config.sortOrder
+                sortOrder: index + 1,
             }));
 
-            // 调用同步元数据的接口来更新sortOrder
-            await fetch(`${BASE_URL}/admin/config/sync-metadata`, {
+            await fetch(`${BASE_URL}/admin/config/update-sort-order`, {
                 method: 'POST',
                 headers: {
+                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
+                body: JSON.stringify({ orders }),
             });
-
-            // 更新sortOrder到数据库
-            for (const config of currentConfigs) {
-                await fetch(`${BASE_URL}/admin/config/${config.key}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({ value: config.value }),
-                });
-            }
 
             toastSuccess('排序已保存');
         } catch (error) {
             console.error('保存排序失败:', error);
             toastError('保存排序失败');
+            // 如果失败，恢复原来的顺序
+            setConfigs(prev => ({
+                ...prev,
+                [activeTab]: currentConfigs
+            }));
         }
-
-        setDraggedIndex(null);
     };
 
-    // 检查配置项是否满足dependsOn条件
+    // 根据 dependsOn 判断是否显示某配置项
     const shouldShowConfig = (config: SystemConfig): boolean => {
         if (!config.dependsOn) return true;
         const [depKey, depValue] = config.dependsOn.split(':');
@@ -221,12 +293,9 @@ export default function AdminSystemParamsPage() {
     };
 
     const currentConfigs = configs[activeTab] || [];
-    // 过滤出满足条件的配置项
     const visibleConfigs = currentConfigs.filter(shouldShowConfig);
 
-    const renderConfigInput = (config: SystemConfig) => {
-        const value = editedValues[config.key] ?? config.value ?? '';
-
+    const renderConfigInput = (config: SystemConfig, value: string) => {
         // VIP价格特殊处理 - 可视化编辑器
         if (config.key === 'user_vip_prices' || config.key === 'seller_vip_prices') {
             try {
@@ -457,33 +526,31 @@ export default function AdminSystemParamsPage() {
                         onChange={(e) => updateField(config.key, e.target.value)}
                         disabled={!config.isEditable}
                     >
-                        {options.map((opt: { value: string; label: string }) => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        {options.map((opt: string) => (
+                            <option key={opt} value={opt}>{opt}</option>
                         ))}
                     </select>
                 );
-            } catch {
-                // 解析失败，继续渲染其他类型
-            }
+            } catch { }
         }
 
+        // 根据 valueType 渲染不同类型的输入框
         switch (config.valueType) {
             case 'boolean':
                 return (
                     <button
-                        type="button"
                         onClick={() => updateField(config.key, value === 'true' ? 'false' : 'true')}
                         disabled={!config.isEditable}
                         className={cn(
-                            'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20',
-                            value === 'true' ? 'bg-primary' : 'bg-[#e5e7eb]',
+                            "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+                            value === 'true' ? 'bg-primary-600' : 'bg-[#d1d5db]',
                             !config.isEditable && 'opacity-50 cursor-not-allowed'
                         )}
                     >
                         <span
                             className={cn(
-                                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white ring-0 transition duration-200',
-                                value === 'true' ? 'translate-x-5' : 'translate-x-0'
+                                "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                                value === 'true' ? 'translate-x-6' : 'translate-x-1'
                             )}
                         />
                     </button>
@@ -588,38 +655,28 @@ export default function AdminSystemParamsPage() {
                             {visibleConfigs.length === 0 ? (
                                 <p className="py-8 text-center text-[#9ca3af]">该分组暂无配置项</p>
                             ) : (
-                                <div className="grid gap-5 md:grid-cols-2">
-                                    {visibleConfigs.map((config, index) => (
-                                        <div
-                                            key={config.key}
-                                            draggable
-                                            onDragStart={() => handleDragStart(index)}
-                                            onDragOver={(e) => handleDragOver(e, index)}
-                                            onDragEnd={handleDragEnd}
-                                            className={cn(
-                                                "rounded-md border border-[#e5e7eb] p-4 cursor-move transition-all",
-                                                draggedIndex === index && "opacity-50 scale-95",
-                                                "hover:border-primary-300 hover:shadow-sm"
-                                            )}
-                                        >
-                                            <div className="mb-2 flex items-center justify-between">
-                                                <label className="text-sm font-medium text-[#374151]">
-                                                    {config.label || config.key}
-                                                </label>
-                                                <div className="flex items-center gap-1 text-xs text-slate-400">
-                                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-                                                    </svg>
-                                                    <span>#{config.sortOrder || index + 1}</span>
-                                                </div>
-                                            </div>
-                                            {renderConfigInput(config)}
-                                            {config.description && (
-                                                <p className="mt-1.5 text-xs text-[#9ca3af]">{config.description}</p>
-                                            )}
+                                <DndContext
+                                    sensors={sensors}
+                                    collisionDetection={closestCenter}
+                                    onDragEnd={handleDragEnd}
+                                >
+                                    <SortableContext
+                                        items={visibleConfigs.map(c => c.key)}
+                                        strategy={verticalListSortingStrategy}
+                                    >
+                                        <div className="grid gap-5 md:grid-cols-2">
+                                            {visibleConfigs.map(config => (
+                                                <SortableConfigItem
+                                                    key={config.key}
+                                                    config={config}
+                                                    editedValue={editedValues[config.key] ?? config.value ?? ''}
+                                                    onUpdateField={updateField}
+                                                    renderInput={renderConfigInput}
+                                                />
+                                            ))}
                                         </div>
-                                    ))}
-                                </div>
+                                    </SortableContext>
+                                </DndContext>
                             )}
                         </div>
                     </div>

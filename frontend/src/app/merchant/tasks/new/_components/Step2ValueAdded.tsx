@@ -12,13 +12,13 @@ interface StepProps { data: TaskFormData; onChange: (data: Partial<TaskFormData>
 export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: StepProps) {
     const [praiseFees, setPraiseFees] = useState({ text: 2, image: 4, video: 10 });
     const [serviceFees, setServiceFees] = useState<ServiceFees>({
-        timingPublish: 1,
-        timingPay: 1,
+        timingPublish: 0,
+        timingPay: 0.3,
         nextDay: 0.5,
         randomBrowse: 0.5,
-        fastRefundRate: 0.006,
-        phoneFee: 0.3,
-        refundService: 0.5,
+        fastRefundRate: 0.01,
+        cycleTime: 0.2,
+        orderInterval: 0.5,
     });
 
     // 问题模板选择相关状态
@@ -841,7 +841,7 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                 <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-3 py-3">
                     <input type="checkbox" checked={data.isCycleTime} onChange={e => onChange({ isCycleTime: e.target.checked })} />
                     <div className="flex flex-1 items-center justify-between">
-                        <div><span className="text-sm">延长买号周期</span><span className="ml-2 text-xs text-[#9ca3af]">+{serviceFees.phoneFee}元/月</span></div>
+                        <div><span className="text-sm">延长买号周期</span><span className="ml-2 text-xs text-[#9ca3af]">+{serviceFees.cycleTime}元/月</span></div>
                         {data.isCycleTime && <select value={data.cycleTime} onChange={e => onChange({ cycleTime: parseInt(e.target.value) })} className="rounded border border-[#e5e7eb]"><option value={30}>30天</option><option value={60}>60天</option><option value={90}>90天</option></select>}
                     </div>
                 </div>
@@ -881,7 +881,7 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
                 <div className="flex items-center gap-3 px-3 py-3">
                     <input type="checkbox" checked={(data.orderInterval || 0) > 0} onChange={e => onChange({ orderInterval: e.target.checked ? 5 : 0 })} />
                     <div className="flex flex-1 items-center justify-between">
-                        <div><span className="text-sm">任务接单间隔</span><span className="ml-2 text-xs text-[#9ca3af]">控制买手接单的时间间隔</span></div>
+                        <div><span className="text-sm">任务接单间隔</span><span className="ml-2 text-xs text-[#9ca3af]">+{serviceFees.orderInterval}元/单，控制买手接单的时间间隔</span></div>
                         {(data.orderInterval || 0) > 0 && (
                             <div className="flex items-center gap-1">
                                 <input

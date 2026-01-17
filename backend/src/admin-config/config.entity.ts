@@ -222,13 +222,6 @@ export const DEFAULT_CONFIGS = [
     valueType: 'number',
   },
   {
-    key: 'phone_fee',
-    value: '0.3',
-    group: 'task_fee',
-    label: '手机端加成服务费',
-    valueType: 'number',
-  },
-  {
     key: 'timing_publish_fee',
     value: '0.5',
     group: 'task_fee',
@@ -253,8 +246,9 @@ export const DEFAULT_CONFIGS = [
     key: 'cycle_fee',
     value: '0.2',
     group: 'task_fee',
-    label: '循环时间费',
+    label: '延长买号周期',
     valueType: 'number',
+    description: '延长买号周期服务费，按月收费',
   },
   {
     key: 'presale_fee',

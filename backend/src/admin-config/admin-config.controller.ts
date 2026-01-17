@@ -214,8 +214,6 @@ export class SystemConfigPublicController {
             unionInterval: parseFloat(configs['union_interval_fee'] || '0.5'),
             goodsMoreFee: parseFloat(configs['goods_more_fee'] || '1'),
             refundServicePrice: parseFloat(configs['refund_service_rate'] || '0.01'),
-            phoneFee: parseFloat(configs['phone_fee'] || '0.3'),
-            pcFee: parseFloat(configs['pc_fee'] || '0.2'),
             timingPay: parseFloat(configs['timing_pay_fee'] || '0.3'),
             timingPublish: parseFloat(configs['timing_publish_fee'] || '0.5'),
             nextDay: parseFloat(configs['next_day_fee'] || '0.5'),

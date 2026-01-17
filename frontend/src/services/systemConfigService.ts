@@ -22,8 +22,6 @@ export interface SystemGlobalConfig {
     unionInterval: number;
     goodsMoreFee: number;
     refundServicePrice: number;
-    phoneFee: number;
-    pcFee: number;
     timingPay: number;
     timingPublish: number;
     nextDay: number;
@@ -226,29 +224,29 @@ export interface ServiceFees {
     nextDay: number;            // 隔天任务
     randomBrowse: number;       // 随机浏览店铺其他商品
     fastRefundRate: number;     // 快速返款服务费率
-    phoneFee: number;           // 手机端加成
-    refundService: number;      // 降天任务服务费
+    cycleTime: number;          // 延长买号周期（循环时间费）
+    orderInterval: number;      // 任务接单间隔
 }
 
 export function getServiceFees(config: SystemGlobalConfig | null): ServiceFees {
     if (!config) {
         return {
-            timingPublish: 0.5,
+            timingPublish: 0,
             timingPay: 0.3,
             nextDay: 0.5,
             randomBrowse: 0.5,
             fastRefundRate: 0.01,
-            phoneFee: 0.3,
-            refundService: 1,
+            cycleTime: 0.2,
+            orderInterval: 0.5,
         };
     }
     return {
-        timingPublish: Number(config.timingPublish) || 0.5,
+        timingPublish: Number(config.timingPublish) || 0,
         timingPay: Number(config.timingPay) || 0.3,
         nextDay: Number(config.nextDay) || 0.5,
         randomBrowse: Number(config.randomBrowseFee) || 0.5,
         fastRefundRate: Number(config.refundServicePrice) || 0.01,
-        phoneFee: Number(config.phoneFee) || 0.3,
-        refundService: Number(config.ysFee) || 1,
+        cycleTime: Number(config.rePay) || 0.2,
+        orderInterval: Number(config.unionInterval) || 0.5,
     };
 }
