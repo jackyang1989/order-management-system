@@ -185,7 +185,7 @@ export class ReferralService {
         amount: actualReward,
         status: ReferralRewardStatus.PAID, // 直接发放
         relatedOrderId: orderId,
-        remark: `推广买家(${buyer.username})任务${taskNumber || orderId}已完成,奖励${actualReward}银锭`,
+        remark: `推广买家(${buyer.userNo})任务${taskNumber || orderId}已完成,奖励${actualReward}银锭`,
         paidAt: new Date(),
       });
       await queryRunner.manager.save(reward);
@@ -206,7 +206,7 @@ export class ReferralService {
         financeType: FinanceType.REWARD,
         amount: actualReward,
         balanceAfter: referrer.silver,
-        memo: `推广买家(${buyer.username})任务完成,奖励${actualReward}银锭`,
+        memo: `推广买家(${buyer.userNo})任务完成,奖励${actualReward}银锭`,
         relatedId: reward.id,
         relatedType: 'referral_reward',
       });
@@ -490,7 +490,7 @@ export class ReferralService {
   async getReferredUsers(userId: string): Promise<User[]> {
     return this.userRepository.find({
       where: { referrerId: userId },
-      select: ['id', 'username', 'createdAt', 'isActive', 'lastTaskAt'],
+      select: ['id', 'userNo', 'createdAt', 'isActive', 'lastTaskAt'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -506,8 +506,8 @@ export class ReferralService {
     if (!user) {
       throw new Error('用户不存在');
     }
-    // 使用用户名或手机号的hash作为邀请码
-    const baseCode = user.username || user.id;
+    // 使用用户编号或ID的hash作为邀请码
+    const baseCode = user.userNo || user.id;
     const hash = baseCode
       .split('')
       .reduce((acc, char) => acc + char.charCodeAt(0), 0);

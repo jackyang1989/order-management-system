@@ -63,12 +63,12 @@ export class UsersAdminService {
 
     const qb = this.userRepo.createQueryBuilder('u')
       .leftJoin('users', 'referrer', 'referrer.id::text = u.invitedBy')
-      .addSelect('referrer.username', 'referrerUsername');
+      .addSelect('referrer.userNo', 'referrerUserNo');
 
     // 关键词搜索
     if (query.keyword) {
       qb.andWhere(
-        '(u.username LIKE :keyword OR u.phone LIKE :keyword OR u.realName LIKE :keyword)',
+        '(u.userNo LIKE :keyword OR u.phone LIKE :keyword OR u.realName LIKE :keyword)',
         { keyword: `%${query.keyword}%` },
       );
     }
@@ -393,7 +393,7 @@ export class UsersAdminService {
     const result = await this.findAll({ ...query, limit: 10000 });
     const exportData = result.data.map((u) => ({
       ID: u.id,
-      用户名: u.username,
+      用户编号: u.userNo,
       手机号: u.phone,
       微信号: u.wechat,
       本金余额: u.balance,

@@ -81,10 +81,6 @@ export class UsersService {
     }
   }
 
-  async findByUsername(username: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { username } });
-  }
-
   async findByPhone(phone: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { phone } });
   }
@@ -141,7 +137,6 @@ export class UsersService {
     const userNo = await this.generateUserNo();
 
     const newUser = this.usersRepository.create({
-      username: createUserDto.username,
       password: hashedPassword,
       phone: createUserDto.phone,
       wechat: createUserDto.wechat || '',

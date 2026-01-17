@@ -22,8 +22,12 @@ export class AuthService {
     private adminConfigService: AdminConfigService,
   ) {}
 
-  async validateUser(username: string, password: string): Promise<any> {
-    const user = await this.usersService.findByUsername(username);
+  async validateUser(identifier: string, password: string): Promise<any> {
+    // 支持手机号或 userNo 验证
+    let user = await this.usersService.findByPhone(identifier);
+    if (!user) {
+      user = await this.usersService.findByUserNo(identifier);
+    }
     if (user && (await this.usersService.validatePassword(user, password))) {
       const { password: _, ...result } = user;
       return result;
@@ -32,17 +36,17 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto) {
-    // 支持手机号或用户名登录
+    // 支持手机号或 userNo 登录
     let user: any = null;
     if (loginDto.phone) {
       user = await this.usersService.findByPhone(loginDto.phone);
     }
-    if (!user && loginDto.username) {
-      user = await this.usersService.findByUsername(loginDto.username);
+    if (!user && loginDto.userNo) {
+      user = await this.usersService.findByUserNo(loginDto.userNo);
     }
 
     if (!user) {
-      throw new UnauthorizedException('用户名或密码错误');
+      throw new UnauthorizedException('手机号/用户ID或密码错误');
     }
 
     const isValid = await this.usersService.validatePassword(
@@ -50,12 +54,12 @@ export class AuthService {
       loginDto.password,
     );
     if (!isValid) {
-      throw new UnauthorizedException('用户名或密码错误');
+      throw new UnauthorizedException('手机号/用户ID或密码错误');
     }
 
     const payload = {
       sub: user.id,
-      username: user.username,
+      userNo: user.userNo,
       phone: user.phone,
     };
 
@@ -66,7 +70,7 @@ export class AuthService {
         accessToken: this.jwtService.sign(payload),
         user: {
           id: user.id,
-          username: user.username,
+          userNo: user.userNo,
           phone: user.phone,
           balance: user.balance,
           silver: user.silver,
@@ -82,14 +86,6 @@ export class AuthService {
     const isEnabled = this.adminConfigService.getBooleanValue('user_registration_enabled', true);
     if (!isEnabled) {
       throw new ForbiddenException('用户注册功能已关闭');
-    }
-
-    // 检查用户名是否已存在
-    const existingUser = await this.usersService.findByUsername(
-      createUserDto.username,
-    );
-    if (existingUser) {
-      throw new ConflictException('用户名已存在');
     }
 
     // 检查手机号是否已存在
@@ -115,7 +111,7 @@ export class AuthService {
 
     const payload = {
       sub: user.id,
-      username: user.username,
+      userNo: user.userNo,
       phone: user.phone,
     };
 
@@ -126,7 +122,7 @@ export class AuthService {
         accessToken: this.jwtService.sign(payload),
         user: {
           id: user.id,
-          username: user.username,
+          userNo: user.userNo,
           phone: user.phone,
           balance: user.balance,
           silver: user.silver,
@@ -188,7 +184,7 @@ export class AuthService {
     // 生成 JWT
     const payload = {
       sub: user.id,
-      username: user.username,
+      userNo: user.userNo,
       phone: user.phone,
     };
 
@@ -199,7 +195,7 @@ export class AuthService {
         accessToken: this.jwtService.sign(payload),
         user: {
           id: user.id,
-          username: user.username,
+          userNo: user.userNo,
           phone: user.phone,
           balance: user.balance,
           silver: user.silver,

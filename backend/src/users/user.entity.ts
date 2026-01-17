@@ -23,9 +23,6 @@ export class User {
   @Column({ unique: true, nullable: true })
   userNo: string; // 用户编号 U10001
 
-  @Column({ unique: true })
-  username: string;
-
   @Column()
   password: string; // hashed
 
@@ -150,11 +147,6 @@ export class User {
 export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
-  @MinLength(3)
-  username: string;
-
-  @IsString()
-  @IsNotEmpty()
   @MinLength(6)
   password: string;
 
@@ -190,7 +182,7 @@ export class CreateUserDto {
 export class LoginDto {
   @IsString()
   @IsOptional()
-  username?: string;
+  userNo?: string;
 
   @IsString()
   @IsOptional()

@@ -21,7 +21,6 @@ function RegisterForm() {
 
     // Form state
     const [form, setForm] = useState({
-        username: '',
         phone: '',
         smsCode: '',
         wechat: '',
@@ -100,7 +99,6 @@ function RegisterForm() {
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!form.username) { toastError('用户名不能为空'); return; }
         if (!form.phone) { toastError('手机号不能为空'); return; }
         if (!phoneReg.test(form.phone)) { toastError('手机号格式不正确'); return; }
         if (!form.smsCode) { toastError('短信验证码不能为空'); return; }
@@ -115,7 +113,6 @@ function RegisterForm() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    username: form.username,
                     phone: form.phone,
                     password: form.password,
                     wechat: form.wechat || '',
@@ -202,17 +199,6 @@ function RegisterForm() {
                 </div>
 
                 <form onSubmit={handleRegister} className="space-y-5">
-                    <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700">用户名</label>
-                        <input
-                            type="text"
-                            className="w-full rounded-lg border border-slate-300 px-4 py-3 text-base focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                            placeholder="用户名 (3-20位字符)"
-                            value={form.username}
-                            onChange={(e) => updateField('username', e.target.value)}
-                        />
-                    </div>
-
                     <div>
                         <label className="mb-1.5 block text-sm font-medium text-slate-700">手机号</label>
                         <input
