@@ -121,8 +121,7 @@ export class QuestionsService {
 
     const detail = this.questionDetailRepository.create({
       questionSchemeId: schemeId,
-      name: dto.name,
-      questions: dto.questions,
+      question: dto.question,
     });
 
     return this.questionDetailRepository.save(detail);

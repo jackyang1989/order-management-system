@@ -70,6 +70,9 @@ export class QuestionDetail {
   @Column({ type: 'text' })
   question: string; // 单个问题内容
 
+  @Column({ type: 'int', default: 0 })
+  sortOrder: number; // 排序顺序
+
   @CreateDateColumn()
   createdAt: Date;
 
