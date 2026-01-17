@@ -167,7 +167,7 @@ export default function AdminFinanceBankPage() {
         <>
         <Card className="bg-white p-6">
             <div className="mb-4 flex items-center justify-between">
-                <span className="text-base font-medium">收款账户审核</span>
+                <span className="text-base font-medium">账户审核</span>
                 <span className="text-[#6b7280]">共 {total} 条记录</span>
             </div>
             <div className="mb-6 flex flex-wrap items-center gap-3">

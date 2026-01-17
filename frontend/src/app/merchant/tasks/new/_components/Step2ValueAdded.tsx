@@ -195,11 +195,16 @@ export default function Step2ValueAdded({ data, onChange, onPrev, onNext }: Step
         try {
             const schemes = await fetchQuestionSchemes(data.shopId);
             const templates: QuestionDetail[] = [];
-            schemes.forEach(scheme => {
-                if (scheme.details && Array.isArray(scheme.details)) {
-                    templates.push(...scheme.details);
-                }
-            });
+
+            // 只使用第一个方案（默认方案）的问题
+            if (schemes.length > 0 && schemes[0].details && Array.isArray(schemes[0].details)) {
+                // 过滤掉空问题
+                const validQuestions = schemes[0].details.filter(q => q.question && q.question.trim() !== '');
+                // 按 sortOrder 排序
+                validQuestions.sort((a, b) => a.sortOrder - b.sortOrder);
+                templates.push(...validQuestions);
+            }
+
             setAllQuestionTemplates(templates);
         } catch (error) {
             console.error('Failed to load question templates:', error);

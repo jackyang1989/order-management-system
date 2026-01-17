@@ -120,6 +120,7 @@ export const DEFAULT_CONFIGS = [
     group: 'vip',
     label: '买手VIP价格档位',
     valueType: 'json',
+    description: 'JSON数组格式，每项包含days(天数)和price(价格)。示例：[{"days":30,"price":45}]',
   },
   {
     key: 'seller_vip_prices',
@@ -128,6 +129,7 @@ export const DEFAULT_CONFIGS = [
     group: 'vip',
     label: '商家VIP价格档位',
     valueType: 'json',
+    description: 'JSON数组格式，每项包含days(天数)和price(价格)。示例：[{"days":30,"price":450}]',
   },
 
   // 提现设置

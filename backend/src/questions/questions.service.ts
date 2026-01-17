@@ -110,6 +110,11 @@ export class QuestionsService {
     sellerId: string,
     dto: CreateQuestionDetailDto,
   ): Promise<QuestionDetail> {
+    // 验证问题内容不能为空
+    if (!dto.question || dto.question.trim() === '') {
+      throw new NotFoundException('问题内容不能为空');
+    }
+
     // 验证方案是否存在且属于该商家
     const scheme = await this.questionSchemeRepository.findOne({
       where: { id: schemeId, sellerId },
@@ -140,6 +145,11 @@ export class QuestionsService {
     sellerId: string,
     dto: UpdateQuestionDetailDto,
   ): Promise<QuestionDetail> {
+    // 验证问题内容不能为空
+    if (dto.question !== undefined && (!dto.question || dto.question.trim() === '')) {
+      throw new NotFoundException('问题内容不能为空');
+    }
+
     const detail = await this.questionDetailRepository.findOne({
       where: { id: detailId },
       relations: ['questionScheme'],

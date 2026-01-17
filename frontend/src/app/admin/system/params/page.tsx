@@ -153,6 +153,75 @@ export default function AdminSystemParamsPage() {
     const renderConfigInput = (config: SystemConfig) => {
         const value = editedValues[config.key] ?? config.value ?? '';
 
+        // VIP价格特殊处理 - 可视化编辑器
+        if (config.key === 'user_vip_prices' || config.key === 'seller_vip_prices') {
+            try {
+                const prices = JSON.parse(value) as Array<{ days: number; price: number }>;
+                return (
+                    <div className="space-y-2">
+                        {prices.map((item, index) => (
+                            <div key={index} className="flex items-center gap-3">
+                                <div className="flex-1">
+                                    <label className="text-xs text-slate-500 mb-1 block">天数</label>
+                                    <input
+                                        type="number"
+                                        value={item.days}
+                                        onChange={(e) => {
+                                            const newPrices = [...prices];
+                                            newPrices[index].days = Number(e.target.value);
+                                            updateField(config.key, JSON.stringify(newPrices));
+                                        }}
+                                        className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm"
+                                        disabled={!config.isEditable}
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="text-xs text-slate-500 mb-1 block">价格(元)</label>
+                                    <input
+                                        type="number"
+                                        value={item.price}
+                                        onChange={(e) => {
+                                            const newPrices = [...prices];
+                                            newPrices[index].price = Number(e.target.value);
+                                            updateField(config.key, JSON.stringify(newPrices));
+                                        }}
+                                        className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm"
+                                        disabled={!config.isEditable}
+                                    />
+                                </div>
+                                {config.isEditable && prices.length > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const newPrices = prices.filter((_, i) => i !== index);
+                                            updateField(config.key, JSON.stringify(newPrices));
+                                        }}
+                                        className="mt-5 text-red-500 hover:text-red-700"
+                                    >
+                                        ✕
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                        {config.isEditable && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const newPrices = [...prices, { days: 30, price: 0 }];
+                                    updateField(config.key, JSON.stringify(newPrices));
+                                }}
+                                className="mt-2 text-sm text-primary-600 hover:text-primary-700"
+                            >
+                                + 添加价格档位
+                            </button>
+                        )}
+                    </div>
+                );
+            } catch {
+                // JSON解析失败，显示原始文本框
+            }
+        }
+
         // 如果有options，渲染下拉选择
         if (config.options) {
             try {

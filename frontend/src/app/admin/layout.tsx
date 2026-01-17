@@ -62,7 +62,7 @@ const menuItems: MenuItem[] = [
         children: [
             { key: '/admin/withdrawals', label: '提现审核' },
             { key: '/admin/finance/recharge', label: '充值记录' },
-            { key: '/admin/finance/bank', label: '收款账户审核' },
+            { key: '/admin/finance/bank', label: '账户审核' },
             { key: '/admin/finance/vip', label: '会员记录' },
         ],
     },
