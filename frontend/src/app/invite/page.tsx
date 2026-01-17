@@ -212,11 +212,8 @@ export default function InvitePage() {
                             {!canRefer && (
                                 <div className="rounded-[20px] bg-red-50 border border-red-200 p-6 text-center">
                                     <div className="text-5xl mb-4">🚫</div>
-                                    <div className="text-lg font-bold text-red-700 mb-2">
+                                    <div className="text-lg font-bold text-red-700 mb-4">
                                         抱歉，邀请功能暂时关闭
-                                    </div>
-                                    <div className="text-sm text-red-600 mb-4">
-                                        您的买号推荐权限已被管理员关闭
                                     </div>
                                     <div className="text-xs text-red-500">
                                         如需帮助，请联系管理员

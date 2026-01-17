@@ -90,6 +90,7 @@ const menuItems: MenuItem[] = [
             { key: '/admin/system/sensitive', label: '敏感词管理' },
             { key: '/admin/system/api', label: 'API配置' },
             { key: '/admin/system/banners', label: '轮播图管理' },
+            { key: '/admin/chat', label: '客服系统', icon: '🎧' },
         ],
     },
     {

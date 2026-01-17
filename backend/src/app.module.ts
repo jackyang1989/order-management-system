@@ -54,6 +54,7 @@ import { ReviewsModule } from './reviews/reviews.module';
 import { InviteModule } from './invite/invite.module';
 import { HelpCenterModule } from './help-center/help-center.module';
 import { BannersModule } from './banners/banners.module';
+import { ChatModule } from './chat/chat.module';
 
 // ============ 显式实体引入（禁止使用通配符加载）============
 // admin-config
@@ -153,6 +154,9 @@ import { Withdrawal } from './withdrawals/withdrawal.entity';
 import { HelpArticle } from './help-center/help-article.entity';
 // banners
 import { Banner } from './banners/banner.entity';
+// chat
+import { ChatMessage } from './chat/entities/chat-message.entity';
+import { Visitor } from './chat/entities/visitor.entity';
 
 // 所有实体的显式列表
 const ENTITIES = [
@@ -257,6 +261,9 @@ const ENTITIES = [
   HelpArticle,
   // banners
   Banner,
+  // chat
+  ChatMessage,
+  Visitor,
 ];
 
 @Module({
@@ -339,7 +346,9 @@ const ENTITIES = [
     ReviewsModule,
     InviteModule,
     HelpCenterModule,
+    HelpCenterModule,
     BannersModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [
