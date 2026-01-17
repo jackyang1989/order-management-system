@@ -36,16 +36,21 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto) {
+    console.log('[Auth] Login attempt:', { phone: loginDto.phone, userNo: loginDto.userNo });
+
     // 支持手机号或 userNo 登录
     let user: any = null;
     if (loginDto.phone) {
       user = await this.usersService.findByPhone(loginDto.phone);
+      console.log('[Auth] Found user by phone:', !!user);
     }
     if (!user && loginDto.userNo) {
       user = await this.usersService.findByUserNo(loginDto.userNo);
+      console.log('[Auth] Found user by userNo:', !!user);
     }
 
     if (!user) {
+      console.log('[Auth] User not found');
       throw new UnauthorizedException('手机号/用户ID或密码错误');
     }
 
@@ -53,6 +58,8 @@ export class AuthService {
       user,
       loginDto.password,
     );
+    console.log('[Auth] Password valid:', isValid);
+
     if (!isValid) {
       throw new UnauthorizedException('手机号/用户ID或密码错误');
     }

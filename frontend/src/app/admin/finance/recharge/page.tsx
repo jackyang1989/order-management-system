@@ -90,7 +90,7 @@ export default function AdminFinanceRechargePage() {
             </div>
             <div className="mb-6 flex flex-wrap items-center gap-3">
                 <Input
-                    placeholder="搜索用户名/手机号..."
+                    placeholder="搜索用户ID/手机号..."
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleSearch()}

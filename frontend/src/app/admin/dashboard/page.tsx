@@ -124,7 +124,7 @@ export default function AdminDashboardPage() {
         { icon: '📋', label: '任务列表', path: '/admin/tasks' },
         { icon: '📦', label: '订单列表', path: '/admin/orders' },
         { icon: '💵', label: '提现审核', path: '/admin/withdrawals' },
-        { icon: '⚙️', label: '系统设置', path: '/admin/system' },
+        { icon: '⚙️', label: '系统设置', path: '/admin/system/params' },
     ];
 
     return (

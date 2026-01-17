@@ -90,20 +90,6 @@ export const DEFAULT_CONFIGS = [
     valueType: 'number',
   },
   {
-    key: 'user_register_vip_days',
-    value: '0',
-    group: 'register',
-    label: '买手注册赠送VIP天数',
-    valueType: 'number',
-  },
-  {
-    key: 'seller_register_vip_days',
-    value: '0',
-    group: 'register',
-    label: '商家注册赠送VIP天数',
-    valueType: 'number',
-  },
-  {
     key: 'limit_mobile',
     value: '',
     group: 'register',
@@ -753,14 +739,6 @@ export const DEFAULT_CONFIGS = [
     label: '商品口令核对开关',
     valueType: 'boolean',
     sortOrder: 9,
-  },
-  {
-    key: 'first_account_vip_days',
-    value: '7',
-    group: 'system',
-    label: '首个买号审核通过赠送VIP天数',
-    valueType: 'number',
-    sortOrder: 10,
   },
   {
     key: 'star_thresholds',

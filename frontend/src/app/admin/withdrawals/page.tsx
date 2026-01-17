@@ -320,7 +320,7 @@ export default function AdminWithdrawalsPage() {
                 </div>
                 <div className="mb-6 flex flex-wrap items-center gap-3">
                     <Input
-                        placeholder="搜索用户名/手机号..."
+                        placeholder="搜索用户ID/手机号..."
                         value={keyword}
                         onChange={(e) => setKeyword(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && loadWithdrawals()}
