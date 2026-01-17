@@ -149,7 +149,7 @@ export class UsersService {
     }
 
     // 管理员可以指定初始余额
-    const registerSilver = this.configService.getNumberValue('user_num', 0);
+    const registerSilver = this.configService.getNumberValue('user_register_reward', 0);
     const initialBalance = createUserDto.balance ?? 0;
     const initialSilver = createUserDto.silver ?? registerSilver;
 
