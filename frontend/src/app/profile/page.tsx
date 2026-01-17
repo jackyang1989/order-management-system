@@ -102,17 +102,6 @@ export default function ProfilePage() {
                             <h2 className="text-2xl font-black text-slate-900">{profile?.username || '用户'}</h2>
                             <p className="mt-0.5 text-sm font-medium text-slate-400">{profile?.phone}</p>
                             <div className="mt-3 flex flex-wrap gap-2">
-                                <span className={cn(
-                                    "inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider",
-                                    profile?.vip ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
-                                )}>
-                                    {profile?.vip ? 'VIP会员' : '普通用户'}
-                                </span>
-                                {profile?.vip && profile?.vipExpireAt && (
-                                    <span className="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-[10px] font-medium text-warning-500">
-                                        到期: {formatDate(profile.vipExpireAt)}
-                                    </span>
-                                )}
                                 <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-[10px] font-bold text-primary-600">
                                     累计完成: {profile?.experience || 0}
                                 </span>

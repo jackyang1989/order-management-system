@@ -48,11 +48,10 @@ export default function AdminMerchantsPage() {
         { key: 'wechat', visible: true, width: 100, order: 2 },
         { key: 'balance', visible: true, width: 120, order: 3 },
         { key: 'frozen', visible: true, width: 80, order: 4 },
-        { key: 'vip', visible: true, width: 90, order: 5 },
-        { key: 'status', visible: true, width: 80, order: 6 },
-        { key: 'referrer', visible: true, width: 120, order: 7 },
-        { key: 'createdAt', visible: true, width: 100, order: 8 },
-        { key: 'actions', visible: true, width: 270, order: 9 },
+        { key: 'status', visible: true, width: 80, order: 5 },
+        { key: 'referrer', visible: true, width: 120, order: 6 },
+        { key: 'createdAt', visible: true, width: 100, order: 7 },
+        { key: 'actions', visible: true, width: 270, order: 8 },
     ], []);
 
     // 列配置 Hook
@@ -68,14 +67,13 @@ export default function AdminMerchantsPage() {
         { key: 'wechat', title: '微信' },
         { key: 'balance', title: '本金/银锭' },
         { key: 'frozen', title: '冻结' },
-        { key: 'vip', title: '会员' },
         { key: 'status', title: '状态' },
         { key: 'referrer', title: '推荐人' },
         { key: 'createdAt', title: '注册时间' },
         { key: 'actions', title: '操作' },
     ], []);
 
-    const [activeModal, setActiveModal] = useState<'balance' | 'vip' | 'ban' | 'note' | 'password' | 'add' | 'message' | 'edit' | null>(null);
+    const [activeModal, setActiveModal] = useState<'balance' | 'ban' | 'note' | 'password' | 'add' | 'message' | 'edit' | null>(null);
     const [selectedMerchant, setSelectedMerchant] = useState<AdminMerchant | null>(null);
 
     // Form states
@@ -83,7 +81,6 @@ export default function AdminMerchantsPage() {
     const [balanceAction, setBalanceAction] = useState<'add' | 'deduct'>('add');
     const [balanceAmount, setBalanceAmount] = useState('');
     const [balanceReason, setBalanceReason] = useState('');
-    const [vipDays, setVipDays] = useState('30');
     const [banReason, setBanReason] = useState('');
     const [noteContent, setNoteContent] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -97,7 +94,6 @@ export default function AdminMerchantsPage() {
     const [editWechat, setEditWechat] = useState('');
     const [editBalance, setEditBalance] = useState('');
     const [editSilver, setEditSilver] = useState('');
-    const [editVipExpireAt, setEditVipExpireAt] = useState('');
     const [editReferrerId, setEditReferrerId] = useState('');
 
     // Add merchant form states
@@ -106,7 +102,6 @@ export default function AdminMerchantsPage() {
     const [newMerchantPassword, setNewMerchantPassword] = useState('');
     const [newConfirmPassword, setNewConfirmPassword] = useState('');
     const [newWechat, setNewWechat] = useState('');
-    const [newVipExpireAt, setNewVipExpireAt] = useState('');
     const [newBalance, setNewBalance] = useState('');
     const [newSilver, setNewSilver] = useState('');
     const [newNote, setNewNote] = useState('');
@@ -201,27 +196,6 @@ export default function AdminMerchantsPage() {
         }
     };
 
-    const openSetVip = (m: AdminMerchant) => {
-        setSelectedMerchant(m);
-        setVipDays('30');
-        setActiveModal('vip');
-    };
-
-    const submitSetVip = async () => {
-        if (!selectedMerchant || !vipDays) {
-            toastError('请输入天数');
-            return;
-        }
-        try {
-            await adminService.setMerchantVip(selectedMerchant.id, Number(vipDays));
-            toastSuccess('VIP设置成功');
-            setActiveModal(null);
-            loadMerchants();
-        } catch (e) {
-            toastError('操作失败');
-        }
-    };
-
     const openNote = (m: AdminMerchant) => {
         setSelectedMerchant(m);
         setNoteContent(m.note || '');
@@ -265,7 +239,6 @@ export default function AdminMerchantsPage() {
         setNewMerchantPassword('');
         setNewConfirmPassword('');
         setNewWechat('');
-        setNewVipExpireAt('');
         setNewBalance('');
         setNewSilver('');
         setNewNote('');
@@ -318,7 +291,6 @@ export default function AdminMerchantsPage() {
         setEditWechat(m.wechat || '');
         setEditBalance(String(m.balance || 0));
         setEditSilver(String(m.silver || 0));
-        setEditVipExpireAt(m.vipExpireAt ? new Date(m.vipExpireAt).toISOString().split('T')[0] : '');
         setEditReferrerId(m.referrerId || '');
         setActiveModal('edit');
     };
@@ -338,7 +310,6 @@ export default function AdminMerchantsPage() {
                     wechat: editWechat || undefined,
                     balance: editBalance ? Number(editBalance) : undefined,
                     silver: editSilver ? Number(editSilver) : undefined,
-                    vipExpireAt: editVipExpireAt || undefined,
                     referrerId: editReferrerId || undefined,
                 })
             });
@@ -370,7 +341,6 @@ export default function AdminMerchantsPage() {
                 phone: newPhone,
                 password: newMerchantPassword,
                 wechat: newWechat || undefined,
-                vipExpireAt: newVipExpireAt || undefined,
                 balance: newBalance ? Number(newBalance) : undefined,
                 silver: newSilver ? Number(newSilver) : undefined,
                 note: newNote || undefined,
@@ -515,30 +485,6 @@ export default function AdminMerchantsPage() {
             ),
         },
         {
-            key: 'vip',
-            title: '会员',
-            defaultWidth: 90,
-            minWidth: 60,
-            render: (row) => {
-                // 检查VIP是否有效（有vip标记且未过期）
-                const isVipValid = row.vip && row.vipExpireAt && new Date(row.vipExpireAt) > new Date();
-                return (
-                    <div>
-                        {isVipValid ? (
-                            <>
-                                <Badge variant="solid" color="amber">VIP</Badge>
-                                <div className="mt-0.5 text-[10px] text-[#9ca3af]">
-                                    {formatDate(row.vipExpireAt)}
-                                </div>
-                            </>
-                        ) : (
-                            <Badge variant="soft" color="slate">普通</Badge>
-                        )}
-                    </div>
-                );
-            },
-        },
-        {
             key: 'status',
             title: '状态',
             defaultWidth: 80,
@@ -600,12 +546,6 @@ export default function AdminMerchantsPage() {
                     <button className="rounded-full border border-primary-300 bg-white px-3 py-1 text-xs text-primary-600 hover:bg-primary-50 transition-colors" onClick={() => openMessage(row)}>
                         消息
                     </button>
-                    {/* VIP过期或无VIP时显示设VIP按钮 */}
-                    {!(row.vip && row.vipExpireAt && new Date(row.vipExpireAt) > new Date()) && (
-                        <button className="rounded-full border border-warning-300 bg-white px-3 py-1 text-xs text-warning-600 hover:bg-warning-50 transition-colors" onClick={() => openSetVip(row)}>
-                            设VIP
-                        </button>
-                    )}
                     <button className="rounded-full border border-primary-300 bg-white px-3 py-1 text-xs text-primary-600 hover:bg-primary-50 transition-colors" onClick={() => openEdit(row)}>
                         编辑
                     </button>
@@ -760,31 +700,6 @@ export default function AdminMerchantsPage() {
                 </div>
             </Modal>
 
-            {/* 设置VIP弹窗 */}
-            <Modal
-                title={`设置VIP - ${selectedMerchant?.username}`}
-                open={activeModal === 'vip'}
-                onClose={() => setActiveModal(null)}
-            >
-                <div className="space-y-4">
-                    <Input
-                        label="VIP时长（天）"
-                        type="number"
-                        placeholder="请输入天数"
-                        value={vipDays}
-                        onChange={(e) => setVipDays(e.target.value)}
-                    />
-                    <div className="flex justify-end gap-3 pt-4">
-                        <Button variant="secondary" onClick={() => setActiveModal(null)}>
-                            取消
-                        </Button>
-                        <Button onClick={submitSetVip}>
-                            确认
-                        </Button>
-                    </div>
-                </div>
-            </Modal>
-
             {/* 禁用弹窗 */}
             <Modal
                 title={`禁用商家 - ${selectedMerchant?.username}`}
@@ -913,7 +828,6 @@ export default function AdminMerchantsPage() {
                             <div><span className="text-[#6b7280]">用户名:</span> {selectedMerchant?.username}</div>
                             <div><span className="text-[#6b7280]">当前本金:</span> <span className="text-success-500">¥{Number(selectedMerchant?.balance || 0).toFixed(2)}</span></div>
                             <div><span className="text-[#6b7280]">当前银锭:</span> <span className="text-primary-600">{Number(selectedMerchant?.silver || 0).toFixed(2)}</span></div>
-                            <div><span className="text-[#6b7280]">VIP状态:</span> {selectedMerchant?.vip ? <span className="text-warning-500">VIP</span> : '普通'}</div>
                         </div>
                     </div>
                     <Input
@@ -944,11 +858,6 @@ export default function AdminMerchantsPage() {
                             onChange={(e) => setEditSilver(e.target.value)}
                         />
                     </div>
-                    <DateInput
-                        label="VIP到期时间"
-                        value={editVipExpireAt}
-                        onChange={(e) => setEditVipExpireAt(e.target.value)}
-                    />
                     <Input
                         label="推荐人ID"
                         placeholder="请输入推荐人ID"
@@ -1004,11 +913,6 @@ export default function AdminMerchantsPage() {
                         placeholder="请输入微信号"
                         value={newWechat}
                         onChange={(e) => setNewWechat(e.target.value)}
-                    />
-                    <DateInput
-                        label="VIP到期时间（可选）"
-                        value={newVipExpireAt}
-                        onChange={(e) => setNewVipExpireAt(e.target.value)}
                     />
                     <div className="grid grid-cols-2 gap-4">
                         <Input

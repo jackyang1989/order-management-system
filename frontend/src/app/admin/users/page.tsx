@@ -27,8 +27,6 @@ interface User {
     frozenBalance?: number;
     frozenSilver?: number;
     reward?: number;
-    vip: boolean;
-    vipExpireAt?: string;
     verifyStatus: number;
     isActive: boolean;
     isBanned: boolean;
@@ -63,7 +61,6 @@ interface AddUserModalData {
     confirmPassword: string;
     phone: string;
     wechat: string;
-    vipExpireAt: string;
     balance: string;
     silver: string;
     note: string;
@@ -89,7 +86,6 @@ export default function AdminUsersPage() {
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
-    const [vipFilter, setVipFilter] = useState<string>('all');
     const [verifyFilter, setVerifyFilter] = useState<string>('all');
 
     // 排序状态
@@ -107,12 +103,11 @@ export default function AdminUsersPage() {
         { key: 'verifyStatus', visible: true, width: 80, order: 3 },
         { key: 'balance', visible: true, width: 120, order: 4 },
         { key: 'frozen', visible: true, width: 90, order: 5 },
-        { key: 'vip', visible: true, width: 90, order: 6 },
-        { key: 'invitedBy', visible: true, width: 80, order: 7 },
-        { key: 'monthlyTaskCount', visible: true, width: 70, order: 8 },
-        { key: 'lastLoginAt', visible: true, width: 100, order: 9 },
-        { key: 'createdAt', visible: true, width: 90, order: 10 },
-        { key: 'actions', visible: true, width: 270, order: 11, fixed: 'right' },
+        { key: 'invitedBy', visible: true, width: 80, order: 6 },
+        { key: 'monthlyTaskCount', visible: true, width: 70, order: 7 },
+        { key: 'lastLoginAt', visible: true, width: 100, order: 8 },
+        { key: 'createdAt', visible: true, width: 90, order: 9 },
+        { key: 'actions', visible: true, width: 270, order: 10, fixed: 'right' },
     ], []);
 
     // 列配置 Hook
@@ -129,7 +124,6 @@ export default function AdminUsersPage() {
         { key: 'verifyStatus', title: '实名状态' },
         { key: 'balance', title: '本金/银锭' },
         { key: 'frozen', title: '冻结' },
-        { key: 'vip', title: 'VIP' },
         { key: 'invitedBy', title: '推荐人' },
         { key: 'monthlyTaskCount', title: '月单量' },
         { key: 'lastLoginAt', title: '最后登录' },
@@ -145,7 +139,7 @@ export default function AdminUsersPage() {
     const [addUserModal, setAddUserModal] = useState(false);
     const [addUserForm, setAddUserForm] = useState<AddUserModalData>({
         username: '', password: '', confirmPassword: '', phone: '', wechat: '',
-        vipExpireAt: '', balance: '', silver: '', note: ''
+        balance: '', silver: '', note: ''
     });
     const [addUserLoading, setAddUserLoading] = useState(false);
     const [exporting, setExporting] = useState(false);
@@ -166,17 +160,15 @@ export default function AdminUsersPage() {
         realName: string;
         balance: string;
         silver: string;
-        vip: boolean;
-        vipExpireAt: string;
         mcTaskNum: string;
         note: string;
         verifyStatus: number;
         canReferFriends: boolean;
-    }>({ username: '', phone: '', wechat: '', realName: '', balance: '0', silver: '0', vip: false, vipExpireAt: '', mcTaskNum: '0', note: '', verifyStatus: 0, canReferFriends: true });
+    }>({ username: '', phone: '', wechat: '', realName: '', balance: '0', silver: '0', mcTaskNum: '0', note: '', verifyStatus: 0, canReferFriends: true });
 
     useEffect(() => {
         loadUsers();
-    }, [page, statusFilter, vipFilter, verifyFilter]);
+    }, [page, statusFilter, verifyFilter]);
 
     const loadUsers = async () => {
         const token = localStorage.getItem('adminToken');
@@ -185,7 +177,6 @@ export default function AdminUsersPage() {
             let url = `${BASE_URL}/admin/users?page=${page}&limit=20`;
             if (search) url += `&keyword=${encodeURIComponent(search)}`;
             if (statusFilter !== 'all') url += `&status=${statusFilter}`;
-            if (vipFilter !== 'all') url += `&vip=${vipFilter}`;
             if (verifyFilter !== 'all') url += `&verifyStatus=${verifyFilter}`;
             // 注意：后端暂不支持排序参数，需要后续添加
 
@@ -217,8 +208,6 @@ export default function AdminUsersPage() {
             realName: user.realName || '',
             balance: String(user.balance || 0),
             silver: String(user.silver || 0),
-            vip: user.vip || false,
-            vipExpireAt: user.vipExpireAt ? user.vipExpireAt.split('T')[0] : '',
             mcTaskNum: String(user.mcTaskNum || 0),
             note: user.note || '',
             verifyStatus: user.verifyStatus || 0,
@@ -244,8 +233,6 @@ export default function AdminUsersPage() {
                     realName: editForm.realName,
                     balance: parseFloat(editForm.balance) || 0,
                     silver: parseFloat(editForm.silver) || 0,
-                    vip: editForm.vip,
-                    vipExpireAt: editForm.vipExpireAt || null,
                     mcTaskNum: parseInt(editForm.mcTaskNum) || 0,
                     note: editForm.note,
                     verifyStatus: editForm.verifyStatus,
@@ -333,24 +320,6 @@ export default function AdminUsersPage() {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             toastSuccess('已解封');
-            loadUsers();
-        } catch (e) {
-            toastError('操作失败');
-        }
-    };
-
-    const handleSetVip = async (userId: string, days: number) => {
-        const token = localStorage.getItem('adminToken');
-        try {
-            await fetch(`${BASE_URL}/admin/users/${userId}/vip`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ days })
-            });
-            toastSuccess('VIP已设置');
             loadUsers();
         } catch (e) {
             toastError('操作失败');
@@ -463,7 +432,6 @@ export default function AdminUsersPage() {
                 password: addUserForm.password,
                 phone: addUserForm.phone,
                 wechat: addUserForm.wechat || undefined,
-                vipExpireAt: addUserForm.vipExpireAt || undefined,
                 balance: addUserForm.balance ? Number(addUserForm.balance) : undefined,
                 silver: addUserForm.silver ? Number(addUserForm.silver) : undefined,
                 note: addUserForm.note || undefined,
@@ -482,7 +450,7 @@ export default function AdminUsersPage() {
                 setAddUserModal(false);
                 setAddUserForm({
                     username: '', password: '', confirmPassword: '', phone: '', wechat: '',
-                    vipExpireAt: '', balance: '', silver: '', note: ''
+                    balance: '', silver: '', note: ''
                 });
                 loadUsers();
             } else {
@@ -502,7 +470,6 @@ export default function AdminUsersPage() {
             let url = `${BASE_URL}/admin/users/export?`;
             if (search) url += `keyword=${encodeURIComponent(search)}&`;
             if (statusFilter !== 'all') url += `status=${statusFilter}&`;
-            if (vipFilter !== 'all') url += `vip=${vipFilter}&`;
             if (verifyFilter !== 'all') url += `verifyStatus=${verifyFilter}&`;
 
             const res = await fetch(url, {
@@ -511,13 +478,12 @@ export default function AdminUsersPage() {
             const json = await res.json();
             if (json.success && json.data) {
                 const exportData = json.data.data || json.data;
-                const headers = ['ID', '用户名', '手机号', '微信号', 'VIP', '本金余额', '银锭余额', '实名状态', '状态', '注册时间'];
+                const headers = ['ID', '用户名', '手机号', '微信号', '本金余额', '银锭余额', '实名状态', '状态', '注册时间'];
                 const rows = exportData.map((item: any) => [
                     item['ID'] || item.id || '',
                     item['用户名'] || item.username || '',
                     item['手机号'] || item.phone || '',
                     item['微信号'] || item.wechat || '',
-                    item['VIP'] || (item.vip ? '是' : '否'),
                     item['本金余额'] || item.balance || 0,
                     item['银锭余额'] || item.silver || 0,
                     item['实名状态'] || '',
@@ -677,26 +643,6 @@ export default function AdminUsersPage() {
             ),
         },
         {
-            key: 'vip',
-            title: 'VIP',
-            defaultWidth: 90,
-            minWidth: 60,
-            render: (row) => (
-                <div>
-                    {row.vip ? (
-                        <Badge variant="solid" color="amber">VIP</Badge>
-                    ) : (
-                        <Badge variant="soft" color="slate">普通</Badge>
-                    )}
-                    {row.vipExpireAt && (
-                        <div className="mt-0.5 text-[10px] text-[#9ca3af]">
-                            {formatDate(row.vipExpireAt)}
-                        </div>
-                    )}
-                </div>
-            ),
-        },
-        {
             key: 'invitedBy',
             title: '推荐人',
             defaultWidth: 80,
@@ -810,16 +756,6 @@ export default function AdminUsersPage() {
                             { value: 'all', label: '全部状态' },
                             { value: 'active', label: '正常' },
                             { value: 'banned', label: '已封禁' },
-                        ]}
-                        className="w-28"
-                    />
-                    <Select
-                        value={vipFilter}
-                        onChange={(v) => { setVipFilter(v); setPage(1); }}
-                        options={[
-                            { value: 'all', label: '全部会员' },
-                            { value: 'vip', label: 'VIP用户' },
-                            { value: 'normal', label: '普通用户' },
                         ]}
                         className="w-28"
                     />
@@ -993,11 +929,12 @@ export default function AdminUsersPage() {
                                         </td>
                                     </tr>
                                     <tr className="border-b border-[#e5e7eb]">
-                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">VIP到期时间</td>
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">微信号</td>
                                         <td className="px-3 py-2">
-                                            <DateInput
-                                                value={editForm.vipExpireAt}
-                                                onChange={(e) => setEditForm({ ...editForm, vipExpireAt: e.target.value })}
+                                            <input
+                                                type="text"
+                                                value={editForm.wechat}
+                                                onChange={(e) => setEditForm({ ...editForm, wechat: e.target.value })}
                                                 className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
                                             />
                                         </td>
@@ -1013,13 +950,14 @@ export default function AdminUsersPage() {
                                         </td>
                                     </tr>
                                     <tr className="border-b border-[#e5e7eb]">
-                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">微信号</td>
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">本金</td>
                                         <td className="px-3 py-2">
                                             <input
-                                                type="text"
-                                                value={editForm.wechat}
-                                                onChange={(e) => setEditForm({ ...editForm, wechat: e.target.value })}
-                                                className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
+                                                type="number"
+                                                value={editForm.balance}
+                                                onChange={(e) => setEditForm({ ...editForm, balance: e.target.value })}
+                                                className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-center text-sm focus:border-primary focus:outline-none"
+                                                min="0"
                                             />
                                         </td>
                                         <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">推荐人</td>
@@ -1042,17 +980,6 @@ export default function AdminUsersPage() {
                                                 className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-center text-sm focus:border-primary focus:outline-none"
                                                 min="0"
                                             />
-                                        </td>
-                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">是否VIP</td>
-                                        <td className="px-3 py-2">
-                                            <select
-                                                value={editForm.vip ? '1' : '0'}
-                                                onChange={(e) => setEditForm({ ...editForm, vip: e.target.value === '1' })}
-                                                className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
-                                            >
-                                                <option value="0">否</option>
-                                                <option value="1">是</option>
-                                            </select>
                                         </td>
                                     </tr>
                                     <tr className="border-b border-[#e5e7eb]">
@@ -1186,7 +1113,7 @@ export default function AdminUsersPage() {
             <Modal
                 title="添加买手"
                 open={addUserModal}
-                onClose={() => { setAddUserModal(false); setAddUserForm({ username: '', password: '', confirmPassword: '', phone: '', wechat: '', vipExpireAt: '', balance: '', silver: '', note: '' }); }}
+                onClose={() => { setAddUserModal(false); setAddUserForm({ username: '', password: '', confirmPassword: '', phone: '', wechat: '', balance: '', silver: '', note: '' }); }}
             >
                 <div className="space-y-4">
                     <Input
@@ -1221,12 +1148,6 @@ export default function AdminUsersPage() {
                         value={addUserForm.wechat}
                         onChange={(e) => setAddUserForm({ ...addUserForm, wechat: e.target.value })}
                     />
-                    <DateInput
-                        label="VIP到期时间（可选）"
-                        placeholder="YYYY-MM-DD"
-                        value={addUserForm.vipExpireAt}
-                        onChange={(e) => setAddUserForm({ ...addUserForm, vipExpireAt: e.target.value })}
-                    />
                     <div className="grid grid-cols-2 gap-4">
                         <Input
                             label="本金余额（可选）"
@@ -1254,7 +1175,7 @@ export default function AdminUsersPage() {
                         />
                     </div>
                     <div className="flex justify-end gap-3 pt-4">
-                        <Button variant="secondary" onClick={() => { setAddUserModal(false); setAddUserForm({ username: '', password: '', confirmPassword: '', phone: '', wechat: '', vipExpireAt: '', balance: '', silver: '', note: '' }); }}>
+                        <Button variant="secondary" onClick={() => { setAddUserModal(false); setAddUserForm({ username: '', password: '', confirmPassword: '', phone: '', wechat: '', balance: '', silver: '', note: '' }); }}>
                             取消
                         </Button>
                         <Button loading={addUserLoading} onClick={handleAddUser}>

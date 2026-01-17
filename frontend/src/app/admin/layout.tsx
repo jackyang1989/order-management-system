@@ -62,7 +62,6 @@ const menuItems: MenuItem[] = [
             { key: '/admin/withdrawals', label: '提现审核' },
             { key: '/admin/finance/recharge', label: '充值记录' },
             { key: '/admin/finance/bank', label: '账户审核' },
-            { key: '/admin/finance/vip', label: '会员记录' },
         ],
     },
     {
@@ -82,7 +81,6 @@ const menuItems: MenuItem[] = [
         children: [
             { key: '/admin/system/params', label: '基础参数' },
             { key: '/admin/system/commission', label: '费率配置' },
-            { key: '/admin/system/vip', label: 'VIP等级' },
             { key: '/admin/system/platforms', label: '平台管理' },
             { key: '/admin/system/entry-types', label: '任务入口' },
             { key: '/admin/system/deliveries', label: '快递管理' },
@@ -126,10 +124,8 @@ const pathToOpenKeys: Record<string, string> = {
     '/admin/withdrawals': 'finance',
     '/admin/finance/recharge': 'finance',
     '/admin/finance/bank': 'finance',
-    '/admin/finance/vip': 'finance',
     '/admin/system/params': 'system',
     '/admin/system/commission': 'system',
-    '/admin/system/vip': 'system',
     '/admin/system/platforms': 'system',
     '/admin/system/entry-types': 'system',
     '/admin/system/deliveries': 'system',
