@@ -219,7 +219,6 @@ export class SystemConfigPublicController {
             nextDay: parseFloat(configs['next_day_fee'] || '0.5'),
             postage: parseFloat(configs['default_postage'] || '0'),
             rePay: parseFloat(configs['cycle_fee'] || '0.2'),
-            ysFee: parseFloat(configs['presale_fee'] || '1'),
             randomBrowseFee: parseFloat(configs['random_browse_fee'] || '0.5'),
             // 好评费用配置
             praise: parseFloat(configs['text_praise_fee'] || '1'),

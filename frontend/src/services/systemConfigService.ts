@@ -27,7 +27,6 @@ export interface SystemGlobalConfig {
     nextDay: number;
     postage: number;
     rePay: number;
-    ysFee: number;
     randomBrowseFee: number;
     // 好评费用配置
     praise: number;

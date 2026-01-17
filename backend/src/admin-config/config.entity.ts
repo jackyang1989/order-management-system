@@ -251,13 +251,6 @@ export const DEFAULT_CONFIGS = [
     description: '延长买号周期服务费，按月收费',
   },
   {
-    key: 'presale_fee',
-    value: '1',
-    group: 'task_fee',
-    label: '预售每单服务费',
-    valueType: 'number',
-  },
-  {
     key: 'random_browse_fee',
     value: '0.5',
     group: 'task_fee',
