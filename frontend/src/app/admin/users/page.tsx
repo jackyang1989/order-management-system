@@ -1083,7 +1083,7 @@ export default function AdminUsersPage() {
                                         </td>
                                     </tr>
                                     <tr className="border-b border-[#e5e7eb]">
-                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">推荐好友权限</td>
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">邀请权限</td>
                                         <td colSpan={3} className="px-3 py-2">
                                             <select
                                                 value={editForm.canReferFriends ? '1' : '0'}

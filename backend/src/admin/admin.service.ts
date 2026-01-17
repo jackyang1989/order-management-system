@@ -167,6 +167,7 @@ export class AdminService {
         'user.phone',
         'user.balance',
         'user.status',
+        'user.canReferFriends',
         'user.createdAt',
       ])
       .orderBy('user.createdAt', 'DESC')
@@ -217,8 +218,12 @@ export class AdminService {
     if (data.balance !== undefined) user.balance = data.balance;
     if (data.silver !== undefined) user.silver = data.silver;
     if (data.vip !== undefined) user.vip = data.vip;
-    if (data.vipExpireAt !== undefined) user.vipExpireAt = data.vipExpireAt ? new Date(data.vipExpireAt) : null;
-    if (data.mcTaskNum !== undefined) user.mcTaskNum = data.mcTaskNum;
+    if (data.vipExpireAt !== undefined) {
+      user.vipExpireAt = data.vipExpireAt ? new Date(data.vipExpireAt) : undefined;
+    }
+    if (data.mcTaskNum !== undefined) {
+      (user as any).mcTaskNum = data.mcTaskNum;
+    }
     if (data.note !== undefined) user.note = data.note;
     if (data.verifyStatus !== undefined) user.verifyStatus = data.verifyStatus;
     if (data.canReferFriends !== undefined) user.canReferFriends = data.canReferFriends;
