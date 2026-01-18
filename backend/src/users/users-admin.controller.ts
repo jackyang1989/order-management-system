@@ -164,6 +164,25 @@ export class UserDetailUpdateDto {
   @IsOptional()
   @IsString()
   note?: string;
+
+  @IsOptional()
+  @IsString()
+  province?: string;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  district?: string;
+
+  @IsOptional()
+  @IsString()
+  invitedBy?: string;
+
+  @IsOptional()
+  canReferFriends?: boolean;
 }
 
 @Controller('admin/users')

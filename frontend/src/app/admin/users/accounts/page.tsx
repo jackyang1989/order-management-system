@@ -105,12 +105,10 @@ function AdminBuyerAccountsPageContent() {
         { key: 'platformAccount', visible: true, width: 120, order: 2 },
         { key: 'userNo', visible: true, width: 80, order: 3 },
         { key: 'realName', visible: true, width: 80, order: 4 },
-        { key: 'receiver', visible: true, width: 100, order: 5 },
-        { key: 'address', visible: true, width: 150, order: 6 },
-        { key: 'images', visible: true, width: 200, order: 7 },
-        { key: 'star', visible: true, width: 70, order: 8 },
-        { key: 'status', visible: true, width: 80, order: 9 },
-        { key: 'actions', visible: true, width: 200, order: 10 },
+        { key: 'images', visible: true, width: 200, order: 5 },
+        { key: 'star', visible: true, width: 70, order: 6 },
+        { key: 'status', visible: true, width: 80, order: 7 },
+        { key: 'actions', visible: true, width: 200, order: 8 },
     ], []);
 
     // 列配置 Hook
@@ -126,8 +124,6 @@ function AdminBuyerAccountsPageContent() {
         { key: 'platformAccount', title: '平台账号' },
         { key: 'userNo', title: '用户ID' },
         { key: 'realName', title: '实名姓名' },
-        { key: 'receiver', title: '收货人' },
-        { key: 'address', title: '收货地址' },
         { key: 'images', title: '资质截图' },
         { key: 'star', title: '星级' },
         { key: 'status', title: '状态' },
@@ -139,14 +135,6 @@ function AdminBuyerAccountsPageContent() {
     const [editForm, setEditForm] = useState({
         platformAccount: '',
         realName: '',
-        buyerName: '',
-        buyerPhone: '',
-        province: '',
-        city: '',
-        district: '',
-        fullAddress: '',
-        loginProvince: '',
-        loginCity: '',
         star: 1,
         status: 0,
         freezeUntil: '',
@@ -316,14 +304,6 @@ function AdminBuyerAccountsPageContent() {
         setEditForm({
             platformAccount: a.platformAccount || '',
             realName: a.realName || '',
-            buyerName: a.buyerName || '',
-            buyerPhone: a.buyerPhone || '',
-            province: a.province || '',
-            city: a.city || '',
-            district: a.district || '',
-            fullAddress: a.fullAddress || '',
-            loginProvince: a.loginProvince || '',
-            loginCity: a.loginCity || '',
             star: a.star || 1,
             status: a.status,
             freezeUntil: a.freezeUntil ? a.freezeUntil.split('T')[0] : '',
@@ -399,30 +379,6 @@ function AdminBuyerAccountsPageContent() {
             title: '实名姓名',
             defaultWidth: 80,
             render: (row) => <span>{row.realName || '-'}</span>
-        },
-        {
-            key: 'receiver',
-            title: '收货人',
-            defaultWidth: 100,
-            render: (row) => (
-                <div>
-                    <div className="text-xs">{row.buyerName || '-'}</div>
-                    <div className="text-xs text-[#9ca3af]">{row.buyerPhone || ''}</div>
-                </div>
-            )
-        },
-        {
-            key: 'address',
-            title: '收货地址',
-            defaultWidth: 150,
-            render: (row) => (
-                <div>
-                    <div className="max-w-[150px] truncate text-xs" title={`${row.province || ''} ${row.city || ''} ${row.district || ''} ${row.fullAddress || ''}`}>
-                        {row.province} {row.city} {row.district}
-                    </div>
-                    <div className="max-w-[150px] truncate text-xs text-[#9ca3af]">{row.fullAddress || ''}</div>
-                </div>
-            )
         },
         {
             key: 'images',
@@ -641,36 +597,6 @@ function AdminBuyerAccountsPageContent() {
                                 <label className="mb-1 block text-sm text-[#6b7280]">实名姓名</label>
                                 <Input value={editForm.realName} onChange={e => setEditForm({ ...editForm, realName: e.target.value })} />
                             </div>
-                            <div>
-                                <label className="mb-1 block text-sm text-[#6b7280]">收货人</label>
-                                <Input value={editForm.buyerName} onChange={e => setEditForm({ ...editForm, buyerName: e.target.value })} />
-                            </div>
-                            <div>
-                                <label className="mb-1 block text-sm text-[#6b7280]">收货人手机</label>
-                                <Input value={editForm.buyerPhone} onChange={e => setEditForm({ ...editForm, buyerPhone: e.target.value })} />
-                            </div>
-                        </div>
-
-                        {/* 常用登录地 - 淘宝/天猫需要 */}
-                        {(editModal.platform === '淘宝' || editModal.platform === '天猫') && (
-                            <div>
-                                <label className="mb-1 block text-sm text-[#6b7280]">常用登录地</label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <Input placeholder="省" value={editForm.loginProvince} onChange={e => setEditForm({ ...editForm, loginProvince: e.target.value })} />
-                                    <Input placeholder="市" value={editForm.loginCity} onChange={e => setEditForm({ ...editForm, loginCity: e.target.value })} />
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 地址编辑 */}
-                        <div>
-                            <label className="mb-1 block text-sm text-[#6b7280]">收货地址</label>
-                            <div className="mb-2 grid grid-cols-3 gap-2">
-                                <Input placeholder="省" value={editForm.province} onChange={e => setEditForm({ ...editForm, province: e.target.value })} />
-                                <Input placeholder="市" value={editForm.city} onChange={e => setEditForm({ ...editForm, city: e.target.value })} />
-                                <Input placeholder="区" value={editForm.district} onChange={e => setEditForm({ ...editForm, district: e.target.value })} />
-                            </div>
-                            <Input placeholder="详细地址（不含省市区）" value={editForm.fullAddress} onChange={e => setEditForm({ ...editForm, fullAddress: e.target.value })} />
                         </div>
 
                         {/* 星级和冻结 */}

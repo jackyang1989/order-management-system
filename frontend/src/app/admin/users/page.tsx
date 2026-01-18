@@ -45,6 +45,9 @@ interface User {
     referralCount?: number;
     experience?: number;
     canReferFriends?: boolean; // 推荐好友权限
+    province?: string;
+    city?: string;
+    district?: string;
 }
 
 interface BalanceModalData {
@@ -98,14 +101,15 @@ export default function AdminUsersPage() {
         { key: 'userNo', visible: true, width: 120, order: 0 },
         { key: 'phone', visible: true, width: 120, order: 1 },
         { key: 'wechat', visible: true, width: 100, order: 2 },
-        { key: 'verifyStatus', visible: true, width: 80, order: 3 },
-        { key: 'balance', visible: true, width: 120, order: 4 },
-        { key: 'frozen', visible: true, width: 90, order: 5 },
-        { key: 'invitedBy', visible: true, width: 80, order: 6 },
-        { key: 'monthlyTaskCount', visible: true, width: 70, order: 7 },
-        { key: 'lastLoginAt', visible: true, width: 100, order: 8 },
-        { key: 'createdAt', visible: true, width: 90, order: 9 },
-        { key: 'actions', visible: true, width: 270, order: 10, fixed: 'right' },
+        { key: 'region', visible: true, width: 120, order: 3 },
+        { key: 'verifyStatus', visible: true, width: 80, order: 4 },
+        { key: 'balance', visible: true, width: 120, order: 5 },
+        { key: 'frozen', visible: true, width: 90, order: 6 },
+        { key: 'invitedBy', visible: true, width: 80, order: 7 },
+        { key: 'monthlyTaskCount', visible: true, width: 70, order: 8 },
+        { key: 'lastLoginAt', visible: true, width: 100, order: 9 },
+        { key: 'createdAt', visible: true, width: 90, order: 10 },
+        { key: 'actions', visible: true, width: 270, order: 11, fixed: 'right' },
     ], []);
 
     // 列配置 Hook
@@ -119,6 +123,7 @@ export default function AdminUsersPage() {
         { key: 'userNo', title: '用户ID' },
         { key: 'phone', title: '手机号' },
         { key: 'wechat', title: '微信号' },
+        { key: 'region', title: '所在地区' },
         { key: 'verifyStatus', title: '实名状态' },
         { key: 'balance', title: '本金/银锭' },
         { key: 'frozen', title: '冻结' },
@@ -162,7 +167,11 @@ export default function AdminUsersPage() {
         note: string;
         verifyStatus: number;
         canReferFriends: boolean;
-    }>({ userNo: '', phone: '', wechat: '', realName: '', balance: '0', silver: '0', mcTaskNum: '0', note: '', verifyStatus: 0, canReferFriends: true });
+        province: string;
+        city: string;
+        district: string;
+        invitedBy: string;
+    }>({ userNo: '', phone: '', wechat: '', realName: '', balance: '0', silver: '0', mcTaskNum: '0', note: '', verifyStatus: 0, canReferFriends: true, province: '', city: '', district: '', invitedBy: '' });
 
     useEffect(() => {
         loadUsers();
@@ -209,7 +218,11 @@ export default function AdminUsersPage() {
             mcTaskNum: String(user.mcTaskNum || 0),
             note: user.note || '',
             verifyStatus: user.verifyStatus || 0,
-            canReferFriends: user.canReferFriends !== false
+            canReferFriends: user.canReferFriends !== false,
+            province: user.province || '',
+            city: user.city || '',
+            district: user.district || '',
+            invitedBy: user.invitedByName || user.invitedBy || ''
         });
         setDetailModal(user);
     };
@@ -233,7 +246,11 @@ export default function AdminUsersPage() {
                     mcTaskNum: parseInt(editForm.mcTaskNum) || 0,
                     note: editForm.note,
                     verifyStatus: editForm.verifyStatus,
-                    canReferFriends: editForm.canReferFriends
+                    canReferFriends: editForm.canReferFriends,
+                    province: editForm.province,
+                    city: editForm.city,
+                    district: editForm.district,
+                    invitedBy: editForm.invitedBy || undefined
                 })
             });
             const json = await res.json();
@@ -603,6 +620,16 @@ export default function AdminUsersPage() {
             render: (row) => (
                 <div className="text-sm">{row.wechat || '-'}</div>
             ),
+        },
+        {
+            key: 'region',
+            title: '所在地区',
+            defaultWidth: 120,
+            minWidth: 80,
+            render: (row) => {
+                const region = [row.province, row.city, row.district].filter(Boolean).join(' ');
+                return <div className="text-xs text-[#6b7280]">{region || '-'}</div>;
+            },
         },
         {
             key: 'verifyStatus',
