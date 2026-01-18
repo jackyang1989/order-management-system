@@ -54,10 +54,10 @@ export class UsersService {
     return user ? this.sanitizeUser(user) : null;
   }
 
-  // 更新用户资料（头像、微信号等）
+  // 更新用户资料（头像、微信号、地区等）
   async updateProfile(
     userId: string,
-    data: { avatar?: string; wechat?: string },
+    data: { avatar?: string; wechat?: string; province?: string; city?: string; district?: string },
   ): Promise<{ success: boolean; message: string }> {
     try {
       const user = await this.usersRepository.findOne({ where: { id: userId } });
@@ -71,6 +71,15 @@ export class UsersService {
       }
       if (data.wechat !== undefined) {
         user.wechat = data.wechat;
+      }
+      if (data.province !== undefined) {
+        user.province = data.province;
+      }
+      if (data.city !== undefined) {
+        user.city = data.city;
+      }
+      if (data.district !== undefined) {
+        user.district = data.district;
       }
 
       await this.usersRepository.save(user);

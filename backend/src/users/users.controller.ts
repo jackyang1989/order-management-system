@@ -48,11 +48,11 @@ export class UsersController {
     };
   }
 
-  // 更新用户资料（头像、微信号等）
+  // 更新用户资料（头像、微信号、地区等）
   @Put('profile')
   async updateProfile(
     @Request() req,
-    @Body() body: { avatar?: string; wechat?: string },
+    @Body() body: { avatar?: string; wechat?: string; province?: string; city?: string; district?: string },
   ) {
     const result = await this.usersService.updateProfile(req.user.userId, body);
     return result;

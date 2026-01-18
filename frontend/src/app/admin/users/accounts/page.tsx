@@ -42,7 +42,7 @@ interface BuyerAccount {
     status: number;
     rejectReason?: string;
     createdAt: string;
-    freezeUntil?: string;
+    frozenTime?: string;
 }
 
 // 根据平台获取截图配置
@@ -137,7 +137,7 @@ function AdminBuyerAccountsPageContent() {
         realName: '',
         star: 1,
         status: 0,
-        freezeUntil: '',
+        frozenTime: '',
         remark: ''
     });
 
@@ -306,7 +306,7 @@ function AdminBuyerAccountsPageContent() {
             realName: a.realName || '',
             star: a.star || 1,
             status: a.status,
-            freezeUntil: a.freezeUntil ? a.freezeUntil.split('T')[0] : '',
+            frozenTime: a.frozenTime ? a.frozenTime.split('T')[0] : '',
             remark: ''
         });
         setEditModal(a);
@@ -613,7 +613,7 @@ function AdminBuyerAccountsPageContent() {
                             </div>
                             <div>
                                 <label className="mb-1 block text-sm text-[#6b7280]">冻结到期时间</label>
-                                <DateInput value={editForm.freezeUntil} onChange={e => setEditForm({ ...editForm, freezeUntil: e.target.value })} />
+                                <DateInput value={editForm.frozenTime} onChange={e => setEditForm({ ...editForm, frozenTime: e.target.value })} />
                             </div>
                         </div>
 

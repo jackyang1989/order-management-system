@@ -36,6 +36,28 @@ export function useTablePreferences({
         defaultColumnsRef.current = defaultColumns;
     }, [defaultColumns]);
 
+    // 合并新列到已保存的配置中
+    const mergeNewColumns = (savedConfig: ColumnConfig[], defaultConfig: ColumnConfig[]): ColumnConfig[] => {
+        const savedKeys = new Set(savedConfig.map(c => c.key));
+        const newColumns = defaultConfig.filter(c => !savedKeys.has(c.key));
+
+        if (newColumns.length === 0) {
+            return savedConfig;
+        }
+
+        // 将新列添加到末尾，order设置为最大值+1开始
+        const maxOrder = Math.max(...savedConfig.map(c => c.order), 0);
+        const mergedConfig = [
+            ...savedConfig,
+            ...newColumns.map((col, idx) => ({
+                ...col,
+                order: maxOrder + 1 + idx,
+            })),
+        ];
+
+        return mergedConfig;
+    };
+
     // 加载配置
     useEffect(() => {
         const loadPreferences = async () => {
@@ -52,7 +74,9 @@ export function useTablePreferences({
                 });
                 const json = await res.json();
                 if (json.success && json.data?.columns?.length > 0) {
-                    setColumnConfig(json.data.columns);
+                    // 合并新列到已保存的配置中
+                    const mergedConfig = mergeNewColumns(json.data.columns, defaultColumnsRef.current);
+                    setColumnConfig(mergedConfig);
                 } else {
                     setColumnConfig(defaultColumnsRef.current);
                 }

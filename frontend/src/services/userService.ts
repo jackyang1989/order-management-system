@@ -532,6 +532,9 @@ export interface UserProfile {
     experience: number;     // 经验值
     createdAt: string;
     stats?: UserProfileStats;  // 扩展统计数据
+    province?: string;      // 省份
+    city?: string;          // 城市
+    district?: string;      // 区县
 }
 
 // 获取用户资料
@@ -650,7 +653,7 @@ export const changePhone = async (data: { oldPhone: string; payPassword: string;
 };
 
 // 更新用户资料（头像、微信号等）
-export const updateUserProfile = async (data: { avatar?: string; wechat?: string }): Promise<{ success: boolean; message: string }> => {
+export const updateUserProfile = async (data: { avatar?: string; wechat?: string; province?: string; city?: string; district?: string }): Promise<{ success: boolean; message: string }> => {
     try {
         const token = localStorage.getItem('token');
         const response = await fetch(`${BASE_URL}/user/profile`, {

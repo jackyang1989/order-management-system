@@ -15,6 +15,7 @@ import { ColumnSettingsPanel, ColumnConfig, ColumnMeta } from '../../../componen
 import { Modal } from '../../../components/ui/modal';
 import { Pagination } from '../../../components/ui/pagination';
 import { useTablePreferences } from '../../../hooks/useTablePreferences';
+import { CHINA_REGIONS, RegionData } from '../../../data/chinaRegions';
 
 interface User {
     id: string;
@@ -987,10 +988,54 @@ export default function AdminUsersPage() {
                                         <td className="px-3 py-2">
                                             <input
                                                 type="text"
-                                                value={(detailModal as any).invitedByName || '-'}
-                                                readOnly
-                                                className="w-full rounded border border-[#e5e7eb] bg-[#f9fafb] px-2 py-1.5 text-sm"
+                                                value={editForm.invitedBy}
+                                                onChange={(e) => setEditForm({ ...editForm, invitedBy: e.target.value })}
+                                                placeholder="输入用户ID（如U10001）"
+                                                className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
                                             />
+                                        </td>
+                                    </tr>
+                                    <tr className="border-b border-[#e5e7eb]">
+                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">所在地区</td>
+                                        <td colSpan={3} className="px-3 py-2">
+                                            <div className="flex gap-2">
+                                                <select
+                                                    value={editForm.province}
+                                                    onChange={(e) => {
+                                                        setEditForm({ ...editForm, province: e.target.value, city: '', district: '' });
+                                                    }}
+                                                    className="flex-1 rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
+                                                >
+                                                    <option value="">选择省份</option>
+                                                    {CHINA_REGIONS.map(p => (
+                                                        <option key={p.value} value={p.value}>{p.label}</option>
+                                                    ))}
+                                                </select>
+                                                <select
+                                                    value={editForm.city}
+                                                    onChange={(e) => {
+                                                        setEditForm({ ...editForm, city: e.target.value, district: '' });
+                                                    }}
+                                                    className="flex-1 rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
+                                                    disabled={!editForm.province}
+                                                >
+                                                    <option value="">选择城市</option>
+                                                    {(CHINA_REGIONS.find(p => p.value === editForm.province)?.children || []).map(c => (
+                                                        <option key={c.value} value={c.value}>{c.label}</option>
+                                                    ))}
+                                                </select>
+                                                <select
+                                                    value={editForm.district}
+                                                    onChange={(e) => setEditForm({ ...editForm, district: e.target.value })}
+                                                    className="flex-1 rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
+                                                    disabled={!editForm.city}
+                                                >
+                                                    <option value="">选择区县</option>
+                                                    {(CHINA_REGIONS.find(p => p.value === editForm.province)?.children?.find(c => c.value === editForm.city)?.children || []).map(d => (
+                                                        <option key={d.value} value={d.value}>{d.label}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
                                         </td>
                                     </tr>
                                     <tr className="border-b border-[#e5e7eb]">

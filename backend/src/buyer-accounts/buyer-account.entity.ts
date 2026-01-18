@@ -279,4 +279,26 @@ export class UpdateBuyerAccountDto {
   @IsString()
   @IsOptional()
   smsCode?: string; // 修改时也需要验证码
+
+  // 管理员可编辑的字段
+  @IsString()
+  @IsOptional()
+  platformAccount?: string;
+
+  @IsString()
+  @IsOptional()
+  realName?: string;
+
+  @IsOptional()
+  star?: number;
+
+  @IsOptional()
+  status?: number;
+
+  @IsOptional()
+  frozenTime?: Date | string | null;
+
+  @IsString()
+  @IsOptional()
+  remark?: string;
 }

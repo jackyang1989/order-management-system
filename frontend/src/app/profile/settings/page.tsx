@@ -19,6 +19,7 @@ import {
     updateUserProfile
 } from '../../../services/userService';
 import { BASE_URL } from '../../../../apiConfig';
+import { CHINA_REGIONS, RegionData } from '../../../data/chinaRegions';
 
 // 默认卡通头像 SVG
 const DefaultAvatar = () => (
@@ -39,14 +40,16 @@ export default function ProfileSettingsPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [userInfo, setUserInfo] = useState({ userNo: '用户', mobile: '', wechat: '', avatar: '' });
+    const [userInfo, setUserInfo] = useState({ userNo: '用户', mobile: '', wechat: '', avatar: '', province: '', city: '', district: '' });
 
     const [showPhoneModal, setShowPhoneModal] = useState(false);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [showPayPwdModal, setShowPayPwdModal] = useState(false);
     const [showWechatModal, setShowWechatModal] = useState(false);
+    const [showRegionModal, setShowRegionModal] = useState(false);
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
     const [wechatForm, setWechatForm] = useState('');
+    const [regionForm, setRegionForm] = useState({ province: '', city: '', district: '' });
 
     const [phoneForm, setPhoneForm] = useState({ oldPhoneNum: '', zhifuPassWord: '', newPhoneNum: '', newYzmNum: '' });
     const [passwordForm, setPasswordForm] = useState({ oldPassWord: '', newPassWord: '', queRenPassWord: '', phoneNum: '', newYzmNum: '' });
@@ -73,18 +76,25 @@ export default function ProfileSettingsPage() {
                     userNo: data.userNo,
                     mobile: data.phone,
                     wechat: data.wechat || '',
-                    avatar: data.avatar || ''
+                    avatar: data.avatar || '',
+                    province: data.province || '',
+                    city: data.city || '',
+                    district: data.district || ''
                 });
                 console.log('[Settings] Set userInfo:', {
                     userNo: data.userNo,
                     mobile: data.phone,
                     wechat: data.wechat || '',
-                    avatar: data.avatar || ''
+                    avatar: data.avatar || '',
+                    province: data.province || '',
+                    city: data.city || '',
+                    district: data.district || ''
                 });
                 setPhoneForm(p => ({ ...p, oldPhoneNum: data.phone }));
                 setPasswordForm(p => ({ ...p, phoneNum: data.phone }));
                 setPayPwdForm(p => ({ ...p, phoneNum: data.phone }));
                 setWechatForm(data.wechat || '');
+                setRegionForm({ province: data.province || '', city: data.city || '', district: data.district || '' });
             }
         } catch (e) {
             console.error('Load user info error:', e);
@@ -138,6 +148,34 @@ export default function ProfileSettingsPage() {
                 setUserInfo(prev => ({ ...prev, wechat: wechatForm.trim() }));
                 toastSuccess('微信号更新成功');
                 setShowWechatModal(false);
+            } else {
+                toastError(result.message || '更新失败');
+            }
+        } catch (e) {
+            toastError('网络错误');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    // 修改所在地区
+    const handleRegionSave = async () => {
+        setSubmitting(true);
+        try {
+            const result = await updateUserProfile({
+                province: regionForm.province,
+                city: regionForm.city,
+                district: regionForm.district
+            });
+            if (result.success) {
+                setUserInfo(prev => ({
+                    ...prev,
+                    province: regionForm.province,
+                    city: regionForm.city,
+                    district: regionForm.district
+                }));
+                toastSuccess('所在地区更新成功');
+                setShowRegionModal(false);
             } else {
                 toastError(result.message || '更新失败');
             }
@@ -362,6 +400,18 @@ export default function ProfileSettingsPage() {
                                 setShowWechatModal(true);
                             }}
                         />
+                        <InfoRow
+                            label="所在地区"
+                            value={[userInfo.province, userInfo.city, userInfo.district].filter(Boolean).join(' ') || '未设置'}
+                            action={() => {
+                                setRegionForm({
+                                    province: userInfo.province,
+                                    city: userInfo.city,
+                                    district: userInfo.district
+                                });
+                                setShowRegionModal(true);
+                            }}
+                        />
                     </Card>
                 </div>
 
@@ -479,6 +529,57 @@ export default function ProfileSettingsPage() {
                     <div className="flex gap-3 pt-4">
                         <button onClick={() => setShowWechatModal(false)} className="flex-1 rounded-[20px] bg-slate-50 py-4 text-sm font-bold text-slate-500">取消</button>
                         <button disabled={submitting} onClick={handleWechatSave} className="flex-1 rounded-[20px] bg-primary-600 py-4 text-sm font-bold text-white disabled:opacity-50">确定</button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* 修改所在地区 Modal */}
+            <Modal title="修改所在地区" open={showRegionModal} onClose={() => setShowRegionModal(false)}>
+                <div className="space-y-5 px-1 py-1">
+                    <div className="space-y-1.5">
+                        <label className="ml-1 text-[11px] font-bold uppercase tracking-tight text-slate-400">省份</label>
+                        <select
+                            value={regionForm.province}
+                            onChange={(e) => setRegionForm({ province: e.target.value, city: '', district: '' })}
+                            className="w-full rounded-2xl border-2 border-slate-50 bg-white px-4 py-3 text-sm font-bold text-slate-900 focus:border-blue-600 focus:outline-none"
+                        >
+                            <option value="">选择省份</option>
+                            {CHINA_REGIONS.map(p => (
+                                <option key={p.value} value={p.value}>{p.label}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="ml-1 text-[11px] font-bold uppercase tracking-tight text-slate-400">城市</label>
+                        <select
+                            value={regionForm.city}
+                            onChange={(e) => setRegionForm({ ...regionForm, city: e.target.value, district: '' })}
+                            disabled={!regionForm.province}
+                            className="w-full rounded-2xl border-2 border-slate-50 bg-white px-4 py-3 text-sm font-bold text-slate-900 focus:border-blue-600 focus:outline-none disabled:opacity-50"
+                        >
+                            <option value="">选择城市</option>
+                            {(CHINA_REGIONS.find(p => p.value === regionForm.province)?.children || []).map(c => (
+                                <option key={c.value} value={c.value}>{c.label}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="ml-1 text-[11px] font-bold uppercase tracking-tight text-slate-400">区县</label>
+                        <select
+                            value={regionForm.district}
+                            onChange={(e) => setRegionForm({ ...regionForm, district: e.target.value })}
+                            disabled={!regionForm.city}
+                            className="w-full rounded-2xl border-2 border-slate-50 bg-white px-4 py-3 text-sm font-bold text-slate-900 focus:border-blue-600 focus:outline-none disabled:opacity-50"
+                        >
+                            <option value="">选择区县</option>
+                            {(CHINA_REGIONS.find(p => p.value === regionForm.province)?.children?.find(c => c.value === regionForm.city)?.children || []).map(d => (
+                                <option key={d.value} value={d.value}>{d.label}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="flex gap-3 pt-4">
+                        <button onClick={() => setShowRegionModal(false)} className="flex-1 rounded-[20px] bg-slate-50 py-4 text-sm font-bold text-slate-500">取消</button>
+                        <button disabled={submitting} onClick={handleRegionSave} className="flex-1 rounded-[20px] bg-primary-600 py-4 text-sm font-bold text-white disabled:opacity-50">确定</button>
                     </div>
                 </div>
             </Modal>
