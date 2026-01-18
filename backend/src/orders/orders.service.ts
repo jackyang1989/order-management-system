@@ -1284,9 +1284,6 @@ export class OrdersService {
         await queryRunner.manager.save(task);
       }
 
-      // 检查是否符合免罚条件
-      const shouldPunish = await this.shouldPunishForCancel(userId, order.id);
-
       // 银锭押金已取消，不再处理押金返还/扣除
 
       order.status = OrderStatus.CANCELLED;
@@ -1622,67 +1619,6 @@ export class OrdersService {
     desc += `\n浏览主商品${task.mainBrowseMinutes || 8}分钟以上，随机浏览店铺其他2个商品各${task.subBrowseMinutes || 2}分钟`;
 
     return desc;
-  }
-
-  // ============ 免罚逻辑 ============
-
-  /**
-   * 判断取消订单是否应该扣罚
- *
-   * 1. 每天前2单取消不扣银锭
-   * 2. 晚上11点到第二天9点取消免罚
-   */
-  private async shouldPunishForCancel(
-    userId: string,
-    currentOrderId: string,
-  ): Promise<boolean> {
-    const now = new Date();
-    const hour = now.getHours();
-
-    // 夜间免罚: 晚上11点到第二天9点
-    if (hour >= 23 || hour < 9) {
-      return false;
-    }
-
-    // 今日取消次数检查: 每天前2单取消免罚
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const todayCancelCount = await this.ordersRepository
-      .createQueryBuilder('order')
-      .where('order.userId = :userId', { userId })
-      .andWhere('order.status = :status', { status: OrderStatus.CANCELLED })
-      .andWhere('order.completedAt >= :today', { today })
-      .andWhere('order.completedAt < :tomorrow', { tomorrow })
-      .andWhere('order.id != :currentOrderId', { currentOrderId })
-      .getCount();
-
-    if (todayCancelCount < 2) {
-      return false;
-    }
-
-    // 超过免罚限额，需要扣罚
-    return true;
-  }
-
-  /**
-   * 获取用户今日取消次数
-   */
-  async getUserTodayCancelCount(userId: string): Promise<number> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    return this.ordersRepository
-      .createQueryBuilder('order')
-      .where('order.userId = :userId', { userId })
-      .andWhere('order.status = :status', { status: OrderStatus.CANCELLED })
-      .andWhere('order.completedAt >= :today', { today })
-      .andWhere('order.completedAt < :tomorrow', { tomorrow })
-      .getCount();
   }
 
   // ============ 预售任务流程 ============

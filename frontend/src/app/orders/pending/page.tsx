@@ -39,7 +39,7 @@ export default function PendingOrdersPage() {
     };
 
     const handleCancel = async (order: OrderSummary) => {
-        if (!confirm('确定要放弃此任务吗？每人每天前2单任务自行放弃不扣银锭')) {
+        if (!confirm('确定要放弃此任务吗？')) {
             return;
         }
         try {

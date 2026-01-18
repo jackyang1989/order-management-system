@@ -33,7 +33,7 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         hasLoginLocation: true,
         hasAddress: true,
         hasRealName: true,
-        hasSmsVerification: true,
+        hasSmsVerification: false,
         tips: [
             '淘宝账号必须与常用登录地一致，否则审核不通过',
             '收货地址需真实有效，用于商家发货',
@@ -56,7 +56,7 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         hasLoginLocation: false,
         hasAddress: true,
         hasRealName: true,
-        hasSmsVerification: true,
+        hasSmsVerification: false,
         tips: [
             '拼多多账号即登录手机号',
             '需绑定真实收货地址',
@@ -76,7 +76,7 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         hasLoginLocation: false,
         hasAddress: true,
         hasRealName: true,
-        hasSmsVerification: true,
+        hasSmsVerification: false,
         tips: [
             '京东账号需完成实名认证',
             '收货地址需真实有效',
@@ -97,7 +97,7 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         hasLoginLocation: false,
         hasAddress: false,
         hasRealName: true,
-        hasSmsVerification: true,
+        hasSmsVerification: false,
         tips: [
             '闲鱼账号需完成芝麻认证',
             '账号需绑定支付宝'
@@ -115,7 +115,7 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         hasLoginLocation: false,
         hasAddress: true,
         hasRealName: true,
-        hasSmsVerification: true,
+        hasSmsVerification: false,
         tips: [
             '抖音号需实名认证',
             '账号粉丝数影响任务匹配'
@@ -133,7 +133,7 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         hasLoginLocation: false,
         hasAddress: true,
         hasRealName: true,
-        hasSmsVerification: true,
+        hasSmsVerification: false,
         tips: [
             '快手号需实名认证',
             '账号需绑定手机号'
@@ -151,7 +151,7 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         hasLoginLocation: false,
         hasAddress: true,
         hasRealName: true,
-        hasSmsVerification: true,
+        hasSmsVerification: false,
         tips: [
             '1688账号需企业认证或个人认证',
             '收货地址需真实有效'
@@ -170,7 +170,7 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         hasLoginLocation: false,
         hasAddress: true,
         hasRealName: true,
-        hasSmsVerification: true,
+        hasSmsVerification: false,
         tips: [
             '小红书号需实名认证',
             '账号需绑定手机号'
@@ -189,7 +189,7 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         hasLoginLocation: false,
         hasAddress: true,
         hasRealName: true,
-        hasSmsVerification: true,
+        hasSmsVerification: false,
         tips: [
             '小红书号需实名认证',
             '账号需绑定手机号'
@@ -208,7 +208,7 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         hasLoginLocation: false,
         hasAddress: true,
         hasRealName: true,
-        hasSmsVerification: true,
+        hasSmsVerification: false,
         tips: [
             '1688账号需企业认证或个人认证',
             '收货地址需真实有效'
@@ -228,7 +228,7 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         hasLoginLocation: true,
         hasAddress: true,
         hasRealName: true,
-        hasSmsVerification: true,
+        hasSmsVerification: false,
         tips: [
             '天猫账号必须与常用登录地一致，否则审核不通过',
             '收货地址需真实有效，用于商家发货',
