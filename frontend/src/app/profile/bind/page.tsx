@@ -108,6 +108,9 @@ export default function BindAccountPage() {
     const [platforms, setPlatforms] = useState<PlatformData[]>([]);
     const [platformListLoaded, setPlatformListLoaded] = useState(false);
 
+    // 动态截图配置
+    const [imageRequirements, setImageRequirements] = useState<PlatformImageConfig[]>([]);
+
     // 加载启用的平台列表
     useEffect(() => {
         const loadPlatforms = async () => {
@@ -167,6 +170,28 @@ export default function BindAccountPage() {
         }
     }, [platformListLoaded, platformList, selectedPlatformId]);
 
+    // 加载平台的截图配置
+    useEffect(() => {
+        const loadImageRequirements = async () => {
+            if (!selectedPlatformId) return;
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/platforms/${selectedPlatformId}/image-requirements`);
+                const data = await res.json();
+                if (data.success) {
+                    setImageRequirements(data.data || []);
+                } else {
+                    // 如果API失败,使用硬编码配置作为降级
+                    setImageRequirements(platformConfig.requiredImages || []);
+                }
+            } catch (error) {
+                console.error('加载截图配置失败:', error);
+                // 降级使用硬编码配置
+                setImageRequirements(platformConfig.requiredImages || []);
+            }
+        };
+        loadImageRequirements();
+    }, [selectedPlatformId, platformConfig.requiredImages]);
+
     const updateImage = useCallback((key: string, value: string) => {
         setImages(prev => ({ ...prev, [key]: value }));
     }, []);
@@ -221,8 +246,8 @@ export default function BindAccountPage() {
         if (platformConfig.hasRealName && !form.realName) {
             return '请输入实名认证姓名';
         }
-        // 验证必传图片
-        for (const img of platformConfig.requiredImages) {
+        // 验证必传图片 - 使用动态配置
+        for (const img of imageRequirements) {
             if (img.required && !images[img.key]) {
                 return `请上传${img.label}`;
             }
@@ -441,16 +466,16 @@ export default function BindAccountPage() {
                         )}
 
                         {/* 动态图片上传区 */}
-                        {platformConfig.requiredImages.length > 0 && (
+                        {imageRequirements.length > 0 && (
                             <>
                                 <div className="border-t border-slate-100 pt-6">
                                     <div className="mb-4 text-sm font-bold text-slate-900">
-                                        资质截图（{platformConfig.requiredImages.filter(i => i.required).length}张必传）
+                                        资质截图（{imageRequirements.filter(i => i.required).length}张必传）
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
-                                    {platformConfig.requiredImages.map(imgConfig => (
+                                    {imageRequirements.map(imgConfig => (
                                         <ImageUploader
                                             key={imgConfig.key}
                                             config={imgConfig}

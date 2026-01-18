@@ -35,3 +35,15 @@
  GET /profile 200 in 44ms (compile: 5ms, render: 39ms)
  GET /profile/payment 200 in 70ms (compile: 55ms, render: 15ms)
  GET /profile/bind 200 in 50ms (compile: 35ms, render: 15ms)
+ GET /admin/merchants 200 in 44ms (compile: 29ms, render: 15ms)
+ GET /admin/users/accounts 200 in 27ms (compile: 7ms, render: 19ms)
+✓ Compiled in 28ms
+✓ Compiled in 31ms
+✓ Compiled in 142ms
+✓ Compiled in 122ms
+✓ Compiled in 94ms
+✓ Compiled in 103ms
+ GET /admin/users 200 in 101ms (compile: 4ms, render: 97ms)
+ GET /admin/users/accounts 200 in 101ms (compile: 74ms, render: 27ms)
+✓ Compiled in 63ms
+✓ Compiled in 41ms

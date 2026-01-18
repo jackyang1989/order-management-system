@@ -39,7 +39,7 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
             '所有截图需清晰完整，模糊或不完整将被拒绝',
             '审核通过后方可使用该买号接单'
         ],
-        requiredImages: []  // 改为从后端动态获取  // 改为从后端动态获取
+        requiredImages: []  // 改为从后端动态获取
     },
 
     pdd: {
@@ -55,7 +55,7 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
             '拼多多账号即登录手机号',
             '截图需显示完整的账号信息'
         ],
-        requiredImages: []  // 改为从后端动态获取  // 改为从后端动态获取
+        requiredImages: []  // 改为从后端动态获取
     },
 
     jd: {
@@ -71,7 +71,7 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
             '京东账号需完成实名认证',
             '京东Plus会员优先'
         ],
-        requiredImages: []  // 改为从后端动态获取  // 改为从后端动态获取
+        requiredImages: []  // 改为从后端动态获取
     },
 
     // ============ 预留平台 ============
