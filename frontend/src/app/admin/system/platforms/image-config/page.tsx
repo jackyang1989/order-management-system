@@ -1,8 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { BASE_URL } from '../../../../../../apiConfig';
+import { cn } from '../../../../../lib/utils';
+import { Button } from '../../../../../components/ui/button';
+import { Card } from '../../../../../components/ui/card';
+import { Badge } from '../../../../../components/ui/badge';
+import { Input } from '../../../../../components/ui/input';
+import { Modal } from '../../../../../components/ui/modal';
 
 interface ImageRequirement {
     id: string;
@@ -24,42 +29,51 @@ interface PlatformWithRequirements {
 export default function PlatformImageConfigPage() {
     const [platforms, setPlatforms] = useState<PlatformWithRequirements[]>([]);
     const [selectedPlatformId, setSelectedPlatformId] = useState<string>('');
-    const [editingRequirement, setEditingRequirement] = useState<ImageRequirement | null>(null);
-    const [isEditing, setIsEditing] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    // 加载所有平台和配置
+    // Modal 状态
+    const [showModal, setShowModal] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editForm, setEditForm] = useState<Partial<ImageRequirement>>({});
+
     useEffect(() => {
         loadPlatforms();
     }, []);
 
     const loadPlatforms = async () => {
+        setLoading(true);
+        setError(null);
         try {
-            setLoading(true);
-            const token = localStorage.getItem('adminToken'); // 修复：使用正确的键名
-            console.log('Token:', token ? 'exists' : 'missing');
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                setError('未登录，请先登录管理后台');
+                setLoading(false);
+                return;
+            }
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/admin/config/platforms/image-requirements`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
+            const res = await fetch(`${BASE_URL}/admin/config/platforms/image-requirements`, {
+                headers: { Authorization: `Bearer ${token}` },
             });
 
-            console.log('Response status:', res.status);
-            const data = await res.json();
-            console.log('Response data:', data);
-
-            if (data.success) {
-                setPlatforms(data.data);
-                if (data.data.length > 0 && !selectedPlatformId) {
-                    setSelectedPlatformId(data.data[0].platformId);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    setPlatforms(data.data);
+                    if (data.data.length > 0 && !selectedPlatformId) {
+                        setSelectedPlatformId(data.data[0].platformId);
+                    }
+                } else {
+                    setError(data.message || '加载失败');
                 }
+            } else if (res.status === 401) {
+                setError('登录已过期，请重新登录');
             } else {
-                alert('加载失败: ' + (data.message || '未知错误'));
+                setError('加载平台配置失败');
             }
-        } catch (error) {
-            console.error('加载失败:', error);
-            alert('加载平台配置失败: ' + error);
+        } catch (err) {
+            console.error('加载失败:', err);
+            setError('网络错误，请检查后端服务是否运行');
         } finally {
             setLoading(false);
         }
@@ -67,59 +81,15 @@ export default function PlatformImageConfigPage() {
 
     const selectedPlatform = platforms.find(p => p.platformId === selectedPlatformId);
 
-    const handleEdit = (requirement: ImageRequirement) => {
-        setEditingRequirement({ ...requirement });
-        setIsEditing(true);
+    const handleEdit = (req: ImageRequirement) => {
+        setEditingId(req.id);
+        setEditForm({ ...req });
+        setShowModal(true);
     };
 
-    const handleSave = async () => {
-        if (!editingRequirement) return;
-
-        try {
-            const token = localStorage.getItem('adminToken');
-            const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/admin/config/image-requirements/${editingRequirement.id}`,
-                {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        label: editingRequirement.label,
-                        pathHint: editingRequirement.pathHint,
-                        required: editingRequirement.required,
-                        sortOrder: editingRequirement.sortOrder,
-                        exampleImagePath: editingRequirement.exampleImagePath,
-                    }),
-                }
-            );
-
-            const data = await res.json();
-            if (data.success) {
-                alert('保存成功');
-                setIsEditing(false);
-                setEditingRequirement(null);
-                loadPlatforms();
-            } else {
-                alert('保存失败');
-            }
-        } catch (error) {
-            console.error('保存失败:', error);
-            alert('保存失败');
-        }
-    };
-
-    const handleCancel = () => {
-        setIsEditing(false);
-        setEditingRequirement(null);
-    };
-
-    const handleAddNew = () => {
-        if (!selectedPlatformId) return;
-
-        setEditingRequirement({
-            id: '',
+    const handleCreate = () => {
+        setEditingId(null);
+        setEditForm({
             key: '',
             label: '',
             exampleImagePath: null,
@@ -127,341 +97,311 @@ export default function PlatformImageConfigPage() {
             required: true,
             sortOrder: (selectedPlatform?.requirements.length || 0) + 1,
         });
-        setIsEditing(true);
+        setShowModal(true);
     };
 
-    const handleCreate = async () => {
-        if (!editingRequirement || !selectedPlatformId) return;
-
+    const handleSave = async () => {
         try {
             const token = localStorage.getItem('adminToken');
-            const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/admin/config/platforms/${selectedPlatformId}/image-requirements`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        key: editingRequirement.key,
-                        label: editingRequirement.label,
-                        pathHint: editingRequirement.pathHint,
-                        required: editingRequirement.required,
-                        sortOrder: editingRequirement.sortOrder,
-                        exampleImagePath: editingRequirement.exampleImagePath,
-                    }),
+            const url = editingId
+                ? `${BASE_URL}/admin/config/image-requirements/${editingId}`
+                : `${BASE_URL}/admin/config/platforms/${selectedPlatformId}/image-requirements`;
+            const method = editingId ? 'PUT' : 'POST';
+
+            const body = editingId
+                ? {
+                    label: editForm.label,
+                    pathHint: editForm.pathHint,
+                    required: editForm.required,
+                    sortOrder: editForm.sortOrder,
+                    exampleImagePath: editForm.exampleImagePath,
                 }
-            );
+                : {
+                    key: editForm.key,
+                    label: editForm.label,
+                    pathHint: editForm.pathHint,
+                    required: editForm.required,
+                    sortOrder: editForm.sortOrder,
+                    exampleImagePath: editForm.exampleImagePath,
+                };
+
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(body),
+            });
 
             const data = await res.json();
             if (data.success) {
-                alert('创建成功');
-                setIsEditing(false);
-                setEditingRequirement(null);
+                setShowModal(false);
                 loadPlatforms();
             } else {
-                alert('创建失败');
+                alert('保存失败: ' + (data.message || ''));
             }
-        } catch (error) {
-            console.error('创建失败:', error);
-            alert('创建失败');
+        } catch (err) {
+            console.error('保存失败:', err);
+            alert('保存失败');
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('确定要删除这个截图配置吗?')) return;
-
+        if (!confirm('确定删除该截图配置？')) return;
         try {
             const token = localStorage.getItem('adminToken');
-            const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/admin/config/image-requirements/${id}`,
-                {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
-                }
-            );
-
+            const res = await fetch(`${BASE_URL}/admin/config/image-requirements/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` },
+            });
             const data = await res.json();
             if (data.success) {
-                alert('删除成功');
                 loadPlatforms();
             } else {
                 alert('删除失败');
             }
-        } catch (error) {
-            console.error('删除失败:', error);
+        } catch (err) {
+            console.error('删除失败:', err);
             alert('删除失败');
         }
     };
 
-    return (
-        <div className="container mx-auto p-6">
-            <h1 className="text-3xl font-bold mb-6">平台截图配置管理</h1>
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
 
-            <div className="grid grid-cols-12 gap-6">
-                {/* 左侧:平台列表 */}
-                <div className="col-span-3">
-                    <div className="bg-white rounded-lg shadow p-4">
-                        <h3 className="font-bold mb-4">选择平台</h3>
-                        <div className="space-y-2">
-                            {platforms.map((platform) => (
-                                <button
-                                    key={platform.platformId}
-                                    onClick={() => setSelectedPlatformId(platform.platformId)}
-                                    className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
-                                        selectedPlatformId === platform.platformId
-                                            ? 'bg-blue-100 text-blue-700 font-medium'
-                                            : 'hover:bg-gray-100'
-                                    }`}
-                                >
-                                    <div className="font-medium">{platform.platformName}</div>
-                                    <div className="text-sm text-gray-500">
-                                        {platform.requirements.length} 个截图配置
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+        if (!file.type.startsWith('image/')) {
+            alert('请选择图片文件');
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            alert('图片大小不能超过5MB');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            setEditForm({ ...editForm, exampleImagePath: event.target?.result as string });
+        };
+        reader.readAsDataURL(file);
+    };
+
+    return (
+        <div className="space-y-6">
+            <Card className="bg-white p-6">
+                <div className="mb-4 flex items-center justify-between">
+                    <span className="text-base font-medium">平台截图配置</span>
+                    <span className="text-sm text-[#6b7280]">管理买号绑定时需要上传的截图</span>
                 </div>
 
-                {/* 右侧:截图配置列表 */}
-                <div className="col-span-9">
-                    {selectedPlatform && (
-                        <div className="bg-white rounded-lg shadow">
-                            <div className="p-4 border-b flex justify-between items-center">
-                                <h3 className="font-bold text-lg">{selectedPlatform.platformName} - 截图配置</h3>
-                                <Button onClick={handleAddNew} disabled={isEditing}>
-                                    添加截图配置
-                                </Button>
-                            </div>
+                {/* 平台选择 Tabs */}
+                <div className="mb-6 flex gap-2 flex-wrap border-b border-slate-200 pb-4">
+                    {platforms.map(platform => (
+                        <button
+                            key={platform.platformId}
+                            onClick={() => setSelectedPlatformId(platform.platformId)}
+                            className={cn(
+                                'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                                selectedPlatformId === platform.platformId
+                                    ? 'bg-primary-600 text-white'
+                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            )}
+                        >
+                            {platform.platformName}
+                            <span className="ml-1.5 text-xs opacity-70">({platform.requirements.length})</span>
+                        </button>
+                    ))}
+                </div>
 
-                            <div className="p-4">
-                                {/* 编辑表单 */}
-                                {isEditing && editingRequirement && (
-                                    <div className="mb-6 p-4 border-2 border-blue-300 rounded-lg bg-blue-50">
-                                        <h3 className="text-lg font-bold mb-4">
-                                            {editingRequirement.id ? '编辑截图配置' : '新增截图配置'}
-                                        </h3>
-                                        <div className="space-y-4">
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1">截图标识 (key)</label>
-                                                <Input
-                                                    value={editingRequirement.key}
-                                                    onChange={(e) =>
-                                                        setEditingRequirement({
-                                                            ...editingRequirement,
-                                                            key: e.target.value,
-                                                        })
-                                                    }
-                                                    placeholder="例如: profileImg, authImg"
-                                                    disabled={!!editingRequirement.id}
-                                                />
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    仅创建时可设置,用于前端识别
-                                                </p>
-                                            </div>
+                {loading ? (
+                    <div className="py-16 text-center text-[#9ca3af]">加载中...</div>
+                ) : error ? (
+                    <div className="py-16 text-center">
+                        <div className="text-danger-400 mb-4">{error}</div>
+                        <Button onClick={loadPlatforms} variant="secondary">重试</Button>
+                    </div>
+                ) : selectedPlatform ? (
+                    <>
+                        <div className="mb-4 flex items-center justify-between">
+                            <span className="text-sm text-slate-600">
+                                {selectedPlatform.platformName} - 共 {selectedPlatform.requirements.length} 个截图配置
+                            </span>
+                            <Button onClick={handleCreate}>+ 添加截图</Button>
+                        </div>
 
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1">显示名称</label>
-                                                <Input
-                                                    value={editingRequirement.label}
-                                                    onChange={(e) =>
-                                                        setEditingRequirement({
-                                                            ...editingRequirement,
-                                                            label: e.target.value,
-                                                        })
-                                                    }
-                                                    placeholder="例如: 账号主页截图"
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1">页面路径提示</label>
-                                                <textarea
-                                                    value={editingRequirement.pathHint || ''}
-                                                    onChange={(e) =>
-                                                        setEditingRequirement({
-                                                            ...editingRequirement,
-                                                            pathHint: e.target.value,
-                                                        })
-                                                    }
-                                                    placeholder="例如: 我的淘宝 > 账号信息"
-                                                    rows={3}
-                                                    className="w-full px-3 py-2 border rounded-md"
-                                                />
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    帮助用户找到截图页面的路径提示
-                                                </p>
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1">排序顺序</label>
-                                                <Input
-                                                    type="number"
-                                                    value={editingRequirement.sortOrder}
-                                                    onChange={(e) =>
-                                                        setEditingRequirement({
-                                                            ...editingRequirement,
-                                                            sortOrder: parseInt(e.target.value) || 0,
-                                                        })
-                                                    }
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1">示例图片</label>
-                                                <div className="space-y-2">
-                                                    {editingRequirement.exampleImagePath && (
-                                                        <div className="relative w-48 h-48 border rounded-lg overflow-hidden">
-                                                            <img
-                                                                src={editingRequirement.exampleImagePath}
-                                                                alt="示例图片"
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                        </div>
-                                                    )}
-                                                    <input
-                                                        type="file"
-                                                        accept="image/*"
-                                                        onChange={(e) => {
-                                                            const file = e.target.files?.[0];
-                                                            if (file) {
-                                                                // 创建预览URL
-                                                                const reader = new FileReader();
-                                                                reader.onload = (event) => {
-                                                                    setEditingRequirement({
-                                                                        ...editingRequirement,
-                                                                        exampleImagePath: event.target?.result as string,
-                                                                    });
-                                                                };
-                                                                reader.readAsDataURL(file);
-                                                            }
-                                                        }}
-                                                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                                                    />
-                                                    <p className="text-xs text-gray-500">
-                                                        上传示例图片，帮助买手了解需要截图的页面
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center space-x-2">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={editingRequirement.required}
-                                                    onChange={(e) =>
-                                                        setEditingRequirement({
-                                                            ...editingRequirement,
-                                                            required: e.target.checked,
-                                                        })
-                                                    }
-                                                    className="h-4 w-4"
-                                                />
-                                                <label className="ml-2">必填项</label>
-                                            </div>
-
-                                            <div className="flex gap-2 pt-4">
-                                                <Button
-                                                    onClick={editingRequirement.id ? handleSave : handleCreate}
-                                                >
-                                                    {editingRequirement.id ? '保存' : '创建'}
-                                                </Button>
-                                                <Button onClick={handleCancel} variant="outline">
-                                                    取消
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* 配置列表 */}
-                                <div className="space-y-3">
-                                    {selectedPlatform.requirements.length === 0 ? (
-                                        <div className="text-center py-8 text-gray-500">
-                                            暂无截图配置,点击"添加截图配置"创建
-                                        </div>
-                                    ) : (
-                                        selectedPlatform.requirements
+                        {selectedPlatform.requirements.length === 0 ? (
+                            <div className="py-12 text-center text-[#9ca3af]">暂无截图配置</div>
+                        ) : (
+                            <div className="overflow-x-auto rounded-lg border border-[#f3f4f6]">
+                                <table className="min-w-[800px] w-full border-collapse">
+                                    <thead>
+                                        <tr className="bg-[#f9fafb]">
+                                            <th className="px-4 py-3.5 text-left text-sm font-medium">排序</th>
+                                            <th className="px-4 py-3.5 text-left text-sm font-medium">标识</th>
+                                            <th className="px-4 py-3.5 text-left text-sm font-medium">名称</th>
+                                            <th className="px-4 py-3.5 text-left text-sm font-medium">示例图</th>
+                                            <th className="px-4 py-3.5 text-left text-sm font-medium">路径提示</th>
+                                            <th className="px-4 py-3.5 text-left text-sm font-medium">必填</th>
+                                            <th className="px-4 py-3.5 text-center text-sm font-medium">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {selectedPlatform.requirements
                                             .sort((a, b) => a.sortOrder - b.sortOrder)
-                                            .map((req) => (
-                                                <div
-                                                    key={req.id}
-                                                    className="p-4 border rounded-lg hover:bg-gray-50"
-                                                >
-                                                    <div className="flex items-start justify-between">
-                                                        <div className="flex-1">
-                                                            <div className="flex items-center gap-2 mb-2">
-                                                                <span className="font-bold text-lg">
-                                                                    {req.label}
-                                                                </span>
-                                                                <span className="text-xs bg-gray-200 px-2 py-1 rounded">
-                                                                    {req.key}
-                                                                </span>
-                                                                {req.required && (
-                                                                    <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">
-                                                                        必填
-                                                                    </span>
-                                                                )}
-                                                                <span className="text-xs text-gray-500">
-                                                                    排序: {req.sortOrder}
-                                                                </span>
-                                                            </div>
-
-                                                            {req.pathHint && (
-                                                                <div className="mt-2 p-2 bg-blue-50 rounded text-sm">
-                                                                    <span className="font-medium text-blue-700">
-                                                                        路径提示:
-                                                                    </span>{' '}
-                                                                    <span className="text-gray-700">
-                                                                        {req.pathHint}
-                                                                    </span>
-                                                                </div>
-                                                            )}
-
-                                                            {req.exampleImagePath && (
-                                                                <div className="mt-2 flex items-center gap-2">
-                                                                    <div className="w-16 h-16 border rounded overflow-hidden bg-gray-100">
-                                                                        <img
-                                                                            src={req.exampleImagePath}
-                                                                            alt="示例图缩略图"
-                                                                            className="w-full h-full object-cover"
-                                                                        />
-                                                                    </div>
-                                                                    <span className="text-xs text-gray-500">已上传示例图</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-
-                                                        <div className="flex gap-2 ml-4">
-                                                            <Button
-                                                                size="sm"
-                                                                onClick={() => handleEdit(req)}
-                                                                disabled={isEditing}
-                                                            >
+                                            .map(req => (
+                                                <tr key={req.id} className="border-t border-[#f3f4f6]">
+                                                    <td className="px-4 py-4">{req.sortOrder}</td>
+                                                    <td className="px-4 py-4">
+                                                        <code className="text-xs bg-slate-100 px-2 py-1 rounded">{req.key}</code>
+                                                    </td>
+                                                    <td className="px-4 py-4 font-medium">{req.label}</td>
+                                                    <td className="px-4 py-4">
+                                                        {req.exampleImagePath ? (
+                                                            <img
+                                                                src={req.exampleImagePath}
+                                                                alt="示例"
+                                                                className="h-12 w-12 rounded object-cover border border-slate-200"
+                                                            />
+                                                        ) : (
+                                                            <span className="text-slate-400 text-sm">未上传</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-4">
+                                                        {req.pathHint ? (
+                                                            <span className="text-sm text-slate-600 line-clamp-2">{req.pathHint}</span>
+                                                        ) : (
+                                                            <span className="text-slate-400 text-sm">-</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-4">
+                                                        <Badge variant="soft" color={req.required ? 'green' : 'slate'}>
+                                                            {req.required ? '必填' : '选填'}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="px-4 py-4 text-center">
+                                                        <div className="flex justify-center gap-2">
+                                                            <Button size="sm" variant="secondary" onClick={() => handleEdit(req)}>
                                                                 编辑
                                                             </Button>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="destructive"
-                                                                onClick={() => handleDelete(req.id)}
-                                                                disabled={isEditing}
-                                                            >
+                                                            <Button size="sm" variant="destructive" onClick={() => handleDelete(req.id)}>
                                                                 删除
                                                             </Button>
                                                         </div>
-                                                    </div>
-                                                </div>
-                                            ))
-                                    )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </>
+                ) : (
+                    <div className="py-12 text-center text-[#9ca3af]">请选择平台</div>
+                )}
+            </Card>
+
+            {/* Edit Modal */}
+            <Modal
+                title={editingId ? '编辑截图配置' : '添加截图配置'}
+                open={showModal}
+                onClose={() => setShowModal(false)}
+                className="max-w-lg"
+            >
+                <div className="space-y-5">
+                    <Input
+                        label="截图标识 (key)"
+                        placeholder="如: profileImg, authImg"
+                        value={editForm.key || ''}
+                        onChange={e => setEditForm({ ...editForm, key: e.target.value })}
+                        disabled={!!editingId}
+                    />
+                    <p className="text-xs text-slate-400 -mt-3">仅创建时可设置，用于前端识别</p>
+
+                    <Input
+                        label="显示名称"
+                        placeholder="如: 账号主页截图"
+                        value={editForm.label || ''}
+                        onChange={e => setEditForm({ ...editForm, label: e.target.value })}
+                    />
+
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-[#374151]">页面路径提示</label>
+                        <textarea
+                            value={editForm.pathHint || ''}
+                            onChange={e => setEditForm({ ...editForm, pathHint: e.target.value })}
+                            placeholder="如: 我的淘宝 > 账号信息"
+                            rows={2}
+                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                        />
+                        <p className="mt-1 text-xs text-slate-400">帮助买手找到需要截图的页面</p>
+                    </div>
+
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-[#374151]">示例图片</label>
+                        <div className="space-y-3">
+                            {editForm.exampleImagePath && (
+                                <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                                    <img
+                                        src={editForm.exampleImagePath}
+                                        alt="示例预览"
+                                        className="h-20 w-20 object-cover rounded"
+                                    />
+                                    <div className="flex-1 text-xs text-slate-500">当前示例图</div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditForm({ ...editForm, exampleImagePath: null })}
+                                        className="text-xs text-red-500 hover:text-red-600"
+                                    >
+                                        删除
+                                    </button>
                                 </div>
+                            )}
+                            <div>
+                                <input
+                                    type="file"
+                                    id="example-upload"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    className="hidden"
+                                />
+                                <label
+                                    htmlFor="example-upload"
+                                    className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-white px-4 py-3 text-sm transition-colors hover:border-blue-400 hover:bg-blue-50"
+                                >
+                                    <span className="text-slate-600">
+                                        {editForm.exampleImagePath ? '重新上传示例图' : '点击上传示例图'}
+                                    </span>
+                                </label>
+                                <p className="mt-1 text-xs text-slate-400">建议上传清晰的截图示例，不超过5MB</p>
                             </div>
                         </div>
-                    )}
+                    </div>
+
+                    <Input
+                        label="排序"
+                        type="number"
+                        value={String(editForm.sortOrder || 0)}
+                        onChange={e => setEditForm({ ...editForm, sortOrder: parseInt(e.target.value) || 0 })}
+                    />
+
+                    <label className="flex cursor-pointer items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={editForm.required !== false}
+                            onChange={e => setEditForm({ ...editForm, required: e.target.checked })}
+                            className="h-4 w-4 rounded border-[#d1d5db]"
+                        />
+                        <span className="text-sm">必填项</span>
+                    </label>
+
+                    <div className="flex justify-end gap-3 border-t border-[#e5e7eb] pt-4">
+                        <Button variant="secondary" onClick={() => setShowModal(false)}>取消</Button>
+                        <Button onClick={handleSave}>保存</Button>
+                    </div>
                 </div>
-            </div>
+            </Modal>
         </div>
     );
 }
