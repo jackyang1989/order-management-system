@@ -412,6 +412,22 @@ export class AdminController {
     return { success: true, ...result };
   }
 
+  @Get('buyer-accounts/user/:userId/stats')
+  async getUserAccountStats(@Param('userId') userId: string) {
+    // 如果userId是userNo格式（如U10001），需要转换为UUID
+    let actualUserId = userId;
+    if (userId && userId.startsWith('U')) {
+      const user = await this.usersService.findByUserNo(userId);
+      if (!user) {
+        return { success: false, message: '用户不存在' };
+      }
+      actualUserId = user.id;
+    }
+
+    const stats = await this.buyerAccountsService.getUserAccountStats(actualUserId);
+    return { success: true, data: stats };
+  }
+
   @Put('buyer-accounts/:id/review')
   async reviewBuyerAccount(
     @Param('id') id: string,

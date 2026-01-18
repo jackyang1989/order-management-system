@@ -43,6 +43,8 @@ interface BuyerAccount {
     rejectReason?: string;
     createdAt: string;
     frozenTime?: string;
+    // 用户买号统计（前端扩展字段）
+    userAccountStats?: { platform: string; count: number }[];
 }
 
 // 根据平台获取截图配置
@@ -98,17 +100,21 @@ function AdminBuyerAccountsPageContent() {
     // 列设置面板状态
     const [showColumnSettings, setShowColumnSettings] = useState(false);
 
+    // 用户买号统计
+    const [userAccountStats, setUserAccountStats] = useState<{ platform: string; count: number }[]>([]);
+
     // 默认列配置
     const defaultColumns: ColumnConfig[] = useMemo(() => [
         { key: 'index', visible: true, width: 50, order: 0 },
         { key: 'platform', visible: true, width: 70, order: 1 },
         { key: 'platformAccount', visible: true, width: 120, order: 2 },
         { key: 'userNo', visible: true, width: 80, order: 3 },
-        { key: 'realName', visible: true, width: 80, order: 4 },
-        { key: 'images', visible: true, width: 200, order: 5 },
-        { key: 'star', visible: true, width: 70, order: 6 },
-        { key: 'status', visible: true, width: 80, order: 7 },
-        { key: 'actions', visible: true, width: 200, order: 8 },
+        { key: 'accountStats', visible: true, width: 150, order: 4 },
+        { key: 'realName', visible: true, width: 80, order: 5 },
+        { key: 'images', visible: true, width: 200, order: 6 },
+        { key: 'star', visible: true, width: 70, order: 7 },
+        { key: 'status', visible: true, width: 80, order: 8 },
+        { key: 'actions', visible: true, width: 200, order: 9 },
     ], []);
 
     // 列配置 Hook
@@ -123,6 +129,7 @@ function AdminBuyerAccountsPageContent() {
         { key: 'platform', title: '平台' },
         { key: 'platformAccount', title: '平台账号' },
         { key: 'userNo', title: '用户ID' },
+        { key: 'accountStats', title: '买号数' },
         { key: 'realName', title: '实名姓名' },
         { key: 'images', title: '资质截图' },
         { key: 'star', title: '星级' },
@@ -160,15 +167,54 @@ function AdminBuyerAccountsPageContent() {
             });
             const data = await res.json();
             if (data.success) {
-                setAccounts(data.data || []);
+                const accountsList = data.data || [];
+                setAccounts(accountsList);
                 setTotal(data.total || 0);
                 setTotalPages(Math.ceil((data.total || 0) / 20));
+
+                // 批量加载用户买号统计
+                if (accountsList.length > 0) {
+                    const userIds = [...new Set(accountsList.map((a: BuyerAccount) => a.userId))];
+                    await loadBatchUserStats(userIds, accountsList);
+                }
             }
         } catch (error) {
             console.error('获取买号列表失败:', error);
         }
         setLoading(false);
     }, [page, filterStatus, filterPlatform, userId, searchKeyword]);
+
+    // 批量加载用户买号统计
+    const loadBatchUserStats = async (userIds: string[], accountsList: BuyerAccount[]) => {
+        try {
+            // 为每个用户获取统计
+            const statsPromises = userIds.map(uid =>
+                fetch(`${BASE_URL}/admin/buyer-accounts/user/${uid}/stats`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                }).then(res => res.json())
+            );
+
+            const statsResults = await Promise.all(statsPromises);
+            const statsMap = new Map<string, { platform: string; count: number }[]>();
+
+            userIds.forEach((uid, idx) => {
+                const result = statsResults[idx];
+                if (result.success) {
+                    statsMap.set(uid, result.data || []);
+                }
+            });
+
+            // 将统计数据附加到账号列表
+            const accountsWithStats = accountsList.map(account => ({
+                ...account,
+                userAccountStats: statsMap.get(account.userId) || []
+            }));
+
+            setAccounts(accountsWithStats);
+        } catch (error) {
+            console.error('批量加载用户统计失败:', error);
+        }
+    };
 
     // 加载用户信息（当有userId参数时）
     const loadUserInfo = useCallback(async () => {
@@ -213,6 +259,22 @@ function AdminBuyerAccountsPageContent() {
     useEffect(() => { loadAccounts(); }, [loadAccounts]);
     useEffect(() => { loadUserInfo(); }, [loadUserInfo]);
     useEffect(() => { loadPlatformOptions(); }, [loadPlatformOptions]);
+
+    // 加载用户买号统计
+    const loadUserAccountStats = useCallback(async (userId: string) => {
+        try {
+            const res = await fetch(`${BASE_URL}/admin/buyer-accounts/user/${userId}/stats`, {
+                headers: { 'Authorization': `Bearer ${getToken()}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setUserAccountStats(data.data || []);
+            }
+        } catch (error) {
+            console.error('获取用户买号统计失败:', error);
+            setUserAccountStats([]);
+        }
+    }, []);
 
     const handleSearch = () => {
         setPage(1);
@@ -310,6 +372,11 @@ function AdminBuyerAccountsPageContent() {
             remark: ''
         });
         setEditModal(a);
+
+        // 加载该用户的买号统计
+        if (a.userId) {
+            loadUserAccountStats(a.userId);
+        }
     }, []);
 
     const handleSaveEdit = async () => {
@@ -373,6 +440,37 @@ function AdminBuyerAccountsPageContent() {
             title: '用户ID',
             defaultWidth: 80,
             render: (row) => <span>{row.user?.userNo || '-'}</span>
+        },
+        {
+            key: 'accountStats',
+            title: '买号数',
+            defaultWidth: 150,
+            headerClassName: 'text-center',
+            cellClassName: 'text-center',
+            render: (row) => {
+                const stats = row.userAccountStats || [];
+                if (stats.length === 0) {
+                    return <span className="text-xs text-gray-400">-</span>;
+                }
+                const total = stats.reduce((sum, s) => sum + s.count, 0);
+                return (
+                    <div className="flex flex-wrap gap-1 justify-center" title={stats.map(s => `${s.platform}:${s.count}`).join(', ')}>
+                        {stats.slice(0, 2).map(s => (
+                            <span key={s.platform} className="text-xs bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">
+                                {s.platform}:{s.count}
+                            </span>
+                        ))}
+                        {stats.length > 2 && (
+                            <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+                                +{stats.length - 2}
+                            </span>
+                        )}
+                        <span className="text-xs bg-blue-100 text-blue-800 font-semibold px-1.5 py-0.5 rounded">
+                            共{total}
+                        </span>
+                    </div>
+                );
+            }
         },
         {
             key: 'realName',
@@ -593,9 +691,33 @@ function AdminBuyerAccountsPageContent() {
             />
 
             {/* Edit Modal - 动态适配不同平台 */}
-            <Modal title={`审核 | 编辑买号 (${editModal?.platform || ''})`} open={editModal !== null} onClose={() => setEditModal(null)} className="max-w-3xl">
+            <Modal title={`审核 | 编辑买号 (${editModal?.platform || ''})`} open={editModal !== null} onClose={() => { setEditModal(null); setUserAccountStats([]); }} className="max-w-3xl">
                 {editModal && (
                     <div className="space-y-5">
+                        {/* 用户买号统计 */}
+                        {userAccountStats.length > 0 && (
+                            <div className="rounded bg-blue-50 border border-blue-200 p-3">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    <span className="text-sm font-medium text-blue-800">该用户已绑定买号统计</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {userAccountStats.map(stat => (
+                                        <div key={stat.platform} className="flex items-center gap-1 bg-white rounded px-2 py-1 text-sm">
+                                            <span className="font-medium text-gray-700">{stat.platform}:</span>
+                                            <span className="font-semibold text-blue-600">{stat.count}</span>
+                                        </div>
+                                    ))}
+                                    <div className="flex items-center gap-1 bg-blue-100 rounded px-2 py-1 text-sm">
+                                        <span className="font-medium text-blue-700">总计:</span>
+                                        <span className="font-semibold text-blue-800">{userAccountStats.reduce((sum, s) => sum + s.count, 0)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* 平台和账号信息 */}
                         <div className="rounded bg-[#f9fafb] p-3">
                             <div className="grid grid-cols-2 gap-3 text-sm">

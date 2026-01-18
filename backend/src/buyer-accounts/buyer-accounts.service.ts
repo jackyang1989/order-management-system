@@ -637,4 +637,66 @@ export class BuyerAccountsService {
     const filtered = data.filter((a) => a.pendingAddressChange);
     return { data: filtered, total: filtered.length };
   }
+
+  /**
+   * 获取用户的买号统计（按平台分组）
+   * 用于在买号列表和编辑弹窗中显示用户已绑定的买号数量
+   */
+  async getUserAccountStats(
+    userId: string,
+  ): Promise<{ platform: string; count: number }[]> {
+    const result = await this.buyerAccountsRepository
+      .createQueryBuilder('ba')
+      .select('ba.platform', 'platform')
+      .addSelect('COUNT(*)', 'count')
+      .where('ba.userId = :userId', { userId })
+      .andWhere('ba.status != :deletedStatus', {
+        deletedStatus: BuyerAccountStatus.DELETED,
+      })
+      .groupBy('ba.platform')
+      .getRawMany();
+
+    return result.map((r) => ({
+      platform: r.platform,
+      count: parseInt(r.count, 10),
+    }));
+  }
+
+  /**
+   * 批量获取多个用户的买号统计
+   * 用于在买号列表中一次性获取所有用户的统计数据
+   */
+  async getBatchUserAccountStats(
+    userIds: string[],
+  ): Promise<Map<string, { platform: string; count: number }[]>> {
+    if (!userIds.length) return new Map();
+
+    const result = await this.buyerAccountsRepository
+      .createQueryBuilder('ba')
+      .select('ba.userId', 'userId')
+      .addSelect('ba.platform', 'platform')
+      .addSelect('COUNT(*)', 'count')
+      .where('ba.userId IN (:...userIds)', { userIds })
+      .andWhere('ba.status != :deletedStatus', {
+        deletedStatus: BuyerAccountStatus.DELETED,
+      })
+      .groupBy('ba.userId')
+      .addGroupBy('ba.platform')
+      .getRawMany();
+
+    const statsMap = new Map<string, { platform: string; count: number }[]>();
+
+    for (const r of result) {
+      const userId = r.userId;
+      if (!statsMap.has(userId)) {
+        statsMap.set(userId, []);
+      }
+      statsMap.get(userId)!.push({
+        platform: r.platform,
+        count: parseInt(r.count, 10),
+      });
+    }
+
+    return statsMap;
+  }
 }
