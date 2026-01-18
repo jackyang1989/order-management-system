@@ -48,6 +48,8 @@ interface User {
     province?: string;
     city?: string;
     district?: string;
+    // 买号统计（前端扩展字段）
+    buyerAccountStats?: { platform: string; count: number }[];
 }
 
 interface BalanceModalData {
@@ -94,13 +96,14 @@ export default function AdminUsersPage() {
         { key: 'phone', visible: true, width: 120, order: 1 },
         { key: 'wechat', visible: true, width: 100, order: 2 },
         { key: 'region', visible: true, width: 120, order: 3 },
-        { key: 'balance', visible: true, width: 120, order: 4 },
-        { key: 'frozen', visible: true, width: 90, order: 5 },
-        { key: 'invitedBy', visible: true, width: 80, order: 6 },
-        { key: 'monthlyTaskCount', visible: true, width: 70, order: 7 },
-        { key: 'lastLoginAt', visible: true, width: 100, order: 8 },
-        { key: 'createdAt', visible: true, width: 90, order: 9 },
-        { key: 'actions', visible: true, width: 270, order: 10, fixed: 'right' },
+        { key: 'buyerAccounts', visible: true, width: 150, order: 4 },
+        { key: 'balance', visible: true, width: 120, order: 5 },
+        { key: 'frozen', visible: true, width: 90, order: 6 },
+        { key: 'invitedBy', visible: true, width: 80, order: 7 },
+        { key: 'monthlyTaskCount', visible: true, width: 70, order: 8 },
+        { key: 'lastLoginAt', visible: true, width: 100, order: 9 },
+        { key: 'createdAt', visible: true, width: 90, order: 10 },
+        { key: 'actions', visible: true, width: 270, order: 11, fixed: 'right' },
     ], []);
 
     // 列配置 Hook
@@ -115,6 +118,7 @@ export default function AdminUsersPage() {
         { key: 'phone', title: '手机号' },
         { key: 'wechat', title: '微信号' },
         { key: 'region', title: '所在地区' },
+        { key: 'buyerAccounts', title: '买号数' },
         { key: 'balance', title: '本金/银锭' },
         { key: 'frozen', title: '冻结' },
         { key: 'invitedBy', title: '推荐人' },
@@ -180,13 +184,52 @@ export default function AdminUsersPage() {
             });
             const json = await res.json();
             if (json.success) {
-                setUsers(json.data || []);
+                const usersList = json.data || [];
+                setUsers(usersList);
                 setTotal(json.total || 0);
+
+                // 批量加载用户买号统计
+                if (usersList.length > 0) {
+                    await loadBatchUserStats(usersList);
+                }
             }
         } catch (e) {
             console.error(e);
         } finally {
             setLoading(false);
+        }
+    };
+
+    // 批量加载用户买号统计
+    const loadBatchUserStats = async (usersList: User[]) => {
+        const token = localStorage.getItem('adminToken');
+        try {
+            const userIds = usersList.map(u => u.id);
+            const statsPromises = userIds.map(uid =>
+                fetch(`${BASE_URL}/admin/buyer-accounts/user/${uid}/stats`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).then(res => res.json())
+            );
+
+            const statsResults = await Promise.all(statsPromises);
+            const statsMap = new Map<string, { platform: string; count: number }[]>();
+
+            userIds.forEach((uid, idx) => {
+                const result = statsResults[idx];
+                if (result.success) {
+                    statsMap.set(uid, result.data || []);
+                }
+            });
+
+            // 将统计数据附加到用户列表
+            const usersWithStats = usersList.map(user => ({
+                ...user,
+                buyerAccountStats: statsMap.get(user.id) || []
+            }));
+
+            setUsers(usersWithStats);
+        } catch (error) {
+            console.error('批量加载买号统计失败:', error);
         }
     };
 
@@ -615,6 +658,38 @@ export default function AdminUsersPage() {
                 const region = [row.province, row.city, row.district].filter(Boolean).join(' ');
                 return <div className="text-xs text-[#6b7280]">{region || '-'}</div>;
             },
+        },
+        {
+            key: 'buyerAccounts',
+            title: '买号数',
+            defaultWidth: 150,
+            minWidth: 100,
+            headerClassName: 'text-center',
+            cellClassName: 'text-center',
+            render: (row) => {
+                const stats = row.buyerAccountStats || [];
+                if (stats.length === 0) {
+                    return <span className="text-xs text-gray-400">-</span>;
+                }
+                const total = stats.reduce((sum, s) => sum + s.count, 0);
+                return (
+                    <div className="flex flex-wrap gap-1 justify-center" title={stats.map(s => `${s.platform}:${s.count}`).join(', ')}>
+                        {stats.slice(0, 2).map(s => (
+                            <span key={s.platform} className="text-xs bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">
+                                {s.platform}:{s.count}
+                            </span>
+                        ))}
+                        {stats.length > 2 && (
+                            <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+                                +{stats.length - 2}
+                            </span>
+                        )}
+                        <span className="text-xs bg-blue-100 text-blue-800 font-semibold px-1.5 py-0.5 rounded">
+                            共{total}
+                        </span>
+                    </div>
+                );
+            }
         },
         {
             key: 'balance',

@@ -109,12 +109,11 @@ function AdminBuyerAccountsPageContent() {
         { key: 'platform', visible: true, width: 70, order: 1 },
         { key: 'platformAccount', visible: true, width: 120, order: 2 },
         { key: 'userNo', visible: true, width: 80, order: 3 },
-        { key: 'accountStats', visible: true, width: 150, order: 4 },
-        { key: 'realName', visible: true, width: 80, order: 5 },
-        { key: 'images', visible: true, width: 200, order: 6 },
-        { key: 'star', visible: true, width: 70, order: 7 },
-        { key: 'status', visible: true, width: 80, order: 8 },
-        { key: 'actions', visible: true, width: 200, order: 9 },
+        { key: 'realName', visible: true, width: 80, order: 4 },
+        { key: 'images', visible: true, width: 200, order: 5 },
+        { key: 'star', visible: true, width: 70, order: 6 },
+        { key: 'status', visible: true, width: 80, order: 7 },
+        { key: 'actions', visible: true, width: 200, order: 8 },
     ], []);
 
     // 列配置 Hook
@@ -129,7 +128,6 @@ function AdminBuyerAccountsPageContent() {
         { key: 'platform', title: '平台' },
         { key: 'platformAccount', title: '平台账号' },
         { key: 'userNo', title: '用户ID' },
-        { key: 'accountStats', title: '买号数' },
         { key: 'realName', title: '实名姓名' },
         { key: 'images', title: '资质截图' },
         { key: 'star', title: '星级' },
@@ -167,54 +165,15 @@ function AdminBuyerAccountsPageContent() {
             });
             const data = await res.json();
             if (data.success) {
-                const accountsList = data.data || [];
-                setAccounts(accountsList);
+                setAccounts(data.data || []);
                 setTotal(data.total || 0);
                 setTotalPages(Math.ceil((data.total || 0) / 20));
-
-                // 批量加载用户买号统计
-                if (accountsList.length > 0) {
-                    const userIds = [...new Set(accountsList.map((a: BuyerAccount) => a.userId))];
-                    await loadBatchUserStats(userIds, accountsList);
-                }
             }
         } catch (error) {
             console.error('获取买号列表失败:', error);
         }
         setLoading(false);
     }, [page, filterStatus, filterPlatform, userId, searchKeyword]);
-
-    // 批量加载用户买号统计
-    const loadBatchUserStats = async (userIds: string[], accountsList: BuyerAccount[]) => {
-        try {
-            // 为每个用户获取统计
-            const statsPromises = userIds.map(uid =>
-                fetch(`${BASE_URL}/admin/buyer-accounts/user/${uid}/stats`, {
-                    headers: { 'Authorization': `Bearer ${getToken()}` }
-                }).then(res => res.json())
-            );
-
-            const statsResults = await Promise.all(statsPromises);
-            const statsMap = new Map<string, { platform: string; count: number }[]>();
-
-            userIds.forEach((uid, idx) => {
-                const result = statsResults[idx];
-                if (result.success) {
-                    statsMap.set(uid, result.data || []);
-                }
-            });
-
-            // 将统计数据附加到账号列表
-            const accountsWithStats = accountsList.map(account => ({
-                ...account,
-                userAccountStats: statsMap.get(account.userId) || []
-            }));
-
-            setAccounts(accountsWithStats);
-        } catch (error) {
-            console.error('批量加载用户统计失败:', error);
-        }
-    };
 
     // 加载用户信息（当有userId参数时）
     const loadUserInfo = useCallback(async () => {
@@ -440,37 +399,6 @@ function AdminBuyerAccountsPageContent() {
             title: '用户ID',
             defaultWidth: 80,
             render: (row) => <span>{row.user?.userNo || '-'}</span>
-        },
-        {
-            key: 'accountStats',
-            title: '买号数',
-            defaultWidth: 150,
-            headerClassName: 'text-center',
-            cellClassName: 'text-center',
-            render: (row) => {
-                const stats = row.userAccountStats || [];
-                if (stats.length === 0) {
-                    return <span className="text-xs text-gray-400">-</span>;
-                }
-                const total = stats.reduce((sum, s) => sum + s.count, 0);
-                return (
-                    <div className="flex flex-wrap gap-1 justify-center" title={stats.map(s => `${s.platform}:${s.count}`).join(', ')}>
-                        {stats.slice(0, 2).map(s => (
-                            <span key={s.platform} className="text-xs bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">
-                                {s.platform}:{s.count}
-                            </span>
-                        ))}
-                        {stats.length > 2 && (
-                            <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
-                                +{stats.length - 2}
-                            </span>
-                        )}
-                        <span className="text-xs bg-blue-100 text-blue-800 font-semibold px-1.5 py-0.5 rounded">
-                            共{total}
-                        </span>
-                    </div>
-                );
-            }
         },
         {
             key: 'realName',

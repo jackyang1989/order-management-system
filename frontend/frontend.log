@@ -14,33 +14,4 @@
 - Network:       http://192.168.0.17:6005
 
 ✓ Starting...
-✓ Ready in 1138ms
- GET / 307 in 661ms (compile: 567ms, render: 94ms)
- GET /profile 200 in 55ms (compile: 27ms, render: 28ms)
- GET /login 200 in 44ms (compile: 32ms, render: 12ms)
- GET /merchant/login 200 in 90ms (compile: 46ms, render: 44ms)
- GET /merchant/dashboard 200 in 27ms (compile: 18ms, render: 9ms)
- GET /merchant/tasks/new 200 in 106ms (compile: 91ms, render: 15ms)
- GET /merchant/shops 200 in 53ms (compile: 42ms, render: 11ms)
- GET /merchant/shops/edit/41363f04-4b3e-42da-ade2-0602b58d6450 200 in 263ms (compile: 250ms, render: 13ms)
-✓ Compiled in 71ms
- GET /merchant/shops 200 in 105ms (compile: 67ms, render: 38ms)
- GET /merchant/shops/edit/41363f04-4b3e-42da-ade2-0602b58d6450 200 in 60ms (compile: 37ms, render: 23ms)
- GET /merchant/shops/edit/41363f04-4b3e-42da-ade2-0602b58d6450 200 in 91ms (compile: 10ms, render: 81ms)
- GET /admin/shops 200 in 92ms (compile: 53ms, render: 39ms)
- GET /admin/shops 200 in 93ms (compile: 28ms, render: 65ms)
- GET /merchant/shops/edit/41363f04-4b3e-42da-ade2-0602b58d6450 200 in 35ms (compile: 12ms, render: 23ms)
-✓ Compiled in 124ms
-✓ Compiled in 37ms
- GET /merchant/shops/edit/41363f04-4b3e-42da-ade2-0602b58d6450 200 in 31ms (compile: 12ms, render: 19ms)
- GET /merchant/goods 200 in 64ms (compile: 51ms, render: 13ms)
- GET /merchant/shops 200 in 104ms (compile: 27ms, render: 76ms)
- GET /merchant/shops/edit/75a6423a-1015-408d-84c4-37327b39f730 200 in 116ms (compile: 48ms, render: 68ms)
-Persisting failed: Unable to write SST file 00012277.sst
-
-Caused by:
-    0: Failed to write value blocks
-    1: Failed to write value block
-    2: Failed to write compressed block
-    3: No space left on device (os error 28)
-[?25h
+✓ Ready in 909ms
