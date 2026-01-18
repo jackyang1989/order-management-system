@@ -360,7 +360,7 @@ function AdminBuyerAccountsPageContent() {
             star: a.star || 1,
             status: a.status,
             frozenTime: a.frozenTime ? a.frozenTime.split('T')[0] : '',
-            remark: ''
+            remark: a.remark || ''
         });
         setEditModal(a);
 
@@ -423,8 +423,76 @@ function AdminBuyerAccountsPageContent() {
         {
             key: 'platformAccount',
             title: '平台账号',
-            defaultWidth: 120,
-            render: (row) => <span className="font-medium text-primary-600">{row.platformAccount}</span>
+            defaultWidth: 150,
+            render: (row) => (
+                <div className="flex items-center gap-1.5">
+                    <span className="font-medium text-primary-600">{row.platformAccount}</span>
+
+                    {/* 备注图标按钮 */}
+                    <div className="relative inline-flex items-center">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setRemarkModal({ accountId: row.id, platformAccount: row.platformAccount || '', currentRemark: row.remark || '' });
+                                setRemarkText(row.remark || '');
+                            }}
+                            onMouseEnter={(e) => {
+                                if (row.remark) {
+                                    const tooltip = e.currentTarget.nextElementSibling as HTMLElement;
+                                    if (tooltip) {
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        tooltip.style.left = `${rect.right + window.scrollX + 8}px`;
+                                        tooltip.style.top = `${rect.top + window.scrollY}px`;
+                                        tooltip.classList.remove('invisible', 'opacity-0');
+                                        tooltip.classList.add('visible', 'opacity-100');
+                                    }
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                if (row.remark) {
+                                    const tooltip = e.currentTarget.nextElementSibling as HTMLElement;
+                                    if (tooltip) {
+                                        tooltip.classList.add('invisible', 'opacity-0');
+                                        tooltip.classList.remove('visible', 'opacity-100');
+                                    }
+                                }
+                            }}
+                            className={`transition-all ${row.remark
+                                ? 'text-red-500 hover:text-red-600'
+                                : 'text-slate-300 hover:text-slate-400'
+                                }`}
+                            title={row.remark ? '查看/编辑备注' : '添加备注'}
+                            type="button"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+                                <path fillRule="evenodd" d="M3 2.25a.75.75 0 01.75.75v.54l1.838-.46a9.75 9.75 0 016.725.738l.108.054a8.25 8.25 0 005.58.652l3.109-.732a.75.75 0 01.917.81 47.784 47.784 0 00.005 10.337.75.75 0 01-.574.812l-3.114.733a9.75 9.75 0 01-6.594-.77l-.108-.054a8.25 8.25 0 00-5.69-.625l-2.202.55V21a.75.75 0 01-1.5 0V3A.75.75 0 013 2.25z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+
+                        {/* 悬浮提示层 - 仅在有备注时显示 */}
+                        {row.remark && (
+                            <div className="invisible opacity-0 transition-all duration-200 fixed w-72 rounded-xl bg-white p-3 shadow-2xl border border-slate-200 z-[99999]">
+                                <div className="absolute left-0 top-[8px] w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[8px] border-r-white" style={{ marginLeft: '-8px' }}></div>
+                                <div className="absolute left-0 top-[8px] w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[8px] border-r-slate-200" style={{ marginLeft: '-9px' }}></div>
+                                <div className="relative">
+                                    <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-slate-100">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-red-500">
+                                            <path fillRule="evenodd" d="M3 2.25a.75.75 0 01.75.75v.54l1.838-.46a9.75 9.75 0 016.725.738l.108.054a8.25 8.25 0 005.58.652l3.109-.732a.75.75 0 01.917.81 47.784 47.784 0 00.005 10.337.75.75 0 01-.574.812l-3.114.733a9.75 9.75 0 01-6.594-.77l-.108-.054a8.25 8.25 0 00-5.69-.625l-2.202.55V21a.75.75 0 01-1.5 0V3A.75.75 0 013 2.25z" clipRule="evenodd" />
+                                        </svg>
+                                        <span className="text-xs font-semibold text-slate-600">备注</span>
+                                    </div>
+                                    <div className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap max-h-40 overflow-y-auto">
+                                        {row.remark}
+                                    </div>
+                                    <div className="text-[10px] text-slate-400 mt-2 text-right">
+                                        点击图标编辑
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )
         },
         {
             key: 'userNo',
@@ -818,6 +886,34 @@ function AdminBuyerAccountsPageContent() {
                     <div className="flex justify-end gap-3">
                         <Button variant="secondary" onClick={() => { setRejectingId(null); setRejectReason(''); }}>取消</Button>
                         <Button variant="destructive" onClick={() => rejectingId && handleReject(rejectingId)}>确认拒绝</Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* 备注弹窗 */}
+            <Modal
+                title={`备注 - ${remarkModal?.platformAccount}`}
+                open={!!remarkModal}
+                onClose={() => { setRemarkModal(null); setRemarkText(''); }}
+            >
+                <div className="space-y-4">
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-[#374151]">备注内容</label>
+                        <textarea
+                            className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            rows={4}
+                            placeholder="请输入备注内容..."
+                            value={remarkText}
+                            onChange={(e) => setRemarkText(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => { setRemarkModal(null); setRemarkText(''); }}>
+                            取消
+                        </Button>
+                        <Button onClick={handleUpdateRemark}>
+                            保存备注
+                        </Button>
                     </div>
                 </div>
             </Modal>
