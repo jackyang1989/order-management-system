@@ -36,7 +36,7 @@ export class AddPlatformImageRequirements1768707488442 implements MigrationInter
             INSERT INTO platform_image_requirements ("platformId", key, label, required, "sortOrder")
             SELECT
                 p.id,
-                'authImg' as key,
+                'payAuthImg' as key,
                 '实名认证截图' as label,
                 true as required,
                 2 as "sortOrder"
