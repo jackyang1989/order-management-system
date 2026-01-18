@@ -270,10 +270,7 @@ export default function EditBuynoPage({ params }: { params: Promise<{ id: string
         try {
             await updateAccount(resolvedParams.id, {
                 ...form,
-                profileImg: images.profileImg,
-                creditImg: images.creditImg,
-                payAuthImg: images.payAuthImg,
-                scoreImg: images.scoreImg,
+                ...images,
             });
             toastSuccess('更新成功');
             router.push('/profile/buyer-accounts');

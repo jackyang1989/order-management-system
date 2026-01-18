@@ -166,7 +166,7 @@ export async function create(input: CreateBuyerAccountInput): Promise<void> {
 
 export async function update(id: string, input: UpdateBuyerAccountInput): Promise<void> {
     const res = await fetch(`${BASE_URL}/buyer-accounts/${id}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json', ...authHeader() },
         body: JSON.stringify(input),
     });
