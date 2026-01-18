@@ -86,10 +86,10 @@ function ImageUploader({
             </div>
             {showExample && config.example && (
                 <div className="fixed inset-0 z-[1100] flex cursor-zoom-out items-center justify-center bg-black/90 backdrop-blur-sm" onClick={() => setShowExample(false)}>
-                    <div className="max-w-sm rounded-[24px] bg-white p-6" onClick={e => e.stopPropagation()}>
+                    <div className="max-w-md rounded-[24px] bg-white p-6" onClick={e => e.stopPropagation()}>
                         <div className="mb-4 text-base font-bold text-slate-900">示例图片 - {config.label}</div>
-                        <div className="flex h-64 items-center justify-center rounded-xl bg-slate-100 text-sm font-medium text-slate-400">
-                            示例图片加载中...
+                        <div className="rounded-xl overflow-hidden bg-slate-100">
+                            <img src={config.example} alt={config.label} className="w-full h-auto object-contain" />
                         </div>
                         {config.pathHint && (
                             <div className="mt-4 rounded-xl bg-blue-50 p-3 border border-blue-200">

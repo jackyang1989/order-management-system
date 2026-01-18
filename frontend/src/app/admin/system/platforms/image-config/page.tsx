@@ -36,22 +36,30 @@ export default function PlatformImageConfigPage() {
     const loadPlatforms = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('admin_token');
+            const token = localStorage.getItem('adminToken'); // 修复：使用正确的键名
+            console.log('Token:', token ? 'exists' : 'missing');
+
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/admin/config/platforms/image-requirements`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 },
             });
+
+            console.log('Response status:', res.status);
             const data = await res.json();
+            console.log('Response data:', data);
+
             if (data.success) {
                 setPlatforms(data.data);
                 if (data.data.length > 0 && !selectedPlatformId) {
                     setSelectedPlatformId(data.data[0].platformId);
                 }
+            } else {
+                alert('加载失败: ' + (data.message || '未知错误'));
             }
         } catch (error) {
             console.error('加载失败:', error);
-            alert('加载平台配置失败');
+            alert('加载平台配置失败: ' + error);
         } finally {
             setLoading(false);
         }
@@ -68,7 +76,7 @@ export default function PlatformImageConfigPage() {
         if (!editingRequirement) return;
 
         try {
-            const token = localStorage.getItem('admin_token');
+            const token = localStorage.getItem('adminToken');
             const res = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/admin/config/image-requirements/${editingRequirement.id}`,
                 {
@@ -125,7 +133,7 @@ export default function PlatformImageConfigPage() {
         if (!editingRequirement || !selectedPlatformId) return;
 
         try {
-            const token = localStorage.getItem('admin_token');
+            const token = localStorage.getItem('adminToken');
             const res = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/admin/config/platforms/${selectedPlatformId}/image-requirements`,
                 {
@@ -163,7 +171,7 @@ export default function PlatformImageConfigPage() {
         if (!confirm('确定要删除这个截图配置吗?')) return;
 
         try {
-            const token = localStorage.getItem('admin_token');
+            const token = localStorage.getItem('adminToken');
             const res = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/admin/config/image-requirements/${id}`,
                 {
@@ -299,6 +307,43 @@ export default function PlatformImageConfigPage() {
                                                         })
                                                     }
                                                 />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium mb-1">示例图片</label>
+                                                <div className="space-y-2">
+                                                    {editingRequirement.exampleImagePath && (
+                                                        <div className="relative w-48 h-48 border rounded-lg overflow-hidden">
+                                                            <img
+                                                                src={editingRequirement.exampleImagePath}
+                                                                alt="示例图片"
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) {
+                                                                // 创建预览URL
+                                                                const reader = new FileReader();
+                                                                reader.onload = (event) => {
+                                                                    setEditingRequirement({
+                                                                        ...editingRequirement,
+                                                                        exampleImagePath: event.target?.result as string,
+                                                                    });
+                                                                };
+                                                                reader.readAsDataURL(file);
+                                                            }
+                                                        }}
+                                                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                                    />
+                                                    <p className="text-xs text-gray-500">
+                                                        上传示例图片，帮助买手了解需要截图的页面
+                                                    </p>
+                                                </div>
                                             </div>
 
                                             <div className="flex items-center space-x-2">
