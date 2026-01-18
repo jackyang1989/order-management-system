@@ -15,3 +15,23 @@
 
 ✓ Starting...
 ✓ Ready in 909ms
+ GET /admin/users/accounts 200 in 683ms (compile: 592ms, render: 91ms)
+ GET /admin/users 200 in 102ms (compile: 50ms, render: 52ms)
+ GET /admin/users 200 in 35ms (compile: 10ms, render: 25ms)
+ GET /admin/users 200 in 43ms (compile: 3ms, render: 39ms)
+ GET /admin/merchants 200 in 52ms (compile: 36ms, render: 16ms)
+ GET /admin/users/accounts 200 in 19ms (compile: 4ms, render: 15ms)
+✓ Compiled in 392ms
+ GET /admin/users 200 in 74ms (compile: 48ms, render: 25ms)
+✓ Compiled in 55ms
+ GET /admin/users/accounts 200 in 28ms (compile: 6ms, render: 22ms)
+ GET /admin/users 200 in 100ms (compile: 66ms, render: 34ms)
+ GET /admin/merchants 200 in 22ms (compile: 6ms, render: 16ms)
+ GET /admin/users/accounts 200 in 22ms (compile: 4ms, render: 17ms)
+ GET /admin/users 200 in 23ms (compile: 5ms, render: 18ms)
+ GET /profile 200 in 123ms (compile: 43ms, render: 80ms)
+ GET /merchant/questions 200 in 88ms (compile: 34ms, render: 53ms)
+ GET /login 200 in 43ms (compile: 31ms, render: 12ms)
+ GET /profile 200 in 44ms (compile: 5ms, render: 39ms)
+ GET /profile/payment 200 in 70ms (compile: 55ms, render: 15ms)
+ GET /profile/bind 200 in 50ms (compile: 35ms, render: 15ms)

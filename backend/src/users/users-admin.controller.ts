@@ -332,22 +332,6 @@ export class UsersAdminController {
   }
 
   /**
-   * 审核实名认证
-   */
-  @Post(':id/verify')
-  async verifyUser(
-    @Param('id') id: string,
-    @Body() body: { status: number; reason?: string },
-  ) {
-    const user = await this.usersAdminService.verifyUser(
-      id,
-      body.status,
-      body.reason,
-    );
-    return { success: true, data: user };
-  }
-
-  /**
    * 获取用户余额变动记录
    */
   @Get(':id/balance-logs')

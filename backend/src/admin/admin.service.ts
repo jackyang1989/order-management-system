@@ -203,7 +203,6 @@ export class AdminService {
       vipExpireAt?: string;
       mcTaskNum?: number;
       note?: string;
-      verifyStatus?: number;
       canReferFriends?: boolean;
     },
   ): Promise<User | null> {
@@ -220,7 +219,6 @@ export class AdminService {
       (user as any).mcTaskNum = data.mcTaskNum;
     }
     if (data.note !== undefined) user.note = data.note;
-    if (data.verifyStatus !== undefined) user.verifyStatus = data.verifyStatus;
     if (data.canReferFriends !== undefined) user.canReferFriends = data.canReferFriends;
 
     return this.usersRepository.save(user);

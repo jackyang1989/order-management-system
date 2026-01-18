@@ -671,7 +671,6 @@ export default function AdminUsersPage() {
                 if (stats.length === 0) {
                     return <span className="text-xs text-gray-400">-</span>;
                 }
-                const total = stats.reduce((sum, s) => sum + s.count, 0);
                 return (
                     <div className="flex flex-wrap gap-1 justify-center" title={stats.map(s => `${s.platform}:${s.count}`).join(', ')}>
                         {stats.slice(0, 2).map(s => (
@@ -684,9 +683,6 @@ export default function AdminUsersPage() {
                                 +{stats.length - 2}
                             </span>
                         )}
-                        <span className="text-xs bg-blue-100 text-blue-800 font-semibold px-1.5 py-0.5 rounded">
-                            共{total}
-                        </span>
                     </div>
                 );
             }

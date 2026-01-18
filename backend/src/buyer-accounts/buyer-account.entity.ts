@@ -285,10 +285,6 @@ export class UpdateBuyerAccountDto {
   @IsOptional()
   platformAccount?: string;
 
-  @IsString()
-  @IsOptional()
-  realName?: string;
-
   @IsOptional()
   star?: number;
 
