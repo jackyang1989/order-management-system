@@ -43,11 +43,6 @@ export class UserQueryDto {
   vip?: 'vip' | 'normal' | 'all';
 
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  verifyStatus?: number; // 实名状态
-
-  @IsOptional()
   @IsString()
   startDate?: string;
 
@@ -125,10 +120,6 @@ export class UserDetailUpdateDto {
   @IsOptional()
   @IsString()
   idCard?: string;
-
-  @IsOptional()
-  @IsNumber()
-  verifyStatus?: number;
 
   @IsOptional()
   isActive?: boolean;

@@ -436,10 +436,27 @@ function AdminBuyerAccountsPageContent() {
         {
             key: 'status',
             title: '状态',
-            defaultWidth: 80,
+            defaultWidth: 100,
             headerClassName: 'text-center',
             cellClassName: 'text-center',
-            render: (row) => <Badge variant="soft" color={statusLabels[row.status]?.color}>{statusLabels[row.status]?.text}</Badge>
+            render: (row) => {
+                const isFrozen = row.frozenTime && new Date(row.frozenTime) > new Date();
+                const frozenDate = row.frozenTime ? new Date(row.frozenTime) : null;
+
+                return (
+                    <div className="flex flex-col items-center gap-0.5">
+                        <Badge variant="soft" color={statusLabels[row.status]?.color}>{statusLabels[row.status]?.text}</Badge>
+                        {isFrozen && frozenDate && (
+                            <div className="flex items-center gap-1 text-[10px] text-orange-600" title={`解冻时间: ${frozenDate.toLocaleString('zh-CN')}`}>
+                                <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                                <span>{frozenDate.getMonth() + 1}/{frozenDate.getDate()}</span>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
         },
         {
             key: 'actions',

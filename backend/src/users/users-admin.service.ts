@@ -82,13 +82,6 @@ export class UsersAdminService {
 
     // VIP筛选 - VIP功能已移除，忽略此筛选条件
 
-    // 实名状态
-    if (query.verifyStatus !== undefined) {
-      qb.andWhere('u.verifyStatus = :verifyStatus', {
-        verifyStatus: query.verifyStatus,
-      });
-    }
-
     // 日期范围
     if (query.startDate) {
       qb.andWhere('u.createdAt >= :startDate', { startDate: query.startDate });
@@ -296,21 +289,6 @@ export class UsersAdminService {
   }
 
   /**
-   * 审核实名认证
-   */
-  async verifyUser(id: string, status: number, reason?: string): Promise<User> {
-    const user = await this.userRepo.findOne({ where: { id } });
-    if (!user) {
-      throw new NotFoundException(`用户 ${id} 不存在`);
-    }
-
-    user.verifyStatus = status;
-    // 可以添加审核拒绝原因字段
-    await this.userRepo.save(user);
-    return this.sanitizeUser(user);
-  }
-
-  /**
    * 获取余额变动记录
    */
   async getBalanceLogs(
@@ -398,8 +376,6 @@ export class UsersAdminService {
       微信号: u.wechat,
       本金余额: u.balance,
       银锭余额: u.silver,
-      实名状态:
-        ['未认证', '待审核', '已认证', '已拒绝'][u.verifyStatus] || '未知',
       状态: u.isBanned ? '已封禁' : u.isActive ? '正常' : '未激活',
       注册时间: u.createdAt,
     }));
@@ -418,17 +394,15 @@ export class UsersAdminService {
     todayNewUsers: number;
     vipUsers: number;
     bannedUsers: number;
-    verifiedUsers: number;
   }> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const [totalUsers, todayNewUsers, bannedUsers, verifiedUsers] =
+    const [totalUsers, todayNewUsers, bannedUsers] =
       await Promise.all([
         this.userRepo.count(),
         this.userRepo.count({ where: { createdAt: MoreThanOrEqual(today) } }),
         this.userRepo.count({ where: { isBanned: true } }),
-        this.userRepo.count({ where: { verifyStatus: 2 } }),
       ]);
 
     return {
@@ -436,7 +410,6 @@ export class UsersAdminService {
       todayNewUsers,
       vipUsers: 0,
       bannedUsers,
-      verifiedUsers,
     };
   }
 

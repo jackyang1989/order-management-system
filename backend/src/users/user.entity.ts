@@ -99,9 +99,6 @@ export class User {
   @Column({ nullable: true })
   avatar: string; // 用户头像
 
-  @Column({ type: 'int', default: 0 })
-  verifyStatus: number; // 实名状态 0未认证 1待审核 2已认证 3已拒绝
-
   // ============ 账号状态 ============
   @Column({ default: true })
   isActive: boolean; // 是否激活

@@ -27,7 +27,6 @@ interface User {
     frozenBalance?: number;
     frozenSilver?: number;
     reward?: number;
-    verifyStatus: number;
     isActive: boolean;
     isBanned: boolean;
     banReason?: string;
@@ -74,13 +73,6 @@ interface StarModalData {
     currentStar: number;
 }
 
-const verifyLabels: Record<number, { text: string; color: 'slate' | 'amber' | 'green' | 'red' }> = {
-    0: { text: '未认证', color: 'slate' },
-    1: { text: '待审核', color: 'amber' },
-    2: { text: '已认证', color: 'green' },
-    3: { text: '已拒绝', color: 'red' },
-};
-
 export default function AdminUsersPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -88,7 +80,6 @@ export default function AdminUsersPage() {
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
-    const [verifyFilter, setVerifyFilter] = useState<string>('all');
 
     // 排序状态
     const [sortField, setSortField] = useState<string>('createdAt');
@@ -103,14 +94,13 @@ export default function AdminUsersPage() {
         { key: 'phone', visible: true, width: 120, order: 1 },
         { key: 'wechat', visible: true, width: 100, order: 2 },
         { key: 'region', visible: true, width: 120, order: 3 },
-        { key: 'verifyStatus', visible: true, width: 80, order: 4 },
-        { key: 'balance', visible: true, width: 120, order: 5 },
-        { key: 'frozen', visible: true, width: 90, order: 6 },
-        { key: 'invitedBy', visible: true, width: 80, order: 7 },
-        { key: 'monthlyTaskCount', visible: true, width: 70, order: 8 },
-        { key: 'lastLoginAt', visible: true, width: 100, order: 9 },
-        { key: 'createdAt', visible: true, width: 90, order: 10 },
-        { key: 'actions', visible: true, width: 270, order: 11, fixed: 'right' },
+        { key: 'balance', visible: true, width: 120, order: 4 },
+        { key: 'frozen', visible: true, width: 90, order: 5 },
+        { key: 'invitedBy', visible: true, width: 80, order: 6 },
+        { key: 'monthlyTaskCount', visible: true, width: 70, order: 7 },
+        { key: 'lastLoginAt', visible: true, width: 100, order: 8 },
+        { key: 'createdAt', visible: true, width: 90, order: 9 },
+        { key: 'actions', visible: true, width: 270, order: 10, fixed: 'right' },
     ], []);
 
     // 列配置 Hook
@@ -125,7 +115,6 @@ export default function AdminUsersPage() {
         { key: 'phone', title: '手机号' },
         { key: 'wechat', title: '微信号' },
         { key: 'region', title: '所在地区' },
-        { key: 'verifyStatus', title: '实名状态' },
         { key: 'balance', title: '本金/银锭' },
         { key: 'frozen', title: '冻结' },
         { key: 'invitedBy', title: '推荐人' },
@@ -166,17 +155,16 @@ export default function AdminUsersPage() {
         silver: string;
         mcTaskNum: string;
         note: string;
-        verifyStatus: number;
         canReferFriends: boolean;
         province: string;
         city: string;
         district: string;
         invitedBy: string;
-    }>({ userNo: '', phone: '', wechat: '', realName: '', balance: '0', silver: '0', mcTaskNum: '0', note: '', verifyStatus: 0, canReferFriends: true, province: '', city: '', district: '', invitedBy: '' });
+    }>({ userNo: '', phone: '', wechat: '', realName: '', balance: '0', silver: '0', mcTaskNum: '0', note: '', canReferFriends: true, province: '', city: '', district: '', invitedBy: '' });
 
     useEffect(() => {
         loadUsers();
-    }, [page, statusFilter, verifyFilter]);
+    }, [page, statusFilter]);
 
     const loadUsers = async () => {
         const token = localStorage.getItem('adminToken');
@@ -185,7 +173,6 @@ export default function AdminUsersPage() {
             let url = `${BASE_URL}/admin/users?page=${page}&limit=20`;
             if (search) url += `&keyword=${encodeURIComponent(search)}`;
             if (statusFilter !== 'all') url += `&status=${statusFilter}`;
-            if (verifyFilter !== 'all') url += `&verifyStatus=${verifyFilter}`;
             // 注意：后端暂不支持排序参数，需要后续添加
 
             const res = await fetch(url, {
@@ -218,7 +205,6 @@ export default function AdminUsersPage() {
             silver: String(user.silver || 0),
             mcTaskNum: String(user.mcTaskNum || 0),
             note: user.note || '',
-            verifyStatus: user.verifyStatus || 0,
             canReferFriends: user.canReferFriends !== false,
             province: user.province || '',
             city: user.city || '',
@@ -246,7 +232,6 @@ export default function AdminUsersPage() {
                     silver: parseFloat(editForm.silver) || 0,
                     mcTaskNum: parseInt(editForm.mcTaskNum) || 0,
                     note: editForm.note,
-                    verifyStatus: editForm.verifyStatus,
                     canReferFriends: editForm.canReferFriends,
                     province: editForm.province,
                     city: editForm.city,
@@ -484,7 +469,6 @@ export default function AdminUsersPage() {
             let url = `${BASE_URL}/admin/users/export?`;
             if (search) url += `keyword=${encodeURIComponent(search)}&`;
             if (statusFilter !== 'all') url += `status=${statusFilter}&`;
-            if (verifyFilter !== 'all') url += `verifyStatus=${verifyFilter}&`;
 
             const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -633,16 +617,6 @@ export default function AdminUsersPage() {
             },
         },
         {
-            key: 'verifyStatus',
-            title: '实名状态',
-            defaultWidth: 80,
-            minWidth: 60,
-            render: (row) => {
-                const { text, color } = verifyLabels[row.verifyStatus] || verifyLabels[0];
-                return <Badge variant="soft" color={color}>{text}</Badge>;
-            },
-        },
-        {
             key: 'balance',
             title: '本金/银锭',
             defaultWidth: 120,
@@ -780,18 +754,6 @@ export default function AdminUsersPage() {
                             { value: 'all', label: '全部状态' },
                             { value: 'active', label: '正常' },
                             { value: 'banned', label: '已封禁' },
-                        ]}
-                        className="w-28"
-                    />
-                    <Select
-                        value={verifyFilter}
-                        onChange={(v) => { setVerifyFilter(v); setPage(1); }}
-                        options={[
-                            { value: 'all', label: '全部实名' },
-                            { value: '0', label: '未认证' },
-                            { value: '1', label: '待审核' },
-                            { value: '2', label: '已认证' },
-                            { value: '3', label: '已拒绝' },
                         ]}
                         className="w-28"
                     />
@@ -1036,21 +998,6 @@ export default function AdminUsersPage() {
                                                     ))}
                                                 </select>
                                             </div>
-                                        </td>
-                                    </tr>
-                                    <tr className="border-b border-[#e5e7eb]">
-                                        <td className="bg-[#f9fafb] px-3 py-2.5 text-[#6b7280]">实名认证</td>
-                                        <td colSpan={3} className="px-3 py-2">
-                                            <select
-                                                value={String(editForm.verifyStatus)}
-                                                onChange={(e) => setEditForm({ ...editForm, verifyStatus: Number(e.target.value) })}
-                                                className="w-full rounded border border-[#d1d5db] px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
-                                            >
-                                                <option value="0">未认证</option>
-                                                <option value="1">待审核</option>
-                                                <option value="2">已认证</option>
-                                                <option value="3">已拒绝</option>
-                                            </select>
                                         </td>
                                     </tr>
                                     <tr className="border-b border-[#e5e7eb]">
