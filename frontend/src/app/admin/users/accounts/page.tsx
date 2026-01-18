@@ -51,7 +51,8 @@ interface BuyerAccount {
 const getPlatformImages = (platform: string) => {
     const platformId = PLATFORM_NAME_MAP[platform] || platform?.toLowerCase();
     const config = PLATFORM_CONFIG[platformId];
-    if (config?.requiredImages) {
+    // 检查数组长度，空数组也应该使用默认配置
+    if (config?.requiredImages && config.requiredImages.length > 0) {
         return config.requiredImages;
     }
     // 默认返回通用配置
