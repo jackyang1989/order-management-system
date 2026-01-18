@@ -10,7 +10,7 @@ export class AddPlatformImageRequirements1768707488442 implements MigrationInter
                 "platformId" UUID NOT NULL,
                 key VARCHAR(50) NOT NULL,
                 label VARCHAR(100) NOT NULL,
-                "exampleImagePath" VARCHAR(500),
+                "exampleImagePath" TEXT,
                 "pathHint" TEXT,
                 required BOOLEAN DEFAULT true,
                 "sortOrder" INTEGER DEFAULT 0,

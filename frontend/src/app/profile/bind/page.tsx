@@ -52,7 +52,7 @@ function ImageUploader({
 
     return (
         <div className="space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 flex-wrap">
                 <label className="text-xs font-bold text-slate-500">
                     {config.label} {config.required && <span className="text-danger-400">*</span>}
                 </label>
