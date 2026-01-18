@@ -90,6 +90,7 @@ export default function PlatformImageConfigPage() {
                         pathHint: editingRequirement.pathHint,
                         required: editingRequirement.required,
                         sortOrder: editingRequirement.sortOrder,
+                        exampleImagePath: editingRequirement.exampleImagePath,
                     }),
                 }
             );
@@ -148,6 +149,7 @@ export default function PlatformImageConfigPage() {
                         pathHint: editingRequirement.pathHint,
                         required: editingRequirement.required,
                         sortOrder: editingRequirement.sortOrder,
+                        exampleImagePath: editingRequirement.exampleImagePath,
                     }),
                 }
             );
@@ -420,9 +422,15 @@ export default function PlatformImageConfigPage() {
                                                             )}
 
                                                             {req.exampleImagePath && (
-                                                                <div className="mt-2 text-sm text-gray-600">
-                                                                    <span className="font-medium">示例图片:</span>{' '}
-                                                                    {req.exampleImagePath}
+                                                                <div className="mt-2 flex items-center gap-2">
+                                                                    <div className="w-16 h-16 border rounded overflow-hidden bg-gray-100">
+                                                                        <img
+                                                                            src={req.exampleImagePath}
+                                                                            alt="示例图缩略图"
+                                                                            className="w-full h-full object-cover"
+                                                                        />
+                                                                    </div>
+                                                                    <span className="text-xs text-gray-500">已上传示例图</span>
                                                                 </div>
                                                             )}
                                                         </div>
