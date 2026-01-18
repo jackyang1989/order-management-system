@@ -6,6 +6,7 @@ import { cn } from '../../lib/utils';
 import { toastSuccess, toastError } from '../../lib/toast';
 import { BASE_URL } from '../../../apiConfig';
 import { getRegistrationConfig } from '../../services/authService';
+import { getProvinces, getCities, getDistricts } from '../../data/chinaRegions';
 
 function RegisterForm() {
     const router = useRouter();
@@ -27,10 +28,18 @@ function RegisterForm() {
         invitationCode: '',
         password: '',
         confirmPassword: '',
+        province: '',
+        city: '',
+        district: '',
     });
 
     const phoneReg = /^1[3-9]\d{9}$/;
     const passWordReg = /^[a-zA-Z0-9_-]{6,16}$/;
+
+    // 地区数据
+    const provinces = getProvinces();
+    const cities = form.province ? getCities(form.province) : [];
+    const districts = form.province && form.city ? getDistricts(form.province, form.city) : [];
 
     useEffect(() => {
         // 检查注册配置
@@ -102,6 +111,7 @@ function RegisterForm() {
         if (!form.phone) { toastError('手机号不能为空'); return; }
         if (!phoneReg.test(form.phone)) { toastError('手机号格式不正确'); return; }
         if (!form.smsCode) { toastError('短信验证码不能为空'); return; }
+        if (!form.province || !form.city || !form.district) { toastError('请选择所在地区'); return; }
         if (!form.password) { toastError('请输入密码'); return; }
         if (!passWordReg.test(form.password)) { toastError('密码格式不正确'); return; }
         if (form.password !== form.confirmPassword) { toastError('两次密码不一致'); return; }
@@ -118,6 +128,9 @@ function RegisterForm() {
                     wechat: form.wechat || '',
                     invitationCode: form.invitationCode,
                     smsCode: form.smsCode,
+                    province: form.province,
+                    city: form.city,
+                    district: form.district,
                 }),
             });
             const data = await response.json();
@@ -258,6 +271,46 @@ function RegisterForm() {
                             value={form.invitationCode}
                             onChange={(e) => updateField('invitationCode', e.target.value)}
                         />
+                    </div>
+
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">所在地区</label>
+                        <div className="grid grid-cols-3 gap-2">
+                            <select
+                                className="w-full rounded-lg border border-slate-300 px-3 py-3 text-base focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                value={form.province}
+                                onChange={(e) => {
+                                    updateField('province', e.target.value);
+                                    updateField('city', '');
+                                    updateField('district', '');
+                                }}
+                            >
+                                <option value="">省份</option>
+                                {provinces.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                            </select>
+                            <select
+                                className="w-full rounded-lg border border-slate-300 px-3 py-3 text-base focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                value={form.city}
+                                onChange={(e) => {
+                                    updateField('city', e.target.value);
+                                    updateField('district', '');
+                                }}
+                                disabled={!form.province}
+                            >
+                                <option value="">城市</option>
+                                {cities.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                            </select>
+                            <select
+                                className="w-full rounded-lg border border-slate-300 px-3 py-3 text-base focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                value={form.district}
+                                onChange={(e) => updateField('district', e.target.value)}
+                                disabled={!form.city}
+                            >
+                                <option value="">区县</option>
+                                {districts.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                            </select>
+                        </div>
+                        <p className="mt-1 text-xs text-slate-500">用于匹配您所在地区的任务</p>
                     </div>
 
                     <div>

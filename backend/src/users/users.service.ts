@@ -148,6 +148,9 @@ export class UsersService {
       invitedBy: invitedBy,
       note: createUserDto.note || '',
       userNo,
+      province: createUserDto.province || '',
+      city: createUserDto.city || '',
+      district: createUserDto.district || '',
     });
 
     const savedUser = await this.usersRepository.save(newUser);

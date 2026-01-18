@@ -30,13 +30,11 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         name: '淘宝',
         accountLabel: '淘宝账号',
         accountPlaceholder: '请输入您的淘宝账号',
-        hasLoginLocation: true,
-        hasAddress: true,
+        hasLoginLocation: false,
+        hasAddress: false,
         hasRealName: true,
         hasSmsVerification: false,
         tips: [
-            '淘宝账号必须与常用登录地一致，否则审核不通过',
-            '收货地址需真实有效，用于商家发货',
             '所有截图需清晰完整，模糊或不完整将被拒绝',
             '审核通过后方可使用该买号接单'
         ],
@@ -54,12 +52,11 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         accountLabel: '拼多多账号',
         accountPlaceholder: '请输入拼多多账号或绑定手机号',
         hasLoginLocation: false,
-        hasAddress: true,
+        hasAddress: false,
         hasRealName: true,
         hasSmsVerification: false,
         tips: [
             '拼多多账号即登录手机号',
-            '需绑定真实收货地址',
             '截图需显示完整的账号信息'
         ],
         requiredImages: [
@@ -74,12 +71,11 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         accountLabel: '京东账号',
         accountPlaceholder: '请输入京东账号或手机号',
         hasLoginLocation: false,
-        hasAddress: true,
+        hasAddress: false,
         hasRealName: true,
         hasSmsVerification: false,
         tips: [
             '京东账号需完成实名认证',
-            '收货地址需真实有效',
             '京东Plus会员优先'
         ],
         requiredImages: [
@@ -113,7 +109,7 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         accountLabel: '抖音号',
         accountPlaceholder: '请输入抖音号',
         hasLoginLocation: false,
-        hasAddress: true,
+        hasAddress: false,
         hasRealName: true,
         hasSmsVerification: false,
         tips: [
@@ -131,7 +127,7 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         accountLabel: '快手ID',
         accountPlaceholder: '请输入快手ID',
         hasLoginLocation: false,
-        hasAddress: true,
+        hasAddress: false,
         hasRealName: true,
         hasSmsVerification: false,
         tips: [
@@ -149,12 +145,11 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         accountLabel: '1688账号',
         accountPlaceholder: '请输入1688账号',
         hasLoginLocation: false,
-        hasAddress: true,
+        hasAddress: false,
         hasRealName: true,
         hasSmsVerification: false,
         tips: [
-            '1688账号需企业认证或个人认证',
-            '收货地址需真实有效'
+            '1688账号需企业认证或个人认证'
         ],
         requiredImages: [
             { key: 'profileImg', label: '1688账号主页截图', example: '/examples/1688-profile.jpg', required: true },
@@ -168,7 +163,7 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         accountLabel: '小红书号',
         accountPlaceholder: '请输入小红书号',
         hasLoginLocation: false,
-        hasAddress: true,
+        hasAddress: false,
         hasRealName: true,
         hasSmsVerification: false,
         tips: [
@@ -187,7 +182,7 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         accountLabel: '小红书号',
         accountPlaceholder: '请输入小红书号',
         hasLoginLocation: false,
-        hasAddress: true,
+        hasAddress: false,
         hasRealName: true,
         hasSmsVerification: false,
         tips: [
@@ -206,12 +201,11 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         accountLabel: '1688账号',
         accountPlaceholder: '请输入1688账号',
         hasLoginLocation: false,
-        hasAddress: true,
+        hasAddress: false,
         hasRealName: true,
         hasSmsVerification: false,
         tips: [
-            '1688账号需企业认证或个人认证',
-            '收货地址需真实有效'
+            '1688账号需企业认证或个人认证'
         ],
         requiredImages: [
             { key: 'profileImg', label: '1688账号主页截图', example: '/examples/1688-profile.jpg', required: true },
@@ -225,13 +219,11 @@ export const PLATFORM_CONFIG: Record<string, PlatformConfig> = {
         name: '天猫',
         accountLabel: '天猫账号',
         accountPlaceholder: '请输入您的天猫账号',
-        hasLoginLocation: true,
-        hasAddress: true,
+        hasLoginLocation: false,
+        hasAddress: false,
         hasRealName: true,
         hasSmsVerification: false,
         tips: [
-            '天猫账号必须与常用登录地一致，否则审核不通过',
-            '收货地址需真实有效，用于商家发货',
             '所有截图需清晰完整，模糊或不完整将被拒绝',
             '审核通过后方可使用该买号接单'
         ],

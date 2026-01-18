@@ -130,6 +130,16 @@ export class User {
   @Column({ type: 'boolean', default: true })
   canReferFriends: boolean; // 是否允许推荐好友
 
+  // ============ 用户所在地区 ============
+  @Column({ nullable: true })
+  province: string; // 省份
+
+  @Column({ nullable: true })
+  city: string; // 城市
+
+  @Column({ nullable: true })
+  district: string; // 区县
+
   // ============ P1-1: VIP过期检查相关 ============
   @Column({ type: 'varchar', length: 10, nullable: true })
   lastVipCheckAt: string; // 最后VIP检查日期 (YYYY-MM-DD)，用于避免每天重复降级
@@ -161,6 +171,19 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   wechat?: string;
+
+  // 用户所在地区
+  @IsString()
+  @IsOptional()
+  province?: string;
+
+  @IsString()
+  @IsOptional()
+  city?: string;
+
+  @IsString()
+  @IsOptional()
+  district?: string;
 
   // 管理员创建时可指定的额外字段
   @IsOptional()
