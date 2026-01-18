@@ -133,6 +133,10 @@ export class BuyerAccount {
   @Column({ type: 'text', nullable: true })
   pendingAddressChange?: string; // 待审核的地址修改 (JSON)
 
+  // 管理员备注
+  @Column({ type: 'text', nullable: true })
+  remark?: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

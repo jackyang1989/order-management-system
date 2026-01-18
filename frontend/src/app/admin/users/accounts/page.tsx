@@ -38,6 +38,7 @@ interface BuyerAccount {
     payAuthImg?: string;      // 支付宝实名截图/实名认证截图
     scoreImg?: string;        // 芝麻信用截图(淘宝/天猫)
     addressRemark?: string;
+    remark?: string;          // 管理员备注
     star: number;
     status: number;
     rejectReason?: string;
@@ -97,6 +98,10 @@ function AdminBuyerAccountsPageContent() {
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [batchLoading, setBatchLoading] = useState(false);
     const [imageModal, setImageModal] = useState<string | null>(null);
+
+    // 备注弹窗状态
+    const [remarkModal, setRemarkModal] = useState<{ accountId: string; platformAccount: string; currentRemark: string } | null>(null);
+    const [remarkText, setRemarkText] = useState('');
 
     // 列设置面板状态
     const [showColumnSettings, setShowColumnSettings] = useState(false);
@@ -322,6 +327,32 @@ function AdminBuyerAccountsPageContent() {
         } catch { alert('操作失败'); }
     }, [loadAccounts]);
 
+    // 保存备注
+    const handleUpdateRemark = useCallback(async () => {
+        if (!remarkModal) return;
+        try {
+            const res = await fetch(`${BASE_URL}/admin/buyer-accounts/${remarkModal.accountId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getToken()}`
+                },
+                body: JSON.stringify({ remark: remarkText })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('备注已更新');
+                setRemarkModal(null);
+                setRemarkText('');
+                loadAccounts();
+            } else {
+                alert(data.message || '操作失败');
+            }
+        } catch {
+            alert('操作失败');
+        }
+    }, [remarkModal, remarkText, loadAccounts]);
+
     const openEditModal = useCallback((a: BuyerAccount) => {
         setEditForm({
             platformAccount: a.platformAccount || '',
@@ -410,13 +441,13 @@ function AdminBuyerAccountsPageContent() {
         {
             key: 'images',
             title: '资质截图',
-            defaultWidth: 200,
+            defaultWidth: 120,
             headerClassName: 'text-center',
             cellClassName: 'text-center',
             render: (row) => {
                 const displayImages = getDisplayImages(row);
                 return (
-                    <div className="flex flex-wrap gap-1 justify-center">
+                    <div className="flex flex-nowrap gap-1 justify-center">
                         {displayImages.slice(0, 2).map(img => (
                             img.url ? (
                                 <Image
@@ -424,9 +455,9 @@ function AdminBuyerAccountsPageContent() {
                                     src={img.url}
                                     alt={img.label}
                                     title={img.label}
-                                    width={60}
-                                    height={50}
-                                    className="h-[50px] w-[60px] cursor-pointer rounded border border-[#e5e7eb] object-cover"
+                                    width={36}
+                                    height={36}
+                                    className="h-9 w-9 cursor-pointer rounded border border-[#e5e7eb] object-cover"
                                     onClick={() => setImageModal(img.url!)}
                                     unoptimized
                                 />
@@ -434,7 +465,7 @@ function AdminBuyerAccountsPageContent() {
                         ))}
                         {displayImages.length > 2 && (
                             <div
-                                className="flex h-[50px] w-[40px] cursor-pointer items-center justify-center rounded border border-dashed border-[#d1d5db] text-xs text-[#9ca3af]"
+                                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded border border-dashed border-[#d1d5db] text-xs text-[#9ca3af]"
                                 onClick={() => openEditModal(row)}
                             >
                                 +{displayImages.length - 2}
