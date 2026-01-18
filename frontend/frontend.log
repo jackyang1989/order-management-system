@@ -57,3 +57,4 @@
  GET /profile/buyer-accounts 200 in 22ms (compile: 4ms, render: 19ms)
  GET /profile/buyer-accounts 200 in 20ms (compile: 4ms, render: 15ms)
  GET /profile/bind 200 in 21ms (compile: 4ms, render: 17ms)
+[?25h

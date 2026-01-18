@@ -12,11 +12,18 @@ import {
 import { AdminConfigService } from './admin-config.service';
 import { SystemConfig } from './config.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { PlatformImageRequirementService } from './platform-image-requirement.service';
+import { CreateImageRequirementDto, UpdateImageRequirementDto } from './platform-image-requirement.entity';
+import { PlatformService } from './platform.service';
 
 @Controller('admin/config')
 @UseGuards(JwtAuthGuard)
 export class AdminConfigController {
-    constructor(private readonly configService: AdminConfigService) { }
+    constructor(
+        private readonly configService: AdminConfigService,
+        private readonly imageRequirementService: PlatformImageRequirementService,
+        private readonly platformService: PlatformService,
+    ) { }
 
     /**
      * 获取所有配置（按分组）
@@ -244,6 +251,87 @@ export class SystemConfigPublicController {
         return {
             success: true,
             data,
+        };
+    }
+
+    // ==================== 平台截图配置管理 ====================
+
+    /**
+     * 获取所有平台及其截图配置
+     */
+    @Get('platforms/image-requirements')
+    async getAllPlatformsWithRequirements() {
+        const platforms = await this.platformService.findAll();
+        const result = [];
+
+        for (const platform of platforms) {
+            const requirements = await this.imageRequirementService.findByPlatform(platform.id);
+            result.push({
+                platformId: platform.id,
+                platformCode: platform.code,
+                platformName: platform.name,
+                requirements,
+            });
+        }
+
+        return {
+            success: true,
+            data: result,
+        };
+    }
+
+    /**
+     * 获取指定平台的截图配置
+     */
+    @Get('platforms/:platformId/image-requirements')
+    async getPlatformImageRequirements(@Param('platformId') platformId: string) {
+        const requirements = await this.imageRequirementService.findByPlatform(platformId);
+        return {
+            success: true,
+            data: requirements,
+        };
+    }
+
+    /**
+     * 创建截图配置
+     */
+    @Post('platforms/:platformId/image-requirements')
+    async createImageRequirement(
+        @Param('platformId') platformId: string,
+        @Body() dto: CreateImageRequirementDto,
+    ) {
+        dto.platformId = platformId; // 确保platformId正确
+        const requirement = await this.imageRequirementService.create(dto);
+        return {
+            success: true,
+            data: requirement,
+        };
+    }
+
+    /**
+     * 更新截图配置
+     */
+    @Put('image-requirements/:id')
+    async updateImageRequirement(
+        @Param('id') id: string,
+        @Body() dto: UpdateImageRequirementDto,
+    ) {
+        const requirement = await this.imageRequirementService.update(id, dto);
+        return {
+            success: true,
+            data: requirement,
+        };
+    }
+
+    /**
+     * 删除截图配置
+     */
+    @Delete('image-requirements/:id')
+    async deleteImageRequirement(@Param('id') id: string) {
+        await this.imageRequirementService.delete(id);
+        return {
+            success: true,
+            message: '删除成功',
         };
     }
 }
