@@ -15,6 +15,7 @@ import {
 } from "../../../../../services/buyerAccountService";
 import { getProvinces, getCities, getDistricts } from "../../../../../data/chinaRegions";
 import { PLATFORM_CONFIG, PLATFORM_NAME_MAP, PlatformConfig, PlatformImageConfig } from "../../../../../constants/platformConfig";
+import { cn } from "../../../../../lib/utils";
 
 // 复用图片上传组件逻辑
 function ImageUploader({
@@ -52,44 +53,61 @@ function ImageUploader({
 
     return (
         <div className="space-y-2">
-            <div className="flex items-center justify-between">
-                <label className="text-xs text-slate-500">
+            <div className="flex items-center gap-2 flex-wrap">
+                <label className="text-xs font-bold text-slate-500">
                     {config.label} {config.required && <span className="text-danger-400">*</span>}
                 </label>
                 {config.example && (
-                    <button type="button" onClick={() => setShowExample(true)} className="text-xs text-primary-500 hover:underline">
+                    <button type="button" onClick={() => setShowExample(true)} className="text-xs font-bold text-primary-600 hover:underline">
                         查看示例
                     </button>
                 )}
             </div>
-            <div className="relative">
+            <div className="relative group">
                 {value ? (
                     <div className="relative inline-block">
-                        <img src={value} alt={config.label} className="h-24 w-24 rounded-lg border border-slate-200 object-cover" />
+                        <img src={value} alt={config.label} className="h-24 w-24 rounded-2xl border-2 border-slate-100 object-cover shadow-sm transition-all group-hover:border-primary-500/50" />
                         <button
                             type="button"
                             onClick={() => onChange('')}
-                            className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-danger-400 text-xs text-white"
+                            className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white shadow-lg transition-transform active:scale-95"
                         >
                             ×
                         </button>
                     </div>
                 ) : (
-                    <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400 hover:border-blue-400 hover:text-primary-500">
-                        {uploading ? <Spinner size="sm" /> : (<><span className="text-2xl">+</span><span className="text-xs">上传图片</span></>)}
-                        <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                    <label className={cn(
+                        "flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400 transition-all hover:bg-slate-100 hover:border-primary-400 hover:text-primary-500",
+                        uploading && "opacity-50 cursor-not-allowed"
+                    )}>
+                        {uploading ? <Spinner size="sm" /> : (<><span className="text-2xl mb-1">+</span><span className="text-xs font-bold">上传图片</span></>)}
+                        <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" disabled={uploading} />
                     </label>
                 )}
             </div>
             {showExample && config.example && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowExample(false)}>
-                    <div className="max-w-sm rounded-lg bg-white p-4" onClick={e => e.stopPropagation()}>
-                        <div className="mb-2 text-sm font-medium text-slate-800">示例图片 - {config.label}</div>
-                        <div className="flex h-64 items-center justify-center rounded-lg bg-slate-100 text-sm text-slate-500">
-                            示例图片加载中...
+                <div className="fixed inset-0 z-[1100] flex cursor-zoom-out items-center justify-center bg-black/90 backdrop-blur-sm" onClick={() => setShowExample(false)}>
+                    <div className="max-w-md rounded-[24px] bg-white p-6" onClick={e => e.stopPropagation()}>
+                        <div className="mb-4 text-base font-bold text-slate-900">示例图片 - {config.label}</div>
+                        <div className="rounded-xl overflow-hidden bg-slate-100">
+                            <img src={config.example} alt={config.label} className="w-full h-auto object-contain" />
                         </div>
-                        <div className="mt-3 text-center">
-                            <button onClick={() => setShowExample(false)} className="rounded-lg bg-primary-500 px-4 py-2 text-sm text-white">关闭</button>
+                        {config.pathHint && (
+                            <div className="mt-4 rounded-xl bg-blue-50 p-3 border border-blue-200">
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                    <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <span className="text-xs font-bold text-blue-800">页面位置</span>
+                                </div>
+                                <div className="text-xs text-blue-700 whitespace-pre-line leading-relaxed">
+                                    {config.pathHint}
+                                </div>
+                            </div>
+                        )}
+                        <div className="mt-6 text-center">
+                            <button onClick={() => setShowExample(false)} className="w-full rounded-xl bg-primary-600 py-3 text-sm font-bold text-white hover:bg-primary-700">关闭</button>
                         </div>
                     </div>
                 </div>
@@ -108,6 +126,9 @@ export default function EditBuynoPage({ params }: { params: Promise<{ id: string
 
     // 平台配置
     const [platformConfig, setPlatformConfig] = useState<PlatformConfig>(PLATFORM_CONFIG.taobao);
+
+    // 动态截图配置 (从后端获取)
+    const [imageRequirements, setImageRequirements] = useState<PlatformImageConfig[]>([]);
 
     // 图片状态 (动态key)
     const [images, setImages] = useState<Record<string, string>>({});
@@ -159,6 +180,17 @@ export default function EditBuynoPage({ params }: { params: Promise<{ id: string
             const platformId = PLATFORM_NAME_MAP[data.platform] || 'taobao';
             const config = PLATFORM_CONFIG[platformId] || PLATFORM_CONFIG.taobao;
             setPlatformConfig(config);
+
+            // 加载动态截图配置
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6006'}/platforms/${platformId}/image-requirements`);
+                const imgData = await res.json();
+                if (imgData.success && imgData.data) {
+                    setImageRequirements(imgData.data);
+                }
+            } catch (err) {
+                console.error('加载截图配置失败:', err);
+            }
 
             setForm({
                 loginProvince: data.loginProvince || '',
@@ -218,8 +250,8 @@ export default function EditBuynoPage({ params }: { params: Promise<{ id: string
         if (platformConfig.hasRealName && !form.realName) {
             return '请输入实名认证姓名';
         }
-        // 验证必传图片
-        for (const img of platformConfig.requiredImages) {
+        // 验证必传图片 - 使用动态配置
+        for (const img of imageRequirements) {
             if (img.required && !images[img.key]) {
                 return `请上传${img.label}`;
             }
@@ -409,16 +441,16 @@ export default function EditBuynoPage({ params }: { params: Promise<{ id: string
                         )}
 
                         {/* 动态图片上传区 */}
-                        {platformConfig.requiredImages.length > 0 && (
+                        {imageRequirements.length > 0 && (
                             <>
                                 <div className="border-t border-slate-200 pt-4">
                                     <div className="mb-3 text-sm font-medium text-slate-700">
-                                        资质截图（{platformConfig.requiredImages.filter(i => i.required).length}张必传）
+                                        资质截图（{imageRequirements.filter(i => i.required).length}张必传）
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
-                                    {platformConfig.requiredImages.map(imgConfig => (
+                                    {imageRequirements.map(imgConfig => (
                                         <ImageUploader
                                             key={imgConfig.key}
                                             config={imgConfig}
