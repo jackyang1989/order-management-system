@@ -60,6 +60,7 @@ import { CommissionRate } from './admin-config/commission-rate.entity';
 import { SystemConfig } from './admin-config/config.entity';
 import { DeliveryWarehouse } from './admin-config/delivery-warehouse.entity';
 import { Platform } from './admin-config/platform.entity';
+import { PlatformImageRequirement } from './admin-config/platform-image-requirement.entity';
 import { TablePreference } from './admin-config/table-preferences.entity';
 import { EntryType } from './admin-config/entry-type.entity';
 // admin-menus
@@ -158,6 +159,7 @@ const ENTITIES = [
   SystemConfig,
   DeliveryWarehouse,
   Platform,
+  PlatformImageRequirement,
   TablePreference,
   EntryType,
   // admin-menus

@@ -47,7 +47,7 @@ export class PlatformImageRequirementService {
   /**
    * 更新截图配置
    */
-  async update(id: string, dto: UpdateImageRequirementDto): Promise<PlatformImageRequirement> {
+  async update(id: string, dto: UpdateImageRequirementDto): Promise<PlatformImageRequirement | null> {
     await this.imageRequirementRepository.update(id, dto);
     return this.imageRequirementRepository.findOne({ where: { id } });
   }
@@ -62,7 +62,7 @@ export class PlatformImageRequirementService {
   /**
    * 更新示例图片路径
    */
-  async updateExampleImage(id: string, imagePath: string): Promise<PlatformImageRequirement> {
+  async updateExampleImage(id: string, imagePath: string): Promise<PlatformImageRequirement | null> {
     await this.imageRequirementRepository.update(id, { exampleImagePath: imagePath });
     return this.imageRequirementRepository.findOne({ where: { id } });
   }

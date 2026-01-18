@@ -47,3 +47,13 @@
  GET /admin/users/accounts 200 in 101ms (compile: 74ms, render: 27ms)
 ✓ Compiled in 63ms
 ✓ Compiled in 41ms
+ GET /admin/users 200 in 29ms (compile: 8ms, render: 20ms)
+ GET /admin/users/balance 200 in 53ms (compile: 41ms, render: 12ms)
+ GET /admin/users 200 in 14ms (compile: 3ms, render: 11ms)
+✓ Compiled in 185ms
+ GET /profile/bind 200 in 109ms (compile: 63ms, render: 46ms)
+ GET /profile/buyer-accounts 200 in 47ms (compile: 37ms, render: 11ms)
+ GET /profile/bind 200 in 10ms (compile: 3ms, render: 7ms)
+ GET /profile/buyer-accounts 200 in 22ms (compile: 4ms, render: 19ms)
+ GET /profile/buyer-accounts 200 in 20ms (compile: 4ms, render: 15ms)
+ GET /profile/bind 200 in 21ms (compile: 4ms, render: 17ms)

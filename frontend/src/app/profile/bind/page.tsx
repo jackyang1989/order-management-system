@@ -91,6 +91,20 @@ function ImageUploader({
                         <div className="flex h-64 items-center justify-center rounded-xl bg-slate-100 text-sm font-medium text-slate-400">
                             示例图片加载中...
                         </div>
+                        {config.pathHint && (
+                            <div className="mt-4 rounded-xl bg-blue-50 p-3 border border-blue-200">
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                    <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <span className="text-xs font-bold text-blue-800">页面位置</span>
+                                </div>
+                                <div className="text-xs text-blue-700 whitespace-pre-line leading-relaxed">
+                                    {config.pathHint}
+                                </div>
+                            </div>
+                        )}
                         <div className="mt-6 text-center">
                             <button onClick={() => setShowExample(false)} className="w-full rounded-xl bg-primary-600 py-3 text-sm font-bold text-white hover:bg-primary-700">关闭</button>
                         </div>
