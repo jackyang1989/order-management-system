@@ -64,6 +64,12 @@ export class AuthService {
       throw new UnauthorizedException('手机号/用户ID或密码错误');
     }
 
+    // 检查封禁状态
+    if (user.isBanned) {
+      const reason = user.banReason ? `：${user.banReason}` : '';
+      throw new ForbiddenException(`账号已被封禁${reason}`);
+    }
+
     const payload = {
       sub: user.id,
       userNo: user.userNo,
@@ -186,6 +192,12 @@ export class AuthService {
 
     if (!verifyResult.success) {
       throw new UnauthorizedException(verifyResult.message);
+    }
+
+    // 检查封禁状态
+    if (user.isBanned) {
+      const reason = user.banReason ? `：${user.banReason}` : '';
+      throw new ForbiddenException(`账号已被封禁${reason}`);
     }
 
     // 生成 JWT
