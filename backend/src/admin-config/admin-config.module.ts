@@ -10,6 +10,8 @@ import { Platform } from './platform.entity';
 import { PlatformService } from './platform.service';
 import { PlatformController } from './platform.controller';
 import { PlatformPublicController } from './platform-public.controller';
+import { PlatformImageRequirement } from './platform-image-requirement.entity';
+import { PlatformImageRequirementService } from './platform-image-requirement.service';
 import { EntryType } from './entry-type.entity';
 import { EntryTypeService } from './entry-type.service';
 import { EntryTypeController } from './entry-type.controller';
@@ -29,6 +31,7 @@ import { TablePreferencesController } from './table-preferences.controller';
             SystemConfig,
             CommissionRate,
             Platform,
+            PlatformImageRequirement,
             EntryType,
             DeliveryWarehouse,
             TablePreference,
@@ -50,6 +53,7 @@ import { TablePreferencesController } from './table-preferences.controller';
         AdminConfigService,
         CommissionRateService,
         PlatformService,
+        PlatformImageRequirementService,
         EntryTypeService,
         DeliveryWarehouseService,
         TablePreferencesService,
@@ -58,6 +62,7 @@ import { TablePreferencesController } from './table-preferences.controller';
         AdminConfigService,
         CommissionRateService,
         PlatformService,
+        PlatformImageRequirementService,
         EntryTypeService,
         DeliveryWarehouseService,
         TablePreferencesService,
